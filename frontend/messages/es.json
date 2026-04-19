@@ -1,0 +1,280 @@
+{
+  "site": {
+    "name": "Hola Política",
+    "motto": "Espejo, no megáfono.",
+    "tagline": "Las leyes las votan nuestros representantes. Esta herramienta muestra cómo.",
+    "description": "Herramienta cívica para seguir qué vota el Congreso de los Diputados. Quién propone cada ley, quién vota a favor o en contra, clasificado por tema. Sin interpretación política."
+  },
+  "nav_brand": {
+    "home": "Inicio"
+  },
+  "nav": {
+    "votes": "Votaciones",
+    "persons": "Diputados",
+    "groups": "Grupos",
+    "topics": "Temas",
+    "stats": "Estadísticas",
+    "about": "Sobre",
+    "newsletter": "Newsletter",
+    "notifications": "Notificaciones"
+  },
+  "notifications": {
+    "eyebrow": "Canal de notificaciones",
+    "title": "Notificaciones en el navegador",
+    "lede": "Recibe un aviso en tu navegador (o móvil con la web instalada) cada vez que llegue un nuevo voto relacionado con un tema que sigues. Solo datos factuales: título del voto y enlace a la ficha. Ninguna valoración.",
+    "select_intro": "Elige los temas por los que quieres recibir notificaciones:",
+    "loading": "Comprobando el estado del navegador…",
+    "unsupported": "Tu navegador no admite notificaciones push. Funciona en Chrome, Firefox, Edge y Safari 16.4+ (en iOS solo si la web está instalada en la pantalla de inicio).",
+    "enable_cta": "Activar notificaciones",
+    "apply_cta": "Aplicar cambios",
+    "stop_cta": "Detener notificaciones",
+    "working": "Trabajando…",
+    "msg_enabled": "Notificaciones activadas. Puedes detenerlas en cualquier momento.",
+    "msg_saved": "Preferencias guardadas.",
+    "msg_stopped": "Notificaciones detenidas.",
+    "msg_denied": "El navegador no nos ha dado permiso para enviar notificaciones.",
+    "msg_resubscribe": "La suscripción ha caducado en el servidor. Vuelve a activarla para seguir recibiendo avisos.",
+    "msg_error": "Error: {reason}",
+    "compat_title": "Compatibilidad",
+    "compat_body": "Funciona en Chrome, Firefox y Edge en escritorio y Android. En iPhone y iPad solo funciona si añades Hola Política a la pantalla de inicio (Safari → Compartir → Añadir a la pantalla de inicio) y tienes iOS 16.4 o superior.",
+    "privacy_title": "Privacidad",
+    "privacy_body": "No pedimos tu correo ni ningún dato personal. La suscripción es anónima: el navegador nos da una URL única que solo sirve para enviarte los avisos. Puedes detenerlas en cualquier momento desde esta página o desde el panel de notificaciones del navegador."
+  },
+  "topics": {
+    "title": "Temas",
+    "subtitle": "Taxonomía temática que utilizamos para clasificar las iniciativas. Cuando el clasificador automático esté activo, cada tema mostrará las votaciones relacionadas."
+  },
+  "about": {
+    "title": "Sobre el proyecto",
+    "why_title": "Por qué esta herramienta",
+    "why_body": "En las democracias representativas, los ciudadanos no votamos directamente las leyes: delegamos esa decisión en las personas que elegimos cada cuatro años. El pacto funciona si podemos ver qué hacen nuestros representantes con el mandato: qué leyes aprueban, cuáles rechazan, quién las propone, cómo vota cada grupo. Esta plataforma centraliza esa información en un único lugar, abierta y descargable, para que cualquier ciudadano o periodista pueda seguirla sin navegar por portales oficiales dispersos.",
+    "mission_title": "Qué es Hola Política",
+    "mission_body": "Plataforma cívica abierta que centraliza las votaciones, iniciativas y actividad parlamentaria de las cámaras españolas. Permite a periodistas y ciudadanía consultar qué ha votado cada diputado o grupo, sin intermediarios ni interpretación política.",
+    "principle_title": "Principio: espejo, no megáfono",
+    "principle_body": "El proyecto es infraestructura cívica neutra. No emite opiniones ni valoraciones sobre las votaciones: sólo datos verificables. Las métricas comparativas entre grupos o diputados siempre se muestran completas (todas las parejas, los dos extremos del rango) para evitar narrativas unilaterales.",
+    "coverage_title": "Cobertura",
+    "coverage_phase1": "Fase 1 — Congreso de los Diputados (XV legislatura) — activo.",
+    "coverage_phase2": "Fase 2 — Parlament de Catalunya — próximamente.",
+    "coverage_phase3": "Fase 3 — Pleno del Consejo Municipal de Barcelona — próximamente.",
+    "licence_title": "Licencia y contribución",
+    "licence_body": "Código bajo EUPL-1.2. Datos bajo CC-BY 4.0. El proyecto es open source y las contribuciones son bienvenidas.",
+    "api_title": "API pública",
+    "api_intro": "Toda la información que ves aquí está disponible para periodistas, investigadores y la ciudadanía a través de una API REST documentada. Sin claves, sin registro, sin límites arbitrarios. Los datos se publican bajo CC-BY 4.0.",
+    "api_docs_label": "Documentación interactiva (Swagger UI)",
+    "api_redoc_label": "Documentación alternativa (ReDoc)",
+    "api_openapi_label": "Especificación OpenAPI (JSON, legible por máquina)",
+    "api_dump_title": "Volcados masivos en JSON",
+    "api_dump_intro": "Para análisis académico y periodismo de datos, exponemos endpoints de volcado que devuelven un dataset completo en una sola petición:",
+    "api_dump_deputies": "Diputados activos de una legislatura con su grupo y circunscripción.",
+    "api_dump_votes": "Todas las votaciones de una legislatura con los resultados agregados (Sí/No/Abst/Ausente). Filtro opcional por fechas.",
+    "api_dump_vote_records": "Voto individual de cada diputado en UNA votación concreta (se pasa el identificador). Se separa para evitar descargas de cientos de miles de registros en una sola petición.",
+    "api_dump_initiatives": "Todas las iniciativas de una legislatura con su clasificación temática.",
+    "api_rate_limit_title": "Cuotas",
+    "api_rate_limit_body": "Sin límites duros hoy. Pedimos a los consumidores mantener un ritmo razonable. Para cargas masivas recurrentes o uso académico intensivo, contáctanos para coordinar copias de volcados periódicos.",
+    "glossary_title": "Qué significa cada cosa",
+    "glossary_intro": "El lenguaje parlamentario es técnico. Aquí tienes los términos que verás más a menudo, en lenguaje llano.",
+    "glossary_terms": [
+      {
+        "term": "Proyecto de Ley",
+        "definition": "Ley propuesta por el Gobierno. Si se aprueba, se convierte en ley vigente. Es la vía principal por la que el Gobierno legisla."
+      },
+      {
+        "term": "Proposición de Ley",
+        "definition": "Ley propuesta por un grupo parlamentario (no por el Gobierno). Si se aprueba, se convierte en ley vigente."
+      },
+      {
+        "term": "Proposición no de Ley (PNL)",
+        "definition": "Propuesta NO vinculante. Pide al Gobierno que haga algo, pero no cambia la ley. Si se aprueba, es un mandato político sin fuerza legal directa. Son las votaciones más frecuentes en el pleno."
+      },
+      {
+        "term": "Real Decreto-ley (RDL)",
+        "definition": "Norma con fuerza de ley dictada por el Gobierno por urgencia. El Congreso debe convalidarla (aceptarla) o derogarla (anularla) en 30 días."
+      },
+      {
+        "term": "Moción consecuencia de interpelación",
+        "definition": "Tras una pregunta urgente al Gobierno (interpelación), un grupo puede presentar una moción pidiendo una posición concreta. Vinculante políticamente, no jurídicamente."
+      },
+      {
+        "term": "Convalidación / Derogación",
+        "definition": "Decisión del Congreso sobre un RDL del Gobierno: convalidar es aceptarlo, derogar es anularlo."
+      },
+      {
+        "term": "Cohesión interna",
+        "definition": "% de miembros de un grupo que votan igual. Una cohesión del 100% significa disciplina total de voto; números más bajos, más votaciones cruzadas."
+      },
+      {
+        "term": "Coincidencia entre grupos",
+        "definition": "% de votaciones donde dos grupos votaron el mismo sentido (Sí, No o Abstención)."
+      }
+    ]
+  },
+  "groups": {
+    "title": "Grupos parlamentarios",
+    "subtitle": "{count} grupos · {members} diputados activos en total",
+    "members_label": "{count, plural, =0 {Sin miembros activos} =1 {1 miembro} other {# miembros}}"
+  },
+  "group": {
+    "members_label": "Miembros",
+    "members_title": "Composición",
+    "no_members": "Este grupo no tiene miembros activos.",
+    "show_rest": "Muestra los {count} restantes",
+    "hide_rest": "Oculta",
+    "founded_label": "Fundación",
+    "scope_label": "Ámbito",
+    "website": "Web oficial",
+    "wikipedia": "Wikipedia",
+    "civic_mark_caption": "Identificador visual neutral. No utilizamos el logo oficial."
+  },
+  "home": {
+    "eyebrow": "Open data del Congreso de los Diputados",
+    "hero_title": "Qué vota el Congreso.\nClasificado por tema.",
+    "hero_subtitle": "Por cada votación en pleno: quién la propone, cómo vota cada diputado y grupo parlamentario, y qué leyes vienen a continuación. Todo en abierto, descargable, sin filtros editoriales.",
+    "why_link": "Por qué esta herramienta →",
+    "cta_explore": "Explora las votaciones →",
+    "cta_subscribe": "Suscríbete a la newsletter",
+    "trust_no_trackers": "Sin rastreadores",
+    "trust_licence": "EUPL-1.2 / CC-BY 4.0",
+    "trust_api": "API pública",
+    "trust_gdpr": "RGPD-friendly",
+    "week_eyebrow": "Esta semana en el Congreso",
+    "week_subtitle": "votaciones en pleno",
+    "week_breakdown": "{sessions} sesiones · {initiatives} iniciativas",
+    "week_methodology_link": "Metodología →",
+    "week_caveat": "Datos extraídos del portal de Open Data del Congreso · actualizado 24h después de cada sesión plenaria.",
+    "coverage_title": "Cobertura",
+    "coverage_active_deputies": "Diputados activos",
+    "coverage_active_deputies_sub": "XV legislatura",
+    "coverage_votes_ingested": "Votaciones ingeridas",
+    "coverage_votes_ingested_sub": "desde agosto 2023",
+    "coverage_classified": "Iniciativas clasificadas",
+    "coverage_classified_sub": "automáticamente, por tema",
+    "coverage_phase": "Cobertura",
+    "coverage_phase_value": "Fase 1",
+    "coverage_phase_sub": "Congreso · Cat. próx. · BCN próx.",
+    "latest_title": "Últimas votaciones en pleno",
+    "latest_subtitle": "Orden cronológico inverso · sin selección editorial",
+    "latest_see_all": "ver todas →",
+    "upcoming_title": "Próximas votaciones",
+    "upcoming_subtitle": "Próximo orden del día",
+    "upcoming_empty": "Aún no tenemos el orden del día ingerido. La próxima sesión plenaria aparecerá aquí cuando esté disponible.",
+    "upcoming_caveat": "Las votaciones programadas pueden cancelarse o aplazarse. Consulta la web del Congreso para confirmación."
+  },
+  "votes": {
+    "title": "Votaciones",
+    "subtitle": "Todos los registros · Congreso de los Diputados · XV leg.",
+    "records_count": "{count} registros",
+    "filters": {
+      "topic": "Tema",
+      "proposing_group": "Grupo proponente",
+      "proposing_government": "Gobierno (Proyectos de Ley y RDL)",
+      "result": "Resultado",
+      "type": "Tipo de iniciativa",
+      "date_from": "Desde",
+      "date_to": "Hasta",
+      "search": "Buscar en título o expediente",
+      "all": "Todos",
+      "all_topics": "Todos los temas",
+      "all_groups": "Todos los grupos proponentes",
+      "all_results": "Cualquier resultado",
+      "apply": "Filtrar"
+    },
+    "result": {
+      "approved": "Aprobada",
+      "rejected": "Rechazada",
+      "tie": "Empate"
+    },
+    "no_results": "No se han encontrado votaciones con estos filtros.",
+    "ayes": "Sí",
+    "noes": "No",
+    "abstentions": "Abst.",
+    "absent": "Ausentes",
+    "cohesion_title": "Voto por grupo parlamentario",
+    "cohesion_help": "Cada fila muestra cómo votó cada diputado del grupo. Las barras se dividen en Sí a la izquierda del centro y No a la derecha. Abstenciones y no-votos aparecen como piezas amarillas y grises alrededor.",
+    "cohesion_axis_left": "← más apoyo del grupo",
+    "cohesion_axis_center": "centro = empate interno",
+    "cohesion_axis_right": "más rechazo del grupo →",
+    "cohesion_table_title": "Detalle numérico · Todos los grupos",
+    "cohesion_th_group": "Grupo",
+    "cohesion_th_members": "Mie.",
+    "cohesion_th_discipline": "Disciplina interna",
+    "cohesion_th_cohesion": "Cohesión",
+    "expediente_label": "Núm. expediente",
+    "proposed_by": "Propuesto por",
+    "proposed_by_government": "Gobierno",
+    "totals_label": "Totales · {total} diputados",
+    "majority_caveat": "Para ser aprobada se requería mayoría simple ({needed} votos). Resultado: {ayes} a favor, {noes} en contra. Margen: {margin}.",
+    "plain_summary_title": "Explicación en lenguaje llano",
+    "plain_summary_disclaimer": "Resumen descriptivo generado automáticamente a partir del texto del expediente. No expresa ninguna valoración.",
+    "header_subject_breadcrumb": "Votaciones",
+    "share_card": "Comparte card ↗",
+    "embed_widget": "Embed widget ↗",
+    "download_csv": "Descarga CSV"
+  },
+  "persons": {
+    "title": "Diputados",
+    "subtitle": "{total} personas en la base de datos.",
+    "subtitle_composition": "Composición actual · {total} diputados",
+    "search_placeholder": "Busca por nombre, apellidos o circunscripción",
+    "search_button": "Buscar",
+    "no_results": "Ningún diputado coincide con la búsqueda.",
+    "hemicycle_title": "Hemiciclo · escaños por grupo",
+    "hemicycle_caption": "▲ mesa del Congreso",
+    "directory_title": "Directorio",
+    "members_count": "{count} diputados"
+  },
+  "person": {
+    "born_in": "Nacido/a el",
+    "biography_link": "Biografía oficial",
+    "wikipedia_search": "Buscar en Wikipedia",
+    "mandates_title": "Mandatos",
+    "no_mandates": "No se han registrado mandatos para esta persona.",
+    "mandate_dates": "{from} → {to}",
+    "constituency": "Circunscripción",
+    "list": "Lista electoral"
+  },
+  "topic": {
+    "recent_votes_title": "Votaciones recientes en este área",
+    "total_count": "{count} votaciones clasificadas con este tema hasta ahora.",
+    "no_votes_yet": "Aún no hay votaciones clasificadas en este tema."
+  },
+  "stats": {
+    "title": "Estadísticas",
+    "eyebrow": "Atlas · agregados descriptivos · ninguna métrica unilateral",
+    "intro": "Recuento de iniciativas y votaciones ingeridas en la XV legislatura. La clasificación temática es automática (LLM neutro) — cada cifra muestra la N bruta. La cobertura histórica todavía está en construcción.",
+    "global_view": "Visión global",
+    "global_view_open_hint": "Métricas globales · abiertas por defecto cuando no hay filtro",
+    "global_view_closed_hint": "Métricas globales · plegar/desplegar",
+    "approvals_on_topic": "Aprobaciones sobre {topic}",
+    "approvals_on_topic_caption": "Índice de aprobación de las iniciativas clasificadas bajo este tema. Mostramos el desglose por estado (aprobadas, rechazadas, en trámite, otros) y el porcentaje agregado.",
+    "who_proposes_topic": "Quién propone este tema",
+    "who_proposes_topic_caption": "Top 5 proponentes y las 10 últimas iniciativas presentadas sobre este tema.",
+    "group_activity": "Actividad del grupo {group}",
+    "group_activity_caption": "10 últimas iniciativas propuestas por el grupo y temas dominantes en sus propuestas.",
+    "group_voting_patterns": "Patrones de voto del grupo {group}",
+    "group_voting_patterns_caption": "Destacados de voto que coinciden con este grupo. Mantenemos todos los grupos en el sistema, pero aquí solo mostramos cards relacionadas.",
+    "initiatives_on_topic_by_group": "Iniciativas sobre {topic} por grupo proponente",
+    "initiatives_on_topic_by_group_caption": "Contamos todas las iniciativas clasificadas bajo {topic} según qué grupo las ha presentado. {group} destacado.",
+    "topics_for_group": "Temas que suele proponer {group}",
+    "topics_for_group_caption": "Recuento de iniciativas presentadas por {group}, clasificadas por tema. {topic} destacado.",
+    "joint_initiatives_title": "Iniciativas de {group} sobre {topic}",
+    "joint_initiatives_caption": "Lista cronológica inversa de las iniciativas presentadas por {group} clasificadas bajo {topic}.",
+    "joint_initiatives_found": "{count} iniciativas encontradas.",
+    "joint_initiatives_empty": "Ninguna iniciativa de {group} sobre {topic} en el período registrado.",
+    "joint_initiatives_truncated": "Se muestran las {shown} más recientes de {total}."
+  },
+  "common": {
+    "loading": "Cargando…",
+    "error": "Se ha producido un error",
+    "retry": "Reintentar",
+    "page": "Página",
+    "totals": "Totales",
+    "plain_summary_title": "En llano",
+    "plain_summary_caveat": "Resumen automático por {provider}. Puede contener imprecisiones; el texto legal es la fuente autorizada."
+  },
+  "footer": {
+    "license_code": "Código bajo licencia EUPL-1.2",
+    "license_data": "Datos bajo CC-BY 4.0",
+    "principle": "Este proyecto es infraestructura cívica neutra: facilita datos, no opiniones.",
+    "complementary": "Complementario a Civio."
+  }
+}

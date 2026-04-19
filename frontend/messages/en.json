@@ -1,0 +1,280 @@
+{
+  "site": {
+    "name": "Hola Política",
+    "motto": "Mirror, not megaphone.",
+    "tagline": "Laws are voted by our representatives. This tool shows how.",
+    "description": "Civic tool for tracking what the Spanish Congress votes. Who proposes each law, who votes for or against, classified by topic. No political interpretation."
+  },
+  "nav_brand": {
+    "home": "Home"
+  },
+  "nav": {
+    "votes": "Votes",
+    "persons": "Representatives",
+    "groups": "Groups",
+    "topics": "Topics",
+    "stats": "Stats",
+    "about": "About",
+    "newsletter": "Newsletter",
+    "notifications": "Notifications"
+  },
+  "notifications": {
+    "eyebrow": "Notification channel",
+    "title": "Browser notifications",
+    "lede": "Get a notification in your browser (or mobile, with the site installed) every time a new vote on a topic you follow lands. Factual data only: vote title and a link to its page. No opinion.",
+    "select_intro": "Choose the topics you want to be notified about:",
+    "loading": "Checking browser state…",
+    "unsupported": "Your browser does not support push notifications. Works on Chrome, Firefox, Edge and Safari 16.4+ (on iOS, only when the site is installed to the Home Screen).",
+    "enable_cta": "Enable notifications",
+    "apply_cta": "Apply changes",
+    "stop_cta": "Stop notifications",
+    "working": "Working…",
+    "msg_enabled": "Notifications enabled. You can stop them at any time.",
+    "msg_saved": "Preferences saved.",
+    "msg_stopped": "Notifications stopped.",
+    "msg_denied": "The browser did not grant permission to send notifications.",
+    "msg_resubscribe": "The subscription expired on the server. Enable notifications again to keep receiving alerts.",
+    "msg_error": "Error: {reason}",
+    "compat_title": "Compatibility",
+    "compat_body": "Works on Chrome, Firefox and Edge on desktop and Android. On iPhone and iPad it only works when you add Hola Política to the Home Screen (Safari → Share → Add to Home Screen) and you are on iOS 16.4 or newer.",
+    "privacy_title": "Privacy",
+    "privacy_body": "We do not ask for your email or any personal data. The subscription is anonymous: the browser hands us a unique URL that only serves to send you the alerts. You can stop them at any time from this page or from the browser's notification panel."
+  },
+  "topics": {
+    "title": "Topics",
+    "subtitle": "The topic taxonomy we use to classify initiatives. Once the automatic classifier is active, each topic will show its related votes."
+  },
+  "about": {
+    "title": "About the project",
+    "why_title": "Why this tool",
+    "why_body": "In representative democracies, citizens don't vote directly on laws: we delegate that decision to the people we elect every four years. The compact works if we can see what our representatives do with that mandate — which laws they approve, which they reject, who proposes them, how each group votes. This platform centralises that information in one place, open and downloadable, so any citizen or journalist can follow it without navigating scattered official portals.",
+    "mission_title": "What Hola Política is",
+    "mission_body": "Open civic platform that centralises votes, initiatives and parliamentary activity from Spanish chambers. Lets journalists and citizens see how each representative or group voted, with no intermediaries and no political interpretation.",
+    "principle_title": "Principle: mirror, not megaphone",
+    "principle_body": "The project is neutral civic infrastructure. It issues no opinions or assessments about the votes — only verifiable data. Comparative metrics across groups or representatives are always shown in full (every pair, both ends of the range) to avoid one-sided narratives.",
+    "coverage_title": "Coverage",
+    "coverage_phase1": "Phase 1 — Spanish Congress (XV legislature) — live.",
+    "coverage_phase2": "Phase 2 — Catalan Parliament — coming.",
+    "coverage_phase3": "Phase 3 — Barcelona City Council Plenary — coming.",
+    "licence_title": "Licence and contribution",
+    "licence_body": "Code under EUPL-1.2. Data under CC-BY 4.0. The project is open source and contributions are welcome.",
+    "api_title": "Public API",
+    "api_intro": "Everything you see here is available to journalists, researchers and citizens through a documented REST API. No keys, no signup, no arbitrary limits. Data is published under CC-BY 4.0.",
+    "api_docs_label": "Interactive documentation (Swagger UI)",
+    "api_redoc_label": "Alternative documentation (ReDoc)",
+    "api_openapi_label": "OpenAPI specification (machine-readable JSON)",
+    "api_dump_title": "Bulk JSON dumps",
+    "api_dump_intro": "For academic analysis and data journalism, we expose dump endpoints that return a full dataset in a single request:",
+    "api_dump_deputies": "Active representatives in a legislature with their group and constituency.",
+    "api_dump_votes": "Every vote in a legislature with aggregate counts (Aye/No/Abst/Absent). Optional date range filter.",
+    "api_dump_vote_records": "Each representative's individual vote on ONE specific vote (id passed in). Split out to avoid downloads of hundreds of thousands of records in a single request.",
+    "api_dump_initiatives": "Every initiative in a legislature with its topic classification.",
+    "api_rate_limit_title": "Quotas",
+    "api_rate_limit_body": "No hard limits today. We ask consumers to keep a reasonable pace. For recurring bulk loads or intensive academic use, contact us to coordinate periodic dataset copies.",
+    "glossary_title": "What each term means",
+    "glossary_intro": "Parliamentary language is technical. Here are the terms you'll encounter most often, in plain language.",
+    "glossary_terms": [
+      {
+        "term": "Proyecto de Ley (Government bill)",
+        "definition": "A law proposed by the Government. If approved, it becomes binding law. The main path by which the Government legislates."
+      },
+      {
+        "term": "Proposición de Ley (Parliamentary bill)",
+        "definition": "A law proposed by a parliamentary group (not the Government). If approved, it becomes binding law."
+      },
+      {
+        "term": "Proposición no de Ley / PNL (Non-binding motion)",
+        "definition": "A NON-binding proposal. Asks the Government to do something but does not change the law. If approved, it's a political mandate without direct legal force. The most frequent kind of plenary vote."
+      },
+      {
+        "term": "Real Decreto-ley / RDL (Royal Decree-law)",
+        "definition": "An emergency norm with the force of law issued by the Government. Congress must ratify (accept) or repeal (annul) it within 30 days."
+      },
+      {
+        "term": "Moción consecuencia de interpelación",
+        "definition": "After an urgent question to the Government (interpelación), a group can table a motion demanding a specific position. Politically binding, not legally."
+      },
+      {
+        "term": "Convalidación / Derogación",
+        "definition": "Congress's decision on a Government RDL: convalidar = accept, derogar = annul."
+      },
+      {
+        "term": "Internal cohesion",
+        "definition": "% of a group's members voting the same way. 100% cohesion means perfect voting discipline; lower numbers signal cross-cutting votes."
+      },
+      {
+        "term": "Cross-group coincidence",
+        "definition": "% of votes where two groups voted the same way (Aye, No or Abstain)."
+      }
+    ]
+  },
+  "groups": {
+    "title": "Parliamentary groups",
+    "subtitle": "{count} groups · {members} active representatives in total",
+    "members_label": "{count, plural, =0 {No active members} =1 {1 member} other {# members}}"
+  },
+  "group": {
+    "members_label": "Members",
+    "members_title": "Composition",
+    "no_members": "This group has no active members.",
+    "show_rest": "Show the remaining {count}",
+    "hide_rest": "Hide",
+    "founded_label": "Founded",
+    "scope_label": "Scope",
+    "website": "Official site",
+    "wikipedia": "Wikipedia",
+    "civic_mark_caption": "Neutral civic identifier. We don't use the official party logo."
+  },
+  "home": {
+    "eyebrow": "Open data from the Spanish Congress",
+    "hero_title": "What Congress votes.\nClassified by topic.",
+    "hero_subtitle": "For every plenary vote: who proposes it, how each representative and group voted, and which laws come next. All open, downloadable, with no editorial filter.",
+    "why_link": "Why this tool →",
+    "cta_explore": "Explore the votes →",
+    "cta_subscribe": "Subscribe to the newsletter",
+    "trust_no_trackers": "No trackers",
+    "trust_licence": "EUPL-1.2 / CC-BY 4.0",
+    "trust_api": "Public API",
+    "trust_gdpr": "GDPR-friendly",
+    "week_eyebrow": "This week in Congress",
+    "week_subtitle": "plenary votes",
+    "week_breakdown": "{sessions} sessions · {initiatives} initiatives",
+    "week_methodology_link": "Methodology →",
+    "week_caveat": "Data sourced from the Congress Open Data portal · refreshed 24h after each plenary session.",
+    "coverage_title": "Coverage",
+    "coverage_active_deputies": "Active representatives",
+    "coverage_active_deputies_sub": "XV legislature",
+    "coverage_votes_ingested": "Votes ingested",
+    "coverage_votes_ingested_sub": "since August 2023",
+    "coverage_classified": "Initiatives classified",
+    "coverage_classified_sub": "automatically, by topic",
+    "coverage_phase": "Coverage",
+    "coverage_phase_value": "Phase 1",
+    "coverage_phase_sub": "Congress · Cat. soon · BCN soon",
+    "latest_title": "Latest plenary votes",
+    "latest_subtitle": "Reverse chronological · no editorial selection",
+    "latest_see_all": "see all →",
+    "upcoming_title": "Upcoming votes",
+    "upcoming_subtitle": "Next plenary agenda",
+    "upcoming_empty": "We don't have the agenda ingested yet. The next plenary session will appear here when available.",
+    "upcoming_caveat": "Scheduled votes may be cancelled or postponed. Check the Congress website for confirmation."
+  },
+  "votes": {
+    "title": "Votes",
+    "subtitle": "All records · Spanish Congress · 15th legislature",
+    "records_count": "{count} records",
+    "filters": {
+      "topic": "Topic",
+      "proposing_group": "Proposing group",
+      "proposing_government": "Government (bills and decrees)",
+      "result": "Result",
+      "type": "Initiative type",
+      "date_from": "From",
+      "date_to": "To",
+      "search": "Search title or file no.",
+      "all": "All",
+      "all_topics": "All topics",
+      "all_groups": "All proposing groups",
+      "all_results": "Any result",
+      "apply": "Filter"
+    },
+    "result": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "tie": "Tie"
+    },
+    "no_results": "No votes match these filters.",
+    "ayes": "Aye",
+    "noes": "No",
+    "abstentions": "Abst.",
+    "absent": "Absent",
+    "cohesion_title": "Vote by parliamentary group",
+    "cohesion_help": "Each row shows how each representative in the group voted. Bars split into Aye to the left of centre and No to the right. Abstentions and no-vote/absent appear in yellow and grey around the edges.",
+    "cohesion_axis_left": "← more group support",
+    "cohesion_axis_center": "centre = internal tie",
+    "cohesion_axis_right": "more group rejection →",
+    "cohesion_table_title": "Numerical detail · All groups",
+    "cohesion_th_group": "Group",
+    "cohesion_th_members": "Mem.",
+    "cohesion_th_discipline": "Internal discipline",
+    "cohesion_th_cohesion": "Cohesion",
+    "expediente_label": "File no.",
+    "proposed_by": "Proposed by",
+    "proposed_by_government": "Government",
+    "totals_label": "Totals · {total} representatives",
+    "majority_caveat": "Simple majority required ({needed} votes). Outcome: {ayes} for, {noes} against. Margin: {margin}.",
+    "plain_summary_title": "Plain-language explanation",
+    "plain_summary_disclaimer": "Descriptive summary auto-generated from the file text. Expresses no judgment.",
+    "header_subject_breadcrumb": "Votes",
+    "share_card": "Share card ↗",
+    "embed_widget": "Embed widget ↗",
+    "download_csv": "Download CSV"
+  },
+  "persons": {
+    "title": "Representatives",
+    "subtitle": "{total} people in the database.",
+    "subtitle_composition": "Current composition · {total} representatives",
+    "search_placeholder": "Search by name, surname or constituency",
+    "search_button": "Search",
+    "no_results": "No representative matches the search.",
+    "hemicycle_title": "Hemicycle · seats per group",
+    "hemicycle_caption": "▲ Speaker's table",
+    "directory_title": "Directory",
+    "members_count": "{count} representatives"
+  },
+  "person": {
+    "born_in": "Born on",
+    "biography_link": "Official biography",
+    "wikipedia_search": "Search Wikipedia",
+    "mandates_title": "Mandates",
+    "no_mandates": "No mandates recorded for this person.",
+    "mandate_dates": "{from} → {to}",
+    "constituency": "Constituency",
+    "list": "Electoral list"
+  },
+  "topic": {
+    "recent_votes_title": "Recent votes in this area",
+    "total_count": "{count} votes classified under this topic so far.",
+    "no_votes_yet": "No votes classified under this topic yet."
+  },
+  "stats": {
+    "title": "Statistics",
+    "eyebrow": "Atlas · descriptive aggregates · no one-sided metric",
+    "intro": "Counts of initiatives and votes ingested in the 15th legislature. Topic classification is automatic (neutral LLM) — every figure shows the raw N. Historical coverage still under construction.",
+    "global_view": "Global view",
+    "global_view_open_hint": "Global metrics · open by default when no filter is set",
+    "global_view_closed_hint": "Global metrics · expand/collapse",
+    "approvals_on_topic": "Approvals on {topic}",
+    "approvals_on_topic_caption": "Approval rate of initiatives classified under this topic. We show the breakdown by status (approved, rejected, in debate, other) and the aggregate percentage.",
+    "who_proposes_topic": "Who proposes this topic",
+    "who_proposes_topic_caption": "Top 5 proposers and the 10 most recent initiatives filed on this topic.",
+    "group_activity": "Activity of group {group}",
+    "group_activity_caption": "10 most recent initiatives proposed by the group and dominant topics in their proposals.",
+    "group_voting_patterns": "Voting patterns of group {group}",
+    "group_voting_patterns_caption": "Vote highlights matching this group. We keep all groups in the system, but here we only show related cards.",
+    "initiatives_on_topic_by_group": "Initiatives on {topic} by proposing group",
+    "initiatives_on_topic_by_group_caption": "We count every initiative classified under {topic} according to which group filed it. {group} highlighted.",
+    "topics_for_group": "Topics typically proposed by {group}",
+    "topics_for_group_caption": "Count of initiatives filed by {group}, classified by topic. {topic} highlighted.",
+    "joint_initiatives_title": "Initiatives by {group} on {topic}",
+    "joint_initiatives_caption": "Reverse chronological list of initiatives filed by {group} and classified under {topic}.",
+    "joint_initiatives_found": "{count} initiatives found.",
+    "joint_initiatives_empty": "No initiatives by {group} on {topic} in the recorded period.",
+    "joint_initiatives_truncated": "Showing the {shown} most recent of {total}."
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "page": "Page",
+    "totals": "Totals",
+    "plain_summary_title": "In plain language",
+    "plain_summary_caveat": "Automatic summary by {provider}. May contain inaccuracies; the official text is the authoritative source."
+  },
+  "footer": {
+    "license_code": "Code under EUPL-1.2",
+    "license_data": "Data under CC-BY 4.0",
+    "principle": "This project is neutral civic infrastructure: it provides data, not opinions.",
+    "complementary": "Complementary to Civio."
+  }
+}

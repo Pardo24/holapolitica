@@ -1,0 +1,280 @@
+{
+  "site": {
+    "name": "Hola Política",
+    "motto": "Mirall, no megàfon.",
+    "tagline": "Les lleis les voten els nostres representants. Aquesta eina mostra com.",
+    "description": "Eina cívica per seguir què vota el Congrés dels Diputats. Qui proposa cada llei, qui hi vota a favor o en contra, classificat per tema. Sense interpretació política."
+  },
+  "nav_brand": {
+    "home": "Inici"
+  },
+  "nav": {
+    "votes": "Votacions",
+    "persons": "Diputats",
+    "groups": "Grups",
+    "topics": "Temes",
+    "stats": "Estadístiques",
+    "about": "Sobre",
+    "newsletter": "Newsletter",
+    "notifications": "Notificacions"
+  },
+  "notifications": {
+    "eyebrow": "Canal de notificacions",
+    "title": "Notificacions al navegador",
+    "lede": "Rep un avís al teu navegador (o mòbil amb la web instal·lada) cada cop que arribi un nou vot relacionat amb un tema que segueixes. Només dades factuals: títol del vot i enllaç a la fitxa. Cap valoració.",
+    "select_intro": "Tria els temes pels quals vols rebre notificacions:",
+    "loading": "Comprovant l'estat del navegador…",
+    "unsupported": "El teu navegador no admet notificacions push. Funciona a Chrome, Firefox, Edge i a Safari 16.4+ (iOS només si la web està instal·lada a la pantalla d'inici).",
+    "enable_cta": "Activa notificacions",
+    "apply_cta": "Aplica canvis",
+    "stop_cta": "Atura notificacions",
+    "working": "Treballant…",
+    "msg_enabled": "Notificacions activades. Recordatori: pots aturar-les en qualsevol moment.",
+    "msg_saved": "Preferències desades.",
+    "msg_stopped": "Notificacions aturades.",
+    "msg_denied": "El navegador no ens ha donat permís per enviar notificacions.",
+    "msg_resubscribe": "La subscripció ha caducat al servidor. Torna a activar-la per continuar rebent avisos.",
+    "msg_error": "Error: {reason}",
+    "compat_title": "Compatibilitat",
+    "compat_body": "Funciona a Chrome, Firefox i Edge a escriptori i Android. A iPhone i iPad només funciona si afegeixes Hola Política a la pantalla d'inici (Safari → Compartir → Afegir a la pantalla d'inici) i tens iOS 16.4 o superior.",
+    "privacy_title": "Privacitat",
+    "privacy_body": "No demanem el teu correu ni cap dada personal. La subscripció és anònima: el navegador ens dóna una URL única que només serveix per enviar-te els avisos. Pots aturar-les en qualsevol moment des d'aquesta pàgina o des del panell de notificacions del navegador."
+  },
+  "topics": {
+    "title": "Temes",
+    "subtitle": "Taxonomia temàtica que utilitzem per classificar les iniciatives. Quan el classificador automàtic estigui actiu, cada tema mostrarà les votacions relacionades."
+  },
+  "about": {
+    "title": "Sobre el projecte",
+    "why_title": "Per què aquesta eina",
+    "why_body": "A les democràcies representatives, els ciutadans no votem directament les lleis: deleguem aquesta decisió en les persones que triem cada quatre anys. El pacte funciona si podem veure què fan els nostres representants amb el mandat: quines lleis aproven, quines rebutgen, qui les proposa, com vota cada grup. Aquesta plataforma centralitza aquesta informació en un sol lloc, oberta i descarregable, perquè qualsevol ciutadà o periodista pugui seguir-ho sense navegar per portals oficials dispersos.",
+    "mission_title": "Què és Hola Política",
+    "mission_body": "Plataforma cívica oberta que centralitza les votacions, iniciatives i activitat parlamentària de les cambres espanyoles. Permet a periodistes i ciutadania consultar què ha votat cada diputat o grup, sense intermediaris ni interpretació política.",
+    "principle_title": "Principi: mirall, no megàfon",
+    "principle_body": "El projecte és infraestructura cívica neutra. No emet opinions ni valoracions sobre les votacions: només dades verificables. Les mètriques comparatives entre grups o diputats sempre es mostren completes (totes les parelles, els dos extrems del rang) per evitar narratives unilaterals.",
+    "coverage_title": "Cobertura",
+    "coverage_phase1": "Fase 1 — Congrés dels Diputats (XV legislatura) — actiu.",
+    "coverage_phase2": "Fase 2 — Parlament de Catalunya — proper.",
+    "coverage_phase3": "Fase 3 — Plenari del Consell Municipal de Barcelona — proper.",
+    "licence_title": "Llicència i contribució",
+    "licence_body": "Codi sota EUPL-1.2. Dades sota CC-BY 4.0. El projecte és open source i les contribucions són benvingudes.",
+    "api_title": "API pública",
+    "api_intro": "Tota la informació que veus aquí és accessible per a periodistes, investigadors i la ciutadania a través d'una API REST documentada. Sense claus, sense registre, sense límits arbitraris. Les dades es publiquen sota CC-BY 4.0.",
+    "api_docs_label": "Documentació interactiva (Swagger UI)",
+    "api_redoc_label": "Documentació alternativa (ReDoc)",
+    "api_openapi_label": "Especificació OpenAPI (JSON, llegible per màquina)",
+    "api_dump_title": "Volcats massius en JSON",
+    "api_dump_intro": "Per a anàlisi acadèmica i periodisme de dades, exposem endpoints de volcat que retornen un dataset complet d'una sola petició:",
+    "api_dump_deputies": "Diputats actius d'una legislatura amb el seu grup i circumscripció.",
+    "api_dump_votes": "Totes les votacions d'una legislatura amb els resultats agregats (Sí/No/Abst/Absent). Filtre opcional per dates.",
+    "api_dump_vote_records": "Vot individual de cada diputat en UNA votació concreta (es passa l'identificador). Es separa per evitar baixades de centenars de milers de registres en una sola petició.",
+    "api_dump_initiatives": "Totes les iniciatives d'una legislatura amb la seva classificació temàtica.",
+    "api_rate_limit_title": "Quotes",
+    "api_rate_limit_body": "Sense límits durs avui. Demanem que els consumidors mantinguin un ritme raonable. Per a càrregues massives recurrents o ús acadèmic intensiu, contacteu-nos per coordinar còpies dels dumps periòdics.",
+    "glossary_title": "Què vol dir cada cosa",
+    "glossary_intro": "El llenguatge parlamentari és tècnic. Aquí tens els termes que veuràs més sovint, en un llenguatge planer.",
+    "glossary_terms": [
+      {
+        "term": "Proyecto de Ley",
+        "definition": "Llei proposada pel Govern. Si s'aprova, esdevé llei vigent. És la via principal per la qual el Govern legisla."
+      },
+      {
+        "term": "Proposición de Ley",
+        "definition": "Llei proposada per un grup parlamentari (no pel Govern). Si s'aprova, esdevé llei vigent."
+      },
+      {
+        "term": "Proposición no de Ley (PNL)",
+        "definition": "Proposta NO vinculant. Demana al Govern que faci alguna cosa, però no canvia la llei. Si s'aprova, és un mandat polític sense força legal directa. Són les votacions més freqüents al ple."
+      },
+      {
+        "term": "Real Decreto-ley (RDL)",
+        "definition": "Norma amb força de llei dictada pel Govern per urgència. El Congrés ha de convalidar-la (acceptar-la) o derogar-la (anul·lar-la) en 30 dies."
+      },
+      {
+        "term": "Moció consecuencia d'interpel·lació",
+        "definition": "Després d'una pregunta urgent al Govern (interpel·lació), un grup pot presentar una moció demanant una posició concreta. Vinculant políticament, no jurídicament."
+      },
+      {
+        "term": "Convalidación / Derogación",
+        "definition": "Decisió del Congrés sobre un RDL del Govern: convalidar és acceptar-lo, derogar és anul·lar-lo."
+      },
+      {
+        "term": "Cohesió interna",
+        "definition": "% de membres d'un grup que voten igual. Una cohesió del 100% vol dir disciplina total de vot; números més baixos, més votacions creuades."
+      },
+      {
+        "term": "Coincidència entre grups",
+        "definition": "% de votacions on dos grups van votar el mateix sentit (Sí, No o Abstenció)."
+      }
+    ]
+  },
+  "groups": {
+    "title": "Grups parlamentaris",
+    "subtitle": "{count} grups · {members} diputats actius en total",
+    "members_label": "{count, plural, =0 {Sense membres actius} =1 {1 membre} other {# membres}}"
+  },
+  "group": {
+    "members_label": "Membres",
+    "members_title": "Composició",
+    "no_members": "Aquest grup no té membres actius.",
+    "show_rest": "Mostra els {count} restants",
+    "hide_rest": "Amaga",
+    "founded_label": "Fundació",
+    "scope_label": "Àmbit",
+    "website": "Web oficial",
+    "wikipedia": "Wikipedia",
+    "civic_mark_caption": "Identificador visual neutral. No utilitzem el logo oficial."
+  },
+  "home": {
+    "eyebrow": "Open data del Congrés dels Diputats",
+    "hero_title": "Què vota el Congrés.\nClassificat per tema.",
+    "hero_subtitle": "Per cada votació del ple: qui la proposa, com vota cada diputat i grup parlamentari, i quines lleis vénen a continuació. Tot en obert, descarregable, sense filtres editorials.",
+    "why_link": "Per què aquesta eina →",
+    "cta_explore": "Explora les votacions →",
+    "cta_subscribe": "Subscriu-t'hi a la newsletter",
+    "trust_no_trackers": "Sense rastrejadors",
+    "trust_licence": "EUPL-1.2 / CC-BY 4.0",
+    "trust_api": "API pública",
+    "trust_gdpr": "RGPD-friendly",
+    "week_eyebrow": "Aquesta setmana al Congrés",
+    "week_subtitle": "votacions al ple",
+    "week_breakdown": "{sessions} sessions · {initiatives} iniciatives",
+    "week_methodology_link": "Metodologia →",
+    "week_caveat": "Dades extretes del portal d'Open Data del Congrés · actualitzat 24h després de cada sessió plenària.",
+    "coverage_title": "Cobertura",
+    "coverage_active_deputies": "Diputats actius",
+    "coverage_active_deputies_sub": "XV legislatura",
+    "coverage_votes_ingested": "Votacions ingerides",
+    "coverage_votes_ingested_sub": "des d'agost 2023",
+    "coverage_classified": "Iniciatives classificades",
+    "coverage_classified_sub": "automàticament, per tema",
+    "coverage_phase": "Cobertura",
+    "coverage_phase_value": "Fase 1",
+    "coverage_phase_sub": "Congrés · Cat. proper · BCN proper",
+    "latest_title": "Últimes votacions al ple",
+    "latest_subtitle": "Ordre cronològic invers · sense selecció editorial",
+    "latest_see_all": "vegeu totes →",
+    "upcoming_title": "Pròximes votacions",
+    "upcoming_subtitle": "Pròxim ordre del dia",
+    "upcoming_empty": "Encara no tenim l'ordre del dia ingerit. La pròxima sessió plenària es publicarà aquí quan estigui disponible.",
+    "upcoming_caveat": "Les votacions programades poden cancel·lar-se o ajornar-se. Comprova la web del Congrés per a confirmació."
+  },
+  "votes": {
+    "title": "Votacions",
+    "subtitle": "Tots els registres · Congrés dels Diputats · XV leg.",
+    "records_count": "{count} registres",
+    "filters": {
+      "topic": "Tema",
+      "proposing_group": "Grup proposant",
+      "proposing_government": "Govern (Proyectos de Ley i RDL)",
+      "result": "Resultat",
+      "type": "Tipus d'iniciativa",
+      "date_from": "Des de",
+      "date_to": "Fins a",
+      "search": "Cerca al títol o expedient",
+      "all": "Tots",
+      "all_topics": "Tots els temes",
+      "all_groups": "Tots els grups proposants",
+      "all_results": "Qualsevol resultat",
+      "apply": "Filtra"
+    },
+    "result": {
+      "approved": "Aprovada",
+      "rejected": "Rebutjada",
+      "tie": "Empat"
+    },
+    "no_results": "No s'han trobat votacions amb aquests filtres.",
+    "ayes": "Sí",
+    "noes": "No",
+    "abstentions": "Abst.",
+    "absent": "Absents",
+    "cohesion_title": "Vot per grup parlamentari",
+    "cohesion_help": "Cada fila mostra com va votar cada diputat del grup. Les barres es divideixen en Sí a l'esquerra del centre i No a la dreta. Abstencions i no-votes apareixen com a peces grogues i grises al voltant.",
+    "cohesion_axis_left": "← més suport del grup",
+    "cohesion_axis_center": "centre = empat intern",
+    "cohesion_axis_right": "més rebuig del grup →",
+    "cohesion_table_title": "Detall numèric · Tots els grups",
+    "cohesion_th_group": "Grup",
+    "cohesion_th_members": "Mem.",
+    "cohesion_th_discipline": "Disciplina interna",
+    "cohesion_th_cohesion": "Cohesió",
+    "expediente_label": "Núm. expedient",
+    "proposed_by": "Proposat per",
+    "proposed_by_government": "Govern",
+    "totals_label": "Totals · {total} diputats",
+    "majority_caveat": "Per ser aprovada calia majoria simple ({needed} vots). Resultat: {ayes} a favor, {noes} en contra. Marge: {margin}.",
+    "plain_summary_title": "Explicació en llenguatge planer",
+    "plain_summary_disclaimer": "Resum descriptiu generat automàticament a partir del text de l'expedient. No expressa cap valoració.",
+    "header_subject_breadcrumb": "Votacions",
+    "share_card": "Comparteix card ↗",
+    "embed_widget": "Embed widget ↗",
+    "download_csv": "Descarrega CSV"
+  },
+  "persons": {
+    "title": "Diputats",
+    "subtitle": "{total} persones a la base de dades.",
+    "subtitle_composition": "Composició actual · {total} diputats",
+    "search_placeholder": "Cerca per nom, cognom o circumscripció",
+    "search_button": "Cerca",
+    "no_results": "Cap diputat coincideix amb la cerca.",
+    "hemicycle_title": "Hemicicle · seients per grup",
+    "hemicycle_caption": "▲ taula del Congrés",
+    "directory_title": "Directori",
+    "members_count": "{count} diputats"
+  },
+  "person": {
+    "born_in": "Nascut/da el",
+    "biography_link": "Biografia oficial",
+    "wikipedia_search": "Cerca a Wikipedia",
+    "mandates_title": "Mandats",
+    "no_mandates": "No s'han registrat mandats per a aquesta persona.",
+    "mandate_dates": "{from} → {to}",
+    "constituency": "Circumscripció",
+    "list": "Llista electoral"
+  },
+  "topic": {
+    "recent_votes_title": "Votacions recents en aquesta àrea",
+    "total_count": "{count} votacions classificades amb aquest tema fins ara.",
+    "no_votes_yet": "Encara no hi ha votacions classificades en aquest tema."
+  },
+  "stats": {
+    "title": "Estadístiques",
+    "eyebrow": "Atles · agregats descriptius · cap mètrica unilateral",
+    "intro": "Recompte d'iniciatives i votacions ingerides en la XV legislatura. La classificació temàtica és automàtica (LLM neutre) — cada xifra mostra la N bruta. Cobertura històrica encara en construcció.",
+    "global_view": "Visió global",
+    "global_view_open_hint": "Mètriques globals · obertes per defecte quan no hi ha filtre",
+    "global_view_closed_hint": "Mètriques globals · plega/desplega",
+    "approvals_on_topic": "Aprovacions sobre {topic}",
+    "approvals_on_topic_caption": "Índex d'aprovació de les iniciatives classificades sota aquest tema. Mostrem el desglossament per estat (aprovades, rebutjades, en tràmit, altres) i el percentatge agregat.",
+    "who_proposes_topic": "Qui proposa aquest tema",
+    "who_proposes_topic_caption": "Top 5 proposants i les 10 darreres iniciatives presentades sobre aquest tema.",
+    "group_activity": "Activitat del grup {group}",
+    "group_activity_caption": "10 darreres iniciatives proposades pel grup i temes dominants en les seves propostes.",
+    "group_voting_patterns": "Patrons de vot del grup {group}",
+    "group_voting_patterns_caption": "Destacats de vot que coincideixen amb aquest grup. Mantenim tots els grups al sistema, però aquí només mostrem cards relacionades.",
+    "initiatives_on_topic_by_group": "Iniciatives sobre {topic} per grup proposant",
+    "initiatives_on_topic_by_group_caption": "Comptem totes les iniciatives classificades sota {topic} segons quin grup les ha presentat. {group} destacat.",
+    "topics_for_group": "Temes que sol proposar {group}",
+    "topics_for_group_caption": "Recompte d'iniciatives presentades per {group}, classificades per tema. {topic} destacat.",
+    "joint_initiatives_title": "Iniciatives de {group} sobre {topic}",
+    "joint_initiatives_caption": "Llista cronològica inversa de les iniciatives presentades per {group} classificades sota {topic}.",
+    "joint_initiatives_found": "{count} iniciatives trobades.",
+    "joint_initiatives_empty": "Cap iniciativa de {group} sobre {topic} al període registrat.",
+    "joint_initiatives_truncated": "Es mostren les {shown} més recents de {total}."
+  },
+  "common": {
+    "loading": "Carregant…",
+    "error": "S'ha produït un error",
+    "retry": "Torna-ho a provar",
+    "page": "Pàgina",
+    "totals": "Totals",
+    "plain_summary_title": "En pla",
+    "plain_summary_caveat": "Resum automàtic per {provider}. Pot contenir imprecisions; el text legal és la font autoritzada."
+  },
+  "footer": {
+    "license_code": "Codi sota llicència EUPL-1.2",
+    "license_data": "Dades sota CC-BY 4.0",
+    "principle": "Aquest projecte és infraestructura cívica neutra: facilita dades, no opinions.",
+    "complementary": "Complementari a Civio."
+  }
+}
