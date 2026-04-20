@@ -1,0 +1,331 @@
+import Link from 'next/link';
+import type { Route } from 'next';
+import { getTranslations } from 'next-intl/server';
+
+import { GroupBadge } from '@/components/GroupBadge';
+import { Hemicycle } from '@/components/Hemicycle';
+import { api, type ParliamentaryGroupSummary, type Person } from '@/lib/api';
+import { displayGroupShort } from '@/lib/groups';
+
+interface SearchParams {
+  q?: string;
+  page?: string;
+}
+
+export default async function PersonsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const t = await getTranslations('persons');
+  const tGroups = await getTranslations('groups');
+  const { q, page: pageParam } = await searchParams;
+  const page = Number(pageParam ?? 1);
+
+  const [data, groups] = await Promise.all([
+    api.persons.list({ q, page, page_size: 30, legislature_id: 1 }),
+    api.groups.list(),
+  ]);
+
+  const sortedGroups = [...groups].sort(
+    (a, b) => b.members_active - a.members_active,
+  );
+  const totalSeats = sortedGroups.reduce(
+    (acc, g) => acc + g.members_active,
+    0,
+  );
+
+  return (
+    <div>
+      <header
+        style={{
+          paddingTop: 28,
+          paddingBottom: 18,
+          borderBottom: '1px solid var(--ink)',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div className="eyebrow">
+            {t('subtitle_composition', { total: totalSeats })}
+          </div>
+          <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
+            {t('title')}
+          </h1>
+        </div>
+        <form
+          method="GET"
+          style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+        >
+          <input
+            type="search"
+            name="q"
+            placeholder={t('search_placeholder')}
+            defaultValue={q ?? ''}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid var(--ink)',
+              background: 'transparent',
+              fontSize: 13,
+              minWidth: 280,
+              fontFamily: 'inherit',
+              color: 'var(--ink)',
+            }}
+          />
+          <button type="submit" className="btn-ink btn-sm">
+            {t('search_button')}
+          </button>
+        </form>
+      </header>
+
+      {/* Hemicycle composition + group legend */}
+      <section
+        className="hemicycle-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '0.85fr 1.4fr',
+          gap: 36,
+          paddingTop: 24,
+          paddingBottom: 24,
+          borderBottom: '1px solid var(--rule)',
+        }}
+      >
+        <div className="hemicycle-block">
+          <div className="eyebrow" style={{ marginBottom: 6 }}>
+            {t('hemicycle_title')}
+          </div>
+          <Hemicycle
+            groups={sortedGroups.map((g) => ({
+              slug: g.slug,
+              members: g.members_active,
+              color: g.color_hex,
+            }))}
+          />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              fontSize: 11,
+              color: 'var(--ink-3)',
+              marginTop: 6,
+            }}
+          >
+            {t('hemicycle_caption')}
+          </div>
+        </div>
+
+        {/* Group legend table */}
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 6 }}>
+            {tGroups('title')}
+          </div>
+          <div style={{ borderTop: '1px solid var(--ink)' }}>
+            {sortedGroups.map((g) => (
+              <GroupRow key={g.slug} g={g} totalSeats={totalSeats} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Directory */}
+      <section style={{ paddingTop: 24 }}>
+        <div className="eyebrow" style={{ marginBottom: 12 }}>
+          {t('directory_title')}
+          {q ? ` · "${q}"` : ''}
+        </div>
+
+        {data.items.length === 0 ? (
+          <p style={{ color: 'var(--ink-3)' }}>{t('no_results')}</p>
+        ) : (
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+              gap: 8,
+            }}
+          >
+            {data.items.map((p) => (
+              <PersonCard key={p.id} person={p} />
+            ))}
+          </ul>
+        )}
+
+        {data.total > data.page_size && (
+          <Pagination total={data.total} page={page} pageSize={data.page_size} q={q} />
+        )}
+      </section>
+
+      <style>{`
+        @media (max-width: 860px) {
+          .hemicycle-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function GroupRow({
+  g,
+  totalSeats,
+}: {
+  g: ParliamentaryGroupSummary;
+  totalSeats: number;
+}) {
+  const pct = totalSeats > 0 ? (g.members_active / totalSeats) * 100 : 0;
+  return (
+    <Link
+      href={`/groups/${g.slug}`}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr 120px auto',
+        alignItems: 'center',
+        gap: 10,
+        padding: '8px 0',
+        borderBottom: '1px solid var(--rule)',
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
+    >
+      <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} />
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>
+          {displayGroupShort(g.name_short)}
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--ink-3)' }}>{g.name_long}</div>
+      </div>
+      <div style={{ width: 120, height: 6, background: 'var(--paper-3)', borderRadius: 1 }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: g.color_hex ?? 'var(--ink-3)',
+          }}
+        />
+      </div>
+      <span
+        className="tabular"
+        style={{ fontSize: 13, fontWeight: 600, minWidth: 30, textAlign: 'right' }}
+      >
+        {g.members_active}
+      </span>
+    </Link>
+  );
+}
+
+function PersonCard({ person }: { person: Person }) {
+  return (
+    <li>
+      <Link
+        href={`/persons/${person.id}`}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 12px',
+          border: '1px solid var(--rule)',
+          textDecoration: 'none',
+          color: 'inherit',
+          background: 'var(--paper)',
+        }}
+      >
+        {person.current_group_slug ? (
+          <GroupBadge
+            slug={person.current_group_slug}
+            color={person.current_group_color}
+            size="sm"
+            link={false}
+          />
+        ) : (
+          <span
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              background: 'var(--paper-3)',
+              flex: 'none',
+            }}
+          />
+        )}
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>{person.full_name}</div>
+          <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+            {person.current_constituency ?? ''}
+          </div>
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+function Pagination({
+  total,
+  page,
+  pageSize,
+  q,
+}: {
+  total: number;
+  page: number;
+  pageSize: number;
+  q: string | undefined;
+}) {
+  const lastPage = Math.max(1, Math.ceil(total / pageSize));
+  const params = (n: number): Route => {
+    const sp = new URLSearchParams();
+    if (q) sp.set('q', q);
+    sp.set('page', String(n));
+    return `/persons?${sp.toString()}` as Route;
+  };
+  return (
+    <nav
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingTop: 16,
+        fontSize: 13,
+        color: 'var(--ink-3)',
+        gap: 12,
+        flexWrap: 'wrap',
+      }}
+    >
+      <span>
+        {total} · {page} / {lastPage}
+      </span>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {page > 1 && (
+          <Link
+            href={params(page - 1)}
+            style={{
+              border: '1px solid var(--rule)',
+              padding: '4px 10px',
+              textDecoration: 'none',
+              color: 'var(--ink-2)',
+            }}
+          >
+            ← Anterior
+          </Link>
+        )}
+        {page < lastPage && (
+          <Link
+            href={params(page + 1)}
+            style={{
+              border: '1px solid var(--rule)',
+              padding: '4px 10px',
+              textDecoration: 'none',
+              color: 'var(--ink-2)',
+            }}
+          >
+            Següent →
+          </Link>
+        )}
+      </div>
+    </nav>
+  );
+}
