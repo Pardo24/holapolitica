@@ -1,0 +1,821 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hola Política — civic atlas tokens (Mirall design system) */
+:root {
+  /* paper / ink — warm cream, deep cool ink. Saturation kept very low. */
+  --paper: oklch(0.985 0.004 85);
+  --paper-2: oklch(0.965 0.006 85);
+  --paper-3: oklch(0.94 0.008 85);
+  --ink: oklch(0.20 0.02 250);
+  --ink-2: oklch(0.36 0.015 250);
+  --ink-3: oklch(0.55 0.015 250);
+  --rule: oklch(0.86 0.01 80);
+  --rule-strong: oklch(0.72 0.012 80);
+
+  /* Single civic accent — deep indigo, used sparingly */
+  --accent: oklch(0.42 0.13 264);
+  --accent-2: oklch(0.32 0.10 264);
+  --accent-soft: oklch(0.92 0.04 264);
+  --accent-warm: oklch(0.66 0.16 38);   /* Warm copper for highlights */
+  --accent-warm-soft: oklch(0.94 0.04 38);
+
+  /* Vote choice palette — muted, AA-safe on paper */
+  --aye: oklch(0.55 0.12 152);
+  --aye-soft: oklch(0.93 0.05 152);
+  --no:  oklch(0.55 0.16 26);
+  --no-soft: oklch(0.94 0.04 26);
+  --abst: oklch(0.68 0.13 82);
+  --abst-soft: oklch(0.95 0.05 82);
+  --nv:  oklch(0.72 0.008 250);
+  --nv-soft: oklch(0.95 0.005 250);
+
+  /* Group brand colors — kept from the existing migration */
+  --gp-popular: #1E88E5;
+  --gp-socialista: #E53935;
+  --gp-vox: #43A047;
+  --gp-sumar: #8E24AA;
+  --gp-junts: #00ACC1;
+  --gp-bildu: #7CB342;
+  --gp-erc: #FB8C00;
+  --gp-pnv: #00897B;
+  --gp-mixto: #757575;
+
+  /* Type — system stack only. Hierarchy via size/weight/tracking. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+
+  --radius-1: 4px;
+  --radius-2: 6px;
+  --radius-3: 10px;
+
+  --shadow-1: 0 1px 0 rgba(15,23,42,.04), 0 1px 2px rgba(15,23,42,.04);
+
+  /* Theme color for PWA / mobile address bar */
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  /* Subtle gradient gives the page warmth without losing the paper feel.
+     A warm corner up top, paper everywhere else — vivid edge, calm middle. */
+  background-image:
+    radial-gradient(800px 360px at top right, color-mix(in oklch, var(--accent-warm) 12%, transparent) 0%, transparent 70%),
+    radial-gradient(600px 300px at top left, color-mix(in oklch, var(--accent) 10%, transparent) 0%, transparent 65%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+a { color: inherit; }
+
+/* Editorial helpers */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: inline-block;
+}
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 1px;
+  background: var(--accent);
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.eyebrow.no-rule::before { display: none; }
+.eyebrow.warm { color: var(--accent-warm); }
+.eyebrow.warm::before { background: var(--accent-warm); }
+.eyebrow.muted { color: var(--ink-3); }
+.eyebrow.muted::before { background: var(--ink-3); }
+.mono { font-family: var(--font-mono); }
+.serif { font-family: var(--font-serif); }
+.tabular { font-variant-numeric: tabular-nums; }
+.rule-line { border: 0; border-top: 1px solid var(--rule); }
+.rule-strong-line { border: 0; border-top: 1px solid var(--ink); }
+
+/* small caps abbreviation */
+.smallcaps {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85em;
+}
+
+/* page-frame: an artboard-feeling document */
+.page {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  padding: 32px 40px 48px;
+  font-size: 14px;
+  line-height: 1.45;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+@media (max-width: 720px) {
+  .page { padding: 18px 16px 32px; }
+}
+
+/* nav — same treatment across pages */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ink);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.topnav .brand {
+  display: flex; align-items: center; gap: 10px;
+}
+.topnav .brand-mark {
+  width: 22px; height: 22px;
+  border: 1.5px solid var(--ink);
+  position: relative; align-self: center; flex: none;
+}
+.topnav .brand-mark::before, .topnav .brand-mark::after {
+  content:""; position:absolute; left:0; right:0;
+  border-top: 1.5px solid var(--ink);
+}
+.topnav .brand-mark::before { top: 6px; }
+.topnav .brand-mark::after { top: 12px; }
+.topnav .brand-name {
+  font-weight: 700; letter-spacing: -0.01em; font-size: 16px;
+}
+.topnav .brand-sub {
+  color: var(--ink-3); font-size: 12px;
+  font-family: var(--font-serif); font-style: italic;
+}
+.topnav .nav-links {
+  display: flex; gap: 22px; font-size: 13px; flex-wrap: wrap;
+  list-style: none; margin: 0; padding: 0;
+  align-items: baseline;
+}
+.topnav .nav-links a {
+  color: var(--ink-2); text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: transparent;
+  position: relative;
+  transition: color .12s ease, background-color .12s ease;
+}
+.topnav .nav-links a:hover {
+  color: var(--ink);
+  background: color-mix(in oklch, var(--accent) 8%, transparent);
+}
+.topnav .nav-links a.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 700;
+}
+.topnav .nav-links a.active::after {
+  content: "";
+  position: absolute;
+  left: 12px; right: 12px; bottom: -8px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+/* Editorial spacer between lookup spines and exploration surfaces */
+.topnav .nav-links .nav-divider {
+  width: 12px;
+}
+.topnav .lang {
+  font-size: 12px; color: var(--ink-3);
+  display: flex; gap: 6px;
+}
+.topnav .lang a { text-decoration: none; }
+.topnav .lang b, .topnav .lang .active { color: var(--ink); font-weight: 700; }
+
+/* KPI cell */
+.kpi {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 14px 16px;
+  border-top: 2px solid var(--ink);
+}
+.kpi .label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.kpi .value { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kpi .sub { font-size: 11px; color: var(--ink-3); }
+
+/* Soft badge */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--rule); background: var(--paper-2);
+  color: var(--ink-2);
+}
+.badge-aye { background: var(--aye-soft); color: oklch(0.32 0.10 152); border-color: transparent; }
+.badge-no  { background: var(--no-soft);  color: oklch(0.32 0.13 26);  border-color: transparent; }
+.badge-tie { background: var(--abst-soft);color: oklch(0.32 0.11 82); border-color: transparent; }
+
+/* Group dot */
+.gdot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; flex: none; }
+
+/* Group disc (logo stand-in) — sized to leave breathing room on 4-5-char marks */
+.gdisc {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; color: white; font-weight: 700; font-size: 9px;
+  letter-spacing: -0.02em;
+  width: 28px; height: 28px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+  flex: none;
+}
+.gdisc.lg { width: 64px; height: 64px; font-size: 15px; }
+.gdisc.md { width: 40px; height: 40px; font-size: 11px; }
+.gdisc.xs { width: 20px; height: 20px; font-size: 7px; }
+
+/* Tabular table */
+.tab {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.tab th {
+  text-align: left; font-weight: 600; font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-3);
+  padding: 8px 10px; border-bottom: 1px solid var(--ink);
+}
+.tab td {
+  padding: 10px; border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+}
+.tab tbody tr:hover td { background: var(--paper-2); }
+
+/* Stacked bar shared */
+.bar {
+  display: flex; height: 10px; border-radius: 2px; overflow: hidden;
+  background: var(--paper-3);
+}
+.bar > span { display:block; height: 100%; }
+.bar.tall { height: 14px; }
+.bar.thin { height: 6px; }
+
+/* Civic button */
+.btn-ink {
+  background: var(--ink); color: var(--paper);
+  border: 0; padding: 12px 18px; font-size: 14px; font-weight: 600;
+  border-radius: var(--radius-2); cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  position: relative;
+}
+.btn-ink::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: -3px; height: 3px;
+  background: var(--accent-warm);
+  border-radius: 0 0 var(--radius-2) var(--radius-2);
+  opacity: 0; transition: opacity .15s ease;
+}
+.btn-ink:hover { background: var(--ink-2); }
+.btn-ink:hover::after { opacity: 1; }
+.btn-outline {
+  background: transparent; color: var(--ink);
+  border: 1px solid var(--ink); padding: 12px 18px; font-size: 14px; font-weight: 600;
+  border-radius: var(--radius-2); cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-outline:hover { background: var(--paper-2); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* Headline display sizes */
+.h-display { font-family: var(--font-serif); font-size: clamp(36px, 5vw, 64px); line-height: 1.0; letter-spacing: -0.02em; font-weight: 600; }
+.h-headline { font-family: var(--font-serif); font-size: clamp(28px, 3vw, 42px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 600; }
+.h-title { font-family: var(--font-serif); font-size: 24px; line-height: 1.2; font-weight: 600; }
+
+/* Inline term tooltip — dotted underline + hover/focus bubble. */
+.term-tooltip {
+  position: relative;
+  display: inline-block;
+}
+.term-tooltip__anchor {
+  border-bottom: 1px dotted var(--ink-3);
+  cursor: help;
+  text-decoration: none;
+  color: inherit;
+  white-space: nowrap;
+}
+.term-tooltip__anchor:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.term-tooltip__bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  width: 260px;
+  max-width: 90vw;
+  white-space: normal;
+  box-shadow: 0 8px 28px -12px rgba(15,23,42,.45);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .15s ease, visibility .15s ease;
+  z-index: 100;
+  pointer-events: none;
+  text-align: left;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.term-tooltip__bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--ink);
+}
+.term-tooltip__bubble-link {
+  display: block;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper);
+  opacity: 0.7;
+  text-decoration: none;
+  pointer-events: auto;
+}
+.term-tooltip__bubble-link:hover { opacity: 1; }
+.term-tooltip:hover .term-tooltip__bubble,
+.term-tooltip:focus-within .term-tooltip__bubble {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Hover-summary: wider tooltip for vote/initiative plain-language summaries.
+   Wraps a vote subject; subtle dashed underline + cursor:help signals that
+   hovering reveals the LLM-generated explanation. Click-through still works
+   because the bubble is pointer-events:none. */
+.summary-hover {
+  position: relative;
+  display: inline;
+}
+.summary-hover__anchor {
+  border-bottom: 1px dashed transparent;
+  cursor: help;
+  transition: border-color .15s ease;
+}
+.summary-hover:hover .summary-hover__anchor,
+.summary-hover:focus-within .summary-hover__anchor {
+  border-bottom-color: var(--ink-3);
+}
+.summary-hover__bubble {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  width: 380px;
+  max-width: min(90vw, 380px);
+  box-shadow: 0 12px 32px -10px rgba(15,23,42,.25);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .15s ease, visibility .15s ease;
+  z-index: 80;
+  pointer-events: none;
+  white-space: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+}
+.summary-hover__body {
+  display: block;
+  font-family: var(--font-serif);
+  color: var(--ink-2);
+}
+.summary-hover__provider {
+  display: block;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+  font-size: 10px;
+  color: var(--ink-3);
+  font-style: italic;
+}
+.summary-hover:hover .summary-hover__bubble,
+.summary-hover:focus-within .summary-hover__bubble {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Mobile-only "ⓘ" button — hidden on desktop where hover suffices. */
+.summary-hover__btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 0;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  font-style: italic;
+  margin-left: 6px;
+  cursor: pointer;
+  pointer-events: auto;
+  vertical-align: 2px;
+  transition: background-color .15s ease;
+}
+.summary-hover__btn:hover { background: color-mix(in oklch, var(--accent) 25%, var(--paper-2)); }
+.summary-hover__btn:active { background: color-mix(in oklch, var(--accent) 35%, var(--paper-2)); }
+
+@media (max-width: 720px) {
+  /* On mobile the hover tooltip is unreachable — replace with the sheet
+     toggled by the ⓘ button. */
+  .summary-hover__bubble { display: none !important; }
+  .summary-hover__anchor { border-bottom-color: transparent; }
+  .summary-hover__btn { display: inline-flex; }
+}
+
+/* Bottom-sheet modal for the mobile summary. Backdrop fixed full-screen,
+   sheet slides up from the bottom on a paper background. */
+.summary-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: summary-sheet-fade-in .18s ease-out;
+}
+.summary-sheet {
+  background: var(--paper);
+  width: 100%;
+  max-width: 600px;
+  padding: 24px 22px 28px;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.18);
+  position: relative;
+  max-height: 82vh;
+  overflow-y: auto;
+  animation: summary-sheet-slide-up .22s ease-out;
+}
+.summary-sheet::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 38px;
+  height: 4px;
+  background: var(--rule-strong);
+  border-radius: 999px;
+  opacity: 0.6;
+}
+.summary-sheet__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: var(--paper-2);
+  border: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
+  font-family: inherit;
+  padding: 0;
+}
+.summary-sheet__close:hover { background: var(--paper-3); }
+.summary-sheet__body {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+.summary-sheet__provider {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-style: italic;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+@keyframes summary-sheet-slide-up {
+  from { transform: translateY(20px); opacity: 0.6; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes summary-sheet-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Empty state — civic, not error */
+.empty-state {
+  padding: 24px; border: 1px dashed var(--rule-strong);
+  background: var(--paper-2); display: flex; gap: 18px; align-items: flex-start;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────
+   Mobile breakpoints — match the editorial atlas at smaller widths
+   without crushing it. We collapse multi-column rows, tighten paddings,
+   and let dense tables scroll horizontally as a last resort. */
+
+@media (max-width: 860px) {
+  .h-display { font-size: clamp(28px, 7vw, 44px); }
+  .h-headline { font-size: clamp(22px, 5.5vw, 32px); }
+
+  .topnav {
+    padding-bottom: 0;
+    border-bottom: 0;
+    gap: 8px;
+  }
+  .topnav .brand-name { font-size: 14px; }
+  .topnav .brand-sub { font-size: 11px; }
+  .topnav .brand-mark { width: 18px; height: 18px; }
+  .topnav .brand-mark::before { top: 5px; }
+  .topnav .brand-mark::after { top: 10px; }
+  .topnav .lang { font-size: 11px; }
+
+  /* On mobile the nav-links become a primary, prominent strip beneath
+     brand+lang. We DROP the desktop pill (which gets clipped on narrow
+     widths and crops long labels like "Estadístiques") and use an
+     underline + accent-color treatment instead. Long label fits because
+     each cell is content-width, not flex-1, with a tight horizontal
+     padding; horizontal scroll catches anything beyond. */
+  .topnav .nav-links {
+    width: 100%;
+    order: 3;
+    gap: 4px;
+    font-size: 13px;
+    padding: 4px 0 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--ink);
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .topnav .nav-links::-webkit-scrollbar { display: none; }
+  .topnav .nav-links li {
+    flex: 0 0 auto;
+    text-align: center;
+  }
+  /* Override desktop pill on mobile — replaced with underline state. */
+  .topnav .nav-links a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border-bottom: 3px solid transparent;
+    color: var(--ink-2);
+    font-weight: 500;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .topnav .nav-links a.active {
+    color: var(--accent) !important;
+    font-weight: 700;
+    border-bottom-color: var(--accent);
+    background: transparent !important;
+  }
+  .topnav .nav-links a.active::after { display: none !important; }
+  .topnav .nav-links .nav-divider { display: none; }
+}
+
+@media (max-width: 720px) {
+  .page { padding: 16px 14px 32px; font-size: 14px; }
+  .topnav { gap: 10px; }
+
+  .kpi { padding: 10px 0; }
+  .kpi .value { font-size: 22px; }
+  .kpi .label { font-size: 10px; letter-spacing: 0.1em; }
+  .kpi .sub { font-size: 10px; }
+
+  .tab th { font-size: 10px; padding: 6px 8px; }
+  .tab td { padding: 8px 6px; font-size: 12px; }
+
+  /* Home-page vote rows: SUBJECT gets the whole width on its own row.
+     Layout: [date | result] on top, [subject] full-width, [proposer | bar]
+     on the bottom. Date stays compact left, result floats right. */
+  .vote-row-grid {
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "date    result"
+      "subject subject"
+      "bar     bar"
+      !important;
+    gap: 6px 12px !important;
+    padding: 18px 0 !important;
+  }
+  .vote-row-grid > *:nth-child(1) { grid-area: date; }
+  .vote-row-grid > *:nth-child(2) { grid-area: subject; }
+  .vote-row-grid > *:nth-child(3) { grid-area: bar; padding-top: 4px; }
+  .vote-row-grid > *:nth-child(4) { grid-area: result; text-align: right; }
+
+  /* Upcoming-row on home: similar — date prominent, title full-width. */
+  .upcoming-row-grid {
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "date  badge"
+      "title title"
+      !important;
+    row-gap: 4px !important;
+    padding: 12px 14px !important;
+  }
+  .upcoming-row-grid > *:nth-child(1) { grid-area: date; }
+  .upcoming-row-grid > *:nth-child(2) { grid-area: title; }
+  .upcoming-row-grid > *:nth-child(3) { grid-area: badge; text-align: right; }
+
+  /* Home stats coverage — never go below 2 columns; KPIs shrink instead. */
+  .home-coverage {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Stats hero: stack each group row's metrics under the group name; hide header row. */
+  .stats-group-row__header { display: none !important; }
+  .stats-group-row {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+  .stats-group-row__metrics {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .stats-group-row__metric-label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 2px;
+  }
+  .stats-group-row__metrics {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  /* Vote-detail meta strip: split-bar + table need horizontal scroll. */
+  .vote-meta-strip { gap: 12px !important; }
+
+  /* Person detail header: photo on top, info below. */
+  .person-header {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .person-header img,
+  .person-header > div:first-child {
+    width: 140px !important;
+    height: 175px !important;
+  }
+
+  /* Hide stats group-row metric labels on desktop, show on mobile. */
+}
+.stats-group-row__metric-label { display: none; }
+.stats-group-row__metrics { display: contents; }
+
+@media (max-width: 720px) {
+  /* Filter rail on /votes — stack search wide, dropdowns 2-up. */
+  .filter-rail {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .filter-rail > div:nth-child(1) { grid-column: 1 / -1; }
+  .filter-rail > div:nth-child(5) { grid-column: 1 / -1; padding: 10px 14px !important; }
+
+  /* Simplified filter on /votes: stack search and topic, button below. */
+  .filter-simple-row {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Votes-list table → card layout on mobile. Each row reflows to a
+     4-area grid where the SUBJECT (the thing the user came to read) gets
+     full width on its own line, and the date/result share the top edge.
+     Other tables on the site (vote-detail cohesion, etc.) keep their
+     standard horizontal-scroll behaviour because they're column-dense. */
+  .tab-votes-list { border-collapse: collapse; table-layout: auto !important; }
+  .tab-votes-list thead { display: none; }
+  .tab-votes-list tbody { display: block; }
+  .tab-votes-list tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "date     result"
+      "subject  subject"
+      "proposer votebar";
+    column-gap: 12px;
+    row-gap: 6px;
+    padding: 16px 2px;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+  }
+  .tab-votes-list td {
+    display: block !important;
+    padding: 0 !important;
+    border-bottom: 0 !important;
+    width: auto !important;
+    text-align: left !important;
+    vertical-align: baseline !important;
+  }
+  .tab-votes-list tr td:nth-child(1) {
+    grid-area: date;
+    font-size: 12px !important;
+    color: var(--ink-3) !important;
+    white-space: nowrap;
+  }
+  .tab-votes-list tr td:nth-child(2) {
+    display: inline !important;
+    font-size: 11px !important;
+    margin-left: 8px;
+    color: var(--ink-3) !important;
+  }
+  .tab-votes-list tr td:nth-child(2)::before {
+    content: "· ";
+    color: var(--ink-3);
+  }
+  .tab-votes-list tr td:nth-child(3) {
+    grid-area: subject;
+    font-size: 15px !important;
+    line-height: 1.4;
+    color: var(--ink) !important;
+  }
+  .tab-votes-list tr td:nth-child(4) {
+    grid-area: proposer;
+    align-self: end;
+  }
+  .tab-votes-list tr td:nth-child(5) {
+    grid-area: votebar;
+    align-self: end;
+    min-width: 140px;
+  }
+  .tab-votes-list tr td:nth-child(6) {
+    grid-area: result;
+    text-align: right !important;
+  }
+  .tab-votes-list tr:hover td { background: transparent !important; }
+}
+
+/* Hemicycle: shrink on tablet, hide on phone — the legend table covers
+   the same composition information without needing the visual. */
+@media (max-width: 720px) {
+  .hemicycle-block { transform: scale(0.85); transform-origin: center top; }
+}
+@media (max-width: 720px) {
+  .glossary-row {
+    grid-template-columns: 1fr !important;
+    gap: 4px !important;
+  }
+}
+
+/* Mobile-only: clamp long vote/initiative subjects to a max of 3 lines so
+   they don't dominate a list row. The ellipsis is added by webkit-line-clamp. */
+@media (max-width: 720px) {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-coverage {
+    grid-template-columns: 1fr !important;
+  }
+  .kpi { border-top-width: 1px; padding: 8px 0; }
+  .kpi .value { font-size: 20px; }
+  .hemicycle-block { display: none !important; }
+}
