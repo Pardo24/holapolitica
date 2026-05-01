@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AndroidManifest for Monitor Parlamentari.
+
+  `npx cap add android` will create a fresh manifest. After it has run,
+  merge the following blocks into android/app/src/main/AndroidManifest.xml:
+
+    - <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+      Required on Android 13+ (API 33). FCM uses standard channels too.
+    - <uses-permission android:name="android.permission.INTERNET"/>
+      Always present; we explicitly disallow cleartext at the application
+      level (usesCleartextTraffic="false") so dev builds against http://
+      tunnels MUST be forced through the network_security_config.xml below.
+    - intent-filter with autoVerify="true" for the canonical domain so that
+      https://monitor-parlamentari.cat/<path> opens in the app once the
+      Digital Asset Links file is hosted (see mobile/docs/deeplinks.md).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cat.monitorparlamentari.app">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:label="@string/title_activity_main"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- App Links: https://monitor-parlamentari.cat/...
+                 Routed to the app via Digital Asset Links. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="monitor-parlamentari.cat" />
+                <data android:scheme="https"
+                      android:host="www.monitor-parlamentari.cat" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>

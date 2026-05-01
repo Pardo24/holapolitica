@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand palette. Paper background matches frontend/public/icon.svg. -->
+    <color name="colorPrimary">#1a2138</color>
+    <color name="colorPrimaryDark">#11172a</color>
+    <color name="colorAccent">#1a2138</color>
+    <color name="paperBackground">#fbf9f4</color>
+</resources>

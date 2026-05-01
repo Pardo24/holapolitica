@@ -1,0 +1,6 @@
+/* Catalan localisation for system-presented strings.
+   Path inside the Xcode project will be: App/ca.lproj/InfoPlist.strings
+   `cap add ios` does not create lproj folders — copy this content there. */
+CFBundleDisplayName = "Monitor Parlamentari";
+NSCameraUsageDescription = "Es demana accés a la càmera per escanejar codis QR de votacions.";
+NSPhotoLibraryUsageDescription = "Es demana accés per desar les cartes socials que comparteixes.";

@@ -1,0 +1,39 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Capacitor generated bundle (we use server.url, but cap sync still writes here)
+www/
+
+# iOS native
+ios/App/Pods/
+ios/App/build/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+ios/DerivedData/
+ios/*.ipa
+ios/App/App/public/
+ios/App/App/GoogleService-Info.plist
+
+# Android native
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/app/release/
+android/app/src/main/assets/public/
+android/app/google-services.json
+android/keystore/
+*.jks
+*.keystore
+
+# Capacitor Assets temp
+.capacitor-assets/
+
+# Env
+.env
+.env.local

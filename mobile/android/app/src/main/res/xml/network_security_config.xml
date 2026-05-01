@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security config. By default cleartext is disabled. For local dev
+  against a tunneled URL, expose HTTPS through cloudflared / ngrok rather
+  than enabling cleartext here. If you absolutely need cleartext for
+  Android emulator dev against http://10.0.2.2:3002, add a debug-only
+  override under android/app/src/debug/res/xml/network_security_config.xml
+  (do NOT modify this file — debug overlays should never ship to production).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

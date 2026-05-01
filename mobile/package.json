@@ -1,0 +1,35 @@
+{
+  "name": "monitor-parlamentari-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capacitor wrapper packaging the Monitor Parlamentari Next.js web app as iOS and Android apps. The wrapper points at the production web URL — there is no duplicated UI.",
+  "scripts": {
+    "sync": "cap sync",
+    "ios:open": "cap open ios",
+    "ios:run": "cap run ios",
+    "android:open": "cap open android",
+    "android:run": "cap run android",
+    "assets:generate": "capacitor-assets generate --iconBackgroundColor '#fbf9f4' --splashBackgroundColor '#fbf9f4'",
+    "build": "cap build",
+    "doctor": "cap doctor"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.1",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
+    "@capacitor/preferences": "^6.0.2",
+    "@capacitor/push-notifications": "^6.0.2",
+    "@capacitor/share": "^6.0.2",
+    "@capacitor/splash-screen": "^6.0.2",
+    "@capacitor/status-bar": "^6.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/assets": "^3.0.5",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
