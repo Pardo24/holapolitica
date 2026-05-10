@@ -1,0 +1,58 @@
+name: PR Quality
+
+# Cross-cutting checks that run on EVERY pull request regardless of which
+# paths changed. They're cheap and catch problems (workflow syntax, leaked
+# secrets, broken hooks) that path-filtered workflows would miss.
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  actionlint:
+    name: Lint workflows (actionlint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color
+
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE only needed for org accounts; left blank for
+          # public projects, which is our case.
+
+  pre-commit:
+    name: Run pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for pre-commit config
+        id: has_config
+        run: |
+          if [ -f .pre-commit-config.yaml ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No .pre-commit-config.yaml — skipping."
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.has_config.outputs.found == 'true'
+        with:
+          python-version: "3.11"
+      - name: Run pre-commit
+        if: steps.has_config.outputs.found == 'true'
+        uses: pre-commit/action@v3.0.1
