@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { ChevronDown } from 'lucide-react';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
@@ -516,7 +517,9 @@ function InitiativesStateWidget({
                 labels.filterByTopic
               )}
             </span>
-            <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>▾</span>
+            <span style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
+              <ChevronDown size={14} aria-hidden="true" />
+            </span>
           </summary>
           <div style={{ padding: '4px 14px 14px', display: 'grid', gap: 10 }}>
             <StatsTopicFilter
@@ -876,8 +879,8 @@ function InitiativeListExpandable({
                 </span>
               )}
             </span>
-            <span aria-hidden="true" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-              ▾
+            <span aria-hidden="true" style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
+              <ChevronDown size={14} aria-hidden="true" />
             </span>
           </summary>
           <div style={{ marginTop: 10 }}>

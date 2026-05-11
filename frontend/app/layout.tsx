@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
+import { ArrowRight } from 'lucide-react';
 
 import { PushBootstrap } from '@/components/PushBootstrap';
 import { TopNav } from '@/components/TopNav';
@@ -68,8 +69,17 @@ export default async function RootLayout({
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span>
                   {tFooter('principle')}{' '}
-                  <Link href="/about" style={{ color: 'var(--ink)', marginLeft: 6 }}>
-                    {tNav('about')} →
+                  <Link
+                    href="/about"
+                    style={{
+                      color: 'var(--ink)',
+                      marginLeft: 6,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    {tNav('about')} <ArrowRight size={14} aria-hidden="true" />
                   </Link>
                 </span>
                 <span>

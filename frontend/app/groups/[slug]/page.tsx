@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { ArrowUpRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { TopicBars } from '@/components/TopicBars';
@@ -138,15 +139,26 @@ export default async function GroupDetailPage({
           <div style={{ borderTop: '1px solid var(--rule)' }}>
             {info?.website && (
               <FactRow label={t('website')}>
-                <a href={info.website} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink)' }}>
-                  {info.website.replace(/^https?:\/\//, '').replace(/\/$/, '')} ↗
+                <a
+                  href={info.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  {info.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}{' '}
+                  <ArrowUpRight size={14} aria-hidden="true" />
                 </a>
               </FactRow>
             )}
             {info?.wikipedia_url && (
               <FactRow label={t('wikipedia')}>
-                <a href={info.wikipedia_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink)' }}>
-                  Wikipedia ↗
+                <a
+                  href={info.wikipedia_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  Wikipedia <ArrowUpRight size={14} aria-hidden="true" />
                 </a>
               </FactRow>
             )}

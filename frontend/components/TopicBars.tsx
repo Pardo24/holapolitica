@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { Check, X, Circle } from 'lucide-react';
 
 import type { TopicVoteStat } from '@/lib/api';
 
@@ -209,9 +210,15 @@ function BarLegend({ row }: { row: TopicVoteStat }) {
   ) : null;
   return (
     <span className="text-[11px] tabular-nums text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-      <span style={{ color: C_AYE }}>✓ {row.ayes}</span>
-      <span style={{ color: C_NO }}>✗ {row.noes}</span>
-      <span style={{ color: C_ABST }}>○ {row.abstentions}</span>
+      <span style={{ color: C_AYE, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+        <Check size={12} aria-hidden="true" /> {row.ayes}
+      </span>
+      <span style={{ color: C_NO, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+        <X size={12} aria-hidden="true" /> {row.noes}
+      </span>
+      <span style={{ color: C_ABST, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+        <Circle size={12} aria-hidden="true" /> {row.abstentions}
+      </span>
       {badge}
     </span>
   );

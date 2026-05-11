@@ -10,6 +10,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
 } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 import type { Topic, TopicKind } from '@/lib/api';
 
@@ -222,8 +223,8 @@ export function TopicCombobox({
           ) : (
             <span style={{ color: 'var(--ink-3)' }}>{placeholder}</span>
           )}
-          <span aria-hidden="true" style={{ color: 'var(--ink-3)', marginLeft: 'auto' }}>
-            ▾
+          <span aria-hidden="true" style={{ color: 'var(--ink-3)', marginLeft: 'auto', display: 'inline-flex' }}>
+            <ChevronDown size={14} aria-hidden="true" />
           </span>
         </button>
       )}

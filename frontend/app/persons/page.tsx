@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { ArrowLeft, ArrowRight, ChevronUp } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupListPanel } from '@/components/GroupListPanel';
@@ -175,12 +176,15 @@ async function DiputatsTab({
           <div
             style={{
               display: 'flex',
+              alignItems: 'center',
+              gap: 4,
               justifyContent: 'center',
               fontSize: 11,
               color: 'var(--ink-3)',
               marginTop: 6,
             }}
           >
+            <ChevronUp size={12} aria-hidden="true" />
             {t('hemicycle_caption')}
           </div>
         </div>
@@ -397,9 +401,12 @@ function Pagination({
               padding: '4px 10px',
               textDecoration: 'none',
               color: 'var(--ink-2)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
             }}
           >
-            ← Anterior
+            <ArrowLeft size={14} aria-hidden="true" /> Anterior
           </Link>
         )}
         {page < lastPage && (
@@ -410,9 +417,12 @@ function Pagination({
               padding: '4px 10px',
               textDecoration: 'none',
               color: 'var(--ink-2)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
             }}
           >
-            Següent →
+            Següent <ArrowRight size={14} aria-hidden="true" />
           </Link>
         )}
       </div>

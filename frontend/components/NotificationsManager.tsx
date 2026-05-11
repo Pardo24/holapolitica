@@ -46,6 +46,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { useTranslations } from 'next-intl';
+import { X, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { ApiError, api, type Topic, type TopicKind } from '@/lib/api';
 
@@ -591,8 +592,12 @@ function SubscribedView({
             style={linkButtonStyle}
           >
             {showAll ? t('view_all_topics_hide') : t('view_all_topics')}
-            <span aria-hidden="true" style={{ marginLeft: 4 }}>
-              {showAll ? '▴' : '▾'}
+            <span aria-hidden="true" style={{ marginLeft: 4, display: 'inline-flex' }}>
+              {showAll ? (
+                <ChevronUp size={14} aria-hidden="true" />
+              ) : (
+                <ChevronDown size={14} aria-hidden="true" />
+              )}
             </span>
           </button>
         </div>
@@ -742,7 +747,7 @@ function TopicChip({
         aria-label={removeLabel}
         style={chipRemoveButtonStyle}
       >
-        <span aria-hidden="true">×</span>
+        <X size={12} aria-hidden="true" />
       </button>
     </span>
   );
@@ -1075,8 +1080,8 @@ function TopicSectionAccordion({
             {selectedInSection} / {topics.length}
           </span>
         </span>
-        <span aria-hidden="true" style={{ color: 'var(--ink-3)', fontSize: 13 }}>
-          ▾
+        <span aria-hidden="true" style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
+          <ChevronDown size={14} aria-hidden="true" />
         </span>
       </summary>
 

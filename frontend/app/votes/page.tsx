@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
@@ -207,7 +208,9 @@ async function VotesListTab({ params }: { params: SearchParams }) {
                   background: 'var(--paper)',
                 }}
               >
-                <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>⌕</span>
+                <span aria-hidden="true" style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
+                  <Search size={14} aria-hidden="true" />
+                </span>
                 <input
                   type="search"
                   name="q"
@@ -240,7 +243,9 @@ async function VotesListTab({ params }: { params: SearchParams }) {
             </div>
             <details className="filter-advanced-details" open={advancedOpen}>
               <summary className="filter-advanced-summary">
-                <span aria-hidden="true" className="filter-advanced-caret">▸</span>
+                <span aria-hidden="true" className="filter-advanced-caret" style={{ display: 'inline-flex' }}>
+                  <ChevronRight size={14} aria-hidden="true" />
+                </span>
                 <span>
                   {t('advanced_filters_summary')}
                   {advancedCount > 0 && (
@@ -556,14 +561,17 @@ function Pagination({
         {page > 1 && (
           <Link
             href={buildHref(page - 1)}
+            aria-label="Pàgina anterior"
             style={{
               padding: '4px 10px',
               border: '1px solid var(--rule)',
               color: 'var(--ink-2)',
               fontSize: 12,
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
-            ‹
+            <ChevronLeft size={14} aria-hidden="true" />
           </Link>
         )}
         {pages.map((p, i) =>
@@ -591,14 +599,17 @@ function Pagination({
         {page < lastPage && (
           <Link
             href={buildHref(page + 1)}
+            aria-label="Pàgina següent"
             style={{
               padding: '4px 10px',
               border: '1px solid var(--rule)',
               color: 'var(--ink-2)',
               fontSize: 12,
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
-            ›
+            <ChevronRight size={14} aria-hidden="true" />
           </Link>
         )}
       </div>

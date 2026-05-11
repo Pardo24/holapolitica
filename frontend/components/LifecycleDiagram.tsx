@@ -1,4 +1,15 @@
 import { getTranslations } from 'next-intl/server';
+import {
+  Mail,
+  Check,
+  Scale,
+  Hammer,
+  Star,
+  Flag,
+  RotateCcw,
+  FileText,
+  type LucideIcon,
+} from 'lucide-react';
 
 /**
  * Educational static infographic that describes the typical lifecycle of a
@@ -19,24 +30,24 @@ import { getTranslations } from 'next-intl/server';
  *     and the labels are never cramped.
  *
  * Every step exposes the same three-part skeleton (number · icon · text)
- * so the page reads at a glance. Icons are Unicode dingbats — no icon
- * library dependency, ~0 bytes added to the bundle.
+ * so the page reads at a glance. Icons come from lucide-react so they
+ * render consistently across platforms and fonts.
  */
 
 interface LifecycleStep {
   id: string;
-  icon: string;
+  Icon: LucideIcon;
 }
 
 const STEPS: LifecycleStep[] = [
-  { id: 'presentation', icon: '✉' }, // envelope
-  { id: 'qualification', icon: '✓' }, // check
-  { id: 'totality_debate', icon: '⚖' }, // scales of justice
-  { id: 'committee', icon: '⚒' }, // hammer
-  { id: 'plenary_final', icon: '★' }, // star
-  { id: 'senate', icon: '⚑' }, // flag
-  { id: 'return', icon: '↻' }, // back-arrow
-  { id: 'publication', icon: '§' }, // section sign
+  { id: 'presentation', Icon: Mail }, // envelope
+  { id: 'qualification', Icon: Check }, // check
+  { id: 'totality_debate', Icon: Scale }, // scales of justice
+  { id: 'committee', Icon: Hammer }, // hammer
+  { id: 'plenary_final', Icon: Star }, // star
+  { id: 'senate', Icon: Flag }, // flag
+  { id: 'return', Icon: RotateCcw }, // back-arrow
+  { id: 'publication', Icon: FileText }, // publication
 ];
 
 export async function LifecycleDiagram() {
@@ -175,13 +186,13 @@ function LifecycleStepRow({
         </span>
         <span
           style={{
-            fontSize: 11,
             color: 'var(--accent)',
             lineHeight: 1,
             marginTop: 2,
+            display: 'inline-flex',
           }}
         >
-          {step.icon}
+          <step.Icon size={12} aria-hidden="true" />
         </span>
       </div>
 

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { ArrowRight } from 'lucide-react';
 
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { ResultPill } from '@/components/ResultPill';
@@ -208,9 +209,16 @@ export default async function HomePage() {
           <div className="eyebrow">{t('coverage_title')}</div>
           <Link
             href="/stats"
-            style={{ fontSize: 12, color: 'var(--ink)', textDecoration: 'none' }}
+            style={{
+              fontSize: 12,
+              color: 'var(--ink)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
           >
-            Veure totes les estadístiques →
+            Veure totes les estadístiques <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </div>
         <div

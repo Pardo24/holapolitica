@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { X } from 'lucide-react';
 
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { GroupCombobox } from '@/components/GroupCombobox';
@@ -1076,7 +1077,9 @@ function Chips({
           }}
           title={removeTitle}
         >
-          × {c.label}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <X size={12} aria-hidden="true" /> {c.label}
+          </span>
         </Link>
       ))}
     </div>

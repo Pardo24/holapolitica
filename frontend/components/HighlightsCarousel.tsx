@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { type Highlight, highlightHeadline } from '@/lib/highlights';
@@ -113,9 +114,9 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
           type="button"
           onClick={() => setIdx((i) => (i - 1 + items.length) % items.length)}
           aria-label={t('highlights_prev_aria')}
-          style={btnStyle}
+          style={{ ...btnStyle, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          ← {prev && displayGroupShort(prev.group_name_short)}
+          <ArrowLeft size={14} aria-hidden="true" /> {prev && displayGroupShort(prev.group_name_short)}
         </button>
         <div
           aria-live="polite"
@@ -137,9 +138,9 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
           type="button"
           onClick={() => setIdx((i) => (i + 1) % items.length)}
           aria-label={t('highlights_next_aria')}
-          style={btnStyle}
+          style={{ ...btnStyle, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          {next && displayGroupShort(next.group_name_short)} →
+          {next && displayGroupShort(next.group_name_short)} <ArrowRight size={14} aria-hidden="true" />
         </button>
       </div>
 

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
+import { ArrowRight } from 'lucide-react';
 
 import {
   api,
@@ -247,7 +248,9 @@ function TopicCard({ topic, count }: { topic: Topic; count: number }) {
           <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
             {count > 0 ? `${count} iniciatives` : 'sense dades encara'}
           </span>
-          <span style={{ fontSize: 12, color: 'var(--ink)' }}>→</span>
+          <span style={{ color: 'var(--ink)', display: 'inline-flex' }}>
+            <ArrowRight size={14} aria-hidden="true" />
+          </span>
         </div>
       </Link>
     </li>

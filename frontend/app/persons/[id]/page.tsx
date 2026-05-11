@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { ArrowUpRight } from 'lucide-react';
 
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
@@ -189,18 +190,30 @@ export default async function PersonDetailPage({
                 href={person.biography_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: 13, color: 'var(--ink)' }}
+                style={{
+                  fontSize: 13,
+                  color: 'var(--ink)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
               >
-                {t('biography_link')} ↗
+                {t('biography_link')} <ArrowUpRight size={14} aria-hidden="true" />
               </a>
             ) : (
               <a
                 href={wikiSearch}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: 13, color: 'var(--ink)' }}
+                style={{
+                  fontSize: 13,
+                  color: 'var(--ink)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
               >
-                {t('wikipedia_search')} ↗
+                {t('wikipedia_search')} <ArrowUpRight size={14} aria-hidden="true" />
               </a>
             )}
           </div>

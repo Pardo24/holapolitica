@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowUpRight, Check, X } from 'lucide-react';
 
 /**
  * One-tap sharing. On mobile uses the native share sheet (`navigator.share`);
@@ -75,8 +76,14 @@ export function ShareButton({
         transition: 'background .15s ease, border-color .15s ease, color .15s ease',
       }}
     >
-      <span aria-hidden="true" style={{ fontSize: fontSize + 1, lineHeight: 1 }}>
-        {state === 'copied' ? '✓' : state === 'error' ? '✕' : '↗'}
+      <span aria-hidden="true" style={{ display: 'inline-flex', lineHeight: 1 }}>
+        {state === 'copied' ? (
+          <Check size={fontSize + 1} aria-hidden="true" />
+        ) : state === 'error' ? (
+          <X size={fontSize + 1} aria-hidden="true" />
+        ) : (
+          <ArrowUpRight size={fontSize + 1} aria-hidden="true" />
+        )}
       </span>
       <span>
         {state === 'copied' ? 'Enllaç copiat' : state === 'error' ? 'Error' : label}
