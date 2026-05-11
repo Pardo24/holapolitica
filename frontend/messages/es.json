@@ -285,10 +285,72 @@
     "Quòrum": "Mínimo de asistencia para que una votación sea válida.",
     "Veto del Senat": "Rechazo del Senado a una ley aprobada en el Congreso — solo tiene fuerza si el Senado lo aprueba por mayoría absoluta."
   },
+  "newsletter": {
+    "signup_eyebrow": "Newsletter semanal",
+    "signup_body": "Un correo cada viernes con las votaciones de la semana en el Congreso. Sin valoraciones, sólo datos.",
+    "signup_placeholder": "tu-correo@ejemplo.es",
+    "signup_cta": "Suscríbete",
+    "signup_sending": "Enviando…",
+    "signup_success": "Revisa tu correo para confirmar la suscripción.",
+    "signup_error_invalid_email": "Introduce una dirección de correo válida.",
+    "signup_error_generic": "No hemos podido procesar tu suscripción. Inténtalo de nuevo más tarde.",
+    "signup_privacy": "Solo usamos tu correo para enviarte la newsletter. Puedes cancelarla en cualquier momento."
+  },
+  "upcoming": {
+    "title_home": "Próximas votaciones",
+    "title_compact": "Próximas sesiones",
+    "subtitle": "Próximo orden del día",
+    "empty": "No hay ninguna sesión programada actualmente. Volveremos cuando el Congreso publique la agenda.",
+    "caveat": "Las votaciones programadas pueden cancelarse o aplazarse. Consulta la web del Congreso para confirmación.",
+    "planned_label": "Sesión plenaria prevista (orden del día pendiente)",
+    "items_count": "{count, plural, =1 {1 punto} other {# puntos}} en el orden del día",
+    "session_number": "sesión {n}",
+    "status_planned": "previsto"
+  },
   "footer": {
     "license_code": "Código bajo licencia EUPL-1.2",
     "license_data": "Datos bajo CC-BY 4.0",
     "principle": "Este proyecto es infraestructura cívica neutra: facilita datos, no opiniones.",
     "complementary": "Complementario a Civio."
+  },
+  "lifecycle": {
+    "eyebrow": "Recorrido de una ley",
+    "title": "Cómo se hace una ley en el Congreso",
+    "intro": "Estas son las ocho etapas que sigue una iniciativa legislativa en el Congreso de los Diputados. Cada etapa está definida en el Reglamento del Congreso; las votaciones que verás en el sitio pueden corresponder a cualquiera de ellas.",
+    "caveat": "Los pasos 6 y 7 solo se aplican a iniciativas que llegan al Senado. Las Proposiciones no de Ley (PNL) tienen un recorrido más corto: pasan directamente al Pleno para debate y votación.",
+    "steps": {
+      "presentation": {
+        "title": "Presentación",
+        "body": "Un grupo parlamentario o el Gobierno registra la iniciativa: Proposición de Ley (grupos) o Proyecto de Ley (Gobierno)."
+      },
+      "qualification": {
+        "title": "Calificación",
+        "body": "La Mesa del Congreso admite el escrito a trámite y decide qué comisión lo trabaja."
+      },
+      "totality_debate": {
+        "title": "Debate de totalidad",
+        "body": "El Pleno debate el conjunto del texto y puede vetarlo (rechazarlo) o aprobar su entrada en tramitación."
+      },
+      "committee": {
+        "title": "Comisión",
+        "body": "La comisión competente estudia el texto, escucha a expertos y redacta enmiendas al articulado."
+      },
+      "plenary_final": {
+        "title": "Aprobación final en el Pleno",
+        "body": "El Pleno vota el texto definitivo con las enmiendas incorporadas."
+      },
+      "senate": {
+        "title": "Senado",
+        "body": "El texto pasa al Senado, que puede aprobarlo sin cambios, introducir enmiendas o vetarlo."
+      },
+      "return": {
+        "title": "Vuelta al Congreso",
+        "body": "Si el Senado enmienda o veta, el texto vuelve al Congreso, que ratifica su texto o acepta las enmiendas."
+      },
+      "publication": {
+        "title": "Publicación en el BOE",
+        "body": "Una vez aprobada, la ley se publica en el Boletín Oficial del Estado y entra en vigor."
+      }
+    }
   }
 }

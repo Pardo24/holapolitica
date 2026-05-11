@@ -71,6 +71,94 @@ html, body {
     radial-gradient(600px 300px at top left, color-mix(in oklch, var(--accent) 10%, transparent) 0%, transparent 65%);
   background-attachment: fixed;
   background-repeat: no-repeat;
+  /* Mobile-app feel — never let the page scroll horizontally; subtle tap
+     highlight tinted to the brand accent instead of the default grey
+     rectangle; smooth in-page anchor scrolling. */
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: color-mix(in oklch, var(--accent) 20%, transparent);
+}
+html { scroll-behavior: smooth; }
+
+/* Respect users who prefer reduced motion. Disable transitions and
+   animations system-wide. The auto-rotating highlights carousel pauses
+   too because its interval lives inside a useEffect that the browser
+   keeps running, but the visual transitions are flattened. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile-app: safe-area padding for the bottom of the page so anything
+   sticky (or just the final element) doesn't sit behind the home indicator
+   on devices with rounded corners / notches. */
+@media (max-width: 640px) {
+  body > .page,
+  .page {
+    padding-bottom: max(32px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Inputs on iOS Safari zoom in if their font-size is below 16px. We keep
+   the visual rhythm but bump min font-size on touch devices to avoid that
+   jolt. Applies to <input>, <select>, <textarea>. */
+@media (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Bigger tap targets for visually tiny controls (the small "i" tooltip
+   triggers and similar). The visible badge stays small but the hit area
+   reaches the 44×44px Apple/Google guideline via padding. */
+.summary-hover__details > summary,
+.summary-hover__btn {
+  /* Hit area extends beyond the visible 14×14 circle. */
+  position: relative;
+}
+.summary-hover__details > summary::before,
+.summary-hover__btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  /* Transparent — used purely for hit-testing on touch. */
+}
+.glossary-term__anchor,
+.term-tooltip__anchor {
+  /* Same trick for inline tooltip triggers: keep the dotted underline
+     visually tight, expand the touch hit zone via a pseudo-element. */
+  position: relative;
+}
+.glossary-term__anchor::before,
+.term-tooltip__anchor::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+/* Touch-only: ensure tooltips are tap-toggleable. The hover-only
+   .term-tooltip uses CSS :hover/:focus-within, which fires on tap-focus
+   on iOS; explicitly enable tabIndex on the anchor via TS. We add a
+   visible affordance on touch (the dotted underline already provides
+   one — no extra change needed). */
+@media (hover: none) {
+  .term-tooltip__anchor,
+  .glossary-term__anchor {
+    /* Slight reinforcement so users see they're interactive. */
+    border-bottom-style: dotted;
+  }
 }
 
 a { color: inherit; }

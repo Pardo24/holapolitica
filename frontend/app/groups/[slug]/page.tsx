@@ -222,7 +222,7 @@ function FactRow({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '110px 1fr',
+        gridTemplateColumns: '110px minmax(0, 1fr)',
         padding: '8px 0',
         borderBottom: '1px solid var(--rule)',
         fontSize: 12,
@@ -232,7 +232,7 @@ function FactRow({
       <span className="eyebrow" style={{ fontSize: 10 }}>
         {label}
       </span>
-      <span style={{ color: 'var(--ink-2)' }}>{children}</span>
+      <span style={{ color: 'var(--ink-2)', minWidth: 0, overflowWrap: 'anywhere' }}>{children}</span>
     </div>
   );
 }
@@ -618,13 +618,13 @@ function PartyList({
           key={p.name}
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr auto',
+            gridTemplateColumns: 'minmax(0, 1fr) auto',
             padding: '6px 0',
             borderBottom: '1px solid var(--rule)',
             gap: 10,
           }}
         >
-          <span style={{ color: 'var(--ink)' }}>{p.name}</span>
+          <span style={{ color: 'var(--ink)', minWidth: 0, overflowWrap: 'anywhere' }}>{p.name}</span>
           <span className="tabular" style={{ color: 'var(--ink-2)' }}>
             {p.count}
           </span>

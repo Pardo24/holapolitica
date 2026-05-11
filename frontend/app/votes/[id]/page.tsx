@@ -247,7 +247,7 @@ export default async function VoteDetailPage({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
+                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
                 gap: 0,
                 marginTop: 8,
                 marginBottom: 12,
@@ -263,14 +263,15 @@ export default async function VoteDetailPage({
                   key={c.label}
                   style={{
                     borderLeft: i > 0 ? '1px solid var(--rule)' : 'none',
-                    paddingLeft: i > 0 ? 14 : 0,
+                    paddingLeft: i > 0 ? 10 : 0,
+                    minWidth: 0,
                   }}
                 >
                   <div className="eyebrow">{c.label}</div>
                   <div
                     className="tabular"
                     style={{
-                      fontSize: 32,
+                      fontSize: 'clamp(20px, 7vw, 32px)',
                       fontWeight: 600,
                       color: c.color,
                       letterSpacing: '-0.02em',

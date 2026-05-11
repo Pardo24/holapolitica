@@ -5,13 +5,15 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { HubTabs } from '@/components/HubTabs';
+import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { SummaryHover } from '@/components/SummaryHover';
 import { TopicCombobox } from '@/components/TopicCombobox';
 import { TopicListPanel } from '@/components/TopicListPanel';
+import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
-import { api, type TopicKind, type Vote, type VoteResult } from '@/lib/api';
+import { api, type ScheduledSession, type TopicKind, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -74,6 +76,10 @@ export default async function VotesPage({
       ) : (
         <TopicsTab kind={params.kind} />
       )}
+
+      {/* Newsletter signup — at the very bottom of either tab. Compact
+          card, neutral copy, posts directly to backend. */}
+      <NewsletterSignup />
     </div>
   );
 }
@@ -98,10 +104,11 @@ async function VotesListTab({ params }: { params: SearchParams }) {
   let data: Awaited<ReturnType<typeof api.votes.list>> | null = null;
   let topics: Awaited<ReturnType<typeof api.topics.list>> = [];
   let groups: Awaited<ReturnType<typeof api.groups.list>> = [];
+  let upcomingSessions: ScheduledSession[] = [];
   let error: string | null = null;
 
   try {
-    [data, topics, groups] = await Promise.all([
+    [data, topics, groups, upcomingSessions] = await Promise.all([
       api.votes.list({
         topic_slug: params.topic_slug,
         proposing_group_slug: params.proposing_group_slug,
@@ -112,6 +119,13 @@ async function VotesListTab({ params }: { params: SearchParams }) {
       }),
       api.topics.list(),
       api.groups.list(),
+      // Compact agenda banner above the list — same upcoming data as the
+      // home page, but `mode="compact"` hides it entirely when empty so
+      // the table is not preceded by a stale "no data" block.
+      api.agenda
+        .sessions({ legislature_id: 1, upcoming_only: true })
+        .then((rows) => rows.slice(0, 4))
+        .catch(() => [] as ScheduledSession[]),
     ]);
   } catch (e) {
     error = e instanceof Error ? e.message : 'unknown error';
@@ -143,6 +157,10 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           )}
         </div>
       </div>
+
+      {/* Upcoming sessions, compact — renders nothing if empty so the
+          table is not preceded by clutter. */}
+      <UpcomingAgenda sessions={upcomingSessions} mode="compact" />
 
       {/* Simplified filter — primary row (search + topic), advanced hidden */}
       <form

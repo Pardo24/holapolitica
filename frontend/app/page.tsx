@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { GroupChip } from '@/components/GroupChip';
 import { SummaryHover } from '@/components/SummaryHover';
+import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
 import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
@@ -249,67 +251,7 @@ export default async function HomePage() {
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           honest empty-state today. Appears above latest so it's the first
           actionable item when the data lands. */}
-      <section style={{ paddingTop: 32 }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            marginBottom: 12,
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <h2 className="h-headline" style={{ margin: 0, fontSize: 22 }}>
-            {t('upcoming_title')}
-          </h2>
-          <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-            {t('upcoming_subtitle')}
-          </div>
-        </div>
-        {upcomingSessions.length === 0 ? (
-          <div
-            style={{
-              padding: '20px 22px',
-              borderRadius: 14,
-              border: '1px dashed var(--rule-strong)',
-              background: 'var(--paper-2)',
-              display: 'flex',
-              gap: 16,
-              alignItems: 'flex-start',
-            }}
-          >
-            <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1, color: 'var(--ink-3)' }}>📅</span>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5 }}>
-                {t('upcoming_empty')}
-              </p>
-              <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--ink-3)', fontStyle: 'italic' }}>
-                {t('upcoming_caveat')}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <ul
-            style={{
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              borderRadius: 14,
-              border: '1px solid var(--rule)',
-              background: 'var(--paper-2)',
-              overflow: 'hidden',
-            }}
-          >
-            {upcomingSessions.map((s) => (
-              <UpcomingRow key={s.id} session={s} locale={locale} />
-            ))}
-            <li style={{ padding: '10px 18px', fontSize: 11, color: 'var(--ink-3)', fontStyle: 'italic', borderTop: '1px solid var(--rule)' }}>
-              {t('upcoming_caveat')}
-            </li>
-          </ul>
-        )}
-      </section>
+      <UpcomingAgenda sessions={upcomingSessions} mode="home" />
 
       {/* Latest votes */}
       <section style={{ paddingTop: 32 }}>
@@ -357,6 +299,10 @@ export default async function HomePage() {
         </ul>
       </section>
 
+      {/* Newsletter signup — placed last, after readers have engaged with
+          the content. Compact, neutral, no scarcity tactics. */}
+      <NewsletterSignup />
+
       {/* Responsive helper — collapse hero / coverage on narrow screens */}
       <style>{`
         @media (max-width: 860px) {
@@ -365,63 +311,6 @@ export default async function HomePage() {
         }
       `}</style>
     </div>
-  );
-}
-
-function UpcomingRow({ session, locale }: { session: ScheduledSession; locale: string }) {
-  const dateStr = new Date(session.date).toLocaleDateString(locale, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-  });
-  const itemCount = session.items.length;
-  const isPlanned = session.status === 'planned';
-  return (
-    <li
-      className="upcoming-row-grid"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '160px 1fr auto',
-        gap: 16,
-        padding: '14px 18px',
-        borderBottom: '1px solid var(--rule)',
-        alignItems: 'baseline',
-      }}
-    >
-      <div className="tabular" style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600 }}>
-        {dateStr}
-      </div>
-      <div style={{ minWidth: 0 }}>
-        {isPlanned ? (
-          <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-            Sessió plenària prevista (ordre del dia pendent)
-          </span>
-        ) : (
-          <>
-            <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>
-              {itemCount} {itemCount === 1 ? 'punt' : 'punts'} a l&apos;ordre del dia
-            </span>
-            {session.items[0] && (
-              <div
-                style={{
-                  fontSize: 12,
-                  color: 'var(--ink-3)',
-                  marginTop: 4,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {session.items[0].subject}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-      <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-        {isPlanned ? 'previst' : `sessió ${session.session_number}`}
-      </div>
-    </li>
   );
 }
 
@@ -478,7 +367,7 @@ function CompactVoteRow({
         className="vote-row-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: '90px 1fr 220px 120px',
+          gridTemplateColumns: '90px minmax(0, 1fr) 220px 120px',
           gap: 24,
           padding: '26px 0',
           alignItems: 'start',
@@ -487,19 +376,19 @@ function CompactVoteRow({
           pointerEvents: 'none',
         }}
       >
-        <div className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', fontVariantNumeric: 'tabular-nums' }}>
+        <div className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', fontVariantNumeric: 'tabular-nums', minWidth: 0 }}>
           <span className="sm:hidden whitespace-nowrap">{shortDate}</span>
           <span className="hidden sm:inline">{longDate}</span>
           {v.expediente_raw && (
             <>
               <br />
-              <span className="mono" style={{ fontSize: 11 }}>
+              <span className="mono" style={{ fontSize: 11, wordBreak: 'break-all' }}>
                 {v.expediente_raw}
               </span>
             </>
           )}
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{v.title}</span>
           </div>

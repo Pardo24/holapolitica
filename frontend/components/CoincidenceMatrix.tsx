@@ -50,7 +50,7 @@ export function CoincidenceMatrix({
         cells={map}
         highlightSlug={highlightSlug}
       />
-      <div style={{ overflowX: 'auto' }} className="coincidence-wrap hidden sm:block">
+      <div style={{ overflowX: 'auto', maxWidth: '100%' }} className="coincidence-wrap hidden sm:block">
       <table
         className="tab"
         style={{ borderCollapse: 'separate', borderSpacing: 2, minWidth: 540 }}

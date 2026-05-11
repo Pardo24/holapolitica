@@ -1,5 +1,8 @@
 import { getTranslations, getMessages } from 'next-intl/server';
 
+import { LifecycleDiagram } from '@/components/LifecycleDiagram';
+import { NewsletterSignup } from '@/components/NewsletterSignup';
+
 interface GlossaryTerm {
   term: string;
   definition: string;
@@ -76,6 +79,12 @@ export default async function AboutPage() {
         ))}
       </ul>
 
+      {/* Lifecycle diagram: educational static infographic of how a
+          legislative initiative travels through the Spanish Congress.
+          Sits next to the glossary because both are reference material —
+          the glossary defines terms, the diagram defines the process. */}
+      <LifecycleDiagram />
+
       <h2 className="h-title" style={{ marginTop: 32, marginBottom: 8 }}>
         {t('glossary_title')}
       </h2>
@@ -107,6 +116,11 @@ export default async function AboutPage() {
       </dl>
 
       <Section title={t('licence_title')}>{t('licence_body')}</Section>
+
+      {/* Newsletter signup — closing CTA on the about page. Visitors
+          who reach this section are the ones most likely to want
+          weekly updates. */}
+      <NewsletterSignup />
     </article>
   );
 }

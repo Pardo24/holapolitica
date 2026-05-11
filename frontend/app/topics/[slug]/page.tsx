@@ -256,7 +256,7 @@ export default async function TopicDetailPage({
                     key={who}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '1fr 60px 30px',
+                      gridTemplateColumns: 'minmax(0, 1fr) 60px 30px',
                       alignItems: 'center',
                       gap: 8,
                       padding: '5px 0',
@@ -270,6 +270,7 @@ export default async function TopicDetailPage({
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         color: 'var(--ink-2)',
+                        minWidth: 0,
                       }}
                       title={who}
                     >
@@ -447,7 +448,7 @@ function InitiativeRow({
           // The desktop status cell is also rendered but `hidden sm:flex` so it
           // only participates in the layout once the breakpoint kicks in. The
           // grid columns are set via inline + a media query in <style>.
-          gridTemplateColumns: 'minmax(56px, max-content) 1fr',
+          gridTemplateColumns: 'minmax(56px, max-content) minmax(0, 1fr)',
           alignItems: 'baseline',
         }}
       >

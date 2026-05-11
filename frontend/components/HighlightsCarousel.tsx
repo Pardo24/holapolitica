@@ -160,16 +160,35 @@ function HighlightCard({ h }: { h: Highlight }) {
           alignItems: 'center',
           gap: 10,
           marginBottom: 8,
+          flexWrap: 'wrap',
         }}
       >
         <GroupBadge slug={h.group_slug} color={h.group_color_hex} size="xs" link={false} />
         <Link
           href={`/groups/${h.group_slug}`}
-          style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', textDecoration: 'none' }}
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            textDecoration: 'none',
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: '100%',
+          }}
         >
           {displayGroupShort(h.group_name_short)}
         </Link>
-        <span className="eyebrow" style={{ fontSize: 9, color: 'var(--ink-3)', marginLeft: 'auto' }}>
+        <span
+          className="eyebrow"
+          style={{
+            fontSize: 9,
+            color: 'var(--ink-3)',
+            marginLeft: 'auto',
+            maxWidth: '100%',
+          }}
+        >
           {highlightHeadline(h)}
         </span>
       </div>
@@ -177,7 +196,7 @@ function HighlightCard({ h }: { h: Highlight }) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'auto 1fr',
+          gridTemplateColumns: 'auto minmax(0, 1fr)',
           gap: 18,
           alignItems: 'center',
         }}
@@ -207,6 +226,7 @@ function HighlightCard({ h }: { h: Highlight }) {
               color: 'var(--ink)',
               textDecoration: 'none',
               display: 'block',
+              wordBreak: 'break-word',
             }}
           >
             <span

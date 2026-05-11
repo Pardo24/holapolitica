@@ -28,7 +28,7 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '140px 1fr 90px',
+        gridTemplateColumns: 'minmax(0, 140px) minmax(0, 1fr) 90px',
         alignItems: 'center',
         gap: 10,
         padding: '8px 0',
@@ -37,10 +37,19 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
         <GroupBadge slug={row.group_slug} color={row.group_color_hex} size="xs" />
-        <span style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+          }}
+        >
           {displayGroupShort(row.group_name_short)}
         </span>
-        <span className="tabular" style={{ fontSize: 10, color: 'var(--ink-3)' }}>
+        <span className="tabular" style={{ fontSize: 10, color: 'var(--ink-3)', flex: 'none' }}>
           {members}
         </span>
       </div>

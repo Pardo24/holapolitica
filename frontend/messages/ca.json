@@ -285,10 +285,72 @@
     "Quòrum": "Mínim d'assistència per a què una votació sigui vàlida.",
     "Veto del Senat": "Rebuig del Senat a una llei aprovada al Congrés — només revesteix força si el Senat l'aprova per majoria absoluta."
   },
+  "newsletter": {
+    "signup_eyebrow": "Newsletter setmanal",
+    "signup_body": "Un correu cada divendres amb les votacions de la setmana al Congrés. Sense valoracions, només dades.",
+    "signup_placeholder": "el-teu-correu@exemple.cat",
+    "signup_cta": "Subscriu-te",
+    "signup_sending": "Enviant…",
+    "signup_success": "Revisa el teu correu per confirmar la subscripció.",
+    "signup_error_invalid_email": "Introdueix una adreça de correu vàlida.",
+    "signup_error_generic": "No hem pogut processar la teva subscripció. Torna-ho a provar més tard.",
+    "signup_privacy": "Només fem servir el teu correu per enviar-te la newsletter. Pots cancel·lar-la en qualsevol moment."
+  },
+  "upcoming": {
+    "title_home": "Pròximes votacions",
+    "title_compact": "Pròximes sessions",
+    "subtitle": "Pròxim ordre del dia",
+    "empty": "No hi ha cap sessió programada actualment. Tornem-hi quan el Congrés publiqui l'agenda.",
+    "caveat": "Les votacions programades poden cancel·lar-se o ajornar-se. Comprova la web del Congrés per a confirmació.",
+    "planned_label": "Sessió plenària prevista (ordre del dia pendent)",
+    "items_count": "{count, plural, =1 {1 punt} other {# punts}} a l'ordre del dia",
+    "session_number": "sessió {n}",
+    "status_planned": "previst"
+  },
   "footer": {
     "license_code": "Codi sota llicència EUPL-1.2",
     "license_data": "Dades sota CC-BY 4.0",
     "principle": "Aquest projecte és infraestructura cívica neutra: facilita dades, no opinions.",
     "complementary": "Complementari a Civio."
+  },
+  "lifecycle": {
+    "eyebrow": "Recorregut d'una llei",
+    "title": "Com es fa una llei al Congrés",
+    "intro": "Aquestes són les vuit etapes que segueix una iniciativa legislativa al Congrés dels Diputats. Cada etapa està definida al Reglament del Congrés; les votacions que veuràs al lloc poden correspondre a qualsevol d'elles.",
+    "caveat": "Les passes 6 i 7 només s'apliquen a iniciatives que arriben al Senat. Les Proposicions no de Llei (PNL) tenen un recorregut més curt: van directament al Plenari per a debat i votació.",
+    "steps": {
+      "presentation": {
+        "title": "Presentació",
+        "body": "Un grup parlamentari o el Govern registra la iniciativa: Proposició de Llei (grups) o Projecte de Llei (Govern)."
+      },
+      "qualification": {
+        "title": "Qualificació",
+        "body": "La Mesa del Congrés admet l'escrit a tràmit i decideix quina comissió hi treballa."
+      },
+      "totality_debate": {
+        "title": "Debat de totalitat",
+        "body": "El Plenari debat el conjunt del text i pot vetar-lo (rebutjar-lo) o aprovar la seva entrada en tramitació."
+      },
+      "committee": {
+        "title": "Comissió",
+        "body": "La comissió competent estudia el text, escolta experts i redacta esmenes a l'articulat."
+      },
+      "plenary_final": {
+        "title": "Aprovació final al Plenari",
+        "body": "El Plenari vota el text definitiu amb les esmenes incorporades."
+      },
+      "senate": {
+        "title": "Senat",
+        "body": "El text passa al Senat, que pot aprovar-lo sense canvis, introduir-hi esmenes o vetar-lo."
+      },
+      "return": {
+        "title": "Tornada al Congrés",
+        "body": "Si el Senat esmena o veta, el text torna al Congrés, que ratifica el seu text o accepta les esmenes."
+      },
+      "publication": {
+        "title": "Publicació al BOE",
+        "body": "Un cop aprovada, la llei es publica al Butlletí Oficial de l'Estat i entra en vigor."
+      }
+    }
   }
 }

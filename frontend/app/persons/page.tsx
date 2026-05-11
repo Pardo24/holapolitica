@@ -113,7 +113,9 @@ async function DiputatsTab({
             border: '1px solid var(--ink)',
             background: 'transparent',
             fontSize: 13,
-            minWidth: 280,
+            minWidth: 0,
+            flex: '1 1 240px',
+            maxWidth: '100%',
             fontFamily: 'inherit',
             color: 'var(--ink)',
           }}
@@ -235,7 +237,7 @@ function GroupRow({
       href={`/groups/${g.slug}`}
       style={{
         display: 'grid',
-        gridTemplateColumns: 'auto 1fr 120px auto',
+        gridTemplateColumns: 'auto minmax(0, 1fr) minmax(40px, 120px) auto',
         alignItems: 'center',
         gap: 10,
         padding: '8px 0',
@@ -245,13 +247,39 @@ function GroupRow({
       }}
     >
       <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} />
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {displayGroupShort(g.name_short)}
         </div>
-        <div style={{ fontSize: 10, color: 'var(--ink-3)' }}>{g.name_long}</div>
+        <div
+          style={{
+            fontSize: 10,
+            color: 'var(--ink-3)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {g.name_long}
+        </div>
       </div>
-      <div style={{ width: 120, height: 6, background: 'var(--paper-3)', borderRadius: 1 }}>
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 120,
+          height: 6,
+          background: 'var(--paper-3)',
+          borderRadius: 1,
+        }}
+      >
         <div
           style={{
             width: `${pct}%`,

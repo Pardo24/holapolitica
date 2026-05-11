@@ -285,10 +285,72 @@
     "Quòrum": "Minimum attendance required for a vote to be valid.",
     "Veto del Senat": "Senate's rejection of a law passed by Congress — only binding if the Senate approves the veto by absolute majority."
   },
+  "newsletter": {
+    "signup_eyebrow": "Weekly newsletter",
+    "signup_body": "One email every Friday with the week's Congress votes. No commentary, just data.",
+    "signup_placeholder": "your-email@example.com",
+    "signup_cta": "Subscribe",
+    "signup_sending": "Sending…",
+    "signup_success": "Check your inbox to confirm the subscription.",
+    "signup_error_invalid_email": "Enter a valid email address.",
+    "signup_error_generic": "We couldn't process your subscription. Please try again later.",
+    "signup_privacy": "We only use your email to send you the newsletter. You can unsubscribe at any time."
+  },
+  "upcoming": {
+    "title_home": "Upcoming votes",
+    "title_compact": "Upcoming sessions",
+    "subtitle": "Next plenary agenda",
+    "empty": "No session is currently scheduled. Check back when Congress publishes the agenda.",
+    "caveat": "Scheduled votes may be cancelled or postponed. Check the Congress website for confirmation.",
+    "planned_label": "Plenary session expected (agenda pending)",
+    "items_count": "{count, plural, =1 {1 item} other {# items}} on the agenda",
+    "session_number": "session {n}",
+    "status_planned": "expected"
+  },
   "footer": {
     "license_code": "Code under EUPL-1.2",
     "license_data": "Data under CC-BY 4.0",
     "principle": "This project is neutral civic infrastructure: it provides data, not opinions.",
     "complementary": "Complementary to Civio."
+  },
+  "lifecycle": {
+    "eyebrow": "A law's journey",
+    "title": "How a law is made in the Congress",
+    "intro": "These are the eight stages a legislative initiative goes through in the Spanish Congress of Deputies. Each stage is defined in the Congress's Standing Orders; the votes you'll see on the site can correspond to any of them.",
+    "caveat": "Steps 6 and 7 only apply to initiatives that reach the Senate. Non-binding motions (PNL) follow a shorter path: they go straight to the plenary for debate and a vote.",
+    "steps": {
+      "presentation": {
+        "title": "Filing",
+        "body": "A parliamentary group or the Government files the initiative: Proposición de Ley (groups) or Proyecto de Ley (Government)."
+      },
+      "qualification": {
+        "title": "Qualification",
+        "body": "The Bureau of Congress admits the text and assigns it to the competent committee."
+      },
+      "totality_debate": {
+        "title": "Debate on the whole text",
+        "body": "The plenary debates the text as a whole and may veto it (reject it) or admit it into processing."
+      },
+      "committee": {
+        "title": "Committee stage",
+        "body": "The committee studies the text, hears experts and drafts amendments to the articles."
+      },
+      "plenary_final": {
+        "title": "Final plenary vote",
+        "body": "The plenary votes on the final text with the amendments incorporated."
+      },
+      "senate": {
+        "title": "Senate",
+        "body": "The text moves to the Senate, which may approve it unchanged, amend it or veto it."
+      },
+      "return": {
+        "title": "Back to Congress",
+        "body": "If the Senate amends or vetoes, the text returns to Congress, which ratifies its text or accepts the amendments."
+      },
+      "publication": {
+        "title": "Publication in the BOE",
+        "body": "Once approved, the law is published in the State Official Gazette and enters into force."
+      }
+    }
   }
 }

@@ -54,12 +54,24 @@ export function Hemicycle({
         justifyContent: 'flex-end',
         gap: 6,
         padding: '8px 0',
+        width: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
       }}
       role="img"
       aria-label={`Composition: ${totalSeats} seats across ${groups.length} groups`}
     >
       {rowsRender.map((seatRow, r) => (
-        <div key={r} style={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
+        <div
+          key={r}
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 3,
+            flexWrap: 'wrap',
+            maxWidth: '100%',
+          }}
+        >
           {seatRow.map((s, i) => (
             <span
               key={i}
@@ -70,6 +82,7 @@ export function Hemicycle({
                 borderRadius: 2,
                 background: s.color,
                 opacity: r < 2 ? 0.6 : 0.9,
+                flex: 'none',
               }}
             />
           ))}

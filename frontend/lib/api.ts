@@ -412,6 +412,13 @@ export interface ScheduledSession {
   items: ScheduledAgendaItem[];
 }
 
+export type NewsletterLanguage = 'ca' | 'es' | 'en';
+
+export interface NewsletterSubscriptionResponse {
+  status: 'pending_confirmation' | 'confirmed' | 'unsubscribed';
+  detail: string;
+}
+
 export interface Mandate {
   id: number;
   person_id: number;
@@ -587,6 +594,21 @@ export const api = {
       request<{ status: string; detail: string | null }>('/push/unsubscribe', {
         method: 'POST',
         body: JSON.stringify(body),
+      }),
+  },
+  newsletter: {
+    /**
+     * Submit an email to the backend newsletter waitlist. The server replies
+     * with `pending_confirmation` and dispatches a confirmation email — the
+     * subscription is not active until the recipient clicks the link.
+     */
+    subscribe: (body: { email: string; language?: NewsletterLanguage }) =>
+      request<NewsletterSubscriptionResponse>('/newsletter', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: body.email,
+          language: body.language ?? 'ca',
+        }),
       }),
   },
   votes: {
