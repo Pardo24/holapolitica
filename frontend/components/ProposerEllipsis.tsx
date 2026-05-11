@@ -24,7 +24,7 @@ export function ProposerEllipsis({ text }: { text: string }) {
         }}
       >
         {head}
-        <span style={{ color: 'var(--ink-3)' }}>… mostra'n més</span>
+        <span style={{ color: 'var(--ink-3)' }}>… mostra&apos;n més</span>
       </summary>
       <span style={{ display: 'inline' }}>{trimmed}</span>
     </details>

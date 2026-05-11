@@ -109,6 +109,11 @@ export default async function PersonDetailPage({
         }}
       >
         {person.photo_url ? (
+          // Photo is served by congreso.es with predictable dimensions; next/image
+          // would require domain allowlisting + a separate optimizer pass. The
+          // ficha photos are already small (~30-60 KB) and cached aggressively
+          // by Caddy in front of the API.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={person.photo_url}
             alt=""
