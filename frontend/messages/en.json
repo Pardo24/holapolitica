@@ -636,6 +636,13 @@
       }
     }
   },
+  "hemicycle": {
+    "caption": "Congress floor plan",
+    "tap_for_info": "Tap a seat to see the deputy.",
+    "view_profile": "View profile",
+    "dismiss": "Dismiss",
+    "no_position_yet": "Seat positions not yet loaded — a provisional layout is shown. Every dot is clickable."
+  },
   "embed_vote": {
     "not_found": "Vote not found",
     "result_approved": "Approved",

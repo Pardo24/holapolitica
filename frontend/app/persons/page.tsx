@@ -78,9 +78,14 @@ async function DiputatsTab({
   const tGroups = await getTranslations('groups');
   const page = Number(pageParam ?? 1);
 
-  const [data, groups] = await Promise.all([
+  const [data, groups, hemicycleLayout] = await Promise.all([
     api.persons.list({ q, page, page_size: 30, legislature_id: 1 }),
     api.groups.list(),
+    // Hemicycle layout for the active legislature. If the backend
+    // hasn't ingested seat positions yet, the response still contains
+    // every deputy enriched with group colour + photo — the Hemicycle
+    // component falls back to its synthetic semicircle in that case.
+    api.legislatures.hemicycle(1).catch(() => null),
   ]);
 
   const sortedGroups = [...groups].sort(
@@ -161,17 +166,25 @@ async function DiputatsTab({
           <div
             style={{
               width: '100%',
-              maxWidth: 720,
+              maxWidth: 920,
               margin: '0 auto',
             }}
           >
-            <Hemicycle
-              groups={sortedGroups.map((g) => ({
-                slug: g.slug,
-                members: g.members_active,
-                color: g.color_hex,
-              }))}
-            />
+            {hemicycleLayout ? (
+              <Hemicycle layout={hemicycleLayout} />
+            ) : (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-3)',
+                  textAlign: 'center',
+                  padding: '24px 0',
+                }}
+              >
+                {/* Backend unreachable; the legend table below still
+                    renders so the page stays useful. */}
+              </div>
+            )}
           </div>
           <div
             style={{

@@ -37,6 +37,7 @@ from app.ingest.congreso.agenda_importer import AgendaImporter, AgendaImportStat
 from app.ingest.congreso.backfill import BackfillStats, backfill_legislature
 from app.ingest.congreso.client import CongresoClient, InitiativeDataset
 from app.ingest.congreso.deputies import DeputyImporter, ImportStats
+from app.ingest.congreso.hemicycle import HemicycleImportStats, import_hemicycle_seats
 from app.ingest.congreso.initiatives import InitiativeImporter, InitiativeImportStats
 from app.ingest.congreso.photos import PhotoBackfillStats, backfill_photos
 from app.ingest.congreso.pnl import import_pnl_xv
@@ -614,6 +615,22 @@ async def backfill_legislature_x(*, only_first_n: int | None = None) -> Backfill
     return await _backfill_historical("X", only_first_n=only_first_n)
 
 
+async def import_hemicycle_xv() -> HemicycleImportStats:
+    """Fetch the hemicycle image-map and persist seat positions per Person.
+
+    Re-running is idempotent: it overwrites ``seat_x`` / ``seat_y`` for
+    every matched person against the current snapshot of the page.
+    Re-run whenever a deputy is substituted in mid-legislature — the
+    Mesa reassigns the vacated seat and the rest of the layout is
+    typically stable until the next general election.
+
+    See :mod:`app.ingest.congreso.hemicycle` for the data shape and
+    matching strategy.
+    """
+    async with AsyncSessionLocal() as session:
+        return await import_hemicycle_seats(session=session)
+
+
 async def enrich_deputy_photos() -> PhotoBackfillStats:
     """Probe the Congreso website for each deputy's codParlamentario + photo URL.
 
@@ -902,6 +919,7 @@ _STEPS = {
     "backfill_xi": backfill_legislature_xi,
     "backfill_x": backfill_legislature_x,
     "photos": enrich_deputy_photos,
+    "hemicycle_xv": import_hemicycle_xv,
     "classify": classify_all_initiatives,
     "classify_initiatives_by_sdg": classify_initiatives_by_sdg,
     "plain_summaries": generate_all_plain_summaries,

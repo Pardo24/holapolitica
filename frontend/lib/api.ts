@@ -138,6 +138,34 @@ export interface Vote {
   plain_summary_provider: string | null;
 }
 
+/**
+ * One seat on the interactive hemicycle, served from
+ * `/legislatures/{id}/hemicycle`. Coordinates are pixel positions in
+ * the natural-size space of the official Congreso hemicycle PNG
+ * (see `HemicycleLayout.image_width` / `image_height`). Both seat
+ * fields are NULL until the backend `hemicycle_xv` ingest step runs;
+ * the frontend falls back to a synthetic curved-rows layout in that
+ * case while keeping every seat clickable.
+ */
+export interface HemicycleSeat {
+  person_id: number;
+  full_name: string;
+  photo_url: string | null;
+  group_slug: string | null;
+  group_short: string | null;
+  group_color: string | null;
+  seat_x: number | null;
+  seat_y: number | null;
+  constituency: string | null;
+}
+
+export interface HemicycleLayout {
+  legislature_id: number;
+  image_width: number;
+  image_height: number;
+  seats: HemicycleSeat[];
+}
+
 export interface ParliamentaryGroupSummary {
   id: number;
   legislature_id: number;
@@ -444,6 +472,8 @@ export const api = {
       request<Legislature[]>(
         chamberId ? `/legislatures?chamber_id=${chamberId}` : '/legislatures'
       ),
+    hemicycle: (legislatureId: number) =>
+      request<HemicycleLayout>(`/legislatures/${legislatureId}/hemicycle`),
   },
   persons: {
     list: (params: {

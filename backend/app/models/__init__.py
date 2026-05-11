@@ -184,6 +184,13 @@ class Person(Base, TimestampMixin):
     # ``app.ingest.congreso.photos``; null for historical persons or any
     # deputy we couldn't match by name.
     cod_parlamentario: Mapped[int | None] = mapped_column(Integer, index=True)
+    # Seat position on the official Congreso hemicycle PNG (natural size
+    # 536×393). Backfilled by ``app.ingest.congreso.hemicycle`` from the
+    # ``<area coords="x,y,r">`` overlay published at
+    # ``/ca/hemiciclo``. NULL until that importer has run. See migration
+    # ``0016_person_seat_position``.
+    seat_x: Mapped[int | None] = mapped_column(Integer)
+    seat_y: Mapped[int | None] = mapped_column(Integer)
 
     # Relationships
     mandates: Mapped[list[Mandate]] = relationship("Mandate", back_populates="person")
