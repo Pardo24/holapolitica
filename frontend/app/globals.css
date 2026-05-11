@@ -452,7 +452,12 @@ a { color: inherit; }
 /* Hover-summary: wider tooltip for vote/initiative plain-language summaries.
    Wraps a vote subject; subtle dashed underline + cursor:help signals that
    hovering reveals the LLM-generated explanation. Click-through still works
-   because the bubble is pointer-events:none. */
+   because the bubble is pointer-events:none.
+
+   Two interaction modes, switched by `@media (hover: ...)`:
+     - hover-capable: tooltip bubble on hover/focus.
+     - touch-only:    inline <details> expansion next to the title.
+*/
 .summary-hover {
   position: relative;
   display: inline;
@@ -515,9 +520,25 @@ a { color: inherit; }
   transition-delay: 0.3s;
 }
 
-/* Mobile-only "ⓘ" button — hidden on desktop where hover suffices. */
-.summary-hover__btn {
+/* <details>-based inline expansion for touch devices. Native open/close,
+   no JS state. Hidden on hover-capable devices via the media query below. */
+.summary-hover__details {
   display: none;
+  /* Inside list rows the parent often has `pointer-events: none` so the
+     stretched-link below catches taps; we explicitly opt this trigger
+     back in so users can toggle the panel. */
+  pointer-events: auto;
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+.summary-hover__details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.summary-hover__details > summary::-webkit-details-marker { display: none; }
+/* The <summary> element doubles as the visible "i" trigger button. */
+.summary-hover__btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 22px;
@@ -530,103 +551,50 @@ a { color: inherit; }
   font-weight: 700;
   font-family: var(--font-serif);
   font-style: italic;
-  margin-left: 6px;
   cursor: pointer;
-  pointer-events: auto;
-  vertical-align: 2px;
   transition: background-color .15s ease;
 }
 .summary-hover__btn:hover { background: color-mix(in oklch, var(--accent) 25%, var(--paper-2)); }
-.summary-hover__btn:active { background: color-mix(in oklch, var(--accent) 35%, var(--paper-2)); }
+.summary-hover__btn:active,
+.summary-hover__details[open] > .summary-hover__btn {
+  background: color-mix(in oklch, var(--accent) 35%, var(--paper-2));
+}
+.summary-hover__panel {
+  /* Positioned within the parent .summary-hover (which is position:
+     relative) so the panel can sit below the title even though <details>
+     itself is an inline-block trigger. We anchor to the left edge of the
+     anchor span and let the panel extend to the right up to the viewport. */
+  display: block;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: max-content;
+  max-width: min(90vw, 380px);
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+  white-space: normal;
+  z-index: 70;
+  box-shadow: 0 8px 22px -12px rgba(15, 23, 42, 0.18);
+  /* Inside list rows that use pointer-events: none on the content layer,
+     opt this panel back in so the text can be selected. */
+  pointer-events: auto;
+}
 
-@media (max-width: 720px) {
-  /* On mobile the hover tooltip is unreachable — replace with the sheet
-     toggled by the ⓘ button. */
+@media (hover: none) {
+  /* Touch-only: tooltip is unreachable, expose the inline expansion. */
   .summary-hover__bubble { display: none !important; }
   .summary-hover__anchor { border-bottom-color: transparent; }
-  .summary-hover__btn { display: inline-flex; }
-}
-
-/* Bottom-sheet modal for the mobile summary. Backdrop fixed full-screen,
-   sheet slides up from the bottom on a paper background. */
-.summary-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: summary-sheet-fade-in .18s ease-out;
-}
-.summary-sheet {
-  background: var(--paper);
-  width: 100%;
-  max-width: 600px;
-  padding: 24px 22px 28px;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
-  box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.18);
-  position: relative;
-  max-height: 82vh;
-  overflow-y: auto;
-  animation: summary-sheet-slide-up .22s ease-out;
-}
-.summary-sheet::before {
-  content: "";
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 38px;
-  height: 4px;
-  background: var(--rule-strong);
-  border-radius: 999px;
-  opacity: 0.6;
-}
-.summary-sheet__close {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  background: var(--paper-2);
-  border: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-2);
-  font-family: inherit;
-  padding: 0;
-}
-.summary-sheet__close:hover { background: var(--paper-3); }
-.summary-sheet__body {
-  font-family: var(--font-serif);
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--ink);
-  margin: 8px 0 0;
-  white-space: pre-wrap;
-}
-.summary-sheet__provider {
-  font-size: 11px;
-  color: var(--ink-3);
-  font-style: italic;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
-}
-
-@keyframes summary-sheet-slide-up {
-  from { transform: translateY(20px); opacity: 0.6; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-@keyframes summary-sheet-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  .summary-hover__details { display: inline-block; }
 }
 
 /* Empty state — civic, not error */
@@ -889,18 +857,9 @@ a { color: inherit; }
   }
 }
 
-/* Mobile-only: clamp long vote/initiative subjects to a max of 3 lines so
-   they don't dominate a list row. The ellipsis is added by webkit-line-clamp. */
-@media (max-width: 720px) {
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
+/* Line-clamping for vote/initiative subjects is now handled by Tailwind
+   utilities (`line-clamp-2 sm:line-clamp-3`) co-located with each list
+   row, so no custom CSS is needed here. Mobile shows 2 lines, desktop 3. */
 
 @media (max-width: 480px) {
   .home-coverage {

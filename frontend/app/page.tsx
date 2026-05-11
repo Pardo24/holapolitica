@@ -432,7 +432,17 @@ function CompactVoteRow({
 }) {
   const subject = v.description?.trim() || v.title;
   const total = v.ayes + v.noes + v.abstentions;
-  const dateStr = new Date(v.voted_at).toLocaleDateString(locale, { dateStyle: 'long' });
+  const voteDate = new Date(v.voted_at);
+  const isCurrentYear = voteDate.getFullYear() === new Date().getFullYear();
+  // Short form for mobile (e.g. "19 nov"), long form for desktop.
+  const shortDate = voteDate
+    .toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+      ...(isCurrentYear ? {} : { year: '2-digit' }),
+    })
+    .replace(/\.$/, '');
+  const longDate = voteDate.toLocaleDateString(locale, { dateStyle: 'long' });
   const plainSummary = pickPlainSummary(v, locale);
 
   return (
@@ -464,8 +474,9 @@ function CompactVoteRow({
           pointerEvents: 'none',
         }}
       >
-        <div className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-          {dateStr}
+        <div className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', fontVariantNumeric: 'tabular-nums' }}>
+          <span className="sm:hidden whitespace-nowrap">{shortDate}</span>
+          <span className="hidden sm:inline">{longDate}</span>
           {v.expediente_raw && (
             <>
               <br />
@@ -480,7 +491,7 @@ function CompactVoteRow({
             <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{v.title}</span>
           </div>
           <div
-            className="line-clamp-3"
+            className="line-clamp-2 sm:line-clamp-3"
             style={{ fontSize: 15, lineHeight: 1.4, color: 'var(--ink)' }}
           >
             <SummaryHover
@@ -531,7 +542,7 @@ function CompactVoteRow({
           />
         </div>
         <div style={{ textAlign: 'right' }}>
-          <ResultPill result={v.result} label={labels.result} />
+          <ResultPill result={v.result} label={labels.result} responsive />
           {total > 0 && (
             <div className="tabular" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4 }}>
               {total}

@@ -42,7 +42,15 @@ export function CoincidenceMatrix({
   const sorted = [...groups].sort((a, b) => b.members_active - a.members_active);
 
   return (
-    <div style={{ overflowX: 'auto' }} className="coincidence-wrap">
+    <>
+      {/* Mobile (≤640px): per-group accordion. Every group is expandable —
+          no group is privileged, preserving the symmetry rule. */}
+      <MobileCoincidenceList
+        groups={sorted}
+        cells={map}
+        highlightSlug={highlightSlug}
+      />
+      <div style={{ overflowX: 'auto' }} className="coincidence-wrap hidden sm:block">
       <table
         className="tab"
         style={{ borderCollapse: 'separate', borderSpacing: 2, minWidth: 540 }}
@@ -140,6 +148,174 @@ export function CoincidenceMatrix({
         % de votacions on els dos grups van votar el mateix sentit (Sí, No o
         Abstenció). La diagonal és sempre 100% per construcció. Pares
         amb menys de {MIN_N} votacions comparades es mostren en blanc.
+      </p>
+      </div>
+    </>
+  );
+}
+
+/**
+ * Mobile-only accordion: each group is a collapsible `<details>` row.
+ * Tapping a group reveals its coincidence with every OTHER group as a list
+ * of mini bars. No JS state needed — `<details>` handles open/close. Per
+ * "regla de simetria": every group is shown identically; nothing is
+ * pre-expanded, nothing ranked.
+ */
+function MobileCoincidenceList({
+  groups,
+  cells,
+  highlightSlug,
+}: {
+  groups: ParliamentaryGroupSummary[];
+  cells: Map<string, CoincidenceCell>;
+  highlightSlug?: string | null;
+}) {
+  return (
+    <div className="sm:hidden" style={{ marginTop: 4 }}>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {groups.map((g) => {
+          const isHighlight = highlightSlug != null && g.slug === highlightSlug;
+          return (
+            <li
+              key={g.slug}
+              style={{ borderBottom: '1px solid var(--rule)' }}
+            >
+              <details>
+                <summary
+                  style={{
+                    cursor: 'pointer',
+                    listStyle: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '12px 4px',
+                    fontSize: 14,
+                    color: 'var(--ink)',
+                    fontWeight: isHighlight ? 700 : 600,
+                    borderLeft: isHighlight ? '3px solid var(--ink)' : '3px solid transparent',
+                    paddingLeft: isHighlight ? 8 : 11,
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 2,
+                      background: g.color_hex ?? 'var(--ink-3)',
+                      flex: 'none',
+                    }}
+                  />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    {displayGroupShort(g.name_short)}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--ink-3)',
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Veure ▾
+                  </span>
+                </summary>
+                <div style={{ padding: '4px 4px 14px 14px' }}>
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {groups
+                      .filter((other) => other.slug !== g.slug)
+                      .map((other) => {
+                        const cell = cells.get(`${g.slug}|${other.slug}`);
+                        const pct =
+                          cell && cell.votes_compared >= MIN_N && cell.coincidence != null
+                            ? Math.round(cell.coincidence * 100)
+                            : null;
+                        const width = pct == null ? 0 : pct;
+                        return (
+                          <li
+                            key={other.slug}
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '1fr 88px 38px',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 12,
+                              color: 'var(--ink-2)',
+                            }}
+                          >
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                minWidth: 0,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: 2,
+                                  background: other.color_hex ?? 'var(--ink-3)',
+                                  flex: 'none',
+                                }}
+                              />
+                              {displayGroupShort(other.name_short)}
+                            </span>
+                            <span
+                              aria-hidden="true"
+                              style={{
+                                height: 6,
+                                background: 'var(--paper-3)',
+                                borderRadius: 2,
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  display: 'block',
+                                  width: `${width}%`,
+                                  height: '100%',
+                                  background: pct == null ? 'transparent' : 'var(--accent)',
+                                  opacity: pct == null ? 0 : 0.85,
+                                }}
+                              />
+                            </span>
+                            <span
+                              className="tabular"
+                              style={{
+                                fontWeight: 600,
+                                textAlign: 'right',
+                                color: pct == null ? 'var(--ink-3)' : 'var(--ink)',
+                                fontVariantNumeric: 'tabular-nums',
+                              }}
+                              title={
+                                cell
+                                  ? `${pct ?? '—'}% · ${cell.votes_compared} votacions`
+                                  : 'Sense dades'
+                              }
+                            >
+                              {pct == null ? '—' : `${pct}%`}
+                            </span>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                </div>
+              </details>
+            </li>
+          );
+        })}
+      </ul>
+      <p style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 10 }}>
+        Toca un grup per veure la coincidència amb la resta. La diagonal és
+        sempre 100% per construcció i s&apos;omet aquí. Parelles amb menys
+        de {MIN_N} votacions comparades es mostren com a —.
       </p>
     </div>
   );

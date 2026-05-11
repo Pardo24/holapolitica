@@ -1,19 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useRef } from 'react';
 
 /**
- * Plain-language summary affordance with two interaction modes:
+ * Plain-language summary affordance with two interaction modes, switched
+ * by CSS media queries on pointer capability (NOT by React feature
+ * detection or viewport width):
  *
- *  - **Desktop (≥721px)**: hover/focus on the dashed-underlined title shows
- *    a tooltip bubble (CSS-only). Same as before.
- *  - **Mobile (≤720px)**: a small "ⓘ" button appears next to the title.
- *    Tapping it opens a bottom-sheet modal with the full summary. Tapping
- *    a list row still navigates to the detail; the button stops
- *    propagation so it doesn't trigger the row's stretched link.
+ *  - **Hover-capable devices** (`@media (hover: hover)`): hover/focus on
+ *    the dashed-underlined title shows a tooltip bubble. CSS-only.
+ *  - **Touch-only devices** (`@media (hover: none)`): a small "i" button
+ *    appears next to the title. Tapping it toggles an inline expansion
+ *    panel below the title — implemented as a native `<details>` element.
+ *    A click handler manually toggles the `open` attribute AND prevents
+ *    the default action so a parent stretched-link / `<a>` row link does
+ *    not navigate when the user taps the trigger.
  *
  * Two text sources, prioritized: ``summary`` (LLM, neutral) → ``fallback``
- * (raw description). Renders nothing extra when both are empty.
+ * (raw description). The text is rendered ONCE per render mode and reused
+ * as the single source of truth via a shared `body` fragment.
  */
 export function SummaryHover({
   summary,
@@ -26,22 +31,7 @@ export function SummaryHover({
   provider?: string | null;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
-
-  // Lock body scroll while the sheet is open
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
 
   const sourceText = (summary ?? '').trim();
   const fallbackText = (fallback ?? '').trim();
@@ -57,91 +47,61 @@ export function SummaryHover({
   if (!showText) return <>{children}</>;
 
   const isLLM = !!sourceText;
+  const eyebrowLabel = isLLM ? 'En llenguatge planer' : "Text de l'expedient";
 
-  return (
+  const body = (
     <>
-      <span className="summary-hover">
-        <span className="summary-hover__anchor">{children}</span>
-        <button
-          type="button"
-          className="summary-hover__btn"
-          aria-label="Veure resum en llenguatge planer"
-          aria-expanded={open}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setOpen(true);
-          }}
-        >
-          <span aria-hidden="true">i</span>
-        </button>
-        {/* Desktop tooltip — hidden on mobile via media query */}
-        <span className="summary-hover__bubble" role="tooltip">
-          <span
-            className={isLLM ? 'eyebrow no-rule warm' : 'eyebrow no-rule muted'}
-            style={{ fontSize: 9, display: 'block', marginBottom: 6 }}
-          >
-            {isLLM ? 'En llenguatge planer' : 'Text de l\'expedient'}
-          </span>
-          <span className="summary-hover__body">{showText}</span>
-          {provider && isLLM && (
-            <span className="summary-hover__provider">
-              Resum automàtic per {provider}
-            </span>
-          )}
-        </span>
+      <span
+        className={isLLM ? 'eyebrow no-rule warm' : 'eyebrow no-rule muted'}
+        style={{ fontSize: 9, display: 'block', marginBottom: 6 }}
+      >
+        {eyebrowLabel}
       </span>
-
-      {/* Mobile bottom sheet — controlled by state. Renders nothing until
-          opened, no portal needed. The backdrop is fixed full-screen and
-          dismisses on tap. */}
-      {open && (
-        <div
-          className="summary-sheet-backdrop"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="summary-sheet"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="summary-sheet__close"
-              aria-label="Tanca"
-              onClick={() => setOpen(false)}
-            >
-              ✕
-            </button>
-            <span
-              className={isLLM ? 'eyebrow no-rule warm' : 'eyebrow no-rule muted'}
-              style={{ fontSize: 10, display: 'block', marginBottom: 12 }}
-            >
-              {isLLM ? 'En llenguatge planer' : 'Text de l\'expedient'}
-            </span>
-            <p className="summary-sheet__body">{showText}</p>
-            {provider && isLLM && (
-              <p className="summary-sheet__provider">
-                Resum automàtic per {provider}. Pot contenir imprecisions; el text legal és la font autoritzada.
-              </p>
-            )}
-            <p
-              style={{
-                fontSize: 11,
-                color: 'var(--ink-3)',
-                marginTop: 18,
-                paddingTop: 14,
-                borderTop: '1px solid var(--rule)',
-                fontStyle: 'italic',
-                margin: '18px 0 0',
-              }}
-            >
-              Toca a fora del panell o el botó ✕ per tancar. Toca la fila per veure el detall complet.
-            </p>
-          </div>
-        </div>
+      <span className="summary-hover__body">{showText}</span>
+      {provider && isLLM && (
+        <span className="summary-hover__provider">
+          Resum automàtic per {provider}
+        </span>
       )}
     </>
+  );
+
+  // Tap handler: cancel both defaults (link navigation AND the browser's
+  // native <details> toggle) and toggle manually. This keeps the trigger
+  // safe to nest inside an <a>row-link.
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = detailsRef.current;
+    if (el) el.open = !el.open;
+  };
+
+  return (
+    <span className="summary-hover">
+      <span className="summary-hover__anchor">{children}</span>
+
+      {/* Touch-only inline accordion. Native <details> for ARIA/semantics
+          but click is handled manually so we can stop ancestor link
+          activation. CSS scopes visibility to (hover: none). */}
+      <details ref={detailsRef} className="summary-hover__details">
+        <summary
+          className="summary-hover__btn"
+          aria-label="Veure resum en llenguatge planer"
+          onClick={handleToggle}
+        >
+          <span aria-hidden="true">i</span>
+        </summary>
+        <span className="summary-hover__panel" role="region">
+          {body}
+        </span>
+      </details>
+
+      {/* Hover-capable tooltip bubble — CSS scopes this to (hover: hover)
+          and the existing summary-hover:hover/focus-within rules. Shares
+          the SAME body fragment as the inline panel. */}
+      <span className="summary-hover__bubble" role="tooltip">
+        {body}
+      </span>
+    </span>
   );
 }

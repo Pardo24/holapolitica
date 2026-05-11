@@ -397,6 +397,10 @@ export default async function TopicDetailPage({
   );
 }
 
+// Statuses with a binary outcome use a solid disc on mobile; in-progress
+// statuses use an outlined disc (matches ResultPill semantics for ties).
+const SOLID_DISC_STATUSES = new Set(['approved', 'rejected']);
+
 function InitiativeRow({
   initiative,
   locale,
@@ -404,14 +408,30 @@ function InitiativeRow({
   initiative: Initiative;
   locale: string;
 }) {
-  const dateStr = initiative.submitted_at
-    ? new Date(initiative.submitted_at).toLocaleDateString(locale, { dateStyle: 'medium' })
+  const submittedDate = initiative.submitted_at
+    ? new Date(initiative.submitted_at)
+    : null;
+  const isCurrentYear = submittedDate
+    ? submittedDate.getFullYear() === new Date().getFullYear()
+    : false;
+  const shortDate = submittedDate
+    ? submittedDate
+        .toLocaleDateString(locale, {
+          day: 'numeric',
+          month: 'short',
+          ...(isCurrentYear ? {} : { year: '2-digit' }),
+        })
+        .replace(/\.$/, '')
+    : '—';
+  const longDate = submittedDate
+    ? submittedDate.toLocaleDateString(locale, { dateStyle: 'medium' })
     : '—';
   const typeLabel = typeLabelCa(initiative.type);
   const typeShort = glossaryShort(initiative.type);
   const plainSummary = pickPlainSummary(initiative, locale);
   const statusLabel = STATUS_LABEL[initiative.status] ?? initiative.status;
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
+  const isSolidDisc = SOLID_DISC_STATUSES.has(initiative.status);
   const linkHref = initiative.source_url ?? '#';
   const isExternal = !!initiative.source_url;
   return (
@@ -432,8 +452,17 @@ function InitiativeRow({
           alignItems: 'baseline',
         }}
       >
-        <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>
-          {dateStr}
+        <span
+          className="tabular"
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-3)',
+            whiteSpace: 'nowrap',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          <span className="sm:hidden">{shortDate}</span>
+          <span className="hidden sm:inline">{longDate}</span>
         </span>
         <div style={{ minWidth: 0 }}>
           <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
@@ -450,7 +479,7 @@ function InitiativeRow({
             ) : ''}
           </span>
           <div
-            className="line-clamp-3"
+            className="line-clamp-2 sm:line-clamp-3"
             style={{ fontSize: 14, lineHeight: 1.4, marginTop: 2, color: 'var(--ink)' }}
           >
             <SummaryHover
@@ -465,17 +494,35 @@ function InitiativeRow({
             {initiative.official_id}
           </span>
         </div>
-        <span
-          className="badge"
-          style={{
-            fontWeight: 600,
-            color: statusColor,
-            borderColor: 'transparent',
-            background: 'var(--paper-2)',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {statusLabel}
+        {/* Mobile: icon-only status disc; desktop: full labeled badge.
+            Both kept inside a single grid cell so the row layout stays 3-col. */}
+        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <span
+            className="sm:hidden inline-block align-middle"
+            role="img"
+            aria-label={statusLabel}
+            title={statusLabel}
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: 999,
+              background: isSolidDisc ? statusColor : 'transparent',
+              border: isSolidDisc ? '0' : `2px solid ${statusColor}`,
+              boxSizing: 'border-box',
+            }}
+          />
+          <span
+            className="badge hidden sm:inline-flex"
+            style={{
+              fontWeight: 600,
+              color: statusColor,
+              borderColor: 'transparent',
+              background: 'var(--paper-2)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {statusLabel}
+          </span>
         </span>
       </a>
     </li>

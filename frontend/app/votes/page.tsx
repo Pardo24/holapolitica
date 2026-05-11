@@ -323,10 +323,26 @@ function VoteTableRow({
   const subject = vote.description?.trim() || vote.title;
   const date = new Date(vote.voted_at);
   const plainSummary = pickPlainSummary(vote, locale);
+  const isCurrentYear = date.getFullYear() === new Date().getFullYear();
+  // Short form for mobile: "19 nov" (no year if current). Long form for
+  // desktop: "19 de nov. 2025" via the locale's medium date style.
+  const shortDate = date
+    .toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+      ...(isCurrentYear ? {} : { year: '2-digit' }),
+    })
+    .replace(/\.$/, '');
+  const longDate = date.toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
   return (
     <tr style={{ position: 'relative' }}>
-      <td className="tabular" style={{ color: 'var(--ink-2)', fontSize: 12, whiteSpace: 'nowrap' }}>
-        {date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+      <td className="tabular" style={{ color: 'var(--ink-2)', fontSize: 12, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+        <span className="sm:hidden">{shortDate}</span>
+        <span className="hidden sm:inline">{longDate}</span>
       </td>
       <td className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
         {vote.expediente_raw ?? '—'}
@@ -361,7 +377,7 @@ function VoteTableRow({
               <span>{vote.title}</span>
             </div>
             <div
-              className="line-clamp-3"
+              className="line-clamp-2 sm:line-clamp-3"
               style={{ lineHeight: 1.35, color: 'var(--ink)' }}
             >
               <SummaryHover
@@ -406,7 +422,7 @@ function VoteTableRow({
         />
       </td>
       <td style={{ textAlign: 'right' }}>
-        <ResultPill result={vote.result} label={t.result} />
+        <ResultPill result={vote.result} label={t.result} responsive />
       </td>
     </tr>
   );
