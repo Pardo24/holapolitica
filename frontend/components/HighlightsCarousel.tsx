@@ -28,10 +28,45 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
   }, [items.length, paused]);
 
   if (items.length === 0) {
+    // Keep the carousel frame visible so the user knows this section will
+    // populate. Backend vote↔initiative linkage is still being backfilled —
+    // soft notice, never an error red.
     return (
-      <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Encara no hi ha prou dades classificades per generar destacats per grup.
-      </p>
+      <div
+        style={{
+          border: '1px solid var(--rule-strong)',
+          borderRadius: 14,
+          background: 'var(--paper-2)',
+          padding: '24px 22px',
+          minHeight: 180,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          className="eyebrow"
+          style={{
+            fontSize: 9,
+            color: 'var(--ink-3)',
+            marginBottom: 8,
+          }}
+        >
+          Dades en construcció
+        </div>
+        <p
+          style={{
+            fontSize: 13,
+            color: 'var(--ink-2)',
+            margin: 0,
+            lineHeight: 1.45,
+            maxWidth: 520,
+          }}
+        >
+          Estem completant el llaç entre votacions i iniciatives. Aquesta
+          secció s&apos;omplirà quan finalitzi el backfill.
+        </p>
+      </div>
     );
   }
 

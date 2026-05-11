@@ -135,29 +135,43 @@ async function DiputatsTab({
         </div>
       </form>
 
-      {/* Hemicycle composition + group legend */}
+      {/* Hemicycle composition (full-width, centered) followed by the
+          group legend table. The hemicycle was previously cramped into a
+          ~37% column next to the legend, which on desktop pages with a
+          ~1200px content width left the chart at ~440px — narrow enough
+          that wide groups wrapped onto extra rows and the overall
+          composition looked squashed. Putting the chart in its own
+          full-width block lets it claim a real parliamentary aspect
+          (~2.2:1) and read as the visual anchor it's meant to be. */}
       <section
-        className="hemicycle-grid"
         style={{
-          display: 'grid',
-          gridTemplateColumns: '0.85fr 1.4fr',
-          gap: 36,
           paddingTop: 24,
           paddingBottom: 24,
           borderBottom: '1px solid var(--rule)',
         }}
       >
-        <div className="hemicycle-block">
-          <div className="eyebrow" style={{ marginBottom: 6 }}>
+        <div className="hemicycle-block" style={{ width: '100%' }}>
+          <div
+            className="eyebrow"
+            style={{ marginBottom: 6, display: 'block' }}
+          >
             {t('hemicycle_title')}
           </div>
-          <Hemicycle
-            groups={sortedGroups.map((g) => ({
-              slug: g.slug,
-              members: g.members_active,
-              color: g.color_hex,
-            }))}
-          />
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 720,
+              margin: '0 auto',
+            }}
+          >
+            <Hemicycle
+              groups={sortedGroups.map((g) => ({
+                slug: g.slug,
+                members: g.members_active,
+                color: g.color_hex,
+              }))}
+            />
+          </div>
           <div
             style={{
               display: 'flex',
@@ -171,8 +185,8 @@ async function DiputatsTab({
           </div>
         </div>
 
-        {/* Group legend table */}
-        <div>
+        {/* Group legend table — below the hemicycle, full width. */}
+        <div style={{ marginTop: 28 }}>
           <div className="eyebrow" style={{ marginBottom: 6 }}>
             {tGroups('title')}
           </div>
@@ -215,11 +229,8 @@ async function DiputatsTab({
         )}
       </section>
 
-      <style>{`
-        @media (max-width: 860px) {
-          .hemicycle-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
-        }
-      `}</style>
+      {/* No legacy hemicycle-grid styles — the chart now stacks above
+          the legend at all viewport widths. */}
     </div>
   );
 }

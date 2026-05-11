@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { GroupBadge } from '@/components/GroupBadge';
 import type { CoincidenceCell, ParliamentaryGroupSummary } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -50,105 +51,147 @@ export function CoincidenceMatrix({
         cells={map}
         highlightSlug={highlightSlug}
       />
-      <div style={{ overflowX: 'auto', maxWidth: '100%' }} className="coincidence-wrap hidden sm:block">
-      <table
-        className="tab"
-        style={{ borderCollapse: 'separate', borderSpacing: 2, minWidth: 540 }}
+      {/* Desktop matrix (≥640px): a grid of perfectly square cells where
+          column and row headers are GroupBadge discs only — the long
+          name lives in a Tooltip on hover/focus. This makes every column
+          the same width and every row the same height regardless of how
+          long the group's name is. Cells are 48×48 on desktop, falling
+          to 36×36 in the narrower band between sm and md so the matrix
+          still fits without horizontal scroll on tablets. */}
+      <div
+        style={{ overflowX: 'auto', maxWidth: '100%' }}
+        className="coincidence-wrap hidden sm:block"
       >
-        <thead>
-          <tr>
-            <th style={{ minWidth: 100 }} />
-            {sorted.map((g) => {
-              const isHighlight = highlightSlug != null && g.slug === highlightSlug;
+        <table
+          className="coincidence-matrix"
+          style={{
+            borderCollapse: 'separate',
+            borderSpacing: 2,
+            // Width is content-driven (cells × cell-size), centered so
+            // the matrix sits as a clean block rather than left-aligned.
+            margin: '0 auto',
+          }}
+        >
+          <thead>
+            <tr>
+              <th
+                aria-hidden="true"
+                style={{
+                  // Header corner cell — matches the row-label column width.
+                  width: 'var(--coincidence-label-w)',
+                  background: 'transparent',
+                  border: 0,
+                  padding: 0,
+                }}
+              />
+              {sorted.map((g) => {
+                const isHighlight =
+                  highlightSlug != null && g.slug === highlightSlug;
+                return (
+                  <th
+                    key={g.slug}
+                    scope="col"
+                    style={{
+                      width: 'var(--coincidence-cell)',
+                      height: 'var(--coincidence-cell)',
+                      padding: 0,
+                      textAlign: 'center',
+                      verticalAlign: 'middle',
+                      borderBottom: isHighlight
+                        ? '2px solid var(--ink)'
+                        : 0,
+                      // Override the global `.tab th` text-transform so
+                      // GroupBadge initials render as-is.
+                      textTransform: 'none',
+                      letterSpacing: 0,
+                    }}
+                  >
+                    <GroupHeaderCell group={g} />
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((rowG) => {
+              const rowHighlight =
+                highlightSlug != null && rowG.slug === highlightSlug;
               return (
-                <th
-                  key={g.slug}
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 10,
-                    letterSpacing: '0.04em',
-                    color: isHighlight ? 'var(--ink)' : 'var(--ink-3)',
-                    padding: '6px 4px',
-                    borderBottom: isHighlight ? '2px solid var(--ink)' : 0,
-                    fontWeight: isHighlight ? 700 : 400,
-                  }}
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 1,
-                        background: g.color_hex ?? 'var(--ink-3)',
-                      }}
-                    />
-                    {displayGroupShort(g.name_short)}
-                  </span>
-                </th>
+                <tr key={rowG.slug}>
+                  <th
+                    scope="row"
+                    style={{
+                      width: 'var(--coincidence-label-w)',
+                      height: 'var(--coincidence-cell)',
+                      padding: 0,
+                      textAlign: 'center',
+                      verticalAlign: 'middle',
+                      borderBottom: 0,
+                      borderLeft: rowHighlight
+                        ? '2px solid var(--ink)'
+                        : 'none',
+                      textTransform: 'none',
+                      letterSpacing: 0,
+                    }}
+                  >
+                    <GroupHeaderCell group={rowG} />
+                  </th>
+                  {sorted.map((colG) => {
+                    const onAxis =
+                      highlightSlug != null &&
+                      (rowG.slug === highlightSlug ||
+                        colG.slug === highlightSlug);
+                    return (
+                      <Cell
+                        key={colG.slug}
+                        data={map.get(`${rowG.slug}|${colG.slug}`)}
+                        isDiagonal={rowG.slug === colG.slug}
+                        dim={highlightSlug != null && !onAxis}
+                        rowName={displayGroupShort(rowG.name_short)}
+                        colName={displayGroupShort(colG.name_short)}
+                      />
+                    );
+                  })}
+                </tr>
               );
             })}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((rowG) => {
-            const rowHighlight = highlightSlug != null && rowG.slug === highlightSlug;
-            return (
-              <tr key={rowG.slug}>
-                <th
-                  scope="row"
-                  style={{
-                    textAlign: 'right',
-                    fontSize: 11,
-                    letterSpacing: 0,
-                    textTransform: 'none',
-                    fontWeight: rowHighlight ? 700 : 600,
-                    color: 'var(--ink)',
-                    padding: '6px 10px',
-                    borderBottom: 0,
-                    whiteSpace: 'nowrap',
-                    borderLeft: rowHighlight ? '2px solid var(--ink)' : 'none',
-                  }}
-                >
-                  <Link
-                    href={`/groups/${rowG.slug}`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'inherit', textDecoration: 'none' }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 1,
-                        background: rowG.color_hex ?? 'var(--ink-3)',
-                      }}
-                    />
-                    {displayGroupShort(rowG.name_short)}
-                  </Link>
-                </th>
-                {sorted.map((colG) => {
-                  const onAxis =
-                    highlightSlug != null &&
-                    (rowG.slug === highlightSlug || colG.slug === highlightSlug);
-                  return (
-                    <Cell
-                      key={colG.slug}
-                      data={map.get(`${rowG.slug}|${colG.slug}`)}
-                      isDiagonal={rowG.slug === colG.slug}
-                      dim={highlightSlug != null && !onAxis}
-                    />
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <p style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 8 }}>
-        % de votacions on els dos grups van votar el mateix sentit (Sí, No o
-        Abstenció). La diagonal és sempre 100% per construcció. Pares
-        amb menys de {MIN_N} votacions comparades es mostren en blanc.
-      </p>
+          </tbody>
+        </table>
+        <p
+          style={{
+            fontSize: 11,
+            color: 'var(--ink-3)',
+            marginTop: 8,
+            textAlign: 'center',
+          }}
+        >
+          % de votacions on els dos grups van votar el mateix sentit (Sí, No
+          o Abstenció). La diagonal és sempre 100% per construcció. Parelles
+          amb menys de {MIN_N} votacions comparades es mostren en blanc.
+        </p>
+        {/* Square-cell sizing — defined once via custom properties so the
+            cells, headers, and corner cell stay in lockstep. Tablet band
+            uses smaller cells to avoid horizontal scrolling. */}
+        <style>{`
+          .coincidence-matrix {
+            --coincidence-cell: 48px;
+            --coincidence-label-w: 48px;
+          }
+          @media (max-width: 900px) {
+            .coincidence-matrix {
+              --coincidence-cell: 36px;
+              --coincidence-label-w: 36px;
+            }
+          }
+          /* Subtle focus ring on header badges so keyboard users see
+             which header cell is active. Uses the same accent-color
+             outline the rest of the site uses for focus. */
+          .coincidence-matrix .term-tooltip a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+            border-radius: 999px;
+          }
+        `}</style>
       </div>
     </>
   );
@@ -321,16 +364,73 @@ function MobileCoincidenceList({
   );
 }
 
+/**
+ * Group header cell used in the desktop coincidence matrix: a clickable
+ * GroupBadge disc (linking to the group page) with a CSS-only hover/focus
+ * tooltip that reveals the full group name.
+ *
+ * Uses the same `.term-tooltip` CSS classes as the shared :file:`Tooltip`
+ * component (defined in globals.css) so the visual language stays
+ * consistent — but renders the trigger as a `<Link>` directly rather
+ * than wrapping it in a `role="button"` span. The shared `Tooltip` is
+ * built around a focusable span anchor, which would create a
+ * nested-interactive a11y issue when wrapping a Link.
+ */
+function GroupHeaderCell({ group }: { group: ParliamentaryGroupSummary }) {
+  const shortName = displayGroupShort(group.name_short);
+  const explanation =
+    shortName === group.name_long ? shortName : `${shortName} — ${group.name_long}`;
+  return (
+    <span
+      className="term-tooltip"
+      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+    >
+      <Link
+        href={`/groups/${group.slug}`}
+        aria-label={explanation}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textDecoration: 'none',
+          color: 'inherit',
+          // The Link itself is the focus target; on focus, the
+          // surrounding `.term-tooltip` selector reveals the bubble via
+          // `:focus-within`.
+          outline: 'none',
+        }}
+      >
+        <GroupBadge
+          slug={group.slug}
+          color={group.color_hex}
+          size="sm"
+          link={false}
+        />
+      </Link>
+      <span className="term-tooltip__bubble" role="tooltip">
+        {explanation}
+      </span>
+    </span>
+  );
+}
+
 function Cell({
   data,
   isDiagonal,
   dim = false,
+  rowName,
+  colName,
 }: {
   data: CoincidenceCell | undefined;
   isDiagonal: boolean;
   /** Outside the highlighted row/column. We keep the cell visible but
    *  reduce its contrast. */
   dim?: boolean;
+  /** Used to build the native title tooltip so users learn which two
+   *  groups intersect at this cell — the column/row headers are now
+   *  abbreviations only, so we restore the pair name here. */
+  rowName: string;
+  colName: string;
 }) {
   const pct =
     data && data.votes_compared >= MIN_N && data.coincidence != null
@@ -347,14 +447,18 @@ function Cell({
   return (
     <td
       style={{
+        // Square cell driven by the same custom properties as the
+        // headers, so every cell — header or data — is identical in
+        // size and the grid stays perfectly aligned.
+        width: 'var(--coincidence-cell)',
+        height: 'var(--coincidence-cell)',
         background: bg,
         color: fg,
         textAlign: 'center',
-        fontSize: 11,
+        verticalAlign: 'middle',
+        fontSize: 12,
         fontWeight: 600,
-        padding: '10px 4px',
-        minWidth: 44,
-        height: 36,
+        padding: 0,
         borderBottom: 0,
         borderRadius: 4,
         fontVariantNumeric: 'tabular-nums',
@@ -362,8 +466,8 @@ function Cell({
       }}
       title={
         data
-          ? `${pct ?? '—'}% coincidència · ${data.votes_compared} votacions`
-          : 'Sense dades'
+          ? `${rowName} ↔ ${colName} · ${pct ?? '—'}% coincidència · ${data.votes_compared} votacions`
+          : `${rowName} ↔ ${colName} · sense dades`
       }
     >
       {pct == null ? '—' : `${pct}`}

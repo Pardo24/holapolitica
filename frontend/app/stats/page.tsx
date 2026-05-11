@@ -3,8 +3,8 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
-import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
+import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
 import { ShareButton } from '@/components/ShareButton';
@@ -302,40 +302,26 @@ export default async function StatsPage({
             />
           </Section>
 
+          {/* Per-group summary cards — replaces the redundant "Cohesió per
+              grup" + "Assistència per grup" bar-chart pair. Each card
+              folds cohesion + attendance + member count into one tap
+              target into the group's page. Horizontal scroll-snap so the
+              section never grows tall, even with many groups. */}
           <Section
-            title="Cohesió interna · per grup"
+            title="Resum per grup parlamentari"
             subtitle={
               <>
-                <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} /> mitjana per
-                grup sobre el conjunt de votacions del període. Tots els grups visibles
-                simultàniament — sense destacar-ne cap.
+                <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />,{' '}
+                <Tooltip
+                  term="assistència"
+                  explanation={glossaryShort('attendance')}
+                />{' '}
+                i nombre de membres per a cada grup. Tots els grups visibles —
+                desplaça lateralment per veure&apos;ls.
               </>
             }
           >
-            <GroupMetricBars
-              rows={groupSummary}
-              accessor={(r) => r.avg_cohesion}
-              unit="%"
-              colorFromRow
-            />
-          </Section>
-
-          <Section
-            title="Assistència a votació · per grup"
-            subtitle={
-              <>
-                <Tooltip term="Assistència" explanation={glossaryShort('attendance')} />{' '}
-                mitjana dels membres de cada grup. Tots els grups visibles, ordenats per
-                nombre de membres.
-              </>
-            }
-          >
-            <GroupMetricBars
-              rows={groupSummary}
-              accessor={(r) => r.avg_attendance}
-              unit="%"
-              colorFromRow
-            />
+            <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
           </Section>
 
           {/* Symmetric pairing: approved AND rejected always shown side-by-side
@@ -378,10 +364,6 @@ export default async function StatsPage({
             subtitle="Quantes votacions sortides al ple ha proposat cada grup parlamentari (PNL, Mocions). No s'inclouen els projectes de llei del Govern."
           >
             <VerticalBars rows={proposingGroups} highlightSlug={null} />
-          </Section>
-
-          <Section title="Resum per grup parlamentari">
-            <GroupSummaryGrid rows={groupSummary} highlightSlug={null} />
           </Section>
         </>
       )}
@@ -1472,99 +1454,6 @@ function VerticalBars({
   );
 }
 
-// ─── Group metric bar chart (cohesion / attendance) ────────────────────────
-
-/** Horizontal bar chart for a per-group 0..1 metric (cohesion, attendance).
- *  Renders every group passed in — never hides any (CLAUDE.md "regla de
- *  simetria"). Uses the group's own color when `colorFromRow` is true.
- *  The component is generic over the accessor so a single visual primitive
- *  serves both cohesion and attendance on the overview tab. */
-function GroupMetricBars({
-  rows,
-  accessor,
-  unit,
-  colorFromRow = false,
-}: {
-  rows: GroupSummaryRow[];
-  accessor: (row: GroupSummaryRow) => number | null;
-  unit?: string;
-  colorFromRow?: boolean;
-}) {
-  if (rows.length === 0) {
-    return (
-      <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Encara no hi ha prou dades per calcular aquesta mètrica.
-      </p>
-    );
-  }
-  const sorted = [...rows].sort((a, b) => b.members_active - a.members_active);
-  return (
-    <ul style={listReset}>
-      {sorted.map((row) => {
-        const raw = accessor(row);
-        const pct = raw == null ? null : Math.round(raw * 100);
-        const widthPct = pct ?? 0;
-        return (
-          <li
-            key={row.group_slug}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '120px 1fr 56px',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 0',
-              fontSize: 12,
-            }}
-          >
-            <span
-              style={{
-                color: 'var(--ink)',
-                fontWeight: 500,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-              title={row.group_name_short}
-            >
-              {displayGroupShort(row.group_name_short)}
-            </span>
-            <div
-              style={{
-                position: 'relative',
-                height: 14,
-                background: 'var(--paper-3)',
-                borderRadius: 2,
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${widthPct}%`,
-                  height: '100%',
-                  background: colorFromRow
-                    ? row.group_color_hex ?? 'var(--ink-3)'
-                    : 'var(--ink)',
-                  opacity: pct == null ? 0.2 : 0.95,
-                }}
-              />
-            </div>
-            <span
-              className="tabular"
-              style={{
-                textAlign: 'right',
-                fontWeight: 600,
-                color: pct == null ? 'var(--ink-3)' : 'var(--ink)',
-              }}
-            >
-              {pct == null ? '—' : `${pct}${unit ?? ''}`}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 // ─── Single group's own cohesion + attendance card ─────────────────────────
 
 function GroupOwnMetrics({ row }: { row: GroupSummaryRow }) {
@@ -1840,176 +1729,6 @@ function HorizontalTopicBars({
         );
       })}
     </ul>
-  );
-}
-
-// ─── 5. Group summary grid ─────────────────────────────────────────────────
-
-function GroupSummaryGrid({
-  rows,
-  highlightSlug,
-}: {
-  rows: GroupSummaryRow[];
-  highlightSlug?: string | null;
-}) {
-  if (rows.length === 0) {
-    return (
-      <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Encara no hi ha prou dades per al resum per grup.
-      </p>
-    );
-  }
-  const maxMembers = Math.max(...rows.map((r) => r.members_active), 1);
-  const ordered = highlightSlug
-    ? [
-        ...rows.filter((r) => r.group_slug === highlightSlug),
-        ...rows.filter((r) => r.group_slug !== highlightSlug),
-      ]
-    : rows;
-  return (
-    <ul
-      style={{
-        listStyle: 'none',
-        margin: 0,
-        padding: 0,
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: 14,
-      }}
-    >
-      {ordered.map((row) => (
-        <GroupSummaryCard
-          key={row.group_slug}
-          row={row}
-          maxMembers={maxMembers}
-          highlighted={row.group_slug === highlightSlug}
-        />
-      ))}
-    </ul>
-  );
-}
-
-function GroupSummaryCard({
-  row,
-  maxMembers,
-  highlighted = false,
-}: {
-  row: GroupSummaryRow;
-  maxMembers: number;
-  highlighted?: boolean;
-}) {
-  const cohesionPct = row.avg_cohesion == null ? null : Math.round(row.avg_cohesion * 100);
-  const attendancePct =
-    row.avg_attendance == null ? null : Math.round(row.avg_attendance * 100);
-  return (
-    <li>
-      <Link
-        href={`/groups/${row.group_slug}`}
-        style={{
-          display: 'block',
-          padding: 16,
-          background: highlighted ? 'var(--paper)' : 'var(--paper-2)',
-          border: highlighted ? '2px solid var(--ink)' : '1px solid var(--rule)',
-          borderRadius: 12,
-          textDecoration: 'none',
-          color: 'inherit',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <GroupBadge slug={row.group_slug} color={row.group_color_hex} size="sm" link={false} />
-          <span style={{ fontSize: 14, fontWeight: 600, flex: 1, minWidth: 0 }}>
-            {displayGroupShort(row.group_name_short)}
-          </span>
-          <span className="tabular" style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>
-            {row.members_active}
-          </span>
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 4 }}>
-            Membres a la cambra
-          </div>
-          <div
-            style={{
-              height: 8,
-              background: 'var(--paper-3)',
-              borderRadius: 2,
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${(row.members_active / maxMembers) * 100}%`,
-                height: '100%',
-                background: row.group_color_hex ?? 'var(--ink-3)',
-                opacity: 0.9,
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <DonutPct
-            value={cohesionPct}
-            label={<Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />}
-            color="var(--ink)"
-          />
-          <DonutPct
-            value={attendancePct}
-            label={<Tooltip term="Assist." explanation={glossaryShort('attendance')} />}
-            color="var(--accent)"
-          />
-        </div>
-      </Link>
-    </li>
-  );
-}
-
-function DonutPct({
-  value,
-  label,
-  color,
-}: {
-  value: number | null;
-  label: React.ReactNode;
-  color: string;
-}) {
-  const r = 24;
-  const c = 30;
-  const sw = 6;
-  const C = 2 * Math.PI * r;
-  const dash = value == null ? 0 : (value / 100) * C;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <svg width={2 * c} height={2 * c} viewBox={`0 0 ${2 * c} ${2 * c}`}>
-        <circle cx={c} cy={c} r={r} fill="none" stroke="var(--paper-3)" strokeWidth={sw} />
-        {value != null && (
-          <circle
-            cx={c}
-            cy={c}
-            r={r}
-            fill="none"
-            stroke={color}
-            strokeWidth={sw}
-            strokeDasharray={`${dash} ${C - dash}`}
-            transform={`rotate(-90 ${c} ${c})`}
-            strokeLinecap="round"
-          />
-        )}
-        <text
-          x={c}
-          y={c + 4}
-          textAnchor="middle"
-          fontSize="14"
-          fontWeight="600"
-          fill="var(--ink)"
-          style={{ fontVariantNumeric: 'tabular-nums' }}
-        >
-          {value == null ? '—' : `${value}%`}
-        </text>
-      </svg>
-      <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{label}</span>
-    </div>
   );
 }
 

@@ -3,10 +3,12 @@ import type { Route } from 'next';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
-import { GroupCombobox } from '@/components/GroupCombobox';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
+import {
+  StatsPairFilter,
+  StatsTopicFilter,
+} from '@/components/StatsFilterClient';
 import { SummaryHover } from '@/components/SummaryHover';
-import { TopicCombobox } from '@/components/TopicCombobox';
 import { Tooltip } from '@/components/Tooltip';
 import type {
   CoincidenceCell,
@@ -143,8 +145,6 @@ export function MobileStatsDashboard({
         coincidence={coincidence}
         pairA={pairA}
         pairB={pairB}
-        selectedTopic={selectedTopic}
-        selectedGroup={selectedGroup}
       />
 
       {/* ─── Widget 5: Coincidence — per topic, all groups ───────────── */}
@@ -153,10 +153,7 @@ export function MobileStatsDashboard({
         allGroups={allGroups}
         topicStatsByGroup={topicStatsByGroup}
         selectedTopic={selectedTopic}
-        selectedGroup={selectedGroup}
         focusedTopicName={focusedTopicName}
-        pairA={pairA}
-        pairB={pairB}
       />
     </div>
   );
@@ -401,8 +398,9 @@ function InitiativesStateWidget({
           </span>
         </div>
 
-        {/* Topic filter — collapsable behind a <details>. Form submits via
-            GET, preserving the rest of the URL params. */}
+        {/* Topic filter — collapsable behind a <details>. Picking a topic
+            updates ``?topic=…`` in place via router.replace with scroll
+            preservation; no form submit, no scroll jump. */}
         <details
           open={hasTopic}
           style={{
@@ -437,45 +435,34 @@ function InitiativesStateWidget({
             </span>
             <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>▾</span>
           </summary>
-          <form method="GET" action="/stats" style={{ padding: '4px 14px 14px', display: 'grid', gap: 10 }}>
-            {selectedGroup && selectedGroup !== 'all' && (
-              <input type="hidden" name="group" value={selectedGroup} />
-            )}
-            <TopicCombobox
-              name="topic"
-              value={selectedTopic}
-              topics={allTopics}
-              emptyValue="all"
-              clearLabel="Cap (tots els temes)"
-              placeholder="Filtra per tema…"
-              ariaLabel="Filtra per tema"
+          <div style={{ padding: '4px 14px 14px', display: 'grid', gap: 10 }}>
+            <StatsTopicFilter
+              allTopics={allTopics}
+              selectedTopic={selectedTopic}
             />
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button type="submit" className="btn-ink btn-sm" style={{ flex: 1 }}>
-                Aplica
-              </button>
-              {hasTopic && (
-                <Link
-                  href={
-                    selectedGroup && selectedGroup !== 'all'
-                      ? (`/stats?group=${encodeURIComponent(selectedGroup)}` as Route)
-                      : ('/stats' as Route)
-                  }
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--ink-3)',
-                    textDecoration: 'none',
-                    padding: '8px 12px',
-                    border: '1px solid var(--rule)',
-                    borderRadius: 8,
-                    textAlign: 'center',
-                  }}
-                >
-                  × Neteja
-                </Link>
-              )}
-            </div>
-          </form>
+            {hasTopic && (
+              <Link
+                href={
+                  selectedGroup && selectedGroup !== 'all'
+                    ? (`/stats?group=${encodeURIComponent(selectedGroup)}` as Route)
+                    : ('/stats' as Route)
+                }
+                scroll={false}
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-3)',
+                  textDecoration: 'none',
+                  padding: '8px 12px',
+                  border: '1px solid var(--rule)',
+                  borderRadius: 8,
+                  textAlign: 'center',
+                  alignSelf: 'flex-start',
+                }}
+              >
+                × Neteja tema
+              </Link>
+            )}
+          </div>
         </details>
 
         {/* Stacked horizontal bar with inline % labels */}
@@ -881,15 +868,11 @@ function PairCoincidenceWidget({
   coincidence,
   pairA,
   pairB,
-  selectedTopic,
-  selectedGroup,
 }: {
   allGroups: ParliamentaryGroupSummary[];
   coincidence: CoincidenceCell[];
   pairA: string;
   pairB: string;
-  selectedTopic: string;
-  selectedGroup: string;
 }) {
   const hasBoth = pairA && pairB && pairA !== 'all' && pairB !== 'all';
   const sameGroup = hasBoth && pairA === pairB;
@@ -909,45 +892,9 @@ function PairCoincidenceWidget({
       info="Tria dos grups parlamentaris i mira en quin % de votacions han votat el mateix sentit (Sí, No o Abstenció). L'ordre de la parella no afecta el resultat."
     >
       <Card>
-        <form
-          method="GET"
-          action="/stats"
-          style={{ display: 'grid', gap: 10, marginBottom: 14 }}
-        >
-          {selectedTopic && selectedTopic !== 'all' && (
-            <input type="hidden" name="topic" value={selectedTopic} />
-          )}
-          {selectedGroup && selectedGroup !== 'all' && (
-            <input type="hidden" name="group" value={selectedGroup} />
-          )}
-          <label style={pickerLabel}>
-            <span style={pickerLabelText}>Grup A</span>
-            <GroupCombobox
-              name="pair_a"
-              value={pairA && pairA !== 'all' ? pairA : ''}
-              groups={allGroups}
-              emptyValue=""
-              clearLabel="—"
-              placeholder="Tria el primer grup…"
-              ariaLabel="Tria el primer grup"
-            />
-          </label>
-          <label style={pickerLabel}>
-            <span style={pickerLabelText}>Grup B</span>
-            <GroupCombobox
-              name="pair_b"
-              value={pairB && pairB !== 'all' ? pairB : ''}
-              groups={allGroups}
-              emptyValue=""
-              clearLabel="—"
-              placeholder="Tria el segon grup…"
-              ariaLabel="Tria el segon grup"
-            />
-          </label>
-          <button type="submit" className="btn-ink btn-sm">
-            Calcula
-          </button>
-        </form>
+        <div style={{ marginBottom: 14 }}>
+          <StatsPairFilter allGroups={allGroups} pairA={pairA} pairB={pairB} />
+        </div>
 
         {!hasBoth && (
           <p style={emptyHint}>
@@ -1076,19 +1023,13 @@ function PerTopicCoincidenceWidget({
   allGroups,
   topicStatsByGroup,
   selectedTopic,
-  selectedGroup,
   focusedTopicName,
-  pairA,
-  pairB,
 }: {
   allTopics: Topic[];
   allGroups: ParliamentaryGroupSummary[];
   topicStatsByGroup: Map<string, TopicVoteStat[]>;
   selectedTopic: string;
-  selectedGroup: string;
   focusedTopicName: string;
-  pairA: string;
-  pairB: string;
 }) {
   const hasTopic = selectedTopic !== 'all';
 
@@ -1115,38 +1056,28 @@ function PerTopicCoincidenceWidget({
     (a, b) => (b.noPct ?? -1) - (a.noPct ?? -1),
   );
 
+  // Empty when a topic IS selected but no group has any cast votes for it.
+  // This happens when the backend vote↔initiative linkage is still being
+  // backfilled — render a soft placeholder instead of rows of dashes.
+  const hasAnyData = stances.some((s) => s.cast > 0);
+
   return (
     <DashSection
       eyebrow={<>Posició per tema · suport vs. rebuig</>}
       info="Per al tema seleccionat, cada grup té un % de Sí i un % de No sobre el total de vots emesos. Mostrem totes les dues columnes alhora — mai amaguem un cantó."
     >
       <Card>
-        <form
-          method="GET"
-          action="/stats"
-          style={{ display: 'grid', gap: 10, marginBottom: 14 }}
-        >
-          {selectedGroup && selectedGroup !== 'all' && (
-            <input type="hidden" name="group" value={selectedGroup} />
-          )}
-          {pairA && pairA !== 'all' && <input type="hidden" name="pair_a" value={pairA} />}
-          {pairB && pairB !== 'all' && <input type="hidden" name="pair_b" value={pairB} />}
+        <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
           <label style={pickerLabel}>
             <span style={pickerLabelText}>Tema</span>
-            <TopicCombobox
-              name="topic"
-              value={selectedTopic}
-              topics={allTopics}
-              emptyValue="all"
-              clearLabel="Cap (tots els temes)"
+            <StatsTopicFilter
+              allTopics={allTopics}
+              selectedTopic={selectedTopic}
               placeholder="Tria un tema…"
               ariaLabel="Tria un tema"
             />
           </label>
-          <button type="submit" className="btn-ink btn-sm">
-            Aplica
-          </button>
-        </form>
+        </div>
 
         {!hasTopic && (
           <p style={emptyHint}>
@@ -1154,7 +1085,10 @@ function PerTopicCoincidenceWidget({
             rebutgen, amb totes dues columnes alhora.
           </p>
         )}
-        {hasTopic && (
+        {hasTopic && !hasAnyData && (
+          <BackfillNotice topicName={focusedTopicName} />
+        )}
+        {hasTopic && hasAnyData && (
           <>
             <div
               style={{
@@ -1193,6 +1127,44 @@ function PerTopicCoincidenceWidget({
         )}
       </Card>
     </DashSection>
+  );
+}
+
+/**
+ * Soft placeholder shown when an entire stats widget has no rows because the
+ * backend vote↔initiative linkage is still being backfilled. Not an error —
+ * the data will arrive — so we use the same paper-2 background and rule
+ * styling as a regular card, never red.
+ */
+function BackfillNotice({ topicName }: { topicName?: string }) {
+  return (
+    <div
+      role="status"
+      style={{
+        padding: '14px 16px',
+        background: 'var(--paper-2)',
+        border: '1px dashed var(--rule)',
+        borderRadius: 10,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-3)',
+          fontWeight: 600,
+          marginBottom: 6,
+        }}
+      >
+        Dades en construcció
+      </div>
+      <p style={{ fontSize: 12, color: 'var(--ink-2)', margin: 0, lineHeight: 1.4 }}>
+        Estem completant el llaç entre votacions i iniciatives.
+        {topicName ? <> (Tema: {topicName}.)</> : null} Aquesta secció
+        s&apos;omplirà quan finalitzi el backfill.
+      </p>
+    </div>
   );
 }
 

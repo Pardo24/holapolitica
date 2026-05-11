@@ -944,11 +944,10 @@ a { color: inherit; }
   .tab-votes-list tr:hover td { background: transparent !important; }
 }
 
-/* Hemicycle: shrink on tablet, hide on phone — the legend table covers
-   the same composition information without needing the visual. */
-@media (max-width: 720px) {
-  .hemicycle-block { transform: scale(0.85); transform-origin: center top; }
-}
+/* Hemicycle: SVG scales naturally to its container, so no transform
+   needed on tablet. We still hide it at very small widths (<=480px)
+   where the legend table covers the same composition information
+   without the chart needing to compete for height. */
 @media (max-width: 720px) {
   .glossary-row {
     grid-template-columns: 1fr !important;

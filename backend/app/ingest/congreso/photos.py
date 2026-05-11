@@ -49,6 +49,45 @@ _NAME_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Birth date: the ficha typically renders a row labeled "Fecha de
+# nacimiento" with the date in DD/MM/YYYY form. Two HTML idioms appear
+# in the wild:
+#   <span class="lbl">Fecha de nacimiento</span><span>20/04/1980</span>
+#   <dt>Fecha de nacimiento</dt><dd>20/04/1980</dd>
+# The pattern below matches both by looking for the literal label and
+# then capturing the next non-tag chunk that looks like a date.
+_BIRTH_DATE_RE = re.compile(
+    r"Fecha\s+de\s+nacimiento[\s\S]{0,200}?(\d{1,2})[/\-\.](\d{1,2})[/\-\.](\d{4})",
+    re.IGNORECASE,
+)
+
+
+def _extract_birth_year(html: str) -> int | None:
+    """Return the deputy's birth year from a ficha page, or None.
+
+    We only persist the year (not the full date) because: (a) civic
+    privacy — the day/month is personal info that doesn't matter for
+    parliamentary activity tracking, (b) age is the only derived signal
+    we surface to the public. Storing less is the safer default.
+    """
+    match = _BIRTH_DATE_RE.search(html)
+    if match is None:
+        return None
+    try:
+        year = int(match.group(3))
+    except (TypeError, ValueError):
+        return None
+    # Sanity check — Spanish deputies must be at least 18, so anyone born
+    # after current year - 18 is a parsing artefact. Likewise pre-1900 is
+    # almost certainly a misparse of an unrelated date on the page.
+    from datetime import datetime as _dt
+
+    today_year = _dt.now().year
+    if year < 1900 or year > today_year - 18:
+        return None
+    return year
+
+
 _PHOTO_PATH = "/docu/imgweb/diputados/{cod}_{leg}.jpg"
 _FICHA_PATH = (
     "/ca/busqueda-de-diputados"
@@ -143,6 +182,13 @@ async def backfill_photos(
             person.biography_url = (
                 f"https://www.congreso.es{_FICHA_PATH.format(cod=cod, leg=roman)}"
             )
+            # Backfill birth_year from the same ficha — saves a second
+            # round of HTTPs. Don't overwrite a value already set by a
+            # prior run or a manual correction.
+            if person.birth_year is None:
+                year = _extract_birth_year(ficha_html)
+                if year is not None:
+                    person.birth_year = year
             matched.append(person)
             stats = stats.__class__(
                 codes_probed=stats.codes_probed,

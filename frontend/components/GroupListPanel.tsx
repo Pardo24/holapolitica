@@ -13,6 +13,13 @@ import { displayGroupFullName } from '@/lib/groups';
  *
  * Header is rendered by the parent page so the tab bar can sit above us in
  * the persons hub without duplicating a second h1.
+ *
+ * Sizing rule (neutrality + "regla de simetria"): every card occupies an
+ * identical grid cell and stretches to the cell height. A bigger group
+ * (e.g. Popular, 137 diputats) gets exactly the same visual real-estate
+ * as a smaller one (e.g. Mixto). The previous flex layout was driven by
+ * intrinsic content width, which made parties with long names or 3-digit
+ * counts grow disproportionately — visually privileging them.
  */
 export async function GroupListPanel() {
   const t = await getTranslations('groups');
@@ -23,12 +30,17 @@ export async function GroupListPanel() {
 
   return (
     <ul
+      className="group-grid"
       style={{
         listStyle: 'none',
         margin: 0,
         padding: '24px 0 0',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        // Equal-width cells. `minmax(0, 1fr)` is the canonical fix for the
+        // "grid items overflow when content is wider than the implicit
+        // min content size" trap — without it, long group names could
+        // push a column wider than its peers.
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
         gap: 12,
       }}
     >
@@ -39,6 +51,23 @@ export async function GroupListPanel() {
           membersLabel={t('members_label', { count: g.members_active })}
         />
       ))}
+      <style>{`
+        @media (min-width: 1100px) {
+          .group-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          }
+        }
+        @media (max-width: 860px) {
+          .group-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .group-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </ul>
   );
 }
@@ -51,13 +80,17 @@ function GroupCard({
   membersLabel: string;
 }) {
   return (
-    <li>
+    <li style={{ display: 'flex' }}>
       <Link
         href={`/groups/${group.slug}`}
         style={{
+          // Fill the whole grid cell so every card is the same size,
+          // even when the name wraps to 2 lines or the count is shorter.
+          width: '100%',
+          minHeight: 140,
           display: 'flex',
-          gap: 14,
-          alignItems: 'flex-start',
+          flexDirection: 'column',
+          gap: 12,
           padding: 16,
           borderTop: '3px solid',
           borderTopColor: group.color_hex ?? 'var(--ink)',
@@ -66,41 +99,76 @@ function GroupCard({
           color: 'inherit',
         }}
       >
-        <GroupBadge
-          slug={group.slug}
-          color={group.color_hex}
-          size="md"
-          link={false}
-        />
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <h2
-            className="serif"
+        {/* Top row: badge + member-count chip on the right. The chip is
+            the primary "member count" affordance now — always visible,
+            always the same size, on every card. */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            minWidth: 0,
+          }}
+        >
+          <GroupBadge
+            slug={group.slug}
+            color={group.color_hex}
+            size="md"
+            link={false}
+          />
+          {/* Member-count chip — single rendered string from the
+              localised `members_label` (e.g. "137 membres"), styled so
+              the number reads as the primary signal. We deliberately
+              render the full localised label rather than splitting it
+              into "number" + "unit" pieces: pluralisation and word
+              order vary by language, and stripping characters by hand
+              breaks at zero ("Sense membres actius") and at one
+              ("1 membre"). */}
+          <span
+            className="tabular"
             style={{
-              fontSize: 18,
+              display: 'inline-flex',
+              alignItems: 'baseline',
+              padding: '4px 10px',
+              borderRadius: 999,
+              background: 'var(--paper)',
+              border: '1px solid var(--rule-strong)',
               fontWeight: 600,
-              margin: 0,
-              lineHeight: 1.25,
-            }}
-          >
-            {displayGroupFullName(group.slug, group.name_long)}
-          </h2>
-          <p
-            style={{
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              marginTop: 2,
-              marginBottom: 0,
+              fontSize: 13,
+              color: 'var(--ink)',
+              flex: 'none',
+              whiteSpace: 'nowrap',
             }}
           >
             {membersLabel}
-          </p>
+          </span>
         </div>
-        <span
-          className="tabular"
-          style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em' }}
+
+        {/* Group name — wraps to at most 2 lines, truncates with
+            ellipsis beyond that. `minWidth: 0` is essential inside a
+            flex column to let the text actually wrap rather than push
+            the column wider. */}
+        <h2
+          className="serif"
+          style={{
+            fontSize: 17,
+            fontWeight: 600,
+            margin: 0,
+            lineHeight: 1.25,
+            // Standard 2-line clamp. Falls back gracefully on browsers
+            // that don't support `-webkit-line-clamp` by simply
+            // wrapping without clipping — still readable.
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            minWidth: 0,
+            wordBreak: 'break-word',
+          }}
         >
-          {group.members_active}
-        </span>
+          {displayGroupFullName(group.slug, group.name_long)}
+        </h2>
       </Link>
     </li>
   );
