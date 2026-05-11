@@ -144,7 +144,7 @@
     "coverage_title": "Cobertura",
     "coverage_active_deputies": "Diputados activos",
     "coverage_active_deputies_sub": "XV legislatura",
-    "coverage_votes_ingested": "Votaciones ingeridas",
+    "coverage_votes_ingested": "Votaciones registradas",
     "coverage_votes_ingested_sub": "desde agosto 2023",
     "coverage_classified": "Iniciativas clasificadas",
     "coverage_classified_sub": "automáticamente, por tema",
@@ -156,7 +156,7 @@
     "latest_see_all": "ver todas →",
     "upcoming_title": "Próximas votaciones",
     "upcoming_subtitle": "Próximo orden del día",
-    "upcoming_empty": "Aún no tenemos el orden del día ingerido. La próxima sesión plenaria aparecerá aquí cuando esté disponible.",
+    "upcoming_empty": "Aún no tenemos el orden del día publicado. La próxima sesión plenaria aparecerá aquí cuando esté disponible.",
     "upcoming_caveat": "Las votaciones programadas pueden cancelarse o aplazarse. Consulta la web del Congreso para confirmación."
   },
   "votes": {
@@ -229,6 +229,7 @@
     "mandates_title": "Mandatos",
     "no_mandates": "No se han registrado mandatos para esta persona.",
     "mandate_dates": "{from} → {to}",
+    "mandate_current": "actualidad",
     "constituency": "Circunscripción",
     "list": "Lista electoral"
   },
@@ -240,7 +241,7 @@
   "stats": {
     "title": "Estadísticas",
     "eyebrow": "Atlas · agregados descriptivos · ninguna métrica unilateral",
-    "intro": "Recuento de iniciativas y votaciones ingeridas en la XV legislatura. La clasificación temática es automática (LLM neutro) — cada cifra muestra la N bruta. La cobertura histórica todavía está en construcción.",
+    "intro": "Recuento de iniciativas y votaciones registradas en la XV legislatura. La clasificación temática es automática (LLM neutro) — cada cifra muestra la N bruta. La cobertura histórica todavía está en construcción.",
     "global_view": "Visión global",
     "global_view_open_hint": "Métricas globales · abiertas por defecto cuando no hay filtro",
     "global_view_closed_hint": "Métricas globales · plegar/desplegar",
@@ -270,6 +271,18 @@
     "totals": "Totales",
     "plain_summary_title": "En llano",
     "plain_summary_caveat": "Resumen automático por {provider}. Puede contener imprecisiones; el texto legal es la fuente autorizada."
+  },
+  "glossary": {
+    "Proposició de Llei": "Iniciativa legislativa que presentan grupos parlamentarios del Congreso.",
+    "Projecte de Llei": "Iniciativa legislativa que presenta el Gobierno.",
+    "Proposició no de Llei (PNL)": "Acuerdo político sin valor normativo — el Congreso se posiciona ante el Gobierno o otras instituciones.",
+    "Cohesió de grup": "Porcentaje de miembros del grupo que votan igual en una votación.",
+    "Dissidència": "Voto de un diputado que difiere de la línea mayoritaria de su grupo.",
+    "Coincidència": "Porcentaje de votaciones en que dos grupos (o dos diputados) han votado igual.",
+    "Esmena": "Modificación propuesta a un texto en tramitación, antes de la votación final.",
+    "Tramitació en lectura única": "Tramitación acelerada — sin pasar por comisión, debate directo en el pleno.",
+    "Quòrum": "Mínimo de asistencia para que una votación sea válida.",
+    "Veto del Senat": "Rechazo del Senado a una ley aprobada en el Congreso — solo tiene fuerza si el Senado lo aprueba por mayoría absoluta."
   },
   "footer": {
     "license_code": "Código bajo licencia EUPL-1.2",

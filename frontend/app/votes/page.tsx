@@ -3,13 +3,15 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { GroupChip } from '@/components/GroupChip';
+import { GroupCombobox } from '@/components/GroupCombobox';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { SummaryHover } from '@/components/SummaryHover';
+import { TopicCombobox } from '@/components/TopicCombobox';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
 import { api, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
-import { displayGroupFullName, displayGroupShort } from '@/lib/groups';
+import { displayGroupShort } from '@/lib/groups';
 
 interface SearchParams {
   topic_slug?: string;
@@ -135,25 +137,15 @@ export default async function VotesPage({
               }}
             />
           </label>
-          <select
+          <TopicCombobox
             name="topic_slug"
-            defaultValue={params.topic_slug ?? ''}
-            style={{
-              ...selectStyle,
-              padding: '10px 12px',
-              border: '1px solid var(--rule-strong)',
-              borderRadius: 999,
-              background: 'var(--paper)',
-              color: 'var(--ink)',
-            }}
-          >
-            <option value="">{t('filters.all_topics')}</option>
-            {topics.map((tt) => (
-              <option key={tt.slug} value={tt.slug}>
-                {tt.name_ca}
-              </option>
-            ))}
-          </select>
+            value={params.topic_slug ?? ''}
+            topics={topics}
+            emptyValue=""
+            clearLabel={t('filters.all_topics')}
+            placeholder={t('filters.all_topics')}
+            ariaLabel={t('filters.all_topics')}
+          />
           <button type="submit" className="btn-ink btn-sm" style={{ padding: '10px 18px' }}>
             {t('filters.apply')}
           </button>
@@ -183,25 +175,16 @@ export default async function VotesPage({
             }}
             className="filter-advanced"
           >
-            <select
+            <GroupCombobox
               name="proposing_group_slug"
-              defaultValue={params.proposing_group_slug ?? ''}
-              style={{
-                ...selectStyle,
-                padding: '8px 10px',
-                border: '1px solid var(--rule)',
-                background: 'var(--paper)',
-                fontSize: 12,
-              }}
-            >
-              <option value="">{t('filters.all_groups')}</option>
-              <option value="govern">{t('filters.proposing_government')}</option>
-              {groups.map((g) => (
-                <option key={g.slug} value={g.slug}>
-                  {displayGroupFullName(g.slug, g.name_long)}
-                </option>
-              ))}
-            </select>
+              value={params.proposing_group_slug ?? ''}
+              groups={groups}
+              extraOptions={[{ slug: 'govern', label: t('filters.proposing_government') }]}
+              emptyValue=""
+              clearLabel={t('filters.all_groups')}
+              placeholder={t('filters.all_groups')}
+              ariaLabel={t('filters.all_groups')}
+            />
             <select
               name="result"
               defaultValue={params.result ?? ''}

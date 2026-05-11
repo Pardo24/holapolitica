@@ -88,10 +88,13 @@ export default async function HomePage() {
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 24, marginTop: 32, fontSize: 12, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
-            <span>✓ {t('trust_no_trackers')}</span>
-            <span>✓ {t('trust_licence')}</span>
-            <span>✓ {t('trust_api')}</span>
-            <span>✓ {t('trust_gdpr')}</span>
+            <span>{t('trust_no_trackers')}</span>
+            <span style={{ color: 'var(--rule)' }}>·</span>
+            <span>{t('trust_licence')}</span>
+            <span style={{ color: 'var(--rule)' }}>·</span>
+            <span>{t('trust_api')}</span>
+            <span style={{ color: 'var(--rule)' }}>·</span>
+            <span>{t('trust_gdpr')}</span>
           </div>
         </div>
 

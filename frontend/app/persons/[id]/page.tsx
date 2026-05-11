@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupChip } from '@/components/GroupChip';
 import { ShareButton } from '@/components/ShareButton';
 import { TopicBars } from '@/components/TopicBars';
@@ -227,7 +228,7 @@ export default async function PersonDetailPage({
                 <span className="tabular" style={{ fontWeight: 600 }}>
                   {t('mandate_dates', {
                     from: new Date(m.start_date).toLocaleDateString(locale),
-                    to: m.end_date ? new Date(m.end_date).toLocaleDateString(locale) : '…',
+                    to: m.end_date ? new Date(m.end_date).toLocaleDateString(locale) : t('mandate_current'),
                   })}
                 </span>
                 {m.constituency && (
@@ -308,7 +309,9 @@ function KpiStrip({ kpis }: { kpis: PersonKPIs }) {
         </span>
       </div>
       <div className="kpi">
-        <span className="label">Dissidència</span>
+        <span className="label">
+          <GlossaryTerm term="Dissidència">Dissidència</GlossaryTerm>
+        </span>
         <span className="value tabular">
           {kpis.dissidence_pct === null ? '—' : `${(kpis.dissidence_pct * 100).toFixed(0)}%`}
         </span>

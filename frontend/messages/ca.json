@@ -144,7 +144,7 @@
     "coverage_title": "Cobertura",
     "coverage_active_deputies": "Diputats actius",
     "coverage_active_deputies_sub": "XV legislatura",
-    "coverage_votes_ingested": "Votacions ingerides",
+    "coverage_votes_ingested": "Votacions registrades",
     "coverage_votes_ingested_sub": "des d'agost 2023",
     "coverage_classified": "Iniciatives classificades",
     "coverage_classified_sub": "automàticament, per tema",
@@ -156,7 +156,7 @@
     "latest_see_all": "vegeu totes →",
     "upcoming_title": "Pròximes votacions",
     "upcoming_subtitle": "Pròxim ordre del dia",
-    "upcoming_empty": "Encara no tenim l'ordre del dia ingerit. La pròxima sessió plenària es publicarà aquí quan estigui disponible.",
+    "upcoming_empty": "Encara no tenim l'ordre del dia publicat. La pròxima sessió plenària es publicarà aquí quan estigui disponible.",
     "upcoming_caveat": "Les votacions programades poden cancel·lar-se o ajornar-se. Comprova la web del Congrés per a confirmació."
   },
   "votes": {
@@ -229,6 +229,7 @@
     "mandates_title": "Mandats",
     "no_mandates": "No s'han registrat mandats per a aquesta persona.",
     "mandate_dates": "{from} → {to}",
+    "mandate_current": "actualitat",
     "constituency": "Circumscripció",
     "list": "Llista electoral"
   },
@@ -240,7 +241,7 @@
   "stats": {
     "title": "Estadístiques",
     "eyebrow": "Atles · agregats descriptius · cap mètrica unilateral",
-    "intro": "Recompte d'iniciatives i votacions ingerides en la XV legislatura. La classificació temàtica és automàtica (LLM neutre) — cada xifra mostra la N bruta. Cobertura històrica encara en construcció.",
+    "intro": "Recompte d'iniciatives i votacions registrades en la XV legislatura. La classificació temàtica és automàtica (LLM neutre) — cada xifra mostra la N bruta. Cobertura històrica encara en construcció.",
     "global_view": "Visió global",
     "global_view_open_hint": "Mètriques globals · obertes per defecte quan no hi ha filtre",
     "global_view_closed_hint": "Mètriques globals · plega/desplega",
@@ -270,6 +271,18 @@
     "totals": "Totals",
     "plain_summary_title": "En pla",
     "plain_summary_caveat": "Resum automàtic per {provider}. Pot contenir imprecisions; el text legal és la font autoritzada."
+  },
+  "glossary": {
+    "Proposició de Llei": "Iniciativa legislativa que presenten grups parlamentaris del Congrés.",
+    "Projecte de Llei": "Iniciativa legislativa que presenta el Govern.",
+    "Proposició no de Llei (PNL)": "Acord polític sense valor normatiu — el Congrés es posiciona davant del Govern o d'altres institucions.",
+    "Cohesió de grup": "Percentatge de membres del grup que voten igual en una votació.",
+    "Dissidència": "Vot d'un diputat que difereix de la línia majoritària del seu grup.",
+    "Coincidència": "Percentatge de votacions en què dos grups (o dos diputats) han votat igual.",
+    "Esmena": "Modificació proposada a un text en tramitació, abans de la votació final.",
+    "Tramitació en lectura única": "Tramitació accelerada — sense passar per comissió, debat directe al ple.",
+    "Quòrum": "Mínim d'assistència per a què una votació sigui vàlida.",
+    "Veto del Senat": "Rebuig del Senat a una llei aprovada al Congrés — només revesteix força si el Senat l'aprova per majoria absoluta."
   },
   "footer": {
     "license_code": "Codi sota llicència EUPL-1.2",

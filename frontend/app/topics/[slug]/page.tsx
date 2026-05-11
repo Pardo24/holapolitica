@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { ProposerEllipsis } from '@/components/ProposerEllipsis';
 import { SummaryHover } from '@/components/SummaryHover';
 import { Tooltip } from '@/components/Tooltip';
 import {
@@ -441,7 +442,12 @@ function InitiativeRow({
             ) : (
               typeLabel
             )}
-            {initiative.submitted_by ? ` · ${initiative.submitted_by}` : ''}
+            {initiative.submitted_by ? (
+              <>
+                {' · '}
+                <ProposerEllipsis text={initiative.submitted_by} />
+              </>
+            ) : ''}
           </span>
           <div
             className="line-clamp-3"

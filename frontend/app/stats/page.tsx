@@ -4,9 +4,11 @@ import { getLocale, getTranslations } from 'next-intl/server';
 
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { GroupBadge } from '@/components/GroupBadge';
+import { GroupCombobox } from '@/components/GroupCombobox';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { ShareButton } from '@/components/ShareButton';
 import { SummaryHover } from '@/components/SummaryHover';
+import { TopicCombobox } from '@/components/TopicCombobox';
 import { Tooltip } from '@/components/Tooltip';
 import {
   api,
@@ -19,12 +21,14 @@ import {
   type ParliamentaryGroupSummary,
   type ProposerCount,
   type StatsSummary,
+  type Topic,
   type TopicCount,
   type TopicGlobalStat,
   type TopicProposers,
   type TopicVoteStat,
 } from '@/lib/api';
-import { glossaryShort } from '@/lib/glossary';
+import { GlossaryTerm } from '@/components/GlossaryTerm';
+import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
 
@@ -55,9 +59,12 @@ const TYPE_LABEL: Record<string, string> = {
   other: 'Altra',
 };
 
+type TabKey = 'overview' | 'filtered';
+
 interface SearchParams {
   topic?: string;
   group?: string;
+  tab?: string;
 }
 
 export default async function StatsPage({
@@ -74,6 +81,18 @@ export default async function StatsPage({
   const hasGroup = selectedGroup !== 'all';
   const bothFilters = hasTopic && hasGroup;
   const anyFilter = hasTopic || hasGroup;
+
+  // Tab resolution:
+  //   - explicit ?tab=overview|filtered wins
+  //   - otherwise: if any filter is set, default to "filtered"; else "overview"
+  // This way a deep link with ?group=X or ?topic=Y lands on the filtered
+  // analysis tab, and a bare /stats lands on the overview, per the spec.
+  const explicitTab: TabKey | null =
+    params.tab === 'overview' || params.tab === 'filtered'
+      ? (params.tab as TabKey)
+      : null;
+  const activeTab: TabKey =
+    explicitTab ?? (anyFilter ? 'filtered' : 'overview');
 
   // Data fetching — global stats are always loaded since the collapsible
   // section needs them on demand without a second round trip. The
@@ -143,9 +162,14 @@ export default async function StatsPage({
   const focusedGroupName = focusedGroup
     ? displayGroupShort(focusedGroup.name_short)
     : selectedGroup;
+  // Row used by the "group only" cohesion + attendance panel.
+  const focusedGroupSummary = hasGroup
+    ? groupSummary.find((r) => r.group_slug === selectedGroup) ?? null
+    : null;
 
-  // KPI numbers reflect the current filter scope. We always show the strip
-  // because the numbers are the page's anchor regardless of mode.
+  // KPI numbers reflect the current filter scope. Cohesion/attendance
+  // averages come from groupSummary (cross-group mean when unscoped,
+  // single-group value when a group is selected).
   const kpi = computeKpis({
     summary,
     focusedTopic,
@@ -153,6 +177,7 @@ export default async function StatsPage({
     groupActivity,
     cross,
     proposingGroups,
+    groupSummary,
   });
 
   // "Nothing matches" guard — only triggered when BOTH filters set and
@@ -193,318 +218,398 @@ export default async function StatsPage({
           </p>
         </div>
         <ShareButton
-          url={buildShareUrl(selectedTopic, selectedGroup)}
+          url={buildShareUrl(selectedTopic, selectedGroup, activeTab)}
           title="Estadístiques · Hola Política"
           text="Estadístiques agregades del Congrés dels Diputats."
           size="sm"
         />
       </header>
 
-      {/* Global filter bar — server-side GET form. Always visible right
-          below the header so users can adjust scope at any time. */}
-      <FilterBar
-        topics={allTopics.map((tt) => ({ slug: tt.slug, name: tt.name_ca }))}
-        groups={allGroups}
+      {/* Tabs — top-level page navigation. Server-rendered Links so the
+          tab state survives reloads and can be deep-linked. Switching tab
+          preserves the currently selected filters so context isn't lost. */}
+      <Tabs
+        active={activeTab}
         selectedTopic={selectedTopic}
         selectedGroup={selectedGroup}
+        labels={{
+          overview: 'Visió general',
+          filtered: 'Anàlisi filtrada',
+        }}
       />
 
-      {isEmpty && (
-        <div
-          role="status"
-          style={{
-            marginTop: 20,
-            padding: '14px 18px',
-            border: '1px solid var(--rule)',
-            background: 'var(--paper-2)',
-            borderRadius: 12,
-            fontSize: 13,
-            color: 'var(--ink-3)',
-          }}
-        >
-          {t('joint_initiatives_empty', {
-            group: focusedGroupName,
-            topic: focusedTopicName,
-          })}{' '}
-          <Link href="/stats" style={{ color: 'var(--ink)' }}>
-            ← torna a la vista global
-          </Link>
-        </div>
-      )}
-
-      {/* KPI strip — scoped by topic/group when filters are set */}
-      <KpiStrip kpi={kpi} locale={locale} />
-
-      {/*
-       * ─── Filtered insights come FIRST when any filter is active so they
-       * are the top thing the user sees. The collapsible global view ships
-       * just below (collapsed by default in that case). With no filter we
-       * skip the filtered branch entirely and show the global view open.
-       */}
-
-      {bothFilters && cross && !isEmpty && (
+      {activeTab === 'overview' && (
         <>
-          {/* Section 1: big approval rate widget for the focal topic. */}
+          <KpiStrip kpi={kpi} locale={locale} />
+
+          {/* Highlights FIRST on this tab — anchors the overview as the
+              first thing the visitor sees below the tiles, per spec. */}
           <Section
-            title={t('approvals_on_topic', { topic: focusedTopicName })}
-            subtitle={t('approvals_on_topic_caption')}
-            chips={renderChips({
-              topic: selectedTopic,
-              group: selectedGroup,
-              allTopics,
-              allGroups,
-            })}
+            title="Destacats per grup parlamentari"
+            subtitle="Per cada grup, el tema on dóna més suport i el tema on rebutja més. Rotem entre tots els grups per igual — sense rànquing global. Mínim 5 vots emesos per tema."
           >
-            <ApprovalRateWidget
-              topic={focusedTopic}
-              fallbackName={focusedTopicName}
-              locale={locale}
+            <HighlightsCarousel items={allHighlights} />
+          </Section>
+
+          <Section
+            title={
+              <>
+                <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm>{' '}
+                entre grups
+              </>
+            }
+            subtitle="% de votacions on cada parella de grups ha votat el mateix sentit (Sí, No o Abstenció). Matriu simètrica completa — sense rànquings ni subconjunts destacats."
+          >
+            <CoincidenceMatrix
+              groups={allGroups}
+              cells={coincidence}
+              highlightSlug={null}
             />
           </Section>
 
-          {/* Section 2: two columns of bar charts. */}
           <Section
-            title="Encreuament tema × grup"
-            subtitle={`Com es distribueixen les iniciatives quan creuem ${focusedTopicName} amb ${focusedGroupName}. Mantenim tots els grups visibles per simetria.`}
+            title="Cohesió interna · per grup"
+            subtitle={
+              <>
+                <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} /> mitjana per
+                grup sobre el conjunt de votacions del període. Tots els grups visibles
+                simultàniament — sense destacar-ne cap.
+              </>
+            }
+          >
+            <GroupMetricBars
+              rows={groupSummary}
+              accessor={(r) => r.avg_cohesion}
+              unit="%"
+              colorFromRow
+            />
+          </Section>
+
+          <Section
+            title="Assistència a votació · per grup"
+            subtitle={
+              <>
+                <Tooltip term="Assistència" explanation={glossaryShort('attendance')} />{' '}
+                mitjana dels membres de cada grup. Tots els grups visibles, ordenats per
+                nombre de membres.
+              </>
+            }
+          >
+            <GroupMetricBars
+              rows={groupSummary}
+              accessor={(r) => r.avg_attendance}
+              unit="%"
+              colorFromRow
+            />
+          </Section>
+
+          {/* Symmetric pairing: approved AND rejected always shown side-by-side
+              in the per-status breakdown. We never display one without the
+              other (CLAUDE.md "regla de simetria"). */}
+          <Section
+            title="Iniciatives · aprovades i rebutjades"
+            subtitle="Distribució per estat i per tipus. Es mostra el desglossament complet — aprovades i rebutjades es presenten conjuntament, mai aïllades."
           >
             <div
               className="stats-twocol"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: 24,
-                paddingTop: 4,
+                gap: 32,
+                paddingTop: 12,
               }}
             >
-              <CrossCard
-                title={t('initiatives_on_topic_by_group', { topic: focusedTopicName })}
-                caption={t('initiatives_on_topic_by_group_caption', {
-                  topic: focusedTopicName,
-                  group: focusedGroupName,
-                })}
-              >
-                <HorizontalGroupBars
-                  rows={cross.initiatives_on_topic_by_group}
-                  highlightSlug={selectedGroup}
-                />
-              </CrossCard>
-
-              <CrossCard
-                title={t('topics_for_group', { group: focusedGroupName })}
-                caption={t('topics_for_group_caption', {
-                  topic: focusedTopicName,
-                  group: focusedGroupName,
-                })}
-              >
-                <HorizontalTopicBars
-                  rows={cross.topic_distribution_for_group}
-                  highlightSlug={selectedTopic}
-                />
-              </CrossCard>
+              <DonutPanel
+                label="Per estat (aprovades / rebutjades / en tràmit / altres)"
+                items={byStatus.map((r) => ({
+                  label: STATUS_LABEL[r.status] ?? r.status,
+                  count: r.count,
+                  color: STATUS_COLOR[r.status] ?? 'var(--nv)',
+                }))}
+              />
+              <DonutPanel
+                label="Per tipus d'iniciativa"
+                items={byType.map((r, i) => ({
+                  label: TYPE_LABEL[r.type] ?? r.type,
+                  count: r.count,
+                  color: TYPE_COLORS[i % TYPE_COLORS.length] ?? 'var(--accent)',
+                }))}
+              />
             </div>
           </Section>
 
-          {/* Section 3: joint initiatives list (reverse-chrono). */}
           <Section
-            title={t('joint_initiatives_title', {
-              group: focusedGroupName,
-              topic: focusedTopicName,
-            })}
-            subtitle={t('joint_initiatives_caption', {
-              group: focusedGroupName,
-              topic: focusedTopicName,
-            })}
+            title="Votacions per grup proposant"
+            subtitle="Quantes votacions sortides al ple ha proposat cada grup parlamentari (PNL, Mocions). No s'inclouen els projectes de llei del Govern."
           >
-            <p
+            <VerticalBars rows={proposingGroups} highlightSlug={null} />
+          </Section>
+
+          <Section title="Resum per grup parlamentari">
+            <GroupSummaryGrid rows={groupSummary} highlightSlug={null} />
+          </Section>
+        </>
+      )}
+
+      {activeTab === 'filtered' && (
+        <>
+          {/* Fused filter bar — Group + Topic in a single GET form at the
+              top of this tab. Replaces the two separate filter sections the
+              page used to have. */}
+          <FilterBar
+            topics={allTopics}
+            groups={allGroups}
+            selectedTopic={selectedTopic}
+            selectedGroup={selectedGroup}
+          />
+
+          {!anyFilter && (
+            <div
+              role="status"
               style={{
-                fontSize: 12,
+                marginTop: 20,
+                padding: '14px 18px',
+                border: '1px solid var(--rule)',
+                background: 'var(--paper-2)',
+                borderRadius: 12,
+                fontSize: 13,
                 color: 'var(--ink-3)',
-                margin: '0 0 12px',
               }}
             >
-              {t('joint_initiatives_found', { count: cross.joint_initiatives_total })}
-              {cross.joint_initiatives.length < cross.joint_initiatives_total && (
-                <>
-                  {' '}
-                  {t('joint_initiatives_truncated', {
-                    shown: cross.joint_initiatives.length,
-                    total: cross.joint_initiatives_total,
-                  })}
-                </>
+              Selecciona un grup o un tema (o tots dos) per veure
+              l&apos;anàlisi filtrada. Per a la visió completa de la
+              legislatura, mira la pestanya{' '}
+              <Link
+                href={'/stats?tab=overview' as Route}
+                style={{ color: 'var(--ink)' }}
+              >
+                Visió general
+              </Link>
+              .
+            </div>
+          )}
+
+          {isEmpty && (
+            <div
+              role="status"
+              style={{
+                marginTop: 20,
+                padding: '14px 18px',
+                border: '1px solid var(--rule)',
+                background: 'var(--paper-2)',
+                borderRadius: 12,
+                fontSize: 13,
+                color: 'var(--ink-3)',
+              }}
+            >
+              {t('joint_initiatives_empty', {
+                group: focusedGroupName,
+                topic: focusedTopicName,
+              })}{' '}
+              <Link
+                href={'/stats?tab=filtered' as Route}
+                style={{ color: 'var(--ink)' }}
+              >
+                ← prova un altre filtre
+              </Link>
+            </div>
+          )}
+
+          {anyFilter && <KpiStrip kpi={kpi} locale={locale} />}
+
+          {bothFilters && cross && !isEmpty && (
+            <>
+              {/* Section 1: big approval rate widget for the focal topic. */}
+              <Section
+                title={t('approvals_on_topic', { topic: focusedTopicName })}
+                subtitle={t('approvals_on_topic_caption')}
+                chips={renderChips({
+                  topic: selectedTopic,
+                  group: selectedGroup,
+                  allTopics,
+                  allGroups,
+                })}
+              >
+                <ApprovalRateWidget
+                  topic={focusedTopic}
+                  fallbackName={focusedTopicName}
+                  locale={locale}
+                />
+              </Section>
+
+              {/* Section 2: two columns of bar charts. */}
+              <Section
+                title="Encreuament tema × grup"
+                subtitle={`Com es distribueixen les iniciatives quan creuem ${focusedTopicName} amb ${focusedGroupName}. Mantenim tots els grups visibles per simetria.`}
+              >
+                <div
+                  className="stats-twocol"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 24,
+                    paddingTop: 4,
+                  }}
+                >
+                  <CrossCard
+                    title={t('initiatives_on_topic_by_group', { topic: focusedTopicName })}
+                    caption={t('initiatives_on_topic_by_group_caption', {
+                      topic: focusedTopicName,
+                      group: focusedGroupName,
+                    })}
+                  >
+                    <HorizontalGroupBars
+                      rows={cross.initiatives_on_topic_by_group}
+                      highlightSlug={selectedGroup}
+                    />
+                  </CrossCard>
+
+                  <CrossCard
+                    title={t('topics_for_group', { group: focusedGroupName })}
+                    caption={t('topics_for_group_caption', {
+                      topic: focusedTopicName,
+                      group: focusedGroupName,
+                    })}
+                  >
+                    <HorizontalTopicBars
+                      rows={cross.topic_distribution_for_group}
+                      highlightSlug={selectedTopic}
+                    />
+                  </CrossCard>
+                </div>
+              </Section>
+
+              {/* Section 3: joint initiatives list (reverse-chrono). */}
+              <Section
+                title={t('joint_initiatives_title', {
+                  group: focusedGroupName,
+                  topic: focusedTopicName,
+                })}
+                subtitle={t('joint_initiatives_caption', {
+                  group: focusedGroupName,
+                  topic: focusedTopicName,
+                })}
+              >
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--ink-3)',
+                    margin: '0 0 12px',
+                  }}
+                >
+                  {t('joint_initiatives_found', { count: cross.joint_initiatives_total })}
+                  {cross.joint_initiatives.length < cross.joint_initiatives_total && (
+                    <>
+                      {' '}
+                      {t('joint_initiatives_truncated', {
+                        shown: cross.joint_initiatives.length,
+                        total: cross.joint_initiatives_total,
+                      })}
+                    </>
+                  )}
+                </p>
+                <JointInitiativeList items={cross.joint_initiatives} locale={locale} />
+              </Section>
+            </>
+          )}
+
+          {/* Single-filter case: topic only. */}
+          {hasTopic && !bothFilters && (
+            <>
+              <Section
+                title={t('approvals_on_topic', { topic: focusedTopicName })}
+                subtitle={t('approvals_on_topic_caption')}
+                chips={renderChips({
+                  topic: selectedTopic,
+                  group: null,
+                  allTopics,
+                  allGroups,
+                })}
+              >
+                <ApprovalRateWidget
+                  topic={focusedTopic}
+                  fallbackName={focusedTopicName}
+                  locale={locale}
+                />
+              </Section>
+
+              {topicProposers && (
+                <Section
+                  title={t('who_proposes_topic')}
+                  subtitle={t('who_proposes_topic_caption')}
+                >
+                  <TopicProposersPanel
+                    data={topicProposers}
+                    topicSlug={selectedTopic}
+                    highlightGroup={null}
+                    locale={locale}
+                  />
+                </Section>
               )}
-            </p>
-            <JointInitiativeList items={cross.joint_initiatives} />
-          </Section>
-        </>
-      )}
 
-      {/* Single-filter case: topic only. */}
-      {hasTopic && !bothFilters && (
-        <>
-          <Section
-            title={t('approvals_on_topic', { topic: focusedTopicName })}
-            subtitle={t('approvals_on_topic_caption')}
-            chips={renderChips({
-              topic: selectedTopic,
-              group: null,
-              allTopics,
-              allGroups,
-            })}
-          >
-            <ApprovalRateWidget
-              topic={focusedTopic}
-              fallbackName={focusedTopicName}
-              locale={locale}
-            />
-          </Section>
+              {/* Coincidence matrix shown global (not restricted by topic):
+                  we don't have a per-topic coincidence endpoint yet. The
+                  caption is explicit about scope so the user isn't misled. */}
+              <Section
+                title={
+                  <>
+                    <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm>{' '}
+                    entre grups
+                  </>
+                }
+                subtitle="% de votacions on cada parella de grups ha votat el mateix sentit. Cobertura: totes les votacions de la legislatura (la restricció per tema arribarà en una propera versió)."
+              >
+                <CoincidenceMatrix
+                  groups={allGroups}
+                  cells={coincidence}
+                  highlightSlug={null}
+                />
+              </Section>
+            </>
+          )}
 
-          {topicProposers && (
-            <Section
-              title={t('who_proposes_topic')}
-              subtitle={t('who_proposes_topic_caption')}
-            >
-              <TopicProposersPanel
-                data={topicProposers}
-                topicSlug={selectedTopic}
-                highlightGroup={null}
-              />
-            </Section>
+          {/* Single-filter case: group only. */}
+          {hasGroup && !bothFilters && (
+            <>
+              {groupActivity && (
+                <Section
+                  title={t('group_activity', { group: focusedGroupName })}
+                  subtitle={t('group_activity_caption')}
+                  chips={renderChips({
+                    topic: null,
+                    group: selectedGroup,
+                    allTopics,
+                    allGroups,
+                  })}
+                >
+                  <GroupActivityPanel
+                    data={groupActivity}
+                    groupSlug={selectedGroup}
+                    currentTopic={null}
+                    locale={locale}
+                  />
+                </Section>
+              )}
+
+              {focusedGroupSummary && (
+                <Section
+                  title={`Cohesió i assistència · ${focusedGroupName}`}
+                  subtitle="Mètriques pròpies del grup. Per a la comparativa simètrica completa entre tots els grups, mira la pestanya Visió general."
+                >
+                  <GroupOwnMetrics row={focusedGroupSummary} />
+                </Section>
+              )}
+
+              <Section
+                title={t('group_voting_patterns', { group: focusedGroupName })}
+                subtitle={t('group_voting_patterns_caption')}
+              >
+                <HighlightsCarousel items={highlights} />
+              </Section>
+            </>
           )}
         </>
       )}
-
-      {/* Single-filter case: group only. */}
-      {hasGroup && !bothFilters && (
-        <>
-          {groupActivity && (
-            <Section
-              title={t('group_activity', { group: focusedGroupName })}
-              subtitle={t('group_activity_caption')}
-              chips={renderChips({
-                topic: null,
-                group: selectedGroup,
-                allTopics,
-                allGroups,
-              })}
-            >
-              <GroupActivityPanel
-                data={groupActivity}
-                groupSlug={selectedGroup}
-                currentTopic={null}
-              />
-            </Section>
-          )}
-
-          <Section
-            title={t('group_voting_patterns', { group: focusedGroupName })}
-            subtitle={t('group_voting_patterns_caption')}
-          >
-            <HighlightsCarousel items={highlights} />
-          </Section>
-        </>
-      )}
-
-      {/*
-       * Collapsible global atlas. Always present; open by default when no
-       * filter is set so it acts as the page's main view, closed when any
-       * filter is active so the filtered insights above are the focus.
-       */}
-      <CollapsibleGlobalView
-        open={!anyFilter}
-        labelOpen={t('global_view_open_hint')}
-        labelClosed={t('global_view_closed_hint')}
-        title={t('global_view')}
-      >
-        {/* Highlights live inside the global view so they don't crowd the
-            filtered insights above. With a filter the highlights are
-            already echoed in the per-group "Patrons de vot" section. */}
-        {!anyFilter && (
-          <Section
-            title="Destacats per grup parlamentari"
-            subtitle="Per cada grup, el tema on dóna més suport i el tema on rebutja més. Rotem entre tots els grups per igual — sense rànquing global. Mínim 5 vots emesos per tema."
-          >
-            <HighlightsCarousel items={highlights} />
-          </Section>
-        )}
-
-        {!hasTopic && (
-          <Section
-            title="Iniciatives · explorador per tema"
-            chips={renderChips({
-              topic: hasTopic ? selectedTopic : null,
-              group: hasGroup ? selectedGroup : null,
-              allTopics,
-              allGroups,
-            })}
-          >
-            <TopicExplorer
-              topics={topics}
-              allTopics={allTopics.map((tt) => ({ slug: tt.slug, name: tt.name_ca }))}
-              selectedTopic={selectedTopic}
-              selectedGroup={selectedGroup}
-              focusedTopic={focusedTopic}
-              locale={locale}
-            />
-          </Section>
-        )}
-
-        <Section title="Distribució global">
-          <div
-            className="stats-twocol"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 32,
-              paddingTop: 12,
-            }}
-          >
-            <DonutPanel
-              label="Iniciatives per estat"
-              items={byStatus.map((r) => ({
-                label: STATUS_LABEL[r.status] ?? r.status,
-                count: r.count,
-                color: STATUS_COLOR[r.status] ?? 'var(--nv)',
-              }))}
-            />
-            <DonutPanel
-              label="Iniciatives per tipus"
-              items={byType.map((r, i) => ({
-                label: TYPE_LABEL[r.type] ?? r.type,
-                count: r.count,
-                color: TYPE_COLORS[i % TYPE_COLORS.length] ?? 'var(--accent)',
-              }))}
-            />
-          </div>
-        </Section>
-
-        <Section
-          title="Votacions per grup proposant"
-          subtitle="Quantes votacions sortides al ple ha proposat cada grup parlamentari (PNL, Mocions). No s'inclouen els projectes de llei del Govern."
-        >
-          <VerticalBars
-            rows={proposingGroups}
-            highlightSlug={hasGroup ? selectedGroup : null}
-          />
-        </Section>
-
-        <Section
-          title="Coincidència entre grups"
-          subtitle="% de votacions on cada parella de grups ha votat el mateix sentit (Sí, No o Abstenció). Mostra els patrons de bloc naturals — sense judici."
-        >
-          <CoincidenceMatrix
-            groups={allGroups}
-            cells={coincidence}
-            highlightSlug={hasGroup ? selectedGroup : null}
-          />
-        </Section>
-
-        <Section title="Resum per grup parlamentari">
-          <GroupSummaryGrid
-            rows={groupSummary}
-            highlightSlug={hasGroup ? selectedGroup : null}
-          />
-        </Section>
-      </CollapsibleGlobalView>
 
       <style>{`
         @media (max-width: 860px) {
@@ -529,6 +634,8 @@ interface Kpi {
   initiatives_total: number;
   votes_total: number;
   initiatives_classified: number;
+  avg_cohesion_pct: number | null;
+  avg_attendance_pct: number | null;
   scope_label: string;
 }
 
@@ -541,7 +648,7 @@ function KpiStrip({ kpi, locale }: { kpi: Kpi; locale: string }) {
     <section
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
         borderBottom: '1px solid var(--rule)',
       }}
     >
@@ -569,55 +676,101 @@ function KpiStrip({ kpi, locale }: { kpi: Kpi; locale: string }) {
           {kpi.initiatives_total.toLocaleString(locale)}
         </span>
       </div>
+      <div className="kpi">
+        <span className="label">Cohesió mitjana</span>
+        <span className="value tabular">
+          {kpi.avg_cohesion_pct == null ? '—' : `${kpi.avg_cohesion_pct}%`}
+        </span>
+        <span className="sub">entre grups</span>
+      </div>
+      <div className="kpi">
+        <span className="label">Assistència mitjana</span>
+        <span className="value tabular">
+          {kpi.avg_attendance_pct == null ? '—' : `${kpi.avg_attendance_pct}%`}
+        </span>
+        <span className="sub">entre grups</span>
+      </div>
     </section>
   );
 }
 
-// ─── Collapsible "Visió global" wrapper ────────────────────────────────────
+// ─── Tabs ──────────────────────────────────────────────────────────────────
 
-/** A <details> wrapper that exposes the global atlas without forcing scroll
- *  when filtered insights are present above. ``open`` only sets the initial
- *  state; the user can toggle freely once the page loads. */
-function CollapsibleGlobalView({
-  open,
-  title,
-  labelOpen,
-  labelClosed,
+/** Button-styled radio group rendered as <Link>s. No client JS required —
+ *  switching tab is a navigation that re-runs the server component, so the
+ *  data fetched matches the active tab. Filters in URL are preserved across
+ *  the switch so the user doesn't lose context. */
+function Tabs({
+  active,
+  selectedTopic,
+  selectedGroup,
+  labels,
+}: {
+  active: TabKey;
+  selectedTopic: string;
+  selectedGroup: string;
+  labels: Record<TabKey, string>;
+}) {
+  const overviewHref = buildTabHref('overview', selectedTopic, selectedGroup);
+  const filteredHref = buildTabHref('filtered', selectedTopic, selectedGroup);
+  return (
+    <nav
+      role="tablist"
+      aria-label="Vistes d'estadístiques"
+      style={{
+        display: 'flex',
+        gap: 4,
+        marginTop: 18,
+        marginBottom: 4,
+        borderBottom: '1px solid var(--rule)',
+      }}
+    >
+      <TabButton href={overviewHref} active={active === 'overview'}>
+        {labels.overview}
+      </TabButton>
+      <TabButton href={filteredHref} active={active === 'filtered'}>
+        {labels.filtered}
+      </TabButton>
+    </nav>
+  );
+}
+
+function TabButton({
+  href,
+  active,
   children,
 }: {
-  open: boolean;
-  title: string;
-  labelOpen: string;
-  labelClosed: string;
+  href: Route;
+  active: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <details
-      open={open}
+    <Link
+      href={href}
+      role="tab"
+      aria-selected={active}
       style={{
-        marginTop: 28,
-        borderTop: '1px solid var(--ink)',
-        paddingTop: 18,
+        padding: '10px 16px',
+        fontSize: 13,
+        fontWeight: active ? 700 : 500,
+        color: active ? 'var(--ink)' : 'var(--ink-3)',
+        textDecoration: 'none',
+        borderBottom: active ? '2px solid var(--ink)' : '2px solid transparent',
+        marginBottom: -1,
+        cursor: 'pointer',
       }}
     >
-      <summary
-        style={{
-          cursor: 'pointer',
-          listStyle: 'none',
-          display: 'flex',
-          alignItems: 'baseline',
-          gap: 10,
-          padding: '4px 0 8px',
-        }}
-      >
-        <span className="eyebrow">{title}</span>
-        <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-          {open ? labelOpen : labelClosed}
-        </span>
-      </summary>
-      <div>{children}</div>
-    </details>
+      {children}
+    </Link>
   );
+}
+
+function buildTabHref(tab: TabKey, topic: string, group: string): Route {
+  const qs = new URLSearchParams();
+  qs.set('tab', tab);
+  if (topic !== 'all') qs.set('topic', topic);
+  if (group !== 'all') qs.set('group', group);
+  return `/stats?${qs.toString()}` as Route;
 }
 
 // ─── Filter bar + chips ────────────────────────────────────────────────────
@@ -628,80 +781,67 @@ function FilterBar({
   selectedTopic,
   selectedGroup,
 }: {
-  topics: { slug: string; name: string }[];
+  topics: Topic[];
   groups: ParliamentaryGroupSummary[];
   selectedTopic: string;
   selectedGroup: string;
 }) {
   const hasAny = selectedTopic !== 'all' || selectedGroup !== 'all';
   return (
-    <details
-      open
+    <form
+      method="GET"
       className="stats-filter"
       style={{
+        display: 'flex',
+        gap: 12,
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        padding: '12px 14px',
+        border: '1px solid var(--rule)',
+        background: 'var(--paper-2)',
+        borderRadius: 12,
         marginTop: 18,
         marginBottom: 4,
       }}
     >
-      <summary
-        style={{
-          fontSize: 12,
-          color: 'var(--ink-3)',
-          cursor: 'pointer',
-          padding: '6px 0',
-          listStyle: 'none',
-        }}
-      >
-        Filtres {hasAny ? '· actius' : ''}
-      </summary>
-      <form
-        method="GET"
-        style={{
-          display: 'flex',
-          gap: 12,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          padding: '10px 14px',
-          border: '1px solid var(--rule)',
-          background: 'var(--paper-2)',
-          borderRadius: 12,
-        }}
-      >
-        <label style={selectStyle.label}>
-          Tema:
-          <select name="topic" defaultValue={selectedTopic} style={selectStyle.input}>
-            <option value="all">Tots els temes</option>
-            {topics.map((tt) => (
-              <option key={tt.slug} value={tt.slug}>
-                {tt.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label style={selectStyle.label}>
-          Grup:
-          <select name="group" defaultValue={selectedGroup} style={selectStyle.input}>
-            <option value="all">Tots els grups</option>
-            {groups.map((g) => (
-              <option key={g.slug} value={g.slug}>
-                {displayGroupShort(g.name_short)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" className="btn-ink btn-sm">
-          Aplica
-        </button>
-        {hasAny && (
-          <Link
-            href="/stats"
-            style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 'auto' }}
-          >
-            × Neteja filtres
-          </Link>
-        )}
-      </form>
-    </details>
+      {/* Stay on this tab when the form submits. */}
+      <input type="hidden" name="tab" value="filtered" />
+      <label style={selectStyle.label}>
+        Tema:
+        <TopicCombobox
+          name="topic"
+          value={selectedTopic}
+          topics={topics}
+          emptyValue="all"
+          clearLabel="Cap (tots els temes)"
+          placeholder="Filtra per tema…"
+          ariaLabel="Filtra per tema"
+        />
+      </label>
+      <label style={selectStyle.label}>
+        Grup:
+        <GroupCombobox
+          name="group"
+          value={selectedGroup}
+          groups={groups}
+          emptyValue="all"
+          clearLabel="Cap (tots els grups)"
+          placeholder="Filtra per grup parlamentari…"
+          ariaLabel="Filtra per grup parlamentari"
+        />
+      </label>
+      <button type="submit" className="btn-ink btn-sm">
+        Aplica
+      </button>
+      {hasAny && (
+        <Link
+          href={'/stats?tab=filtered' as Route}
+          style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 'auto' }}
+        >
+          × Neteja filtres
+        </Link>
+      )}
+    </form>
   );
 }
 
@@ -745,14 +885,18 @@ function renderChips({
     const tt = allTopics.find((x) => x.slug === topic);
     chips.push({
       label: `Tema: ${tt?.name_ca ?? topic}`,
-      href: group ? `/stats?group=${encodeURIComponent(group)}` : '/stats',
+      href: group
+        ? `/stats?tab=filtered&group=${encodeURIComponent(group)}`
+        : '/stats?tab=filtered',
     });
   }
   if (group) {
     const g = allGroups.find((gg) => gg.slug === group);
     chips.push({
       label: `Grup: ${g ? displayGroupShort(g.name_short) : group}`,
-      href: topic ? `/stats?topic=${encodeURIComponent(topic)}` : '/stats',
+      href: topic
+        ? `/stats?tab=filtered&topic=${encodeURIComponent(topic)}`
+        : '/stats?tab=filtered',
     });
   }
   return chips;
@@ -799,18 +943,21 @@ function filterHighlights(
   });
 }
 
-function buildShareUrl(topic: string, group: string): string {
+function buildShareUrl(topic: string, group: string, tab: TabKey): string {
   const qs = new URLSearchParams();
+  qs.set('tab', tab);
   if (topic !== 'all') qs.set('topic', topic);
   if (group !== 'all') qs.set('group', group);
-  return qs.toString() ? `/stats?${qs.toString()}` : '/stats';
+  return `/stats?${qs.toString()}`;
 }
 
 /** Compute the KPI numbers for the current filter scope.
  *
  *  When BOTH filters are active we prefer the cross endpoint's joint
  *  count for the "Iniciatives" figure (precise intersection). Single
- *  filter falls back to the existing approximations.
+ *  filter falls back to the existing approximations. Cohesion and
+ *  attendance averages are computed from `groupSummary`: cross-group
+ *  mean when unscoped, single-group value when a group is selected.
  */
 function computeKpis({
   summary,
@@ -819,6 +966,7 @@ function computeKpis({
   groupActivity,
   cross,
   proposingGroups,
+  groupSummary,
 }: {
   summary: StatsSummary;
   focusedTopic: TopicGlobalStat | null;
@@ -826,6 +974,7 @@ function computeKpis({
   groupActivity: GroupActivity | null;
   cross: CrossTopicGroup | null;
   proposingGroups: GroupProposalCount[];
+  groupSummary: GroupSummaryRow[];
 }): Kpi {
   let initiatives = summary.initiatives_total;
   let votes = summary.votes_total;
@@ -856,12 +1005,38 @@ function computeKpis({
   }
   if (scopeBits.length === 0) scopeBits.push('XV legislatura');
 
+  // Cohesion / attendance averages — single-group when a group is set,
+  // else mean across all groups with data.
+  let avgCohesionPct: number | null = null;
+  let avgAttendancePct: number | null = null;
+  if (selectedGroup) {
+    const row = groupSummary.find((r) => r.group_slug === selectedGroup);
+    if (row) {
+      avgCohesionPct =
+        row.avg_cohesion == null ? null : Math.round(row.avg_cohesion * 100);
+      avgAttendancePct =
+        row.avg_attendance == null ? null : Math.round(row.avg_attendance * 100);
+    }
+  } else {
+    avgCohesionPct = meanPct(groupSummary.map((r) => r.avg_cohesion));
+    avgAttendancePct = meanPct(groupSummary.map((r) => r.avg_attendance));
+  }
+
   return {
     initiatives_total: initiatives,
     votes_total: votes,
     initiatives_classified: classified,
+    avg_cohesion_pct: avgCohesionPct,
+    avg_attendance_pct: avgAttendancePct,
     scope_label: scopeBits.join(' · '),
   };
+}
+
+function meanPct(values: (number | null)[]): number | null {
+  const numbers = values.filter((v): v is number => v != null);
+  if (numbers.length === 0) return null;
+  const mean = numbers.reduce((a, b) => a + b, 0) / numbers.length;
+  return Math.round(mean * 100);
 }
 
 function Section({
@@ -870,8 +1045,8 @@ function Section({
   chips,
   children,
 }: {
-  title: string;
-  subtitle?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
   chips?: ChipDescriptor[];
   children: React.ReactNode;
 }) {
@@ -1038,125 +1213,6 @@ function ApprovalRateWidget({
   );
 }
 
-// ─── 2. Interactive topic explorer (no-filter view only) ───────────────────
-
-function TopicExplorer({
-  topics,
-  allTopics,
-  selectedTopic,
-  selectedGroup,
-  focusedTopic,
-  locale,
-}: {
-  topics: TopicGlobalStat[];
-  allTopics: { slug: string; name: string }[];
-  selectedTopic: string;
-  selectedGroup: string;
-  focusedTopic: TopicGlobalStat | null;
-  locale: string;
-}) {
-  // When called from the no-filter branch we always show the aggregate
-  // ("Visió global"). The form lets users jump into a topic which then
-  // triggers the filtered layout above.
-  const total = topics.reduce((acc, r) => acc + r.initiatives_total, 0);
-  const aggregate: TopicGlobalStat = focusedTopic ?? {
-    topic_slug: 'all',
-    topic_name_ca: 'Visió global',
-    topic_color_hex: null,
-    initiatives_total: total,
-    initiatives_approved: topics.reduce((a, r) => a + r.initiatives_approved, 0),
-    initiatives_rejected: topics.reduce((a, r) => a + r.initiatives_rejected, 0),
-    initiatives_in_debate: topics.reduce((a, r) => a + r.initiatives_in_debate, 0),
-    initiatives_other: topics.reduce((a, r) => a + r.initiatives_other, 0),
-  };
-
-  return (
-    <div>
-      <form
-        method="GET"
-        style={{
-          display: 'flex',
-          gap: 10,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          marginBottom: 14,
-        }}
-      >
-        {selectedGroup !== 'all' && (
-          <input type="hidden" name="group" value={selectedGroup} />
-        )}
-        <label
-          style={{ fontSize: 12, color: 'var(--ink-3)', display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          Tema:
-          <select
-            name="topic"
-            defaultValue={selectedTopic}
-            style={{
-              padding: '6px 10px',
-              border: '1px solid var(--ink)',
-              background: 'var(--paper)',
-              fontSize: 13,
-              fontFamily: 'inherit',
-              color: 'var(--ink)',
-              minWidth: 180,
-            }}
-          >
-            <option value="all">Tots els temes</option>
-            {allTopics.map((tt) => (
-              <option key={tt.slug} value={tt.slug}>
-                {tt.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" className="btn-ink btn-sm">
-          Filtra
-        </button>
-        {selectedTopic !== 'all' && (
-          <Link
-            href={`/topics/${selectedTopic}`}
-            style={{ fontSize: 12, color: 'var(--ink)', marginLeft: 'auto' }}
-          >
-            Detall del tema →
-          </Link>
-        )}
-      </form>
-
-      <ApprovalRateWidget
-        topic={focusedTopic ?? aggregate}
-        fallbackName="Visió global"
-        locale={locale}
-        scopeLabel={focusedTopic ? 'Tema seleccionat' : 'Tots els temes'}
-      />
-
-      <div
-        style={{
-          marginTop: 18,
-          fontSize: 11,
-          color: 'var(--ink-3)',
-          display: 'flex',
-          gap: 18,
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-        }}
-      >
-        <span>
-          Pots veure el detall complet de cada tema a{' '}
-          <Link href="/topics" style={{ color: 'var(--ink)' }}>
-            /temes
-          </Link>
-          .
-        </span>
-        <Tooltip
-          term="d'on vénen les dades"
-          explanation={glossaryShort('data_source')}
-        />
-      </div>
-    </div>
-  );
-}
-
 function ApprovalBar({ approved, rejected }: { approved: number; rejected: number }) {
   const total = approved + rejected;
   if (total === 0) {
@@ -1185,8 +1241,9 @@ function ApprovalBar({ approved, rejected }: { approved: number; rejected: numbe
           marginTop: 4,
         }}
       >
-        <span style={{ color: 'var(--aye)' }}>✓ {approved} aprovades</span>
-        <span style={{ color: 'var(--no)' }}>✗ {rejected} rebutjades</span>
+        <span style={{ color: 'var(--aye)' }}>{approved} aprovades</span>
+        <span style={{ color: 'var(--ink-3)' }}>·</span>
+        <span style={{ color: 'var(--no)' }}>{rejected} rebutjades</span>
       </div>
     </div>
   );
@@ -1374,6 +1431,170 @@ function VerticalBars({
           {displayGroupShort(r.name_short)}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Group metric bar chart (cohesion / attendance) ────────────────────────
+
+/** Horizontal bar chart for a per-group 0..1 metric (cohesion, attendance).
+ *  Renders every group passed in — never hides any (CLAUDE.md "regla de
+ *  simetria"). Uses the group's own color when `colorFromRow` is true.
+ *  The component is generic over the accessor so a single visual primitive
+ *  serves both cohesion and attendance on the overview tab. */
+function GroupMetricBars({
+  rows,
+  accessor,
+  unit,
+  colorFromRow = false,
+}: {
+  rows: GroupSummaryRow[];
+  accessor: (row: GroupSummaryRow) => number | null;
+  unit?: string;
+  colorFromRow?: boolean;
+}) {
+  if (rows.length === 0) {
+    return (
+      <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+        Encara no hi ha prou dades per calcular aquesta mètrica.
+      </p>
+    );
+  }
+  const sorted = [...rows].sort((a, b) => b.members_active - a.members_active);
+  return (
+    <ul style={listReset}>
+      {sorted.map((row) => {
+        const raw = accessor(row);
+        const pct = raw == null ? null : Math.round(raw * 100);
+        const widthPct = pct ?? 0;
+        return (
+          <li
+            key={row.group_slug}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '120px 1fr 56px',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 0',
+              fontSize: 12,
+            }}
+          >
+            <span
+              style={{
+                color: 'var(--ink)',
+                fontWeight: 500,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+              title={row.group_name_short}
+            >
+              {displayGroupShort(row.group_name_short)}
+            </span>
+            <div
+              style={{
+                position: 'relative',
+                height: 14,
+                background: 'var(--paper-3)',
+                borderRadius: 2,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${widthPct}%`,
+                  height: '100%',
+                  background: colorFromRow
+                    ? row.group_color_hex ?? 'var(--ink-3)'
+                    : 'var(--ink)',
+                  opacity: pct == null ? 0.2 : 0.95,
+                }}
+              />
+            </div>
+            <span
+              className="tabular"
+              style={{
+                textAlign: 'right',
+                fontWeight: 600,
+                color: pct == null ? 'var(--ink-3)' : 'var(--ink)',
+              }}
+            >
+              {pct == null ? '—' : `${pct}${unit ?? ''}`}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// ─── Single group's own cohesion + attendance card ─────────────────────────
+
+function GroupOwnMetrics({ row }: { row: GroupSummaryRow }) {
+  const cohesionPct = row.avg_cohesion == null ? null : Math.round(row.avg_cohesion * 100);
+  const attendancePct =
+    row.avg_attendance == null ? null : Math.round(row.avg_attendance * 100);
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: 16,
+      }}
+    >
+      <MetricCard
+        label={<Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />}
+        value={cohesionPct}
+        sub={`${row.cohesion_votes_counted} votacions comptades`}
+        color={row.group_color_hex ?? 'var(--ink)'}
+      />
+      <MetricCard
+        label={<Tooltip term="Assistència" explanation={glossaryShort('attendance')} />}
+        value={attendancePct}
+        sub={`${row.attendance_member_count} membres comptats`}
+        color="var(--accent)"
+      />
+      <MetricCard
+        label="Membres actius"
+        value={row.members_active}
+        sub="al moment de la consulta"
+        color="var(--ink)"
+        isRaw
+      />
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  sub,
+  color,
+  isRaw = false,
+}: {
+  label: React.ReactNode;
+  value: number | null;
+  sub: string;
+  color: string;
+  isRaw?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        padding: '14px 16px',
+        border: '1px solid var(--rule)',
+        background: 'var(--paper-2)',
+        borderRadius: 12,
+      }}
+    >
+      <div style={{ fontSize: 11, color: 'var(--ink-3)', marginBottom: 6 }}>{label}</div>
+      <div
+        className="tabular"
+        style={{ fontSize: 28, fontWeight: 600, color, letterSpacing: '-0.02em' }}
+      >
+        {value == null ? '—' : isRaw ? value : `${value}%`}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>{sub}</div>
     </div>
   );
 }
@@ -1770,10 +1991,12 @@ function TopicProposersPanel({
   data,
   topicSlug,
   highlightGroup,
+  locale,
 }: {
   data: TopicProposers;
   topicSlug: string;
   highlightGroup: string | null;
+  locale: string;
 }) {
   if (data.top_proposers.length === 0 && data.recent_initiatives.length === 0) {
     return (
@@ -1823,7 +2046,7 @@ function TopicProposersPanel({
                     'Govern'
                   ) : (
                     <Link
-                      href={`/stats?topic=${encodeURIComponent(topicSlug)}&group=${encodeURIComponent(p.slug)}` as Route}
+                      href={`/stats?tab=filtered&topic=${encodeURIComponent(topicSlug)}&group=${encodeURIComponent(p.slug)}` as Route}
                       style={{ color: 'inherit', textDecoration: 'none' }}
                     >
                       {displayGroupShort(p.name_short)}
@@ -1838,7 +2061,7 @@ function TopicProposersPanel({
       </div>
       <div>
         <h4 style={panelTitle}>Iniciatives recents</h4>
-        <InitiativeList items={data.recent_initiatives} />
+        <InitiativeList items={data.recent_initiatives} locale={locale} />
       </div>
     </div>
   );
@@ -1848,10 +2071,12 @@ function GroupActivityPanel({
   data,
   groupSlug,
   currentTopic,
+  locale,
 }: {
   data: GroupActivity;
   groupSlug: string;
   currentTopic: string | null;
+  locale: string;
 }) {
   if (data.recent_initiatives.length === 0 && data.topic_distribution.length === 0) {
     return (
@@ -1897,7 +2122,7 @@ function GroupActivityPanel({
                   }}
                 />
                 <Link
-                  href={`/stats?topic=${encodeURIComponent(tt.topic_slug)}&group=${encodeURIComponent(groupSlug)}` as Route}
+                  href={`/stats?tab=filtered&topic=${encodeURIComponent(tt.topic_slug)}&group=${encodeURIComponent(groupSlug)}` as Route}
                   style={{ color: 'inherit', textDecoration: 'none' }}
                 >
                   {tt.topic_name_ca}
@@ -1910,13 +2135,13 @@ function GroupActivityPanel({
       </div>
       <div>
         <h4 style={panelTitle}>Iniciatives recents</h4>
-        <InitiativeList items={data.recent_initiatives} />
+        <InitiativeList items={data.recent_initiatives} locale={locale} />
       </div>
     </div>
   );
 }
 
-function InitiativeList({ items }: { items: InitiativeMini[] }) {
+function InitiativeList({ items, locale }: { items: InitiativeMini[]; locale: string }) {
   if (items.length === 0) {
     return <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>Cap iniciativa recent.</p>;
   }
@@ -1924,6 +2149,7 @@ function InitiativeList({ items }: { items: InitiativeMini[] }) {
     <ul style={listReset}>
       {items.map((ini) => {
         const badge = STATUS_BADGE[ini.status] ?? { label: ini.status, color: 'var(--ink-3)' };
+        const plainSummary = pickPlainSummary(ini, locale);
         return (
           <li
             key={ini.id}
@@ -1950,12 +2176,22 @@ function InitiativeList({ items }: { items: InitiativeMini[] }) {
               {badge.label}
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <Link
-                href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
-                style={{ color: 'var(--ink)', textDecoration: 'none' }}
+              {/* SummaryHover sits between the visible text and the Link
+                  click target — the wrapper renders a span around the
+                  children, so wrapping the Link is fine (no nested <a>).
+                  When no summary is available it returns the children
+                  unchanged, so the link still works without a tooltip. */}
+              <SummaryHover
+                summary={plainSummary}
+                provider={ini.plain_summary_provider}
               >
-                {ini.title_ca ?? ini.title_original}
-              </Link>
+                <Link
+                  href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
+                  style={{ color: 'var(--ink)', textDecoration: 'none' }}
+                >
+                  {ini.title_ca ?? ini.title_original}
+                </Link>
+              </SummaryHover>
               <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>
                 {ini.official_id}
                 {ini.submitted_at && ` · ${ini.submitted_at}`}
@@ -1970,7 +2206,7 @@ function InitiativeList({ items }: { items: InitiativeMini[] }) {
 
 // Cross-filter joint list — same shape as InitiativeList but uses the
 // SummaryHover affordance now that the backend returns plain summaries.
-function JointInitiativeList({ items }: { items: InitiativeMini[] }) {
+function JointInitiativeList({ items, locale }: { items: InitiativeMini[]; locale: string }) {
   if (items.length === 0) {
     return <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>Cap iniciativa.</p>;
   }
@@ -1979,6 +2215,7 @@ function JointInitiativeList({ items }: { items: InitiativeMini[] }) {
       {items.map((ini) => {
         const badge = STATUS_BADGE[ini.status] ?? { label: ini.status, color: 'var(--ink-3)' };
         const type = TYPE_LABEL[ini.type] ?? ini.type;
+        const plainSummary = pickPlainSummary(ini, locale);
         return (
           <li
             key={ini.id}
@@ -2017,7 +2254,7 @@ function JointInitiativeList({ items }: { items: InitiativeMini[] }) {
             </span>
             <span style={{ minWidth: 0 }}>
               <SummaryHover
-                summary={ini.plain_summary_ca}
+                summary={plainSummary}
                 provider={ini.plain_summary_provider}
               >
                 <Link

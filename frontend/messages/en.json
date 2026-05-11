@@ -144,7 +144,7 @@
     "coverage_title": "Coverage",
     "coverage_active_deputies": "Active representatives",
     "coverage_active_deputies_sub": "XV legislature",
-    "coverage_votes_ingested": "Votes ingested",
+    "coverage_votes_ingested": "Votes recorded",
     "coverage_votes_ingested_sub": "since August 2023",
     "coverage_classified": "Initiatives classified",
     "coverage_classified_sub": "automatically, by topic",
@@ -156,7 +156,7 @@
     "latest_see_all": "see all →",
     "upcoming_title": "Upcoming votes",
     "upcoming_subtitle": "Next plenary agenda",
-    "upcoming_empty": "We don't have the agenda ingested yet. The next plenary session will appear here when available.",
+    "upcoming_empty": "We don't have the agenda published yet. The next plenary session will appear here when available.",
     "upcoming_caveat": "Scheduled votes may be cancelled or postponed. Check the Congress website for confirmation."
   },
   "votes": {
@@ -229,6 +229,7 @@
     "mandates_title": "Mandates",
     "no_mandates": "No mandates recorded for this person.",
     "mandate_dates": "{from} → {to}",
+    "mandate_current": "present",
     "constituency": "Constituency",
     "list": "Electoral list"
   },
@@ -240,7 +241,7 @@
   "stats": {
     "title": "Statistics",
     "eyebrow": "Atlas · descriptive aggregates · no one-sided metric",
-    "intro": "Counts of initiatives and votes ingested in the 15th legislature. Topic classification is automatic (neutral LLM) — every figure shows the raw N. Historical coverage still under construction.",
+    "intro": "Counts of initiatives and votes recorded in the 15th legislature. Topic classification is automatic (neutral LLM) — every figure shows the raw N. Historical coverage still under construction.",
     "global_view": "Global view",
     "global_view_open_hint": "Global metrics · open by default when no filter is set",
     "global_view_closed_hint": "Global metrics · expand/collapse",
@@ -270,6 +271,18 @@
     "totals": "Totals",
     "plain_summary_title": "In plain language",
     "plain_summary_caveat": "Automatic summary by {provider}. May contain inaccuracies; the official text is the authoritative source."
+  },
+  "glossary": {
+    "Proposició de Llei": "Legislative initiative filed by parliamentary groups in the Congress.",
+    "Projecte de Llei": "Legislative initiative filed by the Government.",
+    "Proposició no de Llei (PNL)": "Political agreement with no legal effect — Congress takes a stance towards the Government or other institutions.",
+    "Cohesió de grup": "Percentage of group members who vote the same way in a given vote.",
+    "Dissidència": "An MP voting differently from the majority line of their group.",
+    "Coincidència": "Percentage of votes in which two groups (or two MPs) voted the same way.",
+    "Esmena": "Amendment proposed to a text in the pipeline, before the final vote.",
+    "Tramitació en lectura única": "Fast-track procedure — no committee stage, debated directly in plenary.",
+    "Quòrum": "Minimum attendance required for a vote to be valid.",
+    "Veto del Senat": "Senate's rejection of a law passed by Congress — only binding if the Senate approves the veto by absolute majority."
   },
   "footer": {
     "license_code": "Code under EUPL-1.2",

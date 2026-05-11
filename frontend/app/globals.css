@@ -360,6 +360,93 @@ a { color: inherit; }
 .term-tooltip:focus-within .term-tooltip__bubble {
   visibility: visible;
   opacity: 1;
+  /* Delay the show so passing-by hovers don't trigger the bubble.
+     On hide we want no delay, so the delay only lives on the hover state. */
+  transition-delay: 0.3s;
+}
+
+/* Glossary term — accessible parliamentary-jargon tooltip. Same visual
+   idiom as .term-tooltip but driven by JavaScript so we can auto-flip
+   when near the viewport top and expose aria-describedby. The anchor is
+   a focusable <span> (not <a>) so it nests safely inside Links. */
+.glossary-term {
+  position: relative;
+  display: inline-block;
+}
+.glossary-term__anchor {
+  border-bottom: 1px dotted var(--ink-3);
+  cursor: help;
+  text-decoration: none;
+  color: inherit;
+  white-space: nowrap;
+}
+.glossary-term__anchor:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.glossary-term__bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  width: 260px;
+  max-width: min(90vw, 280px);
+  white-space: normal;
+  box-shadow: 0 8px 28px -12px rgba(15,23,42,.45);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .15s ease, visibility .15s ease;
+  z-index: 100;
+  pointer-events: none;
+  text-align: left;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* 8px arrow pointing down at the term (default: bubble is above). */
+.glossary-term__bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--ink);
+}
+/* Auto-flip: when the term is near the top of the viewport, render the
+   bubble below the anchor and flip the arrow to point up. The
+   JavaScript toggles ``glossary-term--below`` on the root. */
+.glossary-term--below .glossary-term__bubble {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+.glossary-term--below .glossary-term__bubble::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--ink);
+}
+/* Show state. Driven by ``--open`` class set in TS after the 300ms
+   hover delay; hide happens immediately. Includes hover/focus-within
+   fallbacks so the bubble still works if JS hasn't hydrated yet —
+   with a CSS-only 300ms delay so the affordance feels the same. */
+.glossary-term--open .glossary-term__bubble,
+.glossary-term:hover .glossary-term__bubble,
+.glossary-term:focus-within .glossary-term__bubble {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0.3s;
+}
+/* When JS has already opened the bubble, no extra delay needed. */
+.glossary-term--open .glossary-term__bubble {
+  transition-delay: 0s;
 }
 
 /* Hover-summary: wider tooltip for vote/initiative plain-language summaries.
@@ -422,6 +509,10 @@ a { color: inherit; }
 .summary-hover:focus-within .summary-hover__bubble {
   visibility: visible;
   opacity: 1;
+  /* 300ms show delay so brushing past a title doesn't open the bubble.
+     The delay only lives on the hover state, so leaving hover hides
+     immediately. */
+  transition-delay: 0.3s;
 }
 
 /* Mobile-only "ⓘ" button — hidden on desktop where hover suffices. */
