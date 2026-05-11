@@ -1,0 +1,122 @@
+name: holapolitica
+
+# Production compose for the API host (Hetzner VPS).
+#
+# Differences from docker-compose.yml (dev):
+# - No source-code bind mounts: the image is what runs (immutable build).
+# - No --reload on uvicorn; we run gunicorn-equivalent with multiple workers.
+# - Postgres/Redis are NOT exposed on the host; only the docker network
+#   sees them. The backend reaches them by service name.
+# - Backend (8000) and Listmonk (9000) bind to 127.0.0.1 only; Caddy on
+#   the host terminates TLS and reverse-proxies inbound 443 -> these.
+# - No frontend service: Vercel hosts the Next.js app.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: holapolitica-backend:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+
+  worker:
+    image: holapolitica-backend:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    command: ["python", "-m", "app.workers.runner"]
+
+  listmonk-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: listmonk
+      POSTGRES_PASSWORD: listmonk
+      POSTGRES_DB: listmonk
+    volumes:
+      - listmonk-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U listmonk -d listmonk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  listmonk:
+    image: listmonk/listmonk:latest
+    restart: unless-stopped
+    depends_on:
+      listmonk-db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      TZ: Europe/Madrid
+      LISTMONK_app__address: 0.0.0.0:9000
+      LISTMONK_db__host: listmonk-db
+      LISTMONK_db__port: "5432"
+      LISTMONK_db__user: listmonk
+      LISTMONK_db__password: listmonk
+      LISTMONK_db__database: listmonk
+      LISTMONK_db__ssl_mode: disable
+      LISTMONK_db__max_open: "25"
+      LISTMONK_db__max_idle: "25"
+      LISTMONK_db__max_lifetime: 300s
+      LISTMONK_admin_username: ${LISTMONK_ADMIN_USERNAME:-admin}
+      LISTMONK_admin_password: ${LISTMONK_ADMIN_PASSWORD}
+    command:
+      - sh
+      - -c
+      - |
+        ./listmonk --install --idempotent --yes --config "" &&
+        ./listmonk --upgrade --yes --config "" &&
+        ./listmonk --config ""
+
+volumes:
+  postgres-data:
+  redis-data:
+  listmonk-db-data:

@@ -1,0 +1,42 @@
+# Caddyfile for the Hola Política production VPS.
+#
+# Caddy runs on the host (not in a container) and auto-provisions
+# Let's Encrypt certificates for every site declared below. The
+# backend and Listmonk listen on 127.0.0.1 only; Caddy is the sole
+# inbound on 443.
+
+# Public API.
+api.holapolitica.org {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8000
+
+    # CORS is set by FastAPI itself; we just forward the request.
+
+    # Health/uptime checks should not be rate-limited.
+    @health path /health /openapi.json
+    handle @health {
+        reverse_proxy 127.0.0.1:8000
+    }
+
+    log {
+        output file /var/log/caddy/api.access.log {
+            roll_size 50mb
+            roll_keep 7
+        }
+        format json
+    }
+}
+
+# Newsletter admin (Listmonk). Restrict to your IP if you want stricter access.
+newsletter.holapolitica.org {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:9000
+
+    log {
+        output file /var/log/caddy/listmonk.access.log {
+            roll_size 50mb
+            roll_keep 7
+        }
+        format json
+    }
+}
