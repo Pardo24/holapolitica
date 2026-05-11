@@ -21,7 +21,6 @@ from app.metrics import (
     TopicVoteStatRow,
     compute_topic_stats_for_group,
 )
-from app.services.cache import cached
 from app.models import (
     GroupMembership,
     Legislature,
@@ -30,6 +29,7 @@ from app.models import (
     Person,
 )
 from app.schemas import ParliamentaryGroupRead
+from app.services.cache import cached
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 

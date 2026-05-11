@@ -490,9 +490,10 @@ async def _compute_topic_proposers(
         # Pick the longest matching group name (most specific).
         match: ParliamentaryGroup | None = None
         for g in groups:
-            if g.name_long and g.name_long in submitted:
-                if match is None or len(g.name_long) > len(match.name_long):
-                    match = g
+            if g.name_long and g.name_long in submitted and (
+                match is None or len(g.name_long) > len(match.name_long)
+            ):
+                match = g
         if match is None:
             continue
         slot = counts.setdefault(
@@ -642,9 +643,10 @@ async def _compute_cross_topic_group(
             continue
         match: ParliamentaryGroup | None = None
         for g in all_groups:
-            if g.name_long and g.name_long in submitted:
-                if match is None or len(g.name_long) > len(match.name_long):
-                    match = g
+            if g.name_long and g.name_long in submitted and (
+                match is None or len(g.name_long) > len(match.name_long)
+            ):
+                match = g
         if match is not None:
             counts_by_slug[match.slug] += 1
 

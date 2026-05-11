@@ -157,7 +157,7 @@ async def _seed_initiative(
 async def test_group_activity_recent_initiatives_in_submitted_at_order(
     db_session: AsyncSession,
 ) -> None:
-    leg, psoe, _pp, housing, labor = await _seed_scaffold(db_session)
+    leg, _psoe, _pp, housing, labor = await _seed_scaffold(db_session)
     # Older PSOE initiative
     await _seed_initiative(
         db_session,
@@ -211,7 +211,7 @@ async def test_group_activity_doesnt_leak_other_groups(
     """A PSOE-only filter must NOT return PP initiatives even when they
     share the same topic. This protects against the substring heuristic
     accidentally matching another group's name."""
-    leg, psoe, pp, housing, _labor = await _seed_scaffold(db_session)
+    leg, _psoe, _pp, housing, _labor = await _seed_scaffold(db_session)
     await _seed_initiative(
         db_session,
         leg=leg,
@@ -247,7 +247,7 @@ async def test_group_activity_doesnt_leak_other_groups(
 async def test_topic_proposers_counts_groups_and_government(
     db_session: AsyncSession,
 ) -> None:
-    leg, psoe, pp, housing, _labor = await _seed_scaffold(db_session)
+    leg, _psoe, _pp, housing, _labor = await _seed_scaffold(db_session)
     # PSOE has 2 housing proposals
     for n, day in enumerate([1, 2], start=20):
         await _seed_initiative(
@@ -320,7 +320,7 @@ async def test_cross_topic_group_returns_all_groups_with_zero_padding(
     """The per-group bar chart must include every parliamentary group so
     the frontend can render it without hiding any. Groups without any
     matching initiative get count=0 — never absent."""
-    leg, psoe, pp, housing, _labor = await _seed_scaffold(db_session)
+    leg, _psoe, _pp, housing, _labor = await _seed_scaffold(db_session)
     await _seed_initiative(
         db_session,
         leg=leg,
@@ -347,7 +347,7 @@ async def test_cross_topic_group_returns_all_groups_with_zero_padding(
 async def test_cross_topic_group_joint_initiatives_are_intersection(
     db_session: AsyncSession,
 ) -> None:
-    leg, psoe, _pp, housing, labor = await _seed_scaffold(db_session)
+    leg, _psoe, _pp, housing, labor = await _seed_scaffold(db_session)
     # Match BOTH filters: PSOE on housing.
     await _seed_initiative(
         db_session,
@@ -398,7 +398,7 @@ async def test_cross_topic_group_topic_distribution_includes_focal(
 ) -> None:
     """When the focal topic is outside the top-N for a group, we still
     append it so the frontend can render the highlighted bar."""
-    leg, psoe, _pp, housing, labor = await _seed_scaffold(db_session)
+    leg, _psoe, _pp, housing, labor = await _seed_scaffold(db_session)
     # PSOE has lots of labour proposals (top topic) but only one housing.
     for n in range(1, 6):
         await _seed_initiative(
@@ -452,7 +452,7 @@ async def test_cross_topic_group_unknown_group_returns_empty_joint(
 ) -> None:
     """Unknown group slug must not 404 — the page sends user input
     straight from URL params and we degrade gracefully."""
-    leg, psoe, _pp, housing, _labor = await _seed_scaffold(db_session)
+    leg, _psoe, _pp, housing, _labor = await _seed_scaffold(db_session)
     await _seed_initiative(
         db_session,
         leg=leg,
