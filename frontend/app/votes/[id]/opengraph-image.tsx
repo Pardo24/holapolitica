@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, ApiError, type Vote } from '@/lib/api';
 
@@ -6,11 +7,6 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const alt = 'Resultat de la votació al Congrés';
 
-const RESULT_LABEL: Record<Vote['result'], string> = {
-  approved: 'Aprovada',
-  rejected: 'Rebutjada',
-  tie: 'Empat',
-};
 const RESULT_COLOR: Record<Vote['result'], string> = {
   approved: '#16a34a',
   rejected: '#dc2626',
@@ -18,6 +14,13 @@ const RESULT_COLOR: Record<Vote['result'], string> = {
 };
 
 export default async function VoteOg({ params }: { params: { id: string } }) {
+  const t = await getTranslations('og');
+  const locale = await getLocale();
+  const RESULT_LABEL: Record<Vote['result'], string> = {
+    approved: t('vote_result_approved'),
+    rejected: t('vote_result_rejected'),
+    tie: t('vote_result_tie'),
+  };
   let vote: Vote | null = null;
   try {
     vote = await api.votes.get(Number(params.id));
@@ -52,7 +55,7 @@ export default async function VoteOg({ params }: { params: { id: string } }) {
   const subject = vote.description?.trim() || vote.title;
   const subjectShort =
     subject.length > 220 ? subject.slice(0, 217) + '…' : subject;
-  const date = new Date(vote.voted_at).toLocaleDateString('ca-ES', {
+  const date = new Date(vote.voted_at).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -105,7 +108,7 @@ export default async function VoteOg({ params }: { params: { id: string } }) {
                 Hola Política
               </span>
               <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
-                Mirall, no megàfon.
+                {t('motto')}
               </span>
             </div>
           </div>
@@ -117,7 +120,7 @@ export default async function VoteOg({ params }: { params: { id: string } }) {
               textTransform: 'uppercase',
             }}
           >
-            Votació · Congrés dels Diputats
+            {t('vote_eyebrow')}
           </div>
         </div>
 
@@ -152,7 +155,7 @@ export default async function VoteOg({ params }: { params: { id: string } }) {
             </span>
             {vote.expediente_raw && (
               <span style={{ fontSize: 13, color: '#3f4c66', fontFamily: 'monospace' }}>
-                Núm. exp. {vote.expediente_raw}
+                {t('vote_expediente_prefix', { id: vote.expediente_raw })}
               </span>
             )}
           </div>
@@ -191,7 +194,7 @@ export default async function VoteOg({ params }: { params: { id: string } }) {
                 textTransform: 'uppercase',
               }}
             >
-              Resultat
+              {t('vote_result_label')}
             </span>
             <span
               style={{
@@ -212,10 +215,10 @@ export default async function VoteOg({ params }: { params: { id: string } }) {
               alignItems: 'flex-end',
             }}
           >
-            <Block label="Sí" n={vote.ayes} color="#16a34a" />
-            <Block label="No" n={vote.noes} color="#dc2626" />
-            <Block label="Abst." n={vote.abstentions} color="#ca8a04" />
-            <Block label="Total" n={total} color="#1a2138" />
+            <Block label={t('vote_aye')} n={vote.ayes} color="#16a34a" />
+            <Block label={t('vote_no')} n={vote.noes} color="#dc2626" />
+            <Block label={t('vote_abst')} n={vote.abstentions} color="#ca8a04" />
+            <Block label={t('vote_total')} n={total} color="#1a2138" />
           </div>
         </div>
       </div>

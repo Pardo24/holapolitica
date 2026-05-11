@@ -52,7 +52,7 @@ export default async function GroupDetailPage({
       {/* Breadcrumb */}
       <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/groups" style={{ color: 'var(--ink-2)' }}>
-          Grups
+          {t('breadcrumb_groups')}
         </Link>
         {' / '}
         <span style={{ color: 'var(--ink)' }}>{group.name_short}</span>
@@ -71,7 +71,7 @@ export default async function GroupDetailPage({
         }}
       >
         <div>
-          <div className="eyebrow">Grup parlamentari</div>
+          <div className="eyebrow">{t('group_eyebrow')}</div>
           <h1
             className="h-display"
             style={{ margin: '6px 0 4px', fontSize: 'clamp(32px, 4.4vw, 48px)' }}
@@ -120,7 +120,7 @@ export default async function GroupDetailPage({
               {groupAbbreviation(group.slug)}
             </span>
             <div>
-              <div className="eyebrow">Marca cívica</div>
+              <div className="eyebrow">{t('civic_mark_eyebrow')}</div>
               <div
                 style={{
                   fontSize: 11,
@@ -151,7 +151,7 @@ export default async function GroupDetailPage({
               </FactRow>
             )}
             {group.color_hex && (
-              <FactRow label="Color identificatiu">
+              <FactRow label={t('color_identifier_label')}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <span
                     className="gdot"
@@ -170,19 +170,43 @@ export default async function GroupDetailPage({
           hidden. Headline "Composició" (factual), never "Diversitat"
           (value-laden). */}
       {composition && composition.members_total > 0 && (
-        <CompositionSection composition={composition} groupColor={group.color_hex} />
+        <CompositionSection
+          composition={composition}
+          groupColor={group.color_hex}
+          labels={{
+            title: t('composition_title'),
+            intro: t('composition_intro'),
+            gender: t('composition_gender'),
+            age: t('composition_age'),
+            parties: t('composition_parties'),
+            gender_distribution_aria: (summary: string) =>
+              t('gender_distribution_aria', { summary }),
+            age_bucket_aria: (label: string, value: number) =>
+              t('age_bucket_aria', { label, value }),
+            gender_F: t('gender_F'),
+            gender_M: t('gender_M'),
+            gender_X: t('gender_X'),
+            gender_unknown: t('gender_unknown'),
+            age_under_30: t('age_under_30'),
+            age_30_39: t('age_30_39'),
+            age_40_49: t('age_40_49'),
+            age_50_59: t('age_50_59'),
+            age_60_plus: t('age_60_plus'),
+            age_unknown: t('age_unknown'),
+            no_party_data: (count: number) => t('no_party_data', { count }),
+          }}
+        />
       )}
 
       {/* Topic-stats */}
       <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">Vot per tema</h2>
+        <h2 className="h-title">{t('vote_by_topic_title')}</h2>
         <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
-          Per cada tema, percentatge de vots emesos pels membres del grup en
-          sentit afirmatiu o negatiu. Denominador: vots emesos (Sí + No + Abst.).
+          {t('vote_by_topic_subtitle')}
         </p>
         <TopicBars
           rows={topicStats}
-          emptyHint="Encara no hi ha prou dades del grup en iniciatives classificades. La cobertura creixerà a mesura que carreguem sessions històriques."
+          emptyHint={t('vote_by_topic_empty_hint')}
         />
       </section>
 
@@ -334,12 +358,26 @@ function MembersSection({
 // - Inline SVG donut and bars: no chart library dependency, predictable
 //   render output, sub-1KB GZIP. Same visual idiom as elsewhere on the site.
 
-const GENDER_LABELS: Record<string, string> = {
-  F: 'Dones',
-  M: 'Homes',
-  X: 'Altres',
-  unknown: 'Sense dada',
-};
+interface CompositionLabels {
+  title: string;
+  intro: string;
+  gender: string;
+  age: string;
+  parties: string;
+  gender_distribution_aria: (summary: string) => string;
+  age_bucket_aria: (label: string, value: number) => string;
+  gender_F: string;
+  gender_M: string;
+  gender_X: string;
+  gender_unknown: string;
+  age_under_30: string;
+  age_30_39: string;
+  age_40_49: string;
+  age_50_59: string;
+  age_60_plus: string;
+  age_unknown: string;
+  no_party_data: (count: number) => string;
+}
 
 // Distinct, accessible colors — chosen to be readable for typical
 // red/green colorblind variants. NEVER reuse the AYE/NO/ABST palette;
@@ -352,29 +390,35 @@ const GENDER_COLORS: Record<string, string> = {
 };
 
 const AGE_BUCKET_ORDER = ['<30', '30-39', '40-49', '50-59', '60+', 'unknown'] as const;
-const AGE_LABELS: Record<string, string> = {
-  '<30': 'Menys de 30',
-  '30-39': '30-39',
-  '40-49': '40-49',
-  '50-59': '50-59',
-  '60+': '60 o més',
-  unknown: 'Sense dada',
-};
 
 function CompositionSection({
   composition,
   groupColor,
+  labels,
 }: {
   composition: GroupComposition;
   groupColor: string | null;
+  labels: CompositionLabels;
 }) {
+  const genderLabels: Record<string, string> = {
+    F: labels.gender_F,
+    M: labels.gender_M,
+    X: labels.gender_X,
+    unknown: labels.gender_unknown,
+  };
+  const ageLabels: Record<string, string> = {
+    '<30': labels.age_under_30,
+    '30-39': labels.age_30_39,
+    '40-49': labels.age_40_49,
+    '50-59': labels.age_50_59,
+    '60+': labels.age_60_plus,
+    unknown: labels.age_unknown,
+  };
   return (
     <section style={{ paddingTop: 28 }}>
-      <h2 className="h-title">Composició demogràfica</h2>
+      <h2 className="h-title">{labels.title}</h2>
       <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
-        Distribució dels membres actuals del grup. Les categories &laquo;Sense
-        dada&raquo; es mostren sempre — el buit és un fet sobre les fonts
-        públiques, no una omissió.
+        {labels.intro}
       </p>
       <div
         className="composition-grid"
@@ -385,16 +429,26 @@ function CompositionSection({
           marginTop: 14,
         }}
       >
-        <CompositionCard title="Gènere">
-          <GenderDonut distribution={composition.gender_distribution} />
+        <CompositionCard title={labels.gender}>
+          <GenderDonut
+            distribution={composition.gender_distribution}
+            genderLabels={genderLabels}
+            ariaBuilder={labels.gender_distribution_aria}
+          />
         </CompositionCard>
-        <CompositionCard title="Edat">
-          <AgeBars buckets={composition.age_buckets} accent={groupColor} />
+        <CompositionCard title={labels.age}>
+          <AgeBars
+            buckets={composition.age_buckets}
+            accent={groupColor}
+            ageLabels={ageLabels}
+            ariaBuilder={labels.age_bucket_aria}
+          />
         </CompositionCard>
-        <CompositionCard title="Partits que el formen">
+        <CompositionCard title={labels.parties}>
           <PartyList
             parties={composition.member_parties}
             membersTotal={composition.members_total}
+            emptyBuilder={labels.no_party_data}
           />
         </CompositionCard>
       </div>
@@ -435,8 +489,12 @@ function CompositionCard({
 
 function GenderDonut({
   distribution,
+  genderLabels,
+  ariaBuilder,
 }: {
   distribution: GroupComposition['gender_distribution'];
+  genderLabels: Record<string, string>;
+  ariaBuilder: (summary: string) => string;
 }) {
   // Render order = canonical visual order; legend always shows the four
   // buckets including ``unknown`` so callers can't fix asymmetries by
@@ -456,9 +514,9 @@ function GenderDonut({
         height={120}
         viewBox="0 0 120 120"
         role="img"
-        aria-label={`Distribució de gènere: ${keys
-          .map((k) => `${GENDER_LABELS[k]} ${distribution[k]}`)
-          .join(', ')}`}
+        aria-label={ariaBuilder(
+          keys.map((k) => `${genderLabels[k]} ${distribution[k]}`).join(', '),
+        )}
       >
         <circle cx="60" cy="60" r={R} fill="none" stroke="#e5e7eb" strokeWidth="16" />
         {total > 0 &&
@@ -507,7 +565,7 @@ function GenderDonut({
                 borderRadius: 2,
               }}
             />
-            <span style={{ color: 'var(--ink-2)' }}>{GENDER_LABELS[k]}</span>
+            <span style={{ color: 'var(--ink-2)' }}>{genderLabels[k]}</span>
             <span className="tabular" style={{ marginLeft: 'auto', color: 'var(--ink)' }}>
               {distribution[k]}
             </span>
@@ -521,9 +579,13 @@ function GenderDonut({
 function AgeBars({
   buckets,
   accent,
+  ageLabels,
+  ariaBuilder,
 }: {
   buckets: GroupComposition['age_buckets'];
   accent: string | null;
+  ageLabels: Record<string, string>;
+  ariaBuilder: (label: string, value: number) => string;
 }) {
   const max = Math.max(1, ...AGE_BUCKET_ORDER.map((k) => buckets[k]));
   const fill = accent ?? 'var(--ink-2)';
@@ -562,7 +624,7 @@ function AgeBars({
             </span>
             <div
               role="img"
-              aria-label={`${AGE_LABELS[k]}: ${value}`}
+              aria-label={ariaBuilder(ageLabels[k] ?? k, value)}
               style={{
                 width: '100%',
                 background: value === 0 ? '#e5e7eb' : fill,
@@ -580,7 +642,7 @@ function AgeBars({
                 whiteSpace: 'nowrap',
               }}
             >
-              {AGE_LABELS[k]}
+              {ageLabels[k] ?? k}
             </span>
           </div>
         );
@@ -592,9 +654,11 @@ function AgeBars({
 function PartyList({
   parties,
   membersTotal,
+  emptyBuilder,
 }: {
   parties: GroupComposition['member_parties'];
   membersTotal: number;
+  emptyBuilder: (count: number) => string;
 }) {
   // Surface the "no party data" row explicitly when the group has
   // members but the electoral-list field is null/empty for some of
@@ -607,7 +671,7 @@ function PartyList({
   if (parties.length === 0) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
-        Sense dada de partit electoral per a cap dels {membersTotal} membres.
+        {emptyBuilder(membersTotal)}
       </p>
     );
   }

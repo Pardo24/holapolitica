@@ -26,7 +26,7 @@ export default async function AboutPage() {
     : [];
   return (
     <article style={{ paddingTop: 28, maxWidth: 760 }}>
-      <div className="eyebrow">Documentació · principis · cobertura</div>
+      <div className="eyebrow">{t('page_eyebrow')}</div>
       <h1 className="h-headline" style={{ margin: '4px 0 28px' }}>
         {t('title')}
       </h1>

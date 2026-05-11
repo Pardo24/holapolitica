@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
 import { SummaryHover } from '@/components/SummaryHover';
 import { Tooltip } from '@/components/Tooltip';
@@ -18,13 +19,13 @@ interface Params {
   slug: string;
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  approved: 'Aprovada',
-  rejected: 'Rebutjada',
-  in_debate: 'En tràmit',
-  submitted: 'Presentada',
-  withdrawn: 'Retirada',
-  expired: 'Caducada',
+const STATUS_KEY: Record<string, string> = {
+  approved: 'status_singular_approved',
+  rejected: 'status_singular_rejected',
+  in_debate: 'status_singular_in_debate',
+  submitted: 'status_singular_submitted',
+  withdrawn: 'status_singular_withdrawn',
+  expired: 'status_singular_expired',
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -34,17 +35,6 @@ const STATUS_COLOR: Record<string, string> = {
   submitted: 'var(--accent)',
   withdrawn: 'var(--nv)',
   expired: 'var(--nv)',
-};
-
-const TYPE_LABEL: Record<string, string> = {
-  proyecto_ley: 'Projecte de Llei',
-  proposicion_ley: 'Proposició de Llei',
-  proposicion_no_ley: 'Proposició no de Llei',
-  real_decreto_ley: 'Reial Decret-llei',
-  reforma_estatuto: 'Reforma d\'Estatut',
-  mocion: 'Moció',
-  interpelacion: 'Interpel·lació',
-  other: 'Altra',
 };
 
 const PENDING_STATUSES = new Set(['submitted', 'in_debate']);
@@ -57,6 +47,7 @@ export default async function TopicDetailPage({
 }) {
   const { slug } = await params;
   const t = await getTranslations('topic');
+  const tStats = await getTranslations('stats');
   const locale = await getLocale();
 
   let topic: Topic;
@@ -104,7 +95,7 @@ export default async function TopicDetailPage({
     <article>
       <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/topics" style={{ color: 'var(--ink-2)' }}>
-          Temes
+          {t('breadcrumb_topics')}
         </Link>
         {' / '}
         <span style={{ color: 'var(--ink)' }}>{topic.name_ca}</span>
@@ -119,7 +110,7 @@ export default async function TopicDetailPage({
           borderBottom: '1px solid var(--ink)',
         }}
       >
-        <div className="eyebrow">Tema</div>
+        <div className="eyebrow">{t('topic_eyebrow')}</div>
         <h1
           className="h-display"
           style={{ margin: '6px 0 4px', fontSize: 'clamp(32px, 4.4vw, 48px)' }}
@@ -138,19 +129,19 @@ export default async function TopicDetailPage({
           }}
         >
           <div className="kpi">
-            <span className="label">Total iniciatives</span>
+            <span className="label">{t('kpi_total_initiatives')}</span>
             <span className="value tabular">{initiatives.length}</span>
-            <span className="sub">classificades sota aquest tema</span>
+            <span className="sub">{t('kpi_classified_under_topic')}</span>
           </div>
           <div className="kpi">
-            <span className="label">Encara no votades</span>
+            <span className="label">{t('kpi_not_yet_voted')}</span>
             <span className="value tabular">{pending.length}</span>
-            <span className="sub">presentades / en tràmit</span>
+            <span className="sub">{t('kpi_submitted_or_in_debate')}</span>
           </div>
           <div className="kpi">
-            <span className="label">Ja votades</span>
+            <span className="label">{t('kpi_already_voted')}</span>
             <span className="value tabular">{voted.length}</span>
-            <span className="sub">aprovades o rebutjades</span>
+            <span className="sub">{t('kpi_approved_or_rejected')}</span>
           </div>
         </div>
       </header>
@@ -158,7 +149,7 @@ export default async function TopicDetailPage({
       {/* Stats widget for this topic */}
       <section style={{ paddingTop: 28 }}>
         <div className="eyebrow" style={{ marginBottom: 8 }}>
-          Estadístiques d&apos;aquest tema
+          {t('topic_stats_eyebrow')}
         </div>
         <div
           style={{
@@ -176,7 +167,7 @@ export default async function TopicDetailPage({
           <div>
             <div className="eyebrow" style={{ fontSize: 9, marginBottom: 4 }}>
               <Tooltip
-                term="Índex d'aprovació"
+                term={t('approval_rate_label')}
                 explanation={glossaryShort('approval_rate')}
               />
             </div>
@@ -193,7 +184,11 @@ export default async function TopicDetailPage({
               {approvalRate == null ? '—' : `${approvalRate}%`}
             </div>
             <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>
-              {approved} aprovades · {rejected} rebutjades · {pending.length} pendents
+              {t('approved_rejected_pending', {
+                approved,
+                rejected,
+                pending: pending.length,
+              })}
             </div>
 
             {decided > 0 && (
@@ -230,10 +225,10 @@ export default async function TopicDetailPage({
                   }}
                 >
                   <span style={{ color: 'var(--aye)', fontWeight: 600 }}>
-                    Sí {approved}
+                    {t('aye_short')} {approved}
                   </span>
                   <span style={{ color: 'var(--no)', fontWeight: 600 }}>
-                    No {rejected}
+                    {t('no_short')} {rejected}
                   </span>
                 </div>
               </div>
@@ -243,11 +238,11 @@ export default async function TopicDetailPage({
           {/* Top proposers */}
           <div>
             <div className="eyebrow" style={{ fontSize: 9, marginBottom: 6 }}>
-              Qui proposa en aquest tema
+              {t('who_proposes_in_topic')}
             </div>
             {topProposers.length === 0 ? (
               <p style={{ fontSize: 12, color: 'var(--ink-3)', margin: 0 }}>
-                Cap iniciativa registrada.
+                {t('no_initiative_registered')}
               </p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -305,7 +300,7 @@ export default async function TopicDetailPage({
             )}
             <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 8 }}>
               <Tooltip
-                term="d'on vénen aquestes dades"
+                term={t('data_source_term')}
                 explanation={glossaryShort('data_source')}
               />
             </div>
@@ -322,10 +317,10 @@ export default async function TopicDetailPage({
       {/* Pending — what's still in motion */}
       <section style={{ paddingTop: 28 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>
-          Encara no votades · presentades o en tràmit
+          {t('pending_section_title')}
         </div>
         <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 0, marginBottom: 12 }}>
-          Iniciatives registrades al Congrés sota aquest tema que encara no han arribat a votació final. Ordre cronològic invers (més recents a dalt).
+          {t('pending_section_intro')}
         </p>
         {upcomingAgenda.length > 0 && (
           <div
@@ -339,21 +334,29 @@ export default async function TopicDetailPage({
               color: 'var(--ink)',
             }}
           >
-            <b>{upcomingAgenda.length}</b> d&apos;aquestes iniciatives estan a l&apos;ordre del dia de la pròxima sessió plenària.
+            {t.rich('agenda_banner', {
+              count: upcomingAgenda.length,
+              b: (chunks) => <b>{chunks}</b>,
+            })}
           </div>
         )}
         {pending.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-            Cap iniciativa pendent en aquest tema ara mateix.
+            {t('no_pending_in_topic')}
           </p>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {pending.slice(0, 30).map((i) => (
-              <InitiativeRow key={i.id} initiative={i} locale={locale} />
+              <InitiativeRow
+                key={i.id}
+                initiative={i}
+                locale={locale}
+                tStats={tStats}
+              />
             ))}
             {pending.length > 30 && (
               <li style={{ padding: '12px 0', fontSize: 12, color: 'var(--ink-3)' }}>
-                + {pending.length - 30} iniciatives més · disponibles via API
+                {t('more_via_api', { count: pending.length - 30 })}
               </li>
             )}
           </ul>
@@ -363,18 +366,23 @@ export default async function TopicDetailPage({
       {/* Voted — approved or rejected */}
       <section style={{ paddingTop: 32 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>
-          Ja votades · aprovades o rebutjades
+          {t('voted_section_title')}
         </div>
         {voted.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_votes_yet')}</p>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {voted.slice(0, 30).map((i) => (
-              <InitiativeRow key={i.id} initiative={i} locale={locale} />
+              <InitiativeRow
+                key={i.id}
+                initiative={i}
+                locale={locale}
+                tStats={tStats}
+              />
             ))}
             {voted.length > 30 && (
               <li style={{ padding: '12px 0', fontSize: 12, color: 'var(--ink-3)' }}>
-                + {voted.length - 30} iniciatives més
+                {t('more_initiatives', { count: voted.length - 30 })}
               </li>
             )}
           </ul>
@@ -385,11 +393,16 @@ export default async function TopicDetailPage({
       {otherTerminal.length > 0 && (
         <section style={{ paddingTop: 32 }}>
           <div className="eyebrow" style={{ marginBottom: 6 }}>
-            Retirades o caducades
+            {t('withdrawn_expired_title')}
           </div>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {otherTerminal.slice(0, 20).map((i) => (
-              <InitiativeRow key={i.id} initiative={i} locale={locale} />
+              <InitiativeRow
+                key={i.id}
+                initiative={i}
+                locale={locale}
+                tStats={tStats}
+              />
             ))}
           </ul>
         </section>
@@ -401,9 +414,11 @@ export default async function TopicDetailPage({
 function InitiativeRow({
   initiative,
   locale,
+  tStats,
 }: {
   initiative: Initiative;
   locale: string;
+  tStats: Awaited<ReturnType<typeof getTranslations<'stats'>>>;
 }) {
   const submittedDate = initiative.submitted_at
     ? new Date(initiative.submitted_at)
@@ -424,9 +439,9 @@ function InitiativeRow({
     ? submittedDate.toLocaleDateString(locale, { dateStyle: 'medium' })
     : '—';
   const typeLabel = typeLabelCa(initiative.type);
-  const typeShort = glossaryShort(initiative.type);
   const plainSummary = pickPlainSummary(initiative, locale);
-  const statusLabel = STATUS_LABEL[initiative.status] ?? initiative.status;
+  const statusKey = STATUS_KEY[initiative.status];
+  const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
   const linkHref = initiative.source_url ?? '#';
   const isExternal = !!initiative.source_url;
@@ -471,11 +486,7 @@ function InitiativeRow({
             className="hidden sm:inline"
             style={{ fontSize: 11, color: 'var(--ink-3)' }}
           >
-            {typeShort ? (
-              <Tooltip term={typeLabel} explanation={typeShort} />
-            ) : (
-              typeLabel
-            )}
+            <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
             {initiative.submitted_by ? (
               <>
                 {' · '}
@@ -512,11 +523,7 @@ function InitiativeRow({
             }}
           >
             <span>
-              {typeShort ? (
-                <Tooltip term={typeLabel} explanation={typeShort} />
-              ) : (
-                typeLabel
-              )}
+              <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
             </span>
             {initiative.submitted_by && (
               <>

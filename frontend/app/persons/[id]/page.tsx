@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupChip } from '@/components/GroupChip';
 import { TopicBars } from '@/components/TopicBars';
@@ -28,13 +29,18 @@ export async function generateMetadata({
   const { id } = await params;
   const personId = Number(id);
   if (!Number.isFinite(personId)) return {};
+  const t = await getTranslations('person');
   try {
     const p = await api.persons.get(personId);
     const groupBit = p.current_group_short
       ? ` · ${p.current_group_short}`
       : '';
     const constBit = p.current_constituency ? ` · ${p.current_constituency}` : '';
-    const description = `Activitat parlamentària de ${p.full_name}${groupBit}${constBit}.`;
+    const description = t('metadata_description', {
+      name: p.full_name,
+      groupBit,
+      constBit,
+    });
     return {
       title: p.full_name,
       description,
@@ -91,7 +97,7 @@ export default async function PersonDetailPage({
       {/* Breadcrumb */}
       <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/persons" style={{ color: 'var(--ink-2)' }}>
-          Diputats
+          {t('breadcrumb_persons')}
         </Link>
       </div>
 
@@ -146,7 +152,7 @@ export default async function PersonDetailPage({
           </div>
         )}
         <div style={{ minWidth: 0 }}>
-          <div className="eyebrow">Diputat/da · XV legislatura</div>
+          <div className="eyebrow">{t('person_eyebrow')}</div>
           <h1 className="h-headline" style={{ margin: '4px 0 12px' }}>
             {person.full_name}
           </h1>
@@ -201,7 +207,7 @@ export default async function PersonDetailPage({
         </div>
       </header>
 
-      <KpiStrip kpis={kpis} />
+      <KpiStrip kpis={kpis} t={t} />
 
       <section style={{ paddingTop: 28 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>
@@ -246,7 +252,7 @@ export default async function PersonDetailPage({
       </section>
 
       <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">Vot per tema</h2>
+        <h2 className="h-title">{t('vote_by_topic_title')}</h2>
         <p
           style={{
             fontSize: 12,
@@ -256,11 +262,11 @@ export default async function PersonDetailPage({
             maxWidth: 760,
           }}
         >
-          Distribució dels vots emesos per àrea temàtica. Les iniciatives es classifiquen automàticament; un mateix vot pot comptar en més d&apos;un tema.
+          {t('vote_by_topic_subtitle')}
         </p>
         <TopicBars
           rows={topicStats}
-          emptyHint="Encara no hi ha vots d'aquesta persona en iniciatives classificades. La cobertura creixerà a mesura que carreguem sessions històriques."
+          emptyHint={t('vote_by_topic_empty_hint')}
         />
       </section>
 
@@ -275,12 +281,18 @@ export default async function PersonDetailPage({
   );
 }
 
-function KpiStrip({ kpis }: { kpis: PersonKPIs }) {
+function KpiStrip({
+  kpis,
+  t,
+}: {
+  kpis: PersonKPIs;
+  t: Awaited<ReturnType<typeof getTranslations<'person'>>>;
+}) {
   const empty = kpis.votes_total === 0;
   if (empty) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)', paddingTop: 18 }}>
-        Encara no hi ha vots registrats per a aquesta persona.
+        {t('kpi_no_votes_yet')}
       </p>
     );
   }
@@ -293,17 +305,17 @@ function KpiStrip({ kpis }: { kpis: PersonKPIs }) {
       }}
     >
       <div className="kpi">
-        <span className="label">Vots emesos</span>
+        <span className="label">{t('kpi_votes_cast_label')}</span>
         <span className="value tabular">{kpis.votes_cast}</span>
-        <span className="sub">de {kpis.votes_total} possibles</span>
+        <span className="sub">{t('kpi_of_possible', { total: kpis.votes_total })}</span>
       </div>
       <div className="kpi">
-        <span className="label">Assistència</span>
+        <span className="label">{t('kpi_attendance_label')}</span>
         <span className="value tabular">
           {kpis.attendance_pct === null ? '—' : `${(kpis.attendance_pct * 100).toFixed(0)}%`}
         </span>
         <span className="sub">
-          {kpis.votes_cast} de {kpis.votes_total}
+          {t('kpi_attendance_sub', { cast: kpis.votes_cast, total: kpis.votes_total })}
         </span>
       </div>
       <div className="kpi">
@@ -315,8 +327,8 @@ function KpiStrip({ kpis }: { kpis: PersonKPIs }) {
         </span>
         <span className="sub">
           {kpis.dissidence_pct === null
-            ? 'Sense vots comparables'
-            : `${kpis.dissents} cops vs majoria del grup`}
+            ? t('kpi_no_comparable')
+            : t('kpi_dissents_count', { count: kpis.dissents })}
         </span>
       </div>
     </section>

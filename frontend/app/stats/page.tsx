@@ -40,23 +40,31 @@ const STATUS_COLOR: Record<string, string> = {
   withdrawn: 'var(--nv)',
   expired: 'var(--nv)',
 };
-const STATUS_LABEL: Record<string, string> = {
-  approved: 'Aprovades',
-  rejected: 'Rebutjades',
-  in_debate: 'En tràmit',
-  submitted: 'Presentades',
-  withdrawn: 'Retirades',
-  expired: 'Caducades',
+const STATUS_PLURAL_KEY: Record<string, string> = {
+  approved: 'status_plural_approved',
+  rejected: 'status_plural_rejected',
+  in_debate: 'status_plural_in_debate',
+  submitted: 'status_plural_submitted',
+  withdrawn: 'status_plural_withdrawn',
+  expired: 'status_plural_expired',
 };
-const TYPE_LABEL: Record<string, string> = {
-  proyecto_ley: 'Projecte de Llei',
-  proposicion_ley: 'Proposició de Llei',
-  proposicion_no_ley: 'Proposició no de Llei',
-  real_decreto_ley: 'Reial Decret-llei',
-  reforma_estatuto: 'Reforma d\'Estatut',
-  mocion: 'Moció',
-  interpelacion: 'Interpel·lació',
-  other: 'Altra',
+const STATUS_SINGULAR_KEY: Record<string, string> = {
+  approved: 'status_singular_approved',
+  rejected: 'status_singular_rejected',
+  in_debate: 'status_singular_in_debate',
+  submitted: 'status_singular_submitted',
+  withdrawn: 'status_singular_withdrawn',
+  expired: 'status_singular_expired',
+};
+const TYPE_KEY: Record<string, string> = {
+  proyecto_ley: 'type_proyecto_ley',
+  proposicion_ley: 'type_proposicion_ley',
+  proposicion_no_ley: 'type_proposicion_no_ley',
+  real_decreto_ley: 'type_real_decreto_ley',
+  reforma_estatuto: 'type_reforma_estatuto',
+  mocion: 'type_mocion',
+  interpelacion: 'type_interpelacion',
+  other: 'type_other',
 };
 
 type TabKey = 'overview' | 'filtered';
@@ -187,6 +195,7 @@ export default async function StatsPage({
     cross,
     proposingGroups,
     groupSummary,
+    t,
   });
 
   // "Nothing matches" guard — only triggered when BOTH filters set and
@@ -261,20 +270,21 @@ export default async function StatsPage({
         selectedTopic={selectedTopic}
         selectedGroup={selectedGroup}
         labels={{
-          overview: 'Visió general',
-          filtered: 'Anàlisi filtrada',
+          overview: t('tab_overview'),
+          filtered: t('tab_filtered'),
         }}
+        ariaLabel={t('tablist_aria')}
       />
 
       {activeTab === 'overview' && (
         <>
-          <KpiStrip kpi={kpi} locale={locale} />
+          <KpiStrip kpi={kpi} locale={locale} labels={kpiLabels(t)} />
 
           {/* Highlights FIRST on this tab — anchors the overview as the
               first thing the visitor sees below the tiles, per spec. */}
           <Section
-            title="Destacats per grup parlamentari"
-            subtitle="Per cada grup, el tema on dóna més suport i el tema on rebutja més. Rotem entre tots els grups per igual — sense rànquing global. Mínim 5 vots emesos per tema."
+            title={t('highlights_title')}
+            subtitle={t('highlights_subtitle')}
           >
             <HighlightsCarousel items={allHighlights} />
           </Section>
@@ -283,10 +293,10 @@ export default async function StatsPage({
             title={
               <>
                 <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm>{' '}
-                entre grups
+                {t('coincidence_between_suffix')}
               </>
             }
-            subtitle="% de votacions on cada parella de grups ha votat el mateix sentit (Sí, No o Abstenció). Matriu simètrica completa — sense rànquings ni subconjunts destacats."
+            subtitle={t('coincidence_overview_subtitle')}
           >
             <CoincidenceMatrix
               groups={allGroups}
@@ -301,16 +311,15 @@ export default async function StatsPage({
               target into the group's page. Horizontal scroll-snap so the
               section never grows tall, even with many groups. */}
           <Section
-            title="Resum per grup parlamentari"
+            title={t('group_summary_title')}
             subtitle={
               <>
                 <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />,{' '}
                 <Tooltip
                   term="assistència"
                   explanation={glossaryShort('attendance')}
-                />{' '}
-                i nombre de membres per a cada grup. Tots els grups visibles —
-                desplaça lateralment per veure&apos;ls.
+                />
+                {t('group_summary_subtitle_suffix')}
               </>
             }
           >
@@ -321,8 +330,8 @@ export default async function StatsPage({
               in the per-status breakdown. We never display one without the
               other (CLAUDE.md "regla de simetria"). */}
           <Section
-            title="Iniciatives · aprovades i rebutjades"
-            subtitle="Distribució per estat i per tipus. Es mostra el desglossament complet — aprovades i rebutjades es presenten conjuntament, mai aïllades."
+            title={t('approved_rejected_title')}
+            subtitle={t('approved_rejected_subtitle')}
           >
             <div
               className="stats-twocol"
@@ -334,29 +343,51 @@ export default async function StatsPage({
               }}
             >
               <DonutPanel
-                label="Per estat (aprovades / rebutjades / en tràmit / altres)"
+                label={t('donut_status_label')}
                 items={byStatus.map((r) => ({
-                  label: STATUS_LABEL[r.status] ?? r.status,
+                  key: r.status,
+                  label: STATUS_PLURAL_KEY[r.status]
+                    ? t(STATUS_PLURAL_KEY[r.status]!)
+                    : r.status,
                   count: r.count,
                   color: STATUS_COLOR[r.status] ?? 'var(--nv)',
                 }))}
               />
               <DonutPanel
-                label="Per tipus d'iniciativa"
-                items={byType.map((r, i) => ({
-                  label: TYPE_LABEL[r.type] ?? r.type,
-                  count: r.count,
-                  color: TYPE_COLORS[i % TYPE_COLORS.length] ?? 'var(--accent)',
-                }))}
+                label={t('donut_type_label')}
+                items={byType.map((r, i) => {
+                  const typeLabel = TYPE_KEY[r.type] ? t(TYPE_KEY[r.type]!) : r.type;
+                  return {
+                    key: r.type,
+                    // Wrap with <GlossaryTerm> so hovering/tapping the type
+                    // label in the legend reveals a plain-language
+                    // definition. Falls through to plain text when the term
+                    // isn't in the glossary.
+                    label: (
+                      <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
+                    ),
+                    count: r.count,
+                    color: TYPE_COLORS[i % TYPE_COLORS.length] ?? 'var(--accent)',
+                  };
+                })}
               />
             </div>
           </Section>
 
           <Section
-            title="Votacions per grup proposant"
-            subtitle="Quantes votacions sortides al ple ha proposat cada grup parlamentari (PNL, Mocions). No s'inclouen els projectes de llei del Govern."
+            title={t('votes_by_proposing_group_title')}
+            subtitle={t('votes_by_proposing_group_subtitle')}
           >
-            <VerticalBars rows={proposingGroups} highlightSlug={null} />
+            <VerticalBars
+              rows={proposingGroups}
+              highlightSlug={null}
+              emptyLabel={t('empty_no_proposals_with_group')}
+              logScaleCaption={t('log_scale_caption')}
+              countShort={(count) => t('initiatives_proposed_short', { count })}
+              countAria={(name, count) =>
+                t('initiatives_proposed_aria', { name, count })
+              }
+            />
           </Section>
         </>
       )}
@@ -386,14 +417,12 @@ export default async function StatsPage({
                 color: 'var(--ink-3)',
               }}
             >
-              Selecciona un grup o un tema (o tots dos) per veure
-              l&apos;anàlisi filtrada. Per a la visió completa de la
-              legislatura, mira la pestanya{' '}
+              {t('select_filter_help_prefix')}
               <Link
                 href={'/stats?tab=overview' as Route}
                 style={{ color: 'var(--ink)' }}
               >
-                Visió general
+                {t('select_filter_help_link')}
               </Link>
               .
             </div>
@@ -420,12 +449,12 @@ export default async function StatsPage({
                 href={'/stats?tab=filtered' as Route}
                 style={{ color: 'var(--ink)' }}
               >
-                ← prova un altre filtre
+                {t('try_other_filter')}
               </Link>
             </div>
           )}
 
-          {anyFilter && <KpiStrip kpi={kpi} locale={locale} />}
+          {anyFilter && <KpiStrip kpi={kpi} locale={locale} labels={kpiLabels(t)} />}
 
           {bothFilters && cross && !isEmpty && (
             <>
@@ -438,19 +467,25 @@ export default async function StatsPage({
                   group: selectedGroup,
                   allTopics,
                   allGroups,
+                  t,
                 })}
+                chipRemoveTitle={t('chip_remove_title')}
               >
                 <ApprovalRateWidget
                   topic={focusedTopic}
                   fallbackName={focusedTopicName}
                   locale={locale}
+                  labels={approvalRateLabels(t)}
                 />
               </Section>
 
               {/* Section 2: two columns of bar charts. */}
               <Section
-                title="Encreuament tema × grup"
-                subtitle={`Com es distribueixen les iniciatives quan creuem ${focusedTopicName} amb ${focusedGroupName}. Mantenim tots els grups visibles per simetria.`}
+                title={t('cross_section_title')}
+                subtitle={t('cross_section_subtitle', {
+                  topic: focusedTopicName,
+                  group: focusedGroupName,
+                })}
               >
                 <div
                   className="stats-twocol"
@@ -471,6 +506,8 @@ export default async function StatsPage({
                     <HorizontalGroupBars
                       rows={cross.initiatives_on_topic_by_group}
                       highlightSlug={selectedGroup}
+                      emptyLabel={t('empty_no_data')}
+                      governmentLabel={t('government_label')}
                     />
                   </CrossCard>
 
@@ -484,6 +521,7 @@ export default async function StatsPage({
                     <HorizontalTopicBars
                       rows={cross.topic_distribution_for_group}
                       highlightSlug={selectedTopic}
+                      emptyLabel={t('empty_group_no_classified')}
                     />
                   </CrossCard>
                 </div>
@@ -518,7 +556,13 @@ export default async function StatsPage({
                     </>
                   )}
                 </p>
-                <JointInitiativeList items={cross.joint_initiatives} locale={locale} />
+                <JointInitiativeList
+                  items={cross.joint_initiatives}
+                  locale={locale}
+                  statusLabels={statusSingularLabels(t)}
+                  typeLabels={typeLabels(t)}
+                  emptyLabel={t('empty_no_initiative')}
+                />
               </Section>
             </>
           )}
@@ -534,12 +578,15 @@ export default async function StatsPage({
                   group: null,
                   allTopics,
                   allGroups,
+                  t,
                 })}
+                chipRemoveTitle={t('chip_remove_title')}
               >
                 <ApprovalRateWidget
                   topic={focusedTopic}
                   fallbackName={focusedTopicName}
                   locale={locale}
+                  labels={approvalRateLabels(t)}
                 />
               </Section>
 
@@ -553,6 +600,14 @@ export default async function StatsPage({
                     topicSlug={selectedTopic}
                     highlightGroup={null}
                     locale={locale}
+                    labels={{
+                      empty: t('empty_no_classified_for_topic'),
+                      top_proposers: t('panel_top_proposers'),
+                      recent_initiatives: t('panel_recent_initiatives'),
+                      government: t('government_label'),
+                      no_recent: t('empty_no_recent_initiative'),
+                      statusLabels: statusSingularLabels(t),
+                    }}
                   />
                 </Section>
               )}
@@ -564,10 +619,10 @@ export default async function StatsPage({
                 title={
                   <>
                     <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm>{' '}
-                    entre grups
+                    {t('coincidence_between_suffix')}
                   </>
                 }
-                subtitle="% de votacions on cada parella de grups ha votat el mateix sentit. Cobertura: totes les votacions de la legislatura (la restricció per tema arribarà en una propera versió)."
+                subtitle={t('coincidence_topic_subtitle')}
               >
                 <CoincidenceMatrix
                   groups={allGroups}
@@ -590,23 +645,42 @@ export default async function StatsPage({
                     group: selectedGroup,
                     allTopics,
                     allGroups,
+                    t,
                   })}
+                  chipRemoveTitle={t('chip_remove_title')}
                 >
                   <GroupActivityPanel
                     data={groupActivity}
                     groupSlug={selectedGroup}
                     currentTopic={null}
                     locale={locale}
+                    labels={{
+                      empty: t('empty_no_recent_for_group'),
+                      dominant_topics: t('panel_dominant_topics'),
+                      recent_initiatives: t('panel_recent_initiatives'),
+                      no_recent: t('empty_no_recent_initiative'),
+                      statusLabels: statusSingularLabels(t),
+                    }}
                   />
                 </Section>
               )}
 
               {focusedGroupSummary && (
                 <Section
-                  title={`Cohesió i assistència · ${focusedGroupName}`}
-                  subtitle="Mètriques pròpies del grup. Per a la comparativa simètrica completa entre tots els grups, mira la pestanya Visió general."
+                  title={t('cohesion_attendance_title', { group: focusedGroupName })}
+                  subtitle={t('cohesion_attendance_subtitle')}
                 >
-                  <GroupOwnMetrics row={focusedGroupSummary} />
+                  <GroupOwnMetrics
+                    row={focusedGroupSummary}
+                    labels={{
+                      cohesion_votes_counted: (count: number) =>
+                        t('cohesion_votes_counted', { count }),
+                      attendance_members_counted: (count: number) =>
+                        t('attendance_members_counted', { count }),
+                      members_active: t('members_active_label'),
+                      at_consultation: t('at_consultation_moment'),
+                    }}
+                  />
                 </Section>
               )}
 
@@ -642,6 +716,44 @@ const TYPE_COLORS = [
   'var(--nv)',
 ];
 
+type StatsT = Awaited<ReturnType<typeof getTranslations<'stats'>>>;
+
+function kpiLabels(t: StatsT): KpiLabels {
+  return {
+    initiatives: t('kpi_initiatives'),
+    votes_ingested: t('kpi_votes_ingested'),
+    in_plenary: t('kpi_in_plenary'),
+    classified: t('kpi_classified'),
+    avg_cohesion: t('kpi_avg_cohesion'),
+    avg_attendance: t('kpi_avg_attendance'),
+    between_groups: t('kpi_between_groups'),
+  };
+}
+
+function statusSingularLabels(t: StatsT): Record<string, string> {
+  return {
+    approved: t('status_singular_approved'),
+    rejected: t('status_singular_rejected'),
+    in_debate: t('status_singular_in_debate'),
+    submitted: t('status_singular_submitted'),
+    withdrawn: t('status_singular_withdrawn'),
+    expired: t('status_singular_expired'),
+  };
+}
+
+function typeLabels(t: StatsT): Record<string, string> {
+  return {
+    proyecto_ley: t('type_proyecto_ley'),
+    proposicion_ley: t('type_proposicion_ley'),
+    proposicion_no_ley: t('type_proposicion_no_ley'),
+    real_decreto_ley: t('type_real_decreto_ley'),
+    reforma_estatuto: t('type_reforma_estatuto'),
+    mocion: t('type_mocion'),
+    interpelacion: t('type_interpelacion'),
+    other: t('type_other'),
+  };
+}
+
 interface Kpi {
   initiatives_total: number;
   votes_total: number;
@@ -651,7 +763,25 @@ interface Kpi {
   scope_label: string;
 }
 
-function KpiStrip({ kpi, locale }: { kpi: Kpi; locale: string }) {
+interface KpiLabels {
+  initiatives: string;
+  votes_ingested: string;
+  in_plenary: string;
+  classified: string;
+  avg_cohesion: string;
+  avg_attendance: string;
+  between_groups: string;
+}
+
+function KpiStrip({
+  kpi,
+  locale,
+  labels,
+}: {
+  kpi: Kpi;
+  locale: string;
+  labels: KpiLabels;
+}) {
   const classifiedPct =
     kpi.initiatives_total > 0
       ? Math.round((kpi.initiatives_classified / kpi.initiatives_total) * 100)
@@ -665,21 +795,21 @@ function KpiStrip({ kpi, locale }: { kpi: Kpi; locale: string }) {
       }}
     >
       <div className="kpi">
-        <span className="label">Iniciatives</span>
+        <span className="label">{labels.initiatives}</span>
         <span className="value tabular">
           {kpi.initiatives_total.toLocaleString(locale)}
         </span>
         <span className="sub">{kpi.scope_label}</span>
       </div>
       <div className="kpi">
-        <span className="label">Votacions ingerides</span>
+        <span className="label">{labels.votes_ingested}</span>
         <span className="value tabular">
           {kpi.votes_total.toLocaleString(locale)}
         </span>
-        <span className="sub">al ple</span>
+        <span className="sub">{labels.in_plenary}</span>
       </div>
       <div className="kpi">
-        <span className="label">Classificades</span>
+        <span className="label">{labels.classified}</span>
         <span className="value tabular">
           {classifiedPct == null ? '—' : `${classifiedPct}%`}
         </span>
@@ -689,18 +819,18 @@ function KpiStrip({ kpi, locale }: { kpi: Kpi; locale: string }) {
         </span>
       </div>
       <div className="kpi">
-        <span className="label">Cohesió mitjana</span>
+        <span className="label">{labels.avg_cohesion}</span>
         <span className="value tabular">
           {kpi.avg_cohesion_pct == null ? '—' : `${kpi.avg_cohesion_pct}%`}
         </span>
-        <span className="sub">entre grups</span>
+        <span className="sub">{labels.between_groups}</span>
       </div>
       <div className="kpi">
-        <span className="label">Assistència mitjana</span>
+        <span className="label">{labels.avg_attendance}</span>
         <span className="value tabular">
           {kpi.avg_attendance_pct == null ? '—' : `${kpi.avg_attendance_pct}%`}
         </span>
-        <span className="sub">entre grups</span>
+        <span className="sub">{labels.between_groups}</span>
       </div>
     </section>
   );
@@ -717,18 +847,20 @@ function Tabs({
   selectedTopic,
   selectedGroup,
   labels,
+  ariaLabel,
 }: {
   active: TabKey;
   selectedTopic: string;
   selectedGroup: string;
   labels: Record<TabKey, string>;
+  ariaLabel: string;
 }) {
   const overviewHref = buildTabHref('overview', selectedTopic, selectedGroup);
   const filteredHref = buildTabHref('filtered', selectedTopic, selectedGroup);
   return (
     <nav
       role="tablist"
-      aria-label="Vistes d'estadístiques"
+      aria-label={ariaLabel}
       style={{
         display: 'flex',
         gap: 4,
@@ -787,7 +919,7 @@ function buildTabHref(tab: TabKey, topic: string, group: string): Route {
 
 // ─── Filter bar + chips ────────────────────────────────────────────────────
 
-function FilterBar({
+async function FilterBar({
   topics,
   groups,
   selectedTopic,
@@ -798,6 +930,8 @@ function FilterBar({
   selectedTopic: string;
   selectedGroup: string;
 }) {
+  const t = await getTranslations('stats');
+  const tStatsFilter = await getTranslations('stats_filter');
   const hasAny = selectedTopic !== 'all' || selectedGroup !== 'all';
   return (
     <form
@@ -819,38 +953,38 @@ function FilterBar({
       {/* Stay on this tab when the form submits. */}
       <input type="hidden" name="tab" value="filtered" />
       <label style={selectStyle.label}>
-        Tema:
+        {t('filter_topic_label')}
         <TopicCombobox
           name="topic"
           value={selectedTopic}
           topics={topics}
           emptyValue="all"
-          clearLabel="Cap (tots els temes)"
-          placeholder="Filtra per tema…"
-          ariaLabel="Filtra per tema"
+          clearLabel={tStatsFilter('topic_clear')}
+          placeholder={tStatsFilter('topic_placeholder')}
+          ariaLabel={t('filter_topic_aria')}
         />
       </label>
       <label style={selectStyle.label}>
-        Grup:
+        {t('filter_group_label')}
         <GroupCombobox
           name="group"
           value={selectedGroup}
           groups={groups}
           emptyValue="all"
-          clearLabel="Cap (tots els grups)"
-          placeholder="Filtra per grup parlamentari…"
-          ariaLabel="Filtra per grup parlamentari"
+          clearLabel={tStatsFilter('group_clear')}
+          placeholder={t('filter_group_placeholder')}
+          ariaLabel={t('filter_group_aria')}
         />
       </label>
       <button type="submit" className="btn-ink btn-sm">
-        Aplica
+        {t('filter_apply')}
       </button>
       {hasAny && (
         <Link
           href={'/stats?tab=filtered' as Route}
           style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 'auto' }}
         >
-          × Neteja filtres
+          {t('clear_filters')}
         </Link>
       )}
     </form>
@@ -886,17 +1020,19 @@ function renderChips({
   group,
   allTopics,
   allGroups,
+  t,
 }: {
   topic: string | null;
   group: string | null;
   allTopics: { slug: string; name_ca: string }[];
   allGroups: ParliamentaryGroupSummary[];
+  t: StatsT;
 }): ChipDescriptor[] {
   const chips: ChipDescriptor[] = [];
   if (topic) {
     const tt = allTopics.find((x) => x.slug === topic);
     chips.push({
-      label: `Tema: ${tt?.name_ca ?? topic}`,
+      label: t('chip_topic', { name: tt?.name_ca ?? topic }),
       href: group
         ? `/stats?tab=filtered&group=${encodeURIComponent(group)}`
         : '/stats?tab=filtered',
@@ -905,7 +1041,7 @@ function renderChips({
   if (group) {
     const g = allGroups.find((gg) => gg.slug === group);
     chips.push({
-      label: `Grup: ${g ? displayGroupShort(g.name_short) : group}`,
+      label: t('chip_group', { name: g ? displayGroupShort(g.name_short) : group }),
       href: topic
         ? `/stats?tab=filtered&topic=${encodeURIComponent(topic)}`
         : '/stats?tab=filtered',
@@ -914,7 +1050,13 @@ function renderChips({
   return chips;
 }
 
-function Chips({ chips }: { chips: ChipDescriptor[] }) {
+function Chips({
+  chips,
+  removeTitle,
+}: {
+  chips: ChipDescriptor[];
+  removeTitle: string;
+}) {
   if (chips.length === 0) return null;
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
@@ -932,7 +1074,7 @@ function Chips({ chips }: { chips: ChipDescriptor[] }) {
             textDecoration: 'none',
             lineHeight: 1.4,
           }}
-          title="Treu aquest filtre"
+          title={removeTitle}
         >
           × {c.label}
         </Link>
@@ -971,6 +1113,7 @@ function computeKpis({
   cross,
   proposingGroups,
   groupSummary,
+  t,
 }: {
   summary: StatsSummary;
   focusedTopic: TopicGlobalStat | null;
@@ -979,6 +1122,7 @@ function computeKpis({
   cross: CrossTopicGroup | null;
   proposingGroups: GroupProposalCount[];
   groupSummary: GroupSummaryRow[];
+  t: StatsT;
 }): Kpi {
   let initiatives = summary.initiatives_total;
   let votes = summary.votes_total;
@@ -989,13 +1133,15 @@ function computeKpis({
     // Both filters: precise joint count.
     initiatives = cross.joint_initiatives_total;
     classified = cross.joint_initiatives_total;
-    scopeBits.push(`Tema · ${cross.topic.name_ca}`);
-    scopeBits.push(`Grup · ${displayGroupShort(cross.group.name_short)}`);
+    scopeBits.push(t('scope_topic', { name: cross.topic.name_ca }));
+    scopeBits.push(
+      t('scope_group', { name: displayGroupShort(cross.group.name_short) }),
+    );
   } else {
     if (focusedTopic) {
       initiatives = focusedTopic.initiatives_total;
       classified = focusedTopic.initiatives_total;
-      scopeBits.push(`Tema · ${focusedTopic.topic_name_ca}`);
+      scopeBits.push(t('scope_topic', { name: focusedTopic.topic_name_ca }));
     }
     if (selectedGroup) {
       if (groupActivity) {
@@ -1004,10 +1150,10 @@ function computeKpis({
       }
       const proposing = proposingGroups.find((p) => p.slug === selectedGroup);
       if (proposing) votes = proposing.count;
-      scopeBits.push(`Grup · ${selectedGroup}`);
+      scopeBits.push(t('scope_group', { name: selectedGroup }));
     }
   }
-  if (scopeBits.length === 0) scopeBits.push('XV legislatura');
+  if (scopeBits.length === 0) scopeBits.push(t('scope_xv_legislature'));
 
   // Cohesion / attendance averages — single-group when a group is set,
   // else mean across all groups with data.
@@ -1047,11 +1193,13 @@ function Section({
   title,
   subtitle,
   chips,
+  chipRemoveTitle,
   children,
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   chips?: ChipDescriptor[];
+  chipRemoveTitle?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -1059,7 +1207,9 @@ function Section({
       <div className="eyebrow" style={{ marginBottom: 6 }}>
         {title}
       </div>
-      {chips && chips.length > 0 && <Chips chips={chips} />}
+      {chips && chips.length > 0 && (
+        <Chips chips={chips} removeTitle={chipRemoveTitle ?? ''} />
+      )}
       {subtitle && (
         <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 0, marginBottom: 12, maxWidth: 760 }}>
           {subtitle}
@@ -1075,16 +1225,48 @@ function Section({
 /** Big approval-rate panel for a single topic (or "all topics" when null).
  *  Reused both inside TopicExplorer (no-filter case) and as a standalone
  *  hero block when a topic filter is active. */
+interface ApprovalRateLabels {
+  topic_selected: string;
+  global_view: string;
+  initiatives: string;
+  approval_rate: string;
+  of_decided: (denom: number) => string;
+  count_approved: (n: number) => string;
+  count_rejected: (n: number) => string;
+  status_approved: string;
+  status_rejected: string;
+  status_in_debate: string;
+  status_other: string;
+}
+
+function approvalRateLabels(t: StatsT): ApprovalRateLabels {
+  return {
+    topic_selected: t('topic_selected'),
+    global_view: t('global_view'),
+    initiatives: t('initiatives_unit'),
+    approval_rate: t('approval_rate_label'),
+    of_decided: (denom: number) => t('approval_of_decided', { denom }),
+    count_approved: (n: number) => t('approval_count_approved', { n }),
+    count_rejected: (n: number) => t('approval_count_rejected', { n }),
+    status_approved: t('status_plural_approved'),
+    status_rejected: t('status_plural_rejected'),
+    status_in_debate: t('status_plural_in_debate'),
+    status_other: t('status_other_short'),
+  };
+}
+
 function ApprovalRateWidget({
   topic,
   fallbackName,
   locale,
   scopeLabel,
+  labels,
 }: {
   topic: TopicGlobalStat | null;
   fallbackName: string;
   locale: string;
   scopeLabel?: string;
+  labels: ApprovalRateLabels;
 }) {
   const summed = topic
     ? {
@@ -1124,7 +1306,7 @@ function ApprovalRateWidget({
       >
         <div>
           <div className="eyebrow" style={{ fontSize: 10 }}>
-            {scopeLabel ?? (topic ? 'Tema seleccionat' : 'Visió global')}
+            {scopeLabel ?? (topic ? labels.topic_selected : labels.global_view)}
           </div>
           <h3
             className="serif"
@@ -1135,7 +1317,7 @@ function ApprovalRateWidget({
         </div>
         <div className="tabular" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em' }}>
           {summed.total.toLocaleString(locale)}{' '}
-          <span style={{ fontSize: 13, color: 'var(--ink-3)', fontWeight: 400 }}>iniciatives</span>
+          <span style={{ fontSize: 13, color: 'var(--ink-3)', fontWeight: 400 }}>{labels.initiatives}</span>
         </div>
       </div>
 
@@ -1155,7 +1337,7 @@ function ApprovalRateWidget({
         <div>
           <div className="eyebrow" style={{ fontSize: 9 }}>
             <Tooltip
-              term="Índex d'aprovació"
+              term={labels.approval_rate}
               explanation={glossaryShort('approval_rate')}
             />
           </div>
@@ -1166,10 +1348,15 @@ function ApprovalRateWidget({
             {approvalRate == null ? '—' : `${approvalRate}%`}
           </div>
           <div style={{ fontSize: 10, color: 'var(--ink-3)' }}>
-            de {denom} amb resultat
+            {labels.of_decided(denom)}
           </div>
         </div>
-        <ApprovalBar approved={summed.approved} rejected={summed.rejected} />
+        <ApprovalBar
+          approved={summed.approved}
+          rejected={summed.rejected}
+          approvedLabel={labels.count_approved(summed.approved)}
+          rejectedLabel={labels.count_rejected(summed.rejected)}
+        />
       </div>
 
       <div
@@ -1181,10 +1368,10 @@ function ApprovalRateWidget({
         className="topic-explorer-status"
       >
         {[
-          { label: STATUS_LABEL.approved, n: summed.approved, color: 'var(--aye)' },
-          { label: STATUS_LABEL.rejected, n: summed.rejected, color: 'var(--no)' },
-          { label: STATUS_LABEL.in_debate, n: summed.in_debate, color: 'var(--accent)' },
-          { label: 'Altres', n: summed.other, color: 'var(--nv)' },
+          { label: labels.status_approved, n: summed.approved, color: 'var(--aye)' },
+          { label: labels.status_rejected, n: summed.rejected, color: 'var(--no)' },
+          { label: labels.status_in_debate, n: summed.in_debate, color: 'var(--accent)' },
+          { label: labels.status_other, n: summed.other, color: 'var(--nv)' },
         ].map((c) => (
           <div key={c.label}>
             <div className="eyebrow" style={{ fontSize: 9 }}>
@@ -1217,7 +1404,17 @@ function ApprovalRateWidget({
   );
 }
 
-function ApprovalBar({ approved, rejected }: { approved: number; rejected: number }) {
+function ApprovalBar({
+  approved,
+  rejected,
+  approvedLabel,
+  rejectedLabel,
+}: {
+  approved: number;
+  rejected: number;
+  approvedLabel: string;
+  rejectedLabel: string;
+}) {
   const total = approved + rejected;
   if (total === 0) {
     return <div style={{ height: 14, background: 'var(--paper-3)', borderRadius: 2 }} />;
@@ -1245,9 +1442,9 @@ function ApprovalBar({ approved, rejected }: { approved: number; rejected: numbe
           marginTop: 4,
         }}
       >
-        <span style={{ color: 'var(--aye)' }}>{approved} aprovades</span>
+        <span style={{ color: 'var(--aye)' }}>{approvedLabel}</span>
         <span style={{ color: 'var(--ink-3)' }}>·</span>
-        <span style={{ color: 'var(--no)' }}>{rejected} rebutjades</span>
+        <span style={{ color: 'var(--no)' }}>{rejectedLabel}</span>
       </div>
     </div>
   );
@@ -1260,7 +1457,7 @@ function DonutPanel({
   items,
 }: {
   label: string;
-  items: { label: string; count: number; color: string }[];
+  items: { key: string; label: React.ReactNode; count: number; color: string }[];
 }) {
   return (
     <div>
@@ -1272,7 +1469,7 @@ function DonutPanel({
         <div style={{ flex: 1, minWidth: 180 }}>
           {items.map((item) => (
             <div
-              key={item.label}
+              key={item.key}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '12px 1fr auto',
@@ -1347,101 +1544,159 @@ function Donut({ items }: { items: { count: number; color: string }[] }) {
 
 // ─── 4. Vertical bars ──────────────────────────────────────────────────────
 
+/**
+ * Per-group "proposing" bar chart used on /stats Mode A overview.
+ *
+ * Scale rationale: the distribution is extremely skewed — some groups have
+ * 300+ initiatives, others have fewer than 10. On a linear scale, the small
+ * groups collapse to invisible 1-pixel stubs that look like data omissions
+ * even though they're factual. We therefore size each bar by
+ * ``log10(count + 1)`` so small groups remain readable while the larger
+ * groups still visibly dominate. The number printed above each bar is the
+ * RAW count, never the log — users see the actual figure.
+ *
+ * The y-axis is intentionally NOT labelled with log ticks: this is a
+ * scannable comparator, not an inferential chart, and a numeric label on
+ * every bar makes the absolute value unambiguous. The bottom caption tells
+ * the user how the heights are scaled.
+ *
+ * Symmetry: every group with any proposing activity is shown, sorted by
+ * count desc. We don't trim, group as "other", or hide anyone.
+ */
 function VerticalBars({
   rows,
   highlightSlug,
+  emptyLabel,
+  logScaleCaption,
+  countShort,
+  countAria,
 }: {
   rows: GroupProposalCount[];
   highlightSlug?: string | null;
+  emptyLabel: string;
+  logScaleCaption: string;
+  countShort: (count: number) => string;
+  countAria: (name: string, count: number) => string;
 }) {
   if (rows.length === 0) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Cap proposta enregistrada amb grup proposant.
+        {emptyLabel}
       </p>
     );
   }
   const sorted = [...rows].sort((a, b) => b.count - a.count);
-  const max = Math.max(...sorted.map((r) => r.count), 1);
+  // log10(count + 1) — the +1 keeps zero counts at zero height instead of
+  // -Infinity, and avoids a log(1)=0 collapse for single-initiative groups.
+  const logValues = sorted.map((r) => Math.log10(r.count + 1));
+  const maxLog = Math.max(...logValues, Math.log10(2));
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${sorted.length}, 1fr)`,
-        gap: 10,
-        alignItems: 'end',
-        height: 200,
-        paddingTop: 30,
-        borderBottom: '1px solid var(--ink)',
-      }}
-      className="vertical-bars"
-    >
-      {sorted.map((r) => {
-        const heightPct = (r.count / max) * 100;
-        const isHighlight = highlightSlug != null && r.slug === highlightSlug;
-        const dim = highlightSlug != null && !isHighlight;
-        return (
-          <div
-            key={r.slug}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              height: '100%',
-              minWidth: 0,
-              position: 'relative',
-            }}
-          >
-            <span
-              className="tabular"
+    <>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${sorted.length}, 1fr)`,
+          gap: 10,
+          alignItems: 'end',
+          height: 200,
+          paddingTop: 30,
+          borderBottom: '1px solid var(--ink)',
+        }}
+        className="vertical-bars"
+      >
+        {sorted.map((r, i) => {
+          const heightPct = (logValues[i]! / maxLog) * 100;
+          const isHighlight = highlightSlug != null && r.slug === highlightSlug;
+          const dim = highlightSlug != null && !isHighlight;
+          return (
+            <div
+              key={r.slug}
               style={{
-                fontSize: 12,
-                fontWeight: isHighlight ? 700 : 600,
-                marginBottom: 4,
-                color: dim ? 'var(--ink-3)' : 'var(--ink)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                height: '100%',
+                minWidth: 0,
+                position: 'relative',
               }}
             >
-              {r.count}
-            </span>
-            <div
-              style={{
-                width: '100%',
-                maxWidth: 60,
-                height: `${heightPct}%`,
-                minHeight: 2,
-                background: r.color_hex ?? 'var(--ink-3)',
-                opacity: dim ? 0.25 : isHighlight ? 1 : 0.9,
-                outline: isHighlight ? '2px solid var(--ink)' : 'none',
-                outlineOffset: 1,
-              }}
-            />
+              <span
+                className="tabular"
+                style={{
+                  fontSize: 12,
+                  fontWeight: isHighlight ? 700 : 600,
+                  marginBottom: 4,
+                  color: dim ? 'var(--ink-3)' : 'var(--ink)',
+                }}
+              >
+                {r.count}
+              </span>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: 60,
+                  height: `${heightPct}%`,
+                  minHeight: 2,
+                  background: r.color_hex ?? 'var(--ink-3)',
+                  opacity: dim ? 0.25 : isHighlight ? 1 : 0.9,
+                  outline: isHighlight ? '2px solid var(--ink)' : 'none',
+                  outlineOffset: 1,
+                }}
+                title={countShort(r.count)}
+                aria-label={countAria(r.name_short, r.count)}
+              />
+            </div>
+          );
+        })}
+        {sorted.map((r) => (
+          <div
+            key={`${r.slug}-label`}
+            style={{
+              fontSize: 10,
+              color: 'var(--ink-3)',
+              textAlign: 'center',
+              paddingTop: 6,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {displayGroupShort(r.name_short)}
           </div>
-        );
-      })}
-      {sorted.map((r) => (
-        <div
-          key={`${r.slug}-label`}
-          style={{
-            fontSize: 10,
-            color: 'var(--ink-3)',
-            textAlign: 'center',
-            paddingTop: 6,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {displayGroupShort(r.name_short)}
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+      <p
+        style={{
+          fontSize: 11,
+          color: 'var(--ink-3)',
+          marginTop: 8,
+          marginBottom: 0,
+          fontStyle: 'italic',
+        }}
+      >
+        {logScaleCaption}
+      </p>
+    </>
   );
 }
 
 // ─── Single group's own cohesion + attendance card ─────────────────────────
 
-function GroupOwnMetrics({ row }: { row: GroupSummaryRow }) {
+interface GroupOwnLabels {
+  cohesion_votes_counted: (count: number) => string;
+  attendance_members_counted: (count: number) => string;
+  members_active: string;
+  at_consultation: string;
+}
+
+function GroupOwnMetrics({
+  row,
+  labels,
+}: {
+  row: GroupSummaryRow;
+  labels: GroupOwnLabels;
+}) {
   const cohesionPct = row.avg_cohesion == null ? null : Math.round(row.avg_cohesion * 100);
   const attendancePct =
     row.avg_attendance == null ? null : Math.round(row.avg_attendance * 100);
@@ -1456,19 +1711,19 @@ function GroupOwnMetrics({ row }: { row: GroupSummaryRow }) {
       <MetricCard
         label={<Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />}
         value={cohesionPct}
-        sub={`${row.cohesion_votes_counted} votacions comptades`}
+        sub={labels.cohesion_votes_counted(row.cohesion_votes_counted)}
         color={row.group_color_hex ?? 'var(--ink)'}
       />
       <MetricCard
         label={<Tooltip term="Assistència" explanation={glossaryShort('attendance')} />}
         value={attendancePct}
-        sub={`${row.attendance_member_count} membres comptats`}
+        sub={labels.attendance_members_counted(row.attendance_member_count)}
         color="var(--accent)"
       />
       <MetricCard
-        label="Membres actius"
+        label={labels.members_active}
         value={row.members_active}
-        sub="al moment de la consulta"
+        sub={labels.at_consultation}
         color="var(--ink)"
         isRaw
       />
@@ -1555,14 +1810,18 @@ function CrossCard({
 function HorizontalGroupBars({
   rows,
   highlightSlug,
+  emptyLabel,
+  governmentLabel,
 }: {
   rows: ProposerCount[];
   highlightSlug: string;
+  emptyLabel: string;
+  governmentLabel: string;
 }) {
   if (rows.length === 0) {
     return (
       <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-        Cap dada registrada.
+        {emptyLabel}
       </p>
     );
   }
@@ -1595,7 +1854,7 @@ function HorizontalGroupBars({
               }}
               title={r.name_short}
             >
-              {r.slug === 'government' ? 'Govern' : displayGroupShort(r.name_short)}
+              {r.slug === 'government' ? governmentLabel : displayGroupShort(r.name_short)}
             </span>
             <div
               style={{
@@ -1638,14 +1897,16 @@ function HorizontalGroupBars({
 function HorizontalTopicBars({
   rows,
   highlightSlug,
+  emptyLabel,
 }: {
   rows: TopicCount[];
   highlightSlug: string;
+  emptyLabel: string;
 }) {
   if (rows.length === 0) {
     return (
       <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-        Aquest grup encara no té iniciatives classificades.
+        {emptyLabel}
       </p>
     );
   }
@@ -1719,30 +1980,41 @@ function HorizontalTopicBars({
 
 // ─── Per-topic proposers and per-group activity panels ─────────────────────
 
-const STATUS_BADGE: Record<string, { label: string; color: string }> = {
-  approved: { label: 'Aprovada', color: 'var(--aye)' },
-  rejected: { label: 'Rebutjada', color: 'var(--no)' },
-  in_debate: { label: 'En tràmit', color: 'var(--accent)' },
-  submitted: { label: 'Presentada', color: 'var(--accent)' },
-  withdrawn: { label: 'Retirada', color: 'var(--nv)' },
-  expired: { label: 'Caducada', color: 'var(--nv)' },
+const STATUS_BADGE_COLOR: Record<string, string> = {
+  approved: 'var(--aye)',
+  rejected: 'var(--no)',
+  in_debate: 'var(--accent)',
+  submitted: 'var(--accent)',
+  withdrawn: 'var(--nv)',
+  expired: 'var(--nv)',
 };
+
+interface TopicProposersLabels {
+  empty: string;
+  top_proposers: string;
+  recent_initiatives: string;
+  government: string;
+  no_recent: string;
+  statusLabels: Record<string, string>;
+}
 
 function TopicProposersPanel({
   data,
   topicSlug,
   highlightGroup,
   locale,
+  labels,
 }: {
   data: TopicProposers;
   topicSlug: string;
   highlightGroup: string | null;
   locale: string;
+  labels: TopicProposersLabels;
 }) {
   if (data.top_proposers.length === 0 && data.recent_initiatives.length === 0) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Encara no hi ha iniciatives classificades en aquest tema.
+        {labels.empty}
       </p>
     );
   }
@@ -1756,7 +2028,7 @@ function TopicProposersPanel({
       className="stats-twocol"
     >
       <div>
-        <h4 style={panelTitle}>Top proposants</h4>
+        <h4 style={panelTitle}>{labels.top_proposers}</h4>
         <ul style={listReset}>
           {data.top_proposers.map((p) => {
             const isMe = highlightGroup === p.slug;
@@ -1784,7 +2056,7 @@ function TopicProposersPanel({
                 />
                 <span>
                   {p.slug === 'government' ? (
-                    'Govern'
+                    labels.government
                   ) : (
                     <Link
                       href={`/stats?tab=filtered&topic=${encodeURIComponent(topicSlug)}&group=${encodeURIComponent(p.slug)}` as Route}
@@ -1801,11 +2073,24 @@ function TopicProposersPanel({
         </ul>
       </div>
       <div>
-        <h4 style={panelTitle}>Iniciatives recents</h4>
-        <InitiativeList items={data.recent_initiatives} locale={locale} />
+        <h4 style={panelTitle}>{labels.recent_initiatives}</h4>
+        <InitiativeList
+          items={data.recent_initiatives}
+          locale={locale}
+          emptyLabel={labels.no_recent}
+          statusLabels={labels.statusLabels}
+        />
       </div>
     </div>
   );
+}
+
+interface GroupActivityLabels {
+  empty: string;
+  dominant_topics: string;
+  recent_initiatives: string;
+  no_recent: string;
+  statusLabels: Record<string, string>;
 }
 
 function GroupActivityPanel({
@@ -1813,16 +2098,18 @@ function GroupActivityPanel({
   groupSlug,
   currentTopic,
   locale,
+  labels,
 }: {
   data: GroupActivity;
   groupSlug: string;
   currentTopic: string | null;
   locale: string;
+  labels: GroupActivityLabels;
 }) {
   if (data.recent_initiatives.length === 0 && data.topic_distribution.length === 0) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Encara no hi ha iniciatives recents d&apos;aquest grup.
+        {labels.empty}
       </p>
     );
   }
@@ -1836,7 +2123,7 @@ function GroupActivityPanel({
       className="stats-twocol"
     >
       <div>
-        <h4 style={panelTitle}>Temes dominants</h4>
+        <h4 style={panelTitle}>{labels.dominant_topics}</h4>
         <ul style={listReset}>
           {data.topic_distribution.map((tt) => {
             const isCurrent = currentTopic === tt.topic_slug;
@@ -1875,21 +2162,39 @@ function GroupActivityPanel({
         </ul>
       </div>
       <div>
-        <h4 style={panelTitle}>Iniciatives recents</h4>
-        <InitiativeList items={data.recent_initiatives} locale={locale} />
+        <h4 style={panelTitle}>{labels.recent_initiatives}</h4>
+        <InitiativeList
+          items={data.recent_initiatives}
+          locale={locale}
+          emptyLabel={labels.no_recent}
+          statusLabels={labels.statusLabels}
+        />
       </div>
     </div>
   );
 }
 
-function InitiativeList({ items, locale }: { items: InitiativeMini[]; locale: string }) {
+function InitiativeList({
+  items,
+  locale,
+  emptyLabel,
+  statusLabels,
+}: {
+  items: InitiativeMini[];
+  locale: string;
+  emptyLabel: string;
+  statusLabels: Record<string, string>;
+}) {
   if (items.length === 0) {
-    return <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>Cap iniciativa recent.</p>;
+    return <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>{emptyLabel}</p>;
   }
   return (
     <ul style={listReset}>
       {items.map((ini) => {
-        const badge = STATUS_BADGE[ini.status] ?? { label: ini.status, color: 'var(--ink-3)' };
+        const badge = {
+          label: statusLabels[ini.status] ?? ini.status,
+          color: STATUS_BADGE_COLOR[ini.status] ?? 'var(--ink-3)',
+        };
         const plainSummary = pickPlainSummary(ini, locale);
         return (
           <li
@@ -1947,15 +2252,30 @@ function InitiativeList({ items, locale }: { items: InitiativeMini[]; locale: st
 
 // Cross-filter joint list — same shape as InitiativeList but uses the
 // SummaryHover affordance now that the backend returns plain summaries.
-function JointInitiativeList({ items, locale }: { items: InitiativeMini[]; locale: string }) {
+function JointInitiativeList({
+  items,
+  locale,
+  statusLabels,
+  typeLabels: typeLabelsMap,
+  emptyLabel,
+}: {
+  items: InitiativeMini[];
+  locale: string;
+  statusLabels: Record<string, string>;
+  typeLabels: Record<string, string>;
+  emptyLabel: string;
+}) {
   if (items.length === 0) {
-    return <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>Cap iniciativa.</p>;
+    return <p style={{ fontSize: 12, color: 'var(--ink-3)' }}>{emptyLabel}</p>;
   }
   return (
     <ul style={listReset}>
       {items.map((ini) => {
-        const badge = STATUS_BADGE[ini.status] ?? { label: ini.status, color: 'var(--ink-3)' };
-        const type = TYPE_LABEL[ini.type] ?? ini.type;
+        const badge = {
+          label: statusLabels[ini.status] ?? ini.status,
+          color: STATUS_BADGE_COLOR[ini.status] ?? 'var(--ink-3)',
+        };
+        const type = typeLabelsMap[ini.type] ?? ini.type;
         const plainSummary = pickPlainSummary(ini, locale);
         return (
           <li
@@ -1991,7 +2311,7 @@ function JointInitiativeList({ items, locale }: { items: InitiativeMini[]; local
               }}
               title={type}
             >
-              {type}
+              <GlossaryTerm term={type}>{type}</GlossaryTerm>
             </span>
             <span style={{ minWidth: 0 }}>
               <SummaryHover

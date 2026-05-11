@@ -377,6 +377,130 @@ a { color: inherit; }
 .btn-outline:hover { background: var(--paper-2); }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 
+/* /votes filter — apply button. Inherits .btn-ink + .btn-sm sizing but
+   pads out to give it presence; mobile bumps to a 44px tap target via
+   the responsive block further down. */
+.filter-apply-btn { padding: 10px 18px; }
+
+/* /votes advanced filters block — disclosure-style toggle that looks like
+   a real outline button instead of a faint text link, and a clearly
+   delimited panel with breathing room when expanded. */
+.filter-advanced-details {
+  margin-top: 12px;
+}
+.filter-advanced-summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink-2);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 40px;
+  user-select: none;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.filter-advanced-summary::-webkit-details-marker { display: none; }
+.filter-advanced-summary:hover {
+  background: var(--paper-2);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.filter-advanced-summary:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.filter-advanced-caret {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--ink-3);
+  transition: transform .15s ease;
+}
+.filter-advanced-details[open] .filter-advanced-caret { transform: rotate(90deg); }
+.filter-advanced-count {
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  line-height: 1;
+}
+.filter-advanced {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  border-radius: var(--radius-2);
+}
+.filter-advanced-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.filter-advanced-field-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.filter-advanced-select {
+  padding: 10px 12px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  border-radius: var(--radius-2);
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  min-height: 44px;
+}
+.filter-advanced-apply {
+  align-self: end;
+  min-height: 44px;
+  padding: 10px 18px;
+}
+
+@media (max-width: 720px) {
+  /* Stack inputs vertically with 44px tap targets; apply button full-width. */
+  .filter-advanced {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px;
+  }
+  .filter-advanced-summary {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 14px;
+    width: 100%;
+    justify-content: center;
+  }
+  .filter-advanced-apply {
+    width: 100%;
+  }
+  .filter-apply-btn {
+    min-height: 44px;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* Headline display sizes */
 .h-display { font-family: var(--font-serif); font-size: clamp(36px, 5vw, 64px); line-height: 1.0; letter-spacing: -0.02em; font-weight: 600; }
 .h-headline { font-family: var(--font-serif); font-size: clamp(28px, 3vw, 42px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 600; }

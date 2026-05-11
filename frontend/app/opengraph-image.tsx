@@ -1,10 +1,12 @@
 import { ImageResponse } from 'next/og';
+import { getTranslations } from 'next-intl/server';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const alt = 'Hola Política · què vota el Congrés';
 
-export default function HomeOg() {
+export default async function HomeOg() {
+  const t = await getTranslations('og');
   return new ImageResponse(
     (
       <div
@@ -45,7 +47,7 @@ export default function HomeOg() {
               Hola Política
             </span>
             <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
-              Mirall, no megàfon.
+              {t('motto')}
             </span>
           </div>
         </div>
@@ -67,7 +69,7 @@ export default function HomeOg() {
               marginBottom: 18,
             }}
           >
-            Open data del Congrés dels Diputats
+            {t('home_eyebrow')}
           </span>
           <span
             style={{
@@ -80,7 +82,7 @@ export default function HomeOg() {
               maxWidth: 1000,
             }}
           >
-            Què vota el Congrés.
+            {t('home_title_line_1')}
           </span>
           <span
             style={{
@@ -93,7 +95,7 @@ export default function HomeOg() {
               marginTop: 10,
             }}
           >
-            Classificat per tema.
+            {t('home_title_line_2')}
           </span>
         </div>
 
@@ -107,7 +109,7 @@ export default function HomeOg() {
             borderTop: '1px solid #d2cdbc',
           }}
         >
-          <span>Per cada votació: qui la proposa, com vota cada grup.</span>
+          <span>{t('home_footer')}</span>
           <span style={{ fontWeight: 600 }}>monitor-parlamentari ↗</span>
         </div>
       </div>

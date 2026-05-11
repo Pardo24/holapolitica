@@ -25,7 +25,21 @@ export default async function NotificationsPage() {
   }
 
   return (
-    <div style={{ paddingTop: 28, paddingBottom: 48, maxWidth: 720 }}>
+    <div
+      style={{
+        paddingTop: 28,
+        paddingBottom: 48,
+        // Mobile-app feel: tight single-column layout. We keep desktop
+        // generous (720) so the master toggle + sticky bar align with the
+        // rest of the site, but on narrower viewports the inner section
+        // is clamped to 480 via a CSS @media inside <style>.
+        maxWidth: 720,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        paddingLeft: 16,
+        paddingRight: 16,
+      }}
+    >
       <header style={{ paddingBottom: 18, borderBottom: '1px solid var(--ink)' }}>
         <div className="eyebrow">{t('eyebrow')}</div>
         <h1 className="h-headline" style={{ margin: '4px 0 0' }}>

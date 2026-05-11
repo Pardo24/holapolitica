@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getTranslations } from 'next-intl/server';
 
 import { api, ApiError, type Person, type PersonKPIs } from '@/lib/api';
 import { displayGroupShort, groupAbbreviation, readableTextOn } from '@/lib/groups';
@@ -8,6 +9,7 @@ export const contentType = 'image/png';
 export const alt = 'Activitat parlamentària · Hola Política';
 
 export default async function PersonOg({ params }: { params: { id: string } }) {
+  const t = await getTranslations('og');
   let person: Person | null = null;
   let kpis: PersonKPIs | null = null;
   try {
@@ -33,7 +35,7 @@ export default async function PersonOg({ params }: { params: { id: string } }) {
   const abbrev = groupAbbreviation(groupSlug);
   const groupShort = person.current_group_short
     ? displayGroupShort(person.current_group_short)
-    : 'Sense grup';
+    : t('person_no_group');
   const attendancePct =
     kpis && kpis.attendance_pct !== null
       ? `${Math.round(kpis.attendance_pct * 100)}%`
@@ -66,7 +68,7 @@ export default async function PersonOg({ params }: { params: { id: string } }) {
             borderBottom: '2px solid #1a2138',
           }}
         >
-          <Brand />
+          <Brand motto={t('motto')} />
           <div
             style={{
               fontSize: 13,
@@ -75,7 +77,7 @@ export default async function PersonOg({ params }: { params: { id: string } }) {
               textTransform: 'uppercase',
             }}
           >
-            Diputat/da · XV legislatura
+            {t('person_eyebrow')}
           </div>
         </div>
 
@@ -147,9 +149,17 @@ export default async function PersonOg({ params }: { params: { id: string } }) {
             gap: 30,
           }}
         >
-          <Kpi label="Vots emesos" value={String(kpis?.votes_cast ?? '—')} sub={kpis ? `de ${kpis.votes_total}` : ''} />
-          <Kpi label="Assistència" value={attendancePct} sub="" />
-          <Kpi label="Dissidència" value={dissidencePct} sub={kpis ? `${kpis.dissents} cops` : ''} />
+          <Kpi
+            label={t('person_kpi_votes_cast')}
+            value={String(kpis?.votes_cast ?? '—')}
+            sub={kpis ? t('person_kpi_of_total', { total: kpis.votes_total }) : ''}
+          />
+          <Kpi label={t('person_kpi_attendance')} value={attendancePct} sub="" />
+          <Kpi
+            label={t('person_kpi_dissidence')}
+            value={dissidencePct}
+            sub={kpis ? t('person_kpi_times', { count: kpis.dissents }) : ''}
+          />
         </div>
       </div>
     ),
@@ -169,7 +179,7 @@ const fallback: React.CSSProperties = {
   fontWeight: 600,
 };
 
-function Brand() {
+function Brand({ motto }: { motto: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
       <div
@@ -190,7 +200,7 @@ function Brand() {
           Hola Política
         </span>
         <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
-          Mirall, no megàfon.
+          {motto}
         </span>
       </div>
     </div>

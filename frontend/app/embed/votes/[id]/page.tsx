@@ -1,3 +1,5 @@
+import { getLocale, getTranslations } from 'next-intl/server';
+
 import { api } from '@/lib/api';
 
 /**
@@ -19,27 +21,29 @@ export default async function EmbedVotePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const t = await getTranslations('embed_vote');
+  const locale = await getLocale();
   let vote;
   try {
     vote = await api.votes.get(Number(id));
   } catch {
-    return <div style={{ padding: 16, fontFamily: 'sans-serif' }}>Votació no trobada</div>;
+    return <div style={{ padding: 16, fontFamily: 'sans-serif' }}>{t('not_found')}</div>;
   }
 
   const resultStyles: Record<string, { bg: string; fg: string; label: string }> = {
-    approved: { bg: '#DCFCE7', fg: '#14532D', label: 'Aprovada' },
-    rejected: { bg: '#FEE2E2', fg: '#7F1D1D', label: 'Rebutjada' },
-    tie: { bg: '#FEF3C7', fg: '#78350F', label: 'Empat' },
+    approved: { bg: '#DCFCE7', fg: '#14532D', label: t('result_approved') },
+    rejected: { bg: '#FEE2E2', fg: '#7F1D1D', label: t('result_rejected') },
+    tie: { bg: '#FEF3C7', fg: '#78350F', label: t('result_tie') },
   };
   const result = resultStyles[vote.result] ?? resultStyles.approved!;
 
   return (
-    <html lang="ca">
+    <html lang={locale}>
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex" />
-        <title>Hola Política · Embed</title>
+        <title>{t('embed_title')}</title>
       </head>
       <body
         style={{
@@ -69,7 +73,7 @@ export default async function EmbedVotePage({
           >
             <div>
               <p style={{ margin: 0, fontSize: 12, color: '#64748B' }}>
-                {new Date(vote.voted_at).toLocaleDateString('ca-ES', { dateStyle: 'long' })}
+                {new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'long' })}
               </p>
               <h1 style={{ margin: '4px 0 0', fontSize: 18, lineHeight: 1.3 }}>
                 {vote.title}
@@ -101,10 +105,10 @@ export default async function EmbedVotePage({
               borderBottom: '1px solid #E2E8F0',
             }}
           >
-            <Stat label="Sí" value={vote.ayes} />
-            <Stat label="No" value={vote.noes} />
-            <Stat label="Abst." value={vote.abstentions} />
-            <Stat label="Absents" value={vote.absent} />
+            <Stat label={t('label_aye')} value={vote.ayes} />
+            <Stat label={t('label_no')} value={vote.noes} />
+            <Stat label={t('label_abst')} value={vote.abstentions} />
+            <Stat label={t('label_absent')} value={vote.absent} />
           </dl>
 
           <footer
@@ -121,10 +125,10 @@ export default async function EmbedVotePage({
               target="_top"
               style={{ color: '#1E40AF', textDecoration: 'none' }}
             >
-              Veure detall →
+              {t('see_detail')}
             </a>
             <span>
-              Font:{' '}
+              {t('source_label')}{' '}
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
                 href="/"

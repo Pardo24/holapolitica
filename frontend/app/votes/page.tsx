@@ -56,7 +56,7 @@ export default async function VotesPage({
       </header>
 
       <HubTabs
-        ariaLabel="Vistes de votacions"
+        ariaLabel={t('tablist_aria')}
         tabs={[
           {
             href: '/votes' as Route,
@@ -162,121 +162,146 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           table is not preceded by clutter. */}
       <UpcomingAgenda sessions={upcomingSessions} mode="compact" />
 
-      {/* Simplified filter — primary row (search + topic), advanced hidden */}
-      <form
-        method="GET"
-        style={{
-          paddingTop: 6,
-          paddingBottom: 6,
-          borderBottom: '1px solid var(--rule)',
-        }}
-        className="filter-simple"
-      >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.4fr 1fr auto',
-            gap: 10,
-            alignItems: 'center',
-          }}
-          className="filter-simple-row"
-        >
-          <label
+      {/* Filter form — primary row (search + topic) always visible; the
+          advanced block (proposing group, result) sits inside a <details>
+          so server-side state survives without client JS. The summary is
+          styled as a real button (44px tall on mobile, chip-count when
+          there are active advanced filters) so it's discoverable. */}
+      {(() => {
+        // Count of currently-applied "advanced" filters (everything except
+        // the primary row q/topic). Surfaced on the toggle so users can
+        // tell at a glance that a non-default filter is in effect even
+        // when the panel is collapsed.
+        const advancedCount =
+          (params.proposing_group_slug ? 1 : 0) + (params.result ? 1 : 0);
+        // `open` defaults to expanded when an advanced filter is already
+        // applied so the user can see/edit what's filtering the table.
+        const advancedOpen = advancedCount > 0;
+        return (
+          <form
+            method="GET"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 12px',
-              border: '1px solid var(--rule-strong)',
-              borderRadius: 999,
-              background: 'var(--paper)',
+              paddingTop: 6,
+              paddingBottom: 14,
+              borderBottom: '1px solid var(--rule)',
             }}
+            className="filter-simple"
           >
-            <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>⌕</span>
-            <input
-              type="search"
-              name="q"
-              placeholder={t('filters.search')}
-              defaultValue={params.q ?? ''}
+            <div
               style={{
-                border: 0,
-                background: 'transparent',
-                fontSize: 14,
-                flex: 1,
-                outline: 'none',
-                fontFamily: 'inherit',
-                color: 'var(--ink)',
-                minWidth: 0,
+                display: 'grid',
+                gridTemplateColumns: '1.4fr 1fr auto',
+                gap: 10,
+                alignItems: 'center',
               }}
-            />
-          </label>
-          <TopicCombobox
-            name="topic_slug"
-            value={params.topic_slug ?? ''}
-            topics={topics}
-            emptyValue=""
-            clearLabel={t('filters.all_topics')}
-            placeholder={t('filters.all_topics')}
-            ariaLabel={t('filters.all_topics')}
-          />
-          <button type="submit" className="btn-ink btn-sm" style={{ padding: '10px 18px' }}>
-            {t('filters.apply')}
-          </button>
-        </div>
-        <details style={{ marginTop: 8 }}>
-          <summary
-            style={{
-              cursor: 'pointer',
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              padding: '4px 0',
-              listStyle: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <span aria-hidden="true">▸</span> Filtres avançats
-          </summary>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 10,
-              marginTop: 8,
-              paddingBottom: 4,
-            }}
-            className="filter-advanced"
-          >
-            <GroupCombobox
-              name="proposing_group_slug"
-              value={params.proposing_group_slug ?? ''}
-              groups={groups}
-              extraOptions={[{ slug: 'govern', label: t('filters.proposing_government') }]}
-              emptyValue=""
-              clearLabel={t('filters.all_groups')}
-              placeholder={t('filters.all_groups')}
-              ariaLabel={t('filters.all_groups')}
-            />
-            <select
-              name="result"
-              defaultValue={params.result ?? ''}
-              style={{
-                ...selectStyle,
-                padding: '8px 10px',
-                border: '1px solid var(--rule)',
-                background: 'var(--paper)',
-                fontSize: 12,
-              }}
+              className="filter-simple-row"
             >
-              <option value="">{t('filters.all_results')}</option>
-              <option value="approved">{t('result.approved')}</option>
-              <option value="rejected">{t('result.rejected')}</option>
-              <option value="tie">{t('result.tie')}</option>
-            </select>
-          </div>
-        </details>
-      </form>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 12px',
+                  border: '1px solid var(--rule-strong)',
+                  borderRadius: 999,
+                  background: 'var(--paper)',
+                }}
+              >
+                <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>⌕</span>
+                <input
+                  type="search"
+                  name="q"
+                  placeholder={t('filters.search')}
+                  defaultValue={params.q ?? ''}
+                  style={{
+                    border: 0,
+                    background: 'transparent',
+                    fontSize: 14,
+                    flex: 1,
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                    color: 'var(--ink)',
+                    minWidth: 0,
+                  }}
+                />
+              </label>
+              <TopicCombobox
+                name="topic_slug"
+                value={params.topic_slug ?? ''}
+                topics={topics}
+                emptyValue=""
+                clearLabel={t('filters.all_topics')}
+                placeholder={t('filters.all_topics')}
+                ariaLabel={t('filters.all_topics')}
+              />
+              <button type="submit" className="btn-ink btn-sm filter-apply-btn">
+                {t('filters.apply')}
+              </button>
+            </div>
+            <details className="filter-advanced-details" open={advancedOpen}>
+              <summary className="filter-advanced-summary">
+                <span aria-hidden="true" className="filter-advanced-caret">▸</span>
+                <span>
+                  {t('advanced_filters_summary')}
+                  {advancedCount > 0 && (
+                    <span
+                      className="filter-advanced-count"
+                      aria-label={`${advancedCount} ${t('advanced_filters_summary')}`}
+                    >
+                      {advancedCount}
+                    </span>
+                  )}
+                </span>
+              </summary>
+              <div className="filter-advanced">
+                {/* Field wrappers are <div>s (not <label>s) because
+                    GroupCombobox renders multiple internal form controls;
+                    a label would clobber its focus management. The visible
+                    field label is associated via aria-label on the inner
+                    control instead. */}
+                <div className="filter-advanced-field">
+                  <span className="filter-advanced-field-label">
+                    {t('filters.proposing_group')}
+                  </span>
+                  <GroupCombobox
+                    name="proposing_group_slug"
+                    value={params.proposing_group_slug ?? ''}
+                    groups={groups}
+                    extraOptions={[
+                      { slug: 'govern', label: t('filters.proposing_government') },
+                    ]}
+                    emptyValue=""
+                    clearLabel={t('filters.all_groups')}
+                    placeholder={t('filters.all_groups')}
+                    ariaLabel={t('filters.proposing_group')}
+                  />
+                </div>
+                <label className="filter-advanced-field">
+                  <span className="filter-advanced-field-label">
+                    {t('filters.result')}
+                  </span>
+                  <select
+                    name="result"
+                    defaultValue={params.result ?? ''}
+                    className="filter-advanced-select"
+                  >
+                    <option value="">{t('filters.all_results')}</option>
+                    <option value="approved">{t('result.approved')}</option>
+                    <option value="rejected">{t('result.rejected')}</option>
+                    <option value="tie">{t('result.tie')}</option>
+                  </select>
+                </label>
+                <button
+                  type="submit"
+                  className="btn-ink btn-sm filter-advanced-apply"
+                >
+                  {t('filters.apply')}
+                </button>
+              </div>
+            </details>
+          </form>
+        );
+      })()}
 
       {error && (
         <div
@@ -331,6 +356,11 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           page={page}
           pageSize={data.page_size}
           searchParams={params}
+          summaryLabel={t('pagination_label', {
+            from: (page - 1) * data.page_size + 1,
+            to: Math.min(page * data.page_size, data.total),
+            total: data.total,
+          })}
         />
       )}
 
@@ -343,16 +373,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
     </div>
   );
 }
-
-const selectStyle: React.CSSProperties = {
-  border: 0,
-  background: 'transparent',
-  fontSize: 13,
-  flex: 1,
-  outline: 'none',
-  fontFamily: 'inherit',
-  color: 'var(--ink-2)',
-};
 
 interface RowLabels {
   ayes: string;
@@ -489,11 +509,13 @@ function Pagination({
   page,
   pageSize,
   searchParams,
+  summaryLabel,
 }: {
   total: number;
   page: number;
   pageSize: number;
   searchParams: SearchParams;
+  summaryLabel: string;
 }) {
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
   const buildHref = (p: number): Route => {
@@ -529,9 +551,7 @@ function Pagination({
         gap: 10,
       }}
     >
-      <span>
-        Mostrant {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} de {total}
-      </span>
+      <span>{summaryLabel}</span>
       <div style={{ display: 'flex', gap: 6 }}>
         {page > 1 && (
           <Link

@@ -10,6 +10,7 @@ single step::
 
     python -m app.ingest.congreso.bootstrap deputies
     python -m app.ingest.congreso.bootstrap latest_votes
+    python -m app.ingest.congreso.bootstrap pnl_xv
 
 The vote importer is forward-only: it captures the most recent session
 exposed by the votes listing page. Comprehensive backfill of older sessions
@@ -38,6 +39,7 @@ from app.ingest.congreso.client import CongresoClient, InitiativeDataset
 from app.ingest.congreso.deputies import DeputyImporter, ImportStats
 from app.ingest.congreso.initiatives import InitiativeImporter, InitiativeImportStats
 from app.ingest.congreso.photos import PhotoBackfillStats, backfill_photos
+from app.ingest.congreso.pnl import import_pnl_xv
 from app.ingest.congreso.votes import VoteImporter, VoteImportStats
 from app.models import Chamber, Legislature
 from app.models import Session as SessionRow
@@ -887,6 +889,7 @@ async def _run_all() -> None:
 _STEPS = {
     "deputies": import_active_deputies,
     "initiatives": import_initiatives,
+    "pnl_xv": import_pnl_xv,
     "latest_votes": import_latest_session_votes,
     "link_votes_xv": backfill_vote_initiative_links,
     "backfill_vote_initiative_links": backfill_vote_initiative_links,

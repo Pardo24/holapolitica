@@ -99,11 +99,25 @@ export function glossaryShort(key: string): string {
  */
 const TERM_DEFINITIONS_CA: Record<string, string> = {
   'Proposició de Llei':
-    'Iniciativa legislativa que presenten grups parlamentaris del Congrés.',
+    'Iniciativa legislativa que presenten grups parlamentaris del Congrés. Si s\'aprova, esdevé llei vigent.',
   'Projecte de Llei':
-    'Iniciativa legislativa que presenta el Govern.',
+    'Iniciativa legislativa que presenta el Govern. Si s\'aprova, esdevé llei vigent.',
   'Proposició no de Llei (PNL)':
     'Acord polític sense valor normatiu — el Congrés es posiciona davant del Govern o d\'altres institucions.',
+  // Alias without the "(PNL)" suffix so it can be applied where the
+  // short label is rendered (e.g. donut legend, tables).
+  'Proposició no de Llei':
+    'Acord polític sense valor normatiu — el Congrés es posiciona davant del Govern o d\'altres institucions.',
+  'Reial Decret-llei':
+    'Norma amb força de llei dictada pel Govern per urgència. El Congrés ha de convalidar-la o derogar-la en 30 dies.',
+  'Real Decreto-ley':
+    'Norma amb força de llei dictada pel Govern per urgència. El Congrés ha de convalidar-la o derogar-la en 30 dies.',
+  'Moció':
+    'Després d\'una pregunta urgent al Govern (interpel·lació), un grup pot presentar una moció demanant una posició concreta.',
+  'Interpel·lació':
+    'Pregunta urgent feta pel Congrés al Govern sobre una qüestió política concreta.',
+  'Reforma d\'Estatut':
+    'Modificació d\'un Estatut d\'autonomia. Tramitació especial al Congrés.',
   'Cohesió de grup':
     'Percentatge de membres del grup que voten igual en una votació.',
   'Dissidència':

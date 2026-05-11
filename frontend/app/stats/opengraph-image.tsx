@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, type StatsSummary } from '@/lib/api';
 
@@ -7,6 +8,8 @@ export const contentType = 'image/png';
 export const alt = 'Estadístiques · Hola Política';
 
 export default async function StatsOg() {
+  const t = await getTranslations('og');
+  const locale = await getLocale();
   let summary: StatsSummary | null = null;
   try {
     summary = await api.stats.summary();
@@ -60,7 +63,7 @@ export default async function StatsOg() {
                 Hola Política
               </span>
               <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
-                Mirall, no megàfon.
+                {t('motto')}
               </span>
             </div>
           </div>
@@ -72,7 +75,7 @@ export default async function StatsOg() {
               textTransform: 'uppercase',
             }}
           >
-            Estadístiques · XV legislatura
+            {t('stats_eyebrow')}
           </div>
         </div>
 
@@ -98,7 +101,7 @@ export default async function StatsOg() {
               maxWidth: 880,
             }}
           >
-            Què vota el Congrés, classificat per tema.
+            {t('stats_headline')}
           </div>
           <div
             style={{
@@ -109,8 +112,7 @@ export default async function StatsOg() {
               lineHeight: 1.4,
             }}
           >
-            Open data del Congrés dels Diputats: cada vot del ple, qui ho proposa,
-            com vota cada grup. Tot en obert.
+            {t('stats_subhead')}
           </div>
         </div>
 
@@ -125,15 +127,15 @@ export default async function StatsOg() {
           }}
         >
           <Kpi
-            label="Iniciatives"
-            value={summary ? summary.initiatives_total.toLocaleString('ca-ES') : '—'}
+            label={t('stats_kpi_initiatives')}
+            value={summary ? summary.initiatives_total.toLocaleString(locale) : '—'}
           />
           <Kpi
-            label="Votacions"
-            value={summary ? summary.votes_total.toLocaleString('ca-ES') : '—'}
+            label={t('stats_kpi_votes')}
+            value={summary ? summary.votes_total.toLocaleString(locale) : '—'}
           />
           <Kpi
-            label="Classificades"
+            label={t('stats_kpi_classified')}
             value={classifiedPct == null ? '—' : `${classifiedPct}%`}
           />
         </div>
