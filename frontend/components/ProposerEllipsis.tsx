@@ -2,12 +2,15 @@
 // `<details>`. No client JS: the browser handles the open/close. Falls back to
 // showing the full text when shorter than the limit.
 
+import { getTranslations } from 'next-intl/server';
+
 const LIMIT = 80;
 
-export function ProposerEllipsis({ text }: { text: string }) {
+export async function ProposerEllipsis({ text }: { text: string }) {
   const trimmed = text.trim();
   if (trimmed.length <= LIMIT) return <>{trimmed}</>;
 
+  const t = await getTranslations('proposer_ellipsis');
   const head = trimmed.slice(0, LIMIT).replace(/[\s,;]+\S*$/, '');
   return (
     <details
@@ -24,7 +27,7 @@ export function ProposerEllipsis({ text }: { text: string }) {
         }}
       >
         {head}
-        <span style={{ color: 'var(--ink-3)' }}>… mostra&apos;n més</span>
+        <span style={{ color: 'var(--ink-3)' }}>{t('show_more')}</span>
       </summary>
       <span style={{ display: 'inline' }}>{trimmed}</span>
     </details>

@@ -5,7 +5,6 @@ import { getLocale, getTranslations } from 'next-intl/server';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupChip } from '@/components/GroupChip';
-import { ShareButton } from '@/components/ShareButton';
 import { TopicBars } from '@/components/TopicBars';
 import {
   api,
@@ -179,12 +178,6 @@ export default async function PersonDetailPage({
             )}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14, alignItems: 'center' }}>
-            <ShareButton
-              url={`/persons/${person.id}`}
-              title={person.full_name}
-              text={`Activitat parlamentària de ${person.full_name} al Congrés.`}
-              size="sm"
-            />
             {person.biography_url ? (
               <a
                 href={person.biography_url}

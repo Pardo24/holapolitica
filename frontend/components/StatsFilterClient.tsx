@@ -3,6 +3,7 @@
 import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { TopicCombobox } from '@/components/TopicCombobox';
@@ -47,9 +48,9 @@ function buildHref(
 export function StatsTopicFilter({
   allTopics,
   selectedTopic,
-  ariaLabel = 'Filtra per tema',
-  placeholder = 'Filtra per tema…',
-  clearLabel = 'Cap (tots els temes)',
+  ariaLabel,
+  placeholder,
+  clearLabel,
 }: {
   allTopics: Topic[];
   selectedTopic: string;
@@ -57,6 +58,7 @@ export function StatsTopicFilter({
   placeholder?: string;
   clearLabel?: string;
 }) {
+  const t = useTranslations('stats_filter');
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -74,9 +76,9 @@ export function StatsTopicFilter({
       onChange={handleChange}
       topics={allTopics}
       emptyValue={ALL_SENTINEL}
-      clearLabel={clearLabel}
-      placeholder={placeholder}
-      ariaLabel={ariaLabel}
+      clearLabel={clearLabel ?? t('topic_clear')}
+      placeholder={placeholder ?? t('topic_placeholder')}
+      ariaLabel={ariaLabel ?? t('topic_aria')}
     />
   );
 }
@@ -92,6 +94,7 @@ export function StatsPairFilter({
   pairA: string;
   pairB: string;
 }) {
+  const t = useTranslations('stats_filter');
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -105,7 +108,7 @@ export function StatsPairFilter({
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       <label style={pickerLabel}>
-        <span style={pickerLabelText}>Grup A</span>
+        <span style={pickerLabelText}>{t('pair_group_a')}</span>
         <GroupCombobox
           name={PAIR_A_PARAM}
           value={pairA && pairA !== ALL_SENTINEL ? pairA : ''}
@@ -113,12 +116,12 @@ export function StatsPairFilter({
           groups={allGroups}
           emptyValue=""
           clearLabel="—"
-          placeholder="Tria el primer grup…"
-          ariaLabel="Tria el primer grup"
+          placeholder={t('pair_pick_first_placeholder')}
+          ariaLabel={t('pair_pick_first_aria')}
         />
       </label>
       <label style={pickerLabel}>
-        <span style={pickerLabelText}>Grup B</span>
+        <span style={pickerLabelText}>{t('pair_group_b')}</span>
         <GroupCombobox
           name={PAIR_B_PARAM}
           value={pairB && pairB !== ALL_SENTINEL ? pairB : ''}
@@ -126,8 +129,8 @@ export function StatsPairFilter({
           groups={allGroups}
           emptyValue=""
           clearLabel="—"
-          placeholder="Tria el segon grup…"
-          ariaLabel="Tria el segon grup"
+          placeholder={t('pair_pick_second_placeholder')}
+          ariaLabel={t('pair_pick_second_aria')}
         />
       </label>
     </div>

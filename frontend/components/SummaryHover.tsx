@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 /**
  * Plain-language summary affordance with two interaction modes, switched
@@ -32,6 +33,7 @@ export function SummaryHover({
   children: React.ReactNode;
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
+  const t = useTranslations('summary_hover');
 
   const sourceText = (summary ?? '').trim();
   const fallbackText = (fallback ?? '').trim();
@@ -47,7 +49,7 @@ export function SummaryHover({
   if (!showText) return <>{children}</>;
 
   const isLLM = !!sourceText;
-  const eyebrowLabel = isLLM ? 'En llenguatge planer' : "Text de l'expedient";
+  const eyebrowLabel = isLLM ? t('eyebrow_llm') : t('eyebrow_raw');
 
   const body = (
     <>
@@ -60,7 +62,7 @@ export function SummaryHover({
       <span className="summary-hover__body">{showText}</span>
       {provider && isLLM && (
         <span className="summary-hover__provider">
-          Resum automàtic per {provider}
+          {t('provider_caption', { provider })}
         </span>
       )}
     </>
@@ -86,7 +88,7 @@ export function SummaryHover({
       <details ref={detailsRef} className="summary-hover__details">
         <summary
           className="summary-hover__btn"
-          aria-label="Veure resum en llenguatge planer"
+          aria-label={t('tap_aria')}
           onClick={handleToggle}
         >
           <span aria-hidden="true">i</span>

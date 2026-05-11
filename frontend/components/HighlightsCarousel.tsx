@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { type Highlight, highlightHeadline } from '@/lib/highlights';
@@ -16,6 +17,7 @@ const KIND_COLOR: Record<Highlight['kind'], string> = {
 };
 
 export function HighlightsCarousel({ items }: { items: Highlight[] }) {
+  const t = useTranslations('dashboard');
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -52,7 +54,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
             marginBottom: 8,
           }}
         >
-          Dades en construcció
+          {t('highlights_empty_eyebrow')}
         </div>
         <p
           style={{
@@ -63,8 +65,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
             maxWidth: 520,
           }}
         >
-          Estem completant el llaç entre votacions i iniciatives. Aquesta
-          secció s&apos;omplirà quan finalitzi el backfill.
+          {t('highlights_empty_body')}
         </p>
       </div>
     );
@@ -94,7 +95,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
           minHeight: 180,
         }}
       >
-        <HighlightCard h={current} />
+        <HighlightCard h={current} castCaption={t('highlights_cast_caption', { count: current.cast_total })} />
       </div>
 
       {/* Controls */}
@@ -111,7 +112,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
         <button
           type="button"
           onClick={() => setIdx((i) => (i - 1 + items.length) % items.length)}
-          aria-label="Anterior destacat"
+          aria-label={t('highlights_prev_aria')}
           style={btnStyle}
         >
           ← {prev && displayGroupShort(prev.group_name_short)}
@@ -130,12 +131,12 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
             {idx + 1} / {items.length}
           </span>
           <span aria-hidden="true">·</span>
-          <span>{paused ? 'pausat' : 'rotant'}</span>
+          <span>{paused ? t('highlights_paused') : t('highlights_rotating')}</span>
         </div>
         <button
           type="button"
           onClick={() => setIdx((i) => (i + 1) % items.length)}
-          aria-label="Següent destacat"
+          aria-label={t('highlights_next_aria')}
           style={btnStyle}
         >
           {next && displayGroupShort(next.group_name_short)} →
@@ -184,7 +185,7 @@ const btnStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-function HighlightCard({ h }: { h: Highlight }) {
+function HighlightCard({ h, castCaption }: { h: Highlight; castCaption: string }) {
   const pct = Math.round(h.pct * 100);
   const color = KIND_COLOR[h.kind];
   return (
@@ -279,7 +280,7 @@ function HighlightCard({ h }: { h: Highlight }) {
             {h.topic_name_ca}
           </Link>
           <p style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>
-            sobre {h.cast_total} vots emesos en aquest tema
+            {castCaption}
           </p>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
+import { getTranslations } from 'next-intl/server';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
@@ -52,7 +53,7 @@ import type { Highlight } from '@/lib/highlights';
  *   - widget 5 ALWAYS shows both the "supports" and "rejects" columns
  *     side by side; neither column can be hidden
  */
-export function MobileStatsDashboard({
+export async function MobileStatsDashboard({
   highlights,
   allTopics,
   allGroups,
@@ -93,21 +94,33 @@ export function MobileStatsDashboard({
   pairB: string;
   locale: string;
 }) {
+  const t = await getTranslations('dashboard');
   const hasTopic = selectedTopic !== 'all';
   const focusedTopic = hasTopic
-    ? topics.find((t) => t.topic_slug === selectedTopic) ?? null
+    ? topics.find((tt) => tt.topic_slug === selectedTopic) ?? null
     : null;
   const focusedTopicName =
     focusedTopic?.topic_name_ca ??
-    allTopics.find((t) => t.slug === selectedTopic)?.name_ca ??
+    allTopics.find((tt) => tt.slug === selectedTopic)?.name_ca ??
     selectedTopic;
+
+  const statusLabels: Record<string, string> = {
+    approved: t('status_approved'),
+    rejected: t('status_rejected'),
+    in_debate: t('status_in_debate'),
+    submitted: t('status_submitted'),
+    withdrawn: t('status_withdrawn'),
+    expired: t('status_expired'),
+    other: t('status_other'),
+  };
+  const governmentShort = t('government_short');
 
   return (
     <div className="sm:hidden" style={{ paddingTop: 18 }}>
       {/* ─── Widget 1: highlights carousel — always first ─────────────── */}
       <DashSection
-        eyebrow="Destacats per grup"
-        info="Per cada grup, el tema on dóna més suport i el tema on rebutja més. Rotem entre tots els grups per igual."
+        eyebrow={t('highlights_eyebrow')}
+        info={t('highlights_info')}
       >
         <HighlightsCarousel items={highlights} />
       </DashSection>
@@ -127,6 +140,21 @@ export function MobileStatsDashboard({
         selectedGroup={selectedGroup}
         summary={summary}
         locale={locale}
+        labels={{
+          stateEyebrow: t('state_eyebrow'),
+          stateInfo: t('state_info'),
+          initiativesPlenary: t('state_initiatives_at_plenary'),
+          initiativesOnTopic: (topic: string) =>
+            t('state_initiatives_on_topic', { topic }),
+          filterByTopic: t('state_filter_by_topic'),
+          topicValue: t('state_topic_value'),
+          clearTopic: t('state_clear_topic'),
+          topProposersPlenary: t('state_top_proposers_plenary'),
+          topProposersTopic: (topic: string) =>
+            t('state_top_proposers_topic', { topic }),
+        }}
+        statusLabels={statusLabels}
+        governmentShort={governmentShort}
       />
 
       {/* ─── Widget 3: Expandable initiative list ────────────────────── */}
@@ -137,6 +165,14 @@ export function MobileStatsDashboard({
         focusedTopicName={focusedTopicName}
         selectedTopic={selectedTopic}
         locale={locale}
+        labels={{
+          eyebrow: t('list_eyebrow'),
+          info: t('list_info'),
+          seeTopic: (topic: string) => t('list_see_topic', { topic }),
+          seeRecent: t('list_see_recent'),
+          emptyTopic: t('list_empty_topic'),
+          emptyNoFilter: t('list_empty_no_filter'),
+        }}
       />
 
       {/* ─── Widget 4: Coincidence — pair picker ─────────────────────── */}
@@ -145,6 +181,19 @@ export function MobileStatsDashboard({
         coincidence={coincidence}
         pairA={pairA}
         pairB={pairB}
+        labels={{
+          eyebrowSuffix: t('pair_eyebrow_suffix'),
+          info: t('pair_info'),
+          hintPick: t('pair_hint_pick'),
+          hintSamePrefix: t('pair_hint_same_prefix'),
+          hintSameEm: t('pair_hint_same_em'),
+          hintSameSuffix: t('pair_hint_same_suffix'),
+          hintInsufficient: t('pair_hint_insufficient'),
+          and: t('pair_and'),
+          caption: (count: number) => t('pair_caption', { count }),
+          sameDirection: t('pair_same_direction'),
+          divergent: (pct: number) => t('pair_divergent', { pct }),
+        }}
       />
 
       {/* ─── Widget 5: Coincidence — per topic, all groups ───────────── */}
@@ -154,6 +203,22 @@ export function MobileStatsDashboard({
         topicStatsByGroup={topicStatsByGroup}
         selectedTopic={selectedTopic}
         focusedTopicName={focusedTopicName}
+        labels={{
+          eyebrow: t('stance_eyebrow'),
+          info: t('stance_info'),
+          topicLabel: t('stance_topic_label'),
+          topicPlaceholder: t('stance_topic_placeholder'),
+          topicAria: t('stance_topic_aria'),
+          pickTopic: t('stance_pick_topic'),
+          minVotes: t('stance_min_votes'),
+          supports: t('stance_supports'),
+          rejects: t('stance_rejects'),
+          votesEmitted: (count: number) => t('stance_votes_emitted', { count }),
+          backfillEyebrow: t('backfill_eyebrow'),
+          backfillBodyTopic: (topic: string) =>
+            t('backfill_body_topic', { topic }),
+          backfillBodyNoTopic: t('backfill_body_no_topic'),
+        }}
       />
     </div>
   );
@@ -252,14 +317,6 @@ const STATUS_COLOR: Record<string, string> = {
   withdrawn: 'var(--nv)',
   expired: 'var(--nv)',
 };
-const STATUS_LABEL: Record<string, string> = {
-  approved: 'Aprovades',
-  rejected: 'Rebutjades',
-  in_debate: 'En tràmit',
-  submitted: 'Presentades',
-  withdrawn: 'Retirades',
-  expired: 'Caducades',
-};
 
 interface StatusSegment {
   status: string;
@@ -268,47 +325,65 @@ interface StatusSegment {
   color: string;
 }
 
-function buildStatusSegmentsFromTopic(t: TopicGlobalStat): StatusSegment[] {
+function buildStatusSegmentsFromTopic(
+  topic: TopicGlobalStat,
+  statusLabels: Record<string, string>,
+): StatusSegment[] {
   // Topic-global breakdown doesn't have separate retired/expired buckets —
-  // we lump them into "Altres" via initiatives_other to keep the bar shape.
+  // we lump them into "other" via initiatives_other to keep the bar shape.
   const segs: StatusSegment[] = [
     {
       status: 'approved',
-      count: t.initiatives_approved,
-      label: STATUS_LABEL.approved!,
+      count: topic.initiatives_approved,
+      label: statusLabels.approved!,
       color: STATUS_COLOR.approved!,
     },
     {
       status: 'rejected',
-      count: t.initiatives_rejected,
-      label: STATUS_LABEL.rejected!,
+      count: topic.initiatives_rejected,
+      label: statusLabels.rejected!,
       color: STATUS_COLOR.rejected!,
     },
     {
       status: 'in_debate',
-      count: t.initiatives_in_debate,
-      label: STATUS_LABEL.in_debate!,
+      count: topic.initiatives_in_debate,
+      label: statusLabels.in_debate!,
       color: STATUS_COLOR.in_debate!,
     },
     {
       status: 'other',
-      count: t.initiatives_other,
-      label: 'Altres',
+      count: topic.initiatives_other,
+      label: statusLabels.other!,
       color: 'var(--nv)',
     },
   ];
   return segs.filter((s) => s.count > 0);
 }
 
-function buildStatusSegmentsGlobal(rows: InitiativeStatusCount[]): StatusSegment[] {
+function buildStatusSegmentsGlobal(
+  rows: InitiativeStatusCount[],
+  statusLabels: Record<string, string>,
+): StatusSegment[] {
   return rows
     .map((r) => ({
       status: r.status,
       count: r.count,
-      label: STATUS_LABEL[r.status] ?? r.status,
+      label: statusLabels[r.status] ?? r.status,
       color: STATUS_COLOR[r.status] ?? 'var(--nv)',
     }))
     .filter((s) => s.count > 0);
+}
+
+interface StateLabels {
+  stateEyebrow: string;
+  stateInfo: string;
+  initiativesPlenary: string;
+  initiativesOnTopic: (topic: string) => string;
+  filterByTopic: string;
+  topicValue: string;
+  clearTopic: string;
+  topProposersPlenary: string;
+  topProposersTopic: (topic: string) => string;
 }
 
 function InitiativesStateWidget({
@@ -325,6 +400,9 @@ function InitiativesStateWidget({
   selectedGroup,
   summary,
   locale,
+  labels,
+  statusLabels,
+  governmentShort,
 }: {
   allTopics: Topic[];
   topics: TopicGlobalStat[];
@@ -339,13 +417,16 @@ function InitiativesStateWidget({
   selectedGroup: string;
   summary: StatsSummary;
   locale: string;
+  labels: StateLabels;
+  statusLabels: Record<string, string>;
+  governmentShort: string;
 }) {
   const hasTopic = selectedTopic !== 'all';
   const segments: StatusSegment[] = hasTopic
     ? focusedTopic
-      ? buildStatusSegmentsFromTopic(focusedTopic)
+      ? buildStatusSegmentsFromTopic(focusedTopic, statusLabels)
       : []
-    : buildStatusSegmentsGlobal(byStatus);
+    : buildStatusSegmentsGlobal(byStatus, statusLabels);
   const total =
     hasTopic && focusedTopic
       ? focusedTopic.initiatives_total
@@ -374,8 +455,8 @@ function InitiativesStateWidget({
 
   return (
     <DashSection
-      eyebrow="Iniciatives · estat global"
-      info="Total d'iniciatives presentades a la cambra, repartides per estat actual. Filtra per tema per veure-ho per àrea."
+      eyebrow={labels.stateEyebrow}
+      info={labels.stateInfo}
     >
       <Card>
         {/* Big number — generous serif tabular */}
@@ -394,7 +475,9 @@ function InitiativesStateWidget({
             {total.toLocaleString(locale)}
           </span>
           <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-            iniciatives {hasTopic ? `· ${focusedTopicName}` : 'al ple'}
+            {hasTopic
+              ? labels.initiativesOnTopic(focusedTopicName)
+              : labels.initiativesPlenary}
           </span>
         </div>
 
@@ -427,10 +510,10 @@ function InitiativesStateWidget({
             <span>
               {hasTopic ? (
                 <>
-                  Tema: <strong>{focusedTopicName}</strong>
+                  {labels.topicValue}: <strong>{focusedTopicName}</strong>
                 </>
               ) : (
-                'Filtra per tema'
+                labels.filterByTopic
               )}
             </span>
             <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>▾</span>
@@ -459,7 +542,7 @@ function InitiativesStateWidget({
                   alignSelf: 'flex-start',
                 }}
               >
-                × Neteja tema
+                {labels.clearTopic}
               </Link>
             )}
           </div>
@@ -526,7 +609,9 @@ function InitiativesStateWidget({
                 marginBottom: 8,
               }}
             >
-              Qui proposa més {hasTopic ? `en ${focusedTopicName}` : 'al ple'}
+              {hasTopic
+                ? labels.topProposersTopic(focusedTopicName)
+                : labels.topProposersPlenary}
             </div>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {proposers.map((p) => (
@@ -535,6 +620,7 @@ function InitiativesStateWidget({
                     proposer={p}
                     maxCount={maxProposerCount}
                     topicSlug={hasTopic ? selectedTopic : null}
+                    governmentShort={governmentShort}
                   />
                 </li>
               ))}
@@ -610,14 +696,16 @@ function ProposerRow({
   proposer,
   maxCount,
   topicSlug,
+  governmentShort,
 }: {
   proposer: { slug: string; name_short: string; color_hex: string | null; count: number };
   maxCount: number;
   topicSlug: string | null;
+  governmentShort: string;
 }) {
   const widthPct = Math.max(2, (proposer.count / maxCount) * 100);
   const label =
-    proposer.slug === 'government' ? 'Govern' : displayGroupShort(proposer.name_short);
+    proposer.slug === 'government' ? governmentShort : displayGroupShort(proposer.name_short);
   const href = (() => {
     if (proposer.slug === 'government') {
       return topicSlug
@@ -729,6 +817,15 @@ function pickInitiativesForList(
   return [];
 }
 
+interface ListLabels {
+  eyebrow: string;
+  info: string;
+  seeTopic: (topic: string) => string;
+  seeRecent: string;
+  emptyTopic: string;
+  emptyNoFilter: string;
+}
+
 function InitiativeListExpandable({
   topicProposers,
   groupActivity,
@@ -736,6 +833,7 @@ function InitiativeListExpandable({
   focusedTopicName,
   selectedTopic,
   locale,
+  labels,
 }: {
   topicProposers: TopicProposers | null;
   groupActivity: GroupActivity | null;
@@ -743,6 +841,7 @@ function InitiativeListExpandable({
   focusedTopicName: string;
   selectedTopic: string;
   locale: string;
+  labels: ListLabels;
 }) {
   const items = pickInitiativesForList(topicProposers, groupActivity, cross);
   const hasTopic = selectedTopic !== 'all';
@@ -752,8 +851,8 @@ function InitiativeListExpandable({
   const empty = items.length === 0;
   return (
     <DashSection
-      eyebrow="Llista d'iniciatives"
-      info="Iniciatives més recents segons el filtre actiu. Toca el títol per veure el resum en llenguatge planer."
+      eyebrow={labels.eyebrow}
+      info={labels.info}
     >
       <Card>
         <details>
@@ -770,7 +869,7 @@ function InitiativeListExpandable({
             }}
           >
             <span>
-              Veure {hasTopic ? `iniciatives sobre ${focusedTopicName}` : 'iniciatives recents'}
+              {hasTopic ? labels.seeTopic(focusedTopicName) : labels.seeRecent}
               {items.length > 0 && (
                 <span style={{ color: 'var(--ink-3)', fontWeight: 400, marginLeft: 6 }}>
                   ({items.length})
@@ -784,9 +883,7 @@ function InitiativeListExpandable({
           <div style={{ marginTop: 10 }}>
             {empty ? (
               <p style={{ fontSize: 12, color: 'var(--ink-3)', margin: 0 }}>
-                {hasTopic
-                  ? 'Cap iniciativa classificada per a aquest tema encara.'
-                  : 'Selecciona un tema per veure iniciatives concretes, o visita la pestanya de votacions.'}
+                {hasTopic ? labels.emptyTopic : labels.emptyNoFilter}
               </p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -863,16 +960,32 @@ function lookupCoincidence(
   return null;
 }
 
+interface PairLabels {
+  eyebrowSuffix: string;
+  info: string;
+  hintPick: string;
+  hintSamePrefix: string;
+  hintSameEm: string;
+  hintSameSuffix: string;
+  hintInsufficient: string;
+  and: string;
+  caption: (count: number) => string;
+  sameDirection: string;
+  divergent: (pct: number) => string;
+}
+
 function PairCoincidenceWidget({
   allGroups,
   coincidence,
   pairA,
   pairB,
+  labels,
 }: {
   allGroups: ParliamentaryGroupSummary[];
   coincidence: CoincidenceCell[];
   pairA: string;
   pairB: string;
+  labels: PairLabels;
 }) {
   const hasBoth = pairA && pairB && pairA !== 'all' && pairB !== 'all';
   const sameGroup = hasBoth && pairA === pairB;
@@ -886,10 +999,10 @@ function PairCoincidenceWidget({
     <DashSection
       eyebrow={
         <>
-          <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm> entre dos grups
+          <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm> {labels.eyebrowSuffix}
         </>
       }
-      info="Tria dos grups parlamentaris i mira en quin % de votacions han votat el mateix sentit (Sí, No o Abstenció). L'ordre de la parella no afecta el resultat."
+      info={labels.info}
     >
       <Card>
         <div style={{ marginBottom: 14 }}>
@@ -897,21 +1010,17 @@ function PairCoincidenceWidget({
         </div>
 
         {!hasBoth && (
-          <p style={emptyHint}>
-            Tria dos grups parlamentaris diferents per calcular la
-            coincidència.
-          </p>
+          <p style={emptyHint}>{labels.hintPick}</p>
         )}
         {sameGroup && (
           <p style={emptyHint}>
-            Tria dos grups <em>diferents</em> — la coincidència d&apos;un grup
-            amb si mateix és sempre 100%.
+            {labels.hintSamePrefix}
+            <em>{labels.hintSameEm}</em>
+            {labels.hintSameSuffix}
           </p>
         )}
         {hasBoth && !sameGroup && pct == null && (
-          <p style={emptyHint}>
-            No hi ha prou votacions comparades entre aquests dos grups encara.
-          </p>
+          <p style={emptyHint}>{labels.hintInsufficient}</p>
         )}
         {hasBoth && !sameGroup && pct != null && groupA && groupB && (
           <PairResult
@@ -919,6 +1028,12 @@ function PairCoincidenceWidget({
             groupB={groupB}
             pct={pct}
             votesCompared={cell?.votes_compared ?? 0}
+            labels={{
+              and: labels.and,
+              caption: labels.caption,
+              sameDirection: labels.sameDirection,
+              divergent: labels.divergent,
+            }}
           />
         )}
       </Card>
@@ -931,11 +1046,18 @@ function PairResult({
   groupB,
   pct,
   votesCompared,
+  labels,
 }: {
   groupA: ParliamentaryGroupSummary;
   groupB: ParliamentaryGroupSummary;
   pct: number;
   votesCompared: number;
+  labels: {
+    and: string;
+    caption: (count: number) => string;
+    sameDirection: string;
+    divergent: (pct: number) => string;
+  };
 }) {
   return (
     <div>
@@ -948,7 +1070,7 @@ function PairResult({
         }}
       >
         <GroupBadge slug={groupA.slug} color={groupA.color_hex} size="sm" link={false} />
-        <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>i</span>
+        <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{labels.and}</span>
         <GroupBadge slug={groupB.slug} color={groupB.color_hex} size="sm" link={false} />
         <span style={{ flex: 1, fontSize: 12, color: 'var(--ink-3)' }}>
           {displayGroupShort(groupA.name_short)} · {displayGroupShort(groupB.name_short)}
@@ -970,7 +1092,7 @@ function PairResult({
         <span style={{ fontSize: 22, marginLeft: 2 }}>%</span>
       </div>
       <p style={{ fontSize: 12, color: 'var(--ink-2)', margin: '8px 0 12px' }}>
-        de votacions on han votat el mateix sentit · {votesCompared} comparades
+        {labels.caption(votesCompared)}
       </p>
 
       {/* Single-color bar of the coincidence percentage. The detailed
@@ -997,8 +1119,8 @@ function PairResult({
           marginTop: 4,
         }}
       >
-        <span>Mateix sentit</span>
-        <span>Divergent · {100 - pct}%</span>
+        <span>{labels.sameDirection}</span>
+        <span>{labels.divergent(100 - pct)}</span>
       </div>
       {/* TODO: when the backend exposes both-yes / both-no / both-abstain /
           divergent breakdown for a pair, render a 4-segment stacked bar
@@ -1018,18 +1140,36 @@ interface GroupStance {
   cast: number;
 }
 
+interface StanceLabels {
+  eyebrow: string;
+  info: string;
+  topicLabel: string;
+  topicPlaceholder: string;
+  topicAria: string;
+  pickTopic: string;
+  minVotes: string;
+  supports: string;
+  rejects: string;
+  votesEmitted: (count: number) => string;
+  backfillEyebrow: string;
+  backfillBodyTopic: (topic: string) => string;
+  backfillBodyNoTopic: string;
+}
+
 function PerTopicCoincidenceWidget({
   allTopics,
   allGroups,
   topicStatsByGroup,
   selectedTopic,
   focusedTopicName,
+  labels,
 }: {
   allTopics: Topic[];
   allGroups: ParliamentaryGroupSummary[];
   topicStatsByGroup: Map<string, TopicVoteStat[]>;
   selectedTopic: string;
   focusedTopicName: string;
+  labels: StanceLabels;
 }) {
   const hasTopic = selectedTopic !== 'all';
 
@@ -1063,30 +1203,32 @@ function PerTopicCoincidenceWidget({
 
   return (
     <DashSection
-      eyebrow={<>Posició per tema · suport vs. rebuig</>}
-      info="Per al tema seleccionat, cada grup té un % de Sí i un % de No sobre el total de vots emesos. Mostrem totes les dues columnes alhora — mai amaguem un cantó."
+      eyebrow={<>{labels.eyebrow}</>}
+      info={labels.info}
     >
       <Card>
         <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
           <label style={pickerLabel}>
-            <span style={pickerLabelText}>Tema</span>
+            <span style={pickerLabelText}>{labels.topicLabel}</span>
             <StatsTopicFilter
               allTopics={allTopics}
               selectedTopic={selectedTopic}
-              placeholder="Tria un tema…"
-              ariaLabel="Tria un tema"
+              placeholder={labels.topicPlaceholder}
+              ariaLabel={labels.topicAria}
             />
           </label>
         </div>
 
         {!hasTopic && (
-          <p style={emptyHint}>
-            Tria un tema per veure quins grups li donen suport i quins el
-            rebutgen, amb totes dues columnes alhora.
-          </p>
+          <p style={emptyHint}>{labels.pickTopic}</p>
         )}
         {hasTopic && !hasAnyData && (
-          <BackfillNotice topicName={focusedTopicName} />
+          <BackfillNotice
+            topicName={focusedTopicName}
+            eyebrow={labels.backfillEyebrow}
+            bodyWithTopic={labels.backfillBodyTopic}
+            bodyNoTopic={labels.backfillBodyNoTopic}
+          />
         )}
         {hasTopic && hasAnyData && (
           <>
@@ -1107,21 +1249,22 @@ function PerTopicCoincidenceWidget({
               }}
             >
               <StanceColumn
-                title="Donen suport"
+                title={labels.supports}
                 color="var(--aye)"
                 stances={supports}
                 metric="yes"
+                votesEmitted={labels.votesEmitted}
               />
               <StanceColumn
-                title="Neguen"
+                title={labels.rejects}
                 color="var(--no)"
                 stances={rejects}
                 metric="no"
+                votesEmitted={labels.votesEmitted}
               />
             </div>
             <p style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 10 }}>
-              Mín. <span title={glossaryShort('approval_rate')}>5 vots emesos</span> per ser computat.
-              Columnes simètriques: mateixos grups, ordenats per cada mètrica.
+              <span title={glossaryShort('approval_rate')}>{labels.minVotes}</span>
             </p>
           </>
         )}
@@ -1136,7 +1279,17 @@ function PerTopicCoincidenceWidget({
  * the data will arrive — so we use the same paper-2 background and rule
  * styling as a regular card, never red.
  */
-function BackfillNotice({ topicName }: { topicName?: string }) {
+function BackfillNotice({
+  topicName,
+  eyebrow,
+  bodyWithTopic,
+  bodyNoTopic,
+}: {
+  topicName?: string;
+  eyebrow: string;
+  bodyWithTopic: (topic: string) => string;
+  bodyNoTopic: string;
+}) {
   return (
     <div
       role="status"
@@ -1157,12 +1310,10 @@ function BackfillNotice({ topicName }: { topicName?: string }) {
           marginBottom: 6,
         }}
       >
-        Dades en construcció
+        {eyebrow}
       </div>
       <p style={{ fontSize: 12, color: 'var(--ink-2)', margin: 0, lineHeight: 1.4 }}>
-        Estem completant el llaç entre votacions i iniciatives.
-        {topicName ? <> (Tema: {topicName}.)</> : null} Aquesta secció
-        s&apos;omplirà quan finalitzi el backfill.
+        {topicName ? bodyWithTopic(topicName) : bodyNoTopic}
       </p>
     </div>
   );
@@ -1173,11 +1324,13 @@ function StanceColumn({
   color,
   stances,
   metric,
+  votesEmitted,
 }: {
   title: string;
   color: string;
   stances: GroupStance[];
   metric: 'yes' | 'no';
+  votesEmitted: (count: number) => string;
 }) {
   return (
     <div>
@@ -1229,7 +1382,7 @@ function StanceColumn({
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                   }}
-                  title={`${displayGroupShort(s.group.name_short)} · ${s.cast} vots emesos`}
+                  title={`${displayGroupShort(s.group.name_short)} · ${votesEmitted(s.cast)}`}
                 >
                   {displayGroupShort(s.group.name_short)}
                 </span>

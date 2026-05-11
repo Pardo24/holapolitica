@@ -131,6 +131,29 @@ class ParsedInitiative:
     source_url: str | None
 
 
+def strip_zero_subindex(official_id: str) -> str:
+    """Return the 2-part stem of an expediente when the sub-index is ``0000``.
+
+    The Congreso open data feed encodes initiative expedientes as a 3-part
+    string ``NNN/NNNNNN/SSSS`` (series / number / sub-index). The votes
+    listing HTML, in contrast, scrapes the same expediente as the 2-part
+    string ``NNN/NNNNNN`` — without the trailing sub-index. To make the
+    vote -> initiative lookup work we canonicalize the ``/0000`` sub-index
+    to its 2-part stem; any other sub-index is preserved verbatim because
+    it identifies a distinct expediente.
+
+    >>> strip_zero_subindex("121/000001/0000")
+    '121/000001'
+    >>> strip_zero_subindex("121/000001/0001")  # sub-index 1 — distinct
+    '121/000001/0001'
+    >>> strip_zero_subindex("162/000756")  # already 2-part
+    '162/000756'
+    """
+    if official_id.endswith("/0000"):
+        return official_id[: -len("/0000")]
+    return official_id
+
+
 # Mapping from the portal's TIPO label to our InitiativeType enum value.
 # Strings are matched case-insensitively against the lowercased ``TIPO`` field.
 _INITIATIVE_TYPE_PATTERNS: tuple[tuple[str, str], ...] = (

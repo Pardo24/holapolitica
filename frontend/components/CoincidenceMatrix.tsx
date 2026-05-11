@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import type { CoincidenceCell, ParliamentaryGroupSummary } from '@/lib/api';
@@ -17,7 +18,7 @@ import { displayGroupShort } from '@/lib/groups';
 
 const MIN_N = 3;
 
-export function CoincidenceMatrix({
+export async function CoincidenceMatrix({
   groups,
   cells,
   highlightSlug,
@@ -28,13 +29,22 @@ export function CoincidenceMatrix({
    *  remains visible — symmetry rule, we never hide groups. */
   highlightSlug?: string | null;
 }) {
+  const t = await getTranslations('coincidence_matrix');
   if (cells.length === 0 || groups.length === 0) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Encara no hi ha prou votacions per calcular coincidències.
+        {t('empty')}
       </p>
     );
   }
+  const labels = {
+    desktopCaption: t('desktop_caption', { minN: MIN_N }),
+    mobileCaption: t('mobile_caption', { minN: MIN_N }),
+    mobileExpand: t('mobile_expand'),
+    cellTitle: (pct: number | string, votes: number) =>
+      t('mobile_cell_title', { pct, votes }),
+    noData: t('no_data'),
+  };
   // Index cells by (a,b) for fast lookup
   const map = new Map<string, CoincidenceCell>();
   for (const c of cells) {
@@ -50,6 +60,7 @@ export function CoincidenceMatrix({
         groups={sorted}
         cells={map}
         highlightSlug={highlightSlug}
+        labels={labels}
       />
       {/* Desktop matrix (≥640px): a grid of perfectly square cells where
           column and row headers are GroupBadge discs only — the long
@@ -59,7 +70,12 @@ export function CoincidenceMatrix({
           to 36×36 in the narrower band between sm and md so the matrix
           still fits without horizontal scroll on tablets. */}
       <div
-        style={{ overflowX: 'auto', maxWidth: '100%' }}
+        // Note: NOT using overflow-x: auto here. Per CSS spec, declaring
+        // overflow on one axis implicitly sets the other to "auto" too,
+        // which clips the tooltips that pop ABOVE the column/row headers.
+        // The matrix is content-sized (9 groups * 48px ≈ 480px) so it
+        // fits any desktop viewport. Mobile uses the separate accordion.
+        style={{ overflow: 'visible', maxWidth: '100%', position: 'relative' }}
         className="coincidence-wrap hidden sm:block"
       >
         <table
@@ -165,9 +181,7 @@ export function CoincidenceMatrix({
             textAlign: 'center',
           }}
         >
-          % de votacions on els dos grups van votar el mateix sentit (Sí, No
-          o Abstenció). La diagonal és sempre 100% per construcció. Parelles
-          amb menys de {MIN_N} votacions comparades es mostren en blanc.
+          {labels.desktopCaption}
         </p>
         {/* Square-cell sizing — defined once via custom properties so the
             cells, headers, and corner cell stay in lockstep. Tablet band
@@ -204,14 +218,24 @@ export function CoincidenceMatrix({
  * "regla de simetria": every group is shown identically; nothing is
  * pre-expanded, nothing ranked.
  */
+interface MatrixLabels {
+  desktopCaption: string;
+  mobileCaption: string;
+  mobileExpand: string;
+  cellTitle: (pct: number | string, votes: number) => string;
+  noData: string;
+}
+
 function MobileCoincidenceList({
   groups,
   cells,
   highlightSlug,
+  labels,
 }: {
   groups: ParliamentaryGroupSummary[];
   cells: Map<string, CoincidenceCell>;
   highlightSlug?: string | null;
+  labels: MatrixLabels;
 }) {
   return (
     <div className="sm:hidden" style={{ marginTop: 4 }}>
@@ -261,7 +285,7 @@ function MobileCoincidenceList({
                       textTransform: 'uppercase',
                     }}
                   >
-                    Veure ▾
+                    {labels.mobileExpand}
                   </span>
                 </summary>
                 <div style={{ padding: '4px 4px 14px 14px' }}>
@@ -339,8 +363,8 @@ function MobileCoincidenceList({
                               }}
                               title={
                                 cell
-                                  ? `${pct ?? '—'}% · ${cell.votes_compared} votacions`
-                                  : 'Sense dades'
+                                  ? labels.cellTitle(pct ?? '—', cell.votes_compared)
+                                  : labels.noData
                               }
                             >
                               {pct == null ? '—' : `${pct}%`}
@@ -356,9 +380,7 @@ function MobileCoincidenceList({
         })}
       </ul>
       <p style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 10 }}>
-        Toca un grup per veure la coincidència amb la resta. La diagonal és
-        sempre 100% per construcció i s&apos;omet aquí. Parelles amb menys
-        de {MIN_N} votacions comparades es mostren com a —.
+        {labels.mobileCaption}
       </p>
     </div>
   );

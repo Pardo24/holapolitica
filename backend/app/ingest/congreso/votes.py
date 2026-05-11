@@ -58,7 +58,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.logging import get_logger
-from app.ingest.congreso.parse import parse_dmy_date, parse_person_name
+from app.ingest.congreso.parse import parse_dmy_date, parse_person_name, strip_zero_subindex
 from app.models import (
     Chamber,
     GroupMembership,
@@ -272,11 +272,17 @@ class VoteImporter:
         stats = VoteImportStats()
         for parsed in votes:
             expediente_raw = expedientes.get(parsed.vote_number)
-            initiative_id = (
-                initiatives_by_official_id.get(expediente_raw)
-                if expediente_raw is not None
-                else None
-            )
+            # The lookup dict carries both the original ``official_id`` and
+            # its 2-part stem (see ``_load_initiatives_indexed_by_official_id``).
+            # We probe the raw value first and then its stripped form so
+            # 2-part vote expedientes resolve against 3-part initiative ids.
+            initiative_id: int | None = None
+            if expediente_raw is not None:
+                initiative_id = initiatives_by_official_id.get(expediente_raw)
+                if initiative_id is None:
+                    initiative_id = initiatives_by_official_id.get(
+                        strip_zero_subindex(expediente_raw)
+                    )
             proposer = resolve_proposing_group(parsed.expediente_text, all_groups)
             government_proposed = _looks_government_proposed(parsed)
             stats = await self._upsert_vote(
@@ -449,13 +455,30 @@ class VoteImporter:
     # ------------------------------------------------------------------
 
     async def _load_initiatives_indexed_by_official_id(self) -> dict[str, int]:
-        """Return ``official_id -> id`` for all initiatives in this chamber."""
+        """Return ``{official_id_or_stem: initiative_id}`` for the chamber.
+
+        The portal publishes initiative expedientes as 3-part strings with a
+        trailing sub-index (``"121/000001/0000"``) while the votes listing
+        scrapes the same expediente as a 2-part string without the sub-index
+        (``"121/000001"``). To make the lookup work in both directions we
+        index initiatives under BOTH keys when the sub-index is ``0000`` —
+        the canonical "no sub-index" form. Non-``0000`` sub-indices stay
+        addressable only by the full 3-part string so we don't collapse
+        distinct expedientes into the same key.
+        """
         result = await self.session.execute(
             select(Initiative.official_id, Initiative.id).where(
                 Initiative.chamber_id == self.chamber.id
             )
         )
-        return {row[0]: row[1] for row in result.all()}
+        index: dict[str, int] = {}
+        for official_id, initiative_id in result.all():
+            index[official_id] = initiative_id
+            stem = strip_zero_subindex(official_id)
+            if stem != official_id:
+                # Don't clobber an explicit 2-part row (unlikely but defensive).
+                index.setdefault(stem, initiative_id)
+        return index
 
     async def _load_persons_indexed_by_name(self) -> dict[str, Person]:
         """Persons that have a Mandate in this legislature, keyed by full_name.

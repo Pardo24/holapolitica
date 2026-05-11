@@ -6,7 +6,6 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupChip } from '@/components/GroupChip';
 import { ResultPill } from '@/components/ResultPill';
-import { ShareButton } from '@/components/ShareButton';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
 import { StackedBar } from '@/components/StackedBar';
 import {
@@ -176,14 +175,6 @@ export default async function VoteDetailPage({
                 {margin >= 0 ? `+${margin}` : margin}
               </span>
             </div>
-          </div>
-          <div style={{ marginLeft: 'auto' }}>
-            <ShareButton
-              url={`/votes/${vote.id}`}
-              title={subject}
-              text={`Votació al Congrés (${dateStr}): ${t(`result.${vote.result}`)}.`}
-              size="sm"
-            />
           </div>
         </div>
       </header>

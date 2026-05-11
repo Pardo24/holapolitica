@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from dataclasses import asdict, dataclass
 from datetime import UTC
 
 from sqlalchemy import select
@@ -39,6 +40,7 @@ from app.ingest.congreso.initiatives import InitiativeImporter, InitiativeImport
 from app.ingest.congreso.photos import PhotoBackfillStats, backfill_photos
 from app.ingest.congreso.votes import VoteImporter, VoteImportStats
 from app.models import Chamber, Legislature
+from app.models import Session as SessionRow
 
 configure_logging()
 log = get_logger(__name__)
@@ -115,6 +117,118 @@ async def import_latest_session_votes() -> VoteImportStats | None:
             expedientes_by_vote=bundle.expedientes_by_vote,
             graphic_urls_by_vote=bundle.graphic_urls_by_vote,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class VoteInitiativeBackfillStats:
+    """Counters returned by :func:`backfill_vote_initiative_links`."""
+
+    votes_processed: int = 0
+    votes_linked: int = 0
+    votes_unmatched: int = 0
+
+
+# Batch size used by :func:`backfill_vote_initiative_links`. Tuned to keep
+# memory bounded on legislatures with tens of thousands of votes while
+# committing often enough that a transient connection drop loses at most
+# this many rows of progress.
+_BACKFILL_COMMIT_BATCH = 500
+
+
+async def backfill_vote_initiative_links() -> VoteInitiativeBackfillStats:
+    """Backfill ``votes.initiative_id`` for every vote with a known expediente.
+
+    Scope: all :class:`Vote` rows whose ``initiative_id IS NULL`` AND
+    ``expediente_raw IS NOT NULL``. Each row's ``expediente_raw`` is
+    matched against the chamber's initiatives indexed by both the raw
+    ``official_id`` and its 2-part stem (see
+    :func:`app.ingest.congreso.parse.strip_zero_subindex`), so 2-part vote
+    expedientes (``"121/000262"``) resolve against 3-part initiative ids
+    (``"121/000262/0000"``).
+
+    Idempotent: re-running picks up only the still-unlinked votes.
+    Commits in batches of ``_BACKFILL_COMMIT_BATCH`` rows so a transient
+    failure costs at most one batch's worth of progress.
+
+    Series we cannot link today (PNL ``162/…``, Moción ``173/…``, RDL
+    convalidation ``130/…``, constitutional reform ``102/…``) stay
+    unmatched because the Congreso opendata portal does not publish those
+    initiative types as bulk datasets — only ``Proyectos de Ley`` (121),
+    ``Proposiciones de Ley`` (122) and ``Propuestas de Reforma`` (127) are
+    exposed. See ``docs/STATUS.md`` § pending item 2.
+    """
+    from sqlalchemy import select as _select
+
+    from app.ingest.congreso.parse import strip_zero_subindex
+    from app.models import Initiative, Vote
+
+    stats = VoteInitiativeBackfillStats()
+    async with AsyncSessionLocal() as session:
+        chamber = await _get_congreso_chamber(session)
+
+        # Build a one-shot lookup keyed by both the raw official_id and the
+        # 2-part stem (when the sub-index is ``0000``).
+        rows = (
+            await session.execute(
+                _select(Initiative.official_id, Initiative.id).where(
+                    Initiative.chamber_id == chamber.id
+                )
+            )
+        ).all()
+        index: dict[str, int] = {}
+        for official_id, initiative_id in rows:
+            index[official_id] = initiative_id
+            stem = strip_zero_subindex(official_id)
+            if stem != official_id:
+                index.setdefault(stem, initiative_id)
+
+        log.info(
+            "bootstrap.link_votes.starting",
+            chamber=chamber.slug,
+            initiative_keys=len(index),
+        )
+
+        # Stream the candidate votes through a dedicated cursor so we don't
+        # materialise the entire result set in memory.
+        vote_ids_and_exptes = (
+            await session.execute(
+                _select(Vote.id, Vote.expediente_raw)
+                .join(SessionRow, SessionRow.id == Vote.session_id)
+                .where(SessionRow.chamber_id == chamber.id)
+                .where(Vote.initiative_id.is_(None))
+                .where(Vote.expediente_raw.is_not(None))
+                .order_by(Vote.id)
+            )
+        ).all()
+
+        processed = linked = unmatched = 0
+        for vote_id, expediente_raw in vote_ids_and_exptes:
+            processed += 1
+            target_id = index.get(expediente_raw)
+            if target_id is None and expediente_raw is not None:
+                target_id = index.get(strip_zero_subindex(expediente_raw))
+            if target_id is None:
+                unmatched += 1
+            else:
+                vote = (await session.execute(_select(Vote).where(Vote.id == vote_id))).scalar_one()
+                vote.initiative_id = target_id
+                linked += 1
+            if processed % _BACKFILL_COMMIT_BATCH == 0:
+                await session.commit()
+                log.info(
+                    "bootstrap.link_votes.progress",
+                    processed=processed,
+                    linked=linked,
+                    unmatched=unmatched,
+                )
+        await session.commit()
+        stats = VoteInitiativeBackfillStats(
+            votes_processed=processed,
+            votes_linked=linked,
+            votes_unmatched=unmatched,
+        )
+        log.info("bootstrap.link_votes.done", **asdict(stats))
+        return stats
 
 
 _INITIATIVE_DATASETS: tuple[InitiativeDataset, ...] = (
@@ -774,6 +888,8 @@ _STEPS = {
     "deputies": import_active_deputies,
     "initiatives": import_initiatives,
     "latest_votes": import_latest_session_votes,
+    "link_votes_xv": backfill_vote_initiative_links,
+    "backfill_vote_initiative_links": backfill_vote_initiative_links,
     "backfill_xv": backfill_legislature_xv,
     "backfill_legislature_xv": backfill_legislature_xv,
     "backfill_xv_smoke": backfill_legislature_xv_smoke,

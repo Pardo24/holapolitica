@@ -7,7 +7,6 @@ import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
-import { ShareButton } from '@/components/ShareButton';
 import { SummaryHover } from '@/components/SummaryHover';
 import { TopicCombobox } from '@/components/TopicCombobox';
 import { Tooltip } from '@/components/Tooltip';
@@ -227,12 +226,6 @@ export default async function StatsPage({
             {t('intro')}
           </p>
         </div>
-        <ShareButton
-          url={buildShareUrl(selectedTopic, selectedGroup, activeTab)}
-          title="Estadístiques · Hola Política"
-          text="Estadístiques agregades del Congrés dels Diputats."
-          size="sm"
-        />
       </header>
 
       {/* Mobile-only dashboard (≤640px). Same data, denser layout — every
@@ -960,14 +953,6 @@ function filterHighlights(
     if (filters.group && h.group_slug !== filters.group) return false;
     return true;
   });
-}
-
-function buildShareUrl(topic: string, group: string, tab: TabKey): string {
-  const qs = new URLSearchParams();
-  qs.set('tab', tab);
-  if (topic !== 'all') qs.set('topic', topic);
-  if (group !== 'all') qs.set('group', group);
-  return `/stats?${qs.toString()}`;
 }
 
 /** Compute the KPI numbers for the current filter scope.

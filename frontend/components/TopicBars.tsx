@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server';
+
 import type { TopicVoteStat } from '@/lib/api';
 
 const C_AYE = '#16a34a';
@@ -24,18 +26,19 @@ const MIN_N_TO_SHOW = 5;
  * pointing to data limitations (currently expected: only session 177 is
  * loaded and most votes don't yet link to classified initiatives).
  */
-export function TopicBars({
+export async function TopicBars({
   rows,
   emptyHint,
 }: {
   rows: TopicVoteStat[];
   emptyHint?: string;
 }) {
+  const t = await getTranslations('topic_bars');
   const significant = rows.filter((r) => r.cast >= MIN_N_TO_SHOW);
   if (significant.length === 0) {
     return (
       <p className="text-sm text-[hsl(var(--muted-foreground))]">
-        {emptyHint ?? 'Encara no hi ha prou dades classificades per mostrar aquesta vista.'}
+        {emptyHint ?? t('empty_default')}
       </p>
     );
   }
@@ -64,18 +67,20 @@ export function TopicBars({
       {showHighlights && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <HighlightCard
-            label="Tema amb més suport"
+            label={t('most_support')}
             row={topAye!}
             metric={topAye!.ayes / topAye!.cast}
-            metricLabel="% Sí"
+            metricLabel={`% ${t('label_aye')}`}
             metricColor={C_AYE}
+            castCaption={t('votes_cast', { cast: topAye!.cast, nv: topAye!.no_vote })}
           />
           <HighlightCard
-            label="Tema amb més rebuig"
+            label={t('most_rejection')}
             row={topNo!}
             metric={topNo!.noes / topNo!.cast}
-            metricLabel="% No"
+            metricLabel={`% ${t('label_no')}`}
             metricColor={C_NO}
+            castCaption={t('votes_cast', { cast: topNo!.cast, nv: topNo!.no_vote })}
           />
         </div>
       )}
@@ -84,13 +89,22 @@ export function TopicBars({
         <details className="group/topics">
           <summary className="cursor-pointer text-sm py-2 px-3 rounded border hover:bg-[hsl(var(--muted))] inline-block list-none">
             <span className="group-open/topics:hidden">
-              Mostra els {rest.length} {rest.length === 1 ? 'altre tema' : 'altres temes'}
+              {t('show_more', { count: rest.length })}
             </span>
-            <span className="hidden group-open/topics:inline">Amaga</span>
+            <span className="hidden group-open/topics:inline">{t('hide')}</span>
           </summary>
           <ul className="mt-3 space-y-2">
             {rest.map((r) => (
-              <TopicBarRow key={r.topic_slug} row={r} />
+              <TopicBarRow
+                key={r.topic_slug}
+                row={r}
+                labels={{
+                  aye: t('label_aye'),
+                  no: t('label_no'),
+                  abst: t('label_abst'),
+                  nv: t('label_nv'),
+                }}
+              />
             ))}
           </ul>
         </details>
@@ -99,18 +113,27 @@ export function TopicBars({
   );
 }
 
+interface BarLabels {
+  aye: string;
+  no: string;
+  abst: string;
+  nv: string;
+}
+
 function HighlightCard({
   label,
   row,
   metric,
   metricLabel,
   metricColor,
+  castCaption,
 }: {
   label: string;
   row: TopicVoteStat;
   metric: number;
   metricLabel: string;
   metricColor: string;
+  castCaption: string;
 }) {
   return (
     <div className="rounded-lg border p-4">
@@ -123,33 +146,38 @@ function HighlightCard({
         <span className="text-xs text-[hsl(var(--muted-foreground))]">{metricLabel}</span>
       </div>
       <div className="mt-2">
-        <TopicBar row={row} />
+        <TopicBar row={row} labels={null} />
       </div>
       <div className="text-[11px] text-[hsl(var(--muted-foreground))] mt-1 tabular-nums">
-        {row.cast} vots emesos · {row.no_vote} no vota / absent
+        {castCaption}
       </div>
     </div>
   );
 }
 
-function TopicBarRow({ row }: { row: TopicVoteStat }) {
+function TopicBarRow({ row, labels }: { row: TopicVoteStat; labels: BarLabels }) {
   return (
     <li className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)_auto] items-center gap-3">
       <span className="text-sm font-medium truncate">{row.topic_name_ca}</span>
-      <TopicBar row={row} />
+      <TopicBar row={row} labels={labels} />
       <BarLegend row={row} />
     </li>
   );
 }
 
-function TopicBar({ row }: { row: TopicVoteStat }) {
+function TopicBar({ row, labels }: { row: TopicVoteStat; labels: BarLabels | null }) {
   const total = row.cast + row.no_vote;
   if (total === 0) return null;
+  // labels can be null when called from HighlightCard, where the bar is
+  // purely visual decoration and the surrounding row provides context. We
+  // fall back to language-neutral short tokens that match the segment
+  // colours.
+  const l = labels ?? { aye: 'Aye', no: 'No', abst: 'Abst', nv: 'NV' };
   const segs = [
-    { n: row.ayes, color: C_AYE, label: 'Sí' },
-    { n: row.noes, color: C_NO, label: 'No' },
-    { n: row.abstentions, color: C_ABST, label: 'Abstenció' },
-    { n: row.no_vote, color: C_NV, label: 'No vota / absent' },
+    { n: row.ayes, color: C_AYE, label: l.aye },
+    { n: row.noes, color: C_NO, label: l.no },
+    { n: row.abstentions, color: C_ABST, label: l.abst },
+    { n: row.no_vote, color: C_NV, label: l.nv },
   ];
   return (
     <div

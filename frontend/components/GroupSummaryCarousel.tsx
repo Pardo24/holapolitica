@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { Tooltip } from '@/components/Tooltip';
@@ -17,17 +18,18 @@ import { displayGroupShort } from '@/lib/groups';
  * deterministic order (members_active desc). ``highlightSlug`` is reserved
  * for filtered views where the user has explicitly selected a focus.
  */
-export function GroupSummaryCarousel({
+export async function GroupSummaryCarousel({
   rows,
   highlightSlug,
 }: {
   rows: GroupSummaryRow[];
   highlightSlug?: string | null;
 }) {
+  const t = await getTranslations('group_summary_carousel');
   if (rows.length === 0) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-        Encara no hi ha prou dades per al resum per grup.
+        {t('empty')}
       </p>
     );
   }
@@ -44,7 +46,7 @@ export function GroupSummaryCarousel({
     <div style={{ position: 'relative' }}>
       <ul
         role="list"
-        aria-label="Resum per grup parlamentari"
+        aria-label={t('aria_label')}
         style={{
           listStyle: 'none',
           margin: 0,
@@ -63,6 +65,11 @@ export function GroupSummaryCarousel({
             key={row.group_slug}
             row={row}
             highlighted={row.group_slug === highlightSlug}
+            labels={{
+              cohesion: t('cohesion_short'),
+              attendance: t('attendance_short'),
+              deputies: t('deputies'),
+            }}
           />
         ))}
       </ul>
@@ -84,9 +91,11 @@ const edgeFade: React.CSSProperties = {
 function GroupSummaryCard({
   row,
   highlighted = false,
+  labels,
 }: {
   row: GroupSummaryRow;
   highlighted?: boolean;
+  labels: { cohesion: string; attendance: string; deputies: string };
 }) {
   const cohesionPct =
     row.avg_cohesion == null ? null : Math.round(row.avg_cohesion * 100);
@@ -129,12 +138,12 @@ function GroupSummaryCard({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <DonutPct
             value={cohesionPct}
-            label={<Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />}
+            label={<Tooltip term={labels.cohesion} explanation={glossaryShort('cohesion')} />}
             color="var(--ink)"
           />
           <DonutPct
             value={attendancePct}
-            label={<Tooltip term="Assist." explanation={glossaryShort('attendance')} />}
+            label={<Tooltip term={labels.attendance} explanation={glossaryShort('attendance')} />}
             color="var(--accent)"
           />
         </div>
@@ -156,7 +165,7 @@ function GroupSummaryCard({
           }}
         >
           <span>{row.members_active}</span>
-          <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>diputats</span>
+          <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>{labels.deputies}</span>
         </span>
       </Link>
     </li>
