@@ -6,9 +6,22 @@ import { StackedBar } from '@/components/StackedBar';
 import { GroupChip } from '@/components/GroupChip';
 import { SummaryHover } from '@/components/SummaryHover';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
-import { api, type ScheduledSession, type Vote } from '@/lib/api';
+import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
+
+// CSS-var color for a vote outcome — used by the inline mobile result
+// label so the colored word matches the desktop pill semantics.
+function resultColor(result: VoteResult): string {
+  switch (result) {
+    case 'approved':
+      return 'var(--aye)';
+    case 'rejected':
+      return 'var(--no)';
+    case 'tie':
+      return 'var(--abst)';
+  }
+}
 
 export default async function HomePage() {
   const t = await getTranslations('home');
@@ -505,7 +518,7 @@ function CompactVoteRow({
           <div
             style={{
               display: 'flex',
-              gap: 10,
+              gap: 8,
               marginTop: 8,
               alignItems: 'center',
               fontSize: 12,
@@ -513,7 +526,7 @@ function CompactVoteRow({
               flexWrap: 'wrap',
             }}
           >
-            <span>{labels.proposed_by}</span>
+            <span className="hidden sm:inline">{labels.proposed_by}</span>
             {v.proposed_by_government && !v.proposing_group_short ? (
               <span className="badge" style={{ fontWeight: 600 }}>
                 <span className="gdot" style={{ background: 'var(--ink)' }} />
@@ -529,6 +542,15 @@ function CompactVoteRow({
                 />
               </span>
             ) : null}
+            {/* Mobile-only: colored result text sits on the SAME baseline
+                as the proposer chip — matches the user's mock. Desktop
+                keeps its own dedicated result cell on the right. */}
+            <span className="sm:hidden inline-flex items-center gap-2">
+              <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>·</span>
+              <span style={{ color: resultColor(v.result), fontWeight: 600 }}>
+                {labels.result}
+              </span>
+            </span>
           </div>
         </div>
         <div>
@@ -541,8 +563,10 @@ function CompactVoteRow({
             labels={{ ayes: labels.ayes, noes: labels.noes, abstentions: labels.abstentions }}
           />
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <ResultPill result={v.result} label={labels.result} responsive />
+        {/* Desktop-only column — on mobile the result lives inline with
+            the proposer chip above. */}
+        <div className="hidden sm:block" style={{ textAlign: 'right' }}>
+          <ResultPill result={v.result} label={labels.result} />
           {total > 0 && (
             <div className="tabular" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4 }}>
               {total}

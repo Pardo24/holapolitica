@@ -10,9 +10,7 @@
   },
   "nav": {
     "votes": "Votaciones",
-    "persons": "Diputados",
-    "groups": "Grupos",
-    "topics": "Temas",
+    "persons": "Representantes",
     "stats": "Estadísticas",
     "about": "Sobre",
     "newsletter": "Newsletter",
@@ -162,6 +160,7 @@
   "votes": {
     "title": "Votaciones",
     "subtitle": "Todos los registros · Congreso de los Diputados · XV leg.",
+    "tab_by_topic": "Por tema",
     "records_count": "{count} registros",
     "filters": {
       "topic": "Tema",
@@ -212,6 +211,8 @@
   },
   "persons": {
     "title": "Diputados",
+    "hub_eyebrow": "Congreso de los Diputados · XV legislatura",
+    "groups_tab_label": "Grupos políticos",
     "subtitle": "{total} personas en la base de datos.",
     "subtitle_composition": "Composición actual · {total} diputados",
     "search_placeholder": "Busca por nombre, apellidos o circunscripción",

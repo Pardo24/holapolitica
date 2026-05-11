@@ -10,18 +10,17 @@ export async function TopNav() {
   const tSite = await getTranslations('site');
   const locale = await getLocale();
 
-  // Order is editorial: lookup spines first (Votes/Persons/Groups), then a
-  // wider gap, then exploration surfaces (Topics/Stats). About is footer-only.
-  // Grups is reachable via in-page links (group cards on /persons, chips on
-  // votes, badges on persons) and at /groups directly — but it's not a
-  // top-level lookup spine like Votes/Persons. Keeping it in nav diluted
-  // the four primary entry points.
+  // Two-spine nav by design: Votes and Persons are the lookup surfaces;
+  // Topics and Groups have been folded inside as tabs (cf. /votes "Per tema"
+  // and /persons "Grups polítics"). The standalone /topics and /groups
+  // routes remain accessible by direct link / SEO, but they no longer
+  // crowd the primary navigation — a mobile-first cognitive-load fix.
+  // Stats + Notifications are exploration surfaces, kept secondary.
   const primary: { href: Route; label: string }[] = [
     { href: '/votes', label: t('votes') },
     { href: '/persons', label: t('persons') },
   ];
   const secondary: { href: Route; label: string }[] = [
-    { href: '/topics', label: t('topics') },
     { href: '/stats', label: t('stats') },
     { href: '/notifications', label: t('notifications') },
   ];

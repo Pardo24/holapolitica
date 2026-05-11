@@ -529,35 +529,45 @@ a { color: inherit; }
      back in so users can toggle the panel. */
   pointer-events: auto;
   margin-left: 6px;
-  vertical-align: 2px;
+  vertical-align: 1px;
 }
 .summary-hover__details > summary {
   list-style: none;
   cursor: pointer;
+  /* Ensure the trigger receives taps even if a parent overlay link sits
+     on top of the row content. */
+  pointer-events: auto;
+  position: relative;
+  z-index: 5;
 }
 .summary-hover__details > summary::-webkit-details-marker { display: none; }
-/* The <summary> element doubles as the visible "i" trigger button. */
+/* The <summary> element doubles as the visible "i" trigger button. A
+   small high-contrast circle so it's unambiguously visible on touch. */
 .summary-hover__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 14px;
+  height: 14px;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--ink-2);
+  color: var(--paper);
   border: 0;
-  font-size: 12px;
+  font-size: 10px;
+  line-height: 1;
   font-weight: 700;
   font-family: var(--font-serif);
   font-style: italic;
   cursor: pointer;
-  transition: background-color .15s ease;
+  transition: background-color .15s ease, color .15s ease;
+  /* Keep the tap target comfortable without inflating the visual badge. */
+  padding: 0;
 }
-.summary-hover__btn:hover { background: color-mix(in oklch, var(--accent) 25%, var(--paper-2)); }
+.summary-hover__btn:hover { background: var(--ink); }
 .summary-hover__btn:active,
 .summary-hover__details[open] > .summary-hover__btn {
-  background: color-mix(in oklch, var(--accent) 35%, var(--paper-2));
+  background: var(--accent);
+  color: var(--paper);
 }
 .summary-hover__panel {
   /* Positioned within the parent .summary-hover (which is position:
@@ -683,23 +693,25 @@ a { color: inherit; }
   .tab th { font-size: 10px; padding: 6px 8px; }
   .tab td { padding: 8px 6px; font-size: 12px; }
 
-  /* Home-page vote rows: SUBJECT gets the whole width on its own row.
-     Layout: [date | result] on top, [subject] full-width, [proposer | bar]
-     on the bottom. Date stays compact left, result floats right. */
+  /* Home-page vote rows: two-column layout on mobile — date on the
+     left, the rest stacks on the right. The result indicator is
+     rendered inline next to the proposer chip (see CompactVoteRow);
+     the desktop result column is hidden via `hidden sm:block`. */
   .vote-row-grid {
-    grid-template-columns: 1fr auto !important;
+    grid-template-columns: minmax(52px, max-content) 1fr !important;
     grid-template-areas:
-      "date    result"
-      "subject subject"
-      "bar     bar"
+      "date  subject"
+      ".     bar"
       !important;
     gap: 6px 12px !important;
     padding: 18px 0 !important;
+    align-items: start !important;
   }
   .vote-row-grid > *:nth-child(1) { grid-area: date; }
   .vote-row-grid > *:nth-child(2) { grid-area: subject; }
   .vote-row-grid > *:nth-child(3) { grid-area: bar; padding-top: 4px; }
-  .vote-row-grid > *:nth-child(4) { grid-area: result; text-align: right; }
+  /* 4th cell (desktop-only result column) is `display:none` on mobile,
+     so it doesn't claim a grid area. */
 
   /* Upcoming-row on home: similar — date prominent, title full-width. */
   .upcoming-row-grid {
@@ -778,21 +790,21 @@ a { color: inherit; }
     gap: 8px !important;
   }
 
-  /* Votes-list table → card layout on mobile. Each row reflows to a
-     4-area grid where the SUBJECT (the thing the user came to read) gets
-     full width on its own line, and the date/result share the top edge.
-     Other tables on the site (vote-detail cohesion, etc.) keep their
-     standard horizontal-scroll behaviour because they're column-dense. */
+  /* Votes-list table → card layout on mobile. Two-column row: a fixed
+     narrow date column on the left, and a stacked content column on
+     the right (title; then [proposer-chip · colored-result-text]; then
+     vote bar). The proposer and result share ONE baseline so they read
+     as a single attribution line; the bar takes its own row below. */
   .tab-votes-list { border-collapse: collapse; table-layout: auto !important; }
   .tab-votes-list thead { display: none; }
   .tab-votes-list tbody { display: block; }
   .tab-votes-list tr {
     display: grid !important;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(56px, max-content) 1fr auto;
     grid-template-areas:
-      "date     result"
-      "subject  subject"
-      "proposer votebar";
+      "date  subject  subject"
+      ".     proposer result"
+      ".     votebar  votebar";
     column-gap: 12px;
     row-gap: 6px;
     padding: 16px 2px;
@@ -813,15 +825,10 @@ a { color: inherit; }
     color: var(--ink-3) !important;
     white-space: nowrap;
   }
+  /* Expediente: hidden on mobile — the user came for the subject, the
+     code goes one tap deeper. */
   .tab-votes-list tr td:nth-child(2) {
-    display: inline !important;
-    font-size: 11px !important;
-    margin-left: 8px;
-    color: var(--ink-3) !important;
-  }
-  .tab-votes-list tr td:nth-child(2)::before {
-    content: "· ";
-    color: var(--ink-3);
+    display: none !important;
   }
   .tab-votes-list tr td:nth-child(3) {
     grid-area: subject;
@@ -829,17 +836,21 @@ a { color: inherit; }
     line-height: 1.4;
     color: var(--ink) !important;
   }
+  /* Proposer chip and result share a single row, aligned on the same
+     baseline. Result on the right (colored text only, no extra disc). */
   .tab-votes-list tr td:nth-child(4) {
     grid-area: proposer;
-    align-self: end;
+    align-self: center;
+    min-width: 0;
   }
   .tab-votes-list tr td:nth-child(5) {
     grid-area: votebar;
-    align-self: end;
-    min-width: 140px;
+    min-width: 0;
   }
   .tab-votes-list tr td:nth-child(6) {
     grid-area: result;
+    align-self: center;
+    justify-self: end;
     text-align: right !important;
   }
   .tab-votes-list tr:hover td { background: transparent !important; }
@@ -860,6 +871,13 @@ a { color: inherit; }
 /* Line-clamping for vote/initiative subjects is now handled by Tailwind
    utilities (`line-clamp-2 sm:line-clamp-3`) co-located with each list
    row, so no custom CSS is needed here. Mobile shows 2 lines, desktop 3. */
+
+/* Topics-detail initiative rows: mobile is 2-col (date | content), desktop
+   3-col (date | content | status badge). Mobile cols are set inline by
+   the component; we add the desktop expansion here at the sm: breakpoint. */
+@media (min-width: 640px) {
+  .initiative-row { grid-template-columns: 110px 1fr auto !important; }
+}
 
 @media (max-width: 480px) {
   .home-coverage {

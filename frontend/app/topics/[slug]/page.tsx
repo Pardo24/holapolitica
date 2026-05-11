@@ -397,10 +397,6 @@ export default async function TopicDetailPage({
   );
 }
 
-// Statuses with a binary outcome use a solid disc on mobile; in-progress
-// statuses use an outlined disc (matches ResultPill semantics for ties).
-const SOLID_DISC_STATUSES = new Set(['approved', 'rejected']);
-
 function InitiativeRow({
   initiative,
   locale,
@@ -431,7 +427,6 @@ function InitiativeRow({
   const plainSummary = pickPlainSummary(initiative, locale);
   const statusLabel = STATUS_LABEL[initiative.status] ?? initiative.status;
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
-  const isSolidDisc = SOLID_DISC_STATUSES.has(initiative.status);
   const linkHref = initiative.source_url ?? '#';
   const isExternal = !!initiative.source_url;
   return (
@@ -442,13 +437,17 @@ function InitiativeRow({
         rel={isExternal ? 'noopener noreferrer' : undefined}
         className="initiative-row"
         style={{
-          display: 'grid',
-          gridTemplateColumns: '110px 1fr auto',
-          gap: 14,
-          padding: '14px 0',
-          borderBottom: '1px solid var(--rule)',
           textDecoration: 'none',
           color: 'inherit',
+          borderBottom: '1px solid var(--rule)',
+          padding: '14px 0',
+          display: 'grid',
+          gap: 14,
+          // Mobile: 2-col [date | content]; desktop: 3-col [date | content | status]
+          // The desktop status cell is also rendered but `hidden sm:flex` so it
+          // only participates in the layout once the breakpoint kicks in. The
+          // grid columns are set via inline + a media query in <style>.
+          gridTemplateColumns: 'minmax(56px, max-content) 1fr',
           alignItems: 'baseline',
         }}
       >
@@ -465,7 +464,12 @@ function InitiativeRow({
           <span className="hidden sm:inline">{longDate}</span>
         </span>
         <div style={{ minWidth: 0 }}>
-          <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+          {/* Desktop metadata row — kept above the title for a scannable
+              "type · proposer" lead. Hidden on mobile to declutter. */}
+          <span
+            className="hidden sm:inline"
+            style={{ fontSize: 11, color: 'var(--ink-3)' }}
+          >
             {typeShort ? (
               <Tooltip term={typeLabel} explanation={typeShort} />
             ) : (
@@ -490,29 +494,52 @@ function InitiativeRow({
               {initiative.title_original}
             </SummaryHover>
           </div>
+          {/* Mobile attribution line — type · proposer · colored status,
+              all baseline-aligned beneath the title. Mirrors the votes
+              page mobile pattern so the visual rhythm is consistent. */}
+          <div
+            className="sm:hidden"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              flexWrap: 'wrap',
+              marginTop: 6,
+              fontSize: 11,
+              color: 'var(--ink-3)',
+              lineHeight: 1.3,
+            }}
+          >
+            <span>
+              {typeShort ? (
+                <Tooltip term={typeLabel} explanation={typeShort} />
+              ) : (
+                typeLabel
+              )}
+            </span>
+            {initiative.submitted_by && (
+              <>
+                <span aria-hidden="true">·</span>
+                <ProposerEllipsis text={initiative.submitted_by} />
+              </>
+            )}
+            <span aria-hidden="true">·</span>
+            <span style={{ color: statusColor, fontWeight: 600 }}>
+              {statusLabel}
+            </span>
+          </div>
           <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, display: 'inline-block' }}>
             {initiative.official_id}
           </span>
         </div>
-        {/* Mobile: icon-only status disc; desktop: full labeled badge.
-            Both kept inside a single grid cell so the row layout stays 3-col. */}
-        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        {/* Desktop-only status badge column. Hidden on mobile because the
+            status text appears inline in the attribution line above. */}
+        <span
+          className="hidden sm:inline-flex"
+          style={{ alignItems: 'center', justifyContent: 'flex-end' }}
+        >
           <span
-            className="sm:hidden inline-block align-middle"
-            role="img"
-            aria-label={statusLabel}
-            title={statusLabel}
-            style={{
-              width: 12,
-              height: 12,
-              borderRadius: 999,
-              background: isSolidDisc ? statusColor : 'transparent',
-              border: isSolidDisc ? '0' : `2px solid ${statusColor}`,
-              boxSizing: 'border-box',
-            }}
-          />
-          <span
-            className="badge hidden sm:inline-flex"
+            className="badge"
             style={{
               fontWeight: 600,
               color: statusColor,

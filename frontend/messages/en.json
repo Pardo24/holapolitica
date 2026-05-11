@@ -11,8 +11,6 @@
   "nav": {
     "votes": "Votes",
     "persons": "Representatives",
-    "groups": "Groups",
-    "topics": "Topics",
     "stats": "Stats",
     "about": "About",
     "newsletter": "Newsletter",
@@ -162,6 +160,7 @@
   "votes": {
     "title": "Votes",
     "subtitle": "All records · Spanish Congress · 15th legislature",
+    "tab_by_topic": "By topic",
     "records_count": "{count} records",
     "filters": {
       "topic": "Topic",
@@ -212,6 +211,8 @@
   },
   "persons": {
     "title": "Representatives",
+    "hub_eyebrow": "Spanish Congress · 15th legislature",
+    "groups_tab_label": "Political groups",
     "subtitle": "{total} people in the database.",
     "subtitle_composition": "Current composition · {total} representatives",
     "search_placeholder": "Search by name, surname or constituency",

@@ -10,9 +10,7 @@
   },
   "nav": {
     "votes": "Votacions",
-    "persons": "Diputats",
-    "groups": "Grups",
-    "topics": "Temes",
+    "persons": "Representants",
     "stats": "Estadístiques",
     "about": "Sobre",
     "newsletter": "Newsletter",
@@ -162,6 +160,7 @@
   "votes": {
     "title": "Votacions",
     "subtitle": "Tots els registres · Congrés dels Diputats · XV leg.",
+    "tab_by_topic": "Per tema",
     "records_count": "{count} registres",
     "filters": {
       "topic": "Tema",
@@ -212,6 +211,8 @@
   },
   "persons": {
     "title": "Diputats",
+    "hub_eyebrow": "Congrés dels Diputats · XV legislatura",
+    "groups_tab_label": "Grups polítics",
     "subtitle": "{total} persones a la base de dades.",
     "subtitle_composition": "Composició actual · {total} diputats",
     "search_placeholder": "Cerca per nom, cognom o circumscripció",

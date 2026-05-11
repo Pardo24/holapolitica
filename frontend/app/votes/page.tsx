@@ -4,16 +4,24 @@ import { getLocale, getTranslations } from 'next-intl/server';
 
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
+import { HubTabs } from '@/components/HubTabs';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { SummaryHover } from '@/components/SummaryHover';
 import { TopicCombobox } from '@/components/TopicCombobox';
+import { TopicListPanel } from '@/components/TopicListPanel';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
-import { api, type Vote, type VoteResult } from '@/lib/api';
+import { api, type TopicKind, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 
+type VotesTab = 'votes' | 'topics';
+
 interface SearchParams {
+  tab?: string;
+  // Topic-tab params
+  kind?: string;
+  // Vote-list params
   topic_slug?: string;
   proposing_group_slug?: string;
   result?: VoteResult;
@@ -27,10 +35,65 @@ export default async function VotesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations('votes');
-  const tCommon = await getTranslations('common');
+  const tNav = await getTranslations('nav');
   const params = await searchParams;
-  const page = Number(params.page ?? 1);
+  const activeTab: VotesTab = params.tab === 'topics' ? 'topics' : 'votes';
+
+  return (
+    <div>
+      <header
+        style={{
+          paddingTop: 28,
+          paddingBottom: 14,
+        }}
+      >
+        <div className="eyebrow">{t('subtitle')}</div>
+        <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
+          {t('title')}
+        </h1>
+      </header>
+
+      <HubTabs
+        ariaLabel="Vistes de votacions"
+        tabs={[
+          {
+            href: '/votes' as Route,
+            label: tNav('votes'),
+            active: activeTab === 'votes',
+          },
+          {
+            href: '/votes?tab=topics' as Route,
+            label: t('tab_by_topic'),
+            active: activeTab === 'topics',
+          },
+        ]}
+      />
+
+      {activeTab === 'votes' ? (
+        <VotesListTab params={params} />
+      ) : (
+        <TopicsTab kind={params.kind} />
+      )}
+    </div>
+  );
+}
+
+async function TopicsTab({ kind }: { kind: string | undefined }) {
+  const activeKind: TopicKind = kind === 'sdg' ? 'sdg' : 'theme';
+  return (
+    <TopicListPanel
+      activeKind={activeKind}
+      hrefBase="/votes"
+      extraTabParams={{ tab: 'topics' }}
+    />
+  );
+}
+
+async function VotesListTab({ params }: { params: SearchParams }) {
+  const t = await getTranslations('votes');
+  const tCommon = await getTranslations('common');
   const locale = await getLocale();
+  const page = Number(params.page ?? 1);
 
   let data: Awaited<ReturnType<typeof api.votes.list>> | null = null;
   let topics: Awaited<ReturnType<typeof api.topics.list>> = [];
@@ -54,28 +117,20 @@ export default async function VotesPage({
     error = e instanceof Error ? e.message : 'unknown error';
   }
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1;
+  const totalPages = data
+    ? Math.max(1, Math.ceil(data.total / data.page_size))
+    : 1;
 
   return (
     <div>
-      <header
+      <div
         style={{
-          paddingTop: 28,
-          paddingBottom: 18,
-          borderBottom: '1px solid var(--ink)',
           display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          gap: 12,
-          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          paddingTop: 14,
         }}
       >
-        <div>
-          <div className="eyebrow">{t('subtitle')}</div>
-          <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
-            {t('title')}
-          </h1>
-        </div>
         <div className="tabular" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
           <span style={{ color: 'var(--ink)', fontWeight: 600 }}>
             {data ? data.total.toLocaleString(locale) : '—'}
@@ -87,13 +142,13 @@ export default async function VotesPage({
             </>
           )}
         </div>
-      </header>
+      </div>
 
       {/* Simplified filter — primary row (search + topic), advanced hidden */}
       <form
         method="GET"
         style={{
-          paddingTop: 14,
+          paddingTop: 6,
           paddingBottom: 6,
           borderBottom: '1px solid var(--rule)',
         }}
@@ -281,28 +336,6 @@ const selectStyle: React.CSSProperties = {
   color: 'var(--ink-2)',
 };
 
-function FilterCell({
-  children,
-  border,
-}: {
-  children: React.ReactNode;
-  border?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        padding: '12px 14px',
-        borderRight: border ? '1px solid var(--rule)' : 'none',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 interface RowLabels {
   ayes: string;
   noes: string;
@@ -422,7 +455,12 @@ function VoteTableRow({
         />
       </td>
       <td style={{ textAlign: 'right' }}>
-        <ResultPill result={vote.result} label={t.result} responsive />
+        <ResultPill
+          result={vote.result}
+          label={t.result}
+          responsive
+          mobileVariant="text"
+        />
       </td>
     </tr>
   );

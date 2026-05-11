@@ -3,11 +3,16 @@ import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { GroupBadge } from '@/components/GroupBadge';
+import { GroupListPanel } from '@/components/GroupListPanel';
 import { Hemicycle } from '@/components/Hemicycle';
+import { HubTabs } from '@/components/HubTabs';
 import { api, type ParliamentaryGroupSummary, type Person } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
+type PersonsTab = 'diputats' | 'grups';
+
 interface SearchParams {
+  tab?: string;
   q?: string;
   page?: string;
 }
@@ -18,8 +23,58 @@ export default async function PersonsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations('persons');
+  const tNav = await getTranslations('nav');
+  const params = await searchParams;
+  const activeTab: PersonsTab = params.tab === 'grups' ? 'grups' : 'diputats';
+
+  return (
+    <div>
+      <header
+        style={{
+          paddingTop: 28,
+          paddingBottom: 14,
+        }}
+      >
+        <div className="eyebrow">{t('hub_eyebrow')}</div>
+        <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
+          {tNav('persons')}
+        </h1>
+      </header>
+
+      <HubTabs
+        ariaLabel="Vistes de representants"
+        tabs={[
+          {
+            href: '/persons' as Route,
+            label: t('title'),
+            active: activeTab === 'diputats',
+          },
+          {
+            href: '/persons?tab=grups' as Route,
+            label: t('groups_tab_label'),
+            active: activeTab === 'grups',
+          },
+        ]}
+      />
+
+      {activeTab === 'diputats' ? (
+        <DiputatsTab q={params.q} pageParam={params.page} />
+      ) : (
+        <GroupListPanel />
+      )}
+    </div>
+  );
+}
+
+async function DiputatsTab({
+  q,
+  pageParam,
+}: {
+  q: string | undefined;
+  pageParam: string | undefined;
+}) {
+  const t = await getTranslations('persons');
   const tGroups = await getTranslations('groups');
-  const { q, page: pageParam } = await searchParams;
   const page = Number(pageParam ?? 1);
 
   const [data, groups] = await Promise.all([
@@ -37,50 +92,46 @@ export default async function PersonsPage({
 
   return (
     <div>
-      <header
+      {/* Search bar under the tab strip */}
+      <form
+        method="GET"
         style={{
-          paddingTop: 28,
-          paddingBottom: 18,
-          borderBottom: '1px solid var(--ink)',
           display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          gap: 12,
+          gap: 8,
+          alignItems: 'center',
+          paddingTop: 16,
           flexWrap: 'wrap',
         }}
       >
-        <div>
-          <div className="eyebrow">
-            {t('subtitle_composition', { total: totalSeats })}
-          </div>
-          <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
-            {t('title')}
-          </h1>
-        </div>
-        <form
-          method="GET"
-          style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+        <input
+          type="search"
+          name="q"
+          placeholder={t('search_placeholder')}
+          defaultValue={q ?? ''}
+          style={{
+            padding: '8px 12px',
+            border: '1px solid var(--ink)',
+            background: 'transparent',
+            fontSize: 13,
+            minWidth: 280,
+            fontFamily: 'inherit',
+            color: 'var(--ink)',
+          }}
+        />
+        <button type="submit" className="btn-ink btn-sm">
+          {t('search_button')}
+        </button>
+        <div
+          className="tabular"
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-3)',
+            marginLeft: 'auto',
+          }}
         >
-          <input
-            type="search"
-            name="q"
-            placeholder={t('search_placeholder')}
-            defaultValue={q ?? ''}
-            style={{
-              padding: '8px 12px',
-              border: '1px solid var(--ink)',
-              background: 'transparent',
-              fontSize: 13,
-              minWidth: 280,
-              fontFamily: 'inherit',
-              color: 'var(--ink)',
-            }}
-          />
-          <button type="submit" className="btn-ink btn-sm">
-            {t('search_button')}
-          </button>
-        </form>
-      </header>
+          {t('subtitle_composition', { total: totalSeats })}
+        </div>
+      </form>
 
       {/* Hemicycle composition + group legend */}
       <section

@@ -6,6 +6,7 @@ import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
+import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
 import { ShareButton } from '@/components/ShareButton';
 import { SummaryHover } from '@/components/SummaryHover';
 import { TopicCombobox } from '@/components/TopicCombobox';
@@ -65,6 +66,10 @@ interface SearchParams {
   topic?: string;
   group?: string;
   tab?: string;
+  /** Mobile-only widget 4 picker state — kept in URL for share/bookmark.
+   *  Desktop layout ignores these. */
+  pair_a?: string;
+  pair_b?: string;
 }
 
 export default async function StatsPage({
@@ -77,6 +82,11 @@ export default async function StatsPage({
   const params = await searchParams;
   const selectedTopic = params.topic ?? 'all';
   const selectedGroup = params.group ?? 'all';
+  // Mobile dashboard pair-picker state (widget 4). Stored as URL params so
+  // the user can share or bookmark a configured pair. Desktop layout
+  // ignores these.
+  const pairA = params.pair_a ?? '';
+  const pairB = params.pair_b ?? '';
   const hasTopic = selectedTopic !== 'all';
   const hasGroup = selectedGroup !== 'all';
   const bothFilters = hasTopic && hasGroup;
@@ -225,6 +235,31 @@ export default async function StatsPage({
         />
       </header>
 
+      {/* Mobile-only dashboard (≤640px). Same data, denser layout — every
+          key signal visible without scrolling through paragraphs. Hidden on
+          ≥sm so the existing tabbed layout below survives unchanged. */}
+      <MobileStatsDashboard
+        highlights={allHighlights}
+        allTopics={allTopics}
+        allGroups={allGroups}
+        topics={topics}
+        byStatus={byStatus}
+        proposingGroups={proposingGroups}
+        topicProposers={topicProposers}
+        groupActivity={groupActivity}
+        cross={cross}
+        coincidence={coincidence}
+        topicStatsByGroup={topicStatsByGroup}
+        summary={summary}
+        selectedTopic={selectedTopic}
+        selectedGroup={selectedGroup}
+        pairA={pairA}
+        pairB={pairB}
+        locale={locale}
+      />
+
+      {/* Desktop tabbed layout — hidden on mobile, identical to before. */}
+      <div className="hidden sm:block">
       {/* Tabs — top-level page navigation. Server-rendered Links so the
           tab state survives reloads and can be deep-linked. Switching tab
           preserves the currently selected filters so context isn't lost. */}
@@ -610,6 +645,8 @@ export default async function StatsPage({
           )}
         </>
       )}
+
+      </div>
 
       <style>{`
         @media (max-width: 860px) {
