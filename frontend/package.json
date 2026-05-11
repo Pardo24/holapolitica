@@ -1,5 +1,5 @@
 {
-  "name": "monitor-parlamentari-frontend",
+  "name": "holapolitica-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -28,6 +28,6 @@
     "typescript": "^5.5.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   }
 }
