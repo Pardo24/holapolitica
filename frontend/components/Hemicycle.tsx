@@ -220,7 +220,20 @@ function useIsTouch(): boolean {
   return touch;
 }
 
-export function Hemicycle({ layout }: { layout: HemicycleLayout }) {
+export function Hemicycle({
+  layout,
+  showPhotos = false,
+}: {
+  layout: HemicycleLayout;
+  /**
+   * When ``true``, each seat renders the deputy's official portrait
+   * (clipped to a circle) instead of the flat group-color disc. Photo
+   * loading is opt-in because pulling 350 images costs ~3 MB on the
+   * wire — fine on desktop, painful on mobile. The toggle that flips
+   * this prop lives in ``DeputiesList``.
+   */
+  showPhotos?: boolean;
+}) {
   const t = useTranslations('hemicycle');
   const [selected, setSelected] = useState<SelectedSeat | null>(null);
   const isTouch = useIsTouch();
@@ -277,6 +290,25 @@ export function Hemicycle({ layout }: { layout: HemicycleLayout }) {
           style={{ width: '100%', height: 'auto', display: 'block' }}
           onMouseLeave={handleSeatLeave}
         >
+          {/* When photo mode is on we render each portrait inside a
+              <clipPath> circle. The clip path id is derived from the
+              person_id so it stays stable across re-renders. We define
+              all clip paths in a single <defs> block at the top to keep
+              the DOM compact and let the browser hoist the geometry. */}
+          {showPhotos && (
+            <defs>
+              {placed.map((seat) =>
+                seat.photo_url ? (
+                  <clipPath
+                    key={`clip-${seat.person_id}`}
+                    id={`seat-clip-${seat.person_id}`}
+                  >
+                    <circle cx={seat.cx} cy={seat.cy} r={SEAT_R} />
+                  </clipPath>
+                ) : null,
+              )}
+            </defs>
+          )}
           {placed.map((seat) => (
             <SeatDot
               key={seat.person_id}
@@ -284,6 +316,7 @@ export function Hemicycle({ layout }: { layout: HemicycleLayout }) {
               onHover={handleSeatHover}
               onTap={handleSeatTap}
               isTouch={isTouch}
+              showPhotos={showPhotos}
             />
           ))}
         </svg>
@@ -328,9 +361,10 @@ interface SeatDotProps {
   onHover: (seat: PlacedSeat) => void;
   onTap: (seat: PlacedSeat) => void;
   isTouch: boolean;
+  showPhotos: boolean;
 }
 
-function SeatDot({ seat, onHover, onTap, isTouch }: SeatDotProps) {
+function SeatDot({ seat, onHover, onTap, isTouch, showPhotos }: SeatDotProps) {
   const color = seat.group_color ?? DEFAULT_COLOR;
   const href = `/persons/${seat.person_id}` as Route;
 
@@ -348,6 +382,12 @@ function SeatDot({ seat, onHover, onTap, isTouch }: SeatDotProps) {
     }
   };
 
+  // Photo mode: render the deputy's portrait clipped to the seat
+  // circle, with a thin colored ring (the group color) drawn on top
+  // so the partisan colour still reads at a glance and seats with no
+  // photo fall back to the original solid-color disc.
+  const renderPhotoMode = showPhotos && seat.photo_url;
+
   return (
     <a
       href={href}
@@ -359,23 +399,61 @@ function SeatDot({ seat, onHover, onTap, isTouch }: SeatDotProps) {
       onFocus={() => onHover(seat)}
       style={{ cursor: 'pointer' }}
     >
-      <circle
-        cx={seat.cx}
-        cy={seat.cy}
-        r={SEAT_R}
-        fill={color}
-        stroke={SEAT_STROKE}
-        strokeWidth={SEAT_STROKE_W}
-        // Native title gives screen readers + tooltip-on-hover-pause
-        // a fallback that works even when the React hover card is
-        // suppressed (e.g. in a forced-colors / prefers-reduced-motion
-        // environment).
-      >
-        <title>
-          {seat.full_name}
-          {seat.group_short ? ` · ${seat.group_short}` : ''}
-        </title>
-      </circle>
+      {renderPhotoMode && seat.photo_url ? (
+        <>
+          {/* Background disc — colored ring is visible only where
+              the portrait is transparent (rare) and as the 1px halo
+              around the clipped image. */}
+          <circle
+            cx={seat.cx}
+            cy={seat.cy}
+            r={SEAT_R}
+            fill={color}
+          />
+          <image
+            href={seat.photo_url}
+            x={seat.cx - SEAT_R}
+            y={seat.cy - SEAT_R}
+            width={SEAT_R * 2}
+            height={SEAT_R * 2}
+            preserveAspectRatio="xMidYMid slice"
+            clipPath={`url(#seat-clip-${seat.person_id})`}
+          />
+          {/* Outer ring: a stroked circle on top of the clipped image
+              so the partisan colour reads as a thin halo. */}
+          <circle
+            cx={seat.cx}
+            cy={seat.cy}
+            r={SEAT_R}
+            fill="none"
+            stroke={color}
+            strokeWidth={2}
+          >
+            <title>
+              {seat.full_name}
+              {seat.group_short ? ` · ${seat.group_short}` : ''}
+            </title>
+          </circle>
+        </>
+      ) : (
+        <circle
+          cx={seat.cx}
+          cy={seat.cy}
+          r={SEAT_R}
+          fill={color}
+          stroke={SEAT_STROKE}
+          strokeWidth={SEAT_STROKE_W}
+          // Native title gives screen readers + tooltip-on-hover-pause
+          // a fallback that works even when the React hover card is
+          // suppressed (e.g. in a forced-colors / prefers-reduced-motion
+          // environment).
+        >
+          <title>
+            {seat.full_name}
+            {seat.group_short ? ` · ${seat.group_short}` : ''}
+          </title>
+        </circle>
+      )}
     </a>
   );
 }

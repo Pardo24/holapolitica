@@ -193,16 +193,206 @@ async def _send_confirmation(
     site = get_settings().backend_cors_origins.split(",")[0].strip().rstrip("/")
     confirm_url = f"{site}/confirm/{kind}/{token}"
     subject = (
-        "Confirma la teva subscripció — Monitor Parlamentari"
+        "Confirma la teva subscripció — Hola Política"
         if kind == "alert"
-        else "Confirma la subscripció a la newsletter — Monitor Parlamentari"
+        else "Confirma la subscripció a la newsletter — Hola Política"
     )
-    body = (
-        "Hola,\n\n"
-        "Ens has demanat rebre informació de Monitor Parlamentari. "
-        "Per finalitzar la subscripció, fes clic a l'enllaç següent:\n\n"
+    body_text = _render_confirmation_text(confirm_url, kind=kind)
+    body_html = _render_confirmation_html(confirm_url, kind=kind)
+    await sender.send(
+        EmailMessage(to=recipient, subject=subject, body_text=body_text, body_html=body_html)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Confirmation email rendering
+# ---------------------------------------------------------------------------
+#
+# We render a small bespoke HTML template inline instead of bringing in
+# Jinja for this single message. Constraints (driven by Outlook + Gmail
+# clipping rules):
+#
+#   * Inline styles only — many clients strip ``<style>`` blocks.
+#   * Table-based layout for the outer containers — Outlook on Windows
+#     ignores CSS flex/grid and treats divs unpredictably.
+#   * Max width 560px so the content stays readable on phones.
+#   * Brand colors mirror the website tokens in ``frontend/app/globals.css``
+#     (``--paper``, ``--ink``, ``--accent``) converted from oklch to the
+#     nearest sRGB hex equivalent. Keep these in sync if the design tokens
+#     change.
+
+_BRAND_PAPER = "#fbf9f4"  # --paper
+_BRAND_INK = "#1a2138"  # --ink
+_BRAND_INK_2 = "#4a5675"  # --ink-2
+_BRAND_INK_3 = "#7c87a3"  # --ink-3
+_BRAND_RULE = "#d8d4c6"  # --rule
+_BRAND_ACCENT = "#3a5da8"  # --accent
+
+_FONT_STACK = "'Helvetica Neue', Helvetica, Arial, sans-serif"
+_FONT_SERIF = "Georgia, 'Times New Roman', serif"
+
+
+def _confirmation_copy(kind: Literal["alert", "newsletter"]) -> dict[str, str]:
+    """Catalan source-of-truth copy for the confirmation email."""
+    if kind == "newsletter":
+        return {
+            "preheader": (
+                "Confirma la teva subscripció a la newsletter setmanal de Hola Política."
+            ),
+            "headline": "Confirma la teva subscripció",
+            "lede": (
+                "Ens has demanat rebre la newsletter setmanal de Hola Política — "
+                "un correu cada divendres amb les votacions de la setmana al Congrés. "
+                "Sense valoracions, només dades."
+            ),
+            "cta": "Confirmar subscripció",
+            "after_cta": (
+                "Si l'enllaç no funciona, copia i enganxa aquesta adreça al teu navegador:"
+            ),
+            "footer_ignore": (
+                "Si no has demanat aquesta subscripció, ignora aquest correu i no "
+                "passarà res — el teu correu no s'afegirà a cap llista."
+            ),
+        }
+    return {
+        "preheader": ("Confirma la teva subscripció als avisos de Hola Política."),
+        "headline": "Confirma els teus avisos",
+        "lede": (
+            "Ens has demanat rebre avisos de Hola Política — un correu només "
+            "quan arribi una nova votació o iniciativa relacionada amb el tema, "
+            "persona o grup que segueixes. Sense valoracions, només dades."
+        ),
+        "cta": "Confirmar subscripció",
+        "after_cta": ("Si l'enllaç no funciona, copia i enganxa aquesta adreça al teu navegador:"),
+        "footer_ignore": (
+            "Si no has demanat aquesta subscripció, ignora aquest correu i no "
+            "passarà res — el teu correu no s'afegirà a cap llista."
+        ),
+    }
+
+
+def _render_confirmation_text(confirm_url: str, *, kind: Literal["alert", "newsletter"]) -> str:
+    copy = _confirmation_copy(kind)
+    return (
+        f"Hola,\n\n"
+        f"{copy['lede']}\n\n"
+        f"Per finalitzar la subscripció, obre aquest enllaç al teu navegador:\n\n"
         f"{confirm_url}\n\n"
-        "Si no has demanat aquesta subscripció, ignora aquest correu.\n\n"
-        "— Monitor Parlamentari\n"
+        f"{copy['footer_ignore']}\n\n"
+        f"— Hola Política · Mirall, no megàfon.\n"
     )
-    await sender.send(EmailMessage(to=recipient, subject=subject, body_text=body))
+
+
+def _render_confirmation_html(confirm_url: str, *, kind: Literal["alert", "newsletter"]) -> str:
+    """Return a self-contained HTML document for the confirmation email."""
+    from html import escape
+
+    copy = _confirmation_copy(kind)
+    safe_url = escape(confirm_url, quote=True)
+
+    # Styles — kept as local constants so the f-string body stays readable.
+    s_wrap = (
+        f"background-color:{_BRAND_PAPER};margin:0;padding:24px 12px;"
+        f"font-family:{_FONT_STACK};color:{_BRAND_INK};"
+    )
+    s_outer_table = "width:100%;border-collapse:collapse;"
+    s_card = (
+        f"max-width:560px;width:100%;margin:0 auto;background-color:#ffffff;"
+        f"border:1px solid {_BRAND_RULE};border-radius:10px;border-collapse:separate;"
+    )
+    s_header_cell = (
+        f"padding:28px 32px 16px;border-bottom:1px solid {_BRAND_RULE};"
+        f"font-family:{_FONT_STACK};"
+    )
+    s_wordmark = (
+        f"font-size:18px;font-weight:700;letter-spacing:-0.01em;color:{_BRAND_INK};"
+        f"margin:0;line-height:1.2;"
+    )
+    s_tagline = (
+        f"font-family:{_FONT_SERIF};font-style:italic;font-size:13px;"
+        f"color:{_BRAND_INK_3};margin:4px 0 0;line-height:1.4;"
+    )
+    s_body_cell = f"padding:28px 32px;font-family:{_FONT_STACK};"
+    s_eyebrow = (
+        f"font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;"
+        f"color:{_BRAND_ACCENT};margin:0 0 10px;"
+    )
+    s_headline = (
+        f"font-family:{_FONT_SERIF};font-size:24px;line-height:1.25;letter-spacing:-0.01em;"
+        f"font-weight:600;color:{_BRAND_INK};margin:0 0 14px;"
+    )
+    s_paragraph = f"font-size:15px;line-height:1.55;color:{_BRAND_INK_2};margin:0 0 16px;"
+    s_btn_wrap = "margin:24px 0 8px;"
+    s_btn_cell = f"background-color:{_BRAND_INK};border-radius:8px;"
+    s_btn_link = (
+        f"display:inline-block;padding:14px 28px;font-family:{_FONT_STACK};"
+        f"font-size:15px;font-weight:600;color:{_BRAND_PAPER};text-decoration:none;"
+        f"border-radius:8px;"
+    )
+    s_fallback_label = f"font-size:13px;color:{_BRAND_INK_3};margin:18px 0 6px;"
+    s_fallback_url = (
+        f"font-size:12px;line-height:1.5;color:{_BRAND_ACCENT};" f"word-break:break-all;margin:0;"
+    )
+    s_footer_cell = (
+        f"padding:18px 32px 24px;border-top:1px solid {_BRAND_RULE};"
+        f"background-color:{_BRAND_PAPER};font-family:{_FONT_STACK};"
+        f"border-radius:0 0 10px 10px;"
+    )
+    s_footer_text = f"font-size:12px;line-height:1.55;color:{_BRAND_INK_3};margin:0 0 6px;"
+    # Hidden preheader (the snippet some clients show next to the subject).
+    s_preheader = (
+        "display:none;visibility:hidden;opacity:0;color:transparent;height:0;"
+        "width:0;overflow:hidden;mso-hide:all;"
+    )
+
+    return (
+        f"<!doctype html>\n"
+        f'<html lang="ca">\n'
+        f'<head><meta charset="utf-8">'
+        f'<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f"<title>{escape(copy['headline'])}</title>"
+        f"</head>\n"
+        f'<body style="{s_wrap}">'
+        # Preheader — improves the inbox preview snippet on Gmail/Outlook.
+        f'<span style="{s_preheader}">{escape(copy["preheader"])}</span>'
+        f'<table role="presentation" border="0" cellspacing="0" cellpadding="0" '
+        f'style="{s_outer_table}"><tr><td align="center">'
+        f'<table role="presentation" border="0" cellspacing="0" cellpadding="0" '
+        f'style="{s_card}">'
+        # ── Header ──────────────────────────────────────────────────────
+        f'<tr><td style="{s_header_cell}">'
+        f'<p style="{s_wordmark}">Hola Política</p>'
+        f'<p style="{s_tagline}">Mirall, no megàfon.</p>'
+        f"</td></tr>"
+        # ── Body ────────────────────────────────────────────────────────
+        f'<tr><td style="{s_body_cell}">'
+        f'<p style="{s_eyebrow}">'
+        f"{'Newsletter setmanal' if kind == 'newsletter' else 'Alertes'}"
+        f"</p>"
+        f'<h1 style="{s_headline}">{escape(copy["headline"])}</h1>'
+        f'<p style="{s_paragraph}">{escape(copy["lede"])}</p>'
+        # CTA button — bullet-proof table-button pattern.
+        f'<table role="presentation" border="0" cellspacing="0" cellpadding="0" '
+        f'style="{s_btn_wrap}"><tr>'
+        f'<td bgcolor="{_BRAND_INK}" style="{s_btn_cell}">'
+        f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer" '
+        f'style="{s_btn_link}">{escape(copy["cta"])}</a>'
+        f"</td></tr></table>"
+        # Fallback URL.
+        f'<p style="{s_fallback_label}">{escape(copy["after_cta"])}</p>'
+        f'<p style="{s_fallback_url}">'
+        f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer" '
+        f'style="color:{_BRAND_ACCENT};text-decoration:underline;">'
+        f"{escape(confirm_url)}</a></p>"
+        f"</td></tr>"
+        # ── Footer ──────────────────────────────────────────────────────
+        f'<tr><td style="{s_footer_cell}">'
+        f'<p style="{s_footer_text}">{escape(copy["footer_ignore"])}</p>'
+        f'<p style="{s_footer_text}">'
+        f"Hola Política · Infraestructura cívica neutra · "
+        f"Llicència EUPL-1.2"
+        f"</p>"
+        f"</td></tr>"
+        f"</table></td></tr></table>"
+        f"</body></html>\n"
+    )

@@ -267,7 +267,17 @@
     "hemicycle_title": "Hemicicle · seients per grup",
     "hemicycle_caption": "taula del Congrés",
     "directory_title": "Directori",
-    "members_count": "{count} diputats"
+    "members_count": "{count} diputats",
+    "groups_sidebar_title": "Grups parlamentaris",
+    "show_photos": "Veure fotos",
+    "hide_photos": "Amaga fotos",
+    "show_photos_hint": "Carrega 350 fotos · pot ser lent en xarxes mòbils",
+    "filter_group_label": "Filtra per grup",
+    "filter_group_placeholder": "Tots els grups",
+    "filter_active_count": "{count, plural, =0 {Cap diputat coincideix} =1 {1 diputat coincideix} other {# diputats coincideixen}}",
+    "filter_active_total": "{filtered} de {total} diputats",
+    "clear_filters": "Neteja filtres",
+    "search_input_aria": "Cerca diputats per nom o circumscripció"
   },
   "person": {
     "born_in": "Nascut/da el",
@@ -472,6 +482,24 @@
     "signup_error_invalid_email": "Introdueix una adreça de correu vàlida.",
     "signup_error_generic": "No hem pogut processar la teva subscripció. Torna-ho a provar més tard.",
     "signup_privacy": "Només fem servir el teu correu per enviar-te la newsletter. Pots cancel·lar-la en qualsevol moment."
+  },
+  "confirm": {
+    "newsletter_success_eyebrow": "Newsletter setmanal",
+    "newsletter_success_title": "Subscripció confirmada",
+    "newsletter_success_body": "Ja estàs a la llista. Rebràs un correu cada divendres amb les votacions de la setmana al Congrés. Sense valoracions, només dades.",
+    "newsletter_error_eyebrow": "Enllaç caducat",
+    "newsletter_error_title": "No hem pogut confirmar la subscripció",
+    "newsletter_error_body": "Aquest enllaç ja no és vàlid o ha caducat. Pots tornar a subscriure't i et reenviarem el correu de confirmació.",
+    "newsletter_resubscribe": "Tornar a subscriure",
+    "alert_success_eyebrow": "Alertes",
+    "alert_success_title": "Avisos confirmats",
+    "alert_success_body": "A partir d'ara t'enviarem un correu només quan arribi una nova votació o iniciativa relacionada amb el que segueixes. Sense valoracions, només dades.",
+    "alert_error_eyebrow": "Enllaç caducat",
+    "alert_error_title": "No hem pogut confirmar els avisos",
+    "alert_error_body": "Aquest enllaç ja no és vàlid o ha caducat. Torna a la pàgina del tema, persona o grup que segueixes i activa els avisos de nou.",
+    "alert_resubscribe": "Explorar temes",
+    "back_to_home": "Tornar a l'inici",
+    "loading": "Confirmant la subscripció…"
   },
   "upcoming": {
     "title_home": "Pròximes votacions",

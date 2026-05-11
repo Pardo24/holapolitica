@@ -267,7 +267,17 @@
     "hemicycle_title": "Hemicycle · seats per group",
     "hemicycle_caption": "Speaker's table",
     "directory_title": "Directory",
-    "members_count": "{count} representatives"
+    "members_count": "{count} representatives",
+    "groups_sidebar_title": "Parliamentary groups",
+    "show_photos": "Show photos",
+    "hide_photos": "Hide photos",
+    "show_photos_hint": "Loads 350 photos · can be slow on mobile",
+    "filter_group_label": "Filter by group",
+    "filter_group_placeholder": "All groups",
+    "filter_active_count": "{count, plural, =0 {No representative matches} =1 {1 representative matches} other {# representatives match}}",
+    "filter_active_total": "{filtered} of {total} representatives",
+    "clear_filters": "Clear filters",
+    "search_input_aria": "Search representatives by name or constituency"
   },
   "person": {
     "born_in": "Born on",
@@ -472,6 +482,24 @@
     "signup_error_invalid_email": "Enter a valid email address.",
     "signup_error_generic": "We couldn't process your subscription. Please try again later.",
     "signup_privacy": "We only use your email to send you the newsletter. You can unsubscribe at any time."
+  },
+  "confirm": {
+    "newsletter_success_eyebrow": "Weekly newsletter",
+    "newsletter_success_title": "Subscription confirmed",
+    "newsletter_success_body": "You're on the list. You'll receive one email every Friday with the week's Congress votes. No commentary, just data.",
+    "newsletter_error_eyebrow": "Link expired",
+    "newsletter_error_title": "We couldn't confirm your subscription",
+    "newsletter_error_body": "This link is no longer valid or has expired. You can subscribe again and we'll resend the confirmation email.",
+    "newsletter_resubscribe": "Subscribe again",
+    "alert_success_eyebrow": "Alerts",
+    "alert_success_title": "Alerts confirmed",
+    "alert_success_body": "From now on we'll email you only when a new vote or initiative related to what you follow lands. No commentary, just data.",
+    "alert_error_eyebrow": "Link expired",
+    "alert_error_title": "We couldn't confirm your alerts",
+    "alert_error_body": "This link is no longer valid or has expired. Go back to the topic, person or group page you follow and enable alerts again.",
+    "alert_resubscribe": "Browse topics",
+    "back_to_home": "Back to home",
+    "loading": "Confirming your subscription…"
   },
   "upcoming": {
     "title_home": "Upcoming votes",

@@ -447,6 +447,12 @@ export interface NewsletterSubscriptionResponse {
   detail: string;
 }
 
+/** Generic shape returned by every /confirm/* and /unsubscribe/* endpoint. */
+export interface SubscriptionConfirmation {
+  status: 'pending_confirmation' | 'confirmed' | 'unsubscribed';
+  detail: string;
+}
+
 export interface Mandate {
   id: number;
   person_id: number;
@@ -640,6 +646,23 @@ export const api = {
           language: body.language ?? 'ca',
         }),
       }),
+  },
+  subscriptions: {
+    /**
+     * Confirm a pending newsletter or alert subscription by exchanging the
+     * token emailed to the user for a `confirmed` status. The Next.js
+     * `/confirm/{kind}/{token}` page proxies this call so that clicking the
+     * link in the email lands on a styled brand page instead of a bare
+     * JSON response from the backend.
+     */
+    confirmNewsletter: (token: string) =>
+      request<SubscriptionConfirmation>(
+        `/confirm/newsletter/${encodeURIComponent(token)}`,
+      ),
+    confirmAlert: (token: string) =>
+      request<SubscriptionConfirmation>(
+        `/confirm/alert/${encodeURIComponent(token)}`,
+      ),
   },
   votes: {
     list: (params: {

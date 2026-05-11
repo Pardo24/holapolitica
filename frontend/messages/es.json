@@ -267,7 +267,17 @@
     "hemicycle_title": "Hemiciclo · escaños por grupo",
     "hemicycle_caption": "mesa del Congreso",
     "directory_title": "Directorio",
-    "members_count": "{count} diputados"
+    "members_count": "{count} diputados",
+    "groups_sidebar_title": "Grupos parlamentarios",
+    "show_photos": "Ver fotos",
+    "hide_photos": "Ocultar fotos",
+    "show_photos_hint": "Carga 350 fotos · puede ser lento en redes móviles",
+    "filter_group_label": "Filtrar por grupo",
+    "filter_group_placeholder": "Todos los grupos",
+    "filter_active_count": "{count, plural, =0 {Ningún diputado coincide} =1 {1 diputado coincide} other {# diputados coinciden}}",
+    "filter_active_total": "{filtered} de {total} diputados",
+    "clear_filters": "Limpiar filtros",
+    "search_input_aria": "Buscar diputados por nombre o circunscripción"
   },
   "person": {
     "born_in": "Nacido/a el",
@@ -472,6 +482,24 @@
     "signup_error_invalid_email": "Introduce una dirección de correo válida.",
     "signup_error_generic": "No hemos podido procesar tu suscripción. Inténtalo de nuevo más tarde.",
     "signup_privacy": "Solo usamos tu correo para enviarte la newsletter. Puedes cancelarla en cualquier momento."
+  },
+  "confirm": {
+    "newsletter_success_eyebrow": "Newsletter semanal",
+    "newsletter_success_title": "Suscripción confirmada",
+    "newsletter_success_body": "Ya estás en la lista. Recibirás un correo cada viernes con las votaciones de la semana en el Congreso. Sin valoraciones, solo datos.",
+    "newsletter_error_eyebrow": "Enlace caducado",
+    "newsletter_error_title": "No hemos podido confirmar la suscripción",
+    "newsletter_error_body": "Este enlace ya no es válido o ha caducado. Puedes volver a suscribirte y te reenviaremos el correo de confirmación.",
+    "newsletter_resubscribe": "Volver a suscribirse",
+    "alert_success_eyebrow": "Alertas",
+    "alert_success_title": "Avisos confirmados",
+    "alert_success_body": "A partir de ahora te enviaremos un correo solo cuando llegue una nueva votación o iniciativa relacionada con lo que sigues. Sin valoraciones, solo datos.",
+    "alert_error_eyebrow": "Enlace caducado",
+    "alert_error_title": "No hemos podido confirmar los avisos",
+    "alert_error_body": "Este enlace ya no es válido o ha caducado. Vuelve a la página del tema, persona o grupo que sigues y activa los avisos de nuevo.",
+    "alert_resubscribe": "Explorar temas",
+    "back_to_home": "Volver al inicio",
+    "loading": "Confirmando la suscripción…"
   },
   "upcoming": {
     "title_home": "Próximas votaciones",
