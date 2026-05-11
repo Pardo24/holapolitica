@@ -248,6 +248,11 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Newsletter signup — placed RIGHT after the coverage tiles so
+          the macro numbers (initiatives, votes, classified) give the
+          reader a reason to want updates. Compact card on mobile. */}
+      <NewsletterSignup />
+
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           honest empty-state today. Appears above latest so it's the first
           actionable item when the data lands. */}
@@ -298,10 +303,6 @@ export default async function HomePage() {
           )}
         </ul>
       </section>
-
-      {/* Newsletter signup — placed last, after readers have engaged with
-          the content. Compact, neutral, no scarcity tactics. */}
-      <NewsletterSignup />
 
       {/* Responsive helper — collapse hero / coverage on narrow screens */}
       <style>{`

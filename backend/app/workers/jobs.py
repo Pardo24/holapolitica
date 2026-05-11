@@ -42,8 +42,12 @@ configure_logging()
 log = get_logger(__name__)
 
 
-def classify_initiative(initiative_id: int) -> int:
+def classify_initiative(initiative_id: int, kind: str = "theme") -> int:
     """RQ entrypoint: classify one initiative and persist topic assignments.
+
+    ``kind`` selects the taxonomy:
+    - ``"theme"`` (default) — editorial 17 topics
+    - ``"sdg"`` — UN Agenda 2030 sustainable development goals
 
     On success we bust the stats + metrics caches — classification flips
     several aggregate counts (initiatives_classified, topics/global) at
@@ -54,7 +58,7 @@ def classify_initiative(initiative_id: int) -> int:
         async with AsyncSessionLocal() as session:
             classifier = build_classifier()
             service = ClassificationService(session, classifier)
-            n = await service.classify_initiative(initiative_id)
+            n = await service.classify_initiative(initiative_id, kind=kind)
         await _invalidate_aggregate_caches()
         return n
 

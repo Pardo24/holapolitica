@@ -698,6 +698,29 @@ a { color: inherit; }
   .summary-hover__details { display: inline-block; }
 }
 
+/* On narrow mobile screens, the inline panel risks overflowing the
+   viewport when the trigger sits near the right edge of the row. Pin the
+   panel as a bottom-sheet so it's always fully visible regardless of
+   the anchor position. ALWAYS inside the viewport, ALWAYS readable. */
+@media (max-width: 640px) {
+  .summary-hover__panel {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+    transform: none;
+    box-shadow: 0 -8px 32px -12px rgba(15, 23, 42, 0.24);
+  }
+  /* Subtle scrim behind the panel via an overlay-less trick: dim the
+     trigger button to indicate the panel is the active surface. */
+  .summary-hover__details[open] .summary-hover__btn {
+    background: var(--accent);
+  }
+}
+
 /* Empty state — civic, not error */
 .empty-state {
   padding: 24px; border: 1px dashed var(--rule-strong);

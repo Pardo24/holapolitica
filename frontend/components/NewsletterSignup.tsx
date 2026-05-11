@@ -82,10 +82,10 @@ export function NewsletterSignup({
   const containerStyle: React.CSSProperties =
     variant === 'card'
       ? {
-          marginTop: 32,
-          padding: '22px 24px',
+          marginTop: 28,
+          padding: '16px 18px',
           border: '1px solid var(--rule-strong)',
-          borderRadius: 14,
+          borderRadius: 12,
           background: 'var(--paper-2)',
         }
       : {
@@ -201,10 +201,14 @@ export function NewsletterSignup({
       </div>
 
       <style>{`
-        @media (max-width: 520px) {
-          .newsletter-signup-form { flex-direction: column; }
+        @media (max-width: 640px) {
+          .newsletter-signup { margin-top: 20px !important; }
+          .newsletter-signup-form { flex-direction: column; gap: 6px !important; }
           .newsletter-signup-form > input,
           .newsletter-signup-form > button { width: 100%; }
+          /* Tighter input padding on mobile so the field doesn't look giant.
+             The font-size stays at 16px globally (avoids iOS auto-zoom). */
+          .newsletter-signup-form > input { padding: 8px 10px !important; }
         }
       `}</style>
     </section>

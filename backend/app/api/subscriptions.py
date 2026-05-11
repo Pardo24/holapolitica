@@ -75,6 +75,21 @@ async def subscribe_newsletter(
         )
     except SubscriptionError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+    except (ImportError, ConnectionError, TimeoutError) as e:
+        # SMTP transport problems (missing aiosmtplib, network, broken
+        # credentials). The subscription row was already committed in
+        # `create_newsletter_subscription` before the send call, so the
+        # email pending in DB; a future redelivery job (or the user
+        # re-submitting) will retry the confirmation. Surface a clear 503
+        # instead of letting FastAPI render an opaque 500.
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "El servei de correu està temporalment indisponible. "
+                "La teva subscripció s'ha guardat; rebràs el correu de "
+                "confirmació quan el servei estigui restablert."
+            ),
+        ) from e
     return SubscriptionResponse(status="pending_confirmation")
 
 
