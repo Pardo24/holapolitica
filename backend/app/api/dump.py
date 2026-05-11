@@ -308,9 +308,7 @@ async def dump_vote_records(
 
     async def factory() -> dict[str, Any]:
         # Confirm the vote exists so we can return 404 vs an empty dump.
-        vote = (
-            await session.execute(select(Vote).where(Vote.id == vote_id))
-        ).scalar_one_or_none()
+        vote = (await session.execute(select(Vote).where(Vote.id == vote_id))).scalar_one_or_none()
         if vote is None:
             raise HTTPException(status_code=404, detail="Vote not found")
 

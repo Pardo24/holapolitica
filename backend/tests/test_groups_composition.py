@@ -172,12 +172,12 @@ async def test_composition_buckets_ages_correctly(db_session: AsyncSession) -> N
     chamber, leg, group = await _seed_scaffold(db_session)
     # Reference date: 2026-05-11. Birth years chosen for one per bucket.
     fixtures = [
-        ("Y20s", "F", 2000),   # 26 → <30
-        ("Y30s", "M", 1990),   # 36 → 30-39
-        ("Y40s", "F", 1980),   # 46 → 40-49
-        ("Y50s", "M", 1970),   # 56 → 50-59
-        ("Y60s", "F", 1960),   # 66 → 60+
-        ("Yunk", "X", None),   # unknown
+        ("Y20s", "F", 2000),  # 26 → <30
+        ("Y30s", "M", 1990),  # 36 → 30-39
+        ("Y40s", "F", 1980),  # 46 → 40-49
+        ("Y50s", "M", 1970),  # 56 → 50-59
+        ("Y60s", "F", 1960),  # 66 → 60+
+        ("Yunk", "X", None),  # unknown
     ]
     for name, gender, year in fixtures:
         await _add_member(
@@ -296,7 +296,5 @@ async def test_composition_unknown_slug_raises_404(
     await _seed_scaffold(db_session)
     await db_session.commit()
     with pytest.raises(HTTPException) as exc:
-        await _compute_group_composition(
-            db_session, "gp-nonexistent", date(2026, 5, 11)
-        )
+        await _compute_group_composition(db_session, "gp-nonexistent", date(2026, 5, 11))
     assert exc.value.status_code == 404

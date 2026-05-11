@@ -188,14 +188,10 @@ class CrossTopicGroup(BaseModel):
 @router.get("/summary", response_model=GlobalSummary)
 async def summary(session: AsyncSession = Depends(get_session)) -> GlobalSummary:
     async def factory() -> GlobalSummary:
-        initiatives_total = (
-            await session.execute(select(func.count(Initiative.id)))
-        ).scalar_one()
+        initiatives_total = (await session.execute(select(func.count(Initiative.id)))).scalar_one()
         votes_total = (await session.execute(select(func.count(Vote.id)))).scalar_one()
         classified = (
-            await session.execute(
-                select(func.count(func.distinct(InitiativeTopic.initiative_id)))
-            )
+            await session.execute(select(func.count(func.distinct(InitiativeTopic.initiative_id))))
         ).scalar_one()
         return GlobalSummary(
             initiatives_total=initiatives_total,
@@ -281,8 +277,7 @@ async def votes_by_proposing_group(
             )
         ).all()
         return [
-            GroupProposalCount(slug=s, name_short=ns, color_hex=c, count=n)
-            for s, ns, c, n in rows
+            GroupProposalCount(slug=s, name_short=ns, color_hex=c, count=n) for s, ns, c, n in rows
         ]
 
     return await cached("stats:votes:by-proposing-group", _CACHE_TTL, factory)
@@ -361,12 +356,16 @@ async def _compute_group_activity(
         base_stmt = base_stmt.where(Initiative.legislature_id == legislature_id)
 
     recent_rows = (
-        await session.execute(
-            base_stmt.order_by(
-                desc(Initiative.submitted_at).nullslast(), desc(Initiative.id)
-            ).limit(10)
+        (
+            await session.execute(
+                base_stmt.order_by(
+                    desc(Initiative.submitted_at).nullslast(), desc(Initiative.id)
+                ).limit(10)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     recent = [_initiative_mini(i) for i in recent_rows]
 
     # Topic distribution: top 10 topics across all the group's initiatives.
@@ -449,23 +448,23 @@ async def _compute_topic_proposers(
 
     # Recent initiatives in this topic.
     recent_rows = (
-        await session.execute(
-            base.order_by(
-                desc(Initiative.submitted_at).nullslast(), desc(Initiative.id)
-            ).limit(10)
+        (
+            await session.execute(
+                base.order_by(desc(Initiative.submitted_at).nullslast(), desc(Initiative.id)).limit(
+                    10
+                )
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     recent = [_initiative_mini(i) for i in recent_rows]
 
     # Fetch ALL groups + initiatives in scope, then count in Python. Volumes
     # are small (~10 groups × hundreds of initiatives), so this is cheaper
     # than 10 separate substring counts.
-    groups = (
-        (await session.execute(select(ParliamentaryGroup))).scalars().all()
-    )
-    initiatives = (
-        (await session.execute(base)).scalars().unique().all()
-    )
+    groups = (await session.execute(select(ParliamentaryGroup))).scalars().all()
+    initiatives = (await session.execute(base)).scalars().unique().all()
 
     counts: dict[str, ProposerCount] = {}
     for ini in initiatives:
@@ -490,8 +489,10 @@ async def _compute_topic_proposers(
         # Pick the longest matching group name (most specific).
         match: ParliamentaryGroup | None = None
         for g in groups:
-            if g.name_long and g.name_long in submitted and (
-                match is None or len(g.name_long) > len(match.name_long)
+            if (
+                g.name_long
+                and g.name_long in submitted
+                and (match is None or len(g.name_long) > len(match.name_long))
             ):
                 match = g
         if match is None:
@@ -566,9 +567,7 @@ async def stats_cross_topic_group(
     return await cached(
         f"stats:cross:{topic_slug}:{group_slug}:{legislature_id or 'all'}",
         _CACHE_TTL,
-        lambda: _compute_cross_topic_group(
-            session, topic_slug, group_slug, legislature_id
-        ),
+        lambda: _compute_cross_topic_group(session, topic_slug, group_slug, legislature_id),
     )
 
 
@@ -613,9 +612,7 @@ async def _compute_cross_topic_group(
 
     # ALL groups for the symmetry-rule bar chart. We always emit a row per
     # group (zero count if they haven't proposed anything on this topic).
-    all_groups = (
-        (await session.execute(select(ParliamentaryGroup))).scalars().all()
-    )
+    all_groups = (await session.execute(select(ParliamentaryGroup))).scalars().all()
 
     # Initiatives on this topic, scoped by legislature when requested.
     initiatives_on_topic_stmt = (
@@ -628,10 +625,7 @@ async def _compute_cross_topic_group(
             Initiative.legislature_id == legislature_id
         )
     initiatives_on_topic = (
-        (await session.execute(initiatives_on_topic_stmt))
-        .scalars()
-        .unique()
-        .all()
+        (await session.execute(initiatives_on_topic_stmt)).scalars().unique().all()
     )
 
     # Per-group counts on this topic. Pick the longest matching group name
@@ -643,8 +637,10 @@ async def _compute_cross_topic_group(
             continue
         match: ParliamentaryGroup | None = None
         for g in all_groups:
-            if g.name_long and g.name_long in submitted and (
-                match is None or len(g.name_long) > len(match.name_long)
+            if (
+                g.name_long
+                and g.name_long in submitted
+                and (match is None or len(g.name_long) > len(match.name_long))
             ):
                 match = g
         if match is not None:
@@ -684,9 +680,7 @@ async def _compute_cross_topic_group(
             .where(Initiative.submitted_by.ilike(proposer_like))
         )
         if legislature_id is not None:
-            topic_dist_stmt = topic_dist_stmt.where(
-                Initiative.legislature_id == legislature_id
-            )
+            topic_dist_stmt = topic_dist_stmt.where(Initiative.legislature_id == legislature_id)
         topic_dist_stmt = topic_dist_stmt.group_by(
             Topic.id, Topic.slug, Topic.name_ca, Topic.color_hex
         ).order_by(func.count(func.distinct(Initiative.id)).desc())
@@ -725,19 +719,12 @@ async def _compute_cross_topic_group(
             .where(Initiative.submitted_by.ilike(proposer_like))
         )
         if legislature_id is not None:
-            joint_stmt = joint_stmt.where(
-                Initiative.legislature_id == legislature_id
-            )
+            joint_stmt = joint_stmt.where(Initiative.legislature_id == legislature_id)
         joint_stmt_ordered = joint_stmt.order_by(
             desc(Initiative.submitted_at).nullslast(), desc(Initiative.id)
         ).limit(_CROSS_JOINT_LIMIT)
 
-        joint_rows = (
-            (await session.execute(joint_stmt_ordered))
-            .scalars()
-            .unique()
-            .all()
-        )
+        joint_rows = (await session.execute(joint_stmt_ordered)).scalars().unique().all()
         joint_initiatives = [_initiative_mini(i) for i in joint_rows]
 
         # Exact count of distinct initiatives matching BOTH filters. We
@@ -752,18 +739,12 @@ async def _compute_cross_topic_group(
             .where(Initiative.submitted_by.ilike(proposer_like))
         )
         if legislature_id is not None:
-            joint_count_stmt = joint_count_stmt.where(
-                Initiative.legislature_id == legislature_id
-            )
-        joint_initiatives_total = int(
-            (await session.execute(joint_count_stmt)).scalar_one()
-        )
+            joint_count_stmt = joint_count_stmt.where(Initiative.legislature_id == legislature_id)
+        joint_initiatives_total = int((await session.execute(joint_count_stmt)).scalar_one())
 
     group_summary = CrossGroupSummary(
         slug=focal_group.slug if focal_group is not None else group_slug,
-        name_short=focal_group.name_short
-        if focal_group is not None
-        else group_slug,
+        name_short=focal_group.name_short if focal_group is not None else group_slug,
         name_long=focal_group.name_long if focal_group is not None else group_slug,
         color_hex=focal_group.color_hex if focal_group is not None else None,
     )

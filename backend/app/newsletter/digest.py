@@ -204,9 +204,7 @@ async def _to_entry(session: AsyncSession, vote: Vote) -> DigestVoteEntry:
         from app.models import Initiative
 
         init = (
-            await session.execute(
-                select(Initiative).where(Initiative.id == vote.initiative_id)
-            )
+            await session.execute(select(Initiative).where(Initiative.id == vote.initiative_id))
         ).scalar_one_or_none()
         if init is not None:
             plain_summary = init.plain_summary_ca

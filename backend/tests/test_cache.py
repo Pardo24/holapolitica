@@ -57,9 +57,7 @@ class FakeRedis:
         expiry = time.monotonic() + ex if ex is not None else None
         self.store[key] = (value, expiry)
 
-    async def scan_iter(
-        self, match: str | None = None, count: int = 500
-    ) -> AsyncIterator[str]:
+    async def scan_iter(self, match: str | None = None, count: int = 500) -> AsyncIterator[str]:
         pattern = match or "*"
         # Strip trailing '*' for prefix matching (the only pattern we use).
         prefix = pattern[:-1] if pattern.endswith("*") else pattern

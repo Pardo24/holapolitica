@@ -308,9 +308,7 @@ class Topic(Base, TimestampMixin):
     description_en: Mapped[str | None] = mapped_column(Text)
     # Which classification knowledge base this topic belongs to. See class
     # docstring. Indexed for cheap `WHERE kind = 'sdg'` filtering.
-    kind: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="theme", index=True
-    )
+    kind: Mapped[str] = mapped_column(String(20), nullable=False, default="theme", index=True)
 
 
 # ---------------------------------------------------------------------------

@@ -221,7 +221,7 @@ def _html_vote_card(v: DigestVoteEntry, site_url: str) -> str:
     return (
         f'<div style="{_S_CARD}">'
         f'<div style="{_S_SUBTLE}">{v.voted_at.strftime("%d/%m/%Y")}{expediente}</div>'
-        f'{procedural_label}'
+        f"{procedural_label}"
         f'<div style="font-weight:500;margin:4px 0;line-height:1.4;">{subject_html}</div>'
         f'<div style="font-size:13px;">'
         f'<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;{badge_style}">{badge_label}</span>'

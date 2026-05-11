@@ -96,9 +96,7 @@ async def _seed_scaffold(
     )
     session.add_all([psoe, pp])
     await session.flush()
-    housing = Topic(
-        slug="habitatge", name_ca="Habitatge", name_es="Vivienda", name_en="Housing"
-    )
+    housing = Topic(slug="habitatge", name_ca="Habitatge", name_es="Vivienda", name_en="Housing")
     labor = Topic(
         slug="drets-laborals",
         name_ca="Drets laborals",
@@ -386,9 +384,7 @@ async def test_cross_topic_group_joint_initiatives_are_intersection(
     )
     await db_session.commit()
 
-    out = await _compute_cross_topic_group(
-        db_session, "habitatge", "gp-socialista", None
-    )
+    out = await _compute_cross_topic_group(db_session, "habitatge", "gp-socialista", None)
     assert out.joint_initiatives_total == 1
     assert [i.official_id for i in out.joint_initiatives] == ["122/000100"]
 
@@ -425,9 +421,7 @@ async def test_cross_topic_group_topic_distribution_includes_focal(
     )
     await db_session.commit()
 
-    out = await _compute_cross_topic_group(
-        db_session, "habitatge", "gp-socialista", None
-    )
+    out = await _compute_cross_topic_group(db_session, "habitatge", "gp-socialista", None)
     slugs = [r.topic_slug for r in out.topic_distribution_for_group]
     assert "habitatge" in slugs
     assert "drets-laborals" in slugs
@@ -441,9 +435,7 @@ async def test_cross_topic_group_unknown_topic_raises(
     await _seed_scaffold(db_session)
     await db_session.commit()
     with pytest.raises(HTTPException) as exc:
-        await _compute_cross_topic_group(
-            db_session, "no-such-topic", "gp-popular", None
-        )
+        await _compute_cross_topic_group(db_session, "no-such-topic", "gp-popular", None)
     assert exc.value.status_code == 404
 
 
@@ -466,10 +458,10 @@ async def test_cross_topic_group_unknown_group_returns_empty_joint(
     )
     await db_session.commit()
 
-    out = await _compute_cross_topic_group(
-        db_session, "habitatge", "gp-nonexistent", None
-    )
+    out = await _compute_cross_topic_group(db_session, "habitatge", "gp-nonexistent", None)
     assert out.joint_initiatives == []
     assert out.joint_initiatives_total == 0
     # Bar chart still includes every real group with their counts.
-    assert any(r.slug == "gp-socialista" and r.count == 1 for r in out.initiatives_on_topic_by_group)
+    assert any(
+        r.slug == "gp-socialista" and r.count == 1 for r in out.initiatives_on_topic_by_group
+    )

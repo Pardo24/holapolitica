@@ -51,6 +51,7 @@ log = structlog.get_logger(__name__)
 
 T = TypeVar("T")
 
+
 # Single shared async Redis client. ``decode_responses=True`` keeps the
 # round-trip in ``str`` instead of ``bytes`` so we can json.loads() directly.
 @lru_cache(maxsize=1)

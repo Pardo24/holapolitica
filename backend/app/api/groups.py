@@ -375,9 +375,7 @@ async def _compute_group_composition(
     # frontend list doesn't reshuffle between requests at parity counts.
     member_parties = [
         GroupCompositionPartyRow(name=party_display[key], count=count)
-        for key, count in sorted(
-            party_counts.items(), key=lambda kv: (-kv[1], kv[0])
-        )
+        for key, count in sorted(party_counts.items(), key=lambda kv: (-kv[1], kv[0]))
     ]
 
     return GroupComposition(
