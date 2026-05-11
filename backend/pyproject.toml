@@ -87,6 +87,12 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# Module-level singletons (Redis client, SQLAlchemy engine pool) bind to
+# whatever event loop is active at first use. Function-scoped loops would
+# cause "Future attached to a different loop" on the 2nd test that hits
+# them. Share one loop across the session instead.
+asyncio_default_test_loop_scope = "session"
+asyncio_default_fixture_loop_scope = "session"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 

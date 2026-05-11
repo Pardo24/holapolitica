@@ -12,5 +12,5 @@ async def test_root(client: AsyncClient) -> None:
     response = await client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert data["name"] == "Monitor Parlamentari API"
+    assert data["name"] == "Hola Política API"
     assert "version" in data

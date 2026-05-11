@@ -64,6 +64,7 @@ def _vote_entry(
         vote_id=vote_id,
         title="Proposició no de Llei sobre habitatge",
         description="Text breu de l'expedient.",
+        plain_summary=None,
         voted_at=datetime(2026, 4, 30, 12, 0, tzinfo=UTC),
         result=result,
         ayes=ayes,

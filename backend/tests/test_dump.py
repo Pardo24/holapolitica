@@ -161,7 +161,7 @@ async def test_docs_ui_is_public(client: AsyncClient) -> None:
     """Swagger UI is served at /docs and contains the canonical title."""
     response = await client.get("/docs")
     assert response.status_code == 200
-    assert "Monitor Parlamentari API" in response.text or "swagger" in response.text.lower()
+    assert "Hola Política API" in response.text or "swagger" in response.text.lower()
 
 
 async def test_dump_cors_open_for_third_parties(client: AsyncClient) -> None:
