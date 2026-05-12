@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { type Highlight, highlightHeadline } from '@/lib/highlights';
@@ -30,6 +30,23 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
     }, ROTATE_MS);
     return () => window.clearInterval(id);
   }, [items.length, paused]);
+
+  // Keyboard navigation: when the carousel (or any control inside it) has
+  // focus, ArrowLeft / ArrowRight advance the slide. Bound to the wrapper so
+  // it fires regardless of which descendant is focused. We previously got
+  // this for free via the prev/next buttons' aria-controls, but the
+  // explicit handler is more discoverable and works even when focus sits on
+  // the slide itself.
+  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (items.length === 0) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setIdx((i) => (i + 1) % items.length);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setIdx((i) => (i - 1 + items.length) % items.length);
+    }
+  }
 
   if (items.length === 0) {
     // Keep the carousel frame visible so the user knows this section will
@@ -74,8 +91,6 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
   }
 
   const current = items[idx]!;
-  const next = items[(idx + 1) % items.length];
-  const prev = items[(idx - 1 + items.length) % items.length];
 
   return (
     <div
@@ -83,6 +98,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
+      onKeyDown={handleKeyDown}
       style={{
         position: 'relative',
         border: '1px solid var(--rule-strong)',
@@ -104,13 +120,18 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
         />
       </div>
 
-      {/* Controls */}
+      {/* Controls — pure arrows, no party names. Centered "N de M" indicator
+          flanked by 44×44 chevron buttons. Replaces the older prev/next
+          buttons that surfaced the neighbouring group's short name, which
+          (a) read as a duplicate of the slide content and (b) risked
+          implying we curate one party as "next" vs another. Arrows are
+          neutral and symmetric. */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '8px 14px',
+          padding: '6px 8px',
           borderTop: '1px solid var(--rule)',
           background: 'var(--paper)',
         }}
@@ -119,33 +140,40 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
           type="button"
           onClick={() => setIdx((i) => (i - 1 + items.length) % items.length)}
           aria-label={t('highlights_prev_aria')}
-          style={{ ...btnStyle, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          className="highlights-nav-btn"
+          style={navBtnStyle}
         >
-          <ArrowLeft size={14} aria-hidden="true" /> {prev && displayGroupShort(prev.group_name_short)}
+          <ChevronLeft size={20} aria-hidden="true" />
         </button>
         <div
           aria-live="polite"
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: 'var(--ink-3)',
             display: 'flex',
             gap: 6,
             alignItems: 'center',
+            fontVariantNumeric: 'tabular-nums',
           }}
         >
           <span className="tabular">
-            {idx + 1} / {items.length}
+            {idx + 1} {t('highlights_of_separator')} {items.length}
           </span>
-          <span aria-hidden="true">·</span>
-          <span>{paused ? t('highlights_paused') : t('highlights_rotating')}</span>
+          {paused && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span style={{ fontSize: 11 }}>{t('highlights_paused')}</span>
+            </>
+          )}
         </div>
         <button
           type="button"
           onClick={() => setIdx((i) => (i + 1) % items.length)}
           aria-label={t('highlights_next_aria')}
-          style={{ ...btnStyle, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          className="highlights-nav-btn"
+          style={navBtnStyle}
         >
-          {next && displayGroupShort(next.group_name_short)} <ArrowRight size={14} aria-hidden="true" />
+          <ChevronRight size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -173,25 +201,39 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
           />
         ))}
       </div>
+      <style>{`
+        .highlights-nav-btn {
+          color: var(--ink-2);
+          border-radius: 999px;
+          transition: background-color .12s ease, color .12s ease;
+        }
+        .highlights-nav-btn:hover {
+          background: color-mix(in oklch, var(--accent) 10%, transparent);
+          color: var(--ink);
+        }
+        .highlights-nav-btn:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
+        }
+      `}</style>
     </div>
   );
 }
 
-const btnStyle: React.CSSProperties = {
+// 44×44 chevron button — Apple/Google accessibility minimum tap target.
+// Hover / focus visuals live in the <style> block above so the rules
+// survive the keyboard-focus state correctly.
+const navBtnStyle: React.CSSProperties = {
   background: 'transparent',
   border: 0,
-  fontSize: 12,
-  color: 'var(--ink-2)',
   cursor: 'pointer',
-  // 44px hit target — the carousel sits in a 1-row footer where the
-  // larger padding reads well across desktop and touch.
-  padding: '10px 12px',
-  minHeight: 44,
+  width: 44,
+  height: 44,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 0,
   fontFamily: 'inherit',
-  maxWidth: '40%',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
 };
 
 function HighlightCard({

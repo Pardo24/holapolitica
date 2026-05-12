@@ -248,28 +248,61 @@ export default async function PersonDetailPage({
 
       <KpiStrip kpis={kpis} t={t} />
 
-      {person.role_kind && (
-        <div
-          role="note"
-          style={{
-            marginTop: 12,
-            padding: '12px 14px',
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule-strong)',
-            borderRadius: 10,
-            fontSize: 13,
-            lineHeight: 1.5,
-            color: 'var(--ink-2)',
-          }}
-        >
-          <strong style={{ color: 'var(--ink)' }}>
-            Avís sobre aquestes mètriques.
-          </strong>{' '}
-          {person.role_kind === 'govern'
+      {person.role_kind && (() => {
+        const fullText =
+          person.role_kind === 'govern'
             ? `Aquest diputat ostenta el càrrec de ${person.role_title ?? 'membre del Govern'}. Per convenció parlamentària, el President del Govern i els ministres no participen en la majoria de votacions ordinàries del Ple. Comparar la seva assistència amb la d'un diputat sense càrrec executiu és enganyós.`
-            : `Aquest diputat és ${person.role_title ?? 'membre de la Mesa del Congrés'}. La Mesa té funcions de presidència i moderació que modifiquen el patró habitual de vot.`}
-        </div>
-      )}
+            : `Aquest diputat és ${person.role_title ?? 'membre de la Mesa del Congrés'}. La Mesa té funcions de presidència i moderació que modifiquen el patró habitual de vot.`;
+        // One-sentence summary used on mobile. The full text is one tap
+        // away inside a native <details>, so transparency isn't lost —
+        // just deferred. On desktop the full caveat stays inline because
+        // the page has the room for it.
+        const shortText =
+          person.role_kind === 'govern'
+            ? `${person.role_title ?? 'Membre del Govern'} — assistència no comparable amb un diputat regular.`
+            : `${person.role_title ?? 'Membre de la Mesa'} — patró de vot diferent al d'un diputat regular.`;
+        return (
+          <div
+            role="note"
+            style={{
+              marginTop: 12,
+              padding: '12px 14px',
+              background: 'var(--paper-2)',
+              border: '1px solid var(--rule-strong)',
+              borderRadius: 10,
+              fontSize: 13,
+              lineHeight: 1.5,
+              color: 'var(--ink-2)',
+            }}
+          >
+            {/* Desktop: full caveat inline. Mobile-only fallback below
+                uses <details> so the summary collapses to one sentence
+                and the long explanation expands on tap. */}
+            <div className="hidden sm:block">
+              <strong style={{ color: 'var(--ink)' }}>
+                Avís sobre aquestes mètriques.
+              </strong>{' '}
+              {fullText}
+            </div>
+            <details className="sm:hidden">
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  listStyle: 'none',
+                  display: 'block',
+                }}
+              >
+                <strong style={{ color: 'var(--ink)' }}>
+                  Avís sobre aquestes mètriques.
+                </strong>{' '}
+                <span>{shortText}</span>{' '}
+                <span style={{ color: 'var(--ink-3)' }}>…</span>
+              </summary>
+              <div style={{ marginTop: 8 }}>{fullText}</div>
+            </details>
+          </div>
+        );
+      })()}
 
       <section style={{ paddingTop: 28 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>

@@ -183,7 +183,14 @@ export default async function TopicDetailPage({
         >
           {topic.name_ca}
         </h1>
-        <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
+        {/* Cross-language label line. Hidden on mobile to keep the header
+            tight — Catalan-default UI users on a phone already see the
+            Catalan name in the H1; the Spanish/English variants are a
+            nice-to-have transparency cue that lives well on desktop only. */}
+        <p
+          className="hidden sm:block"
+          style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}
+        >
           {topic.name_es} · {topic.name_en}
         </p>
         <div

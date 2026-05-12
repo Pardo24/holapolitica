@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  BarChart3,
+  Layers,
+  Search,
+  Users,
+  Vote as VoteIcon,
+} from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
@@ -94,6 +101,42 @@ export default async function HomePage() {
 
   return (
     <div>
+      {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
+          native-app-style entry point: brand strip, search, 2×2 tile grid,
+          and three compact content sections that reuse the same fetched
+          data as the desktop layout below. */}
+      <MobileDashboard
+        highlights={highlights}
+        latestVotes={latestVotes}
+        upcomingSessions={upcomingSessions}
+        locale={locale}
+        labels={{
+          brand: t('mobile_brand'),
+          legislature: t('mobile_legislature'),
+          stats: t('mobile_stats_short', {
+            votes: (summary?.votes_total ?? 0).toLocaleString(locale),
+            deputies: 350,
+          }),
+          searchPlaceholder: t('mobile_search_placeholder'),
+          searchAria: t('mobile_search_aria'),
+          tileVotes: t('mobile_tile_votes'),
+          tilePersons: t('mobile_tile_persons'),
+          tileTopics: t('mobile_tile_topics'),
+          tileStats: t('mobile_tile_stats'),
+          sectionHighlights: t('mobile_section_highlights'),
+          sectionUpcoming: t('mobile_section_upcoming'),
+          sectionLatest: t('mobile_section_latest'),
+          seeAll: t('mobile_see_all'),
+          highlightsSeeAll: t('highlights_see_all'),
+          noResults: tVotes('no_results'),
+          voteResultApproved: tVotes('result.approved'),
+          voteResultRejected: tVotes('result.rejected'),
+          voteResultTie: tVotes('result.tie'),
+        }}
+      />
+
+      {/* Desktop / tablet (≥640px) — original editorial home, unchanged. */}
+      <div className="hidden sm:block">
       {/* Hero — editorial, civic */}
       <section
         style={{
@@ -113,7 +156,15 @@ export default async function HomePage() {
           <h1 className="h-display" style={{ margin: '0 0 18px', whiteSpace: 'pre-line' }}>
             {t('hero_title')}
           </h1>
-          <p style={{ fontSize: 17, color: 'var(--ink-2)', maxWidth: 560, margin: '0 0 28px', lineHeight: 1.5 }}>
+          {/* Hero subtitle — desktop only. On ≤640px the eyebrow + display
+              headline are already the highest-density framing the page
+              needs; the prose under-claims start to feel like wall-of-text
+              on a phone. Page-level CTAs sit just below, so users still
+              know what to do. */}
+          <p
+            className="hidden sm:block"
+            style={{ fontSize: 17, color: 'var(--ink-2)', maxWidth: 560, margin: '0 0 28px', lineHeight: 1.5 }}
+          >
             {t('hero_subtitle')}
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -205,6 +256,10 @@ export default async function HomePage() {
             </div>
           </div>
 
+          {/* Week-caveat methodology note. On mobile we hide the full caveat
+              body and keep just the "Mètodologia →" link so the panel
+              compresses but the affordance for transparency stays one tap
+              away. Desktop renders the full sentence. */}
           <div
             style={{
               marginTop: 14,
@@ -215,7 +270,7 @@ export default async function HomePage() {
               lineHeight: 1.5,
             }}
           >
-            {t('week_caveat')}{' '}
+            <span className="hidden sm:inline">{t('week_caveat')} </span>
             <Link href="/about" style={{ color: 'var(--ink-2)' }}>
               {t('week_methodology_link')}
             </Link>
@@ -382,13 +437,17 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      {/* Responsive helper — collapse hero / coverage on narrow screens */}
+      {/* Responsive helper — collapse hero / coverage on narrow screens.
+          Note: between 640px (sm) and 860px the desktop block is shown but
+          re-styled by these rules; below 640px the entire `sm:block` wrapper
+          is hidden and the mobile dashboard takes over. */}
       <style>{`
         @media (max-width: 860px) {
           .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; padding-top: 24px !important; padding-bottom: 24px !important; }
           .home-coverage { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
+      </div>
     </div>
   );
 }
@@ -547,6 +606,493 @@ function CompactVoteRow({
           )}
         </div>
       </div>
+    </li>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mobile dashboard (≤640px)
+// ---------------------------------------------------------------------------
+//
+// Native-app-style entry point that replaces the editorial home on small
+// screens. The desktop block above is untouched; this dashboard reuses the
+// same upstream data (summary / latestVotes / upcomingSessions / highlights)
+// and renders it as: brand strip → search → 2×2 tile grid → highlights →
+// upcoming → 3 latest votes with a "see all" link.
+//
+// Symmetry note: the four tiles each lead to a route, not to a single
+// destination amplified above the rest. No "featured" copy, no editorial
+// selection beyond the existing reverse-chronological vote feed.
+
+interface MobileDashboardLabels {
+  brand: string;
+  legislature: string;
+  stats: string;
+  searchPlaceholder: string;
+  searchAria: string;
+  tileVotes: string;
+  tilePersons: string;
+  tileTopics: string;
+  tileStats: string;
+  sectionHighlights: string;
+  sectionUpcoming: string;
+  sectionLatest: string;
+  seeAll: string;
+  highlightsSeeAll: string;
+  noResults: string;
+  voteResultApproved: string;
+  voteResultRejected: string;
+  voteResultTie: string;
+}
+
+function MobileDashboard({
+  highlights,
+  latestVotes,
+  upcomingSessions,
+  locale,
+  labels,
+}: {
+  highlights: Highlight[];
+  latestVotes: Vote[];
+  upcomingSessions: ScheduledSession[];
+  locale: string;
+  labels: MobileDashboardLabels;
+}) {
+  // Cap the latest-votes list at 3 on mobile — the rest live behind the
+  // "Veure totes →" link. Keeps the dashboard scannable on a phone.
+  const latestThree = latestVotes.slice(0, 3);
+  // Show only the next 2 upcoming sessions on the dashboard.
+  const upcomingTwo = upcomingSessions.slice(0, 2);
+
+  return (
+    <div
+      className="sm:hidden"
+      style={{
+        // `min-width: 0` defends against children with long single-word
+        // strings (expediente codes, topic names) blowing out the viewport.
+        minWidth: 0,
+        overflowX: 'hidden',
+        paddingTop: 12,
+      }}
+    >
+      {/* Brand strip — name + one-line stats. No editorial copy. */}
+      <header
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          paddingBottom: 14,
+          borderBottom: '1px solid var(--rule)',
+        }}
+      >
+        <div
+          className="eyebrow"
+          style={{ fontSize: 10, color: 'var(--ink-3)', margin: 0 }}
+        >
+          {labels.brand}
+        </div>
+        <div
+          className="tabular"
+          style={{ fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.4 }}
+        >
+          {labels.legislature} · {labels.stats}
+        </div>
+      </header>
+
+      {/* Search — submits as GET to /votes?q=…, which the votes page
+          already accepts. Native form, no JS required. */}
+      <form
+        action="/votes"
+        method="get"
+        role="search"
+        style={{ position: 'relative', margin: '14px 0' }}
+      >
+        <Search
+          size={16}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: 12,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--ink-3)',
+            pointerEvents: 'none',
+          }}
+        />
+        <input
+          type="search"
+          name="q"
+          className="input-modern"
+          aria-label={labels.searchAria}
+          placeholder={labels.searchPlaceholder}
+          style={{
+            paddingLeft: 38,
+            minHeight: 44,
+            // Defensive: stop iOS Safari from zooming on focus when font
+            // sizes <16px. The .input-modern base already sets 14px but
+            // we override here to keep the mobile search safe.
+            fontSize: 16,
+          }}
+        />
+      </form>
+
+      {/* 2×2 tile grid. Uses minmax(0, 1fr) so long labels can't push the
+          row beyond the viewport. Each tile is a ~120px-tall touch target
+          (well above the 44×44 minimum). */}
+      <nav
+        aria-label={labels.brand}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 10,
+          marginBottom: 22,
+        }}
+      >
+        <DashboardTile
+          href="/votes"
+          icon={<VoteIcon size={30} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileVotes}
+        />
+        <DashboardTile
+          href="/persons"
+          icon={<Users size={30} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tilePersons}
+        />
+        <DashboardTile
+          href={{ pathname: '/votes', query: { tab: 'topics' } }}
+          icon={<Layers size={30} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileTopics}
+        />
+        <DashboardTile
+          href="/stats"
+          icon={<BarChart3 size={30} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileStats}
+        />
+      </nav>
+
+      {/* Highlights carousel — same component as desktop. The component
+          owns its own width via 100% layout, so we just wrap it in a
+          tight section header here. */}
+      <DashboardSection
+        title={labels.sectionHighlights}
+        seeAllHref="/stats"
+        seeAllLabel={labels.highlightsSeeAll}
+      >
+        <HighlightsCarousel items={highlights} />
+      </DashboardSection>
+
+      {/* Upcoming sessions — hidden entirely when there are none, to keep
+          the dashboard above-the-fold dense with real content. */}
+      {upcomingTwo.length > 0 && (
+        <DashboardSection title={labels.sectionUpcoming}>
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              border: '1px solid var(--rule)',
+              borderRadius: 12,
+              background: 'var(--paper-2)',
+              overflow: 'hidden',
+              minWidth: 0,
+            }}
+          >
+            {upcomingTwo.map((s, i) => (
+              <li
+                key={s.id}
+                style={{
+                  padding: '10px 14px',
+                  borderTop: i === 0 ? 'none' : '1px solid var(--rule)',
+                  fontSize: 13,
+                  color: 'var(--ink-2)',
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'baseline',
+                  minWidth: 0,
+                }}
+              >
+                <span
+                  className="tabular"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    whiteSpace: 'nowrap',
+                    flex: '0 0 auto',
+                  }}
+                >
+                  {new Date(s.date).toLocaleDateString(locale, {
+                    day: 'numeric',
+                    month: 'short',
+                  })}
+                </span>
+                <span
+                  style={{
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {s.items.length > 0
+                    ? `${s.items.length} · ${s.items[0]?.subject ?? ''}`
+                    : '—'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </DashboardSection>
+      )}
+
+      {/* Latest 3 votes — minimal rows (date, subject, result colour).
+          Tap target = full row; we keep each ≥ 56px. */}
+      <DashboardSection
+        title={labels.sectionLatest}
+        seeAllHref="/votes"
+        seeAllLabel={labels.seeAll}
+      >
+        {latestThree.length === 0 ? (
+          <p
+            style={{
+              fontSize: 13,
+              color: 'var(--ink-3)',
+              margin: 0,
+              padding: '14px 0',
+            }}
+          >
+            {labels.noResults}
+          </p>
+        ) : (
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              border: '1px solid var(--rule)',
+              borderRadius: 12,
+              overflow: 'hidden',
+              minWidth: 0,
+            }}
+          >
+            {latestThree.map((v, i) => (
+              <MobileVoteRow
+                key={v.id}
+                v={v}
+                locale={locale}
+                isFirst={i === 0}
+                resultLabel={
+                  v.result === 'approved'
+                    ? labels.voteResultApproved
+                    : v.result === 'rejected'
+                      ? labels.voteResultRejected
+                      : labels.voteResultTie
+                }
+              />
+            ))}
+          </ul>
+        )}
+      </DashboardSection>
+    </div>
+  );
+}
+
+function DashboardTile({
+  href,
+  icon,
+  label,
+}: {
+  // `Link` accepts string or UrlObject; we type loose here because Next's
+  // typed-routes infer them per-page. Both forms validate at the Link site.
+  href: React.ComponentProps<typeof Link>['href'];
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="mobile-dashboard-tile"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 10,
+        minHeight: 110,
+        padding: 16,
+        borderRadius: 16,
+        border: '1px solid var(--rule-strong)',
+        background: 'var(--paper)',
+        color: 'var(--ink)',
+        textDecoration: 'none',
+        boxShadow:
+          '0 1px 0 rgba(15, 23, 42, .03), 0 6px 18px -14px rgba(15, 23, 42, .18)',
+        minWidth: 0,
+      }}
+    >
+      <span style={{ color: 'var(--ink)' }}>{icon}</span>
+      <span
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          letterSpacing: '-0.005em',
+          lineHeight: 1.2,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: '100%',
+        }}
+      >
+        {label}
+      </span>
+      <style>{`
+        .mobile-dashboard-tile:active {
+          background: var(--ink);
+          color: var(--paper);
+          border-color: var(--ink);
+        }
+        .mobile-dashboard-tile:active span { color: inherit; }
+      `}</style>
+    </Link>
+  );
+}
+
+function DashboardSection({
+  title,
+  seeAllHref,
+  seeAllLabel,
+  children,
+}: {
+  title: string;
+  seeAllHref?: React.ComponentProps<typeof Link>['href'];
+  seeAllLabel?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section style={{ marginBottom: 22, minWidth: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          marginBottom: 10,
+          gap: 10,
+          minWidth: 0,
+        }}
+      >
+        <h2
+          className="eyebrow"
+          style={{
+            margin: 0,
+            fontSize: 10,
+            color: 'var(--ink-3)',
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {title}
+        </h2>
+        {seeAllHref && seeAllLabel && (
+          <Link
+            href={seeAllHref}
+            style={{
+              fontSize: 12,
+              color: 'var(--ink-2)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              flex: '0 0 auto',
+            }}
+          >
+            {seeAllLabel} <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function MobileVoteRow({
+  v,
+  locale,
+  isFirst,
+  resultLabel,
+}: {
+  v: Vote;
+  locale: string;
+  isFirst: boolean;
+  resultLabel: string;
+}) {
+  const subject = v.description?.trim() || v.title;
+  const voteDate = new Date(v.voted_at);
+  const isCurrentYear = voteDate.getFullYear() === new Date().getFullYear();
+  const shortDate = voteDate
+    .toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+      ...(isCurrentYear ? {} : { year: '2-digit' }),
+    })
+    .replace(/\.$/, '');
+  return (
+    <li
+      style={{
+        borderTop: isFirst ? 'none' : '1px solid var(--rule)',
+        background: 'var(--paper)',
+        minWidth: 0,
+      }}
+    >
+      <Link
+        href={`/votes/${v.id}`}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) auto',
+          gap: 10,
+          padding: '12px 14px',
+          minHeight: 56,
+          textDecoration: 'none',
+          color: 'inherit',
+          alignItems: 'center',
+          minWidth: 0,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div
+            className="tabular"
+            style={{ fontSize: 11, color: 'var(--ink-3)', marginBottom: 2 }}
+          >
+            {shortDate}
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              lineHeight: 1.35,
+              color: 'var(--ink)',
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+              overflow: 'hidden',
+              wordBreak: 'break-word',
+            }}
+          >
+            {subject}
+          </div>
+        </div>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: resultColor(v.result),
+            whiteSpace: 'nowrap',
+            flex: '0 0 auto',
+            textAlign: 'right',
+          }}
+        >
+          {resultLabel}
+        </span>
+      </Link>
     </li>
   );
 }

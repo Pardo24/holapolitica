@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { ArrowUpRight } from 'lucide-react';
 
-import { GroupBadge } from '@/components/GroupBadge';
+import { GroupCompositionFilter } from '@/components/GroupCompositionFilter';
 import { TopicBars } from '@/components/TopicBars';
 import {
   api,
@@ -222,12 +222,26 @@ export default async function GroupDetailPage({
         />
       </section>
 
-      <MembersSection
-        members={members}
-        groupColor={group.color_hex}
-        groupSlug={group.slug}
-        t={t}
-      />
+      {members.length === 0 ? (
+        <section style={{ paddingTop: 28 }}>
+          <h2 className="h-title">{t('members_title')}</h2>
+          <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_members')}</p>
+        </section>
+      ) : (
+        <GroupCompositionFilter
+          members={sortMembersWithRoleFirst(members)}
+          groupSlug={group.slug}
+          groupColor={group.color_hex}
+          labels={{
+            title: t('members_title'),
+            searchPlaceholder: t('members_search_placeholder'),
+            searchAria: t('members_search_aria'),
+            matchCount: (count: number) =>
+              t('members_match_count', { count }),
+            empty: t('members_empty_filter'),
+          }}
+        />
+      )}
 
       <style>{`
         @media (max-width: 860px) {
@@ -273,87 +287,17 @@ function FactRow({
   );
 }
 
-function MembersSection({
-  members,
-  groupSlug,
-  groupColor,
-  t,
-}: {
-  members: GroupMemberRow[];
-  groupSlug: string;
-  groupColor: string | null;
-  t: Awaited<ReturnType<typeof getTranslations<'group'>>>;
-}) {
-  if (members.length === 0) {
-    return (
-      <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">{t('members_title')}</h2>
-        <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_members')}</p>
-      </section>
-    );
-  }
-
+/**
+ * Preserve the original "members with a role first, alphabetical rest
+ * after" ordering that the legacy MembersSection produced. The filterable
+ * client component receives this pre-sorted list and only ever filters —
+ * never re-sorts — so the page reads the same way before and after the
+ * user types into the search box.
+ */
+function sortMembersWithRoleFirst(members: GroupMemberRow[]): GroupMemberRow[] {
   const withRole = members.filter((m) => m.role);
   const withoutRole = members.filter((m) => !m.role);
-  const featuredCount = Math.max(12 - withRole.length, 0);
-  const featured = [...withRole, ...withoutRole.slice(0, featuredCount)];
-  const rest = withoutRole.slice(featuredCount);
-
-  return (
-    <section style={{ paddingTop: 28 }}>
-      <h2 className="h-title">
-        {t('members_title')}{' '}
-        <span style={{ color: 'var(--ink-3)', fontWeight: 400, fontSize: 14 }}>
-          ({members.length})
-        </span>
-      </h2>
-      <ul
-        style={{
-          listStyle: 'none',
-          margin: '12px 0 0',
-          padding: 0,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))',
-          gap: 8,
-        }}
-      >
-        {featured.map((m) => (
-          <MemberRow key={m.person_id} member={m} groupSlug={groupSlug} groupColor={groupColor} />
-        ))}
-      </ul>
-      {rest.length > 0 && (
-        <details style={{ marginTop: 14 }}>
-          <summary
-            style={{
-              cursor: 'pointer',
-              fontSize: 13,
-              color: 'var(--ink-2)',
-              padding: '6px 12px',
-              border: '1px solid var(--rule)',
-              display: 'inline-block',
-              listStyle: 'none',
-            }}
-          >
-            {t('show_rest', { count: rest.length })}
-          </summary>
-          <ul
-            style={{
-              listStyle: 'none',
-              marginTop: 12,
-              padding: 0,
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))',
-              gap: 8,
-            }}
-          >
-            {rest.map((m) => (
-              <MemberRow key={m.person_id} member={m} groupSlug={groupSlug} groupColor={groupColor} />
-            ))}
-          </ul>
-        </details>
-      )}
-    </section>
-  );
+  return [...withRole, ...withoutRole];
 }
 
 // ---------------------------------------------------------------------------
@@ -710,44 +654,3 @@ function PartyList({
   );
 }
 
-function MemberRow({
-  member,
-  groupSlug,
-  groupColor,
-}: {
-  member: GroupMemberRow;
-  groupSlug: string;
-  groupColor: string | null;
-}) {
-  return (
-    <li>
-      <Link
-        href={`/persons/${member.person_id}`}
-        prefetch={false}
-        style={{
-          display: 'flex',
-          gap: 10,
-          padding: 10,
-          border: '1px solid var(--rule)',
-          background: 'var(--paper)',
-          textDecoration: 'none',
-          color: 'inherit',
-        }}
-      >
-        <GroupBadge slug={groupSlug} color={groupColor} size="xs" link={false} />
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>{member.full_name}</div>
-          <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>
-            {member.constituency}
-            {member.role && (
-              <>
-                {member.constituency ? ' · ' : ''}
-                <span style={{ fontStyle: 'italic' }}>{member.role}</span>
-              </>
-            )}
-          </div>
-        </div>
-      </Link>
-    </li>
-  );
-}

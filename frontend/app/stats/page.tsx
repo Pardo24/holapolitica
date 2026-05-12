@@ -226,7 +226,12 @@ export default async function StatsPage({
           <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
             {t('title')}
           </h1>
+          {/* Page intro paragraph — desktop only. The mobile dashboard
+              below this header opens straight onto the KPI grid + filters,
+              which is what a phone user came for. Keeping the 2-3 sentence
+              setup paragraph on mobile pushes the data below the fold. */}
           <p
+            className="hidden sm:block"
             style={{
               fontSize: 13,
               color: 'var(--ink-3)',
