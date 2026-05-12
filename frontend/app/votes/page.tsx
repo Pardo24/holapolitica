@@ -7,29 +7,32 @@ import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { ActiveFilterChips, type ActiveFilter } from '@/components/ActiveFilterChips';
-import { HubTabs } from '@/components/HubTabs';
 import { MobileTopicCarousel, type MobileCarouselTopic } from '@/components/MobileTopicCarousel';
 import { MobileVoteCard } from '@/components/MobileVoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
+import { TopicChipsStrip } from '@/components/TopicChipsStrip';
 import { VotesCalendarStripController } from '@/components/VotesCalendarStripController';
 import type { CalendarDay } from '@/components/VotesCalendarStrip';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { SummaryHover } from '@/components/SummaryHover';
 import { TopicCombobox } from '@/components/TopicCombobox';
-import { TopicListPanel } from '@/components/TopicListPanel';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
-import { api, type ScheduledSession, type TopicKind, type Vote, type VoteResult } from '@/lib/api';
+import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 
-type VotesTab = 'votes' | 'topics';
-
 interface SearchParams {
+  /**
+   * Legacy: ``tab=topics|votes`` used to switch between two surfaces.
+   * Kept here only to absorb old links without 404s — the value is
+   * ignored; both routes render the unified surface now.
+   */
   tab?: string;
-  // Topic-tab params
+  // Carry-over from when the "Per tema" tab had its own SDG sub-tab.
+  // The full SDG grid still lives at /agenda-2030 and /topics?kind=sdg.
   kind?: string;
   // Vote-list params
   topic_slug?: string;
@@ -48,14 +51,8 @@ export default async function VotesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations('votes');
-  const tNav = await getTranslations('nav');
   const tLifecycle = await getTranslations('lifecycle');
   const params = await searchParams;
-  // Default to the "Per tema" entry point — topics are the friendlier reading
-  // path into parliamentary activity for non-experts. The flat votes list
-  // remains one click away via the tab strip and is still the destination
-  // when `?tab=votes` is explicit.
-  const activeTab: VotesTab = params.tab === 'votes' ? 'votes' : 'topics';
 
   return (
     <div>
@@ -98,43 +95,12 @@ export default async function VotesPage({
         </p>
       </PageHeader>
 
-      <HubTabs
-        ariaLabel={t('tablist_aria')}
-        tabs={[
-          {
-            href: '/votes?tab=topics' as Route,
-            label: t('tab_by_topic'),
-            active: activeTab === 'topics',
-          },
-          {
-            href: '/votes?tab=votes' as Route,
-            label: tNav('votes'),
-            active: activeTab === 'votes',
-          },
-        ]}
-      />
+      <VotesListTab params={params} />
 
-      {activeTab === 'votes' ? (
-        <VotesListTab params={params} />
-      ) : (
-        <TopicsTab kind={params.kind} />
-      )}
-
-      {/* Newsletter signup — at the very bottom of either tab. Compact
-          card, neutral copy, posts directly to backend. */}
+      {/* Newsletter signup — at the very bottom. Compact card, neutral
+          copy, posts directly to backend. */}
       <NewsletterSignup />
     </div>
-  );
-}
-
-async function TopicsTab({ kind }: { kind: string | undefined }) {
-  const activeKind: TopicKind = kind === 'sdg' ? 'sdg' : 'theme';
-  return (
-    <TopicListPanel
-      activeKind={activeKind}
-      hrefBase="/votes"
-      extraTabParams={{ tab: 'topics' }}
-    />
   );
 }
 
@@ -323,11 +289,26 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         clearAllLabel={t('filters_clear_all')}
       />
 
+      {/* Desktop-only horizontal chip strip of every theme topic.
+          Replaces the dedicated "Per tema" tab — clicking a chip
+          filters the votes list directly. Hidden on mobile, where the
+          rotating carousel below serves the same purpose. */}
+      <div className="hidden sm:block">
+        <TopicChipsStrip
+          topics={topics}
+          counts={topicCounts}
+          activeSlug={params.topic_slug ?? null}
+          baseHref="/votes"
+          allLabel={t('topic_chips_all_label')}
+          countSuffix={t('carousel_count_suffix')}
+        />
+      </div>
+
       {/* Mobile-only rotating topic carousel. Surfaces the topic
           taxonomy above the list so a phone user can jump to an entire
           theme rather than scrolling 1.8 k vote rows. Hidden on
-          desktop where the "Per tema" tab already serves the same
-          purpose with a full grid. */}
+          desktop where the chip strip above serves the same purpose
+          with all topics visible at once. */}
       {carouselTopics.length > 0 && (
         <div
           className="sm:hidden"
