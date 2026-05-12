@@ -100,25 +100,52 @@ export default async function StatsPage({
   const activeTab: TabKey =
     explicitTab ?? (anyFilter ? 'filtered' : 'overview');
 
-  // Data fetching — global stats are always loaded since the collapsible
-  // section needs them on demand without a second round trip. The
-  // filter-scoped fetches stay conditional so unused branches don't pay.
-  const [summary, byStatus, proposingGroups, topics, groupSummary, allTopics, allGroups, coincidence] =
-    await Promise.all([
-      api.stats.summary(),
-      api.stats.initiativesByStatus(),
-      api.stats.votesByProposingGroup(),
-      api.stats.topicsGlobal(),
-      api.metrics.groupSummary(1).catch(() => [] as GroupSummaryRow[]),
-      api.topics.list(),
-      api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
-      api.metrics.coincidence(1).catch(() => [] as CoincidenceCell[]),
-    ]);
+  // Data fetching — every read is kicked off in PARALLEL up front so the
+  // page renders as soon as the slowest single response lands. Previously
+  // the page had three sequential ``await Promise.all`` blocks, which
+  // serialised ~450ms of network time. By chaining the dependent fetches
+  // through their own promises (the highlights fan-out needs the resolved
+  // ``allGroups`` list, so we chain it via ``.then``), the runtime can
+  // overlap every request with every other request.
+  //
+  // Filter-scoped reads stay conditional: when no filter is set, the
+  // ``Promise.resolve(null)`` shorthands cost nothing.
+  const allGroupsPromise = api.groups
+    .list()
+    .catch(() => [] as ParliamentaryGroupSummary[]);
+  const topicStatsPerGroupPromise = allGroupsPromise.then((gs) =>
+    Promise.all(
+      gs.map((g) =>
+        api.groups
+          .topicStats(g.slug)
+          .then((rows) => [g.slug, rows] as const)
+          .catch(() => [g.slug, [] as TopicVoteStat[]] as const),
+      ),
+    ),
+  );
 
-  // Filter-scoped fetches. When BOTH filters are set we use the single
-  // cross endpoint instead of calling the two narrower endpoints (one
-  // round trip, all-groups symmetry, joint initiative list included).
-  const [groupActivity, topicProposers, cross] = await Promise.all([
+  const [
+    summary,
+    byStatus,
+    proposingGroups,
+    topics,
+    groupSummary,
+    allTopics,
+    allGroups,
+    coincidence,
+    groupActivity,
+    topicProposers,
+    cross,
+    topicStatsPerGroup,
+  ] = await Promise.all([
+    api.stats.summary(),
+    api.stats.initiativesByStatus(),
+    api.stats.votesByProposingGroup(),
+    api.stats.topicsGlobal(),
+    api.metrics.groupSummary(1).catch(() => [] as GroupSummaryRow[]),
+    api.topics.list(),
+    allGroupsPromise,
+    api.metrics.coincidence(1).catch(() => [] as CoincidenceCell[]),
     hasGroup && !bothFilters
       ? api.stats
           .byGroup(selectedGroup, 1)
@@ -132,20 +159,13 @@ export default async function StatsPage({
     bothFilters
       ? api.stats.crossTopicGroup(selectedTopic, selectedGroup, 1).catch(() => null)
       : Promise.resolve<CrossTopicGroup | null>(null),
+    topicStatsPerGroupPromise,
   ]);
 
-  // Highlights carousel: same as before — buildHighlights is symmetric
-  // across groups; we then filter to the active selection so the carousel
-  // only rotates relevant cards (per CLAUDE.md "regla de simetria" we
-  // never hide a group from the underlying dataset, just from the carousel).
-  const topicStatsPerGroup = await Promise.all(
-    allGroups.map((g) =>
-      api.groups
-        .topicStats(g.slug)
-        .then((rows) => [g.slug, rows] as const)
-        .catch(() => [g.slug, [] as TopicVoteStat[]] as const),
-    ),
-  );
+  // Highlights carousel: ``buildHighlights`` is symmetric across groups;
+  // we then filter to the active selection so the carousel only rotates
+  // relevant cards (per CLAUDE.md "regla de simetria" we never hide a
+  // group from the underlying dataset, just from the carousel).
   const topicStatsByGroup = new Map(topicStatsPerGroup);
   const allHighlights = buildHighlights(allGroups, topicStatsByGroup);
   const highlights: Highlight[] = filterHighlights(allHighlights, {

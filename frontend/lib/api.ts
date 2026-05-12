@@ -9,6 +9,16 @@
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
+/**
+ * Revalidation window (seconds) applied to read-heavy aggregate endpoints —
+ * stats, metrics, group summaries, topic taxonomy. Five minutes is the
+ * sweet spot: the backend's own Redis caches refresh on the same cadence,
+ * and votes ingest only every 4 hours, so anything tighter would be wasted
+ * cache churn. Pages can still override at the call site if they want
+ * fresh data (e.g. an admin tool or a write-after-read flow).
+ */
+const AGG_REVALIDATE = 300;
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -20,17 +30,42 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+type RequestOptions = RequestInit & {
+  /**
+   * Number of seconds Next.js will serve a cached response before
+   * refetching. Skipped (no caching, equivalent to `cache: 'no-store'`)
+   * when undefined or 0. Use for read-heavy aggregates served by the
+   * backend's Redis layer — those endpoints already include their own
+   * staleness window, so re-asking the backend on every render is pure
+   * waste.
+   */
+  revalidate?: number;
+};
+
+async function request<T>(path: string, init?: RequestOptions): Promise<T> {
   const url = `${BASE_URL}${path}`;
-  const response = await fetch(url, {
-    ...init,
+  const { revalidate, ...rest } = init ?? {};
+  // Build the fetch init, branching on whether we have an Next.js
+  // revalidate hint. When present we let Next.js own the freshness
+  // policy (and the `cache` flag must NOT be set — they're mutually
+  // exclusive in Next 15). When absent we default to `no-store` so
+  // post-mutation reads see the latest write.
+  // `next` is a Next.js-specific extension to RequestInit; declared here
+  // as a structural option so callers don't have to import the runtime
+  // type. Forwarded verbatim to fetch when present.
+  const fetchInit: RequestInit & { next?: { revalidate?: number | false } } = {
+    ...rest,
     headers: {
       'Content-Type': 'application/json',
-      ...init?.headers,
+      ...rest.headers,
     },
-    // Disable Next.js fetch cache by default for fresh data; pages can override.
-    cache: init?.cache ?? 'no-store',
-  });
+  };
+  if (revalidate && revalidate > 0) {
+    fetchInit.next = { revalidate };
+  } else if (!fetchInit.cache) {
+    fetchInit.cache = 'no-store';
+  }
+  const response = await fetch(url, fetchInit);
 
   if (!response.ok) {
     let body: unknown = undefined;
@@ -541,7 +576,9 @@ export const api = {
         chamberId ? `/legislatures?chamber_id=${chamberId}` : '/legislatures'
       ),
     hemicycle: (legislatureId: number) =>
-      request<HemicycleLayout>(`/legislatures/${legislatureId}/hemicycle`),
+      request<HemicycleLayout>(`/legislatures/${legislatureId}/hemicycle`, {
+        revalidate: AGG_REVALIDATE,
+      }),
   },
   persons: {
     list: (params: {
@@ -558,11 +595,13 @@ export const api = {
       const suffix = qs.toString() ? `?${qs.toString()}` : '';
       return request<Paginated<Person>>(`/persons${suffix}`);
     },
-    get: (id: number) => request<Person>(`/persons/${id}`),
-    mandates: (id: number) => request<Mandate[]>(`/persons/${id}/mandates`),
+    get: (id: number) => request<Person>(`/persons/${id}`, { revalidate: AGG_REVALIDATE }),
+    mandates: (id: number) =>
+      request<Mandate[]>(`/persons/${id}/mandates`, { revalidate: AGG_REVALIDATE }),
     topicStats: (id: number) =>
-      request<TopicVoteStat[]>(`/persons/${id}/topic-stats`),
-    kpis: (id: number) => request<PersonKPIs>(`/persons/${id}/kpis`),
+      request<TopicVoteStat[]>(`/persons/${id}/topic-stats`, { revalidate: AGG_REVALIDATE }),
+    kpis: (id: number) =>
+      request<PersonKPIs>(`/persons/${id}/kpis`, { revalidate: AGG_REVALIDATE }),
   },
   initiatives: {
     get: (id: number) => request<Initiative>(`/initiatives/${id}`),
@@ -572,46 +611,53 @@ export const api = {
   topics: {
     list: (params: { kind?: TopicKind } = {}) => {
       const qs = params.kind ? `?kind=${params.kind}` : '';
-      return request<Topic[]>(`/topics${qs}`);
+      return request<Topic[]>(`/topics${qs}`, { revalidate: AGG_REVALIDATE });
     },
-    get: (slug: string) => request<Topic>(`/topics/${slug}`),
+    get: (slug: string) => request<Topic>(`/topics/${slug}`, { revalidate: AGG_REVALIDATE }),
     initiatives: (slug: string, params: { legislature_id?: number; status?: string } = {}) => {
       const qs = new URLSearchParams();
       if (params.legislature_id != null) qs.set('legislature_id', String(params.legislature_id));
       if (params.status) qs.set('status', params.status);
       const suffix = qs.toString() ? `?${qs.toString()}` : '';
-      return request<Initiative[]>(`/topics/${slug}/initiatives${suffix}`);
+      return request<Initiative[]>(`/topics/${slug}/initiatives${suffix}`, {
+        revalidate: AGG_REVALIDATE,
+      });
     },
   },
   groups: {
     list: (legislatureId?: number) =>
       request<ParliamentaryGroupSummary[]>(
-        legislatureId ? `/groups?legislature_id=${legislatureId}` : '/groups'
+        legislatureId ? `/groups?legislature_id=${legislatureId}` : '/groups',
+        { revalidate: AGG_REVALIDATE },
       ),
-    get: (slug: string) => request<ParliamentaryGroupSummary>(`/groups/${slug}`),
-    members: (slug: string) => request<GroupMemberRow[]>(`/groups/${slug}/members`),
+    get: (slug: string) =>
+      request<ParliamentaryGroupSummary>(`/groups/${slug}`, { revalidate: AGG_REVALIDATE }),
+    members: (slug: string) =>
+      request<GroupMemberRow[]>(`/groups/${slug}/members`, { revalidate: AGG_REVALIDATE }),
     topicStats: (slug: string) =>
-      request<TopicVoteStat[]>(`/groups/${slug}/topic-stats`),
+      request<TopicVoteStat[]>(`/groups/${slug}/topic-stats`, { revalidate: AGG_REVALIDATE }),
     composition: (slug: string) =>
-      request<GroupComposition>(`/groups/${slug}/composition`),
+      request<GroupComposition>(`/groups/${slug}/composition`, { revalidate: AGG_REVALIDATE }),
   },
   stats: {
-    summary: () => request<StatsSummary>('/stats/summary'),
+    summary: () => request<StatsSummary>('/stats/summary', { revalidate: AGG_REVALIDATE }),
     initiativesByType: () =>
-      request<InitiativeTypeCount[]>('/stats/initiatives/by-type'),
+      request<InitiativeTypeCount[]>('/stats/initiatives/by-type', { revalidate: AGG_REVALIDATE }),
     initiativesByStatus: () =>
-      request<InitiativeStatusCount[]>('/stats/initiatives/by-status'),
-    votesByResult: () => request<VoteResultCount[]>('/stats/votes/by-result'),
+      request<InitiativeStatusCount[]>('/stats/initiatives/by-status', { revalidate: AGG_REVALIDATE }),
+    votesByResult: () =>
+      request<VoteResultCount[]>('/stats/votes/by-result', { revalidate: AGG_REVALIDATE }),
     votesByProposingGroup: () =>
-      request<GroupProposalCount[]>('/stats/votes/by-proposing-group'),
-    topicsGlobal: () => request<TopicGlobalStat[]>('/stats/topics/global'),
+      request<GroupProposalCount[]>('/stats/votes/by-proposing-group', { revalidate: AGG_REVALIDATE }),
+    topicsGlobal: () =>
+      request<TopicGlobalStat[]>('/stats/topics/global', { revalidate: AGG_REVALIDATE }),
     byGroup: (slug: string, legislatureId?: number) => {
       const qs = legislatureId ? `?legislature_id=${legislatureId}` : '';
-      return request<GroupActivity>(`/stats/by-group/${slug}${qs}`);
+      return request<GroupActivity>(`/stats/by-group/${slug}${qs}`, { revalidate: AGG_REVALIDATE });
     },
     byTopicProposers: (slug: string, legislatureId?: number) => {
       const qs = legislatureId ? `?legislature_id=${legislatureId}` : '';
-      return request<TopicProposers>(`/stats/by-topic/${slug}/proposers${qs}`);
+      return request<TopicProposers>(`/stats/by-topic/${slug}/proposers${qs}`, { revalidate: AGG_REVALIDATE });
     },
     crossTopicGroup: (
       topicSlug: string,
@@ -621,6 +667,7 @@ export const api = {
       const qs = legislatureId ? `?legislature_id=${legislatureId}` : '';
       return request<CrossTopicGroup>(
         `/stats/cross/topic/${encodeURIComponent(topicSlug)}/group/${encodeURIComponent(groupSlug)}${qs}`,
+        { revalidate: AGG_REVALIDATE },
       );
     },
   },
@@ -628,31 +675,32 @@ export const api = {
     groupSummary: (legislatureId: number) =>
       request<GroupSummaryRow[]>(
         `/metrics/group-summary?legislature_id=${legislatureId}`,
+        { revalidate: AGG_REVALIDATE },
       ),
     cohesion: (voteId: number) =>
-      request<CohesionResult[]>(`/metrics/cohesion?vote_id=${voteId}`),
+      request<CohesionResult[]>(`/metrics/cohesion?vote_id=${voteId}`, { revalidate: AGG_REVALIDATE }),
     coincidence: (legislatureId: number, range: { from?: string; to?: string } = {}) => {
       const qs = new URLSearchParams({ legislature_id: String(legislatureId) });
       if (range.from) qs.set('from', range.from);
       if (range.to) qs.set('to', range.to);
-      return request<CoincidenceCell[]>(`/metrics/coincidence?${qs.toString()}`);
+      return request<CoincidenceCell[]>(`/metrics/coincidence?${qs.toString()}`, { revalidate: AGG_REVALIDATE });
     },
     attendance: (legislatureId: number, range: { from?: string; to?: string } = {}) => {
       const qs = new URLSearchParams({ legislature_id: String(legislatureId) });
       if (range.from) qs.set('from', range.from);
       if (range.to) qs.set('to', range.to);
-      return request<AttendanceRow[]>(`/metrics/attendance?${qs.toString()}`);
+      return request<AttendanceRow[]>(`/metrics/attendance?${qs.toString()}`, { revalidate: AGG_REVALIDATE });
     },
     dissidence: (legislatureId: number, range: { from?: string; to?: string } = {}) => {
       const qs = new URLSearchParams({ legislature_id: String(legislatureId) });
       if (range.from) qs.set('from', range.from);
       if (range.to) qs.set('to', range.to);
-      return request<DissidenceRow[]>(`/metrics/dissidence?${qs.toString()}`);
+      return request<DissidenceRow[]>(`/metrics/dissidence?${qs.toString()}`, { revalidate: AGG_REVALIDATE });
     },
   },
   agenda: {
     upcoming: () =>
-      request<ScheduledSession>('/agenda/upcoming').catch(
+      request<ScheduledSession>('/agenda/upcoming', { revalidate: AGG_REVALIDATE }).catch(
         (err) => {
           if (err instanceof ApiError && err.status === 404) return null;
           throw err;
@@ -664,11 +712,14 @@ export const api = {
       });
       if (params.upcoming_only) qs.set('upcoming_only', 'true');
       if (params.status) qs.set('status', params.status);
-      return request<ScheduledSession[]>(`/agenda/sessions?${qs.toString()}`);
+      return request<ScheduledSession[]>(`/agenda/sessions?${qs.toString()}`, {
+        revalidate: AGG_REVALIDATE,
+      });
     },
     itemsByTopic: (topicSlug: string, legislatureId = 1) =>
       request<ScheduledAgendaItem[]>(
         `/agenda/items/by-topic/${encodeURIComponent(topicSlug)}?legislature_id=${legislatureId}`,
+        { revalidate: AGG_REVALIDATE },
       ),
   },
   push: {
