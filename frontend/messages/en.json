@@ -287,6 +287,12 @@
     "tab_by_topic": "By topic",
     "calendar_all_label": "All",
     "calendar_count_suffix": "votes",
+    "carousel_empty": "No classified topics to show yet.",
+    "carousel_count_suffix": "classified initiatives",
+    "carousel_prev_aria": "Previous topic",
+    "carousel_next_aria": "Next topic",
+    "carousel_paused": "paused",
+    "carousel_of_separator": "of",
     "records_count": "{count} records",
     "filters": {
       "topic": "Topic",

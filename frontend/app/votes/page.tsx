@@ -7,6 +7,7 @@ import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { HubTabs } from '@/components/HubTabs';
+import { MobileTopicCarousel, type MobileCarouselTopic } from '@/components/MobileTopicCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
 import { VotesCalendarStripController } from '@/components/VotesCalendarStripController';
@@ -146,10 +147,11 @@ async function VotesListTab({ params }: { params: SearchParams }) {
   let groups: Awaited<ReturnType<typeof api.groups.list>> = [];
   let upcomingSessions: ScheduledSession[] = [];
   let calendarSourceVotes: Awaited<ReturnType<typeof api.votes.list>> | null = null;
+  let topicCounts: Awaited<ReturnType<typeof api.stats.topicsGlobal>> = [];
   let error: string | null = null;
 
   try {
-    [data, topics, groups, upcomingSessions, calendarSourceVotes] = await Promise.all([
+    [data, topics, groups, upcomingSessions, calendarSourceVotes, topicCounts] = await Promise.all([
       api.votes.list({
         topic_slug: params.topic_slug,
         proposing_group_slug: params.proposing_group_slug,
@@ -175,10 +177,32 @@ async function VotesListTab({ params }: { params: SearchParams }) {
       // landmarks — tapping a date stacks with the other filters via the
       // URL, never replaces them.
       api.votes.list({ legislature_id: 1, page: 1, page_size: 200 }),
+      // Per-topic initiative counts feed the mobile topic carousel
+      // (every topic visible, deterministic order — never editorial).
+      api.stats.topicsGlobal().catch(() => []),
     ]);
   } catch (e) {
     error = e instanceof Error ? e.message : 'unknown error';
   }
+
+  // Build the topic carousel dataset: every editorial-theme topic with
+  // at least one classified initiative, sorted by count descending so
+  // the rotation starts on the strongest signal. Server-side computation
+  // keeps the client component pure UI.
+  const carouselTopics: MobileCarouselTopic[] = topics
+    .filter((tp) => tp.kind === 'theme')
+    .map((tp) => {
+      const stat = topicCounts.find((c) => c.topic_slug === tp.slug);
+      return {
+        slug: tp.slug,
+        name: tp.name_ca,
+        color_hex: tp.color_hex,
+        icon: tp.icon,
+        count: stat?.initiatives_total ?? 0,
+      };
+    })
+    .filter((tp) => tp.count > 0)
+    .sort((a, b) => b.count - a.count);
 
   // Build the calendar strip data: aggregate vote_records by date,
   // splice upcoming sessions to the right end so the user can see the
@@ -231,6 +255,28 @@ async function VotesListTab({ params }: { params: SearchParams }) {
             activeDate={activeDate}
             allLabel={t('calendar_all_label')}
             countSuffix={t('calendar_count_suffix')}
+          />
+        </div>
+      )}
+
+      {/* Mobile-only rotating topic carousel. Surfaces the topic
+          taxonomy above the list so a phone user can jump to an entire
+          theme rather than scrolling 1.8 k vote rows. Hidden on
+          desktop where the "Per tema" tab already serves the same
+          purpose with a full grid. */}
+      {carouselTopics.length > 0 && (
+        <div
+          className="sm:hidden"
+          style={{ paddingTop: 8, paddingBottom: 4 }}
+        >
+          <MobileTopicCarousel
+            items={carouselTopics}
+            emptyLabel={t('carousel_empty')}
+            countSuffix={t('carousel_count_suffix')}
+            prevAria={t('carousel_prev_aria')}
+            nextAria={t('carousel_next_aria')}
+            pausedLabel={t('carousel_paused')}
+            ofSeparator={t('carousel_of_separator')}
           />
         </div>
       )}

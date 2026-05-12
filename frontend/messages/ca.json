@@ -287,6 +287,12 @@
     "tab_by_topic": "Per tema",
     "calendar_all_label": "Tots",
     "calendar_count_suffix": "votacions",
+    "carousel_empty": "Encara no hi ha temes classificats per a mostrar.",
+    "carousel_count_suffix": "iniciatives classificades",
+    "carousel_prev_aria": "Tema anterior",
+    "carousel_next_aria": "Tema següent",
+    "carousel_paused": "pausat",
+    "carousel_of_separator": "de",
     "records_count": "{count} registres",
     "filters": {
       "topic": "Tema",
