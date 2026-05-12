@@ -202,6 +202,23 @@ export async function MobileStatsDashboard({
         />
       )}
 
+      {/* ─── 2b. Compact 3-latest initiatives + link to topic page
+              (only when a topic is selected; replaces the long
+              expandable list that previously sat at the bottom). */}
+      {hasTopic && (
+        <CompactTopicInitiatives
+          topicProposers={topicProposers}
+          cross={cross}
+          selectedTopic={selectedTopic}
+          focusedTopicName={focusedTopicName}
+          locale={locale}
+          labels={{
+            eyebrow: t('list_eyebrow'),
+            openTopicPage: t('list_open_topic_page'),
+          }}
+        />
+      )}
+
       {/* ─── 3. Coincidence — pair picker ──────────────────────────── */}
       <PairCoincidenceWidget
         allGroups={allGroups}
@@ -233,25 +250,11 @@ export async function MobileStatsDashboard({
         </DashSection>
       )}
 
-      {/* ─── 5. Expandable initiative list ─────────────────────────── */}
-      <InitiativeListExpandable
-        topicProposers={topicProposers}
-        groupActivity={groupActivity}
-        cross={cross}
-        focusedTopicName={focusedTopicName}
-        selectedTopic={selectedTopic}
-        locale={locale}
-        labels={{
-          eyebrow: t('list_eyebrow'),
-          info: t('list_info'),
-          seeTopic: (topic: string) => t('list_see_topic', { topic }),
-          seeRecent: t('list_see_recent'),
-          emptyTopic: t('list_empty_topic'),
-          emptyNoFilter: t('list_empty_no_filter'),
-          seeMore: (count: number) => t('list_see_more', { count }),
-          openTopicPage: t('list_open_topic_page'),
-        }}
-      />
+      {/* The long expandable-list widget is intentionally removed:
+          when a topic is selected the user already saw the 3 most-
+          recent initiatives at widget 2b, and the topic page link
+          deep-links to the full filterable browse. Without a topic
+          there's no scoped list to show. */}
     </div>
   );
 }
@@ -830,6 +833,56 @@ function pickInitiativesForList(
   if (topicProposers) return topicProposers.recent_initiatives;
   if (groupActivity) return groupActivity.recent_initiatives;
   return [];
+}
+
+/**
+ * Compact 3-initiative preview shown beneath the "Suport vs rebuig"
+ * widget on mobile when a topic filter is active. The full list lives
+ * at ``/topics/<slug>`` — this widget is just a hint with a deep link.
+ */
+function CompactTopicInitiatives({
+  topicProposers,
+  cross,
+  selectedTopic,
+  focusedTopicName,
+  locale,
+  labels,
+}: {
+  topicProposers: TopicProposers | null;
+  cross: CrossTopicGroup | null;
+  selectedTopic: string;
+  focusedTopicName: string;
+  locale: string;
+  labels: { eyebrow: string; openTopicPage: string };
+}) {
+  const items = (cross?.joint_initiatives ?? topicProposers?.recent_initiatives ?? []).slice(0, 3);
+  if (items.length === 0) return null;
+  const href = `/topics/${encodeURIComponent(selectedTopic)}` as Route;
+  return (
+    <DashSection eyebrow={labels.eyebrow} title={focusedTopicName}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {items.map((ini) => (
+          <InitiativeRow key={ini.id} ini={ini} locale={locale} />
+        ))}
+      </div>
+      <Link
+        href={href}
+        prefetch={false}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          marginTop: 12,
+          fontSize: 13,
+          fontWeight: 600,
+          color: 'var(--accent)',
+          textDecoration: 'none',
+        }}
+      >
+        {labels.openTopicPage} →
+      </Link>
+    </DashSection>
+  );
 }
 
 interface ListLabels {
