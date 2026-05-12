@@ -75,8 +75,9 @@ const STATUS_COLOR: Record<string, string> = {
 
 const PENDING_STATUSES = new Set(['submitted', 'in_debate']);
 const VOTED_STATUSES = new Set(['approved', 'rejected']);
+const OTHER_STATUSES = new Set(['withdrawn', 'expired']);
 
-type Subset = 'pending' | 'voted';
+type Subset = 'pending' | 'voted' | 'other';
 
 export default async function TopicDetailPage({
   params,
@@ -93,7 +94,8 @@ export default async function TopicDetailPage({
 
   // URL-bound UI state. Each defaults to a safe value so a bare URL still
   // renders sensibly, and bookmarks / shareable links round-trip cleanly.
-  const subset: Subset = sp.subset === 'voted' ? 'voted' : 'pending';
+  const subset: Subset =
+    sp.subset === 'voted' ? 'voted' : sp.subset === 'other' ? 'other' : 'pending';
   const groupFilter = (sp.group ?? '').trim();
   const rawQuery = (sp.q ?? '').trim();
   const queryNeedle = rawQuery ? normalizeForSearch(rawQuery) : '';
@@ -150,11 +152,14 @@ export default async function TopicDetailPage({
 
   const pendingAll = initiatives.filter((i) => PENDING_STATUSES.has(i.status));
   const votedAll = initiatives.filter((i) => VOTED_STATUSES.has(i.status));
-  const otherTerminal = initiatives.filter(
-    (i) => !PENDING_STATUSES.has(i.status) && !VOTED_STATUSES.has(i.status),
-  );
+  // Terminal-but-not-decided bucket: withdrawn / expired initiatives. These
+  // never reached an aye/no result but are no longer in flight either —
+  // exposing them under their own "Altres" tab keeps the row visible without
+  // mixing it into the active subsets above.
+  const otherAll = initiatives.filter((i) => OTHER_STATUSES.has(i.status));
   const pending = pendingAll.filter(matchesAllFilters);
   const voted = votedAll.filter(matchesAllFilters);
+  const otherFiltered = otherAll.filter(matchesAllFilters);
 
   const approved = initiatives.filter((i) => i.status === 'approved').length;
   const rejected = initiatives.filter((i) => i.status === 'rejected').length;
@@ -182,11 +187,26 @@ export default async function TopicDetailPage({
   // The active list and its empty-state copy depend on which subset tab the
   // user is currently viewing. Keeping these locals keeps the JSX below
   // declarative and avoids repeating the branching in three places.
-  const activeList = subset === 'voted' ? voted : pending;
-  const totalForSubset = subset === 'voted' ? votedAll.length : pendingAll.length;
-  const emptyNoFilter = subset === 'voted' ? t('no_votes_yet') : t('no_pending_in_topic');
+  const activeList =
+    subset === 'voted' ? voted : subset === 'other' ? otherFiltered : pending;
+  const totalForSubset =
+    subset === 'voted'
+      ? votedAll.length
+      : subset === 'other'
+        ? otherAll.length
+        : pendingAll.length;
+  const emptyNoFilter =
+    subset === 'voted'
+      ? t('no_votes_yet')
+      : subset === 'other'
+        ? t('no_other_in_topic')
+        : t('no_pending_in_topic');
   const emptyWithFilter =
-    subset === 'voted' ? t('no_voted_with_filter') : t('no_pending_with_filter');
+    subset === 'voted'
+      ? t('no_voted_with_filter')
+      : subset === 'other'
+        ? t('no_other_with_filter')
+        : t('no_pending_with_filter');
   // The list above is "filtered" (and so should use the with-filter
   // empty-state copy) whenever ANY of the active filters narrowed it.
   const anyFilterActive = groupFilter !== '' || rawQuery !== '';
@@ -209,7 +229,9 @@ export default async function TopicDetailPage({
   const clearGroupHref: Route =
     (subset === 'voted'
       ? `/topics/${slug}?subset=voted`
-      : `/topics/${slug}`) as Route;
+      : subset === 'other'
+        ? `/topics/${slug}?subset=other`
+        : `/topics/${slug}`) as Route;
 
   return (
     <article>
@@ -467,6 +489,12 @@ export default async function TopicDetailPage({
             [
               { key: 'pending' as const, label: t('subset_pending'), count: pendingAll.length },
               { key: 'voted' as const, label: t('subset_voted'), count: votedAll.length },
+              // "Altres" — withdrawn / expired. Only surface the segment
+              // when there's at least one record so the control doesn't
+              // grow a permanently-zero tab on quiet topics.
+              ...(otherAll.length > 0
+                ? [{ key: 'other' as const, label: t('subset_other'), count: otherAll.length }]
+                : []),
             ]
           ).map((opt) => {
             const isActive = subset === opt.key;
@@ -572,41 +600,19 @@ export default async function TopicDetailPage({
             ))}
             {activeList.length > 30 && (
               <li style={{ padding: '12px 0', fontSize: 12, color: 'var(--ink-3)' }}>
-                {subset === 'pending'
-                  ? t('more_via_api', { count: activeList.length - 30 })
-                  : t('more_initiatives', { count: activeList.length - 30 })}
+                {/* Pending and "altres" point at the same overflow copy
+                    (they're both lists of records we don't expand inline
+                    past 30); voted uses the slightly different
+                    ``more_initiatives`` phrasing. */}
+                {subset === 'voted'
+                  ? t('more_initiatives', { count: activeList.length - 30 })
+                  : t('more_via_api', { count: activeList.length - 30 })}
               </li>
             )}
           </ul>
         )}
       </section>
 
-      {/* Terminal but not voted: withdrawn / expired — group filter still
-          applies, hidden entirely if there's nothing to show. */}
-      {otherTerminal.length > 0 && (() => {
-        const filteredTerminal = otherTerminal.filter(matchesAllFilters);
-        if (filteredTerminal.length === 0) return null;
-        return (
-          <section style={{ paddingTop: 32 }}>
-            <div className="eyebrow" style={{ marginBottom: 6 }}>
-              {t('withdrawn_expired_title')}
-            </div>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-              {filteredTerminal.slice(0, 20).map((i) => (
-                <InitiativeRow
-                  key={i.id}
-                  initiative={i}
-                  parsed={parsedByInitiative.get(i.id) ?? { isGovernment: false, groups: [], raw: (i.submitted_by ?? '').trim() }}
-                  locale={locale}
-                  tStats={tStats}
-                  governmentLabel={t('proposer_government_label')}
-                  moreGroupsLabel={(n: number) => t('proposer_more_groups', { count: n })}
-                />
-              ))}
-            </ul>
-          </section>
-        );
-      })()}
     </article>
   );
 }
@@ -678,7 +684,11 @@ function InitiativeRow({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <span className="sm:hidden">{shortDate}</span>
+          {/* Mobile compresses legislatura + date into a single inline
+              string ("XV · 19 nov") so the title is the first thing the
+              row shows on a phone. Desktop keeps the longer date in its
+              own column. */}
+          <span className="sm:hidden">XV · {shortDate}</span>
           <span className="hidden sm:inline">{longDate}</span>
         </span>
         <div style={{ minWidth: 0 }}>

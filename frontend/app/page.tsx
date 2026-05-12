@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
+import { CohesionCarousel } from '@/components/CohesionCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { ResultPill } from '@/components/ResultPill';
@@ -20,6 +21,7 @@ import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
 import {
   api,
+  type GroupSummaryRow,
   type ParliamentaryGroupSummary,
   type ScheduledSession,
   type TopicVoteStat,
@@ -52,8 +54,9 @@ export default async function HomePage() {
   let latestVotes: Vote[] = [];
   let upcomingSessions: ScheduledSession[] = [];
   let allGroups: ParliamentaryGroupSummary[] = [];
+  let groupSummary: GroupSummaryRow[] = [];
   try {
-    [summary, latestVotes, upcomingSessions, allGroups] = await Promise.all([
+    [summary, latestVotes, upcomingSessions, allGroups, groupSummary] = await Promise.all([
       api.stats.summary(),
       api.votes
         .list({ page: 1, page_size: 5 })
@@ -63,6 +66,10 @@ export default async function HomePage() {
         .then((rows) => rows.slice(0, 4))
         .catch(() => [] as ScheduledSession[]),
       api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
+      // Per-group cohesion + attendance for the CohesionCarousel that
+      // shares the right column with the "Aquesta setmana" aside. Failure
+      // degrades the carousel to its empty state — never blocks the home.
+      api.metrics.groupSummary(1).catch(() => [] as GroupSummaryRow[]),
     ]);
   } catch {
     /* backend not ready — render with zeros */
@@ -195,7 +202,28 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <aside
+        <div
+          // Right column now hosts TWO widgets stacked vertically: the new
+          // CohesionCarousel on top and the existing "Aquesta setmana" aside
+          // below. We size them inside a flex column so they share the column
+          // gracefully — the aside keeps its decorative chrome; the carousel
+          // brings its own. On mobile the entire `home-hero` collapses to a
+          // single column (see media query below), and the two children just
+          // stack naturally.
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            minWidth: 0,
+          }}
+          className="home-hero__right"
+        >
+          {/* CohesionCarousel — rotating per-group "Cohesió + Vots emesos"
+              card. Hidden when there is no group-summary data so the column
+              doesn't show an empty card. */}
+          {groupSummary.length > 0 && <CohesionCarousel rows={groupSummary} />}
+
+          <aside
           style={{
             border: '1px solid var(--rule-strong)',
             borderRadius: 18,
@@ -276,6 +304,7 @@ export default async function HomePage() {
             </Link>
           </div>
         </aside>
+        </div>
       </section>
 
       {/* Coverage strip — clickable, leads to full /stats */}
@@ -515,19 +544,32 @@ function CompactVoteRow({
         }}
       >
         <div className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', fontVariantNumeric: 'tabular-nums', minWidth: 0 }}>
-          <span className="sm:hidden whitespace-nowrap">{shortDate}</span>
+          {/* Mobile compresses the date cell into a single inline string:
+              "XV · 19 nov". The "XV" prefix gives the legislatura context
+              that used to live above the title (now removed on mobile);
+              the date stays the same shortDate as before. Desktop keeps
+              the longer date + expediente two-liner. */}
+          <span className="sm:hidden whitespace-nowrap">XV · {shortDate}</span>
           <span className="hidden sm:inline">{longDate}</span>
           {v.expediente_raw && (
             <>
               <br />
-              <span className="mono" style={{ fontSize: 11, wordBreak: 'break-all' }}>
+              <span className="mono hidden sm:inline" style={{ fontSize: 11, wordBreak: 'break-all' }}>
                 {v.expediente_raw}
               </span>
             </>
           )}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
+          {/* Type label above the title — desktop only. On mobile the
+              title is the first thing the row shows, with all metadata
+              (legislatura, date, proposer, result) compressed below.
+              Hiding this row also removes the duplicated copy when the
+              subject and title strings are identical. */}
+          <div
+            className="hidden sm:flex"
+            style={{ gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}
+          >
             <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{v.title}</span>
           </div>
           <div
@@ -574,14 +616,33 @@ function CompactVoteRow({
                 />
               </span>
             ) : null}
-            {/* Mobile-only: colored result text sits on the SAME baseline
-                as the proposer chip — matches the user's mock. Desktop
-                keeps its own dedicated result cell on the right. */}
+            {/* Mobile-only: colored result disc sits on the SAME baseline
+                as the proposer chip. The previous version repeated the
+                word ("aprovada"/"rebutjada") here AND showed a colored
+                indicator — that double-encoding was redundant. The disc
+                alone is enough; the label still reaches assistive tech
+                via aria-label. Desktop keeps its own dedicated result
+                cell on the right. */}
             <span className="sm:hidden inline-flex items-center gap-2">
               <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>·</span>
-              <span style={{ color: resultColor(v.result), fontWeight: 600 }}>
-                {labels.result}
-              </span>
+              <span
+                role="img"
+                aria-label={labels.result}
+                title={labels.result}
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 999,
+                  display: 'inline-block',
+                  background:
+                    v.result === 'tie' ? 'transparent' : resultColor(v.result),
+                  border:
+                    v.result === 'tie'
+                      ? `2px solid ${resultColor(v.result)}`
+                      : '0',
+                  boxSizing: 'border-box',
+                }}
+              />
             </span>
           </div>
         </div>
@@ -1060,12 +1121,9 @@ function MobileVoteRow({
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <div
-            className="tabular"
-            style={{ fontSize: 11, color: 'var(--ink-3)', marginBottom: 2 }}
-          >
-            {shortDate}
-          </div>
+          {/* Mobile: title FIRST — no metadata above. Legislatura + date
+              live on the inline meta line BELOW the title so the row
+              reads "subject → context", not "context → subject". */}
           <div
             style={{
               fontSize: 13,
@@ -1094,19 +1152,37 @@ function MobileVoteRow({
               {subject}
             </SummaryHover>
           </div>
+          {/* Single meta line beneath the title — "XV · 19 nov" inline.
+              Kept terse so a 2-line title still fits the 56px touch
+              target. */}
+          <div
+            className="tabular"
+            style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 3 }}
+          >
+            XV · {shortDate}
+          </div>
         </div>
+        {/* Result indicator — disc only, never the word. The redundant
+            colored "aprovada"/"rebutjada" text that used to live here
+            double-encoded the same fact as the indicator. The label is
+            still announced via aria-label / title for assistive tech. */}
         <span
+          role="img"
+          aria-label={resultLabel}
+          title={resultLabel}
           style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: resultColor(v.result),
-            whiteSpace: 'nowrap',
+            width: 14,
+            height: 14,
+            borderRadius: 999,
+            display: 'inline-block',
             flex: '0 0 auto',
-            textAlign: 'right',
+            background:
+              v.result === 'tie' ? 'transparent' : resultColor(v.result),
+            border:
+              v.result === 'tie' ? `2px solid ${resultColor(v.result)}` : '0',
+            boxSizing: 'border-box',
           }}
-        >
-          {resultLabel}
-        </span>
+        />
       </Link>
     </li>
   );

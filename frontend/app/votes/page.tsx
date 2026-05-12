@@ -424,7 +424,11 @@ function VoteTableRow({
   return (
     <tr style={{ position: 'relative' }}>
       <td className="tabular" style={{ color: 'var(--ink-2)', fontSize: 12, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-        <span className="sm:hidden">{shortDate}</span>
+        {/* Mobile compresses legislatura + date into a single inline
+            string ("XV · 19 nov"). The legislatura prefix used to live
+            above the title in a separate row; we collapse it here so the
+            title is the first thing the user reads on a phone. */}
+        <span className="sm:hidden">XV · {shortDate}</span>
         <span className="hidden sm:inline">{longDate}</span>
       </td>
       <td className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
@@ -502,11 +506,14 @@ function VoteTableRow({
         />
       </td>
       <td style={{ textAlign: 'right' }}>
+        {/* Mobile uses the colored disc only — the inline subject row used
+            to also show a colored "aprovada"/"rebutjada" word, which was
+            redundant with the disc. Desktop keeps the labelled pill. */}
         <ResultPill
           result={vote.result}
           label={t.result}
           responsive
-          mobileVariant="text"
+          mobileVariant="disc"
         />
       </td>
     </tr>

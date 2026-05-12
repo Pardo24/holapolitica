@@ -95,7 +95,20 @@ export function NewsletterSignup({
   return (
     <section
       aria-labelledby="newsletter-signup-heading"
-      style={{ ...containerStyle, maxWidth: '100%', minWidth: 0 }}
+      // Cap the desktop width so the signup card doesn't sprawl across
+      // wide containers. 480px keeps it comfortable for an email + button
+      // on one row while staying readable on narrow desktops. We center it
+      // via auto inline margins so the parent's natural alignment is
+      // preserved. On mobile the card still expands to the full width via
+      // `width: 100%` (no max-width fight there because the viewport
+      // is narrower than 480px on phones).
+      style={{
+        ...containerStyle,
+        maxWidth: 480,
+        width: '100%',
+        marginInline: 'auto',
+        minWidth: 0,
+      }}
       className="newsletter-signup"
     >
       <div className="eyebrow" style={{ marginBottom: 6 }}>
@@ -155,10 +168,11 @@ export function NewsletterSignup({
           disabled={status === 'submitting'}
           aria-invalid={status === 'error' ? 'true' : 'false'}
           className="input-modern"
-          // Only flex sizing is kept inline; visual chrome (padding, border,
-          // radius, focus ring) comes from the global ``.input-modern`` rule
-          // so the newsletter input matches the rest of the form controls.
-          style={{ flex: '1 1 220px', minWidth: 0 }}
+          // Flex sizing + mobile-safe font-size kept inline; the rest of
+          // the visual chrome (border, radius, focus ring) comes from the
+          // global ``.input-modern`` rule. We pin font-size at 16px so
+          // iOS Safari doesn't auto-zoom the page on focus on mobile.
+          style={{ flex: '1 1 220px', minWidth: 0, fontSize: 16 }}
         />
         <button
           type="submit"
@@ -199,8 +213,16 @@ export function NewsletterSignup({
           .newsletter-signup-form { flex-direction: column; gap: 6px !important; }
           .newsletter-signup-form > input,
           .newsletter-signup-form > button { width: 100%; }
-          /* The mobile padding for inputs is set globally on the
-             .input-modern class (12px 14px); no per-form override needed. */
+          /* Compress the vertical footprint of the email input on mobile.
+             The global .input-modern rule uses 12px 14px padding which
+             made the field feel oversized on phones; 8px 12px + an
+             explicit 40px min-height keeps it tappable without sprawling.
+             Font-size stays at 16px (set via the inline style on the
+             <input>) so iOS Safari doesn't auto-zoom on focus. */
+          .newsletter-signup-form > input.input-modern {
+            padding: 8px 12px !important;
+            min-height: 40px !important;
+          }
         }
       `}</style>
     </section>

@@ -39,7 +39,7 @@ export function TopicGroupFilter({
   clearHref,
 }: {
   slug: string;
-  subset: 'pending' | 'voted';
+  subset: 'pending' | 'voted' | 'other';
   groups: ParliamentaryGroupSummary[];
   value: string;
   /** Current free-text filter from the URL. Empty string when none. */

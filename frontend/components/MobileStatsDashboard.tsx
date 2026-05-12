@@ -127,7 +127,23 @@ export async function MobileStatsDashboard({
 
   return (
     <div className="sm:hidden" style={{ paddingTop: 18 }}>
-      {/* ─── Widget 1: Initiatives state + topic filter ───────────────── */}
+      {/* Widget order is the data flow we want a mobile reader to see:
+          1. State + who proposes (the "what's going on" overview)
+          2. Suport vs rebuig per tema — only renders when a topic is
+             selected, otherwise hidden; sits here so the per-topic
+             stance reads as a follow-on to the topic filter the user
+             just set in widget 1.
+          3. PairCoincidence — between-group comparison appears BEFORE
+             the per-group summary cards so the question "how aligned
+             are two groups?" is answered before the user scrolls into
+             per-group cohesion.
+          4. GroupSummaryCarousel — per-group cohesion + votes-emitted.
+          5. InitiativeListExpandable — long-tail browse.
+
+          Symmetry intact at every step (see PerTopicCoincidenceWidget
+          and PairCoincidenceWidget docs). */}
+
+      {/* ─── 1. Initiatives state + topic filter ───────────────────── */}
       <InitiativesStateWidget
         allTopics={allTopics}
         topics={topics}
@@ -159,37 +175,34 @@ export async function MobileStatsDashboard({
         governmentShort={governmentShort}
       />
 
-      {/* ─── Widget 2: Per-group summary cards (cohesion + attendance) ── */}
-      {groupSummary.length > 0 && (
-        <DashSection
-          eyebrow={t('group_summary_eyebrow')}
-          info={t('group_summary_info')}
-        >
-          <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
-        </DashSection>
+      {/* ─── 2. Suport vs rebuig per tema (only when a topic is picked) ── */}
+      {hasTopic && (
+        <PerTopicCoincidenceWidget
+          allTopics={allTopics}
+          allGroups={allGroups}
+          topicStatsByGroup={topicStatsByGroup}
+          selectedTopic={selectedTopic}
+          focusedTopicName={focusedTopicName}
+          labels={{
+            eyebrow: t('stance_eyebrow'),
+            info: t('stance_info'),
+            topicLabel: t('stance_topic_label'),
+            topicPlaceholder: t('stance_topic_placeholder'),
+            topicAria: t('stance_topic_aria'),
+            pickTopic: t('stance_pick_topic'),
+            minVotes: t('stance_min_votes'),
+            supports: t('stance_supports'),
+            rejects: t('stance_rejects'),
+            votesEmitted: (count: number) => t('stance_votes_emitted', { count }),
+            backfillEyebrow: t('backfill_eyebrow'),
+            backfillBodyTopic: (topic: string) =>
+              t('backfill_body_topic', { topic }),
+            backfillBodyNoTopic: t('backfill_body_no_topic'),
+          }}
+        />
       )}
 
-      {/* ─── Widget 3: Expandable initiative list ────────────────────── */}
-      <InitiativeListExpandable
-        topicProposers={topicProposers}
-        groupActivity={groupActivity}
-        cross={cross}
-        focusedTopicName={focusedTopicName}
-        selectedTopic={selectedTopic}
-        locale={locale}
-        labels={{
-          eyebrow: t('list_eyebrow'),
-          info: t('list_info'),
-          seeTopic: (topic: string) => t('list_see_topic', { topic }),
-          seeRecent: t('list_see_recent'),
-          emptyTopic: t('list_empty_topic'),
-          emptyNoFilter: t('list_empty_no_filter'),
-          seeMore: (count: number) => t('list_see_more', { count }),
-          openTopicPage: t('list_open_topic_page'),
-        }}
-      />
-
-      {/* ─── Widget 4: Coincidence — pair picker ─────────────────────── */}
+      {/* ─── 3. Coincidence — pair picker ──────────────────────────── */}
       <PairCoincidenceWidget
         allGroups={allGroups}
         coincidence={coincidence}
@@ -210,28 +223,33 @@ export async function MobileStatsDashboard({
         }}
       />
 
-      {/* ─── Widget 5: Coincidence — per topic, all groups ───────────── */}
-      <PerTopicCoincidenceWidget
-        allTopics={allTopics}
-        allGroups={allGroups}
-        topicStatsByGroup={topicStatsByGroup}
-        selectedTopic={selectedTopic}
+      {/* ─── 4. Per-group summary cards (cohesion + attendance) ────── */}
+      {groupSummary.length > 0 && (
+        <DashSection
+          eyebrow={t('group_summary_eyebrow')}
+          info={t('group_summary_info')}
+        >
+          <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
+        </DashSection>
+      )}
+
+      {/* ─── 5. Expandable initiative list ─────────────────────────── */}
+      <InitiativeListExpandable
+        topicProposers={topicProposers}
+        groupActivity={groupActivity}
+        cross={cross}
         focusedTopicName={focusedTopicName}
+        selectedTopic={selectedTopic}
+        locale={locale}
         labels={{
-          eyebrow: t('stance_eyebrow'),
-          info: t('stance_info'),
-          topicLabel: t('stance_topic_label'),
-          topicPlaceholder: t('stance_topic_placeholder'),
-          topicAria: t('stance_topic_aria'),
-          pickTopic: t('stance_pick_topic'),
-          minVotes: t('stance_min_votes'),
-          supports: t('stance_supports'),
-          rejects: t('stance_rejects'),
-          votesEmitted: (count: number) => t('stance_votes_emitted', { count }),
-          backfillEyebrow: t('backfill_eyebrow'),
-          backfillBodyTopic: (topic: string) =>
-            t('backfill_body_topic', { topic }),
-          backfillBodyNoTopic: t('backfill_body_no_topic'),
+          eyebrow: t('list_eyebrow'),
+          info: t('list_info'),
+          seeTopic: (topic: string) => t('list_see_topic', { topic }),
+          seeRecent: t('list_see_recent'),
+          emptyTopic: t('list_empty_topic'),
+          emptyNoFilter: t('list_empty_no_filter'),
+          seeMore: (count: number) => t('list_see_more', { count }),
+          openTopicPage: t('list_open_topic_page'),
         }}
       />
     </div>

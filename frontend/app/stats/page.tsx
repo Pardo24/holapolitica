@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
+import { CohesionCarousel } from '@/components/CohesionCarousel';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
@@ -288,12 +289,29 @@ export default async function StatsPage({
           <KpiStrip kpi={kpi} locale={locale} labels={kpiLabels(t)} />
 
           {/* Highlights FIRST on this tab — anchors the overview as the
-              first thing the visitor sees below the tiles, per spec. */}
+              first thing the visitor sees below the tiles, per spec.
+              The CohesionCarousel sits to its right on desktop, sharing
+              the horizontal space via flexbox. On narrow viewports the
+              media query at the bottom of this section collapses the row
+              to a single column (the mobile dashboard already has its
+              own GroupSummaryCarousel, so this widget is hidden there). */}
           <Section
             title={t('highlights_title')}
             subtitle={t('highlights_subtitle')}
           >
-            <HighlightsCarousel items={allHighlights} />
+            <div className="stats-carousel-row">
+              <div style={{ flex: '1 1 0', minWidth: 0 }}>
+                <HighlightsCarousel items={allHighlights} />
+              </div>
+              {groupSummary.length > 0 && (
+                <div
+                  className="stats-cohesion-col"
+                  style={{ flex: '1 1 0', minWidth: 0 }}
+                >
+                  <CohesionCarousel rows={groupSummary} />
+                </div>
+              )}
+            </div>
           </Section>
 
           <Section
@@ -704,6 +722,22 @@ export default async function StatsPage({
       <style>{`
         @media (max-width: 860px) {
           .stats-twocol { grid-template-columns: 1fr !important; }
+        }
+        /* Highlights + Cohesion sit side-by-side on desktop. Use display:flex
+           so each child can flex evenly; the row wraps below 900px and the
+           cohesion column hides under the sm breakpoint (mobile already has
+           its own GroupSummaryCarousel in MobileStatsDashboard). */
+        .stats-carousel-row {
+          display: flex;
+          gap: 18px;
+          align-items: stretch;
+          flex-wrap: wrap;
+        }
+        @media (max-width: 900px) {
+          .stats-carousel-row { flex-direction: column; }
+        }
+        @media (max-width: 640px) {
+          .stats-cohesion-col { display: none; }
         }
       `}</style>
     </div>
