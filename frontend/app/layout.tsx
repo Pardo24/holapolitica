@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import type { Route } from 'next';
 import Link from 'next/link';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
@@ -67,10 +68,10 @@ export default async function RootLayout({
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span>{tFooter('principle')}</span>
                 <span>
-                  <Link href={'/recorregut' as never} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
+                  <Link href={'/recorregut' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                     {tFooter('lifecycle_link')}
                   </Link>
-                  <Link href="/about/data" style={{ color: 'var(--ink-2)', marginRight: 12 }}>
+                  <Link href={'/about/data' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                     {tFooter('legal_link')}
                   </Link>
                   {tFooter('license_code')} · {tFooter('license_data')} · {tFooter('complementary')}

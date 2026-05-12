@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
@@ -170,7 +171,7 @@ export default async function HomePage() {
               {t('cta_explore')}
             </Link>
             <Link
-              href={'/recorregut' as never}
+              href={'/recorregut' as Route}
               style={{
                 fontSize: 13,
                 color: 'var(--ink-2)',
