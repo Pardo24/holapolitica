@@ -110,7 +110,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
       <div
         style={{
           padding: 0,
-          minHeight: 180,
+          minHeight: 0,
         }}
       >
         <HighlightCard
@@ -125,13 +125,18 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
           buttons that surfaced the neighbouring group's short name, which
           (a) read as a duplicate of the slide content and (b) risked
           implying we curate one party as "next" vs another. Arrows are
-          neutral and symmetric. */}
+          neutral and symmetric.
+
+          Tight to the card body: no extra padding above the row — the card
+          link below already finishes flush with its content. Keep buttons
+          44×44 so tap targets remain Apple/Google accessible while the
+          surrounding chrome compresses. */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '6px 8px',
+          padding: '2px 8px',
           borderTop: '1px solid var(--rule)',
           background: 'var(--paper)',
         }}
@@ -259,7 +264,7 @@ function HighlightCard({
       aria-label={`${displayGroupShort(h.group_name_short)} · ${highlightHeadline(h)} · ${h.topic_name_ca}`}
       style={{
         display: 'block',
-        padding: '20px 22px',
+        padding: '14px 22px 12px',
         textDecoration: 'none',
         color: 'inherit',
         background: 'transparent',
@@ -271,7 +276,7 @@ function HighlightCard({
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          marginBottom: 8,
+          marginBottom: 6,
           flexWrap: 'wrap',
         }}
       >

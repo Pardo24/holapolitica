@@ -389,27 +389,17 @@ export default async function StatsPage({
           />
 
           {!anyFilter && (
-            <div
-              role="status"
-              style={{
-                marginTop: 20,
-                padding: '14px 18px',
-                border: '1px solid var(--rule)',
-                background: 'var(--paper-2)',
-                borderRadius: 12,
-                fontSize: 13,
-                color: 'var(--ink-3)',
+            <FilteredTabTopicPicker
+              topics={topics}
+              labels={{
+                title: t('pick_topic_title'),
+                subtitle: t('pick_topic_subtitle', { tab: t('tab_filtered') }),
+                initiativesUnit: (count: number) =>
+                  t('pick_topic_initiatives_unit', { count }),
+                orGroupPrefix: t('pick_topic_or_group_prefix'),
+                orGroupLink: t('pick_topic_or_group_link'),
               }}
-            >
-              {t('select_filter_help_prefix')}
-              <Link
-                href={'/stats?tab=overview' as Route}
-                style={{ color: 'var(--ink)' }}
-              >
-                {t('select_filter_help_link')}
-              </Link>
-              .
-            </div>
+            />
           )}
 
           {isEmpty && (
@@ -965,6 +955,7 @@ async function FilterBar({
   return (
     <form
       method="GET"
+      id="stats-filter-bar"
       className="stats-filter"
       style={{
         display: 'flex',
@@ -977,6 +968,7 @@ async function FilterBar({
         borderRadius: 12,
         marginTop: 18,
         marginBottom: 4,
+        scrollMarginTop: 80,
       }}
     >
       {/* Stay on this tab when the form submits. */}
@@ -1038,6 +1030,155 @@ const selectStyle = {
     minWidth: 160,
   } as React.CSSProperties,
 };
+
+/**
+ * Empty-state topic picker rendered when the user lands on the
+ * "Anàlisi filtrada" tab without a topic or group selected.
+ *
+ * Replaces the previous prose-only empty state. Each card sets
+ * ``?topic=<slug>&tab=filtered`` and preserves the user inside the
+ * filtered tab so the analysis renders without an extra click. The
+ * count below the name is the running ``initiatives_total`` from the
+ * already-fetched topicsGlobal endpoint — no extra round trip.
+ *
+ * Symmetry: every classified topic is shown. Order matches the
+ * ``api.stats.topicsGlobal()`` response (alphabetical-ish from the
+ * backend, no editorial rank).
+ */
+function FilteredTabTopicPicker({
+  topics,
+  labels,
+}: {
+  topics: TopicGlobalStat[];
+  labels: {
+    title: string;
+    subtitle: string;
+    initiativesUnit: (count: number) => string;
+    orGroupPrefix: string;
+    orGroupLink: string;
+  };
+}) {
+  return (
+    <div
+      style={{
+        marginTop: 20,
+        padding: '18px 22px',
+        border: '1px solid var(--rule)',
+        background: 'var(--paper-2)',
+        borderRadius: 12,
+      }}
+    >
+      <h2
+        style={{
+          margin: 0,
+          fontSize: 18,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          lineHeight: 1.3,
+        }}
+      >
+        {labels.title}
+      </h2>
+      <p style={{ marginTop: 6, marginBottom: 0, fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.5 }}>
+        {labels.subtitle}
+      </p>
+      <ul
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: '18px 0 0',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))',
+          gap: 10,
+        }}
+      >
+        {topics.map((topic) => {
+          const href =
+            `/stats?tab=filtered&topic=${encodeURIComponent(topic.topic_slug)}` as Route;
+          return (
+            <li key={topic.topic_slug}>
+              <Link
+                href={href}
+                className="topic-pick-card"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '12px 14px',
+                  background: 'var(--paper)',
+                  border: '1px solid var(--rule)',
+                  borderRadius: 10,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  minHeight: 56,
+                  transition: 'border-color .12s ease, background-color .12s ease',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: 'inline-block',
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    background: topic.topic_color_hex ?? 'var(--ink-3)',
+                    flex: 'none',
+                  }}
+                />
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {topic.topic_name_ca}
+                  </span>
+                  <span
+                    className="tabular"
+                    style={{
+                      display: 'block',
+                      fontSize: 11,
+                      color: 'var(--ink-3)',
+                      marginTop: 2,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {labels.initiativesUnit(topic.initiatives_total)}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <p style={{ marginTop: 14, fontSize: 12, color: 'var(--ink-3)' }}>
+        {labels.orGroupPrefix}{' '}
+        {/* Group selection lives in the FilterBar above, but a chevron link
+            here scrolls the user back to it for discoverability. */}
+        <a
+          href="#stats-filter-bar"
+          style={{ color: 'var(--ink)', textDecoration: 'underline', textUnderlineOffset: 2 }}
+        >
+          {labels.orGroupLink}
+        </a>
+      </p>
+      <style>{`
+        .topic-pick-card:hover,
+        .topic-pick-card:focus-visible {
+          border-color: var(--rule-strong) !important;
+          background: var(--paper-2) !important;
+          outline: none;
+        }
+      `}</style>
+    </div>
+  );
+}
 
 interface ChipDescriptor {
   label: string;

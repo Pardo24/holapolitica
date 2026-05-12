@@ -46,6 +46,9 @@ export function TopicGroupFilter({
   query: string;
   labels: {
     label: string;
+    /** Optional shorter variant rendered below the `sm` breakpoint so
+     *  the mobile filter rail stays compact. Falls back to ``label``. */
+    labelShort?: string;
     placeholder: string;
     clearLabel: string;
     ariaLabel: string;
@@ -54,6 +57,8 @@ export function TopicGroupFilter({
     totalLabel: string;
     clearCta: string;
     queryLabel: string;
+    /** Same idea for the free-text input label. */
+    queryLabelShort?: string;
     queryPlaceholder: string;
     queryClearAria: string;
   };
@@ -166,7 +171,13 @@ export function TopicGroupFilter({
           className="eyebrow"
           style={{ fontSize: 10, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}
         >
-          {labels.queryLabel}
+          {/* Two-variant label: short for mobile (≤640px), full for sm+.
+              Keeps the visible string under 8 chars on phones where the
+              filter rail competes with the title input for width. */}
+          <span className="filter-label-full">{labels.queryLabel}</span>
+          <span className="filter-label-short">
+            {labels.queryLabelShort ?? labels.queryLabel}
+          </span>
         </span>
         <span
           style={{
@@ -235,7 +246,10 @@ export function TopicGroupFilter({
           className="eyebrow"
           style={{ fontSize: 10, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}
         >
-          {labels.label}
+          <span className="filter-label-full">{labels.label}</span>
+          <span className="filter-label-short">
+            {labels.labelShort ?? labels.label}
+          </span>
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <GroupCombobox
@@ -281,6 +295,15 @@ export function TopicGroupFilter({
       )}
 
       <style>{`
+        /* Mobile-only short variants. Mirror Tailwind's sm breakpoint
+           (640px) so the labels collapse just before the filter rail wraps.
+           At rest, the short variant is hidden; the desktop variant shows. */
+        .topic-filter-rail .filter-label-short { display: none; }
+        .topic-filter-rail .filter-label-full { display: inline; }
+        @media (max-width: 640px) {
+          .topic-filter-rail .filter-label-short { display: inline; }
+          .topic-filter-rail .filter-label-full { display: none; }
+        }
         @media (max-width: 720px) {
           .topic-filter-rail .filter-row-control {
             flex-basis: 100% !important;

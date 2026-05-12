@@ -547,6 +547,7 @@ export default async function TopicDetailPage({
           query={rawQuery}
           labels={{
             label: t('filter_group_label'),
+            labelShort: t('filter_group_label_short'),
             placeholder: t('filter_group_placeholder'),
             clearLabel: t('filter_group_clear'),
             ariaLabel: t('filter_group_label'),
@@ -555,6 +556,7 @@ export default async function TopicDetailPage({
             totalLabel: t('filter_results_count', { count: totalForSubset }),
             clearCta: t('clear_filter_cta'),
             queryLabel: t('filter_query_label'),
+            queryLabelShort: t('filter_query_label_short'),
             queryPlaceholder: t('filter_query_placeholder'),
             queryClearAria: t('filter_query_clear_aria'),
           }}

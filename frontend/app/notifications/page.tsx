@@ -1,20 +1,35 @@
 import { getTranslations } from 'next-intl/server';
 
+import { NewsletterPreferencesManager } from '@/components/NewsletterPreferencesManager';
 import { NotificationsManager } from '@/components/NotificationsManager';
 import { api, type Topic } from '@/lib/api';
 
 /**
- * /notifications — Web Push subscription manager.
+ * /notifications — Newsletter topic-preferences manager (formerly Web Push).
  *
- * The page itself is a Server Component (renders the topic list at request
- * time, no flash of unstyled content). The interactive surface lives in
- * <NotificationsManager />, a Client Component that talks to the browser's
- * Push API and our /push/* endpoints.
+ * Why this page exists today
+ * --------------------------
+ * We flipped the entire concept of this page on 2026-05-12: instead of
+ * letting the user subscribe to *browser* push notifications, we now ask
+ * them to pick the topics for their weekly NEWSLETTER. Push is noisier
+ * than email, was rarely apply-rate'd, and doesn't fit the project's
+ * "mirror, not megaphone" rhythm.
  *
- * Neutrality: this page describes WHAT users will receive in plain
- * factual terms — never an editorial framing of which topics are
- * "important". The topic list is taxonomy data, not opinion.
+ * The previous push UI (state machine + apply/stop buttons) lives in
+ * :file:`components/NotificationsManager.tsx` and is gated off via
+ * ``ENABLE_BROWSER_PUSH`` below. Flip the flag to bring it back as a
+ * second channel — no other change should be needed.
+ *
+ * Neutrality: the topic taxonomy is data, not opinion. We never publish
+ * "important" rankings; the macro categories used to group topics are a
+ * UX shortcut (see :file:`lib/topic_categories.ts`).
  */
+
+// Feature flag — set to `true` to reactivate the browser-Push manager
+// alongside the newsletter picker. We keep the legacy component
+// untouched so reverting is a one-line change.
+const ENABLE_BROWSER_PUSH = false;
+
 export default async function NotificationsPage() {
   const t = await getTranslations('notifications');
   let topics: Topic[] = [];
@@ -29,10 +44,6 @@ export default async function NotificationsPage() {
       style={{
         paddingTop: 28,
         paddingBottom: 48,
-        // Mobile-app feel: tight single-column layout. We keep desktop
-        // generous (720) so the master toggle + sticky bar align with the
-        // rest of the site, but on narrower viewports the inner section
-        // is clamped to 480 via a CSS @media inside <style>.
         maxWidth: 720,
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -50,14 +61,12 @@ export default async function NotificationsPage() {
         </p>
       </header>
 
-      <NotificationsManager topics={topics} />
+      <NewsletterPreferencesManager topics={topics} />
+
+      {ENABLE_BROWSER_PUSH && <NotificationsManager topics={topics} />}
 
       <section style={{ marginTop: 32, fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.55 }}>
         <h2 style={{ fontSize: 13, color: 'var(--ink)', margin: '0 0 6px' }}>
-          {t('compat_title')}
-        </h2>
-        <p>{t('compat_body')}</p>
-        <h2 style={{ fontSize: 13, color: 'var(--ink)', margin: '14px 0 6px' }}>
           {t('privacy_title')}
         </h2>
         <p>{t('privacy_body')}</p>
