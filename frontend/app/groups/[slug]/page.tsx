@@ -79,7 +79,18 @@ export default async function GroupDetailPage({
           >
             {fullName}
           </h1>
-          <div style={{ fontSize: 14, color: 'var(--ink-3)' }}>
+          {/* Long-form name sits BELOW the H1 as a soft descriptive line.
+              Matches the demoted-subtitle pattern used across other page
+              headers — smaller (13px) and ink-3 so the title remains the
+              page's visual anchor. */}
+          <div
+            style={{
+              fontSize: 13,
+              color: 'var(--ink-3)',
+              lineHeight: 1.4,
+              maxWidth: 540,
+            }}
+          >
             {group.name_long}
           </div>
 

@@ -55,10 +55,24 @@ export default async function VotesPage({
           paddingBottom: 14,
         }}
       >
-        <div className="eyebrow">{t('subtitle')}</div>
-        <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
+        <h1 className="h-headline" style={{ margin: 0 }}>
           {t('title')}
         </h1>
+        {/* Descriptive subtitle sits BELOW the title — softer weight so
+            the title stays the page's anchor. Previously this was an
+            eyebrow above the H1; we keep the same copy but demote it
+            visually to match every other page header. */}
+        <p
+          style={{
+            margin: '6px 0 0',
+            fontSize: 13,
+            color: 'var(--ink-3)',
+            lineHeight: 1.4,
+            maxWidth: 760,
+          }}
+        >
+          {t('subtitle')}
+        </p>
       </header>
 
       <HubTabs

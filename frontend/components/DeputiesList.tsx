@@ -24,7 +24,7 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search, X, User } from 'lucide-react';
 
@@ -83,21 +83,6 @@ export function DeputiesList({
 
   const [query, setQuery] = useState('');
   const [groupFilter, setGroupFilter] = useState('');
-  const [showPhotos, setShowPhotos] = useState(false);
-
-  // Respect ``prefers-reduced-data`` — if the user has opted into data
-  // saving, never auto-enable the photo mode. (We default to OFF
-  // regardless, but we also block the toggle entry point from being
-  // pre-flipped by any external state.)
-  const [reducedData, setReducedData] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-reduced-data: reduce)');
-    setReducedData(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReducedData(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
 
   const filtered = useMemo(() => {
     const norm = normalize(query.trim());
@@ -149,7 +134,7 @@ export function DeputiesList({
             </div>
             <div style={{ width: '100%' }}>
               {layout ? (
-                <Hemicycle layout={layout} showPhotos={showPhotos} />
+                <Hemicycle layout={layout} />
               ) : (
                 <div
                   style={{
@@ -160,54 +145,6 @@ export function DeputiesList({
                   }}
                 />
               )}
-            </div>
-            {/* Photo toggle — sits directly under the chart so its
-                effect is unambiguous. Disabled when the user opts
-                into reduced data. */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                marginTop: 8,
-                flexWrap: 'wrap',
-              }}
-            >
-              <button
-                type="button"
-                aria-pressed={showPhotos}
-                disabled={reducedData && !showPhotos}
-                onClick={() => setShowPhotos((v) => !v)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 12px',
-                  border: '1px solid var(--ink)',
-                  background: showPhotos
-                    ? 'var(--ink)'
-                    : 'var(--paper)',
-                  color: showPhotos ? 'var(--paper)' : 'var(--ink)',
-                  fontFamily: 'inherit',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor:
-                    reducedData && !showPhotos ? 'not-allowed' : 'pointer',
-                  opacity: reducedData && !showPhotos ? 0.5 : 1,
-                }}
-              >
-                <User size={12} aria-hidden="true" />
-                {showPhotos ? t('hide_photos') : t('show_photos')}
-              </button>
-              <span
-                style={{
-                  fontSize: 11,
-                  color: 'var(--ink-3)',
-                }}
-              >
-                {t('show_photos_hint')}
-              </span>
             </div>
           </div>
 

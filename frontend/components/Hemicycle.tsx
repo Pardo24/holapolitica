@@ -34,12 +34,11 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { useState, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowUpRight, User, X } from 'lucide-react';
 
 import type { HemicycleSeat, HemicycleLayout } from '@/lib/api';
-import { groupAbbreviation, readableTextOn } from '@/lib/groups';
 
 // SVG viewBox we render into. We pick a 2.2:1 ratio that matches the
 // real chamber's aspect and gives a comfortable reading area for the
@@ -59,21 +58,6 @@ const VIEW_H = 393;
 // raw ~2.5px ingest radius so they read as distinct dots and provide
 // a comfortable hover/tap target without smothering the architecture.
 const SEAT_R = 5;
-
-// Photo-mode square sizing. We compute the maximum non-overlapping
-// side per layout (see ``computeSquareSide``); these bounds keep the
-// result sane if the layout is unusually sparse (huge squares smother
-// the backdrop) or unusually tight (sub-pixel squares are unreadable).
-const PHOTO_SQUARE_MIN = 8;
-const PHOTO_SQUARE_MAX = 22;
-// Gutter (in viewBox pixels) subtracted from the nearest-neighbour
-// distance so squares never visually touch. 1px reads as a clear hair
-// gap at typical render sizes.
-const PHOTO_SQUARE_GUTTER = 1;
-// Card-like corner radius for the photo squares.
-const PHOTO_SQUARE_RADIUS = 2;
-// Stroke width of the partisan-colour border around each square.
-const PHOTO_SQUARE_STROKE = 1.5;
 
 // Stroke around each seat — "subtle stroke (var(--ink) at 15%
 // alpha)" per the brief. Drawn with rgba directly so it doesn't
@@ -158,46 +142,6 @@ interface PlacedSeat extends HemicycleSeat {
   cy: number;
 }
 
-/**
- * Compute the largest square side (in viewBox pixels) that can be
- * centred on every seat without two squares overlapping.
- *
- * Strategy: for each seat find its nearest-neighbour Euclidean
- * distance; the global minimum of those distances is the tightest
- * pairing in the chamber. Two centred squares of side ``s`` placed
- * ``d`` apart are guaranteed not to overlap when ``s <= d`` (worst
- * case is two seats on the same axis; off-axis pairs allow larger
- * squares but we use the conservative bound so the whole field stays
- * uniform). We then subtract a 1px gutter so squares don't kiss, and
- * clamp into a sensible visual range.
- *
- * Complexity O(N²) — fine for N≈350 and only runs when the layout
- * changes. Memoised by the caller.
- */
-function computeSquareSide(placed: PlacedSeat[]): number {
-  if (placed.length < 2) return PHOTO_SQUARE_MAX;
-  let minDist = Infinity;
-  for (let i = 0; i < placed.length; i++) {
-    const a = placed[i];
-    if (!a) continue;
-    let nearest = Infinity;
-    for (let j = 0; j < placed.length; j++) {
-      if (i === j) continue;
-      const b = placed[j];
-      if (!b) continue;
-      const dx = a.cx - b.cx;
-      const dy = a.cy - b.cy;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < nearest) nearest = d2;
-    }
-    const d = Math.sqrt(nearest);
-    if (d < minDist) minDist = d;
-  }
-  if (!isFinite(minDist)) return PHOTO_SQUARE_MAX;
-  const raw = minDist - PHOTO_SQUARE_GUTTER;
-  return Math.max(PHOTO_SQUARE_MIN, Math.min(PHOTO_SQUARE_MAX, raw));
-}
-
 function placeSeats(layout: HemicycleLayout): {
   placed: PlacedSeat[];
   usingFallback: boolean;
@@ -261,27 +205,14 @@ function useIsTouch(): boolean {
 
 export function Hemicycle({
   layout,
-  showPhotos = false,
 }: {
   layout: HemicycleLayout;
-  /**
-   * When ``true``, each seat renders the deputy's official portrait
-   * (clipped to a circle) instead of the flat group-color disc. Photo
-   * loading is opt-in because pulling 350 images costs ~3 MB on the
-   * wire — fine on desktop, painful on mobile. The toggle that flips
-   * this prop lives in ``DeputiesList``.
-   */
-  showPhotos?: boolean;
 }) {
   const t = useTranslations('hemicycle');
   const [selected, setSelected] = useState<SelectedSeat | null>(null);
   const isTouch = useIsTouch();
 
   const { placed, usingFallback } = useMemo(() => placeSeats(layout), [layout]);
-
-  // Photo-mode square size: computed once per layout. The layout is
-  // static for a given fetch, so we never recompute on hover/tap.
-  const squareSide = useMemo(() => computeSquareSide(placed), [placed]);
 
   const handleSeatHover = useCallback(
     (seat: PlacedSeat) => {
@@ -347,37 +278,6 @@ export function Hemicycle({
             preserveAspectRatio="xMidYMid meet"
             aria-hidden
           />
-          {/* When photo mode is on we render each portrait inside a
-              rounded-rect <clipPath>. Squares are sized to the maximum
-              non-overlapping side computed from nearest-neighbour
-              distances (see ``computeSquareSide``). The clip path id
-              is derived from the person_id so it stays stable across
-              re-renders. We define all clip paths in a single <defs>
-              block at the top to keep the DOM compact and let the
-              browser hoist the geometry. */}
-          {showPhotos && (
-            <defs>
-              {placed.map((seat) => {
-                if (!seat.photo_url) return null;
-                const half = squareSide / 2;
-                return (
-                  <clipPath
-                    key={`clip-${seat.person_id}`}
-                    id={`seat-clip-${seat.person_id}`}
-                  >
-                    <rect
-                      x={seat.cx - half}
-                      y={seat.cy - half}
-                      width={squareSide}
-                      height={squareSide}
-                      rx={PHOTO_SQUARE_RADIUS}
-                      ry={PHOTO_SQUARE_RADIUS}
-                    />
-                  </clipPath>
-                );
-              })}
-            </defs>
-          )}
           {placed.map((seat) => (
             <SeatDot
               key={seat.person_id}
@@ -385,8 +285,6 @@ export function Hemicycle({
               onHover={handleSeatHover}
               onTap={handleSeatTap}
               isTouch={isTouch}
-              showPhotos={showPhotos}
-              squareSide={squareSide}
             />
           ))}
         </svg>
@@ -431,9 +329,6 @@ interface SeatDotProps {
   onHover: (seat: PlacedSeat) => void;
   onTap: (seat: PlacedSeat) => void;
   isTouch: boolean;
-  showPhotos: boolean;
-  /** Side length (in viewBox pixels) for photo-mode squares. */
-  squareSide: number;
 }
 
 function SeatDot({
@@ -441,8 +336,6 @@ function SeatDot({
   onHover,
   onTap,
   isTouch,
-  showPhotos,
-  squareSide,
 }: SeatDotProps) {
   const color = seat.group_color ?? DEFAULT_COLOR;
   const href = `/persons/${seat.person_id}` as Route;
@@ -474,142 +367,21 @@ function SeatDot({
       onFocus={() => onHover(seat)}
       style={{ cursor: 'pointer' }}
     >
-      {showPhotos ? (
-        <SeatSquare seat={seat} side={squareSide} color={color} title={title} />
-      ) : (
-        <circle
-          cx={seat.cx}
-          cy={seat.cy}
-          r={SEAT_R}
-          fill={color}
-          stroke={SEAT_STROKE}
-          strokeWidth={SEAT_STROKE_W}
-          // Native title gives screen readers + tooltip-on-hover-pause
-          // a fallback that works even when the React hover card is
-          // suppressed (e.g. in a forced-colors / prefers-reduced-motion
-          // environment).
-        >
-          <title>{title}</title>
-        </circle>
-      )}
-    </a>
-  );
-}
-
-interface SeatSquareProps {
-  seat: PlacedSeat;
-  /** Square side length in viewBox pixels (uniform across the chart). */
-  side: number;
-  /** Group colour for the border (and fallback fill). */
-  color: string;
-  /** Native ``<title>`` text for tooltip / screen-reader fallback. */
-  title: string;
-}
-
-/**
- * Photo-mode seat: a rounded square that either renders the deputy's
- * portrait (clipped + center-cropped) or a coloured tile with the
- * group abbreviation, matching the visual language of ``GroupBadge``.
- *
- * In both cases a 1.5px group-coloured border preserves the partisan
- * signal that the flat circles carried in the default mode.
- */
-function SeatSquare({ seat, side, color, title }: SeatSquareProps) {
-  const half = side / 2;
-  const x = seat.cx - half;
-  const y = seat.cy - half;
-
-  // Group-abbreviation font sizing mirrors ``GroupBadge``'s curve so
-  // 2-3 letter labels feel readable at the chosen square size.
-  const abbrev = seat.group_slug ? groupAbbreviation(seat.group_slug) : '';
-  const lengthFactor =
-    abbrev.length <= 2 ? 0.46
-    : abbrev.length === 3 ? 0.4
-    : abbrev.length === 4 ? 0.3
-    : 0.24;
-  const labelFontPx = Math.max(5, side * lengthFactor);
-
-  if (seat.photo_url) {
-    return (
-      <g>
-        {/* Backing fill in the group colour. It shows around the
-            edges of portraits whose own background is transparent
-            and fills the square instantly while the <image> loads. */}
-        <rect
-          x={x}
-          y={y}
-          width={side}
-          height={side}
-          rx={PHOTO_SQUARE_RADIUS}
-          ry={PHOTO_SQUARE_RADIUS}
-          fill={color}
-        />
-        {/* Portrait, center-cropped via xMidYMid slice. The source
-            images are ~3:4 portraits; slicing keeps the face centred
-            and discards top/bottom margin so the square fills cleanly. */}
-        <image
-          href={seat.photo_url}
-          x={x}
-          y={y}
-          width={side}
-          height={side}
-          preserveAspectRatio="xMidYMid slice"
-          clipPath={`url(#seat-clip-${seat.person_id})`}
-        />
-        {/* Group-colour border drawn on top so it survives even when
-            the portrait paints right up to the edges. Inset by half
-            the stroke so it stays inside the clip rect. */}
-        <rect
-          x={x}
-          y={y}
-          width={side}
-          height={side}
-          rx={PHOTO_SQUARE_RADIUS}
-          ry={PHOTO_SQUARE_RADIUS}
-          fill="none"
-          stroke={color}
-          strokeWidth={PHOTO_SQUARE_STROKE}
-        >
-          <title>{title}</title>
-        </rect>
-      </g>
-    );
-  }
-
-  // No photo on file: fallback tile with the group abbreviation,
-  // styled to echo GroupBadge so the chamber still reads as a uniform
-  // grid of tiles in photos mode.
-  return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={side}
-        height={side}
-        rx={PHOTO_SQUARE_RADIUS}
-        ry={PHOTO_SQUARE_RADIUS}
+      <circle
+        cx={seat.cx}
+        cy={seat.cy}
+        r={SEAT_R}
         fill={color}
-        stroke={color}
-        strokeWidth={PHOTO_SQUARE_STROKE}
-      />
-      {abbrev && (
-        <text
-          x={seat.cx}
-          y={seat.cy}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize={labelFontPx}
-          fontWeight={700}
-          fill={readableTextOn(seat.group_color)}
-          // Avoid text being treated as a click target separate from
-          // the wrapping <a>.
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          {abbrev}
-        </text>
-      )}
-      <title>{title}</title>
-    </g>
+        stroke={SEAT_STROKE}
+        strokeWidth={SEAT_STROKE_W}
+        // Native title gives screen readers + tooltip-on-hover-pause
+        // a fallback that works even when the React hover card is
+        // suppressed (e.g. in a forced-colors / prefers-reduced-motion
+        // environment).
+      >
+        <title>{title}</title>
+      </circle>
+    </a>
   );
 }
 
@@ -645,6 +417,18 @@ function DesktopHoverCard({ seat }: { seat: PlacedSeat }) {
   );
 }
 
+/**
+ * Animation timings for the touch info pane. The enter animation is
+ * slightly longer than the exit to feel "snappy out, soft in" — exits
+ * need to feel responsive after a tap, while entries can take a beat
+ * to draw the eye downward to the new card below the SVG.
+ *
+ * Both honour ``prefers-reduced-motion`` via the global rule in
+ * ``globals.css`` (which flattens animation-duration to 1ms).
+ */
+const TOUCH_PANE_ENTER_MS = 220;
+const TOUCH_PANE_EXIT_MS = 180;
+
 function TouchInfoPane({
   seat,
   onDismiss,
@@ -653,8 +437,56 @@ function TouchInfoPane({
   onDismiss: () => void;
 }) {
   const t = useTranslations('hemicycle');
+  // Local "currently visible" seat — kept independent of the prop so
+  // the pane can keep rendering while the exit animation plays. When
+  // ``seat`` becomes ``null`` we flip ``exiting`` on, wait the exit
+  // duration, then clear ``visibleSeat`` to actually unmount.
+  const [visibleSeat, setVisibleSeat] = useState<PlacedSeat | null>(seat);
+  const [exiting, setExiting] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
-  if (!seat) {
+  useEffect(() => {
+    if (seat) {
+      // New (or replaced) seat: cancel any pending exit and show.
+      setExiting(false);
+      setVisibleSeat(seat);
+      return;
+    }
+    if (!visibleSeat) return;
+    // Parent cleared the seat — play the exit animation, then unmount.
+    setExiting(true);
+    const id = window.setTimeout(() => {
+      setVisibleSeat(null);
+      setExiting(false);
+    }, TOUCH_PANE_EXIT_MS);
+    return () => window.clearTimeout(id);
+  }, [seat, visibleSeat]);
+
+  // Tap-outside-to-dismiss. We listen for pointerdown on the document
+  // and call ``onDismiss`` when the event target is outside both the
+  // card itself and any seat (taps on seats are handled by ``onTap`` in
+  // the parent, which replaces the visible seat — we don't want this
+  // listener to fight that path). The listener only attaches while a
+  // seat is visible to keep the document cheap when the pane is closed.
+  useEffect(() => {
+    if (!visibleSeat || exiting) return;
+    const handler = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      const card = cardRef.current;
+      if (card && card.contains(target)) return;
+      // Don't dismiss when the tap landed on a seat — the parent will
+      // replace ``visibleSeat`` via ``onTap`` in the next render.
+      if (target instanceof Element && target.closest('a[href^="/persons/"]')) {
+        return;
+      }
+      onDismiss();
+    };
+    document.addEventListener('pointerdown', handler);
+    return () => document.removeEventListener('pointerdown', handler);
+  }, [visibleSeat, exiting, onDismiss]);
+
+  if (!visibleSeat) {
     return null;
   }
 
@@ -664,56 +496,85 @@ function TouchInfoPane({
       aria-live="polite"
       style={{
         marginTop: 12,
-        border: '1px solid var(--ink)',
-        background: 'var(--paper)',
-        padding: 12,
-        display: 'flex',
-        gap: 12,
-        alignItems: 'flex-start',
       }}
     >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <SeatInfoBody seat={seat} />
-        <Link
-          href={`/persons/${seat.person_id}` as Route}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            marginTop: 10,
-            minHeight: 44,
-            minWidth: 44,
-            padding: '8px 14px',
-            border: '1px solid var(--ink)',
-            background: 'var(--paper-2)',
-            color: 'var(--ink)',
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}
-        >
-          {t('view_profile')}
-          <ArrowUpRight size={14} aria-hidden="true" />
-        </Link>
-      </div>
-      <button
-        type="button"
-        onClick={onDismiss}
-        aria-label={t('dismiss')}
+      <div
+        ref={cardRef}
         style={{
-          minWidth: 44,
-          minHeight: 44,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'transparent',
-          border: '1px solid var(--rule)',
-          color: 'var(--ink-2)',
-          cursor: 'pointer',
+          border: '1px solid var(--ink)',
+          background: 'var(--paper)',
+          padding: 12,
+          display: 'flex',
+          gap: 12,
+          alignItems: 'flex-start',
+          animation: `${
+            exiting ? 'hemicycleTapPaneExit' : 'hemicycleTapPaneEnter'
+          } ${exiting ? TOUCH_PANE_EXIT_MS : TOUCH_PANE_ENTER_MS}ms ease-out both`,
         }}
       >
-        <X size={16} aria-hidden="true" />
-      </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <SeatInfoBody seat={visibleSeat} />
+          <Link
+            href={`/persons/${visibleSeat.person_id}` as Route}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 10,
+              minHeight: 44,
+              minWidth: 44,
+              padding: '8px 14px',
+              border: '1px solid var(--ink)',
+              background: 'var(--paper-2)',
+              color: 'var(--ink)',
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            {t('view_profile')}
+            <ArrowUpRight size={14} aria-hidden="true" />
+          </Link>
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label={t('dismiss')}
+          className="hemicycle-tap-close"
+          style={{
+            width: 36,
+            height: 36,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: 8,
+            color: 'var(--ink-2)',
+            cursor: 'pointer',
+            flex: 'none',
+            padding: 0,
+            transition: 'background-color 120ms ease',
+          }}
+        >
+          <X size={18} aria-hidden="true" />
+        </button>
+      </div>
+      <style>{`
+        @keyframes hemicycleTapPaneEnter {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes hemicycleTapPaneExit {
+          from { opacity: 1; transform: translateY(0); }
+          to   { opacity: 0; transform: translateY(8px); }
+        }
+        .hemicycle-tap-close:hover,
+        .hemicycle-tap-close:focus-visible {
+          background-color: var(--paper-3);
+          outline: none;
+        }
+      `}</style>
     </div>
   );
 }
