@@ -1036,6 +1036,7 @@ function MobileVoteRow({
       ...(isCurrentYear ? {} : { year: '2-digit' }),
     })
     .replace(/\.$/, '');
+  const plainSummary = pickPlainSummary(v, locale);
   return (
     <li
       style={{
@@ -1077,7 +1078,21 @@ function MobileVoteRow({
               wordBreak: 'break-word',
             }}
           >
-            {subject}
+            {/* Plain-language summary affordance — same component used on
+                the desktop home row. Touch-only on this mobile dashboard,
+                so it surfaces as a small "i" button that toggles a native
+                <details> panel; the trigger calls preventDefault on tap so
+                the parent vote-row <Link> doesn't navigate when the user
+                only wanted to read the summary. Falls through to plain
+                text when no LLM summary exists for the vote. */}
+            <SummaryHover
+              summary={plainSummary}
+              fallback={v.description ?? undefined}
+              provider={v.plain_summary_provider}
+              visibleText={subject}
+            >
+              {subject}
+            </SummaryHover>
           </div>
         </div>
         <span

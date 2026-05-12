@@ -251,7 +251,7 @@ export default async function PersonDetailPage({
       {person.role_kind && (() => {
         const fullText =
           person.role_kind === 'govern'
-            ? `Aquest diputat ostenta el càrrec de ${person.role_title ?? 'membre del Govern'}. Per convenció parlamentària, el President del Govern i els ministres no participen en la majoria de votacions ordinàries del Ple. Comparar la seva assistència amb la d'un diputat sense càrrec executiu és enganyós.`
+            ? `Aquest diputat ostenta el càrrec de ${person.role_title ?? 'membre del Govern'}. Per convenció parlamentària, el President del Govern i els ministres no participen en la majoria de votacions ordinàries del Ple. Comparar els seus vots emesos amb els d'un diputat sense càrrec executiu és enganyós.`
             : `Aquest diputat és ${person.role_title ?? 'membre de la Mesa del Congrés'}. La Mesa té funcions de presidència i moderació que modifiquen el patró habitual de vot.`;
         // One-sentence summary used on mobile. The full text is one tap
         // away inside a native <details>, so transparency isn't lost —
@@ -259,7 +259,7 @@ export default async function PersonDetailPage({
         // the page has the room for it.
         const shortText =
           person.role_kind === 'govern'
-            ? `${person.role_title ?? 'Membre del Govern'} — assistència no comparable amb un diputat regular.`
+            ? `${person.role_title ?? 'Membre del Govern'} — vots emesos no comparables amb un diputat regular.`
             : `${person.role_title ?? 'Membre de la Mesa'} — patró de vot diferent al d'un diputat regular.`;
         return (
           <div
@@ -405,7 +405,9 @@ function KpiStrip({
         <span className="sub">{t('kpi_of_possible', { total: kpis.votes_total })}</span>
       </div>
       <div className="kpi">
-        <span className="label">{t('kpi_attendance_label')}</span>
+        <span className="label">
+          <GlossaryTerm term="Vots emesos">{t('kpi_attendance_label')}</GlossaryTerm>
+        </span>
         <span className="value tabular">
           {kpis.attendance_pct === null ? '—' : `${(kpis.attendance_pct * 100).toFixed(0)}%`}
         </span>

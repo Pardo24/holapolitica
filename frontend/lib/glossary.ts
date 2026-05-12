@@ -120,6 +120,10 @@ const TERM_DEFINITIONS_CA: Record<string, string> = {
     'Modificació d\'un Estatut d\'autonomia. Tramitació especial al Congrés.',
   'Cohesió de grup':
     'Percentatge de membres del grup que voten igual en una votació.',
+  'Vots emesos':
+    'Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. Veure /about/data per a la metodologia completa.',
+  'vots emesos':
+    'Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. Veure /about/data per a la metodologia completa.',
   'Dissidència':
     'Vot d\'un diputat que difereix de la línia majoritària del seu grup.',
   'Coincidència':
@@ -131,30 +135,30 @@ const TERM_DEFINITIONS_CA: Record<string, string> = {
   'Quòrum':
     'Mínim d\'assistència per a què una votació sigui vàlida.',
   'Veto del Senat':
-    'Rebuig del Senat a una llei aprovada al Congrés — només revesteix força si el Senat l\'aprova per majoria absoluta.',
+    'Rebuig formal d\'una llei aprovada pel Congrés. Per superar-lo, el Congrés ha d\'aprovar el text per majoria absoluta o esperar dos mesos i votar-lo per majoria simple.',
   // ----- Senate / procedure terms. Spanish keys are accepted as-is so the
   // glossary can match raw Congreso descriptions (which arrive in Spanish)
   // without a separate translation pass.
   'Veto del Senado':
-    'Rebuig del Senat a una llei aprovada al Congrés. El Congrés el pot aixecar per majoria absoluta.',
+    'Rebuig formal d\'una llei aprovada pel Congrés. Per superar-lo, el Congrés ha d\'aprovar el text per majoria absoluta o esperar dos mesos i votar-lo per majoria simple.',
   'Esmena del Senat':
-    'Modificació feta pel Senat a un projecte de llei que ja havia aprovat el Congrés. Torna al Congrés per a una votació final de reconciliació.',
+    'Modificació proposada pel Senat a un text aprovat pel Congrés. El Senat pot acceptar, rebutjar o modificar lleis enviades pel Congrés; les esmenes tornen al Congrés per ratificació o veto.',
   'Enmienda del Senado':
-    'Modificació feta pel Senat a un projecte de llei que ja havia aprovat el Congrés. Torna al Congrés per a una votació final de reconciliació.',
+    'Modificació proposada pel Senat a un text aprovat pel Congrés. El Senat pot acceptar, rebutjar o modificar lleis enviades pel Congrés; les esmenes tornen al Congrés per ratificació o veto.',
   'Lectura única':
-    'Tramitació accelerada — el text va directament al debat al ple, sense fase de comissió.',
+    'Tramitació accelerada d\'una llei: passa directament al debat plenari sense fase de comissió. Es reserva per a textos d\'urgència o consensuats.',
   'Avocació al ple':
-    'El ple del Congrés assumeix la votació final d\'un projecte que estava en una comissió legislativa.',
+    'Decisió del ple de retirar una iniciativa de la seva comissió per a aprovar-la directament.',
   'Avocación al pleno':
-    'El ple del Congrés assumeix la votació final d\'un projecte que estava en una comissió legislativa.',
+    'Decisió del ple de retirar una iniciativa de la seva comissió per a aprovar-la directament.',
   'Convalidació':
-    'Acord del Congrés acceptant un Reial Decret-llei del Govern dins del termini de 30 dies. Sense convalidació el decret decau.',
+    'Aprovació pel Congrés d\'un Reial Decret-llei del Govern, donant-li valor de llei vigent.',
   'Convalidación':
-    'Acord del Congrés acceptant un Reial Decret-llei del Govern dins del termini de 30 dies. Sense convalidació el decret decau.',
+    'Aprovació pel Congrés d\'un Reial Decret-llei del Govern, donant-li valor de llei vigent.',
   'Derogació':
-    'Acord del Congrés rebutjant un Reial Decret-llei del Govern dins del termini de 30 dies — el decret queda sense efecte.',
+    'Anul·lació pel Congrés d\'un Reial Decret-llei del Govern dins dels 30 dies posteriors a la seva entrada en vigor.',
   'Derogación':
-    'Acord del Congrés rebutjant un Reial Decret-llei del Govern dins del termini de 30 dies — el decret queda sense efecte.',
+    'Anul·lació pel Congrés d\'un Reial Decret-llei del Govern dins dels 30 dies posteriors a la seva entrada en vigor.',
 };
 
 /**

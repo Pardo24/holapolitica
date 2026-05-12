@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
+import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
 import { Tooltip } from '@/components/Tooltip';
 import type { GroupSummaryRow } from '@/lib/api';
@@ -143,7 +144,7 @@ function GroupSummaryCard({
           />
           <DonutPct
             value={attendancePct}
-            label={<Tooltip term={labels.attendance} explanation={glossaryShort('attendance')} />}
+            label={<GlossaryTerm term="Vots emesos">{labels.attendance}</GlossaryTerm>}
             color="var(--accent)"
           />
         </div>

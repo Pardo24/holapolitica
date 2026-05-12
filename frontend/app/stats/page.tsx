@@ -322,10 +322,7 @@ export default async function StatsPage({
             subtitle={
               <>
                 <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />,{' '}
-                <Tooltip
-                  term="assistència"
-                  explanation={glossaryShort('attendance')}
-                />
+                <GlossaryTerm term="vots emesos">vots emesos</GlossaryTerm>
                 {t('group_summary_subtitle_suffix')}
               </>
             }
@@ -833,7 +830,9 @@ function KpiStrip({
         <span className="sub">{labels.between_groups}</span>
       </div>
       <div className="kpi">
-        <span className="label">{labels.avg_attendance}</span>
+        <span className="label">
+          <GlossaryTerm term="Vots emesos">{labels.avg_attendance}</GlossaryTerm>
+        </span>
         <span className="value tabular">
           {kpi.avg_attendance_pct == null ? '—' : `${kpi.avg_attendance_pct}%`}
         </span>
@@ -1724,7 +1723,7 @@ function GroupOwnMetrics({
         color={row.group_color_hex ?? 'var(--ink)'}
       />
       <MetricCard
-        label={<Tooltip term="Assistència" explanation={glossaryShort('attendance')} />}
+        label={<GlossaryTerm term="Vots emesos">Vots emesos</GlossaryTerm>}
         value={attendancePct}
         sub={labels.attendance_members_counted(row.attendance_member_count)}
         color="var(--accent)"

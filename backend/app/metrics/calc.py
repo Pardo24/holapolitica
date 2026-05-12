@@ -33,8 +33,9 @@ from dataclasses import dataclass
 from datetime import date
 from typing import cast
 
-from sqlalchemy import select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.models import (
     GroupMembership,
@@ -104,12 +105,22 @@ class GroupSummaryRow:
     All three numbers are reported alongside the raw N so the renderer can
     apply the min-N rule without a second query (CLAUDE.md "regla de simetria"
     — every group is included; sorting/highlighting is a frontend concern).
+
+    ``members_active`` always counts every open mandate (transparency: the
+    group has N members). ``members_in_metric`` is the subset that
+    contributes to the cohesion + attendance averages — i.e. deputies with
+    ``Person.role_kind IS NULL``. Cabinet members ('govern') and Mesa
+    officers ('mesa') are excluded because their voting pattern doesn't
+    reflect ordinary group behaviour (presidents abstain by tradition;
+    ministers rarely cast votes). The frontend should disclose the
+    exclusion: "calculat sobre M membres dels N actius".
     """
 
     group_slug: str
     group_name_short: str
     group_color_hex: str | None
     members_active: int
+    members_in_metric: int
     avg_cohesion: float | None
     cohesion_votes_counted: int
     avg_attendance: float | None
@@ -222,8 +233,18 @@ async def compute_group_summary(
 
     Every group registered against the legislature appears in the result —
     even when the group has no votes yet (avg fields fall to ``None``).
-    Members count is the active mandate count today; cohesion and attendance
-    aggregate over every vote in the legislature.
+
+    ``members_active`` is the count of every open mandate currently in the
+    group (transparency floor). ``members_in_metric`` is the subset whose
+    vote records feed the cohesion and attendance averages: deputies with
+    ``Person.role_kind IS NOT NULL`` ('govern', 'mesa') are excluded
+    because their voting pattern is dictated by their executive / chamber
+    role and not by their parliamentary group — including them skews
+    cross-group rankings unfairly (e.g. Sánchez as President of Govern
+    drags PSOE's attendance down). Members are still listed in
+    ``members_active``; only the metric averages drop them. Tenure
+    intervals are also respected: a member's vote records only count
+    while their ``GroupMembership`` window was open.
     """
     # 1) groups registered in this legislature, with active member counts.
     group_rows = (
@@ -238,10 +259,15 @@ async def compute_group_summary(
     ).all()
 
     # Member counts in a single query — avoids N+1.
+    # ``members_active`` counts every open mandate (full transparency).
+    # ``members_in_metric`` is the subset whose votes count toward the
+    # cohesion + attendance averages: regular deputies only, no govern /
+    # Mesa role-holders. We do both counts in one pass.
     member_count_rows = (
         await session.execute(
-            select(GroupMembership.group_id, Mandate.id)
+            select(GroupMembership.group_id, Mandate.id, Person.role_kind)
             .join(Mandate, Mandate.id == GroupMembership.mandate_id)
+            .join(Person, Person.id == Mandate.person_id)
             .where(
                 GroupMembership.end_date.is_(None),
                 Mandate.end_date.is_(None),
@@ -249,10 +275,17 @@ async def compute_group_summary(
         )
     ).all()
     members_by_group_id: Counter[int] = Counter()
-    for group_id, _mandate_id in member_count_rows:
+    members_in_metric_by_group_id: Counter[int] = Counter()
+    for group_id, _mandate_id, role_kind in member_count_rows:
         members_by_group_id[group_id] += 1
+        if role_kind is None:
+            members_in_metric_by_group_id[group_id] += 1
 
     # 2) cohesion: per (vote, group), max_cast / total_cast. Average per group.
+    # We exclude vote records from role-holders (govern / Mesa) via a
+    # LEFT JOIN + ``Person.role_kind IS NULL`` filter — a Mesa president's
+    # ritual abstain shouldn't tank their group's cohesion. The mandate
+    # interval clause keeps a member's votes restricted to their tenure.
     coh_stmt = (
         select(
             VoteRecord.vote_id,
@@ -262,7 +295,11 @@ async def compute_group_summary(
         .join(ParliamentaryGroup, ParliamentaryGroup.id == VoteRecord.group_id_at_time)
         .join(Vote, Vote.id == VoteRecord.vote_id)
         .join(SessionRow, SessionRow.id == Vote.session_id)
+        .join(Mandate, Mandate.id == VoteRecord.mandate_id)
+        .join(Person, Person.id == Mandate.person_id)
         .where(SessionRow.legislature_id == legislature_id)
+        .where(Person.role_kind.is_(None))
+        .where(_mandate_interval_clause())
     )
     counters: dict[tuple[int, str], Counter[VoteChoice]] = defaultdict(Counter)
     for vote_id, slug, choice in (await session.execute(coh_stmt)).all():
@@ -280,9 +317,12 @@ async def compute_group_summary(
         cohesion_sum_by_slug[slug] += max_choice / casting
         cohesion_n_by_slug[slug] += 1
 
-    # 3) attendance: average across the group's CURRENT members (people who
-    # are members today). Earlier members of the same group during the same
-    # legislature contribute too — we group by current group_membership.
+    # 3) attendance: per (group, member) restricted to (a) the member's
+    # ``GroupMembership`` window and (b) the member's ``Mandate`` window.
+    # Excludes role-holders for the same reason as cohesion. We use the
+    # ``GroupMembership`` table to attribute votes to whichever group the
+    # member belonged to at the time of the vote — handles mid-legislature
+    # group switches.
     att_stmt = (
         select(
             ParliamentaryGroup.slug,
@@ -293,8 +333,16 @@ async def compute_group_summary(
         .join(ParliamentaryGroup, ParliamentaryGroup.id == GroupMembership.group_id)
         .join(Vote, Vote.id == VoteRecord.vote_id)
         .join(SessionRow, SessionRow.id == Vote.session_id)
+        .join(Mandate, Mandate.id == VoteRecord.mandate_id)
+        .join(Person, Person.id == Mandate.person_id)
         .where(SessionRow.legislature_id == legislature_id)
-        .where(GroupMembership.end_date.is_(None))
+        .where(Person.role_kind.is_(None))
+        # Restrict to votes during the membership's window so a deputy
+        # who switched groups mid-term only contributes to their then
+        # current group, not retroactively to the new one.
+        .where(Vote.voted_at >= GroupMembership.start_date)
+        .where(or_(GroupMembership.end_date.is_(None), Vote.voted_at <= GroupMembership.end_date))
+        .where(_mandate_interval_clause())
     )
     att_total: Counter[str] = Counter()
     att_attended: Counter[str] = Counter()
@@ -318,6 +366,7 @@ async def compute_group_summary(
                 group_name_short=name_short,
                 group_color_hex=color_hex,
                 members_active=members_by_group_id.get(gid, 0),
+                members_in_metric=members_in_metric_by_group_id.get(gid, 0),
                 avg_cohesion=avg_cohesion,
                 cohesion_votes_counted=coh_n,
                 avg_attendance=avg_attendance,
@@ -498,6 +547,10 @@ async def _fetch_deputy_choices(
     from_date: date | None,
     to_date: date | None,
 ) -> list[tuple[int, str, VoteChoice, int]]:
+    # ``Vote.voted_at`` is restricted to the mandate's [start_date, end_date]
+    # window (end_date NULL = still active) so substitute deputies and
+    # early-renouncers aren't measured against votes that happened outside
+    # their tenure. See ``_mandate_interval_clause``.
     stmt = (
         select(Person.id, Person.full_name, VoteRecord.choice, VoteRecord.vote_id)
         .join(Mandate, Mandate.person_id == Person.id)
@@ -505,6 +558,7 @@ async def _fetch_deputy_choices(
         .join(Vote, Vote.id == VoteRecord.vote_id)
         .join(SessionRow, SessionRow.id == Vote.session_id)
         .where(SessionRow.legislature_id == legislature_id)
+        .where(_mandate_interval_clause())
     )
     if from_date is not None:
         stmt = stmt.where(SessionRow.date >= from_date)
@@ -519,6 +573,7 @@ async def _fetch_deputy_choices_with_group(
     from_date: date | None,
     to_date: date | None,
 ) -> list[tuple[int, str, VoteChoice, int, str | None]]:
+    # Same tenure-aware filter as ``_fetch_deputy_choices``.
     stmt = (
         select(
             Person.id,
@@ -533,12 +588,26 @@ async def _fetch_deputy_choices_with_group(
         .join(SessionRow, SessionRow.id == Vote.session_id)
         .outerjoin(ParliamentaryGroup, ParliamentaryGroup.id == VoteRecord.group_id_at_time)
         .where(SessionRow.legislature_id == legislature_id)
+        .where(_mandate_interval_clause())
     )
     if from_date is not None:
         stmt = stmt.where(SessionRow.date >= from_date)
     if to_date is not None:
         stmt = stmt.where(SessionRow.date <= to_date)
     return [tuple(r) for r in (await session.execute(stmt)).all()]
+
+
+def _mandate_interval_clause() -> ColumnElement[bool]:
+    """SQL clause: ``Vote.voted_at`` is inside the joined ``Mandate``'s window.
+
+    A NULL ``end_date`` means the mandate is still active — treat it as
+    open-ended on the right. The function is private; callers must have
+    already joined ``Mandate`` and ``Vote`` in their statement.
+    """
+    return and_(
+        Vote.voted_at >= Mandate.start_date,
+        or_(Mandate.end_date.is_(None), Vote.voted_at <= Mandate.end_date),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -643,30 +712,124 @@ class PersonKPIs:
 
     All three are deliberately equal-weight (CLAUDE.md "regla de simetria"):
     we never surface a single ranked metric that could read as a verdict.
+
+    Denominators are *tenure-aware*: a deputy who joined mid-legislature (or
+    renounced before its end) is only measured against the votes that
+    happened while their mandate was open. The frontend uses
+    ``mandate_total_votes`` / ``legislature_total_votes`` to render a
+    "X de Y votacions del seu mandat (legislatura: Z)" caveat so the user
+    understands the % is over the relevant slice, not the whole term.
     """
 
     person_id: int
-    votes_total: int  # rows in vote_records, attended or not
+    votes_total: int  # rows in vote_records, attended or not (legacy field)
     votes_cast: int  # of those, where choice ∈ {Sí, No, Abst}
     attendance_pct: float | None
     dissents: int  # cast votes where choice ≠ own group's majority
     dissidence_pct: float | None
+    # Tenure-aware denominators. ``mandate_total_votes`` is votes whose
+    # ``voted_at`` falls inside the union of this person's mandate
+    # intervals (across every legislature they sat in).
+    # ``legislature_total_votes`` is every vote in those same legislatures,
+    # regardless of whether the deputy was sitting at the time — exposes
+    # the gap when the deputy is a substitute or renounced early.
+    mandate_total_votes: int
+    legislature_total_votes: int
 
 
 async def compute_person_kpis(session: AsyncSession, *, person_id: int) -> PersonKPIs:
-    """Aggregate vote_records of all this person's mandates."""
+    """Aggregate vote_records of all this person's mandates, tenure-aware.
+
+    Denominator for both attendance and dissidence is restricted to votes
+    whose ``voted_at`` falls inside the union of the person's mandate
+    intervals (``Mandate.start_date`` .. ``Mandate.end_date``). A NULL
+    ``end_date`` is treated as "still active" — open-ended interval. This
+    avoids penalising substitute deputies (who entered mid-legislature) or
+    representatives who renounced before the end of the term: votes that
+    happened outside their tenure don't count against them.
+    """
+    # 1) Fetch every mandate this person has held. We need the (legislature,
+    # start, end) tuples to (a) build the eligible-votes filter and (b)
+    # compute the legislature-wide denominator the frontend uses as context.
+    mandate_rows = (
+        await session.execute(
+            select(Mandate.legislature_id, Mandate.start_date, Mandate.end_date).where(
+                Mandate.person_id == person_id
+            )
+        )
+    ).all()
+
+    if not mandate_rows:
+        # No mandates → no votes possible. Return a fully-zeroed shape so
+        # the frontend can render an empty state instead of crashing.
+        return PersonKPIs(
+            person_id=person_id,
+            votes_total=0,
+            votes_cast=0,
+            attendance_pct=None,
+            dissents=0,
+            dissidence_pct=None,
+            mandate_total_votes=0,
+            legislature_total_votes=0,
+        )
+
+    legislature_ids = {leg_id for leg_id, _s, _e in mandate_rows}
+
+    # 2) Count every vote in the relevant legislature(s) — context number.
+    legislature_total_votes_row = await session.execute(
+        select(func.count(Vote.id))
+        .join(SessionRow, SessionRow.id == Vote.session_id)
+        .where(SessionRow.legislature_id.in_(legislature_ids))
+    )
+    legislature_total_votes = int(legislature_total_votes_row.scalar_one())
+
+    # 3) Count the eligible (tenure-aware) denominator: votes whose
+    # ``voted_at`` falls inside ANY of this person's mandate intervals.
+    # We build one OR clause per mandate (cheap — typical N ≤ 2).
+    mandate_clauses = []
+    for _leg_id, start, end in mandate_rows:
+        # ``voted_at`` is a timestamp, ``start_date`` a date. SQLAlchemy
+        # coerces both backends (Postgres + SQLite) when comparing them.
+        if end is None:
+            # Still active mandate — open-ended on the right.
+            mandate_clauses.append(Vote.voted_at >= start)
+        else:
+            # The mandate ran [start, end] inclusive. We include the full
+            # last day by comparing against the date only.
+            mandate_clauses.append(and_(Vote.voted_at >= start, Vote.voted_at <= end))
+
+    mandate_total_votes_row = await session.execute(
+        select(func.count(Vote.id))
+        .join(SessionRow, SessionRow.id == Vote.session_id)
+        .where(SessionRow.legislature_id.in_(legislature_ids))
+        .where(or_(*mandate_clauses))
+    )
+    mandate_total_votes = int(mandate_total_votes_row.scalar_one())
+
+    # 4) Pull this person's actual vote records (the numerator side). We
+    # also keep ``vote_id`` to compute dissidence, which needs the same
+    # filter applied via the join on Vote.voted_at.
     rows = (
         await session.execute(
             select(VoteRecord.choice, VoteRecord.group_id_at_time, VoteRecord.vote_id)
             .select_from(Mandate)
             .join(VoteRecord, VoteRecord.mandate_id == Mandate.id)
+            .join(Vote, Vote.id == VoteRecord.vote_id)
+            .join(SessionRow, SessionRow.id == Vote.session_id)
             .where(Mandate.person_id == person_id)
+            .where(SessionRow.legislature_id.in_(legislature_ids))
+            .where(or_(*mandate_clauses))
         )
     ).all()
 
+    # ``votes_total`` preserves the legacy semantics (# of vote_record rows
+    # actually written for this person — useful as a sanity check next to
+    # ``mandate_total_votes``).
     total = len(rows)
     cast_count = sum(1 for r in rows if r[0] in _VOTING_CHOICES)
-    attendance = (cast_count / total) if total else None
+    # Attendance uses the tenure-aware denominator so substitute deputies
+    # don't artificially tank against the legislature-wide count.
+    attendance = (cast_count / mandate_total_votes) if mandate_total_votes else None
 
     # Dissidence: only over CAST votes where the deputy had a group AND the
     # group itself reached a majority among its members on that vote.
@@ -684,6 +847,8 @@ async def compute_person_kpis(session: AsyncSession, *, person_id: int) -> Perso
             attendance_pct=attendance,
             dissents=0,
             dissidence_pct=None,
+            mandate_total_votes=mandate_total_votes,
+            legislature_total_votes=legislature_total_votes,
         )
 
     # Pull the group-majority per (vote, group) for the relevant subset.
@@ -722,6 +887,8 @@ async def compute_person_kpis(session: AsyncSession, *, person_id: int) -> Perso
         attendance_pct=attendance,
         dissents=dissents,
         dissidence_pct=(dissents / compared) if compared else None,
+        mandate_total_votes=mandate_total_votes,
+        legislature_total_votes=legislature_total_votes,
     )
 
 
