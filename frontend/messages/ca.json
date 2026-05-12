@@ -290,6 +290,9 @@
     "majority_caveat": "Per ser aprovada calia majoria simple ({needed} vots). Resultat: {ayes} a favor, {noes} en contra. Marge: {margin}.",
     "plain_summary_title": "Explicació en llenguatge planer",
     "plain_summary_disclaimer": "Resum descriptiu generat automàticament a partir del text de l'expedient. No expressa cap valoració.",
+    "object_text_title": "Exposició de motius",
+    "object_text_expand": "Llegir el text complet",
+    "object_text_source": "Text oficial del BOCG redactat pels autors de la iniciativa.",
     "header_subject_breadcrumb": "Votacions",
     "embed_widget": "Embed widget ↗",
     "download_csv": "Descarrega CSV",
@@ -509,7 +512,16 @@
     "filter_group_aria": "Filtra per grup parlamentari",
     "log_scale_caption": "Alçada en escala logarítmica per fer visibles els grups petits; el número sobre cada barra és el recompte real.",
     "initiatives_proposed_short": "{count} iniciatives proposades",
-    "initiatives_proposed_aria": "{name}: {count} iniciatives proposades"
+    "initiatives_proposed_aria": "{name}: {count} iniciatives proposades",
+    "votes_registered_caption": "votacions registrades",
+    "pie_title": "Distribució de lleis i propostes",
+    "pie_subtitle": "Selecciona una modalitat per veure com es reparteix l'activitat parlamentària. Cada porció és un recompte real (sense reordenacions ni filtres editorials).",
+    "pie_mode_legend": "Modalitat",
+    "pie_mode_topic": "Lleis per tema",
+    "pie_mode_group": "Propostes per grup",
+    "pie_mode_topic_acceptance": "Acceptació per tema",
+    "pie_mode_status": "Resultats globals",
+    "pie_mode_aria": "Modalitat de visualització de la distribució"
   },
   "common": {
     "loading": "Carregant…",

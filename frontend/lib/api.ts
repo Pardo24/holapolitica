@@ -425,6 +425,14 @@ export interface Initiative {
   title_es: string | null;
   title_en: string | null;
   summary: string | null;
+  /**
+   * Bill author's own "Exposición de motivos" / "Preámbulo" prose,
+   * extracted from the BOCG PDF linked in the open-data feed. Distinct
+   * from `summary` (open-data feed, mostly NULL) and from the
+   * LLM-generated `plain_summary_*` short version. May be long
+   * (1-12 k chars); the UI collapses it.
+   */
+  object_text: string | null;
   status: string;
   submitted_at: string | null;
   submitted_by: string | null;
@@ -528,6 +536,9 @@ export const api = {
     topicStats: (id: number) =>
       request<TopicVoteStat[]>(`/persons/${id}/topic-stats`),
     kpis: (id: number) => request<PersonKPIs>(`/persons/${id}/kpis`),
+  },
+  initiatives: {
+    get: (id: number) => request<Initiative>(`/initiatives/${id}`),
   },
   topics: {
     list: (params: { kind?: TopicKind } = {}) => {

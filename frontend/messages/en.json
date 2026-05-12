@@ -290,6 +290,9 @@
     "majority_caveat": "Simple majority required ({needed} votes). Outcome: {ayes} for, {noes} against. Margin: {margin}.",
     "plain_summary_title": "Plain-language explanation",
     "plain_summary_disclaimer": "Descriptive summary auto-generated from the file text. Expresses no judgment.",
+    "object_text_title": "Preamble (Exposición de motivos)",
+    "object_text_expand": "Read the full text",
+    "object_text_source": "Official BOCG text drafted by the initiative's authors.",
     "header_subject_breadcrumb": "Votes",
     "embed_widget": "Embed widget ↗",
     "download_csv": "Download CSV",
@@ -509,7 +512,16 @@
     "filter_group_aria": "Filter by parliamentary group",
     "log_scale_caption": "Heights on a log scale so smaller groups remain visible; the number above each bar is the actual count.",
     "initiatives_proposed_short": "{count} initiatives proposed",
-    "initiatives_proposed_aria": "{name}: {count} initiatives proposed"
+    "initiatives_proposed_aria": "{name}: {count} initiatives proposed",
+    "votes_registered_caption": "votes recorded",
+    "pie_title": "Distribution of laws and proposals",
+    "pie_subtitle": "Pick a mode to see how parliamentary activity breaks down. Every slice is a raw count (no reordering, no editorial filtering).",
+    "pie_mode_legend": "Mode",
+    "pie_mode_topic": "Laws by topic",
+    "pie_mode_group": "Proposals by group",
+    "pie_mode_topic_acceptance": "Acceptance by topic",
+    "pie_mode_status": "Global outcomes",
+    "pie_mode_aria": "Distribution display mode"
   },
   "common": {
     "loading": "Loading…",

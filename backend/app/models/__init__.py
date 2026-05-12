@@ -383,6 +383,14 @@ class Initiative(Base, TimestampMixin):
     title_es: Mapped[str | None] = mapped_column(Text)
     title_en: Mapped[str | None] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
+    # Full "Exposición de motivos" / "Preámbulo" prose extracted from the
+    # bill's BOCG PDF. The portal's JSON only carries the title in
+    # ``OBJETO`` — the explanatory prose readers care about lives in the
+    # PDF and is populated here by :mod:`app.ingest.congreso.object_extractor`.
+    # NULL means we either haven't fetched the PDF yet, the PDF had no
+    # recognisable heading, or the extracted section was too short to be
+    # useful. See migration ``0020_initiative_object_text``.
+    object_text: Mapped[str | None] = mapped_column(Text)
     status: Mapped[InitiativeStatus] = mapped_column(String(20), nullable=False, index=True)
     submitted_at: Mapped[date | None] = mapped_column(Date)
     # Stored as Text because some Proposiciones de Ley list every co-signer's

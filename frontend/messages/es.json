@@ -290,6 +290,9 @@
     "majority_caveat": "Para ser aprobada se requería mayoría simple ({needed} votos). Resultado: {ayes} a favor, {noes} en contra. Margen: {margin}.",
     "plain_summary_title": "Explicación en lenguaje llano",
     "plain_summary_disclaimer": "Resumen descriptivo generado automáticamente a partir del texto del expediente. No expresa ninguna valoración.",
+    "object_text_title": "Exposición de motivos",
+    "object_text_expand": "Leer el texto completo",
+    "object_text_source": "Texto oficial del BOCG redactado por los autores de la iniciativa.",
     "header_subject_breadcrumb": "Votaciones",
     "embed_widget": "Embed widget ↗",
     "download_csv": "Descarga CSV",
@@ -509,7 +512,16 @@
     "filter_group_aria": "Filtrar por grupo parlamentario",
     "log_scale_caption": "Altura en escala logarítmica para que los grupos pequeños sean visibles; el número sobre cada barra es el recuento real.",
     "initiatives_proposed_short": "{count} iniciativas propuestas",
-    "initiatives_proposed_aria": "{name}: {count} iniciativas propuestas"
+    "initiatives_proposed_aria": "{name}: {count} iniciativas propuestas",
+    "votes_registered_caption": "votaciones registradas",
+    "pie_title": "Distribución de leyes y propuestas",
+    "pie_subtitle": "Selecciona una modalidad para ver cómo se reparte la actividad parlamentaria. Cada porción es un recuento real (sin reordenaciones ni filtros editoriales).",
+    "pie_mode_legend": "Modalidad",
+    "pie_mode_topic": "Leyes por tema",
+    "pie_mode_group": "Propuestas por grupo",
+    "pie_mode_topic_acceptance": "Aceptación por tema",
+    "pie_mode_status": "Resultados globales",
+    "pie_mode_aria": "Modalidad de visualización de la distribución"
   },
   "common": {
     "loading": "Cargando…",

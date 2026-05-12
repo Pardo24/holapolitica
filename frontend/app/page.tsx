@@ -4,13 +4,13 @@ import {
   ArrowRight,
   BarChart3,
   Layers,
+  Mail,
   Search,
   Users,
   Vote as VoteIcon,
 } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
-import { CohesionCarousel } from '@/components/CohesionCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { ResultPill } from '@/components/ResultPill';
@@ -21,7 +21,6 @@ import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
 import {
   api,
-  type GroupSummaryRow,
   type ParliamentaryGroupSummary,
   type ScheduledSession,
   type TopicVoteStat,
@@ -54,9 +53,8 @@ export default async function HomePage() {
   let latestVotes: Vote[] = [];
   let upcomingSessions: ScheduledSession[] = [];
   let allGroups: ParliamentaryGroupSummary[] = [];
-  let groupSummary: GroupSummaryRow[] = [];
   try {
-    [summary, latestVotes, upcomingSessions, allGroups, groupSummary] = await Promise.all([
+    [summary, latestVotes, upcomingSessions, allGroups] = await Promise.all([
       api.stats.summary(),
       api.votes
         .list({ page: 1, page_size: 5 })
@@ -66,10 +64,6 @@ export default async function HomePage() {
         .then((rows) => rows.slice(0, 4))
         .catch(() => [] as ScheduledSession[]),
       api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
-      // Per-group cohesion + attendance for the CohesionCarousel that
-      // shares the right column with the "Aquesta setmana" aside. Failure
-      // degrades the carousel to its empty state — never blocks the home.
-      api.metrics.groupSummary(1).catch(() => [] as GroupSummaryRow[]),
     ]);
   } catch {
     /* backend not ready — render with zeros */
@@ -203,13 +197,13 @@ export default async function HomePage() {
         </div>
 
         <div
-          // Right column now hosts TWO widgets stacked vertically: the new
-          // CohesionCarousel on top and the existing "Aquesta setmana" aside
-          // below. We size them inside a flex column so they share the column
-          // gracefully — the aside keeps its decorative chrome; the carousel
-          // brings its own. On mobile the entire `home-hero` collapses to a
-          // single column (see media query below), and the two children just
-          // stack naturally.
+          // Right column now hosts TWO widgets stacked vertically: the
+          // HighlightsCarousel on top (rotating per-group fact card, replaces
+          // the previous CohesionCarousel — cohesion now lives only on
+          // /stats) and the existing "Aquesta setmana" aside below. We size
+          // them inside a flex column so they share the column gracefully.
+          // On mobile the entire `home-hero` collapses to a single column
+          // (see media query below) and the children stack naturally.
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -218,10 +212,10 @@ export default async function HomePage() {
           }}
           className="home-hero__right"
         >
-          {/* CohesionCarousel — rotating per-group "Cohesió + Vots emesos"
-              card. Hidden when there is no group-summary data so the column
-              doesn't show an empty card. */}
-          {groupSummary.length > 0 && <CohesionCarousel rows={groupSummary} />}
+          {/* HighlightsCarousel — rotating per-group "top-supported / top-
+              rejected topic" cards. Symmetric: every group is shown in turn.
+              The component handles its own empty state internally. */}
+          <HighlightsCarousel items={highlights} />
 
           <aside
           style={{
@@ -370,50 +364,43 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Highlights carousel — symmetric per-group facts (top-supported and
-          top-rejected topic for every group, rotating). Moved here from the
-          mobile stats dashboard so it lives where the most visitors see it,
-          while the desktop /stats page keeps its own (richer) version under
-          the overview tab. Empty / backfill state handled inside. */}
+      {/* Newsletter signup row — signup card on the LEFT, decorative mail
+          iconography on the RIGHT for visual balance. The icon block is
+          purely visual (no copy, no CTA — symmetry of weight, not of
+          information). On narrow viewports the iconography is hidden and
+          the signup expands to full width (see media query below). */}
       <section
+        className="home-newsletter-row"
         style={{
-          paddingTop: 28,
-          paddingBottom: 8,
-          borderBottom: '1px solid var(--rule)',
+          display: 'flex',
+          gap: 24,
+          alignItems: 'stretch',
+          marginTop: 28,
         }}
       >
+        <div className="home-newsletter-row__signup" style={{ flex: '1 1 0', minWidth: 0 }}>
+          <NewsletterSignup />
+        </div>
         <div
+          className="home-newsletter-row__icon"
+          aria-hidden="true"
           style={{
+            flex: '1 1 0',
+            minWidth: 0,
             display: 'flex',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            marginBottom: 14,
-            gap: 12,
-            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid var(--rule)',
+            borderRadius: 12,
+            background: 'var(--paper-2)',
+            color: 'var(--accent)',
+            padding: 24,
+            minHeight: 200,
           }}
         >
-          <div className="eyebrow">{t('highlights_title')}</div>
-          <Link
-            href="/stats"
-            style={{
-              fontSize: 12,
-              color: 'var(--ink-2)',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            {t('highlights_see_all')} <ArrowRight size={14} aria-hidden="true" />
-          </Link>
+          <Mail size={140} strokeWidth={1.25} aria-hidden="true" />
         </div>
-        <HighlightsCarousel items={highlights} />
       </section>
-
-      {/* Newsletter signup — placed RIGHT after the coverage / highlights so
-          the macro numbers and the rotating facts give the reader a reason
-          to want updates. Compact card on mobile. */}
-      <NewsletterSignup />
 
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           honest empty-state today. Appears above latest so it's the first
@@ -474,6 +461,11 @@ export default async function HomePage() {
         @media (max-width: 860px) {
           .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; padding-top: 24px !important; padding-bottom: 24px !important; }
           .home-coverage { grid-template-columns: repeat(2, 1fr) !important; }
+          /* Newsletter row collapses: signup goes full-width and the
+             decorative iconography is hidden to save vertical space on
+             phones (the desktop block is hidden below 640px anyway, but
+             between 640 and 860 we still trim the icon). */
+          .home-newsletter-row__icon { display: none !important; }
         }
       `}</style>
       </div>

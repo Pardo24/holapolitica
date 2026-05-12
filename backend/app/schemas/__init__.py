@@ -186,6 +186,10 @@ class InitiativeRead(BaseModel):
     title_es: str | None = None
     title_en: str | None = None
     summary: str | None = None
+    # ``object_text`` is the bill's own "Exposición de motivos" prose,
+    # extracted from the BOCG PDF — distinct from the LLM-generated
+    # ``plain_summary_*`` fields. May be long; the frontend collapses it.
+    object_text: str | None = None
     status: InitiativeStatus
     submitted_at: date | None = None
     submitted_by: str | None = None

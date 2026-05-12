@@ -10,6 +10,7 @@ import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
+import { StatsPie, type StatsPieLabels } from '@/components/StatsPie';
 import { SummaryHover } from '@/components/SummaryHover';
 import { TopicCombobox } from '@/components/TopicCombobox';
 import { Tooltip } from '@/components/Tooltip';
@@ -35,6 +36,9 @@ import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
 
+// Status color mapping retained because individual sections / fallback
+// labels still reference it; PLURAL_KEY / TYPE_KEY tables were used only
+// by the donut panels which the StatsPie now replaces.
 const STATUS_COLOR: Record<string, string> = {
   approved: 'var(--aye)',
   rejected: 'var(--no)',
@@ -43,14 +47,6 @@ const STATUS_COLOR: Record<string, string> = {
   withdrawn: 'var(--nv)',
   expired: 'var(--nv)',
 };
-const STATUS_PLURAL_KEY: Record<string, string> = {
-  approved: 'status_plural_approved',
-  rejected: 'status_plural_rejected',
-  in_debate: 'status_plural_in_debate',
-  submitted: 'status_plural_submitted',
-  withdrawn: 'status_plural_withdrawn',
-  expired: 'status_plural_expired',
-};
 const STATUS_SINGULAR_KEY: Record<string, string> = {
   approved: 'status_singular_approved',
   rejected: 'status_singular_rejected',
@@ -58,16 +54,6 @@ const STATUS_SINGULAR_KEY: Record<string, string> = {
   submitted: 'status_singular_submitted',
   withdrawn: 'status_singular_withdrawn',
   expired: 'status_singular_expired',
-};
-const TYPE_KEY: Record<string, string> = {
-  proyecto_ley: 'type_proyecto_ley',
-  proposicion_ley: 'type_proposicion_ley',
-  proposicion_no_ley: 'type_proposicion_no_ley',
-  real_decreto_ley: 'type_real_decreto_ley',
-  reforma_estatuto: 'type_reforma_estatuto',
-  mocion: 'type_mocion',
-  interpelacion: 'type_interpelacion',
-  other: 'type_other',
 };
 
 type TabKey = 'overview' | 'filtered';
@@ -117,12 +103,10 @@ export default async function StatsPage({
   // Data fetching — global stats are always loaded since the collapsible
   // section needs them on demand without a second round trip. The
   // filter-scoped fetches stay conditional so unused branches don't pay.
-  const [summary, byType, byStatus, , proposingGroups, topics, groupSummary, allTopics, allGroups, coincidence] =
+  const [summary, byStatus, proposingGroups, topics, groupSummary, allTopics, allGroups, coincidence] =
     await Promise.all([
       api.stats.summary(),
-      api.stats.initiativesByType(),
       api.stats.initiativesByStatus(),
-      api.stats.votesByResult(),
       api.stats.votesByProposingGroup(),
       api.stats.topicsGlobal(),
       api.metrics.groupSummary(1).catch(() => [] as GroupSummaryRow[]),
@@ -243,6 +227,37 @@ export default async function StatsPage({
             {t('intro')}
           </p>
         </div>
+        {/* Top-right big-number — total votes registered. Hidden on mobile
+            (the mobile dashboard already surfaces the same figure inline)
+            and only on the overview tab where the legacy KPIs are gone. */}
+        {activeTab === 'overview' && (
+          <div
+            className="hidden sm:flex"
+            style={{
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 2,
+              minWidth: 0,
+            }}
+          >
+            <span
+              className="serif tabular"
+              style={{
+                fontSize: 44,
+                fontWeight: 600,
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                color: 'var(--ink)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {summary.votes_total.toLocaleString(locale)}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+              {t('votes_registered_caption')}
+            </span>
+          </div>
+        )}
       </header>
 
       {/* Mobile-only dashboard (≤640px). Same data, denser layout — every
@@ -286,15 +301,10 @@ export default async function StatsPage({
 
       {activeTab === 'overview' && (
         <>
-          <KpiStrip kpi={kpi} locale={locale} labels={kpiLabels(t)} />
-
-          {/* Highlights FIRST on this tab — anchors the overview as the
-              first thing the visitor sees below the tiles, per spec.
-              The CohesionCarousel sits to its right on desktop, sharing
-              the horizontal space via flexbox. On narrow viewports the
-              media query at the bottom of this section collapses the row
-              to a single column (the mobile dashboard already has its
-              own GroupSummaryCarousel, so this widget is hidden there). */}
+          {/* Highlights + cohesion carousel — side-by-side flex row on
+              desktop, collapses below 900px (see CSS at end of file). The
+              total-votes big-number that used to live in KpiStrip is now
+              the page-header's top-right element. */}
           <Section
             title={t('highlights_title')}
             subtitle={t('highlights_subtitle')}
@@ -314,6 +324,25 @@ export default async function StatsPage({
             </div>
           </Section>
 
+          {/* Interactive pie — the central focus of the overview. Replaces
+              the previous stack of mini-charts (per-status donut, per-type
+              donut, proposing-group vertical bars). One pie with four
+              modes: by topic, by group, by topic-acceptance, by status.
+              Hidden on mobile (the MobileStatsDashboard owns that view). */}
+          <Section
+            title={t('pie_title')}
+            subtitle={t('pie_subtitle')}
+          >
+            <div className="hidden sm:block">
+              <StatsPie
+                byStatus={byStatus}
+                proposingGroups={proposingGroups}
+                topics={topics}
+                labels={statsPieLabels(t)}
+              />
+            </div>
+          </Section>
+
           <Section
             title={
               <>
@@ -330,11 +359,8 @@ export default async function StatsPage({
             />
           </Section>
 
-          {/* Per-group summary cards — replaces the redundant "Cohesió per
-              grup" + "Assistència per grup" bar-chart pair. Each card
-              folds cohesion + attendance + member count into one tap
-              target into the group's page. Horizontal scroll-snap so the
-              section never grows tall, even with many groups. */}
+          {/* Per-group summary cards — cohesion + attendance + members per
+              group, horizontally scrollable for symmetry across all groups. */}
           <Section
             title={t('group_summary_title')}
             subtitle={
@@ -346,70 +372,6 @@ export default async function StatsPage({
             }
           >
             <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
-          </Section>
-
-          {/* Symmetric pairing: approved AND rejected always shown side-by-side
-              in the per-status breakdown. We never display one without the
-              other (CLAUDE.md "regla de simetria"). */}
-          <Section
-            title={t('approved_rejected_title')}
-            subtitle={t('approved_rejected_subtitle')}
-          >
-            <div
-              className="stats-twocol"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 32,
-                paddingTop: 12,
-              }}
-            >
-              <DonutPanel
-                label={t('donut_status_label')}
-                items={byStatus.map((r) => ({
-                  key: r.status,
-                  label: STATUS_PLURAL_KEY[r.status]
-                    ? t(STATUS_PLURAL_KEY[r.status]!)
-                    : r.status,
-                  count: r.count,
-                  color: STATUS_COLOR[r.status] ?? 'var(--nv)',
-                }))}
-              />
-              <DonutPanel
-                label={t('donut_type_label')}
-                items={byType.map((r, i) => {
-                  const typeLabel = TYPE_KEY[r.type] ? t(TYPE_KEY[r.type]!) : r.type;
-                  return {
-                    key: r.type,
-                    // Wrap with <GlossaryTerm> so hovering/tapping the type
-                    // label in the legend reveals a plain-language
-                    // definition. Falls through to plain text when the term
-                    // isn't in the glossary.
-                    label: (
-                      <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
-                    ),
-                    count: r.count,
-                    color: TYPE_COLORS[i % TYPE_COLORS.length] ?? 'var(--accent)',
-                  };
-                })}
-              />
-            </div>
-          </Section>
-
-          <Section
-            title={t('votes_by_proposing_group_title')}
-            subtitle={t('votes_by_proposing_group_subtitle')}
-          >
-            <VerticalBars
-              rows={proposingGroups}
-              highlightSlug={null}
-              emptyLabel={t('empty_no_proposals_with_group')}
-              logScaleCaption={t('log_scale_caption')}
-              countShort={(count) => t('initiatives_proposed_short', { count })}
-              countAria={(name, count) =>
-                t('initiatives_proposed_aria', { name, count })
-              }
-            />
           </Section>
         </>
       )}
@@ -739,22 +701,41 @@ export default async function StatsPage({
         @media (max-width: 640px) {
           .stats-cohesion-col { display: none; }
         }
+        /* StatsPie collapses the side-by-side pie + mode toggle into a
+           single column below 900px so the legend below the pie remains
+           legible at narrow widths. */
+        @media (max-width: 900px) {
+          .stats-pie-wrap { grid-template-columns: 1fr !important; }
+        }
       `}</style>
     </div>
   );
 }
 
-const TYPE_COLORS = [
-  'var(--accent)',
-  'var(--aye)',
-  'var(--no)',
-  'var(--abst)',
-  'var(--gp-junts)',
-  'var(--gp-pnv)',
-  'var(--nv)',
-];
-
 type StatsT = Awaited<ReturnType<typeof getTranslations<'stats'>>>;
+
+/** Translation bundle for the StatsPie segmented-radio + legend. Built
+ *  here so the page-level translations stay co-located with their
+ *  consumers. */
+function statsPieLabels(t: StatsT): StatsPieLabels {
+  return {
+    title: t('pie_mode_legend'),
+    modeTopic: t('pie_mode_topic'),
+    modeGroup: t('pie_mode_group'),
+    modeTopicAcceptance: t('pie_mode_topic_acceptance'),
+    modeStatus: t('pie_mode_status'),
+    modeAria: t('pie_mode_aria'),
+    statusApproved: t('status_plural_approved'),
+    statusRejected: t('status_plural_rejected'),
+    statusInDebate: t('status_plural_in_debate'),
+    statusSubmitted: t('status_plural_submitted'),
+    statusWithdrawn: t('status_plural_withdrawn'),
+    statusExpired: t('status_plural_expired'),
+    statusOther: t('status_other_short'),
+    initiativesUnit: t('initiatives_unit'),
+    emptyMode: t('empty_no_data'),
+  };
+}
 
 function kpiLabels(t: StatsT): KpiLabels {
   return {

@@ -127,99 +127,95 @@ export async function MobileStatsDashboard({
 
   return (
     <div className="sm:hidden" style={{ paddingTop: 18 }}>
-      {/* Widget order is the data flow we want a mobile reader to see:
-          1. State + who proposes (the "what's going on" overview)
-          2. Suport vs rebuig per tema — only renders when a topic is
-             selected, otherwise hidden; sits here so the per-topic
-             stance reads as a follow-on to the topic filter the user
-             just set in widget 1.
-          3. PairCoincidence — between-group comparison appears BEFORE
-             the per-group summary cards so the question "how aligned
-             are two groups?" is answered before the user scrolls into
-             per-group cohesion.
-          4. GroupSummaryCarousel — per-group cohesion + votes-emitted.
-          5. InitiativeListExpandable — long-tail browse.
+      {/* Widget order — the topic-scoped widgets (state, stance, compact
+          list) now share a single bordered card so the user sees the
+          topic filter and everything it scopes as one visual unit:
+          1. Topic-scope card: initiatives state + topic filter +
+             top proposers, then (when a topic is picked) the "Suport
+             vs rebuig per tema" stance columns, then the compact
+             3-latest initiatives list with a link to the topic page.
+          2. PairCoincidence — between-group comparison.
+          3. GroupSummaryCarousel — per-group cohesion + votes emitted.
 
-          Symmetry intact at every step (see PerTopicCoincidenceWidget
+          Symmetry intact at every step (see PerTopicCoincidenceBody
           and PairCoincidenceWidget docs). */}
 
-      {/* ─── 1. Initiatives state + topic filter ───────────────────── */}
-      <InitiativesStateWidget
-        allTopics={allTopics}
-        topics={topics}
-        byStatus={byStatus}
-        proposingGroups={proposingGroups}
-        topicProposers={topicProposers}
-        groupActivity={groupActivity}
-        cross={cross}
-        focusedTopic={focusedTopic}
-        focusedTopicName={focusedTopicName}
-        selectedTopic={selectedTopic}
-        selectedGroup={selectedGroup}
-        summary={summary}
-        locale={locale}
-        labels={{
-          stateEyebrow: t('state_eyebrow'),
-          stateInfo: t('state_info'),
-          initiativesPlenary: t('state_initiatives_at_plenary'),
-          initiativesOnTopic: (topic: string) =>
-            t('state_initiatives_on_topic', { topic }),
-          filterByTopic: t('state_filter_by_topic'),
-          topicValue: t('state_topic_value'),
-          clearTopic: t('state_clear_topic'),
-          topProposersPlenary: t('state_top_proposers_plenary'),
-          topProposersTopic: (topic: string) =>
-            t('state_top_proposers_topic', { topic }),
-        }}
-        statusLabels={statusLabels}
-        governmentShort={governmentShort}
-      />
+      {/* ─── 1. Single bordered card grouping the topic-scoped widgets:
+              the global initiatives state + topic filter, the "Suport vs
+              rebuig per tema" stance widget (only when a topic is picked)
+              and the compact 3-latest initiatives list with a link to the
+              topic page. They all share the same scope (the selected
+              topic) so visually grouping them under one card makes the
+              filter relationship obvious — picking a topic changes the
+              other two blocks inside the same card. */}
+      <DashSection eyebrow={t('state_eyebrow')} info={t('state_info')}>
+        <Card>
+          <InitiativesStateBody
+            allTopics={allTopics}
+            byStatus={byStatus}
+            proposingGroups={proposingGroups}
+            topicProposers={topicProposers}
+            groupActivity={groupActivity}
+            cross={cross}
+            focusedTopic={focusedTopic}
+            focusedTopicName={focusedTopicName}
+            selectedTopic={selectedTopic}
+            selectedGroup={selectedGroup}
+            summary={summary}
+            locale={locale}
+            labels={{
+              initiativesPlenary: t('state_initiatives_at_plenary'),
+              initiativesOnTopic: (topic: string) =>
+                t('state_initiatives_on_topic', { topic }),
+              filterByTopic: t('state_filter_by_topic'),
+              topicValue: t('state_topic_value'),
+              clearTopic: t('state_clear_topic'),
+              topProposersPlenary: t('state_top_proposers_plenary'),
+              topProposersTopic: (topic: string) =>
+                t('state_top_proposers_topic', { topic }),
+            }}
+            statusLabels={statusLabels}
+            governmentShort={governmentShort}
+          />
 
-      {/* ─── 2. Suport vs rebuig per tema (only when a topic is picked) ── */}
-      {hasTopic && (
-        <PerTopicCoincidenceWidget
-          allTopics={allTopics}
-          allGroups={allGroups}
-          topicStatsByGroup={topicStatsByGroup}
-          selectedTopic={selectedTopic}
-          focusedTopicName={focusedTopicName}
-          labels={{
-            eyebrow: t('stance_eyebrow'),
-            info: t('stance_info'),
-            topicLabel: t('stance_topic_label'),
-            topicPlaceholder: t('stance_topic_placeholder'),
-            topicAria: t('stance_topic_aria'),
-            pickTopic: t('stance_pick_topic'),
-            minVotes: t('stance_min_votes'),
-            supports: t('stance_supports'),
-            rejects: t('stance_rejects'),
-            votesEmitted: (count: number) => t('stance_votes_emitted', { count }),
-            backfillEyebrow: t('backfill_eyebrow'),
-            backfillBodyTopic: (topic: string) =>
-              t('backfill_body_topic', { topic }),
-            backfillBodyNoTopic: t('backfill_body_no_topic'),
-          }}
-        />
-      )}
+          {hasTopic && (
+            <PerTopicCoincidenceBody
+              allGroups={allGroups}
+              topicStatsByGroup={topicStatsByGroup}
+              selectedTopic={selectedTopic}
+              focusedTopicName={focusedTopicName}
+              labels={{
+                eyebrow: t('stance_eyebrow'),
+                minVotes: t('stance_min_votes'),
+                supports: t('stance_supports'),
+                rejects: t('stance_rejects'),
+                votesEmitted: (count: number) =>
+                  t('stance_votes_emitted', { count }),
+                backfillEyebrow: t('backfill_eyebrow'),
+                backfillBodyTopic: (topic: string) =>
+                  t('backfill_body_topic', { topic }),
+                backfillBodyNoTopic: t('backfill_body_no_topic'),
+              }}
+            />
+          )}
 
-      {/* ─── 2b. Compact 3-latest initiatives + link to topic page
-              (only when a topic is selected; replaces the long
-              expandable list that previously sat at the bottom). */}
-      {hasTopic && (
-        <CompactTopicInitiatives
-          topicProposers={topicProposers}
-          cross={cross}
-          selectedTopic={selectedTopic}
-          focusedTopicName={focusedTopicName}
-          locale={locale}
-          labels={{
-            eyebrow: t('list_eyebrow'),
-            openTopicPage: t('list_open_topic_page'),
-          }}
-        />
-      )}
+          {hasTopic && (
+            <CompactTopicInitiativesBody
+              topicProposers={topicProposers}
+              cross={cross}
+              selectedTopic={selectedTopic}
+              focusedTopicName={focusedTopicName}
+              locale={locale}
+              labels={{
+                eyebrow: t('list_eyebrow'),
+                openTopicPage: t('list_open_topic_page'),
+              }}
+            />
+          )}
+        </Card>
+      </DashSection>
 
-      {/* ─── 3. Coincidence — pair picker ──────────────────────────── */}
+      {/* ─── 2. Coincidence — pair picker ──────────────────────────── */}
       <PairCoincidenceWidget
         allGroups={allGroups}
         coincidence={coincidence}
@@ -410,8 +406,6 @@ function buildStatusSegmentsGlobal(
 }
 
 interface StateLabels {
-  stateEyebrow: string;
-  stateInfo: string;
   initiativesPlenary: string;
   initiativesOnTopic: (topic: string) => string;
   filterByTopic: string;
@@ -421,9 +415,13 @@ interface StateLabels {
   topProposersTopic: (topic: string) => string;
 }
 
-function InitiativesStateWidget({
+/** Inline body of the "initiatives state" widget — renders the topic-scoped
+ *  big number, status bar, topic filter, and top proposers list. No outer
+ *  Card/DashSection chrome: the parent dashboard wraps this together with
+ *  the per-topic stance + compact list widgets inside a single shared
+ *  bordered card so the user sees them as one topic-scoped group. */
+function InitiativesStateBody({
   allTopics,
-  topics,
   byStatus,
   proposingGroups,
   topicProposers,
@@ -440,7 +438,6 @@ function InitiativesStateWidget({
   governmentShort,
 }: {
   allTopics: Topic[];
-  topics: TopicGlobalStat[];
   byStatus: InitiativeStatusCount[];
   proposingGroups: GroupProposalCount[];
   topicProposers: TopicProposers | null;
@@ -489,13 +486,9 @@ function InitiativesStateWidget({
   const maxProposerCount = Math.max(...proposers.map((p) => p.count), 1);
 
   return (
-    <DashSection
-      eyebrow={labels.stateEyebrow}
-      info={labels.stateInfo}
-    >
-      <Card>
-        {/* Big number — generous serif tabular */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 14 }}>
+    <>
+      {/* Big number — generous serif tabular */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 14 }}>
           <span
             className="serif tabular"
             style={{
@@ -645,8 +638,7 @@ function InitiativesStateWidget({
             </ul>
           </>
         )}
-      </Card>
-    </DashSection>
+    </>
   );
 }
 
@@ -836,11 +828,13 @@ function pickInitiativesForList(
 }
 
 /**
- * Compact 3-initiative preview shown beneath the "Suport vs rebuig"
- * widget on mobile when a topic filter is active. The full list lives
- * at ``/topics/<slug>`` — this widget is just a hint with a deep link.
+ * Compact 3-initiative preview rendered inside the shared topic-scope card
+ * on mobile, beneath the "Suport vs rebuig" widget, when a topic filter is
+ * active. The full list lives at ``/topics/<slug>`` — this body is just a
+ * hint with a deep link. No outer DashSection/Card chrome: the parent
+ * dashboard renders this inside its own bordered Card.
  */
-function CompactTopicInitiatives({
+function CompactTopicInitiativesBody({
   topicProposers,
   cross,
   selectedTopic,
@@ -859,7 +853,25 @@ function CompactTopicInitiatives({
   if (items.length === 0) return null;
   const href = `/topics/${encodeURIComponent(selectedTopic)}` as Route;
   return (
-    <DashSection eyebrow={labels.eyebrow} title={focusedTopicName}>
+    <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--rule)' }}>
+      <div
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-3)',
+          fontWeight: 600,
+          marginBottom: 4,
+        }}
+      >
+        {labels.eyebrow}
+      </div>
+      <h3
+        className="serif"
+        style={{ margin: '0 0 10px', fontSize: 18, fontWeight: 600, lineHeight: 1.2 }}
+      >
+        {focusedTopicName}
+      </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {items.map((ini) => (
           <InitiativeRow key={ini.id} ini={ini} locale={locale} />
@@ -881,7 +893,7 @@ function CompactTopicInitiatives({
       >
         {labels.openTopicPage} →
       </Link>
-    </DashSection>
+    </div>
   );
 }
 
@@ -1271,11 +1283,6 @@ interface GroupStance {
 
 interface StanceLabels {
   eyebrow: string;
-  info: string;
-  topicLabel: string;
-  topicPlaceholder: string;
-  topicAria: string;
-  pickTopic: string;
   minVotes: string;
   supports: string;
   rejects: string;
@@ -1285,15 +1292,17 @@ interface StanceLabels {
   backfillBodyNoTopic: string;
 }
 
-function PerTopicCoincidenceWidget({
-  allTopics,
+/** Inline body of the per-topic "supports vs rejects" widget. Rendered inside
+ *  the parent dashboard's shared topic-scope Card on mobile. No outer
+ *  DashSection/Card chrome and no own topic filter (the parent's filter is
+ *  shared). Caller is expected to render this only when a topic IS selected. */
+function PerTopicCoincidenceBody({
   allGroups,
   topicStatsByGroup,
   selectedTopic,
   focusedTopicName,
   labels,
 }: {
-  allTopics: Topic[];
   allGroups: ParliamentaryGroupSummary[];
   topicStatsByGroup: Map<string, TopicVoteStat[]>;
   selectedTopic: string;
@@ -1331,74 +1340,66 @@ function PerTopicCoincidenceWidget({
   const hasAnyData = stances.some((s) => s.cast > 0);
 
   return (
-    <DashSection
-      eyebrow={<>{labels.eyebrow}</>}
-      info={labels.info}
-    >
-      <Card>
-        <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
-          <label style={pickerLabel}>
-            <span style={pickerLabelText}>{labels.topicLabel}</span>
-            <StatsTopicFilter
-              allTopics={allTopics}
-              selectedTopic={selectedTopic}
-              placeholder={labels.topicPlaceholder}
-              ariaLabel={labels.topicAria}
+    <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--rule)' }}>
+      <div
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-3)',
+          fontWeight: 600,
+          marginBottom: 10,
+        }}
+      >
+        {labels.eyebrow}
+      </div>
+      {!hasAnyData && (
+        <BackfillNotice
+          topicName={focusedTopicName}
+          eyebrow={labels.backfillEyebrow}
+          bodyWithTopic={labels.backfillBodyTopic}
+          bodyNoTopic={labels.backfillBodyNoTopic}
+        />
+      )}
+      {hasAnyData && (
+        <>
+          <div
+            style={{
+              fontSize: 12,
+              color: 'var(--ink-3)',
+              marginBottom: 10,
+            }}
+          >
+            {focusedTopicName}
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 10,
+            }}
+          >
+            <StanceColumn
+              title={labels.supports}
+              color="var(--aye)"
+              stances={supports}
+              metric="yes"
+              votesEmitted={labels.votesEmitted}
             />
-          </label>
-        </div>
-
-        {!hasTopic && (
-          <p style={emptyHint}>{labels.pickTopic}</p>
-        )}
-        {hasTopic && !hasAnyData && (
-          <BackfillNotice
-            topicName={focusedTopicName}
-            eyebrow={labels.backfillEyebrow}
-            bodyWithTopic={labels.backfillBodyTopic}
-            bodyNoTopic={labels.backfillBodyNoTopic}
-          />
-        )}
-        {hasTopic && hasAnyData && (
-          <>
-            <div
-              style={{
-                fontSize: 12,
-                color: 'var(--ink-3)',
-                marginBottom: 10,
-              }}
-            >
-              {focusedTopicName}
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 10,
-              }}
-            >
-              <StanceColumn
-                title={labels.supports}
-                color="var(--aye)"
-                stances={supports}
-                metric="yes"
-                votesEmitted={labels.votesEmitted}
-              />
-              <StanceColumn
-                title={labels.rejects}
-                color="var(--no)"
-                stances={rejects}
-                metric="no"
-                votesEmitted={labels.votesEmitted}
-              />
-            </div>
-            <p style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 10 }}>
-              <span title={glossaryShort('approval_rate')}>{labels.minVotes}</span>
-            </p>
-          </>
-        )}
-      </Card>
-    </DashSection>
+            <StanceColumn
+              title={labels.rejects}
+              color="var(--no)"
+              stances={rejects}
+              metric="no"
+              votesEmitted={labels.votesEmitted}
+            />
+          </div>
+          <p style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 10 }}>
+            <span title={glossaryShort('approval_rate')}>{labels.minVotes}</span>
+          </p>
+        </>
+      )}
+    </div>
   );
 }
 

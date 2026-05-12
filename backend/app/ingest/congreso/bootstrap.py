@@ -38,6 +38,10 @@ from app.ingest.congreso.backfill import BackfillStats, backfill_legislature
 from app.ingest.congreso.client import CongresoClient, InitiativeDataset
 from app.ingest.congreso.deputies import DeputyImporter, ImportStats
 from app.ingest.congreso.hemicycle import HemicycleImportStats, import_hemicycle_seats
+from app.ingest.congreso.initiative_objects import (
+    InitiativeObjectsBackfillStats,
+    backfill_initiative_objects,
+)
 from app.ingest.congreso.initiatives import InitiativeImporter, InitiativeImportStats
 from app.ingest.congreso.photos import PhotoBackfillStats, backfill_photos
 from app.ingest.congreso.pnl import import_pnl_xv
@@ -272,8 +276,23 @@ async def import_initiatives() -> dict[str, InitiativeImportStats]:
         if not all_new_ids:
             return stats_by_dataset
 
-    # Enrich the new rows. We open fresh sessions so the failure of one
-    # enrichment doesn't roll back the upserts above.
+    # First enrichment pass: download the BOCG PDFs for newly-created
+    # rows and extract their "Exposición de motivos" prose into
+    # ``object_text``. We do this *before* plain-language summaries so
+    # those can use the prose as input — yielding much better
+    # summaries than what we'd get from the legalese title alone.
+    # ``backfill_initiative_objects`` scopes to ``object_text IS NULL``
+    # rows globally, which is wider than ``all_new_ids`` but cheap to
+    # repeat (idempotent) and ensures any previously-failed rows get a
+    # retry on every fresh import.
+    try:
+        await backfill_initiative_objects()
+    except Exception as e:
+        log.warning("bootstrap.initiatives.object_text.error", error=str(e))
+
+    # Second enrichment pass: classification + plain-language summary.
+    # We open fresh sessions so the failure of one enrichment doesn't
+    # roll back the upserts above.
     log.info("bootstrap.initiatives.enrich.starting", new_count=len(all_new_ids))
     classifier = build_classifier()
     enriched = 0
@@ -296,13 +315,14 @@ async def import_initiatives() -> dict[str, InitiativeImportStats]:
                 service = ClassificationService(enrich_session, classifier)
                 await service.classify_initiative(row.id)
                 enriched += 1
-                # Plain-language summaries (best-effort each lang)
-                ca = await generate_plain_summary(
-                    title=row.title_original, body=row.summary, lang="ca"
-                )
-                es = await generate_plain_summary(
-                    title=row.title_original, body=row.summary, lang="es"
-                )
+                # Plain-language summaries (best-effort each lang).
+                # Prefer the bill's own "Exposición de motivos" prose
+                # over the open-data feed's ``summary`` field (which is
+                # almost always NULL): it gives the LLM a much richer
+                # input to distil down to 2-3 plain-language sentences.
+                body = row.object_text or row.summary
+                ca = await generate_plain_summary(title=row.title_original, body=body, lang="ca")
+                es = await generate_plain_summary(title=row.title_original, body=body, lang="es")
                 row.plain_summary_ca = ca.text
                 row.plain_summary_es = es.text
                 row.plain_summary_provider = ca.provider
@@ -326,6 +346,29 @@ async def import_initiatives() -> dict[str, InitiativeImportStats]:
         summarised_es=summarised_es,
     )
     return stats_by_dataset
+
+
+async def import_initiative_objects(
+    *, only_first_n: int | None = None
+) -> InitiativeObjectsBackfillStats:
+    """Backfill ``Initiative.object_text`` from BOCG PDFs for every NULL row.
+
+    Idempotent: targets rows where ``object_text IS NULL`` and a
+    ``source_url`` is set. 0.5 s politeness delay between fetches; per-
+    row try/except so a malformed PDF never aborts the batch. See
+    :func:`app.ingest.congreso.initiative_objects.backfill_initiative_objects`
+    for the full contract.
+    """
+    return await backfill_initiative_objects(only_first_n=only_first_n)
+
+
+async def import_initiative_objects_smoke() -> InitiativeObjectsBackfillStats:
+    """Smoke-test variant: backfill object_text for the first 5 candidates.
+
+    Use this before triggering a full backfill to confirm the pipeline
+    works end-to-end against the live PDFs. Idempotent.
+    """
+    return await backfill_initiative_objects(only_first_n=5)
 
 
 async def _classify_all_initiatives_by_kind(kind: str) -> dict[str, int | str]:
@@ -679,8 +722,12 @@ async def generate_all_plain_summaries(lang: str = "ca") -> dict[str, int | str]
                     row = (
                         await inner.execute(_select(Initiative).where(Initiative.id == iid))
                     ).scalar_one()
+                    # Prefer the bill's own preamble prose over the
+                    # mostly-NULL ``summary`` field; see comment in
+                    # ``import_initiatives``.
+                    body = row.object_text or row.summary
                     result = await generate_plain_summary(
-                        title=row.title_original, body=row.summary, lang=lang
+                        title=row.title_original, body=body, lang=lang
                     )
                     setattr(row, target_col_name, result.text)
                     # We only update provider/generated_at when we got a
@@ -920,6 +967,8 @@ _STEPS = {
     "backfill_x": backfill_legislature_x,
     "photos": enrich_deputy_photos,
     "hemicycle_xv": import_hemicycle_xv,
+    "initiative_objects": import_initiative_objects,
+    "initiative_objects_smoke": import_initiative_objects_smoke,
     "classify": classify_all_initiatives,
     "classify_initiatives_by_sdg": classify_initiatives_by_sdg,
     "plain_summaries": generate_all_plain_summaries,

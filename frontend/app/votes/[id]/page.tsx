@@ -13,6 +13,7 @@ import {
   api,
   ApiError,
   type CohesionResult,
+  type Initiative,
   type Vote,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
@@ -88,6 +89,21 @@ export default async function VoteDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+
+  // When the vote links to an initiative (Proyectos/Proposiciones/etc.),
+  // pull its full preamble so we can render the bill author's own
+  // explanation alongside the LLM-generated plain summary. Best-effort:
+  // a missing initiative or a network error here must not break the
+  // page — the rest of the vote data is far more important.
+  let initiative: Initiative | null = null;
+  if (vote.initiative_id != null) {
+    try {
+      initiative = await api.initiatives.get(vote.initiative_id);
+    } catch {
+      initiative = null;
+    }
+  }
+  const objectText = initiative?.object_text ?? initiative?.summary ?? null;
 
   const subject = vote.description?.trim() || vote.title;
   const dateStr = new Date(vote.voted_at).toLocaleDateString(locale, {
@@ -229,9 +245,85 @@ export default async function VoteDetailPage({
             </>
           )}
 
+          {/* Bill author's own preamble ("Exposición de motivos"),
+              extracted from the BOCG PDF. Collapsed by default —
+              mobile-first — because it can run to several thousand
+              characters. Distinct from the LLM-generated `summary`
+              above: this is the official text, in the authors' own
+              words, not an AI condensation. */}
+          {objectText && (
+            <details
+              style={{
+                marginTop: summary ? 24 : 0,
+                border: '1px solid var(--rule)',
+                background: 'var(--paper-2)',
+              }}
+            >
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  padding: '14px 18px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--ink-2)',
+                  listStyle: 'none',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                <span>{t('object_text_title')}</span>
+                <span
+                  className="eyebrow"
+                  style={{ color: 'var(--ink-3)' }}
+                  aria-hidden
+                >
+                  {t('object_text_expand')}
+                </span>
+              </summary>
+              <div
+                className="serif"
+                style={{
+                  padding: '0 18px 16px 18px',
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: 'var(--ink)',
+                  whiteSpace: 'pre-line',
+                }}
+              >
+                {objectText}
+              </div>
+              <p
+                style={{
+                  padding: '0 18px 14px 18px',
+                  margin: 0,
+                  fontSize: 11,
+                  color: 'var(--ink-3)',
+                  fontStyle: 'italic',
+                }}
+              >
+                {t('object_text_source')}
+                {initiative?.source_url && (
+                  <>
+                    {' '}
+                    <a
+                      href={initiative.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: 'var(--ink-3)' }}
+                    >
+                      BOCG ↗
+                    </a>
+                  </>
+                )}
+              </p>
+            </details>
+          )}
+
           <div
             style={{
-              marginTop: summary ? 28 : 0,
+              marginTop: summary || objectText ? 28 : 0,
               padding: '18px 20px',
               border: '1px solid var(--rule)',
               background: 'var(--paper-2)',

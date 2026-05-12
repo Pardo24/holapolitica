@@ -18,6 +18,7 @@ from app.api import (
     dump,
     groups,
     health,
+    initiatives,
     legislatures,
     metrics,
     newsletter_preview,
@@ -122,6 +123,7 @@ app.include_router(chambers.router)
 app.include_router(legislatures.router)
 app.include_router(persons.router)
 app.include_router(topics.router)
+app.include_router(initiatives.router)
 app.include_router(votes.router)
 app.include_router(groups.router)
 app.include_router(metrics.router)
