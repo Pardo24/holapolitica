@@ -500,9 +500,11 @@ function TouchInfoPane({
     >
       <div
         ref={cardRef}
+        className="hemicycle-tap-card"
         style={{
-          border: '1px solid var(--ink)',
+          border: '1px solid var(--rule-strong)',
           background: 'var(--paper)',
+          borderRadius: 12,
           padding: 12,
           display: 'flex',
           gap: 12,
@@ -513,49 +515,25 @@ function TouchInfoPane({
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <SeatInfoBody seat={visibleSeat} />
-          <Link
-            href={`/persons/${visibleSeat.person_id}` as Route}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              marginTop: 10,
-              minHeight: 44,
-              minWidth: 44,
-              padding: '8px 14px',
-              border: '1px solid var(--ink)',
-              background: 'var(--paper-2)',
-              color: 'var(--ink)',
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            {t('view_profile')}
-            <ArrowUpRight size={14} aria-hidden="true" />
-          </Link>
+          <SeatInfoBody
+            seat={visibleSeat}
+            cta={
+              <Link
+                href={`/persons/${visibleSeat.person_id}` as Route}
+                className="hemicycle-tap-cta"
+                aria-label={t('view_profile')}
+              >
+                <span className="hemicycle-tap-cta-label">{t('view_profile')}</span>
+                <ArrowUpRight size={14} aria-hidden="true" />
+              </Link>
+            }
+          />
         </div>
         <button
           type="button"
           onClick={onDismiss}
           aria-label={t('dismiss')}
           className="hemicycle-tap-close"
-          style={{
-            width: 36,
-            height: 36,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'transparent',
-            border: 'none',
-            borderRadius: 8,
-            color: 'var(--ink-2)',
-            cursor: 'pointer',
-            flex: 'none',
-            padding: 0,
-            transition: 'background-color 120ms ease',
-          }}
         >
           <X size={18} aria-hidden="true" />
         </button>
@@ -569,17 +547,62 @@ function TouchInfoPane({
           from { opacity: 1; transform: translateY(0); }
           to   { opacity: 0; transform: translateY(8px); }
         }
+        .hemicycle-tap-close {
+          width: 32px;
+          height: 32px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: 0;
+          border-radius: 999px;
+          color: var(--ink-3);
+          cursor: pointer;
+          flex: none;
+          padding: 0;
+          transition: background-color 120ms ease, color 120ms ease;
+        }
         .hemicycle-tap-close:hover,
         .hemicycle-tap-close:focus-visible {
           background-color: var(--paper-3);
+          color: var(--ink);
           outline: none;
+        }
+        .hemicycle-tap-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 5px 10px;
+          border-radius: 999px;
+          background: var(--ink);
+          color: var(--paper);
+          font-size: 12px;
+          font-weight: 600;
+          text-decoration: none;
+          line-height: 1;
+          white-space: nowrap;
+          transition: background-color 120ms ease, transform 120ms ease;
+        }
+        .hemicycle-tap-cta:hover,
+        .hemicycle-tap-cta:focus-visible {
+          background: color-mix(in oklch, var(--ink) 88%, var(--accent));
+          outline: none;
+        }
+        .hemicycle-tap-cta:active {
+          transform: scale(0.97);
         }
       `}</style>
     </div>
   );
 }
 
-function SeatInfoBody({ seat }: { seat: PlacedSeat }) {
+function SeatInfoBody({
+  seat,
+  cta,
+}: {
+  seat: PlacedSeat;
+  cta?: React.ReactNode;
+}) {
   const initials = computeInitials(seat.full_name);
   const color = seat.group_color ?? DEFAULT_COLOR;
 
@@ -596,6 +619,7 @@ function SeatInfoBody({ seat }: { seat: PlacedSeat }) {
             width: 44,
             height: 56,
             objectFit: 'cover',
+            borderRadius: 8,
             border: '1px solid var(--rule)',
             background: 'var(--paper-3)',
             flex: 'none',
@@ -609,6 +633,7 @@ function SeatInfoBody({ seat }: { seat: PlacedSeat }) {
             height: 56,
             background: 'var(--paper-3)',
             border: '1px solid var(--rule)',
+            borderRadius: 8,
             color: 'var(--ink-2)',
             display: 'flex',
             alignItems: 'center',
@@ -621,16 +646,28 @@ function SeatInfoBody({ seat }: { seat: PlacedSeat }) {
           {initials || <User size={18} aria-hidden="true" />}
         </div>
       )}
-      <div style={{ minWidth: 0 }}>
+      <div style={{ minWidth: 0, flex: 1 }}>
         <div
           style={{
-            fontSize: 13,
-            fontWeight: 700,
-            lineHeight: 1.25,
-            color: 'var(--ink)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
           }}
         >
-          {seat.full_name}
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              lineHeight: 1.25,
+              color: 'var(--ink)',
+              minWidth: 0,
+              flex: '1 1 auto',
+            }}
+          >
+            {seat.full_name}
+          </div>
+          {cta}
         </div>
         {seat.group_short && (
           <div

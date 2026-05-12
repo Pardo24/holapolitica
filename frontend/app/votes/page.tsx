@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Route as RouteIcon, Search } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
@@ -40,6 +40,7 @@ export default async function VotesPage({
 }) {
   const t = await getTranslations('votes');
   const tNav = await getTranslations('nav');
+  const tLifecycle = await getTranslations('lifecycle');
   const params = await searchParams;
   // Default to the "Per tema" entry point — topics are the friendlier reading
   // path into parliamentary activity for non-experts. The flat votes list
@@ -53,26 +54,55 @@ export default async function VotesPage({
         style={{
           paddingTop: 28,
           paddingBottom: 14,
+          display: 'flex',
+          gap: 14,
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
         }}
       >
-        <h1 className="h-headline" style={{ margin: 0 }}>
-          {t('title')}
-        </h1>
-        {/* Descriptive subtitle sits BELOW the title — softer weight so
-            the title stays the page's anchor. Previously this was an
-            eyebrow above the H1; we keep the same copy but demote it
-            visually to match every other page header. */}
-        <p
+        <div style={{ minWidth: 0, flex: '1 1 480px' }}>
+          <h1 className="h-headline" style={{ margin: 0 }}>
+            {t('title')}
+          </h1>
+          {/* Descriptive subtitle sits BELOW the title — softer weight so
+              the title stays the page's anchor. Previously this was an
+              eyebrow above the H1; we keep the same copy but demote it
+              visually to match every other page header. */}
+          <p
+            style={{
+              margin: '6px 0 0',
+              fontSize: 13,
+              color: 'var(--ink-3)',
+              lineHeight: 1.4,
+              maxWidth: 760,
+            }}
+          >
+            {t('subtitle')}
+          </p>
+        </div>
+        <Link
+          href={'/recorregut' as Route}
+          aria-label={tLifecycle('cta_short')}
           style={{
-            margin: '6px 0 0',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 14px',
+            border: '1px solid var(--rule-strong)',
+            borderRadius: 999,
+            background: 'var(--paper-2)',
+            color: 'var(--ink)',
             fontSize: 13,
-            color: 'var(--ink-3)',
-            lineHeight: 1.4,
-            maxWidth: 760,
+            fontWeight: 600,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            flex: 'none',
           }}
         >
-          {t('subtitle')}
-        </p>
+          <RouteIcon size={14} aria-hidden="true" />
+          {tLifecycle('cta_short')}
+        </Link>
       </header>
 
       <HubTabs

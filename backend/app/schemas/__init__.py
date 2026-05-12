@@ -200,6 +200,51 @@ class InitiativeRead(BaseModel):
     plain_summary_generated_at: datetime | None = None
 
 
+class InitiativeVoteSummary(BaseModel):
+    """Compact vote row attached to the initiative detail response.
+
+    The dedicated /initiatives/{id} page needs to surface "the vote" without
+    forcing a second round-trip through the votes search endpoint, which
+    indexes title/description text rather than the foreign key.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    voted_at: datetime
+    result: VoteResult
+    ayes: int
+    noes: int
+    abstentions: int
+    absent: int
+
+
+class InitiativeTopicSlug(BaseModel):
+    """Minimal topic descriptor for the initiative detail page."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    slug: str
+    name_ca: str
+    name_es: str | None = None
+    name_en: str | None = None
+    color_hex: str | None = None
+    icon: str | None = None
+    kind: str = "theme"
+
+
+class InitiativeDetail(InitiativeRead):
+    """Extended initiative payload for the detail page.
+
+    Adds the related votes (so the page can show "the vote, if it happened"
+    inline) and topic classifications (used both as breadcrumbs and as the
+    seed for the "similar initiatives" section).
+    """
+
+    votes: list[InitiativeVoteSummary] = []
+    topics: list[InitiativeTopicSlug] = []
+
+
 # ---------------------------------------------------------------------------
 # Votes
 # ---------------------------------------------------------------------------

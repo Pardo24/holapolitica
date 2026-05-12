@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
-import { type Highlight, highlightHeadline } from '@/lib/highlights';
+import { type Highlight } from '@/lib/highlights';
 import { displayGroupShort } from '@/lib/groups';
 
 const ROTATE_MS = 6000;
@@ -115,6 +115,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
       >
         <HighlightCard
           h={current}
+          stanceLabel={t(`highlights_stance.${current.kind}`)}
           castCaption={t('highlights_cast_caption', { count: current.cast_total })}
           temporalityCaption={t('highlights_temporality')}
         />
@@ -243,10 +244,12 @@ const navBtnStyle: React.CSSProperties = {
 
 function HighlightCard({
   h,
+  stanceLabel,
   castCaption,
   temporalityCaption,
 }: {
   h: Highlight;
+  stanceLabel: string;
   castCaption: string;
   temporalityCaption: string;
 }) {
@@ -261,7 +264,7 @@ function HighlightCard({
     <Link
       href={href}
       className="highlights-card-link"
-      aria-label={`${displayGroupShort(h.group_name_short)} · ${highlightHeadline(h)} · ${h.topic_name_ca}`}
+      aria-label={`${displayGroupShort(h.group_name_short)} · ${pct}% ${stanceLabel} · ${h.topic_name_ca}`}
       style={{
         display: 'block',
         padding: '14px 22px 12px',
@@ -276,7 +279,7 @@ function HighlightCard({
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          marginBottom: 6,
+          marginBottom: 8,
           flexWrap: 'wrap',
         }}
       >
@@ -295,17 +298,6 @@ function HighlightCard({
         >
           {displayGroupShort(h.group_name_short)}
         </span>
-        <span
-          className="eyebrow"
-          style={{
-            fontSize: 9,
-            color: 'var(--ink-3)',
-            marginLeft: 'auto',
-            maxWidth: '100%',
-          }}
-        >
-          {highlightHeadline(h)}
-        </span>
       </div>
 
       <div
@@ -318,17 +310,38 @@ function HighlightCard({
         className="highlights-card-grid"
       >
         <div
-          className="tabular"
           style={{
-            fontSize: 56,
-            fontWeight: 600,
-            color,
-            letterSpacing: '-0.02em',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
             lineHeight: 1,
           }}
         >
-          {pct}
-          <span style={{ fontSize: 22, marginLeft: 2 }}>%</span>
+          <span
+            className="tabular"
+            style={{
+              fontSize: 56,
+              fontWeight: 600,
+              color,
+              letterSpacing: '-0.02em',
+              lineHeight: 1,
+            }}
+          >
+            {pct}
+            <span style={{ fontSize: 22, marginLeft: 2 }}>%</span>
+          </span>
+          <span
+            style={{
+              marginTop: 4,
+              fontSize: 13,
+              fontWeight: 600,
+              color,
+              textTransform: 'lowercase',
+              letterSpacing: '0.01em',
+            }}
+          >
+            {stanceLabel}
+          </span>
         </div>
         <div style={{ minWidth: 0 }}>
           <span

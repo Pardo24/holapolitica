@@ -17,6 +17,7 @@ import {
   type Vote,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { pickPlainSummary } from '@/lib/glossary';
 
 interface Params {
   id: string;
@@ -112,7 +113,7 @@ export default async function VoteDetailPage({
   const totalCast = vote.ayes + vote.noes + vote.abstentions;
   const needed = Math.floor(totalCast / 2) + 1;
   const margin = vote.ayes - vote.noes;
-  const summary = plainSummary(vote, locale);
+  const summary = pickPlainSummary(vote, locale);
 
   return (
     <article>
@@ -452,8 +453,3 @@ export default async function VoteDetailPage({
   );
 }
 
-function plainSummary(vote: Vote, locale: string): string | null {
-  if (locale === 'es') return vote.plain_summary_es ?? vote.plain_summary_ca ?? null;
-  if (locale === 'en') return vote.plain_summary_es ?? vote.plain_summary_ca ?? null;
-  return vote.plain_summary_ca ?? vote.plain_summary_es ?? null;
-}

@@ -414,6 +414,26 @@ export interface CrossTopicGroup {
   joint_initiatives_total: number;
 }
 
+export interface InitiativeVoteSummary {
+  id: number;
+  voted_at: string;
+  result: VoteResult;
+  ayes: number;
+  noes: number;
+  abstentions: number;
+  absent: number;
+}
+
+export interface InitiativeTopicSlug {
+  slug: string;
+  name_ca: string;
+  name_es: string | null;
+  name_en: string | null;
+  color_hex: string | null;
+  icon: string | null;
+  kind: string;
+}
+
 export interface Initiative {
   id: number;
   chamber_id: number;
@@ -441,6 +461,13 @@ export interface Initiative {
   plain_summary_es: string | null;
   plain_summary_provider: string | null;
   plain_summary_generated_at: string | null;
+  /**
+   * Populated by the dedicated `/initiatives/{id}` detail endpoint;
+   * legacy callers that hit the same endpoint may receive empty arrays
+   * if the backend has not been upgraded yet.
+   */
+  votes?: InitiativeVoteSummary[];
+  topics?: InitiativeTopicSlug[];
 }
 
 export type ScheduledSessionStatus =
@@ -539,6 +566,8 @@ export const api = {
   },
   initiatives: {
     get: (id: number) => request<Initiative>(`/initiatives/${id}`),
+    related: (id: number, limit = 6) =>
+      request<Initiative[]>(`/initiatives/${id}/related?limit=${limit}`),
   },
   topics: {
     list: (params: { kind?: TopicKind } = {}) => {

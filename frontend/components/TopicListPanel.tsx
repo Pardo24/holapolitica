@@ -8,6 +8,7 @@ import {
   type TopicGlobalStat,
   type TopicKind,
 } from '@/lib/api';
+import { topicIcon } from '@/lib/topic_icons';
 
 /**
  * Renders the topic taxonomy directory: a tab switcher between the editorial
@@ -113,6 +114,7 @@ export async function TopicListPanel({
       )}
 
       <ul
+        className="topic-grid"
         style={{
           listStyle: 'none',
           margin: 0,
@@ -130,6 +132,35 @@ export async function TopicListPanel({
           />
         ))}
       </ul>
+
+      {/* Mobile: switch to a 2-column grid of compact "chips" so a phone
+          fits 8-10 topics in a screen instead of the 1-2 desktop cards.
+          Keep the desktop layout untouched. */}
+      <style>{`
+        @media (max-width: 640px) {
+          .topic-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+            padding-top: 18px !important;
+          }
+          .topic-grid .topic-card {
+            min-height: 110px !important;
+            padding: 12px 12px 10px !important;
+            gap: 6px !important;
+          }
+          .topic-grid .topic-card .topic-card-title {
+            font-size: 15px !important;
+            line-height: 1.2 !important;
+          }
+          .topic-grid .topic-card .topic-card-icon-wrap {
+            width: 32px !important;
+            height: 32px !important;
+          }
+          .topic-grid .topic-card .topic-card-eyebrow {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -179,10 +210,12 @@ function TopicCard({ topic, count }: { topic: Topic; count: number }) {
   // SDG slugs are ``sdg-01-poverty``…``sdg-17-partnerships``; pull the
   // numeric prefix for the eyebrow so the UN's numbering is visible.
   const sdgNumber = isSdg ? topic.slug.match(/^sdg-(\d{2})/)?.[1] : null;
+  const Icon = topicIcon(topic.icon);
   return (
     <li>
       <Link
         href={`/topics/${topic.slug}`}
+        className="topic-card"
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -209,23 +242,33 @@ function TopicCard({ topic, count }: { topic: Topic; count: number }) {
             background: color,
           }}
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span
+            className="topic-card-icon-wrap"
             aria-hidden="true"
             style={{
-              width: 10,
-              height: 10,
-              background: color,
-              borderRadius: 2,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: `color-mix(in oklch, ${color} 22%, var(--paper))`,
+              color,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               flex: 'none',
             }}
-          />
-          <span className="eyebrow" style={{ fontSize: 10, color }}>
+          >
+            <Icon size={18} strokeWidth={2.1} aria-hidden="true" />
+          </span>
+          <span
+            className="eyebrow topic-card-eyebrow"
+            style={{ fontSize: 10, color }}
+          >
             {isSdg ? (sdgNumber ? `ODS ${sdgNumber}` : 'ODS') : 'Tema'}
           </span>
         </div>
         <h2
-          className="serif"
+          className="serif topic-card-title"
           style={{
             margin: 0,
             fontSize: 22,

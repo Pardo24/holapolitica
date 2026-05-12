@@ -75,11 +75,12 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
 
   if (!subscribed) {
     return (
-      <section style={{ marginTop: 20 }}>
+      <section className="newsletter-pref-signup" style={{ marginTop: 20 }}>
         <div className="eyebrow" style={{ marginBottom: 4 }}>
           {t('newsletter_eyebrow')}
         </div>
         <p
+          className="newsletter-pref-signup__intro"
           style={{
             fontSize: 13,
             color: 'var(--ink-3)',
@@ -90,6 +91,47 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
           {t('newsletter_signup_intro')}
         </p>
         <NewsletterSignup variant="bare" />
+        <style>{`
+          @media (max-width: 640px) {
+            .newsletter-pref-signup { margin-top: 14px !important; }
+            .newsletter-pref-signup__intro {
+              font-size: 12px !important;
+              margin-bottom: 10px !important;
+              line-height: 1.4 !important;
+            }
+            /* The bare NewsletterSignup nested below already shrinks its
+               input via its own @media query; we ALSO collapse the intro
+               copy inside that card so the whole block fits the upper
+               third of a phone screen. */
+            .newsletter-pref-signup .newsletter-signup {
+              margin-top: 0 !important;
+            }
+            .newsletter-pref-signup .newsletter-signup > .eyebrow {
+              display: none;
+            }
+            .newsletter-pref-signup .newsletter-signup p {
+              font-size: 12px !important;
+              line-height: 1.4 !important;
+              margin-bottom: 10px !important;
+            }
+            .newsletter-pref-signup .newsletter-signup-form {
+              flex-direction: row !important;
+              gap: 6px !important;
+            }
+            .newsletter-pref-signup .newsletter-signup-form > input {
+              flex: 1 1 auto !important;
+              width: auto !important;
+              min-height: 38px !important;
+            }
+            .newsletter-pref-signup .newsletter-signup-form > button {
+              flex: 0 0 auto !important;
+              width: auto !important;
+              min-height: 38px !important;
+              padding-left: 12px !important;
+              padding-right: 12px !important;
+            }
+          }
+        `}</style>
       </section>
     );
   }

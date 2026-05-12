@@ -657,14 +657,11 @@ function InitiativeRow({
   const statusKey = STATUS_KEY[initiative.status];
   const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
-  const linkHref = initiative.source_url ?? '#';
-  const isExternal = !!initiative.source_url;
+  const linkHref = `/initiatives/${initiative.id}`;
   return (
     <li>
       <a
         href={linkHref}
-        target={isExternal ? '_blank' : undefined}
-        rel={isExternal ? 'noopener noreferrer' : undefined}
         className="initiative-row"
         style={{
           textDecoration: 'none',

@@ -5,7 +5,6 @@ import {
   BarChart3,
   Layers,
   Mail,
-  Search,
   Users,
   Vote as VoteIcon,
 } from 'lucide-react';
@@ -118,8 +117,6 @@ export default async function HomePage() {
             votes: (summary?.votes_total ?? 0).toLocaleString(locale),
             deputies: 350,
           }),
-          searchPlaceholder: t('mobile_search_placeholder'),
-          searchAria: t('mobile_search_aria'),
           tileVotes: t('mobile_tile_votes'),
           tilePersons: t('mobile_tile_persons'),
           tileTopics: t('mobile_tile_topics'),
@@ -173,7 +170,7 @@ export default async function HomePage() {
               {t('cta_explore')}
             </Link>
             <Link
-              href="/about"
+              href={'/recorregut' as never}
               style={{
                 fontSize: 13,
                 color: 'var(--ink-2)',
@@ -182,7 +179,7 @@ export default async function HomePage() {
                 textUnderlineOffset: 4,
               }}
             >
-              {t('why_link')}
+              {t('lifecycle_link')}
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 24, marginTop: 32, fontSize: 12, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
@@ -292,10 +289,7 @@ export default async function HomePage() {
               lineHeight: 1.5,
             }}
           >
-            <span className="hidden sm:inline">{t('week_caveat')} </span>
-            <Link href="/about" style={{ color: 'var(--ink-2)' }}>
-              {t('week_methodology_link')}
-            </Link>
+            <span className="hidden sm:inline">{t('week_caveat')}</span>
           </div>
         </aside>
         </div>
@@ -364,41 +358,41 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter signup row — signup card on the LEFT, decorative mail
-          iconography on the RIGHT for visual balance. The icon block is
-          purely visual (no copy, no CTA — symmetry of weight, not of
-          information). On narrow viewports the iconography is hidden and
-          the signup expands to full width (see media query below). */}
+      {/* Newsletter signup — single card with a decorative Mail icon on the
+          LEFT and the form body on the right, kept within the same
+          bordered surface. On narrow viewports the icon column is hidden
+          and the form expands to full width (see media query below). */}
       <section
         className="home-newsletter-row"
+        aria-label={t('newsletter_section_aria') /* falls back to default text if missing */}
         style={{
           display: 'flex',
-          gap: 24,
           alignItems: 'stretch',
           marginTop: 28,
+          border: '1px solid var(--rule-strong)',
+          borderRadius: 12,
+          background: 'var(--paper-2)',
+          overflow: 'hidden',
         }}
       >
-        <div className="home-newsletter-row__signup" style={{ flex: '1 1 0', minWidth: 0 }}>
-          <NewsletterSignup />
-        </div>
         <div
           className="home-newsletter-row__icon"
           aria-hidden="true"
           style={{
-            flex: '1 1 0',
-            minWidth: 0,
+            flex: '0 0 220px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: '1px solid var(--rule)',
-            borderRadius: 12,
-            background: 'var(--paper-2)',
+            background: 'var(--paper)',
             color: 'var(--accent)',
+            borderRight: '1px solid var(--rule)',
             padding: 24,
-            minHeight: 200,
           }}
         >
-          <Mail size={140} strokeWidth={1.25} aria-hidden="true" />
+          <Mail size={96} strokeWidth={1.25} aria-hidden="true" />
+        </div>
+        <div className="home-newsletter-row__signup" style={{ flex: '1 1 0', minWidth: 0, padding: '8px 4px' }}>
+          <NewsletterSignup variant="bare" />
         </div>
       </section>
 
@@ -681,8 +675,6 @@ interface MobileDashboardLabels {
   brand: string;
   legislature: string;
   stats: string;
-  searchPlaceholder: string;
-  searchAria: string;
   tileVotes: string;
   tilePersons: string;
   tileTopics: string;
@@ -752,42 +744,10 @@ function MobileDashboard({
         </div>
       </header>
 
-      {/* Search — submits as GET to /votes?q=…, which the votes page
-          already accepts. Native form, no JS required. */}
-      <form
-        action="/votes"
-        method="get"
-        role="search"
-        style={{ position: 'relative', margin: '14px 0' }}
-      >
-        <Search
-          size={16}
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'var(--ink-3)',
-            pointerEvents: 'none',
-          }}
-        />
-        <input
-          type="search"
-          name="q"
-          className="input-modern"
-          aria-label={labels.searchAria}
-          placeholder={labels.searchPlaceholder}
-          style={{
-            paddingLeft: 38,
-            minHeight: 44,
-            // Defensive: stop iOS Safari from zooming on focus when font
-            // sizes <16px. The .input-modern base already sets 14px but
-            // we override here to keep the mobile search safe.
-            fontSize: 16,
-          }}
-        />
-      </form>
+      {/* Search bar was removed from the mobile home in 2026-05-12 — it
+          competed with the 2×2 tile grid for the same screen space and
+          users reach the votes index via the "Votacions" tile anyway. The
+          desktop home still surfaces a search via the topnav. */}
 
       {/* 2×2 tile grid. Uses minmax(0, 1fr) so long labels can't push the
           row beyond the viewport. Each tile is a ~120px-tall touch target

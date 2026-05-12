@@ -1069,7 +1069,7 @@ function InitiativeRow({ ini, locale }: { ini: InitiativeMini; locale: string })
           visibleText={ini.title_ca ?? ini.title_original}
         >
           <Link
-            href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
+            href={`/initiatives/${ini.id}` as Route}
             style={{ color: 'var(--ink)', textDecoration: 'none', lineHeight: 1.3 }}
           >
             <AnnotatedText text={ini.title_ca ?? ini.title_original} />

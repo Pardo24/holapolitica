@@ -103,14 +103,14 @@ function GroupSummaryCard({
   const attendancePct =
     row.avg_attendance == null ? null : Math.round(row.avg_attendance * 100);
   return (
-    <li style={{ flex: '0 0 240px', width: 240, scrollSnapAlign: 'start' }}>
+    <li style={{ flex: '0 0 230px', width: 230, scrollSnapAlign: 'start' }}>
       <Link
         href={`/groups/${row.group_slug}`}
         style={{
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          padding: 16,
+          padding: '12px 14px 14px',
           background: highlighted ? 'var(--paper)' : 'var(--paper-2)',
           border: highlighted ? '2px solid var(--ink)' : '1px solid var(--rule)',
           borderRadius: 12,
@@ -118,7 +118,7 @@ function GroupSummaryCard({
           color: 'inherit',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, minWidth: 0 }}>
           <GroupBadge slug={row.group_slug} color={row.group_color_hex} size="sm" link={false} />
           <span
             style={{
@@ -134,9 +134,28 @@ function GroupSummaryCard({
           >
             {displayGroupShort(row.group_name_short)}
           </span>
+          <span
+            className="tabular"
+            aria-label={`${row.members_active} ${labels.deputies}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 3,
+              padding: '2px 7px',
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--ink-2)',
+              background: 'var(--paper-3)',
+              borderRadius: 999,
+              flex: 'none',
+            }}
+          >
+            <span>{row.members_active}</span>
+            <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>{labels.deputies}</span>
+          </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 'auto' }}>
           <DonutPct
             value={cohesionPct}
             label={<Tooltip term={labels.cohesion} explanation={glossaryShort('cohesion')} />}
@@ -148,26 +167,6 @@ function GroupSummaryCard({
             color="var(--accent)"
           />
         </div>
-
-        <span
-          className="tabular"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            alignSelf: 'flex-start',
-            marginTop: 'auto',
-            padding: '3px 8px',
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            background: 'var(--paper-3)',
-            borderRadius: 999,
-          }}
-        >
-          <span>{row.members_active}</span>
-          <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>{labels.deputies}</span>
-        </span>
       </Link>
     </li>
   );
@@ -182,9 +181,9 @@ function DonutPct({
   label: React.ReactNode;
   color: string;
 }) {
-  const r = 24;
-  const c = 30;
-  const sw = 6;
+  const r = 20;
+  const c = 25;
+  const sw = 5;
   const C = 2 * Math.PI * r;
   const dash = value == null ? 0 : (value / 100) * C;
   return (
@@ -208,7 +207,7 @@ function DonutPct({
           x={c}
           y={c + 4}
           textAnchor="middle"
-          fontSize="14"
+          fontSize="13"
           fontWeight="600"
           fill="var(--ink)"
           style={{ fontVariantNumeric: 'tabular-nums' }}

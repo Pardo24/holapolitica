@@ -2405,7 +2405,7 @@ function InitiativeList({
                 visibleText={ini.title_ca ?? ini.title_original}
               >
                 <Link
-                  href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
+                  href={`/initiatives/${ini.id}` as Route}
                   style={{ color: 'var(--ink)', textDecoration: 'none' }}
                 >
                   {/* Inline-annotate Senate / lectura única / convalidación
@@ -2496,7 +2496,7 @@ function JointInitiativeList({
                 visibleText={ini.title_ca ?? ini.title_original}
               >
                 <Link
-                  href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
+                  href={`/initiatives/${ini.id}` as Route}
                   style={{ color: 'var(--ink)', textDecoration: 'none' }}
                 >
                   <AnnotatedText text={ini.title_ca ?? ini.title_original} />
