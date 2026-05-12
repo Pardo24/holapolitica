@@ -39,6 +39,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowUpRight, User, X } from 'lucide-react';
 
 import type { HemicycleSeat, HemicycleLayout } from '@/lib/api';
+import { groupAbbreviation, readableTextOn } from '@/lib/groups';
 
 // SVG viewBox we render into. We pick a 2.2:1 ratio that matches the
 // real chamber's aspect and gives a comfortable reading area for the
@@ -58,6 +59,21 @@ const VIEW_H = 393;
 // raw ~2.5px ingest radius so they read as distinct dots and provide
 // a comfortable hover/tap target without smothering the architecture.
 const SEAT_R = 5;
+
+// Photo-mode square sizing. We compute the maximum non-overlapping
+// side per layout (see ``computeSquareSide``); these bounds keep the
+// result sane if the layout is unusually sparse (huge squares smother
+// the backdrop) or unusually tight (sub-pixel squares are unreadable).
+const PHOTO_SQUARE_MIN = 8;
+const PHOTO_SQUARE_MAX = 22;
+// Gutter (in viewBox pixels) subtracted from the nearest-neighbour
+// distance so squares never visually touch. 1px reads as a clear hair
+// gap at typical render sizes.
+const PHOTO_SQUARE_GUTTER = 1;
+// Card-like corner radius for the photo squares.
+const PHOTO_SQUARE_RADIUS = 2;
+// Stroke width of the partisan-colour border around each square.
+const PHOTO_SQUARE_STROKE = 1.5;
 
 // Stroke around each seat — "subtle stroke (var(--ink) at 15%
 // alpha)" per the brief. Drawn with rgba directly so it doesn't
@@ -142,6 +158,46 @@ interface PlacedSeat extends HemicycleSeat {
   cy: number;
 }
 
+/**
+ * Compute the largest square side (in viewBox pixels) that can be
+ * centred on every seat without two squares overlapping.
+ *
+ * Strategy: for each seat find its nearest-neighbour Euclidean
+ * distance; the global minimum of those distances is the tightest
+ * pairing in the chamber. Two centred squares of side ``s`` placed
+ * ``d`` apart are guaranteed not to overlap when ``s <= d`` (worst
+ * case is two seats on the same axis; off-axis pairs allow larger
+ * squares but we use the conservative bound so the whole field stays
+ * uniform). We then subtract a 1px gutter so squares don't kiss, and
+ * clamp into a sensible visual range.
+ *
+ * Complexity O(N²) — fine for N≈350 and only runs when the layout
+ * changes. Memoised by the caller.
+ */
+function computeSquareSide(placed: PlacedSeat[]): number {
+  if (placed.length < 2) return PHOTO_SQUARE_MAX;
+  let minDist = Infinity;
+  for (let i = 0; i < placed.length; i++) {
+    const a = placed[i];
+    if (!a) continue;
+    let nearest = Infinity;
+    for (let j = 0; j < placed.length; j++) {
+      if (i === j) continue;
+      const b = placed[j];
+      if (!b) continue;
+      const dx = a.cx - b.cx;
+      const dy = a.cy - b.cy;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < nearest) nearest = d2;
+    }
+    const d = Math.sqrt(nearest);
+    if (d < minDist) minDist = d;
+  }
+  if (!isFinite(minDist)) return PHOTO_SQUARE_MAX;
+  const raw = minDist - PHOTO_SQUARE_GUTTER;
+  return Math.max(PHOTO_SQUARE_MIN, Math.min(PHOTO_SQUARE_MAX, raw));
+}
+
 function placeSeats(layout: HemicycleLayout): {
   placed: PlacedSeat[];
   usingFallback: boolean;
@@ -223,6 +279,10 @@ export function Hemicycle({
 
   const { placed, usingFallback } = useMemo(() => placeSeats(layout), [layout]);
 
+  // Photo-mode square size: computed once per layout. The layout is
+  // static for a given fetch, so we never recompute on hover/tap.
+  const squareSide = useMemo(() => computeSquareSide(placed), [placed]);
+
   const handleSeatHover = useCallback(
     (seat: PlacedSeat) => {
       if (isTouch) return;
@@ -288,22 +348,34 @@ export function Hemicycle({
             aria-hidden
           />
           {/* When photo mode is on we render each portrait inside a
-              <clipPath> circle. The clip path id is derived from the
-              person_id so it stays stable across re-renders. We define
-              all clip paths in a single <defs> block at the top to keep
-              the DOM compact and let the browser hoist the geometry. */}
+              rounded-rect <clipPath>. Squares are sized to the maximum
+              non-overlapping side computed from nearest-neighbour
+              distances (see ``computeSquareSide``). The clip path id
+              is derived from the person_id so it stays stable across
+              re-renders. We define all clip paths in a single <defs>
+              block at the top to keep the DOM compact and let the
+              browser hoist the geometry. */}
           {showPhotos && (
             <defs>
-              {placed.map((seat) =>
-                seat.photo_url ? (
+              {placed.map((seat) => {
+                if (!seat.photo_url) return null;
+                const half = squareSide / 2;
+                return (
                   <clipPath
                     key={`clip-${seat.person_id}`}
                     id={`seat-clip-${seat.person_id}`}
                   >
-                    <circle cx={seat.cx} cy={seat.cy} r={SEAT_R} />
+                    <rect
+                      x={seat.cx - half}
+                      y={seat.cy - half}
+                      width={squareSide}
+                      height={squareSide}
+                      rx={PHOTO_SQUARE_RADIUS}
+                      ry={PHOTO_SQUARE_RADIUS}
+                    />
                   </clipPath>
-                ) : null,
-              )}
+                );
+              })}
             </defs>
           )}
           {placed.map((seat) => (
@@ -314,6 +386,7 @@ export function Hemicycle({
               onTap={handleSeatTap}
               isTouch={isTouch}
               showPhotos={showPhotos}
+              squareSide={squareSide}
             />
           ))}
         </svg>
@@ -359,9 +432,18 @@ interface SeatDotProps {
   onTap: (seat: PlacedSeat) => void;
   isTouch: boolean;
   showPhotos: boolean;
+  /** Side length (in viewBox pixels) for photo-mode squares. */
+  squareSide: number;
 }
 
-function SeatDot({ seat, onHover, onTap, isTouch, showPhotos }: SeatDotProps) {
+function SeatDot({
+  seat,
+  onHover,
+  onTap,
+  isTouch,
+  showPhotos,
+  squareSide,
+}: SeatDotProps) {
   const color = seat.group_color ?? DEFAULT_COLOR;
   const href = `/persons/${seat.person_id}` as Route;
 
@@ -379,11 +461,7 @@ function SeatDot({ seat, onHover, onTap, isTouch, showPhotos }: SeatDotProps) {
     }
   };
 
-  // Photo mode: render the deputy's portrait clipped to the seat
-  // circle, with a thin colored ring (the group color) drawn on top
-  // so the partisan colour still reads at a glance and seats with no
-  // photo fall back to the original solid-color disc.
-  const renderPhotoMode = showPhotos && seat.photo_url;
+  const title = `${seat.full_name}${seat.group_short ? ` · ${seat.group_short}` : ''}`;
 
   return (
     <a
@@ -396,42 +474,8 @@ function SeatDot({ seat, onHover, onTap, isTouch, showPhotos }: SeatDotProps) {
       onFocus={() => onHover(seat)}
       style={{ cursor: 'pointer' }}
     >
-      {renderPhotoMode && seat.photo_url ? (
-        <>
-          {/* Background disc — colored ring is visible only where
-              the portrait is transparent (rare) and as the 1px halo
-              around the clipped image. */}
-          <circle
-            cx={seat.cx}
-            cy={seat.cy}
-            r={SEAT_R}
-            fill={color}
-          />
-          <image
-            href={seat.photo_url}
-            x={seat.cx - SEAT_R}
-            y={seat.cy - SEAT_R}
-            width={SEAT_R * 2}
-            height={SEAT_R * 2}
-            preserveAspectRatio="xMidYMid slice"
-            clipPath={`url(#seat-clip-${seat.person_id})`}
-          />
-          {/* Outer ring: a stroked circle on top of the clipped image
-              so the partisan colour reads as a thin halo. */}
-          <circle
-            cx={seat.cx}
-            cy={seat.cy}
-            r={SEAT_R}
-            fill="none"
-            stroke={color}
-            strokeWidth={2}
-          >
-            <title>
-              {seat.full_name}
-              {seat.group_short ? ` · ${seat.group_short}` : ''}
-            </title>
-          </circle>
-        </>
+      {showPhotos ? (
+        <SeatSquare seat={seat} side={squareSide} color={color} title={title} />
       ) : (
         <circle
           cx={seat.cx}
@@ -445,13 +489,127 @@ function SeatDot({ seat, onHover, onTap, isTouch, showPhotos }: SeatDotProps) {
           // suppressed (e.g. in a forced-colors / prefers-reduced-motion
           // environment).
         >
-          <title>
-            {seat.full_name}
-            {seat.group_short ? ` · ${seat.group_short}` : ''}
-          </title>
+          <title>{title}</title>
         </circle>
       )}
     </a>
+  );
+}
+
+interface SeatSquareProps {
+  seat: PlacedSeat;
+  /** Square side length in viewBox pixels (uniform across the chart). */
+  side: number;
+  /** Group colour for the border (and fallback fill). */
+  color: string;
+  /** Native ``<title>`` text for tooltip / screen-reader fallback. */
+  title: string;
+}
+
+/**
+ * Photo-mode seat: a rounded square that either renders the deputy's
+ * portrait (clipped + center-cropped) or a coloured tile with the
+ * group abbreviation, matching the visual language of ``GroupBadge``.
+ *
+ * In both cases a 1.5px group-coloured border preserves the partisan
+ * signal that the flat circles carried in the default mode.
+ */
+function SeatSquare({ seat, side, color, title }: SeatSquareProps) {
+  const half = side / 2;
+  const x = seat.cx - half;
+  const y = seat.cy - half;
+
+  // Group-abbreviation font sizing mirrors ``GroupBadge``'s curve so
+  // 2-3 letter labels feel readable at the chosen square size.
+  const abbrev = seat.group_slug ? groupAbbreviation(seat.group_slug) : '';
+  const lengthFactor =
+    abbrev.length <= 2 ? 0.46
+    : abbrev.length === 3 ? 0.4
+    : abbrev.length === 4 ? 0.3
+    : 0.24;
+  const labelFontPx = Math.max(5, side * lengthFactor);
+
+  if (seat.photo_url) {
+    return (
+      <g>
+        {/* Backing fill in the group colour. It shows around the
+            edges of portraits whose own background is transparent
+            and fills the square instantly while the <image> loads. */}
+        <rect
+          x={x}
+          y={y}
+          width={side}
+          height={side}
+          rx={PHOTO_SQUARE_RADIUS}
+          ry={PHOTO_SQUARE_RADIUS}
+          fill={color}
+        />
+        {/* Portrait, center-cropped via xMidYMid slice. The source
+            images are ~3:4 portraits; slicing keeps the face centred
+            and discards top/bottom margin so the square fills cleanly. */}
+        <image
+          href={seat.photo_url}
+          x={x}
+          y={y}
+          width={side}
+          height={side}
+          preserveAspectRatio="xMidYMid slice"
+          clipPath={`url(#seat-clip-${seat.person_id})`}
+        />
+        {/* Group-colour border drawn on top so it survives even when
+            the portrait paints right up to the edges. Inset by half
+            the stroke so it stays inside the clip rect. */}
+        <rect
+          x={x}
+          y={y}
+          width={side}
+          height={side}
+          rx={PHOTO_SQUARE_RADIUS}
+          ry={PHOTO_SQUARE_RADIUS}
+          fill="none"
+          stroke={color}
+          strokeWidth={PHOTO_SQUARE_STROKE}
+        >
+          <title>{title}</title>
+        </rect>
+      </g>
+    );
+  }
+
+  // No photo on file: fallback tile with the group abbreviation,
+  // styled to echo GroupBadge so the chamber still reads as a uniform
+  // grid of tiles in photos mode.
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={side}
+        height={side}
+        rx={PHOTO_SQUARE_RADIUS}
+        ry={PHOTO_SQUARE_RADIUS}
+        fill={color}
+        stroke={color}
+        strokeWidth={PHOTO_SQUARE_STROKE}
+      />
+      {abbrev && (
+        <text
+          x={seat.cx}
+          y={seat.cy}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={labelFontPx}
+          fontWeight={700}
+          fill={readableTextOn(seat.group_color)}
+          // Avoid text being treated as a click target separate from
+          // the wrapping <a>.
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          {abbrev}
+        </text>
+      )}
+      <title>{title}</title>
+    </g>
   );
 }
 

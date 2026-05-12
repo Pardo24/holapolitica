@@ -243,7 +243,6 @@ export default async function StatsPage({
           key signal visible without scrolling through paragraphs. Hidden on
           ≥sm so the existing tabbed layout below survives unchanged. */}
       <MobileStatsDashboard
-        highlights={allHighlights}
         allTopics={allTopics}
         allGroups={allGroups}
         topics={topics}
@@ -254,6 +253,7 @@ export default async function StatsPage({
         cross={cross}
         coincidence={coincidence}
         topicStatsByGroup={topicStatsByGroup}
+        groupSummary={groupSummary}
         summary={summary}
         selectedTopic={selectedTopic}
         selectedGroup={selectedGroup}

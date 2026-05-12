@@ -299,9 +299,27 @@ a { color: inherit; }
 .topnav .lang {
   font-size: 12px; color: var(--ink-3);
   display: flex; gap: 6px;
+  align-items: center;
 }
 .topnav .lang a { text-decoration: none; }
 .topnav .lang b, .topnav .lang .active { color: var(--ink); font-weight: 700; }
+/* Locale switcher buttons. Each option is a real <button> inside a
+   form posting to /api/locale, so we style it like a discreet text
+   link: bare by default, a faint pill tint on hover so users see it
+   responds to interaction. The ``.active`` modifier inherits its
+   ink+bold styling from the rule above. */
+.topnav .lang-btn {
+  appearance: none;
+  -webkit-appearance: none;
+}
+.topnav .lang-btn:hover {
+  background: color-mix(in oklch, var(--accent) 10%, transparent) !important;
+  color: var(--ink) !important;
+}
+.topnav .lang-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 /* KPI cell */
 .kpi {
@@ -365,6 +383,119 @@ a { color: inherit; }
 .bar.tall { height: 14px; }
 .bar.thin { height: 6px; }
 
+/* ─── Modern form controls ───────────────────────────────────────────────
+   Site-wide rounded look for native form controls. Applied via the
+   ``.input-modern`` utility (and to bare <select>/<textarea> by default,
+   because there's no historical custom-styled <select> anywhere in the
+   product that would regress).
+
+   Bare <input> is NOT styled globally: many inputs are intentionally
+   stripped (sit inside a chip-style wrapper, search-icon row, etc.). We
+   opt them in by adding ``.input-modern`` where wanted instead. The
+   ``.input-bare`` escape hatch removes the modern look on a per-element
+   basis if a future select/textarea needs to drop into a chip wrapper. */
+.input-modern,
+select:not(.input-bare):not([class*="filter-advanced-select"]),
+textarea:not(.input-bare) {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  /* Subtle inset shadow on light mode keeps controls anchored to the
+     paper background without the heavier 3-D look of native widgets. */
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.02);
+}
+.input-modern:hover,
+select:not(.input-bare):not([class*="filter-advanced-select"]):hover,
+textarea:not(.input-bare):hover {
+  border-color: var(--ink-2);
+}
+.input-modern:focus,
+.input-modern:focus-visible,
+select:not(.input-bare):not([class*="filter-advanced-select"]):focus,
+select:not(.input-bare):not([class*="filter-advanced-select"]):focus-visible,
+textarea:not(.input-bare):focus,
+textarea:not(.input-bare):focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent);
+}
+.input-modern::placeholder,
+textarea:not(.input-bare)::placeholder {
+  color: var(--ink-3);
+}
+.input-modern:disabled,
+select:not(.input-bare):not([class*="filter-advanced-select"]):disabled,
+textarea:not(.input-bare):disabled {
+  background: var(--paper-2);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+/* Native <select> gets a custom dropdown arrow drawn into the padding so
+   we can drop ``appearance: none`` without losing the affordance. The arrow
+   is the same chevron used by the comboboxes (ink-3, 14px). */
+select:not(.input-bare):not([class*="filter-advanced-select"]) {
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b8e95' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+}
+
+/* Modern button — neutral secondary, paired with .btn-ink for primaries.
+   Same rounded geometry as the inputs so the controls visually agree
+   when they sit on the same row (e.g. an Apply button next to a select). */
+.btn-modern {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-modern:hover {
+  border-color: var(--ink-2);
+  background: var(--paper-2);
+}
+.btn-modern:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent);
+  outline: none;
+}
+.btn-modern:disabled {
+  background: var(--paper-2);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+
+/* Mobile: keep generous padding so tap targets feel right. The 16px
+   font-size rule for inputs is set earlier in this file (iOS zoom fix). */
+@media (max-width: 640px) {
+  .input-modern,
+  select:not(.input-bare):not([class*="filter-advanced-select"]),
+  textarea:not(.input-bare) {
+    padding: 12px 14px;
+  }
+}
+
 /* Civic button */
 .btn-ink {
   background: var(--ink); color: var(--paper);
@@ -390,6 +521,38 @@ a { color: inherit; }
 }
 .btn-outline:hover { background: var(--paper-2); }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* Group chip link — subtle hover treatment so users see the chip is
+   clickable (it routes to /groups/<slug>). We tint the surrounding pill
+   and underline the short name; the colored disc is intentionally
+   untouched so the visual identity of the group stays stable. */
+.group-chip-link {
+  display: inline-flex;
+  border-radius: 999px;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.group-chip-link:hover {
+  background: color-mix(in oklch, var(--accent) 8%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 20%, transparent);
+}
+.group-chip-link:hover span span:last-child {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.group-chip-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Search-chip wrapper — used on /votes and /persons to bundle a magnifier
+   icon with an ``input[type=search]``. Picks up the modern focus ring so
+   the chip glows on focus-within just like a bare input would. */
+.search-chip:hover { border-color: var(--ink-2) !important; }
+.search-chip:focus-within {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent);
+}
 
 /* /votes filter — apply button. Inherits .btn-ink + .btn-sm sizing but
    pads out to give it presence; mobile bumps to a 44px tap target via
@@ -476,14 +639,33 @@ a { color: inherit; }
   font-weight: 600;
 }
 .filter-advanced-select {
-  padding: 10px 12px;
+  /* Aligned with the global ``.input-modern`` look — 10px radius, 10/14
+     padding, accent-tinted focus ring. The dropdown chevron is the same
+     SVG used by the bare <select> rule above so the affordance is
+     consistent across all native selects in the product. */
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 10px 36px 10px 14px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
-  border-radius: var(--radius-2);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b8e95' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  border-radius: 10px;
   font-size: 14px;
   color: var(--ink);
   font-family: inherit;
+  line-height: 1.4;
   min-height: 44px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.filter-advanced-select:hover { border-color: var(--ink-2); }
+.filter-advanced-select:focus,
+.filter-advanced-select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent);
 }
 .filter-advanced-apply {
   align-self: end;
@@ -1123,11 +1305,14 @@ a { color: inherit; }
    utilities (`line-clamp-2 sm:line-clamp-3`) co-located with each list
    row, so no custom CSS is needed here. Mobile shows 2 lines, desktop 3. */
 
-/* Topics-detail initiative rows: mobile is 2-col (date | content), desktop
-   3-col (date | content | status badge). Mobile cols are set inline by
-   the component; we add the desktop expansion here at the sm: breakpoint. */
+/* Topics-detail initiative rows: 2-col layout at every viewport size
+   (date | content). The status badge previously rendered as a 3rd column
+   on desktop is now part of the content's meta line ([proposer · type ·
+   status]), so the grid no longer needs a separate slot for it. The wider
+   date column on desktop comes from the inline ``110px`` template set on
+   the row at the sm: breakpoint via the component itself. */
 @media (min-width: 640px) {
-  .initiative-row { grid-template-columns: 110px 1fr auto !important; }
+  .initiative-row { grid-template-columns: 110px 1fr !important; }
 }
 
 @media (max-width: 480px) {

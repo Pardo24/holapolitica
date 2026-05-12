@@ -925,6 +925,7 @@ function TopicTypeahead({
         aria-activedescendant={
           open && hasResults ? `${listboxId}-opt-${activeIndex}` : undefined
         }
+        className="input-modern"
         style={typeaheadInputStyle}
       />
 
@@ -1299,10 +1300,13 @@ const chipRemoveButtonStyle: CSSProperties = {
 };
 
 const typeaheadInputStyle: CSSProperties = {
+  // Matches the global ``.input-modern`` shape (10px radius, 10/14 padding,
+  // 1px rule-strong border). The transition + focus ring come from CSS in
+  // globals via the className applied on the element below.
   width: '100%',
   minHeight: 44,
-  padding: '10px 12px',
-  borderRadius: 12,
+  padding: '10px 14px',
+  borderRadius: 10,
   border: '1px solid var(--rule-strong)',
   background: 'var(--paper)',
   color: 'var(--ink)',
@@ -1310,6 +1314,7 @@ const typeaheadInputStyle: CSSProperties = {
   fontSize: 14,
   outline: 'none',
   boxSizing: 'border-box',
+  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
 };
 
 const listboxStyle: CSSProperties = {

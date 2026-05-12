@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowRight } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
-import { HighlightsCarousel } from '@/components/HighlightsCarousel';
+import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import {
   StatsPairFilter,
   StatsTopicFilter,
@@ -18,6 +18,7 @@ import type {
   CrossTopicGroup,
   GroupActivity,
   GroupProposalCount,
+  GroupSummaryRow,
   InitiativeMini,
   InitiativeStatusCount,
   ParliamentaryGroupSummary,
@@ -30,7 +31,6 @@ import type {
 } from '@/lib/api';
 import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
-import type { Highlight } from '@/lib/highlights';
 
 /**
  * Mobile-only dashboard for /stats. Shown via ``sm:hidden`` on ≤640px while
@@ -38,25 +38,32 @@ import type { Highlight } from '@/lib/highlights';
  * **dashboard on open**: every key signal visible without scrolling through
  * paragraphs of explanation.
  *
+ * The highlights carousel that used to anchor this dashboard now lives on
+ * the home page (``app/page.tsx``) — visitors see it before they ever land
+ * on /stats. The mobile stats view is now squarely a compact mirror of the
+ * desktop /stats: status + proposers, per-group summary cards (cohesion /
+ * attendance / size), expandable list, pair coincidence, and per-topic
+ * stance columns.
+ *
  * State model — URL params only, no useState:
- *   - ``?topic=<slug>``     scope of widgets 2, 3, 5
- *   - ``?pair_a=<slug>``    first picked group in widget 4
- *   - ``?pair_b=<slug>``    second picked group in widget 4
+ *   - ``?topic=<slug>``     scope of widgets 1, 2, 4
+ *   - ``?pair_a=<slug>``    first picked group in widget 3
+ *   - ``?pair_b=<slug>``    second picked group in widget 3
  *
  * URL state is preferred over useState because it lets the user share /
  * bookmark a configured view. The desktop layout already uses the same
  * ``topic`` param, so switching viewport keeps the user's context.
  *
  * Neutrality (CLAUDE.md "regla de simetria"):
- *   - widget 2's proposers shows top N regardless of color; never
+ *   - widget 1's proposers shows top N regardless of color; never
  *     "highlight" one group
- *   - widget 4 is a symmetric pair — order of selection doesn't change
+ *   - the group summary carousel renders every group (members_active desc)
+ *   - widget 3 is a symmetric pair — order of selection doesn't change
  *     meaning
- *   - widget 5 ALWAYS shows both the "supports" and "rejects" columns
+ *   - widget 4 ALWAYS shows both the "supports" and "rejects" columns
  *     side by side; neither column can be hidden
  */
 export async function MobileStatsDashboard({
-  highlights,
   allTopics,
   allGroups,
   topics,
@@ -67,6 +74,7 @@ export async function MobileStatsDashboard({
   cross,
   coincidence,
   topicStatsByGroup,
+  groupSummary,
   summary,
   selectedTopic,
   selectedGroup,
@@ -74,7 +82,6 @@ export async function MobileStatsDashboard({
   pairB,
   locale,
 }: {
-  highlights: Highlight[];
   allTopics: Topic[];
   allGroups: ParliamentaryGroupSummary[];
   topics: TopicGlobalStat[];
@@ -85,6 +92,7 @@ export async function MobileStatsDashboard({
   cross: CrossTopicGroup | null;
   coincidence: CoincidenceCell[];
   topicStatsByGroup: Map<string, TopicVoteStat[]>;
+  groupSummary: GroupSummaryRow[];
   summary: StatsSummary;
   selectedTopic: string;
   /** Desktop tabbed layout also exposes a ``group`` filter. Mobile
@@ -119,15 +127,7 @@ export async function MobileStatsDashboard({
 
   return (
     <div className="sm:hidden" style={{ paddingTop: 18 }}>
-      {/* ─── Widget 1: highlights carousel — always first ─────────────── */}
-      <DashSection
-        eyebrow={t('highlights_eyebrow')}
-        info={t('highlights_info')}
-      >
-        <HighlightsCarousel items={highlights} />
-      </DashSection>
-
-      {/* ─── Widget 2: Initiatives state + topic filter ───────────────── */}
+      {/* ─── Widget 1: Initiatives state + topic filter ───────────────── */}
       <InitiativesStateWidget
         allTopics={allTopics}
         topics={topics}
@@ -159,6 +159,16 @@ export async function MobileStatsDashboard({
         governmentShort={governmentShort}
       />
 
+      {/* ─── Widget 2: Per-group summary cards (cohesion + attendance) ── */}
+      {groupSummary.length > 0 && (
+        <DashSection
+          eyebrow={t('group_summary_eyebrow')}
+          info={t('group_summary_info')}
+        >
+          <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
+        </DashSection>
+      )}
+
       {/* ─── Widget 3: Expandable initiative list ────────────────────── */}
       <InitiativeListExpandable
         topicProposers={topicProposers}
@@ -174,6 +184,8 @@ export async function MobileStatsDashboard({
           seeRecent: t('list_see_recent'),
           emptyTopic: t('list_empty_topic'),
           emptyNoFilter: t('list_empty_no_filter'),
+          seeMore: (count: number) => t('list_see_more', { count }),
+          openTopicPage: t('list_open_topic_page'),
         }}
       />
 
@@ -483,74 +495,55 @@ function InitiativesStateWidget({
           </span>
         </div>
 
-        {/* Topic filter — collapsable behind a <details>. Picking a topic
-            updates ``?topic=…`` in place via router.replace with scroll
-            preservation; no form submit, no scroll jump. */}
-        <details
-          open={hasTopic}
+        {/* Topic filter — combobox is directly visible (no extra unfold tap).
+            Picking a topic updates ``?topic=…`` in place via router.replace
+            with scroll preservation; no form submit, no scroll jump. */}
+        <div
           style={{
             margin: '0 0 16px',
+            padding: '10px 12px',
             border: '1px solid var(--rule)',
             borderRadius: 10,
             background: 'var(--paper)',
+            display: 'grid',
+            gap: 8,
           }}
         >
-          <summary
+          <div
             style={{
-              cursor: 'pointer',
-              listStyle: 'none',
-              padding: '10px 14px',
-              fontSize: 12,
-              color: 'var(--ink-2)',
+              fontSize: 9,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-3)',
               fontWeight: 600,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 8,
             }}
           >
-            <span>
-              {hasTopic ? (
-                <>
-                  {labels.topicValue}: <strong>{focusedTopicName}</strong>
-                </>
-              ) : (
-                labels.filterByTopic
-              )}
-            </span>
-            <span style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
-              <ChevronDown size={14} aria-hidden="true" />
-            </span>
-          </summary>
-          <div style={{ padding: '4px 14px 14px', display: 'grid', gap: 10 }}>
-            <StatsTopicFilter
-              allTopics={allTopics}
-              selectedTopic={selectedTopic}
-            />
-            {hasTopic && (
-              <Link
-                href={
-                  selectedGroup && selectedGroup !== 'all'
-                    ? (`/stats?group=${encodeURIComponent(selectedGroup)}` as Route)
-                    : ('/stats' as Route)
-                }
-                scroll={false}
-                style={{
-                  fontSize: 12,
-                  color: 'var(--ink-3)',
-                  textDecoration: 'none',
-                  padding: '8px 12px',
-                  border: '1px solid var(--rule)',
-                  borderRadius: 8,
-                  textAlign: 'center',
-                  alignSelf: 'flex-start',
-                }}
-              >
-                {labels.clearTopic}
-              </Link>
-            )}
+            {hasTopic ? labels.topicValue : labels.filterByTopic}
           </div>
-        </details>
+          <StatsTopicFilter allTopics={allTopics} selectedTopic={selectedTopic} />
+          {hasTopic && (
+            <Link
+              href={
+                selectedGroup && selectedGroup !== 'all'
+                  ? (`/stats?group=${encodeURIComponent(selectedGroup)}` as Route)
+                  : ('/stats' as Route)
+              }
+              scroll={false}
+              style={{
+                fontSize: 12,
+                color: 'var(--ink-3)',
+                textDecoration: 'none',
+                padding: '6px 10px',
+                border: '1px solid var(--rule)',
+                borderRadius: 8,
+                textAlign: 'center',
+                alignSelf: 'flex-start',
+              }}
+            >
+              {labels.clearTopic}
+            </Link>
+          )}
+        </div>
 
         {/* Stacked horizontal bar with inline % labels */}
         <StatusStackedBar segments={segments} />
@@ -828,7 +821,14 @@ interface ListLabels {
   seeRecent: string;
   emptyTopic: string;
   emptyNoFilter: string;
+  seeMore: (count: number) => string;
+  openTopicPage: string;
 }
+
+/** How many initiatives we ever render inline on the mobile dashboard before
+ *  pushing the user to the dedicated /topics/<slug> page. Picked small enough
+ *  that even on slow phones the list never blows past one viewport scroll. */
+const INLINE_LIST_LIMIT = 10;
 
 function InitiativeListExpandable({
   topicProposers,
@@ -853,13 +853,23 @@ function InitiativeListExpandable({
   // votes index — we don't list ALL initiatives in this widget to keep
   // the dashboard fast.
   const empty = items.length === 0;
+  // Slice & "see more" pattern: keep ≤10 rows inline so even 50+ matches
+  // don't overwhelm. The overflow CTA navigates to /topics/<slug>, which
+  // already has the full filter / subset UX (per votar / votades). When
+  // no topic is selected, the overflow points back to /votes as the
+  // generic catalog.
+  const visible = items.slice(0, INLINE_LIST_LIMIT);
+  const overflow = Math.max(0, items.length - visible.length);
+  const moreHref: Route = hasTopic
+    ? (`/topics/${encodeURIComponent(selectedTopic)}?subset=voted` as Route)
+    : ('/votes' as Route);
   return (
     <DashSection
       eyebrow={labels.eyebrow}
       info={labels.info}
     >
       <Card>
-        <details>
+        <details open={hasTopic}>
           <summary
             style={{
               cursor: 'pointer',
@@ -890,11 +900,51 @@ function InitiativeListExpandable({
                 {hasTopic ? labels.emptyTopic : labels.emptyNoFilter}
               </p>
             ) : (
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {items.map((ini) => (
-                  <InitiativeRow key={ini.id} ini={ini} locale={locale} />
-                ))}
-              </ul>
+              <>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {visible.map((ini) => (
+                    <InitiativeRow key={ini.id} ini={ini} locale={locale} />
+                  ))}
+                </ul>
+                {overflow > 0 && (
+                  <Link
+                    href={moreHref}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginTop: 10,
+                      padding: '8px 12px',
+                      border: '1px solid var(--ink)',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      color: 'var(--ink)',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span>{labels.seeMore(overflow)}</span>
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
+                )}
+                {overflow === 0 && hasTopic && (
+                  <Link
+                    href={moreHref}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginTop: 10,
+                      fontSize: 12,
+                      color: 'var(--ink-2)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <span>{labels.openTopicPage}</span>
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
+                )}
+              </>
             )}
           </div>
         </details>

@@ -617,34 +617,9 @@ function InitiativeRow({
           <span className="hidden sm:inline">{longDate}</span>
         </span>
         <div style={{ minWidth: 0 }}>
-          {/* Desktop metadata row — kept above the title for a scannable
-              "type · proposer-badges" lead. Hidden on mobile to declutter. */}
-          <span
-            className="hidden sm:inline-flex"
-            style={{
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              alignItems: 'center',
-              gap: 8,
-              flexWrap: 'wrap',
-              maxWidth: '100%',
-              minWidth: 0,
-            }}
-          >
-            <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
-            {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
-              <span aria-hidden="true">·</span>
-            )}
-            <ProposerBadges
-              parsed={parsed}
-              governmentLabel={governmentLabel}
-              moreGroupsLabel={moreGroupsLabel}
-              rawFallback={initiative.submitted_by ?? ''}
-            />
-          </span>
           <div
             className="line-clamp-2 sm:line-clamp-3"
-            style={{ fontSize: 14, lineHeight: 1.4, marginTop: 4, color: 'var(--ink)' }}
+            style={{ fontSize: 14, lineHeight: 1.4, color: 'var(--ink)' }}
           >
             <SummaryHover
               summary={plainSummary}
@@ -657,36 +632,40 @@ function InitiativeRow({
               <AnnotatedText text={initiative.title_original} />
             </SummaryHover>
           </div>
-          {/* Mobile attribution line — type · proposer-badges · status. The
-              status text is inline (no separate badge column) so the row is
-              still scannable at narrow widths. */}
+          {/* Single attribution line — ``[proposer-badges] · type · status``.
+              Lives BELOW the title at every viewport size; the previous
+              setup had this row in two places (desktop above, mobile below)
+              which read as duplicated metadata. The desktop status badge
+              column has been merged into this line so the row reads as one
+              factual record per initiative. */}
           <div
-            className="sm:hidden"
+            className="initiative-row__meta"
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
+              gap: 8,
               flexWrap: 'wrap',
               marginTop: 6,
               fontSize: 11,
               color: 'var(--ink-3)',
               lineHeight: 1.3,
+              minWidth: 0,
             }}
           >
-            <span>
-              <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
-            </span>
             {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
               <>
-                <span aria-hidden="true">·</span>
                 <ProposerBadges
                   parsed={parsed}
                   governmentLabel={governmentLabel}
                   moreGroupsLabel={moreGroupsLabel}
                   rawFallback={initiative.submitted_by ?? ''}
                 />
+                <span aria-hidden="true">·</span>
               </>
             )}
+            <span>
+              <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
+            </span>
             <span aria-hidden="true">·</span>
             <span style={{ color: statusColor, fontWeight: 600 }}>
               {statusLabel}
@@ -699,24 +678,6 @@ function InitiativeRow({
             {initiative.official_id}
           </span>
         </div>
-        {/* Desktop-only status badge column. */}
-        <span
-          className="hidden sm:inline-flex"
-          style={{ alignItems: 'center', justifyContent: 'flex-end' }}
-        >
-          <span
-            className="badge"
-            style={{
-              fontWeight: 600,
-              color: statusColor,
-              borderColor: 'transparent',
-              background: 'var(--paper-2)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {statusLabel}
-          </span>
-        </span>
       </a>
     </li>
   );

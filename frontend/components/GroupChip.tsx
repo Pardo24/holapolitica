@@ -45,8 +45,11 @@ export function GroupChip({
     </span>
   );
   if (slug) {
+    // Subtle hover affordance: faint underline + 1px accent ring so the
+    // chip reads as a real link target without disrupting the calm rhythm
+    // of the surrounding row.
     return (
-      <Link href={`/groups/${slug}`} className="no-underline hover:opacity-80">
+      <Link href={`/groups/${slug}`} className="group-chip-link no-underline">
         {inner}
       </Link>
     );

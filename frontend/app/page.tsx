@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
+import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
@@ -10,9 +11,17 @@ import { GroupChip } from '@/components/GroupChip';
 import { SummaryHover } from '@/components/SummaryHover';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VoteBreakdown } from '@/components/VoteBreakdown';
-import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
+import {
+  api,
+  type ParliamentaryGroupSummary,
+  type ScheduledSession,
+  type TopicVoteStat,
+  type Vote,
+  type VoteResult,
+} from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
+import { buildHighlights, type Highlight } from '@/lib/highlights';
 
 // CSS-var color for a vote outcome — used by the inline mobile result
 // label so the colored word matches the desktop pill semantics.
@@ -35,8 +44,9 @@ export default async function HomePage() {
   let summary: Awaited<ReturnType<typeof api.stats.summary>> | null = null;
   let latestVotes: Vote[] = [];
   let upcomingSessions: ScheduledSession[] = [];
+  let allGroups: ParliamentaryGroupSummary[] = [];
   try {
-    [summary, latestVotes, upcomingSessions] = await Promise.all([
+    [summary, latestVotes, upcomingSessions, allGroups] = await Promise.all([
       api.stats.summary(),
       api.votes
         .list({ page: 1, page_size: 5 })
@@ -45,9 +55,28 @@ export default async function HomePage() {
         .sessions({ legislature_id: 1, upcoming_only: true })
         .then((rows) => rows.slice(0, 4))
         .catch(() => [] as ScheduledSession[]),
+      api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
     ]);
   } catch {
     /* backend not ready — render with zeros */
+  }
+
+  // Highlights carousel — moved here from MobileStatsDashboard so it sits on
+  // the home as a "what each group leans into" anchor below the agenda and
+  // above the latest votes. We fetch per-group topic stats in parallel and
+  // build a flat, symmetric (every group gets equal billing) Highlight list.
+  // Failures degrade silently — the carousel renders its own empty card.
+  let highlights: Highlight[] = [];
+  if (allGroups.length > 0) {
+    const topicStatsPerGroup = await Promise.all(
+      allGroups.map((g) =>
+        api.groups
+          .topicStats(g.slug)
+          .then((rows) => [g.slug, rows] as const)
+          .catch(() => [g.slug, [] as TopicVoteStat[]] as const),
+      ),
+    );
+    highlights = buildHighlights(allGroups, new Map(topicStatsPerGroup));
   }
 
   // "This week" descriptive widget — until the API exposes a daily-counts
@@ -257,9 +286,49 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter signup — placed RIGHT after the coverage tiles so
-          the macro numbers (initiatives, votes, classified) give the
-          reader a reason to want updates. Compact card on mobile. */}
+      {/* Highlights carousel — symmetric per-group facts (top-supported and
+          top-rejected topic for every group, rotating). Moved here from the
+          mobile stats dashboard so it lives where the most visitors see it,
+          while the desktop /stats page keeps its own (richer) version under
+          the overview tab. Empty / backfill state handled inside. */}
+      <section
+        style={{
+          paddingTop: 28,
+          paddingBottom: 8,
+          borderBottom: '1px solid var(--rule)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            marginBottom: 14,
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div className="eyebrow">{t('highlights_title')}</div>
+          <Link
+            href="/stats"
+            style={{
+              fontSize: 12,
+              color: 'var(--ink-2)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            {t('highlights_see_all')} <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </div>
+        <HighlightsCarousel items={highlights} />
+      </section>
+
+      {/* Newsletter signup — placed RIGHT after the coverage / highlights so
+          the macro numbers and the rotating facts give the reader a reason
+          to want updates. Compact card on mobile. */}
       <NewsletterSignup />
 
       {/* Upcoming votes — agenda ingestion is in progress, so this is an

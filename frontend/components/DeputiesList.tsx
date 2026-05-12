@@ -308,16 +308,19 @@ export function DeputiesList({
         }}
       >
         <div
+          className="search-chip"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
-            padding: '0 10px',
-            border: '1px solid var(--ink)',
+            gap: 8,
+            padding: '8px 14px',
+            border: '1px solid var(--rule-strong)',
+            borderRadius: 10,
             background: 'var(--paper)',
             flex: '1 1 240px',
             minWidth: 0,
             maxWidth: 360,
+            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
           }}
         >
           <Search
@@ -332,10 +335,10 @@ export function DeputiesList({
             placeholder={t('search_placeholder')}
             aria-label={t('search_input_aria')}
             style={{
-              padding: '8px 0',
+              padding: '4px 0',
               border: 'none',
               background: 'transparent',
-              fontSize: 13,
+              fontSize: 14,
               minWidth: 0,
               flex: '1 1 auto',
               fontFamily: 'inherit',
@@ -386,18 +389,8 @@ export function DeputiesList({
               setQuery('');
               setGroupFilter('');
             }}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--rule)',
-              padding: '6px 10px',
-              fontSize: 12,
-              fontFamily: 'inherit',
-              color: 'var(--ink-2)',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
+            className="btn-modern"
+            style={{ fontSize: 13, padding: '8px 12px' }}
           >
             <X size={12} aria-hidden="true" />
             {t('clear_filters')}

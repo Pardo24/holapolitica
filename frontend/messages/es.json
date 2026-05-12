@@ -222,7 +222,9 @@
     "upcoming_title": "Próximas votaciones",
     "upcoming_subtitle": "Próximo orden del día",
     "upcoming_empty": "Aún no tenemos el orden del día publicado. La próxima sesión plenaria aparecerá aquí cuando esté disponible.",
-    "upcoming_caveat": "Las votaciones programadas pueden cancelarse o aplazarse. Consulta la web del Congreso para confirmación."
+    "upcoming_caveat": "Las votaciones programadas pueden cancelarse o aplazarse. Consulta la web del Congreso para confirmación.",
+    "highlights_title": "Destacados por grupo parlamentario",
+    "highlights_see_all": "Ver todas las estadísticas"
   },
   "votes": {
     "title": "Votaciones",
@@ -590,6 +592,10 @@
     "list_see_recent": "Ver iniciativas recientes",
     "list_empty_topic": "Ninguna iniciativa clasificada para este tema todavía.",
     "list_empty_no_filter": "Selecciona un tema para ver iniciativas concretas, o visita la pestaña de votaciones.",
+    "list_see_more": "Ver más · {count} restantes",
+    "list_open_topic_page": "Abre la página del tema",
+    "group_summary_eyebrow": "Resumen por grupo parlamentario",
+    "group_summary_info": "Cohesión, asistencia y tamaño de cada grupo. Desliza para verlos todos.",
     "pair_eyebrow_suffix": "entre dos grupos",
     "pair_info": "Elige dos grupos parlamentarios y mira en qué % de votaciones han votado en el mismo sentido (Sí, No o Abstención). El orden de la pareja no afecta al resultado.",
     "pair_hint_pick": "Elige dos grupos parlamentarios diferentes para calcular la coincidencia.",

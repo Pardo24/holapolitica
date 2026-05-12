@@ -154,18 +154,11 @@ export function NewsletterSignup({
           }}
           disabled={status === 'submitting'}
           aria-invalid={status === 'error' ? 'true' : 'false'}
-          style={{
-            flex: '1 1 220px',
-            minWidth: 0,
-            padding: '10px 12px',
-            border: '1px solid var(--rule-strong)',
-            borderRadius: 8,
-            fontSize: 14,
-            background: 'var(--paper)',
-            color: 'var(--ink)',
-            fontFamily: 'inherit',
-            outline: 'none',
-          }}
+          className="input-modern"
+          // Only flex sizing is kept inline; visual chrome (padding, border,
+          // radius, focus ring) comes from the global ``.input-modern`` rule
+          // so the newsletter input matches the rest of the form controls.
+          style={{ flex: '1 1 220px', minWidth: 0 }}
         />
         <button
           type="submit"
@@ -206,9 +199,8 @@ export function NewsletterSignup({
           .newsletter-signup-form { flex-direction: column; gap: 6px !important; }
           .newsletter-signup-form > input,
           .newsletter-signup-form > button { width: 100%; }
-          /* Tighter input padding on mobile so the field doesn't look giant.
-             The font-size stays at 16px globally (avoids iOS auto-zoom). */
-          .newsletter-signup-form > input { padding: 8px 10px !important; }
+          /* The mobile padding for inputs is set globally on the
+             .input-modern class (12px 14px); no per-form override needed. */
         }
       `}</style>
     </section>

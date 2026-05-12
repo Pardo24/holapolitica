@@ -390,33 +390,41 @@ function normalize(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
+// Geometry shared with the modern form-control look in globals.css
+// (10px radius, 10/14 padding, accent focus ring). Keeps the proposing-
+// group combobox visually consistent with TopicCombobox and the rest
+// of the filter row controls.
 const chipButtonStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 8,
-  padding: '6px 10px',
-  border: '1px solid var(--ink)',
+  padding: '10px 14px',
+  border: '1px solid var(--rule-strong)',
+  borderRadius: 10,
   background: 'var(--paper)',
-  fontSize: 13,
+  fontSize: 14,
   fontFamily: 'inherit',
   color: 'var(--ink)',
   minWidth: 220,
   width: '100%',
   cursor: 'pointer',
   textAlign: 'left',
-  lineHeight: 1.3,
+  lineHeight: 1.4,
+  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
 };
 
 const searchInputStyle: CSSProperties = {
-  padding: '6px 10px',
-  border: '1px solid var(--ink)',
+  padding: '10px 14px',
+  border: '1px solid var(--rule-strong)',
+  borderRadius: 10,
   background: 'var(--paper)',
-  fontSize: 13,
+  fontSize: 14,
   fontFamily: 'inherit',
   color: 'var(--ink)',
   minWidth: 220,
   width: '100%',
   outline: 'none',
+  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
 };
 
 const listboxStyle: CSSProperties = {
@@ -427,8 +435,8 @@ const listboxStyle: CSSProperties = {
   maxHeight: 280,
   overflowY: 'auto',
   background: 'var(--paper)',
-  border: '1px solid var(--ink)',
-  borderRadius: 4,
+  border: '1px solid var(--rule-strong)',
+  borderRadius: 10,
   margin: 0,
   padding: 4,
   listStyle: 'none',

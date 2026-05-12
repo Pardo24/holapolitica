@@ -203,14 +203,16 @@ async function VotesListTab({ params }: { params: SearchParams }) {
               className="filter-simple-row"
             >
               <label
+                className="search-chip"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '10px 12px',
+                  padding: '10px 14px',
                   border: '1px solid var(--rule-strong)',
-                  borderRadius: 999,
+                  borderRadius: 10,
                   background: 'var(--paper)',
+                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
                 }}
               >
                 <span aria-hidden="true" style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
@@ -444,19 +446,11 @@ function VoteTableRow({
             </span>
           </Link>
           <div style={{ position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
-            <div
-              style={{
-                fontSize: 10,
-                color: 'var(--ink-3)',
-                marginBottom: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                flexWrap: 'wrap',
-              }}
-            >
-              <span>{vote.title}</span>
-            </div>
+            {/* Single subject line. The previously-rendered short
+                ``vote.title`` row above was identical to ``subject`` whenever
+                ``description`` was empty (subject = description || title), so
+                it read as a duplicate. We keep the descriptive subject only;
+                proposer + result live in their own columns to the right. */}
             <div
               className="line-clamp-2 sm:line-clamp-3"
               style={{ lineHeight: 1.35, color: 'var(--ink)' }}

@@ -222,7 +222,9 @@
     "upcoming_title": "Pròximes votacions",
     "upcoming_subtitle": "Pròxim ordre del dia",
     "upcoming_empty": "Encara no tenim l'ordre del dia publicat. La pròxima sessió plenària es publicarà aquí quan estigui disponible.",
-    "upcoming_caveat": "Les votacions programades poden cancel·lar-se o ajornar-se. Comprova la web del Congrés per a confirmació."
+    "upcoming_caveat": "Les votacions programades poden cancel·lar-se o ajornar-se. Comprova la web del Congrés per a confirmació.",
+    "highlights_title": "Destacats per grup parlamentari",
+    "highlights_see_all": "Veure totes les estadístiques"
   },
   "votes": {
     "title": "Votacions",
@@ -590,6 +592,10 @@
     "list_see_recent": "Veure iniciatives recents",
     "list_empty_topic": "Cap iniciativa classificada per a aquest tema encara.",
     "list_empty_no_filter": "Selecciona un tema per veure iniciatives concretes, o visita la pestanya de votacions.",
+    "list_see_more": "Veure més · {count} restants",
+    "list_open_topic_page": "Obre la pàgina del tema",
+    "group_summary_eyebrow": "Resum per grup parlamentari",
+    "group_summary_info": "Cohesió, assistència i mida de cada grup. Llisca per veure'ls tots.",
     "pair_eyebrow_suffix": "entre dos grups",
     "pair_info": "Tria dos grups parlamentaris i mira en quin % de votacions han votat el mateix sentit (Sí, No o Abstenció). L'ordre de la parella no afecta el resultat.",
     "pair_hint_pick": "Tria dos grups parlamentaris diferents per calcular la coincidència.",
