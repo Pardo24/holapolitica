@@ -280,16 +280,12 @@ a { color: inherit; }
   background: color-mix(in oklch, var(--accent) 8%, transparent);
 }
 .topnav .nav-links a.active {
-  color: var(--accent);
-  background: var(--accent-soft);
-  font-weight: 700;
-  /* Active marker drawn INSIDE the rounded pill via inset box-shadow so it
-     never extends past the 999px radius. The pill geometry already gives
-     a strong active affordance; the inset shadow adds a subtle "current
-     page" bottom rule that respects the corners (was a 2px ::after
-     floating at `bottom: -8px`, which extended past the rounded edge and
-     read as a stray line). */
-  box-shadow: inset 0 -2px 0 var(--accent);
+  /* Subtle, calm active state: ink-coloured text + faint paper tint +
+     semibold weight. No coloured pill, no inset bar — just a quiet
+     "you are here" affordance that matches the editorial register. */
+  color: var(--ink);
+  background: var(--paper-3);
+  font-weight: 600;
 }
 /* Editorial spacer between lookup spines and exploration surfaces */
 .topnav .nav-links .nav-divider {
@@ -503,15 +499,11 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
   display: inline-flex; align-items: center; gap: 6px;
   position: relative;
 }
-.btn-ink::after {
-  content: "";
-  position: absolute; left: 0; right: 0; bottom: -3px; height: 3px;
-  background: var(--accent-warm);
-  border-radius: 0 0 var(--radius-2) var(--radius-2);
-  opacity: 0; transition: opacity .15s ease;
-}
+/* No external decorative ::after bar — the visible warm-orange line
+   that used to extend past the rounded corners on hover was too loud
+   on small button surfaces (e.g. /votes "Apply"). The background-color
+   transition alone is enough hover affordance. */
 .btn-ink:hover { background: var(--ink-2); }
-.btn-ink:hover::after { opacity: 1; }
 .btn-outline {
   background: transparent; color: var(--ink);
   border: 1px solid var(--ink); padding: 12px 18px; font-size: 14px; font-weight: 600;

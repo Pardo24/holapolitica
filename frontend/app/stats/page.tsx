@@ -691,9 +691,17 @@ export default async function StatsPage({
            its own GroupSummaryCarousel in MobileStatsDashboard). */
         .stats-carousel-row {
           display: flex;
-          gap: 18px;
+          gap: 14px;
           align-items: stretch;
           flex-wrap: wrap;
+          /* Cap the height so these two widgets read as secondary
+             support material, not the main act. The interactive pie
+             below is the page's focal element. */
+          max-height: 220px;
+        }
+        .stats-carousel-row > div {
+          max-height: 220px;
+          overflow: hidden;
         }
         @media (max-width: 900px) {
           .stats-carousel-row { flex-direction: column; }

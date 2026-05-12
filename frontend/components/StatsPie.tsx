@@ -211,6 +211,8 @@ function PieSvg({
   total: number;
   emptyLabel: string;
 }) {
+  // Hooks must sit above any conditional return per the rules of hooks.
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
   // Single-slice pies need special handling — the standard formula
   // collapses to a zero-area path because start == end. We render a
   // full circle for that case.
@@ -237,46 +239,129 @@ function PieSvg({
   const cx = size / 2;
   const cy = size / 2;
   const r = size / 2 - 4;
+  const active = hoverKey ? slices.find((s) => s.key === hoverKey) ?? null : null;
+  const activePct = active ? Math.round((active.count / total) * 100) : 0;
   let acc = 0;
 
   return (
-    <svg
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ width: '100%', maxWidth: 360, height: 'auto', display: 'block', margin: '0 auto' }}
-      role="img"
-      aria-label={slices
-        .map((s) => `${s.label} ${Math.round((s.count / total) * 100)}%`)
-        .join(', ')}
-    >
-      {slices.length === 1 ? (
-        <circle cx={cx} cy={cy} r={r} fill={slices[0]!.color} />
-      ) : (
-        slices.map((s) => {
-          const a0 = (acc / total) * Math.PI * 2;
-          acc += s.count;
-          const a1 = (acc / total) * Math.PI * 2;
-          const x0 = cx + Math.sin(a0) * r;
-          const y0 = cy - Math.cos(a0) * r;
-          const x1 = cx + Math.sin(a1) * r;
-          const y1 = cy - Math.cos(a1) * r;
-          const large = a1 - a0 > Math.PI ? 1 : 0;
-          const d = `M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z`;
-          return (
-            <path
-              key={s.key}
-              d={d}
-              fill={s.color}
-              stroke="var(--paper)"
-              strokeWidth={1.5}
-            >
-              <title>
-                {s.label}: {s.count} ({Math.round((s.count / total) * 100)}%)
-              </title>
-            </path>
-          );
-        })
-      )}
-    </svg>
+    <div style={{ position: 'relative', maxWidth: 360, margin: '0 auto' }}>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}
+        role="img"
+        aria-label={slices
+          .map((s) => `${s.label} ${Math.round((s.count / total) * 100)}%`)
+          .join(', ')}
+        onMouseLeave={() => setHoverKey(null)}
+      >
+        {slices.length === 1 ? (
+          <circle cx={cx} cy={cy} r={r} fill={slices[0]!.color} />
+        ) : (
+          slices.map((s) => {
+            const a0 = (acc / total) * Math.PI * 2;
+            acc += s.count;
+            const a1 = (acc / total) * Math.PI * 2;
+            const x0 = cx + Math.sin(a0) * r;
+            const y0 = cy - Math.cos(a0) * r;
+            const x1 = cx + Math.sin(a1) * r;
+            const y1 = cy - Math.cos(a1) * r;
+            const large = a1 - a0 > Math.PI ? 1 : 0;
+            const d = `M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z`;
+            const isActive = hoverKey === s.key;
+            const isOther = hoverKey !== null && !isActive;
+            // Push the active slice outward slightly so the user feels
+            // they've selected it. ``preserveAspectRatio`` is fine — the
+            // SVG container has ``overflow: visible`` to allow the bump.
+            const midAngle = (a0 + a1) / 2;
+            const offset = isActive ? 6 : 0;
+            const tx = Math.sin(midAngle) * offset;
+            const ty = -Math.cos(midAngle) * offset;
+            return (
+              <path
+                key={s.key}
+                d={d}
+                fill={s.color}
+                stroke="var(--paper)"
+                strokeWidth={isActive ? 2.5 : 1.5}
+                style={{
+                  cursor: 'pointer',
+                  transform: `translate(${tx}px, ${ty}px)`,
+                  transition: 'transform 0.18s ease, opacity 0.15s ease, stroke-width 0.15s ease',
+                  opacity: isOther ? 0.55 : 1,
+                  filter: isActive
+                    ? 'drop-shadow(0 4px 10px rgba(15,23,42,0.18))'
+                    : 'none',
+                }}
+                onMouseEnter={() => setHoverKey(s.key)}
+                onFocus={() => setHoverKey(s.key)}
+                onBlur={() => setHoverKey(null)}
+                tabIndex={0}
+                aria-label={`${s.label}: ${s.count} (${Math.round(
+                  (s.count / total) * 100,
+                )}%)`}
+              />
+            );
+          })
+        )}
+      </svg>
+      {/* Center tooltip — appears when a slice is active. Sits absolutely
+          inside the wrapper, centered on the pie. */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+          opacity: active ? 1 : 0,
+          transition: 'opacity 0.15s ease',
+        }}
+        aria-hidden="true"
+      >
+        <div
+          style={{
+            background: 'var(--paper)',
+            border: '1px solid var(--rule-strong)',
+            borderRadius: 12,
+            padding: '10px 14px',
+            textAlign: 'center',
+            minWidth: 110,
+            boxShadow: '0 8px 22px -12px rgba(15,23,42,0.18)',
+          }}
+        >
+          {active && (
+            <>
+              <div
+                style={{
+                  fontSize: 10,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-3)',
+                  marginBottom: 4,
+                }}
+              >
+                {active.label}
+              </div>
+              <div
+                className="tabular"
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: active.color,
+                  lineHeight: 1.1,
+                }}
+              >
+                {activePct}%
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>
+                {active.count}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
