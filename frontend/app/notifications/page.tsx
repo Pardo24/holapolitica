@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { NewsletterPreferencesManager } from '@/components/NewsletterPreferencesManager';
 import { NotificationsManager } from '@/components/NotificationsManager';
+import { PageHeader } from '@/components/PageHeader';
 import { api, type Topic } from '@/lib/api';
 
 /**
@@ -51,15 +52,16 @@ export default async function NotificationsPage() {
         paddingRight: 16,
       }}
     >
-      <header style={{ paddingBottom: 18, borderBottom: '1px solid var(--ink)' }}>
-        <div className="eyebrow">{t('eyebrow')}</div>
-        <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
-          {t('title')}
-        </h1>
-        <p style={{ fontSize: 14, color: 'var(--ink-3)', marginTop: 8, lineHeight: 1.5 }}>
+      <PageHeader
+        title={t('title')}
+        subtitle={t('eyebrow')}
+        bordered
+        style={{ paddingTop: 0 }}
+      >
+        <p style={{ fontSize: 14, color: 'var(--ink-3)', margin: 0, lineHeight: 1.5 }}>
           {t('lede')}
         </p>
-      </header>
+      </PageHeader>
 
       <NewsletterPreferencesManager topics={topics} />
 

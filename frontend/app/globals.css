@@ -481,13 +481,17 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
   cursor: not-allowed;
 }
 
-/* Mobile: keep generous padding so tap targets feel right. The 16px
-   font-size rule for inputs is set earlier in this file (iOS zoom fix). */
+/* Mobile: compress vertical padding so the 16px font-size (iOS
+   zoom-prevention floor) does not make inputs feel chunky. With
+   font-size 16px and line-height 1.4, this lands at ~40px total
+   height — comfortably above the iOS Safari typing threshold (36px)
+   and still tappable, without stealing half the screen. */
 @media (max-width: 640px) {
   .input-modern,
   select:not(.input-bare):not([class*="filter-advanced-select"]),
   textarea:not(.input-bare) {
-    padding: 12px 14px;
+    padding: 8px 12px;
+    line-height: 1.3;
   }
 }
 

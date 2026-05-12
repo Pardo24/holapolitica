@@ -207,10 +207,17 @@ export default async function StatsPage({
         }}
       >
         <div>
-          <div className="eyebrow">{t('eyebrow')}</div>
-          <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
-            {t('title')}
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+            <h1 className="h-headline" style={{ margin: 0 }}>
+              {t('title')}
+            </h1>
+            <span
+              className="eyebrow"
+              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
+            >
+              {t('eyebrow')}
+            </span>
+          </div>
           {/* Page intro paragraph — desktop only. The mobile dashboard
               below this header opens straight onto the KPI grid + filters,
               which is what a phone user came for. Keeping the 2-3 sentence

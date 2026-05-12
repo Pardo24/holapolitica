@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
+import { PageHeader } from '@/components/PageHeader';
 import { TopicListPanel } from '@/components/TopicListPanel';
 import type { TopicKind } from '@/lib/api';
 
@@ -23,28 +24,15 @@ export default async function TopicsPage({
 
   return (
     <div>
-      <header
-        style={{
-          paddingTop: 28,
-          paddingBottom: 18,
-          borderBottom: '1px solid var(--ink)',
-        }}
+      <PageHeader
+        title={t('title')}
+        subtitle="Taxonomia · classificació automàtica"
+        bordered
       >
-        <div className="eyebrow">Taxonomia · classificació automàtica</div>
-        <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
-          {t('title')}
-        </h1>
-        <p
-          style={{
-            fontSize: 13,
-            color: 'var(--ink-3)',
-            marginTop: 6,
-            maxWidth: 760,
-          }}
-        >
+        <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, maxWidth: 760 }}>
           {t('subtitle')}
         </p>
-      </header>
+      </PageHeader>
 
       <TopicListPanel activeKind={activeKind} hrefBase="/topics" />
     </div>

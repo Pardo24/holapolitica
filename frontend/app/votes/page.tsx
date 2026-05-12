@@ -8,6 +8,7 @@ import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { HubTabs } from '@/components/HubTabs';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
+import { PageHeader } from '@/components/PageHeader';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { SummaryHover } from '@/components/SummaryHover';
@@ -50,60 +51,44 @@ export default async function VotesPage({
 
   return (
     <div>
-      <header
-        style={{
-          paddingTop: 28,
-          paddingBottom: 14,
-          display: 'flex',
-          gap: 14,
-          alignItems: 'flex-end',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ minWidth: 0, flex: '1 1 480px' }}>
-          <h1 className="h-headline" style={{ margin: 0 }}>
-            {t('title')}
-          </h1>
-          {/* Descriptive subtitle sits BELOW the title — softer weight so
-              the title stays the page's anchor. Previously this was an
-              eyebrow above the H1; we keep the same copy but demote it
-              visually to match every other page header. */}
-          <p
+      <PageHeader
+        title={t('title')}
+        cta={
+          <Link
+            href={'/recorregut' as Route}
+            aria-label={tLifecycle('cta_short')}
             style={{
-              margin: '6px 0 0',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 14px',
+              border: '1px solid var(--rule-strong)',
+              borderRadius: 999,
+              background: 'var(--paper-2)',
+              color: 'var(--ink)',
               fontSize: 13,
-              color: 'var(--ink-3)',
-              lineHeight: 1.4,
-              maxWidth: 760,
+              fontWeight: 600,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
             }}
           >
-            {t('subtitle')}
-          </p>
-        </div>
-        <Link
-          href={'/recorregut' as Route}
-          aria-label={tLifecycle('cta_short')}
+            <RouteIcon size={14} aria-hidden="true" />
+            {tLifecycle('cta_short')}
+          </Link>
+        }
+      >
+        <p
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 14px',
-            border: '1px solid var(--rule-strong)',
-            borderRadius: 999,
-            background: 'var(--paper-2)',
-            color: 'var(--ink)',
+            margin: 0,
             fontSize: 13,
-            fontWeight: 600,
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-            flex: 'none',
+            color: 'var(--ink-3)',
+            lineHeight: 1.4,
+            maxWidth: 760,
           }}
         >
-          <RouteIcon size={14} aria-hidden="true" />
-          {tLifecycle('cta_short')}
-        </Link>
-      </header>
+          {t('subtitle')}
+        </p>
+      </PageHeader>
 
       <HubTabs
         ariaLabel={t('tablist_aria')}

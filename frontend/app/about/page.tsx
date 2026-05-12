@@ -2,6 +2,7 @@ import { getTranslations, getMessages } from 'next-intl/server';
 
 import { LifecycleDiagram } from '@/components/LifecycleDiagram';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
+import { PageHeader } from '@/components/PageHeader';
 
 interface GlossaryTerm {
   term: string;
@@ -25,11 +26,12 @@ export default async function AboutPage() {
     ? (aboutMessages.glossary_terms as GlossaryTerm[])
     : [];
   return (
-    <article style={{ paddingTop: 28, maxWidth: 760 }}>
-      <div className="eyebrow">{t('page_eyebrow')}</div>
-      <h1 className="h-headline" style={{ margin: '4px 0 28px' }}>
-        {t('title')}
-      </h1>
+    <article style={{ maxWidth: 760 }}>
+      <PageHeader
+        title={t('title')}
+        subtitle={t('page_eyebrow')}
+        style={{ paddingBottom: 24 }}
+      />
 
       <Section title={t('why_title')} accent>{t('why_body')}</Section>
       <Section title={t('mission_title')}>{t('mission_body')}</Section>

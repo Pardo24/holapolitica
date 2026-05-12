@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
 import { GroupListPanel } from '@/components/GroupListPanel';
+import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
 
 export default async function GroupsPage() {
@@ -10,21 +11,11 @@ export default async function GroupsPage() {
 
   return (
     <div>
-      <header
-        style={{
-          paddingTop: 28,
-          paddingBottom: 18,
-          borderBottom: '1px solid var(--ink)',
-        }}
-      >
-        <div className="eyebrow">
-          {t('subtitle', { count: groups.length, members: totalMembers })}
-        </div>
-        <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
-          {t('title')}
-        </h1>
-      </header>
-
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle', { count: groups.length, members: totalMembers })}
+        bordered
+      />
       <GroupListPanel />
     </div>
   );

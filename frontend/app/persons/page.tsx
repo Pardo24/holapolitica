@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { DeputiesList } from '@/components/DeputiesList';
 import { GroupListPanel } from '@/components/GroupListPanel';
 import { HubTabs } from '@/components/HubTabs';
+import { PageHeader } from '@/components/PageHeader';
 import { api } from '@/lib/api';
 
 type PersonsTab = 'diputats' | 'grups';
@@ -24,17 +25,7 @@ export default async function PersonsPage({
 
   return (
     <div>
-      <header
-        style={{
-          paddingTop: 28,
-          paddingBottom: 14,
-        }}
-      >
-        <div className="eyebrow">{t('hub_eyebrow')}</div>
-        <h1 className="h-headline" style={{ margin: '4px 0 0' }}>
-          {tNav('persons')}
-        </h1>
-      </header>
+      <PageHeader title={tNav('persons')} subtitle={t('hub_eyebrow')} />
 
       <HubTabs
         ariaLabel="Vistes de representants"

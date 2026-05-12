@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
+import { PageHeader } from '@/components/PageHeader';
 import {
   api,
   type Topic,
@@ -68,24 +69,17 @@ export default async function Agenda2030Page() {
 
   return (
     <div style={{ paddingTop: 28, paddingBottom: 48 }}>
-      <header
-        style={{
-          paddingBottom: 20,
-          borderBottom: '1px solid var(--ink)',
-        }}
+      <PageHeader
+        title={t('title')}
+        subtitle={t('eyebrow')}
+        bordered
+        style={{ paddingTop: 0 }}
       >
-        <div className="eyebrow">{t('eyebrow')}</div>
-        <h1
-          className="h-headline"
-          style={{ margin: '4px 0 0', fontSize: 'clamp(26px, 3.6vw, 38px)' }}
-        >
-          {t('title')}
-        </h1>
         <p
           style={{
             fontSize: 14,
             color: 'var(--ink-3)',
-            marginTop: 10,
+            margin: 0,
             maxWidth: 760,
             lineHeight: 1.55,
           }}
@@ -134,7 +128,7 @@ export default async function Agenda2030Page() {
             </div>
           </div>
         </div>
-      </header>
+      </PageHeader>
 
       <ul
         className="sdg-grid"
