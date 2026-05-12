@@ -163,9 +163,18 @@ html { scroll-behavior: smooth; }
 
 a { color: inherit; }
 
-/* Editorial helpers */
+/* Editorial helpers
+   .eyebrow — small uppercase title with a leading rule. Used as a section
+   tag-line above headlines (e.g. "DESTACATS PER GRUP PARLAMENTARI").
+
+   Note on typography: the eyebrow inherits the document's --font-sans
+   stack (system-ui). It LOOKS like a different typeface to some eyes
+   because of the all-caps + letter-spacing + accent color combination,
+   but it's the same font family as body text. Do not switch it to a
+   different family — the visual differentiation is intentional and
+   comes from size/case/tracking, not family. */
 .eyebrow {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -174,6 +183,11 @@ a { color: inherit; }
   align-items: center;
   gap: 10px;
   line-height: 1.2;
+}
+/* Slightly larger on mid+ viewports so the editorial mark holds its own
+   beside the serif headlines. */
+@media (min-width: 720px) {
+  .eyebrow { font-size: 15px; }
 }
 .eyebrow::before {
   content: "";

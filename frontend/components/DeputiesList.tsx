@@ -439,7 +439,11 @@ export function DeputiesList({
               margin: 0,
               padding: 0,
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              // `min(280px, 100%)` guarantees we never request a column
+              // wider than the viewport — at 320–375px the row collapses
+              // to a single column instead of horizontally overflowing.
+              gridTemplateColumns:
+                'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
               gap: 8,
             }}
           >

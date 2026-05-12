@@ -118,7 +118,7 @@ export async function TopicListPanel({
           margin: 0,
           padding: '24px 0 0',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))',
           gap: 14,
         }}
       >

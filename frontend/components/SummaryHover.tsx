@@ -25,11 +25,21 @@ export function SummaryHover({
   summary,
   fallback,
   provider,
+  visibleText,
   children,
 }: {
   summary?: string | null;
   fallback?: string | null;
   provider?: string | null;
+  /**
+   * Plain-text equivalent of ``children``, used to suppress the
+   * fallback tooltip when it would just duplicate the visible label.
+   * Default behaviour (``typeof children === 'string'``) still applies
+   * when this prop is omitted, so existing callers don't regress.
+   * Pass this when ``children`` is a JSX tree (e.g. an
+   * ``<AnnotatedText>`` wrapper that breaks the string-equality check).
+   */
+  visibleText?: string;
   children: React.ReactNode;
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
@@ -37,8 +47,10 @@ export function SummaryHover({
 
   const sourceText = (summary ?? '').trim();
   const fallbackText = (fallback ?? '').trim();
-  const visible = (text: string) =>
-    typeof children === 'string' ? text === children.trim() : false;
+  const visible = (text: string) => {
+    if (typeof visibleText === 'string') return text === visibleText.trim();
+    return typeof children === 'string' ? text === children.trim() : false;
+  };
 
   const showText = sourceText
     ? sourceText

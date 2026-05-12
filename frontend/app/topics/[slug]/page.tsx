@@ -1,22 +1,33 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { AnnotatedText } from '@/components/AnnotatedText';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
+import { GroupBadge } from '@/components/GroupBadge';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
 import { SummaryHover } from '@/components/SummaryHover';
+import { TopicGroupFilter } from '@/components/TopicGroupFilter';
 import { Tooltip } from '@/components/Tooltip';
 import {
   api,
   ApiError,
   type Initiative,
+  type ParliamentaryGroupSummary,
   type ScheduledAgendaItem,
   type Topic,
 } from '@/lib/api';
 import { glossaryShort, pickPlainSummary, typeLabelCa } from '@/lib/glossary';
+import { displayGroupShort, parseProposer, type ParsedProposer } from '@/lib/groups';
 
 interface Params {
   slug: string;
+}
+
+interface SearchParams {
+  subset?: string;
+  group?: string;
 }
 
 const STATUS_KEY: Record<string, string> = {
@@ -40,15 +51,25 @@ const STATUS_COLOR: Record<string, string> = {
 const PENDING_STATUSES = new Set(['submitted', 'in_debate']);
 const VOTED_STATUSES = new Set(['approved', 'rejected']);
 
+type Subset = 'pending' | 'voted';
+
 export default async function TopicDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
 }) {
   const { slug } = await params;
+  const sp = await searchParams;
   const t = await getTranslations('topic');
   const tStats = await getTranslations('stats');
   const locale = await getLocale();
+
+  // URL-bound UI state. Both default to safe values so a bare URL still
+  // renders sensibly, and bookmarks / shareable links round-trip cleanly.
+  const subset: Subset = sp.subset === 'voted' ? 'voted' : 'pending';
+  const groupFilter = (sp.group ?? '').trim();
 
   let topic: Topic;
   try {
@@ -58,17 +79,39 @@ export default async function TopicDetailPage({
     throw e;
   }
 
-  const [initiatives, upcomingAgenda, topicGlobals] = await Promise.all([
+  const [initiatives, upcomingAgenda, topicGlobals, groups] = await Promise.all([
     api.topics.initiatives(slug, { legislature_id: 1 }),
     api.agenda.itemsByTopic(slug).catch(() => [] as ScheduledAgendaItem[]),
     api.stats.topicsGlobal().catch(() => []),
+    api.groups.list(1).catch(() => [] as ParliamentaryGroupSummary[]),
   ]);
 
-  const pending = initiatives.filter((i) => PENDING_STATUSES.has(i.status));
-  const voted = initiatives.filter((i) => VOTED_STATUSES.has(i.status));
+  // Pre-resolve the proposer parse per initiative once. Used both for the
+  // group filter (matching) and for rendering badges in the row. Keeps the
+  // O(n*m) name_long substring work out of the render hot path.
+  const parsedByInitiative = new Map<number, ParsedProposer>();
+  for (const it of initiatives) {
+    parsedByInitiative.set(it.id, parseProposer(it.submitted_by, groups));
+  }
+
+  const matchesGroupFilter = (init: Initiative): boolean => {
+    if (groupFilter === '') return true;
+    if (groupFilter === 'govern') {
+      return parsedByInitiative.get(init.id)?.isGovernment === true;
+    }
+    return (
+      parsedByInitiative.get(init.id)?.groups.some((g) => g.slug === groupFilter) ?? false
+    );
+  };
+
+  const pendingAll = initiatives.filter((i) => PENDING_STATUSES.has(i.status));
+  const votedAll = initiatives.filter((i) => VOTED_STATUSES.has(i.status));
   const otherTerminal = initiatives.filter(
     (i) => !PENDING_STATUSES.has(i.status) && !VOTED_STATUSES.has(i.status),
   );
+  const pending = pendingAll.filter(matchesGroupFilter);
+  const voted = votedAll.filter(matchesGroupFilter);
+
   const approved = initiatives.filter((i) => i.status === 'approved').length;
   const rejected = initiatives.filter((i) => i.status === 'rejected').length;
   const decided = approved + rejected;
@@ -89,7 +132,30 @@ export default async function TopicDetailPage({
 
   // Use the global stats as a fallback if our per-page initiatives count
   // diverges (e.g., during ingestion).
-  const topicGlobal = topicGlobals.find((g) => g.topic_slug === slug);
+  const _topicGlobal = topicGlobals.find((g) => g.topic_slug === slug);
+  void _topicGlobal;
+
+  // The active list and its empty-state copy depend on which subset tab the
+  // user is currently viewing. Keeping these locals keeps the JSX below
+  // declarative and avoids repeating the branching in three places.
+  const activeList = subset === 'voted' ? voted : pending;
+  const totalForSubset = subset === 'voted' ? votedAll.length : pendingAll.length;
+  const emptyNoFilter = subset === 'voted' ? t('no_votes_yet') : t('no_pending_in_topic');
+  const emptyWithFilter =
+    subset === 'voted' ? t('no_voted_with_filter') : t('no_pending_with_filter');
+
+  // Build a URL-builder for the subset segmented control. Preserves the
+  // current `?group=` so flipping subset doesn't drop the filter.
+  const buildSubsetHref = (s: Subset): Route => {
+    const qs = new URLSearchParams();
+    qs.set('subset', s);
+    if (groupFilter) qs.set('group', groupFilter);
+    return `/topics/${slug}?${qs.toString()}` as Route;
+  };
+  const clearGroupHref: Route =
+    (subset === 'voted'
+      ? `/topics/${slug}?subset=voted`
+      : `/topics/${slug}`) as Route;
 
   return (
     <article>
@@ -123,7 +189,7 @@ export default async function TopicDetailPage({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
             borderTop: '1px solid var(--rule)',
             marginTop: 18,
           }}
@@ -135,12 +201,12 @@ export default async function TopicDetailPage({
           </div>
           <div className="kpi">
             <span className="label">{t('kpi_not_yet_voted')}</span>
-            <span className="value tabular">{pending.length}</span>
+            <span className="value tabular">{pendingAll.length}</span>
             <span className="sub">{t('kpi_submitted_or_in_debate')}</span>
           </div>
           <div className="kpi">
             <span className="label">{t('kpi_already_voted')}</span>
-            <span className="value tabular">{voted.length}</span>
+            <span className="value tabular">{votedAll.length}</span>
             <span className="sub">{t('kpi_approved_or_rejected')}</span>
           </div>
         </div>
@@ -187,7 +253,7 @@ export default async function TopicDetailPage({
               {t('approved_rejected_pending', {
                 approved,
                 rejected,
-                pending: pending.length,
+                pending: pendingAll.length,
               })}
             </div>
 
@@ -314,15 +380,96 @@ export default async function TopicDetailPage({
         `}</style>
       </section>
 
-      {/* Pending — what's still in motion */}
-      <section style={{ paddingTop: 28 }}>
+      {/* Initiatives — unified section with a subset segmented control and
+          a group-proposer filter. Replaces the two static lists. */}
+      <section style={{ paddingTop: 32 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>
-          {t('pending_section_title')}
+          {t('initiatives_section_title')}
         </div>
-        <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 0, marginBottom: 12 }}>
-          {t('pending_section_intro')}
-        </p>
-        {upcomingAgenda.length > 0 && (
+
+        {/* Segmented buttons: per votar / votades. URL-driven so it works
+            without client JS and is shareable. */}
+        <div
+          role="tablist"
+          aria-label={t('subset_tablist_aria')}
+          style={{
+            display: 'inline-flex',
+            border: '1px solid var(--rule-strong)',
+            borderRadius: 999,
+            padding: 2,
+            background: 'var(--paper-2)',
+            marginTop: 4,
+            marginBottom: 14,
+          }}
+        >
+          {(
+            [
+              { key: 'pending' as const, label: t('subset_pending'), count: pendingAll.length },
+              { key: 'voted' as const, label: t('subset_voted'), count: votedAll.length },
+            ]
+          ).map((opt) => {
+            const isActive = subset === opt.key;
+            return (
+              <Link
+                key={opt.key}
+                href={buildSubsetHref(opt.key)}
+                role="tab"
+                aria-selected={isActive}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  textDecoration: 'none',
+                  fontSize: 13,
+                  fontWeight: isActive ? 600 : 500,
+                  background: isActive ? 'var(--ink)' : 'transparent',
+                  color: isActive ? 'var(--paper)' : 'var(--ink-2)',
+                  transition: 'background-color .12s ease, color .12s ease',
+                }}
+              >
+                <span>{opt.label}</span>
+                <span
+                  className="tabular"
+                  style={{
+                    fontSize: 11,
+                    opacity: isActive ? 0.85 : 0.6,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {opt.count}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Group filter row — combobox + active-filter feedback. The
+            combobox writes to a hidden input named ``group``; the form
+            preserves the current subset so submitting doesn't reset it.
+            Client-side filtering happens above (we just re-read the URL on
+            submit). */}
+        <TopicGroupFilter
+          slug={slug}
+          subset={subset}
+          groups={groups}
+          value={groupFilter}
+          labels={{
+            label: t('filter_group_label'),
+            placeholder: t('filter_group_placeholder'),
+            clearLabel: t('filter_group_clear'),
+            ariaLabel: t('filter_group_label'),
+            governmentLabel: t('proposer_government_label'),
+            countLabel: t('filter_results_count', { count: activeList.length }),
+            totalLabel: t('filter_results_count', { count: totalForSubset }),
+            clearCta: t('clear_filter_cta'),
+          }}
+          clearHref={clearGroupHref}
+        />
+
+        {/* Agenda banner only meaningful while looking at pending */}
+        {subset === 'pending' && upcomingAgenda.length > 0 && (
           <div
             style={{
               padding: '10px 14px',
@@ -340,85 +487,79 @@ export default async function TopicDetailPage({
             })}
           </div>
         )}
-        {pending.length === 0 ? (
+
+        {activeList.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-            {t('no_pending_in_topic')}
+            {groupFilter ? emptyWithFilter : emptyNoFilter}
           </p>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {pending.slice(0, 30).map((i) => (
+            {activeList.slice(0, 30).map((i) => (
               <InitiativeRow
                 key={i.id}
                 initiative={i}
+                parsed={parsedByInitiative.get(i.id) ?? { isGovernment: false, groups: [], raw: (i.submitted_by ?? '').trim() }}
                 locale={locale}
                 tStats={tStats}
+                governmentLabel={t('proposer_government_label')}
+                moreGroupsLabel={(n: number) => t('proposer_more_groups', { count: n })}
               />
             ))}
-            {pending.length > 30 && (
+            {activeList.length > 30 && (
               <li style={{ padding: '12px 0', fontSize: 12, color: 'var(--ink-3)' }}>
-                {t('more_via_api', { count: pending.length - 30 })}
+                {subset === 'pending'
+                  ? t('more_via_api', { count: activeList.length - 30 })
+                  : t('more_initiatives', { count: activeList.length - 30 })}
               </li>
             )}
           </ul>
         )}
       </section>
 
-      {/* Voted — approved or rejected */}
-      <section style={{ paddingTop: 32 }}>
-        <div className="eyebrow" style={{ marginBottom: 6 }}>
-          {t('voted_section_title')}
-        </div>
-        {voted.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_votes_yet')}</p>
-        ) : (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {voted.slice(0, 30).map((i) => (
-              <InitiativeRow
-                key={i.id}
-                initiative={i}
-                locale={locale}
-                tStats={tStats}
-              />
-            ))}
-            {voted.length > 30 && (
-              <li style={{ padding: '12px 0', fontSize: 12, color: 'var(--ink-3)' }}>
-                {t('more_initiatives', { count: voted.length - 30 })}
-              </li>
-            )}
-          </ul>
-        )}
-      </section>
-
-      {/* Terminal but not voted: withdrawn / expired */}
-      {otherTerminal.length > 0 && (
-        <section style={{ paddingTop: 32 }}>
-          <div className="eyebrow" style={{ marginBottom: 6 }}>
-            {t('withdrawn_expired_title')}
-          </div>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {otherTerminal.slice(0, 20).map((i) => (
-              <InitiativeRow
-                key={i.id}
-                initiative={i}
-                locale={locale}
-                tStats={tStats}
-              />
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Terminal but not voted: withdrawn / expired — group filter still
+          applies, hidden entirely if there's nothing to show. */}
+      {otherTerminal.length > 0 && (() => {
+        const filteredTerminal = otherTerminal.filter(matchesGroupFilter);
+        if (filteredTerminal.length === 0) return null;
+        return (
+          <section style={{ paddingTop: 32 }}>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>
+              {t('withdrawn_expired_title')}
+            </div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {filteredTerminal.slice(0, 20).map((i) => (
+                <InitiativeRow
+                  key={i.id}
+                  initiative={i}
+                  parsed={parsedByInitiative.get(i.id) ?? { isGovernment: false, groups: [], raw: (i.submitted_by ?? '').trim() }}
+                  locale={locale}
+                  tStats={tStats}
+                  governmentLabel={t('proposer_government_label')}
+                  moreGroupsLabel={(n: number) => t('proposer_more_groups', { count: n })}
+                />
+              ))}
+            </ul>
+          </section>
+        );
+      })()}
     </article>
   );
 }
 
 function InitiativeRow({
   initiative,
+  parsed,
   locale,
   tStats,
+  governmentLabel,
+  moreGroupsLabel,
 }: {
   initiative: Initiative;
+  parsed: ParsedProposer;
   locale: string;
   tStats: Awaited<ReturnType<typeof getTranslations<'stats'>>>;
+  governmentLabel: string;
+  moreGroupsLabel: (n: number) => string;
 }) {
   const submittedDate = initiative.submitted_at
     ? new Date(initiative.submitted_at)
@@ -459,10 +600,6 @@ function InitiativeRow({
           padding: '14px 0',
           display: 'grid',
           gap: 14,
-          // Mobile: 2-col [date | content]; desktop: 3-col [date | content | status]
-          // The desktop status cell is also rendered but `hidden sm:flex` so it
-          // only participates in the layout once the breakpoint kicks in. The
-          // grid columns are set via inline + a media query in <style>.
           gridTemplateColumns: 'minmax(56px, max-content) minmax(0, 1fr)',
           alignItems: 'baseline',
         }}
@@ -481,34 +618,48 @@ function InitiativeRow({
         </span>
         <div style={{ minWidth: 0 }}>
           {/* Desktop metadata row — kept above the title for a scannable
-              "type · proposer" lead. Hidden on mobile to declutter. */}
+              "type · proposer-badges" lead. Hidden on mobile to declutter. */}
           <span
-            className="hidden sm:inline"
-            style={{ fontSize: 11, color: 'var(--ink-3)' }}
+            className="hidden sm:inline-flex"
+            style={{
+              fontSize: 11,
+              color: 'var(--ink-3)',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: 'wrap',
+              maxWidth: '100%',
+              minWidth: 0,
+            }}
           >
             <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
-            {initiative.submitted_by ? (
-              <>
-                {' · '}
-                <ProposerEllipsis text={initiative.submitted_by} />
-              </>
-            ) : ''}
+            {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
+              <span aria-hidden="true">·</span>
+            )}
+            <ProposerBadges
+              parsed={parsed}
+              governmentLabel={governmentLabel}
+              moreGroupsLabel={moreGroupsLabel}
+              rawFallback={initiative.submitted_by ?? ''}
+            />
           </span>
           <div
             className="line-clamp-2 sm:line-clamp-3"
-            style={{ fontSize: 14, lineHeight: 1.4, marginTop: 2, color: 'var(--ink)' }}
+            style={{ fontSize: 14, lineHeight: 1.4, marginTop: 4, color: 'var(--ink)' }}
           >
             <SummaryHover
               summary={plainSummary}
               fallback={initiative.summary ?? undefined}
               provider={initiative.plain_summary_provider}
+              visibleText={initiative.title_original}
             >
-              {initiative.title_original}
+              {/* Wrap Senate / lectura única / convalidación in tooltips
+                  inline so users get the definition where the jargon sits. */}
+              <AnnotatedText text={initiative.title_original} />
             </SummaryHover>
           </div>
-          {/* Mobile attribution line — type · proposer · colored status,
-              all baseline-aligned beneath the title. Mirrors the votes
-              page mobile pattern so the visual rhythm is consistent. */}
+          {/* Mobile attribution line — type · proposer-badges · status. The
+              status text is inline (no separate badge column) so the row is
+              still scannable at narrow widths. */}
           <div
             className="sm:hidden"
             style={{
@@ -525,10 +676,15 @@ function InitiativeRow({
             <span>
               <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
             </span>
-            {initiative.submitted_by && (
+            {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
               <>
                 <span aria-hidden="true">·</span>
-                <ProposerEllipsis text={initiative.submitted_by} />
+                <ProposerBadges
+                  parsed={parsed}
+                  governmentLabel={governmentLabel}
+                  moreGroupsLabel={moreGroupsLabel}
+                  rawFallback={initiative.submitted_by ?? ''}
+                />
               </>
             )}
             <span aria-hidden="true">·</span>
@@ -536,12 +692,14 @@ function InitiativeRow({
               {statusLabel}
             </span>
           </div>
-          <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, display: 'inline-block' }}>
+          <span
+            className="mono"
+            style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, display: 'inline-block' }}
+          >
             {initiative.official_id}
           </span>
         </div>
-        {/* Desktop-only status badge column. Hidden on mobile because the
-            status text appears inline in the attribution line above. */}
+        {/* Desktop-only status badge column. */}
         <span
           className="hidden sm:inline-flex"
           style={{ alignItems: 'center', justifyContent: 'flex-end' }}
@@ -561,5 +719,124 @@ function InitiativeRow({
         </span>
       </a>
     </li>
+  );
+}
+
+const MAX_BADGES = 3;
+
+/**
+ * Render the proposer of an initiative as one or more :file:`GroupBadge`s
+ * plus the group's short name (no "GP " prefix). Government-sponsored
+ * initiatives render as a neutral grey disc labelled "Govern" / "Gobierno"
+ * / "Government" depending on the active locale.
+ *
+ * When the parser couldn't resolve any known group (rare — usually
+ * truly-novel free-text), we fall back to the raw string passed through
+ * :file:`ProposerEllipsis` so we never silently drop a non-empty value.
+ */
+function ProposerBadges({
+  parsed,
+  governmentLabel,
+  moreGroupsLabel,
+  rawFallback,
+}: {
+  parsed: ParsedProposer;
+  governmentLabel: string;
+  moreGroupsLabel: (n: number) => string;
+  rawFallback: string;
+}) {
+  if (parsed.isGovernment) {
+    return (
+      <span
+        className="badge"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontWeight: 600,
+          color: 'var(--ink-2)',
+          background: 'var(--paper-2)',
+          borderColor: 'var(--rule-strong)',
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-block',
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: '#9ca3af',
+          }}
+        />
+        {governmentLabel}
+      </span>
+    );
+  }
+
+  if (parsed.groups.length === 0) {
+    // Unknown / unparseable. Surface the raw text rather than nothing.
+    if (rawFallback.trim() === '') return null;
+    return <ProposerEllipsis text={rawFallback} />;
+  }
+
+  const visible = parsed.groups.slice(0, MAX_BADGES);
+  const overflow = parsed.groups.length - visible.length;
+
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        flexWrap: 'wrap',
+        minWidth: 0,
+      }}
+    >
+      {visible.map((g, i) => (
+        <span
+          key={g.slug}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            minWidth: 0,
+          }}
+        >
+          <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} />
+          {/* Only show the readable name for the first 1-2 badges to keep
+              co-signed proposals visually compact. The badge's letters
+              already convey identity for the rest. */}
+          {i < 2 && (
+            <span
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-2)',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: 110,
+              }}
+            >
+              {displayGroupShort(g.name_short)}
+            </span>
+          )}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span
+          className="badge"
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            color: 'var(--ink-2)',
+            background: 'var(--paper-2)',
+          }}
+        >
+          {moreGroupsLabel(overflow)}
+        </span>
+      )}
+    </span>
   );
 }

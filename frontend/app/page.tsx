@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 
+import { AnnotatedText } from '@/components/AnnotatedText';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
@@ -409,8 +410,13 @@ function CompactVoteRow({
               summary={plainSummary}
               fallback={v.description ?? undefined}
               provider={v.plain_summary_provider}
+              visibleText={subject}
             >
-              {subject}
+              {/* Inline glossary annotation for parliamentary jargon in
+                  the vote subject (e.g. "Veto del Senado",
+                  "Convalidación"). Falls through to plain text when no
+                  term matches. */}
+              <AnnotatedText text={subject} />
             </SummaryHover>
           </div>
           <div

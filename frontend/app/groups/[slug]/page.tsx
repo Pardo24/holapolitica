@@ -313,7 +313,7 @@ function MembersSection({
           margin: '12px 0 0',
           padding: 0,
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))',
           gap: 8,
         }}
       >
@@ -342,7 +342,7 @@ function MembersSection({
               marginTop: 12,
               padding: 0,
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))',
               gap: 8,
             }}
           >

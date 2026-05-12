@@ -146,6 +146,80 @@ export function groupAbbreviation(slug: string | null | undefined): string {
  * background. We use a simplified WCAG luminance threshold — good enough
  * for the muted palette in migration 0006.
  */
+/**
+ * Parse a free-text initiative ``submitted_by`` string and resolve which
+ * parliamentary groups appear in it. The Congreso feed publishes proposers
+ * verbatim — most commonly as a single group's full procedural name
+ * (e.g. ``"Grupo Parlamentario Popular en el Congreso"``), but occasionally
+ * as several groups joined with commas / "y" / "and" for co-signed
+ * initiatives. Government bills come through as ``"Gobierno"`` (or a near
+ * variant).
+ *
+ * Strategy: case-insensitive substring match against each group's
+ * ``name_long`` (which is what the feed itself uses). Mirrors the backend's
+ * ``resolve_proposing_group`` heuristic but returns *all* matches instead of
+ * just the longest, so co-signed proposals can render multiple badges.
+ *
+ * Government detection runs separately: if the trimmed string starts with
+ * "Gobierno" / "Govern" we flag it (the UI renders a neutral grey "Govern"
+ * badge instead of any party badge).
+ *
+ * Returns a typed shape so the caller can pick the rendering:
+ *   - ``isGovernment``: government-proposed (cabinet, not a party group)
+ *   - ``groups``: ordered list of matched groups (deduped)
+ *   - ``raw``: the original input, trimmed — fallback when nothing matches
+ */
+export interface ParsedProposer {
+  isGovernment: boolean;
+  groups: { slug: string; color_hex: string | null; name_short: string }[];
+  raw: string;
+}
+
+export function parseProposer(
+  submittedBy: string | null | undefined,
+  knownGroups: Array<{
+    slug: string;
+    color_hex: string | null;
+    name_short: string;
+    name_long: string;
+  }>,
+): ParsedProposer {
+  const raw = (submittedBy ?? '').trim();
+  if (raw === '') {
+    return { isGovernment: false, groups: [], raw };
+  }
+  const lower = raw.toLowerCase();
+  // Government — recognised in the two main UI languages plus the Catalan
+  // form "Govern" the project uses in its own labelling.
+  const isGovernment =
+    /^(gobierno|govern|government)\b/i.test(raw) || lower === 'gobierno';
+
+  // Match each known group whose name_long appears as a substring. Sort
+  // matches longest-name-first so "Vasco (EAJ-PNV)" beats "Vasco" when both
+  // would match. Dedupe by slug.
+  const matches = knownGroups
+    .filter((g) => g.name_long && lower.includes(g.name_long.toLowerCase()))
+    .sort((a, b) => b.name_long.length - a.name_long.length);
+  const seen = new Set<string>();
+  const groups: ParsedProposer['groups'] = [];
+  for (const g of matches) {
+    if (seen.has(g.slug)) continue;
+    // Skip overlapping shorter matches — if a longer name already covered
+    // the same span (e.g. "Grupo Parlamentario Vasco (EAJ-PNV)" before
+    // "Grupo Parlamentario Vasco"), the shorter one is redundant.
+    if (groups.some((picked) => picked.name_short.includes(g.name_short))) {
+      continue;
+    }
+    seen.add(g.slug);
+    groups.push({
+      slug: g.slug,
+      color_hex: g.color_hex,
+      name_short: g.name_short,
+    });
+  }
+  return { isGovernment, groups, raw };
+}
+
 export function readableTextOn(bg: string | null | undefined): string {
   if (!bg) return '#111827';
   const hex = bg.replace('#', '');

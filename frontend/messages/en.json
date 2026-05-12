@@ -330,7 +330,20 @@
     "more_via_api": "+ {count} more initiatives · available via API",
     "voted_section_title": "Already voted · approved or rejected",
     "more_initiatives": "+ {count} more initiatives",
-    "withdrawn_expired_title": "Withdrawn or expired"
+    "withdrawn_expired_title": "Withdrawn or expired",
+    "initiatives_section_title": "Initiatives on this topic",
+    "subset_pending": "Pending",
+    "subset_voted": "Voted",
+    "subset_tablist_aria": "Filter initiatives by their status",
+    "filter_group_label": "Proposing group",
+    "filter_group_placeholder": "Filter by proposing group…",
+    "filter_group_clear": "None (all groups)",
+    "filter_results_count": "{count, plural, =0 {No initiatives match this filter} =1 {1 initiative} other {# initiatives}}",
+    "proposer_government_label": "Government",
+    "proposer_more_groups": "+{count} more",
+    "no_pending_with_filter": "No pending initiative on this topic with the current filter.",
+    "no_voted_with_filter": "No voted initiative on this topic with the current filter.",
+    "clear_filter_cta": "× Clear filter"
   },
   "stats": {
     "title": "Statistics",
@@ -470,7 +483,17 @@
     "Esmena": "Amendment proposed to a text in the pipeline, before the final vote.",
     "Tramitació en lectura única": "Fast-track procedure — no committee stage, debated directly in plenary.",
     "Quòrum": "Minimum attendance required for a vote to be valid.",
-    "Veto del Senat": "Senate's rejection of a law passed by Congress — only binding if the Senate approves the veto by absolute majority."
+    "Veto del Senat": "Senate's rejection of a law passed by Congress — only binding if the Senate approves the veto by absolute majority.",
+    "Veto del Senado": "Senate's rejection of a law passed by Congress. Congress can override it with an absolute majority.",
+    "Esmena del Senat": "Amendment made by the Senate to a bill already passed by Congress. The bill returns to Congress for a final reconciliation vote.",
+    "Enmienda del Senado": "Amendment made by the Senate to a bill already passed by Congress. The bill returns to Congress for a final reconciliation vote.",
+    "Lectura única": "Fast-track procedure — the text goes straight to plenary debate, with no committee stage.",
+    "Avocació al ple": "The plenary of Congress takes over the final vote on a bill that was sitting in a legislative committee.",
+    "Avocación al pleno": "The plenary of Congress takes over the final vote on a bill that was sitting in a legislative committee.",
+    "Convalidació": "Congress's decision to uphold a government Real Decreto-ley within the 30-day window. Without ratification the decree lapses.",
+    "Convalidación": "Congress's decision to uphold a government Real Decreto-ley within the 30-day window. Without ratification the decree lapses.",
+    "Derogació": "Congress's decision to repeal a government Real Decreto-ley within the 30-day window — the decree becomes void.",
+    "Derogación": "Congress's decision to repeal a government Real Decreto-ley within the 30-day window — the decree becomes void."
   },
   "newsletter": {
     "signup_eyebrow": "Weekly newsletter",
@@ -528,6 +551,7 @@
     "highlights_paused": "paused",
     "highlights_rotating": "rotating",
     "highlights_cast_caption": "across {count} votes cast on this topic",
+    "highlights_temporality": "15th legislature · since Aug 2023",
     "state_eyebrow": "Initiatives · global state",
     "state_info": "Total initiatives filed in the chamber, broken down by current status. Filter by topic to see it by area.",
     "state_initiatives_at_plenary": "initiatives in plenary",

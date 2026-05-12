@@ -330,7 +330,20 @@
     "more_via_api": "+ {count} iniciatives més · disponibles via API",
     "voted_section_title": "Ja votades · aprovades o rebutjades",
     "more_initiatives": "+ {count} iniciatives més",
-    "withdrawn_expired_title": "Retirades o caducades"
+    "withdrawn_expired_title": "Retirades o caducades",
+    "initiatives_section_title": "Iniciatives en aquest tema",
+    "subset_pending": "Per votar",
+    "subset_voted": "Votades",
+    "subset_tablist_aria": "Filtra les iniciatives pel seu estat",
+    "filter_group_label": "Grup proposant",
+    "filter_group_placeholder": "Filtra per grup proposant…",
+    "filter_group_clear": "Cap (tots els grups)",
+    "filter_results_count": "{count, plural, =0 {Cap iniciativa amb aquest filtre} =1 {1 iniciativa} other {# iniciatives}}",
+    "proposer_government_label": "Govern",
+    "proposer_more_groups": "+{count} més",
+    "no_pending_with_filter": "Cap iniciativa pendent en aquest tema amb el filtre actual.",
+    "no_voted_with_filter": "Cap iniciativa votada en aquest tema amb el filtre actual.",
+    "clear_filter_cta": "× Neteja el filtre"
   },
   "stats": {
     "title": "Estadístiques",
@@ -470,7 +483,17 @@
     "Esmena": "Modificació proposada a un text en tramitació, abans de la votació final.",
     "Tramitació en lectura única": "Tramitació accelerada — sense passar per comissió, debat directe al ple.",
     "Quòrum": "Mínim d'assistència per a què una votació sigui vàlida.",
-    "Veto del Senat": "Rebuig del Senat a una llei aprovada al Congrés — només revesteix força si el Senat l'aprova per majoria absoluta."
+    "Veto del Senat": "Rebuig del Senat a una llei aprovada al Congrés — només revesteix força si el Senat l'aprova per majoria absoluta.",
+    "Veto del Senado": "Rebuig del Senat a una llei aprovada al Congrés. El Congrés el pot aixecar per majoria absoluta.",
+    "Esmena del Senat": "Modificació feta pel Senat a un projecte de llei que ja havia aprovat el Congrés. Torna al Congrés per a una votació final de reconciliació.",
+    "Enmienda del Senado": "Modificació feta pel Senat a un projecte de llei que ja havia aprovat el Congrés. Torna al Congrés per a una votació final de reconciliació.",
+    "Lectura única": "Tramitació accelerada — el text va directament al debat al ple, sense fase de comissió.",
+    "Avocació al ple": "El ple del Congrés assumeix la votació final d'un projecte que estava en una comissió legislativa.",
+    "Avocación al pleno": "El ple del Congrés assumeix la votació final d'un projecte que estava en una comissió legislativa.",
+    "Convalidació": "Acord del Congrés acceptant un Reial Decret-llei del Govern dins del termini de 30 dies. Sense convalidació el decret decau.",
+    "Convalidación": "Acord del Congrés acceptant un Reial Decret-llei del Govern dins del termini de 30 dies. Sense convalidació el decret decau.",
+    "Derogació": "Acord del Congrés rebutjant un Reial Decret-llei del Govern dins del termini de 30 dies — el decret queda sense efecte.",
+    "Derogación": "Acord del Congrés rebutjant un Reial Decret-llei del Govern dins del termini de 30 dies — el decret queda sense efecte."
   },
   "newsletter": {
     "signup_eyebrow": "Newsletter setmanal",
@@ -528,6 +551,7 @@
     "highlights_paused": "pausat",
     "highlights_rotating": "rotant",
     "highlights_cast_caption": "sobre {count} vots emesos en aquest tema",
+    "highlights_temporality": "XV legislatura · des d'agost 2023",
     "state_eyebrow": "Iniciatives · estat global",
     "state_info": "Total d'iniciatives presentades a la cambra, repartides per estat actual. Filtra per tema per veure-ho per àrea.",
     "state_initiatives_at_plenary": "iniciatives al ple",

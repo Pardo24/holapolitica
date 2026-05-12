@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupChip } from '@/components/GroupChip';
 import { ResultPill } from '@/components/ResultPill';
@@ -129,7 +130,11 @@ export default async function VoteDetailPage({
           className="h-headline"
           style={{ margin: 0, fontSize: 'clamp(24px, 3.4vw, 36px)', maxWidth: 980, whiteSpace: 'pre-line' }}
         >
-          {subject}
+          {/* Wrap parliamentary jargon ("Veto del Senado", "Convalidación", …)
+              in a glossary tooltip. The helper preserves the source casing
+              from the Congreso feed and falls back to plain text when no
+              term matches. */}
+          <AnnotatedText text={subject} />
         </h1>
         <div
           className="vote-meta-strip"

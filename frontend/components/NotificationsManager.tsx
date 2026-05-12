@@ -298,7 +298,7 @@ export function NotificationsManager({ topics }: Props) {
           margin: '16px 0 0',
           padding: 0,
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))',
           gap: 8,
         }}
       >
@@ -1111,7 +1111,7 @@ function TopicSectionAccordion({
             margin: 0,
             padding: 0,
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))',
             gap: 6,
           }}
         >

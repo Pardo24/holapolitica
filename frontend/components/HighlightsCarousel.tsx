@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { Route } from 'next';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -92,11 +93,15 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
     >
       <div
         style={{
-          padding: '20px 22px',
+          padding: 0,
           minHeight: 180,
         }}
       >
-        <HighlightCard h={current} castCaption={t('highlights_cast_caption', { count: current.cast_total })} />
+        <HighlightCard
+          h={current}
+          castCaption={t('highlights_cast_caption', { count: current.cast_total })}
+          temporalityCaption={t('highlights_temporality')}
+        />
       </div>
 
       {/* Controls */}
@@ -178,7 +183,10 @@ const btnStyle: React.CSSProperties = {
   fontSize: 12,
   color: 'var(--ink-2)',
   cursor: 'pointer',
-  padding: '4px 8px',
+  // 44px hit target — the carousel sits in a 1-row footer where the
+  // larger padding reads well across desktop and touch.
+  padding: '10px 12px',
+  minHeight: 44,
   fontFamily: 'inherit',
   maxWidth: '40%',
   overflow: 'hidden',
@@ -186,11 +194,36 @@ const btnStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-function HighlightCard({ h, castCaption }: { h: Highlight; castCaption: string }) {
+function HighlightCard({
+  h,
+  castCaption,
+  temporalityCaption,
+}: {
+  h: Highlight;
+  castCaption: string;
+  temporalityCaption: string;
+}) {
   const pct = Math.round(h.pct * 100);
   const color = KIND_COLOR[h.kind];
+  // The card links into the topic detail page, pre-filtered by this group.
+  // The topic page reads `?group=<slug>` and applies it as a client-side
+  // proposer filter — see :file:`app/topics/[slug]/page.tsx`.
+  const href =
+    `/topics/${h.topic_slug}?group=${encodeURIComponent(h.group_slug)}` as Route;
   return (
-    <div>
+    <Link
+      href={href}
+      className="highlights-card-link"
+      aria-label={`${displayGroupShort(h.group_name_short)} · ${highlightHeadline(h)} · ${h.topic_name_ca}`}
+      style={{
+        display: 'block',
+        padding: '20px 22px',
+        textDecoration: 'none',
+        color: 'inherit',
+        background: 'transparent',
+        transition: 'background-color .15s ease, box-shadow .15s ease',
+      }}
+    >
       <div
         style={{
           display: 'flex',
@@ -201,13 +234,11 @@ function HighlightCard({ h, castCaption }: { h: Highlight; castCaption: string }
         }}
       >
         <GroupBadge slug={h.group_slug} color={h.group_color_hex} size="xs" link={false} />
-        <Link
-          href={`/groups/${h.group_slug}`}
+        <span
           style={{
             fontSize: 13,
             fontWeight: 600,
             color: 'var(--ink)',
-            textDecoration: 'none',
             minWidth: 0,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -216,7 +247,7 @@ function HighlightCard({ h, castCaption }: { h: Highlight; castCaption: string }
           }}
         >
           {displayGroupShort(h.group_name_short)}
-        </Link>
+        </span>
         <span
           className="eyebrow"
           style={{
@@ -253,15 +284,13 @@ function HighlightCard({ h, castCaption }: { h: Highlight; castCaption: string }
           <span style={{ fontSize: 22, marginLeft: 2 }}>%</span>
         </div>
         <div style={{ minWidth: 0 }}>
-          <Link
-            href={`/topics/${h.topic_slug}`}
+          <span
             className="serif"
             style={{
               fontSize: 18,
               lineHeight: 1.25,
               fontWeight: 600,
               color: 'var(--ink)',
-              textDecoration: 'none',
               display: 'block',
               wordBreak: 'break-word',
             }}
@@ -279,12 +308,34 @@ function HighlightCard({ h, castCaption }: { h: Highlight; castCaption: string }
               }}
             />
             {h.topic_name_ca}
-          </Link>
+          </span>
           <p style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>
             {castCaption}
           </p>
+          {/* Temporality footnote — all our data is XV-legislature bound, so
+              every card is honest about that scope rather than implying an
+              all-time figure. Muted so it doesn't compete with the stat. */}
+          <p
+            className="tabular"
+            style={{
+              fontSize: 10,
+              color: 'var(--ink-3)',
+              marginTop: 2,
+              letterSpacing: '0.02em',
+            }}
+          >
+            {temporalityCaption}
+          </p>
         </div>
       </div>
-    </div>
+      <style>{`
+        .highlights-card-link:hover,
+        .highlights-card-link:focus-visible {
+          background: var(--paper);
+          box-shadow: inset 0 0 0 1px var(--rule-strong);
+          outline: none;
+        }
+      `}</style>
+    </Link>
   );
 }

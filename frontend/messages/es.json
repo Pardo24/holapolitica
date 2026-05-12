@@ -330,7 +330,20 @@
     "more_via_api": "+ {count} iniciativas más · disponibles vía API",
     "voted_section_title": "Ya votadas · aprobadas o rechazadas",
     "more_initiatives": "+ {count} iniciativas más",
-    "withdrawn_expired_title": "Retiradas o caducadas"
+    "withdrawn_expired_title": "Retiradas o caducadas",
+    "initiatives_section_title": "Iniciativas en este tema",
+    "subset_pending": "Por votar",
+    "subset_voted": "Votadas",
+    "subset_tablist_aria": "Filtra las iniciativas por su estado",
+    "filter_group_label": "Grupo proponente",
+    "filter_group_placeholder": "Filtra por grupo proponente…",
+    "filter_group_clear": "Ninguno (todos los grupos)",
+    "filter_results_count": "{count, plural, =0 {Ninguna iniciativa con este filtro} =1 {1 iniciativa} other {# iniciativas}}",
+    "proposer_government_label": "Gobierno",
+    "proposer_more_groups": "+{count} más",
+    "no_pending_with_filter": "Ninguna iniciativa pendiente en este tema con el filtro actual.",
+    "no_voted_with_filter": "Ninguna iniciativa votada en este tema con el filtro actual.",
+    "clear_filter_cta": "× Borrar filtro"
   },
   "stats": {
     "title": "Estadísticas",
@@ -470,7 +483,17 @@
     "Esmena": "Modificación propuesta a un texto en tramitación, antes de la votación final.",
     "Tramitació en lectura única": "Tramitación acelerada — sin pasar por comisión, debate directo en el pleno.",
     "Quòrum": "Mínimo de asistencia para que una votación sea válida.",
-    "Veto del Senat": "Rechazo del Senado a una ley aprobada en el Congreso — solo tiene fuerza si el Senado lo aprueba por mayoría absoluta."
+    "Veto del Senat": "Rechazo del Senado a una ley aprobada en el Congreso — solo tiene fuerza si el Senado lo aprueba por mayoría absoluta.",
+    "Veto del Senado": "Rechazo del Senado a una ley aprobada en el Congreso. El Congreso lo puede levantar por mayoría absoluta.",
+    "Esmena del Senat": "Modificación hecha por el Senado a un proyecto de ley ya aprobado por el Congreso. Vuelve al Congreso para una votación final de reconciliación.",
+    "Enmienda del Senado": "Modificación hecha por el Senado a un proyecto de ley ya aprobado por el Congreso. Vuelve al Congreso para una votación final de reconciliación.",
+    "Lectura única": "Tramitación acelerada — el texto pasa directamente al debate en el pleno, sin fase de comisión.",
+    "Avocació al ple": "El pleno del Congreso asume la votación final de un proyecto que estaba en una comisión legislativa.",
+    "Avocación al pleno": "El pleno del Congreso asume la votación final de un proyecto que estaba en una comisión legislativa.",
+    "Convalidació": "Acuerdo del Congreso aceptando un Real Decreto-ley del Gobierno dentro del plazo de 30 días. Sin convalidación el decreto decae.",
+    "Convalidación": "Acuerdo del Congreso aceptando un Real Decreto-ley del Gobierno dentro del plazo de 30 días. Sin convalidación el decreto decae.",
+    "Derogació": "Acuerdo del Congreso rechazando un Real Decreto-ley del Gobierno dentro del plazo de 30 días — el decreto queda sin efecto.",
+    "Derogación": "Acuerdo del Congreso rechazando un Real Decreto-ley del Gobierno dentro del plazo de 30 días — el decreto queda sin efecto."
   },
   "newsletter": {
     "signup_eyebrow": "Newsletter semanal",
@@ -528,6 +551,7 @@
     "highlights_paused": "pausado",
     "highlights_rotating": "rotando",
     "highlights_cast_caption": "sobre {count} votos emitidos en este tema",
+    "highlights_temporality": "XV legislatura · desde agosto 2023",
     "state_eyebrow": "Iniciativas · estado global",
     "state_info": "Total de iniciativas presentadas en la cámara, repartidas por estado actual. Filtra por tema para verlo por área.",
     "state_initiatives_at_plenary": "iniciativas en el pleno",

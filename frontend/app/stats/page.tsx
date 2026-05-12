@@ -3,6 +3,7 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { X } from 'lucide-react';
 
+import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
@@ -1707,7 +1708,7 @@ function GroupOwnMetrics({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))',
         gap: 16,
       }}
     >
@@ -2233,12 +2234,16 @@ function InitiativeList({
               <SummaryHover
                 summary={plainSummary}
                 provider={ini.plain_summary_provider}
+                visibleText={ini.title_ca ?? ini.title_original}
               >
                 <Link
                   href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
                   style={{ color: 'var(--ink)', textDecoration: 'none' }}
                 >
-                  {ini.title_ca ?? ini.title_original}
+                  {/* Inline-annotate Senate / lectura única / convalidación
+                      terms in the visible title. AnnotatedText returns the
+                      bare string when nothing matches. */}
+                  <AnnotatedText text={ini.title_ca ?? ini.title_original} />
                 </Link>
               </SummaryHover>
               <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>
@@ -2320,12 +2325,13 @@ function JointInitiativeList({
               <SummaryHover
                 summary={plainSummary}
                 provider={ini.plain_summary_provider}
+                visibleText={ini.title_ca ?? ini.title_original}
               >
                 <Link
                   href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
                   style={{ color: 'var(--ink)', textDecoration: 'none' }}
                 >
-                  {ini.title_ca ?? ini.title_original}
+                  <AnnotatedText text={ini.title_ca ?? ini.title_original} />
                 </Link>
               </SummaryHover>
               <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>

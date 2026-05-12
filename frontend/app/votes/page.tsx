@@ -3,6 +3,7 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 
+import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { HubTabs } from '@/components/HubTabs';
@@ -40,7 +41,11 @@ export default async function VotesPage({
   const t = await getTranslations('votes');
   const tNav = await getTranslations('nav');
   const params = await searchParams;
-  const activeTab: VotesTab = params.tab === 'topics' ? 'topics' : 'votes';
+  // Default to the "Per tema" entry point — topics are the friendlier reading
+  // path into parliamentary activity for non-experts. The flat votes list
+  // remains one click away via the tab strip and is still the destination
+  // when `?tab=votes` is explicit.
+  const activeTab: VotesTab = params.tab === 'votes' ? 'votes' : 'topics';
 
   return (
     <div>
@@ -60,14 +65,14 @@ export default async function VotesPage({
         ariaLabel={t('tablist_aria')}
         tabs={[
           {
-            href: '/votes' as Route,
-            label: tNav('votes'),
-            active: activeTab === 'votes',
-          },
-          {
             href: '/votes?tab=topics' as Route,
             label: t('tab_by_topic'),
             active: activeTab === 'topics',
+          },
+          {
+            href: '/votes?tab=votes' as Route,
+            label: tNav('votes'),
+            active: activeTab === 'votes',
           },
         ]}
       />
@@ -460,8 +465,13 @@ function VoteTableRow({
                 summary={plainSummary}
                 fallback={vote.description ?? undefined}
                 provider={vote.plain_summary_provider}
+                visibleText={subject}
               >
-                {subject}
+                {/* Inline glossary annotation — wraps any Senate/lectura
+                    única/convalidación terms in a hover-definition span.
+                    Returns the bare string when no term matches, so
+                    SummaryHover's child stays cheap in the common case. */}
+                <AnnotatedText text={subject} />
               </SummaryHover>
             </div>
           </div>
@@ -543,6 +553,21 @@ function Pagination({
     if (page < lastPage - 2) pages.push('…');
     pages.push(lastPage);
   }
+  // Pagination chips. Visual size stays compact on desktop (~36px), but
+  // on touch (`@media (hover: none)`) they bump up to the 44×44 Apple
+  // guideline via a CSS class so users can land a tap on a digit.
+  const pagerLink: React.CSSProperties = {
+    padding: '6px 10px',
+    minWidth: 36,
+    minHeight: 36,
+    border: '1px solid var(--rule)',
+    fontSize: 13,
+    textDecoration: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    whiteSpace: 'nowrap',
+  };
   return (
     <div
       style={{
@@ -557,39 +582,35 @@ function Pagination({
       }}
     >
       <span>{summaryLabel}</span>
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {page > 1 && (
           <Link
             href={buildHref(page - 1)}
             aria-label="Pàgina anterior"
-            style={{
-              padding: '4px 10px',
-              border: '1px solid var(--rule)',
-              color: 'var(--ink-2)',
-              fontSize: 12,
-              display: 'inline-flex',
-              alignItems: 'center',
-            }}
+            className="pager-link"
+            style={{ ...pagerLink, color: 'var(--ink-2)' }}
           >
             <ChevronLeft size={14} aria-hidden="true" />
           </Link>
         )}
         {pages.map((p, i) =>
           p === '…' ? (
-            <span key={`ellipsis-${i}`} style={{ padding: '4px 10px', fontSize: 12 }}>
+            <span
+              key={`ellipsis-${i}`}
+              style={{ padding: '6px 8px', fontSize: 13, alignSelf: 'center' }}
+            >
               …
             </span>
           ) : (
             <Link
               key={p}
               href={buildHref(p)}
+              className="pager-link"
               style={{
-                padding: '4px 10px',
-                border: '1px solid var(--rule)',
+                ...pagerLink,
                 background: p === page ? 'var(--ink)' : 'transparent',
                 color: p === page ? 'var(--paper)' : 'var(--ink-2)',
-                fontSize: 12,
-                textDecoration: 'none',
+                fontWeight: p === page ? 700 : 400,
               }}
             >
               {p}
@@ -600,19 +621,18 @@ function Pagination({
           <Link
             href={buildHref(page + 1)}
             aria-label="Pàgina següent"
-            style={{
-              padding: '4px 10px',
-              border: '1px solid var(--rule)',
-              color: 'var(--ink-2)',
-              fontSize: 12,
-              display: 'inline-flex',
-              alignItems: 'center',
-            }}
+            className="pager-link"
+            style={{ ...pagerLink, color: 'var(--ink-2)' }}
           >
             <ChevronRight size={14} aria-hidden="true" />
           </Link>
         )}
       </div>
+      <style>{`
+        @media (hover: none) {
+          .pager-link { min-width: 44px !important; min-height: 44px !important; }
+        }
+      `}</style>
     </div>
   );
 }

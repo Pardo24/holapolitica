@@ -64,7 +64,7 @@ class SmtpSender(EmailSender):
         # aiosmtplib is imported lazily so the module can be loaded in
         # environments that haven't installed the optional email extra yet
         # (tests, dev without SMTP configured).
-        import aiosmtplib  # type: ignore[import-not-found]
+        import aiosmtplib
 
         s = self._settings
         msg = MIMEMultipart("alternative")

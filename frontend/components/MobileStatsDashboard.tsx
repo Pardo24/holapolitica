@@ -3,6 +3,7 @@ import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { ChevronDown } from 'lucide-react';
 
+import { AnnotatedText } from '@/components/AnnotatedText';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
@@ -929,12 +930,16 @@ function InitiativeRow({ ini, locale }: { ini: InitiativeMini; locale: string })
         {ini.submitted_at ?? '—'}
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>
-        <SummaryHover summary={plainSummary} provider={ini.plain_summary_provider}>
+        <SummaryHover
+          summary={plainSummary}
+          provider={ini.plain_summary_provider}
+          visibleText={ini.title_ca ?? ini.title_original}
+        >
           <Link
             href={`/votes?q=${encodeURIComponent(ini.official_id)}` as Route}
             style={{ color: 'var(--ink)', textDecoration: 'none', lineHeight: 1.3 }}
           >
-            {ini.title_ca ?? ini.title_original}
+            <AnnotatedText text={ini.title_ca ?? ini.title_original} />
           </Link>
         </SummaryHover>
         <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 3 }}>
