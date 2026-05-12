@@ -1,4 +1,27 @@
 {
+  "about_data": {
+    "eyebrow": "Transparency",
+    "title": "About the data",
+    "lede": "Everything we publish comes from official open data portals, transformed with a documented methodology and no editorial layer.",
+    "sources_title": "Sources",
+    "sources_intro": "These are the official sources that feed the platform:",
+    "methodology_title": "Methodology",
+    "methodology_intro": "Documented processing pipeline:",
+    "frequency_title": "Update frequency",
+    "neutrality_title": "Neutrality principle",
+    "neutrality_body_1": "Hola Política is civic infrastructure, not an opinion platform. These are the lines we draw:",
+    "neutrality_body_2": "If at any point you see content that looks editorial or one-sided, it's a bug. Let us know.",
+    "limits_title": "Known limits",
+    "correction_title": "Corrections and contact",
+    "correction_body": "If you find a data error (mislabeled vote, misclassified deputy, outdated profile) or a privacy issue, write to us. We resolve each case with traceability: we identify the source, fix it, and if the error came from the official source we forward the feedback.",
+    "licences_title": "Licences",
+    "rgpd_title": "GDPR and data protection",
+    "rgpd_body_1": "We process data on people who exercise public functions under the public-interest legal basis for transparency and journalistic purposes (Art. 85 GDPR, Art. 28 LO 3/2018, Spanish Transparency Act 19/2013). We never show private data — only mandate-related information.",
+    "rgpd_body_2": "If you believe the treatment of public data about your parliamentary activity is inappropriate in our context, write to us and we evaluate each case individually.",
+    "cta_eyebrow": "Want to help",
+    "cta_body": "The project is open source. To collaborate, report bugs or suggest improvements, start with the project page.",
+    "cta_button": "Read more about the project"
+  },
   "site": {
     "name": "Hola Política",
     "motto": "Mirror, not megaphone.",

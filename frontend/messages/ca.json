@@ -1,4 +1,27 @@
 {
+  "about_data": {
+    "eyebrow": "Transparència",
+    "title": "Sobre les dades",
+    "lede": "Tota la informació que publiquem prové de portals d'open data oficials, transformada amb una metodologia documentada i sense capa editorial.",
+    "sources_title": "Fonts",
+    "sources_intro": "Aquestes són les fonts oficials que alimenten la plataforma:",
+    "methodology_title": "Metodologia",
+    "methodology_intro": "Pipeline de processament documentat:",
+    "frequency_title": "Freqüència d'actualització",
+    "neutrality_title": "Principi de neutralitat",
+    "neutrality_body_1": "Hola Política és infraestructura cívica, no plataforma d'opinió. Aquests són els límits que ens fixem:",
+    "neutrality_body_2": "Si en algun moment veus contingut que sembli editorial o unilateral, és un bug. Avisa'ns.",
+    "limits_title": "Limitacions conegudes",
+    "correction_title": "Correccions i contacte",
+    "correction_body": "Si detectes un error de dades (vot mal etiquetat, diputat mal classificat, fitxa amb informació desactualitzada) o un problema de privacitat, escriu-nos. Resolem cada cas amb traçabilitat: identifiquem la font, fem la correcció i, si l'error venia de la font oficial, hi enviem el feedback.",
+    "licences_title": "Llicències",
+    "rgpd_title": "RGPD i protecció de dades",
+    "rgpd_body_1": "Tractem dades de persones que exerceixen funcions públiques en règim d'interès públic per a finalitats de transparència i informació periodística (Art. 85 RGPD, Art. 28 LO 3/2018, Llei 19/2013 de Transparència). Mai mostrem dades privades — només la informació relativa al mandat parlamentari.",
+    "rgpd_body_2": "Per a qualsevol persona que cregui que el tractament d'una dada pública seva sobre la seva activitat parlamentària és inadequat al nostre context, pot escriure'ns i avaluem cada cas individualment.",
+    "cta_eyebrow": "Vols ajudar",
+    "cta_body": "El projecte és open source. Si vols col·laborar, reportar errors o suggerir millores, comença per la pàgina del projecte.",
+    "cta_button": "Llegeix més sobre el projecte"
+  },
   "site": {
     "name": "Hola Política",
     "motto": "Mirall, no megàfon.",

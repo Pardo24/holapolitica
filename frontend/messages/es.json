@@ -1,4 +1,27 @@
 {
+  "about_data": {
+    "eyebrow": "Transparencia",
+    "title": "Sobre los datos",
+    "lede": "Toda la información que publicamos proviene de portales de open data oficiales, transformada con una metodología documentada y sin capa editorial.",
+    "sources_title": "Fuentes",
+    "sources_intro": "Estas son las fuentes oficiales que alimentan la plataforma:",
+    "methodology_title": "Metodología",
+    "methodology_intro": "Pipeline de procesamiento documentado:",
+    "frequency_title": "Frecuencia de actualización",
+    "neutrality_title": "Principio de neutralidad",
+    "neutrality_body_1": "Hola Política es infraestructura cívica, no plataforma de opinión. Estos son los límites que nos fijamos:",
+    "neutrality_body_2": "Si en algún momento ves contenido que parezca editorial o unilateral, es un bug. Avísanos.",
+    "limits_title": "Limitaciones conocidas",
+    "correction_title": "Correcciones y contacto",
+    "correction_body": "Si detectas un error de datos (voto mal etiquetado, diputado mal clasificado, ficha con información desactualizada) o un problema de privacidad, escríbenos. Resolvemos cada caso con trazabilidad: identificamos la fuente, hacemos la corrección y, si el error venía de la fuente oficial, le enviamos el feedback.",
+    "licences_title": "Licencias",
+    "rgpd_title": "RGPD y protección de datos",
+    "rgpd_body_1": "Tratamos datos de personas que ejercen funciones públicas en régimen de interés público para fines de transparencia e información periodística (Art. 85 RGPD, Art. 28 LO 3/2018, Ley 19/2013 de Transparencia). Nunca mostramos datos privados — solo la información relativa al mandato parlamentario.",
+    "rgpd_body_2": "Para cualquier persona que crea que el tratamiento de un dato público suyo sobre su actividad parlamentaria es inadecuado a nuestro contexto, puede escribirnos y evaluamos cada caso individualmente.",
+    "cta_eyebrow": "Quieres ayudar",
+    "cta_body": "El proyecto es open source. Si quieres colaborar, reportar errores o sugerir mejoras, empieza por la página del proyecto.",
+    "cta_button": "Lee más sobre el proyecto"
+  },
   "site": {
     "name": "Hola Política",
     "motto": "Espejo, no megáfono.",

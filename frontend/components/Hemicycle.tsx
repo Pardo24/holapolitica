@@ -45,14 +45,19 @@ import type { HemicycleSeat, HemicycleLayout } from '@/lib/api';
 // 350 dots. Source-image coords (max 536×393 ≈ 1.36:1) get remapped
 // horizontally to fill more of the width — the source PNG has a lot
 // of empty margin around the actual seating area.
-const VIEW_W = 1000;
-const VIEW_H = 460;
+// Match the official Congrés hemicycle PNG dimensions so seat
+// coordinates from the ingest land exactly on the right pixel.
+const VIEW_W = 536;
+const VIEW_H = 393;
 
 // Seat geometry. The brief asks for 6-8 px on desktop and 8-10 px on
 // mobile. The SVG scales fluidly, so we pick a single radius in
 // viewBox units (12) and let CSS clamp the rendered size via the
 // container width.
-const SEAT_R = 10;
+// Seats sized for the native 536×393 PNG. Slightly bigger than the
+// raw ~2.5px ingest radius so they read as distinct dots and provide
+// a comfortable hover/tap target without smothering the architecture.
+const SEAT_R = 5;
 
 // Stroke around each seat — "subtle stroke (var(--ink) at 15%
 // alpha)" per the brief. Drawn with rgba directly so it doesn't
@@ -70,31 +75,9 @@ const DEFAULT_COLOR = '#9ca3af';
  * outside that range is empty press-gallery / margin.
  */
 function remap(seat_x: number, seat_y: number): { cx: number; cy: number } {
-  // Source bounding box of the seating area on the official PNG.
-  const SRC_MIN_X = 70;
-  const SRC_MAX_X = 480;
-  const SRC_MIN_Y = 95;
-  const SRC_MAX_Y = 395;
-  const SRC_W = SRC_MAX_X - SRC_MIN_X;
-  const SRC_H = SRC_MAX_Y - SRC_MIN_Y;
-
-  // Target area inside the viewBox — leave a small margin around
-  // the chart so the outer ring of seats doesn't kiss the edges.
-  const TGT_PAD_X = 32;
-  const TGT_PAD_Y = 32;
-  const tgtW = VIEW_W - 2 * TGT_PAD_X;
-  const tgtH = VIEW_H - 2 * TGT_PAD_Y;
-
-  // Linear remap. Clamp the source values softly — a deputy ingested
-  // with an out-of-range coordinate (shouldn't happen, but defensive)
-  // gets pushed back into the seating area rather than off-canvas.
-  const nx = (Math.max(SRC_MIN_X, Math.min(SRC_MAX_X, seat_x)) - SRC_MIN_X) / SRC_W;
-  const ny = (Math.max(SRC_MIN_Y, Math.min(SRC_MAX_Y, seat_y)) - SRC_MIN_Y) / SRC_H;
-
-  return {
-    cx: TGT_PAD_X + nx * tgtW,
-    cy: TGT_PAD_Y + ny * tgtH,
-  };
+  // Identity. Seat coordinates are already in the PNG's pixel space
+  // (536×393), so they overlay the official backdrop exactly.
+  return { cx: seat_x, cy: seat_y };
 }
 
 /**
@@ -290,6 +273,20 @@ export function Hemicycle({
           style={{ width: '100%', height: 'auto', display: 'block' }}
           onMouseLeave={handleSeatLeave}
         >
+          {/* Official Congrés hemicycle backdrop — we cache a local copy
+              under /public/hemiciclo.png (downloaded with the same User-
+              Agent the deputy-photos importer uses) so we don't hotlink
+              theirs at request time. The seats sit on top with their
+              raw PNG-pixel coordinates aligned 1:1. */}
+          <image
+            href="/hemiciclo.png"
+            x={0}
+            y={0}
+            width={VIEW_W}
+            height={VIEW_H}
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden
+          />
           {/* When photo mode is on we render each portrait inside a
               <clipPath> circle. The clip path id is derived from the
               person_id so it stays stable across re-renders. We define
