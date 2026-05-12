@@ -245,85 +245,16 @@ export default async function VoteDetailPage({
             </>
           )}
 
-          {/* Bill author's own preamble ("Exposición de motivos"),
-              extracted from the BOCG PDF. Collapsed by default —
-              mobile-first — because it can run to several thousand
-              characters. Distinct from the LLM-generated `summary`
-              above: this is the official text, in the authors' own
-              words, not an AI condensation. */}
-          {objectText && (
-            <details
-              style={{
-                marginTop: summary ? 24 : 0,
-                border: '1px solid var(--rule)',
-                background: 'var(--paper-2)',
-              }}
-            >
-              <summary
-                style={{
-                  cursor: 'pointer',
-                  padding: '14px 18px',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: 'var(--ink-2)',
-                  listStyle: 'none',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <span>{t('object_text_title')}</span>
-                <span
-                  className="eyebrow"
-                  style={{ color: 'var(--ink-3)' }}
-                  aria-hidden
-                >
-                  {t('object_text_expand')}
-                </span>
-              </summary>
-              <div
-                className="serif"
-                style={{
-                  padding: '0 18px 16px 18px',
-                  fontSize: 15,
-                  lineHeight: 1.6,
-                  color: 'var(--ink)',
-                  whiteSpace: 'pre-line',
-                }}
-              >
-                {objectText}
-              </div>
-              <p
-                style={{
-                  padding: '0 18px 14px 18px',
-                  margin: 0,
-                  fontSize: 11,
-                  color: 'var(--ink-3)',
-                  fontStyle: 'italic',
-                }}
-              >
-                {t('object_text_source')}
-                {initiative?.source_url && (
-                  <>
-                    {' '}
-                    <a
-                      href={initiative.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: 'var(--ink-3)' }}
-                    >
-                      BOCG ↗
-                    </a>
-                  </>
-                )}
-              </p>
-            </details>
-          )}
+          {/* The raw "Exposición de motivos" / Objeto from the BOCG PDF
+              is intentionally NOT shown to end users — it's dense legal
+              prose. It lives in Initiative.object_text on the backend
+              and is the preferred input for the plain-summary LLM
+              pipeline. Citizens read the plain summary above; the raw
+              text stays an internal implementation detail. */}
 
           <div
             style={{
-              marginTop: summary || objectText ? 28 : 0,
+              marginTop: summary ? 28 : 0,
               padding: '18px 20px',
               border: '1px solid var(--rule)',
               background: 'var(--paper-2)',
