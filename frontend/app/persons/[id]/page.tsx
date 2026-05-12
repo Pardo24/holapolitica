@@ -153,10 +153,17 @@ export default async function PersonDetailPage({
           </div>
         )}
         <div style={{ minWidth: 0 }}>
-          <div className="eyebrow">{t('person_eyebrow')}</div>
-          <h1 className="h-headline" style={{ margin: '4px 0 12px' }}>
-            {person.full_name}
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+            <h1 className="h-headline" style={{ margin: 0 }}>
+              {person.full_name}
+            </h1>
+            <span
+              className="eyebrow"
+              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
+            >
+              {t('person_eyebrow')}
+            </span>
+          </div>
           <div
             style={{
               display: 'flex',

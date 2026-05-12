@@ -72,13 +72,20 @@ export default async function GroupDetailPage({
         }}
       >
         <div>
-          <div className="eyebrow">{t('group_eyebrow')}</div>
-          <h1
-            className="h-display"
-            style={{ margin: '6px 0 4px', fontSize: 'clamp(32px, 4.4vw, 48px)' }}
-          >
-            {fullName}
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+            <h1
+              className="h-display"
+              style={{ margin: 0, fontSize: 'clamp(32px, 4.4vw, 48px)' }}
+            >
+              {fullName}
+            </h1>
+            <span
+              className="eyebrow"
+              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
+            >
+              {t('group_eyebrow')}
+            </span>
+          </div>
           {/* Long-form name sits BELOW the H1 as a soft descriptive line.
               Matches the demoted-subtitle pattern used across other page
               headers — smaller (13px) and ink-3 so the title remains the

@@ -252,13 +252,20 @@ export default async function TopicDetailPage({
           borderBottom: '1px solid var(--ink)',
         }}
       >
-        <div className="eyebrow">{t('topic_eyebrow')}</div>
-        <h1
-          className="h-display"
-          style={{ margin: '6px 0 4px', fontSize: 'clamp(32px, 4.4vw, 48px)' }}
-        >
-          {topic.name_ca}
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+          <h1
+            className="h-display"
+            style={{ margin: 0, fontSize: 'clamp(32px, 4.4vw, 48px)' }}
+          >
+            {topic.name_ca}
+          </h1>
+          <span
+            className="eyebrow"
+            style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
+          >
+            {t('topic_eyebrow')}
+          </span>
+        </div>
         {/* Cross-language label line. Hidden on mobile to keep the header
             tight — Catalan-default UI users on a phone already see the
             Catalan name in the H1; the Spanish/English variants are a
