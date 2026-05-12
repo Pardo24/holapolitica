@@ -241,6 +241,7 @@ export interface ParliamentaryGroupSummary {
 export interface GroupMemberRow {
   person_id: number;
   full_name: string;
+  photo_url: string | null;
   constituency: string | null;
   role: string | null;
   member_since: string;

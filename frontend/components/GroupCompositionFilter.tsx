@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { GroupBadge } from '@/components/GroupBadge';
@@ -174,6 +174,43 @@ export function GroupCompositionFilter({
                   alignItems: 'center',
                 }}
               >
+                {m.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={m.photo_url}
+                    alt=""
+                    width={32}
+                    height={40}
+                    loading="lazy"
+                    style={{
+                      width: 32,
+                      height: 40,
+                      objectFit: 'cover',
+                      borderRadius: 6,
+                      border: '1px solid var(--rule)',
+                      background: 'var(--paper-3)',
+                      flex: 'none',
+                    }}
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      width: 32,
+                      height: 40,
+                      borderRadius: 6,
+                      background: 'var(--paper-3)',
+                      border: '1px solid var(--rule)',
+                      color: 'var(--ink-2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flex: 'none',
+                    }}
+                  >
+                    <User size={14} aria-hidden="true" />
+                  </div>
+                )}
                 <GroupBadge
                   slug={groupSlug}
                   color={groupColor}

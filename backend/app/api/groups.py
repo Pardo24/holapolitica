@@ -47,6 +47,7 @@ class GroupMemberRow(BaseModel):
 
     person_id: int
     full_name: str
+    photo_url: str | None
     constituency: str | None
     role: str | None
     member_since: date
@@ -263,6 +264,7 @@ async def get_group_members(
             select(
                 Person.id,
                 Person.full_name,
+                Person.photo_url,
                 Mandate.constituency,
                 GroupMembership.role,
                 GroupMembership.start_date,
@@ -279,11 +281,12 @@ async def get_group_members(
         GroupMemberRow(
             person_id=person_id,
             full_name=full_name,
+            photo_url=photo_url,
             constituency=constituency,
             role=role,
             member_since=start_date,
         )
-        for person_id, full_name, constituency, role, start_date in rows
+        for person_id, full_name, photo_url, constituency, role, start_date in rows
     ]
 
 
