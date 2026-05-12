@@ -851,7 +851,9 @@
     "label_abst": "Abst.",
     "label_absent": "Ausentes",
     "see_detail": "Ver detalle →",
-    "source_label": "Fuente:"
+    "source_label": "Fuente:",
+    "proposed_by_label": "Propuesto por",
+    "proposed_government": "Gobierno"
   },
   "og": {
     "alt_home": "Hola Política · qué vota el Congreso",

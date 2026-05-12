@@ -851,7 +851,9 @@
     "label_abst": "Abst.",
     "label_absent": "Absent",
     "see_detail": "See detail →",
-    "source_label": "Source:"
+    "source_label": "Source:",
+    "proposed_by_label": "Proposed by",
+    "proposed_government": "Government"
   },
   "og": {
     "alt_home": "Hola Política · what Congress votes",

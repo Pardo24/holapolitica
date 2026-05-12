@@ -850,7 +850,9 @@
     "label_abst": "Abst.",
     "label_absent": "Absents",
     "see_detail": "Veure detall →",
-    "source_label": "Font:"
+    "source_label": "Font:",
+    "proposed_by_label": "Proposat per",
+    "proposed_government": "Govern"
   },
   "og": {
     "alt_home": "Hola Política · què vota el Congrés",
