@@ -343,7 +343,12 @@
     "kpi_attendance_sub": "{cast} de {total}",
     "kpi_no_comparable": "Sense vots comparables",
     "kpi_dissents_count": "{count} cops vs majoria del grup",
-    "metadata_description": "Activitat parlamentària de {name}{groupBit}{constBit}."
+    "metadata_description": "Activitat parlamentària de {name}{groupBit}{constBit}.",
+    "bio_eyebrow": "Fitxa personal",
+    "bio_section_aria": "Biografia i càrrecs",
+    "bio_source_note": "Text reproduït literalment de la fitxa oficial del Congrés.",
+    "commissions_title": "Càrrecs",
+    "commissions_empty": "Sense càrrecs registrats."
   },
   "topic": {
     "recent_votes_title": "Votacions recents en aquesta àrea",
@@ -385,7 +390,10 @@
     "proposer_more_groups": "+{count} més",
     "no_pending_with_filter": "Cap iniciativa pendent en aquest tema amb el filtre actual.",
     "no_voted_with_filter": "Cap iniciativa votada en aquest tema amb el filtre actual.",
-    "clear_filter_cta": "× Neteja el filtre"
+    "clear_filter_cta": "× Neteja el filtre",
+    "filter_query_label": "Cerca pel títol",
+    "filter_query_placeholder": "Cerca per paraules del títol…",
+    "filter_query_clear_aria": "Esborra la cerca"
   },
   "stats": {
     "title": "Estadístiques",

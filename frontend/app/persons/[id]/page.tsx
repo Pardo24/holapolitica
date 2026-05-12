@@ -304,6 +304,18 @@ export default async function PersonDetailPage({
         );
       })()}
 
+      <PersonBio
+        bioText={person.bio_text}
+        commissions={person.commissions}
+        labels={{
+          eyebrow: t('bio_eyebrow'),
+          sectionAria: t('bio_section_aria'),
+          sourceNote: t('bio_source_note'),
+          commissionsTitle: t('commissions_title'),
+          commissionsEmpty: t('commissions_empty'),
+        }}
+      />
+
       <section style={{ paddingTop: 28 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>
           {t('mandates_title')}
@@ -428,6 +440,182 @@ function KpiStrip({
             : t('kpi_dissents_count', { count: kpis.dissents })}
         </span>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Biography + commissions section.
+ *
+ * Renders below the KPI strip and above the mandates list. The whole
+ * block is wrapped in a single ``<details>`` so the long-form
+ * paragraph + role list collapses on demand. Following the brief:
+ *
+ * - **Desktop** (≥ 720px): open by default — there's room for it and
+ *   the bio is one of the most useful disambiguators a user looking
+ *   at a deputy page wants.
+ * - **Mobile** (< 720px): closed by default — the page is already
+ *   tall with KPI + topic stats, and most mobile users won't read the
+ *   bio inline.
+ *
+ * Implementation: render ``<details open>`` on the server (open
+ * everywhere), then a tiny inline script collapses it on narrow
+ * viewports before paint. Pure CSS can't toggle ``<details open>``
+ * because the open state is part of the DOM, not a style.
+ *
+ * Returns ``null`` when there's no bio and no commissions to show, so
+ * the layout doesn't render an empty header.
+ */
+function PersonBio({
+  bioText,
+  commissions,
+  labels,
+}: {
+  bioText: string | null;
+  commissions: string[] | null;
+  labels: {
+    eyebrow: string;
+    sectionAria: string;
+    sourceNote: string;
+    commissionsTitle: string;
+    commissionsEmpty: string;
+  };
+}) {
+  const hasBio = bioText !== null && bioText.trim().length > 0;
+  const hasCommissions = Array.isArray(commissions) && commissions.length > 0;
+  // Per the brief: "For empty data (bio_text NULL), don't render the
+  // section at all." We extend that to "and no commissions either" —
+  // if both fields are empty the section is purely chrome.
+  if (!hasBio && !hasCommissions) return null;
+
+  // Split on a blank-line boundary (the persistence format
+  // ``app.ingest.congreso.photos._extract_bio_text`` produces). Falls
+  // back to a single paragraph when the source didn't include any
+  // ``<br>`` breaks — never throw away the text.
+  const paragraphs = hasBio
+    ? bioText!
+        .split(/\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+    : [];
+
+  return (
+    <section
+      aria-label={labels.sectionAria}
+      style={{ paddingTop: 28 }}
+    >
+      <details id="person-bio-details" open>
+        <summary
+          className="person-bio-summary"
+          style={{
+            cursor: 'pointer',
+            listStyle: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            paddingBottom: 6,
+          }}
+        >
+          <span className="eyebrow">{labels.eyebrow}</span>
+          <span
+            aria-hidden="true"
+            className="person-bio-chevron"
+            style={{ fontSize: 14, color: 'var(--ink-3)' }}
+          >
+            ▾
+          </span>
+        </summary>
+        <div style={{ paddingTop: 4 }}>
+          {hasBio && (
+            <div style={{ maxWidth: 760 }}>
+              {paragraphs.map((p, i) => (
+                <p
+                  key={i}
+                  style={{
+                    margin: i === 0 ? '0 0 10px' : '10px 0',
+                    fontSize: 14,
+                    lineHeight: 1.55,
+                    color: 'var(--ink)',
+                  }}
+                >
+                  {p}
+                </p>
+              ))}
+              <p
+                style={{
+                  margin: '8px 0 0',
+                  fontSize: 11,
+                  color: 'var(--ink-3)',
+                  fontStyle: 'italic',
+                }}
+              >
+                {labels.sourceNote}
+              </p>
+            </div>
+          )}
+          {hasCommissions && (
+            <div style={{ marginTop: hasBio ? 20 : 0 }}>
+              <div
+                className="eyebrow"
+                style={{ marginBottom: 8, fontSize: 10 }}
+              >
+                {labels.commissionsTitle}
+              </div>
+              <ul
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                {commissions!.map((c, i) => (
+                  <li
+                    key={i}
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--ink-2)',
+                      padding: '6px 10px',
+                      background: 'var(--paper-2)',
+                      border: '1px solid var(--rule)',
+                      borderRadius: 6,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </details>
+      <style>{`
+        .person-bio-summary::-webkit-details-marker { display: none; }
+        details#person-bio-details[open] .person-bio-chevron {
+          transform: rotate(180deg);
+          display: inline-block;
+        }
+      `}</style>
+      {/*
+        Close the bio details on narrow viewports before paint, so
+        mobile users see it collapsed by default. We never use
+        ``window.matchMedia`` inside the React tree because that would
+        require a Client Component just for this one progressive
+        enhancement; a one-liner inline script keeps the surrounding
+        section a Server Component.
+      */}
+      <script
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html:
+            "(function(){try{var d=document.getElementById('person-bio-details');" +
+            "if(d&&window.matchMedia('(max-width: 720px)').matches){d.removeAttribute('open');}}catch(_){}})();",
+        }}
+      />
     </section>
   );
 }

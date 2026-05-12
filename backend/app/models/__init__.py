@@ -14,6 +14,7 @@ from datetime import date, datetime
 from enum import StrEnum
 
 from sqlalchemy import (
+    JSON,
     BigInteger,
     Boolean,
     Date,
@@ -24,6 +25,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -203,6 +205,24 @@ class Person(Base, TimestampMixin):
     role_title: Mapped[str | None] = mapped_column(String(200))
     role_kind: Mapped[str | None] = mapped_column(String(16), index=True)
 
+    # Biographical paragraph scraped from the Congreso ficha page
+    # ("Licenciada en Farmacia. Postgrado en Dermofarmacia. …"). HTML
+    # tags stripped; original line breaks preserved as ``\n\n`` so the
+    # frontend can render paragraphs. NULL when the ficha has no bio
+    # text or has not been scraped yet. See migration
+    # ``0018_person_bio_commissions`` and
+    # ``app.ingest.congreso.photos._extract_bio_text``.
+    bio_text: Mapped[str | None] = mapped_column(Text)
+    # Committee assignments and parliamentary roles as they appear in
+    # the ficha's "Càrrecs" block — one verbatim string per entry
+    # ("Adscrita de la Comisión de Derechos Sociales y Consumo des del
+    # 04/04/2024", …). JSONB on Postgres, JSON on SQLite (tests). NULL
+    # before the photos backfill has run; empty list ([]) when the
+    # ficha publishes no role rows.
+    commissions: Mapped[list[str] | None] = mapped_column(
+        JSON().with_variant(JSONB(), "postgresql")
+    )
+
     # Relationships
     mandates: Mapped[list[Mandate]] = relationship("Mandate", back_populates="person")
 
@@ -225,6 +245,15 @@ class ParliamentaryGroup(Base, TimestampMixin):
     name_short: Mapped[str] = mapped_column(String(50), nullable=False)
     name_long: Mapped[str] = mapped_column(String(255), nullable=False)
     color_hex: Mapped[str | None] = mapped_column(String(7))  # e.g. '#FF0000'
+    # Optional URL to an official party / group logo. The Congreso
+    # portal does not publish these as standalone images (verified
+    # 2026-05-12 — the only on-site occurrence is an inline base64 JPEG
+    # inside the deputy ficha page) and reusing trademarked party logos
+    # carries non-trivial legal risk for a third-party transparency
+    # site. Production ships with this column NULL for every group; the
+    # frontend then falls back to the neutral colored-disc rendering.
+    # See migration ``0019_group_logo_url`` for the full rationale.
+    logo_url: Mapped[str | None] = mapped_column(String(500))
 
     # Relationships
     legislature: Mapped[Legislature] = relationship("Legislature", back_populates="groups")

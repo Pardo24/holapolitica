@@ -343,7 +343,12 @@
     "kpi_attendance_sub": "{cast} de {total}",
     "kpi_no_comparable": "Sin votos comparables",
     "kpi_dissents_count": "{count} veces vs mayoría del grupo",
-    "metadata_description": "Actividad parlamentaria de {name}{groupBit}{constBit}."
+    "metadata_description": "Actividad parlamentaria de {name}{groupBit}{constBit}.",
+    "bio_eyebrow": "Ficha personal",
+    "bio_section_aria": "Biografía y cargos",
+    "bio_source_note": "Texto reproducido literalmente de la ficha oficial del Congreso.",
+    "commissions_title": "Cargos",
+    "commissions_empty": "Sin cargos registrados."
   },
   "topic": {
     "recent_votes_title": "Votaciones recientes en este área",
@@ -385,7 +390,10 @@
     "proposer_more_groups": "+{count} más",
     "no_pending_with_filter": "Ninguna iniciativa pendiente en este tema con el filtro actual.",
     "no_voted_with_filter": "Ninguna iniciativa votada en este tema con el filtro actual.",
-    "clear_filter_cta": "× Borrar filtro"
+    "clear_filter_cta": "× Borrar filtro",
+    "filter_query_label": "Busca por título",
+    "filter_query_placeholder": "Busca por palabras del título…",
+    "filter_query_clear_aria": "Borra la búsqueda"
   },
   "stats": {
     "title": "Estadísticas",

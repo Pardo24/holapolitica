@@ -98,6 +98,13 @@ class PersonRead(BaseModel):
     # / cohesion metrics. See Person model docstring for buckets.
     role_title: str | None = None
     role_kind: str | None = None
+    # Free-text biography paragraph and committee/role assignments,
+    # scraped from the Congreso ficha page. ``bio_text`` is multi-line
+    # plain text (paragraph breaks as ``\n\n``); ``commissions`` is a
+    # list of verbatim source strings. Both NULL when the ficha hasn't
+    # been scraped yet — frontend hides the section in that case.
+    bio_text: str | None = None
+    commissions: list[str] | None = None
 
 
 class MandateRead(BaseModel):
@@ -131,6 +138,11 @@ class ParliamentaryGroupRead(BaseModel):
     name_short: str
     name_long: str
     color_hex: str | None = None
+    # Optional URL to an official group logo. NULL in production today —
+    # see migration ``0019_group_logo_url`` for the licensing rationale.
+    # When present, the frontend's :file:`GroupBadge` / :file:`GroupChip`
+    # render the image in place of the colored abbreviation disc.
+    logo_url: str | None = None
 
 
 # ---------------------------------------------------------------------------

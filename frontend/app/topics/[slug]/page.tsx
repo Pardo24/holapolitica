@@ -28,6 +28,31 @@ interface Params {
 interface SearchParams {
   subset?: string;
   group?: string;
+  /**
+   * Free-text initiative-title filter. Matched against
+   * ``initiative.title_original`` case- and accent-insensitively. URL-
+   * bound so the filter persists across share/bookmark.
+   */
+  q?: string;
+}
+
+/**
+ * Normalise a string for case- and diacritic-insensitive substring matching.
+ *
+ * - Lowercases via the Unicode-aware ``toLocaleLowerCase`` so Turkish-style
+ *   edge cases ("İ") don't surprise us.
+ * - Strips combining diacritical marks via NFD decomposition so a search
+ *   for "habitatge" matches "habitatge", "habítatge", and "Hábitat".
+ * - Collapses runs of whitespace so partial-word queries still match
+ *   when the source title has line-wrap artefacts.
+ */
+function normalizeForSearch(value: string): string {
+  return value
+    .toLocaleLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 const STATUS_KEY: Record<string, string> = {
@@ -66,10 +91,12 @@ export default async function TopicDetailPage({
   const tStats = await getTranslations('stats');
   const locale = await getLocale();
 
-  // URL-bound UI state. Both default to safe values so a bare URL still
+  // URL-bound UI state. Each defaults to a safe value so a bare URL still
   // renders sensibly, and bookmarks / shareable links round-trip cleanly.
   const subset: Subset = sp.subset === 'voted' ? 'voted' : 'pending';
   const groupFilter = (sp.group ?? '').trim();
+  const rawQuery = (sp.q ?? '').trim();
+  const queryNeedle = rawQuery ? normalizeForSearch(rawQuery) : '';
 
   let topic: Topic;
   try {
@@ -104,13 +131,30 @@ export default async function TopicDetailPage({
     );
   };
 
+  // Pre-compute the normalised title once per initiative so the filter
+  // runs in O(n) without re-normalising on every keystroke (the URL is
+  // the source of truth, but the same SSR pass renders multiple lists).
+  const normalizedTitleByInitiative = new Map<number, string>();
+  for (const it of initiatives) {
+    normalizedTitleByInitiative.set(it.id, normalizeForSearch(it.title_original));
+  }
+
+  const matchesQueryFilter = (init: Initiative): boolean => {
+    if (queryNeedle === '') return true;
+    const haystack = normalizedTitleByInitiative.get(init.id) ?? '';
+    return haystack.includes(queryNeedle);
+  };
+
+  const matchesAllFilters = (init: Initiative): boolean =>
+    matchesGroupFilter(init) && matchesQueryFilter(init);
+
   const pendingAll = initiatives.filter((i) => PENDING_STATUSES.has(i.status));
   const votedAll = initiatives.filter((i) => VOTED_STATUSES.has(i.status));
   const otherTerminal = initiatives.filter(
     (i) => !PENDING_STATUSES.has(i.status) && !VOTED_STATUSES.has(i.status),
   );
-  const pending = pendingAll.filter(matchesGroupFilter);
-  const voted = votedAll.filter(matchesGroupFilter);
+  const pending = pendingAll.filter(matchesAllFilters);
+  const voted = votedAll.filter(matchesAllFilters);
 
   const approved = initiatives.filter((i) => i.status === 'approved').length;
   const rejected = initiatives.filter((i) => i.status === 'rejected').length;
@@ -143,15 +187,25 @@ export default async function TopicDetailPage({
   const emptyNoFilter = subset === 'voted' ? t('no_votes_yet') : t('no_pending_in_topic');
   const emptyWithFilter =
     subset === 'voted' ? t('no_voted_with_filter') : t('no_pending_with_filter');
+  // The list above is "filtered" (and so should use the with-filter
+  // empty-state copy) whenever ANY of the active filters narrowed it.
+  const anyFilterActive = groupFilter !== '' || rawQuery !== '';
 
-  // Build a URL-builder for the subset segmented control. Preserves the
-  // current `?group=` so flipping subset doesn't drop the filter.
+  // Build a URL-builder for the subset segmented control. Preserves
+  // both the group and the text query so flipping subset never drops
+  // a filter — a user who has narrowed to "habitatge / Junts pending"
+  // and clicks "Votades" should land on "habitatge / Junts voted".
   const buildSubsetHref = (s: Subset): Route => {
     const qs = new URLSearchParams();
     qs.set('subset', s);
     if (groupFilter) qs.set('group', groupFilter);
+    if (rawQuery) qs.set('q', rawQuery);
     return `/topics/${slug}?${qs.toString()}` as Route;
   };
+  // "Clear filters" wipes BOTH group + free-text query in one click.
+  // Preserves subset so the user stays on the same tab. This matches
+  // the affordance copy ("× Neteja el filtre") and the user expectation
+  // when both filters are visible side-by-side.
   const clearGroupHref: Route =
     (subset === 'voted'
       ? `/topics/${slug}?subset=voted`
@@ -462,6 +516,7 @@ export default async function TopicDetailPage({
           subset={subset}
           groups={groups}
           value={groupFilter}
+          query={rawQuery}
           labels={{
             label: t('filter_group_label'),
             placeholder: t('filter_group_placeholder'),
@@ -471,6 +526,9 @@ export default async function TopicDetailPage({
             countLabel: t('filter_results_count', { count: activeList.length }),
             totalLabel: t('filter_results_count', { count: totalForSubset }),
             clearCta: t('clear_filter_cta'),
+            queryLabel: t('filter_query_label'),
+            queryPlaceholder: t('filter_query_placeholder'),
+            queryClearAria: t('filter_query_clear_aria'),
           }}
           clearHref={clearGroupHref}
         />
@@ -497,7 +555,7 @@ export default async function TopicDetailPage({
 
         {activeList.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-            {groupFilter ? emptyWithFilter : emptyNoFilter}
+            {anyFilterActive ? emptyWithFilter : emptyNoFilter}
           </p>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -526,7 +584,7 @@ export default async function TopicDetailPage({
       {/* Terminal but not voted: withdrawn / expired — group filter still
           applies, hidden entirely if there's nothing to show. */}
       {otherTerminal.length > 0 && (() => {
-        const filteredTerminal = otherTerminal.filter(matchesGroupFilter);
+        const filteredTerminal = otherTerminal.filter(matchesAllFilters);
         if (filteredTerminal.length === 0) return null;
         return (
           <section style={{ paddingTop: 32 }}>

@@ -179,6 +179,7 @@ async def list_groups(
             name_short=g.name_short,
             name_long=g.name_long,
             color_hex=g.color_hex,
+            logo_url=g.logo_url,
             members_active=int(active_count),
         )
         for g, active_count in rows
@@ -230,6 +231,7 @@ async def get_group(
         name_short=g.name_short,
         name_long=g.name_long,
         color_hex=g.color_hex,
+        logo_url=g.logo_url,
         members_active=int(active_count),
     )
 

@@ -49,13 +49,17 @@ _NAME_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Birth date: the ficha typically renders a row labeled "Fecha de
-# nacimiento" with the date in DD/MM/YYYY form. Two HTML idioms appear
-# in the wild:
-#   <span class="lbl">Fecha de nacimiento</span><span>20/04/1980</span>
-#   <dt>Fecha de nacimiento</dt><dd>20/04/1980</dd>
-# The pattern below matches both by looking for the literal label and
-# then capturing the next non-tag chunk that looks like a date.
+# Birth date: the ficha typically renders the birth row as a short
+# "Nascut/Nacido el …" phrase. The portal's Java template emits the raw
+# ``Date.toString()`` format ("Wed Aug 11 00:00:00 CET 1971"), with the
+# year as the last token — so we anchor on the verb and capture a
+# 4-digit year somewhere in the next ~200 characters. As a secondary
+# pattern we also accept the older "Fecha de nacimiento … DD/MM/YYYY"
+# idiom in case the template is reissued.
+_BIRTH_LINE_RE = re.compile(
+    r"(?:Nascut|Nascuda|Nacido|Nacida)\s+el\b[\s\S]{0,200}?(\d{4})",
+    re.IGNORECASE,
+)
 _BIRTH_DATE_RE = re.compile(
     r"Fecha\s+de\s+nacimiento[\s\S]{0,200}?(\d{1,2})[/\-\.](\d{1,2})[/\-\.](\d{4})",
     re.IGNORECASE,
@@ -70,12 +74,21 @@ def _extract_birth_year(html: str) -> int | None:
     parliamentary activity tracking, (b) age is the only derived signal
     we surface to the public. Storing less is the safer default.
     """
-    match = _BIRTH_DATE_RE.search(html)
-    if match is None:
-        return None
-    try:
-        year = int(match.group(3))
-    except (TypeError, ValueError):
+    year: int | None = None
+    line_match = _BIRTH_LINE_RE.search(html)
+    if line_match is not None:
+        try:
+            year = int(line_match.group(1))
+        except (TypeError, ValueError):
+            year = None
+    if year is None:
+        date_match = _BIRTH_DATE_RE.search(html)
+        if date_match is not None:
+            try:
+                year = int(date_match.group(3))
+            except (TypeError, ValueError):
+                year = None
+    if year is None:
         return None
     # Sanity check — Spanish deputies must be at least 18, so anyone born
     # after current year - 18 is a parsing artefact. Likewise pre-1900 is
@@ -86,6 +99,168 @@ def _extract_birth_year(html: str) -> int | None:
     if year < 1900 or year > today_year - 18:
         return None
     return year
+
+
+# --- "Fitxa personal" biography paragraph -----------------------------------
+#
+# The ficha HTML places the bio as a loose text node between the
+# "Legislatures" <p> and the next ``<div class="f-alta">`` row. There's
+# no enclosing tag we can hook onto reliably — the source markup is
+# spaghetti templated with cargos, condicio, etc. inline.
+#
+# Strategy: locate the ``<h3>Fitxa personal</h3>``/``<h3>Ficha personal</h3>``
+# heading, then grab everything up to the first ``<div class="f-alta">``,
+# strip HTML tags, drop the auto-generated birth-date line ("Nascuda el…")
+# and the legislatures line ("Diputada de la XV Legislatura"), and keep
+# only the editorial bio paragraph. ``<br>`` is preserved as a paragraph
+# break (``\n\n``) so the frontend can split on it.
+#
+# Validated on 2026-05-12 against Armengol (cod 185) and Abascal (cod 317).
+_FICHA_BIO_BLOCK_RE = re.compile(
+    r"<h3>\s*(?:Fitxa|Ficha)\s+personal\s*</h3>(.*?)<div\s+class=\"f-alta\"",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Pattern that recognises the auto-generated header lines we want to
+# discard. The ficha header reads:
+#   "Nascut/Nacido el <weekday> <month> <day> ... <year> [en <place>]"
+#   "Nascuda/Nacida el <weekday> <month> <day> ... <year> [en <place>]"
+#   "Diputat/Diputada/Diputado/Diputada de la XV Legislatura"
+# Both render with the raw java Date.toString() format on the source —
+# we don't want to surface "Wed Aug 11 00:00:00 CET 1971" to readers.
+# The pre-collapsed normaliser in :func:`_extract_bio_text` glues a
+# "en Inca, Mallorca (Illes Balears)" continuation onto the "Nascuda el"
+# line as part of step 3, so a simple ``^Nascuda el`` prefix catches the
+# whole sentence including the optional place-of-birth tail.
+_FICHA_AUTOGEN_RE = re.compile(
+    r"^\s*(?:Nascut|Nascuda|Nacido|Nacida)\s+el\b.*$"
+    # Matches every locale + plural variant of the legislature header
+    # row: "Diputat/Diputada/Diputado/Diputada de la(s|es) ROMAN[,
+    # ROMAN, … (i|y|e) ROMAN] Legislatura(s)|Legislatures". Accepts
+    # comma- and conjunction-joined roman numerals so e.g. "Diputat de
+    # la XIII, XIV i XV Legislatures" (Abascal's ficha, Catalan plural)
+    # and "Diputado de las X y XI Legislaturas" (Spanish plural) both
+    # capture wholesale.
+    r"|^\s*Diputa(?:t|da|do)\s+de\s+(?:la|las|les|los)\s+"
+    r"\w+(?:\s*,\s*\w+)*(?:\s+(?:i|y|e)\s+\w+)*"
+    r"\s+Legislatur(?:a|as|es)\b.*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# --- "Càrrecs" / "Cargos" — committee + role list ---------------------------
+#
+# The "Càrrecs" section is a flat ``<ul class="cargos">`` containing one
+# ``<li>`` per role. Each ``<li>`` is a few text fragments interleaved
+# with whitespace and the occasional ``<a href="…">Comisión …</a>`` link;
+# the natural flattening is "strip tags + collapse whitespace".
+_FICHA_CARGOS_BLOCK_RE = re.compile(
+    r"<h3>\s*(?:Càrrecs|Cargos)\s*</h3>\s*<ul[^>]*class=\"cargos[^\"]*\"[^>]*>(.*?)</ul>",
+    re.IGNORECASE | re.DOTALL,
+)
+_FICHA_CARGOS_LI_RE = re.compile(r"<li[^>]*>(.*?)</li>", re.IGNORECASE | re.DOTALL)
+
+# Generic HTML-tag stripper. Conservative — keeps text content of every
+# element. We deliberately do NOT decode HTML entities here (there are
+# very few in this corpus and the few that appear render fine in the UI);
+# adding html.unescape would be safe but unnecessary.
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+# In the bio, ``<br>`` is the source's only paragraph separator. Convert
+# to a sentinel before stripping the rest of the tags so we can preserve
+# the visual structure as ``\n\n`` in the persisted text.
+_BR_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
+
+
+def _strip_html(html: str) -> str:
+    """Drop all HTML tags from ``html`` and collapse internal whitespace.
+
+    Preserves the relative ordering of text nodes — i.e. it's the
+    simplest possible faithful flattening. Multiple consecutive
+    whitespace characters (including newlines and tabs) collapse to a
+    single space. Used by both the bio and the cargos extractors.
+    """
+    text = _HTML_TAG_RE.sub(" ", html)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _extract_bio_text(html: str) -> str | None:
+    """Return the deputy's biography paragraph from a ficha page, or None.
+
+    The bio block (``<h3>Fitxa personal</h3>`` → next ``<div
+    class="f-alta">``) contains auto-generated header lines ("Nascuda el
+    Wed Aug 11 … en Inca, Mallorca (Illes Balears)", "Diputada de la XV
+    Legislatura") and the actual bio paragraph as a loose text node. We
+    extract the block, treat ``<br>`` as the *only* paragraph break (so
+    a header sentence split across two <p>s or whitespace-only line
+    wraps stays as one virtual line and gets dropped wholesale), then
+    drop the auto-generated header lines and return what's left — or
+    ``None`` when nothing meaningful remains.
+    """
+    match = _FICHA_BIO_BLOCK_RE.search(html)
+    if match is None:
+        return None
+    raw = match.group(1)
+    # Step 1: identify all *authored* paragraph boundaries. The source
+    # uses two idioms — ``<br>`` inline within a paragraph and ``</p>``
+    # at the end of one. Both become a sentinel token; every other tag
+    # is replaced with a space so neighbouring words don't glue. The
+    # double-vertical-bar token is the sentinel — a string that never
+    # appears in any deputy's ficha (verified against the live corpus)
+    # and crucially, is NOT matched by ``\s`` so the subsequent
+    # whitespace-collapse pass won't eat it the way it would a control
+    # character.
+    sentinel = "|||"
+    raw = _BR_RE.sub(sentinel, raw)
+    raw = re.sub(r"</p\s*>", sentinel, raw, flags=re.IGNORECASE)
+    raw = _HTML_TAG_RE.sub(" ", raw)
+    # Step 2: collapse all *unintended* whitespace runs (raw template
+    # newlines, indentation tabs) into single spaces. This is what
+    # flattens "Nascuda el …" + indented "en Inca, …" into one logical
+    # line so the autogen filter catches the whole sentence.
+    raw = re.sub(r"\s+", " ", raw)
+    # Step 3: split on the authored sentinel boundaries.
+    lines = [ln.strip() for ln in raw.split(sentinel)]
+    # Step 4: drop empty lines and the auto-generated header rows.
+    kept: list[str] = []
+    for ln in lines:
+        if not ln:
+            continue
+        if _FICHA_AUTOGEN_RE.match(ln):
+            continue
+        # The header section also embeds the "Condició plena" timestamp
+        # ("Condició plena: Thu Aug 17 …") — drop it; it's not bio.
+        if re.match(r"^\s*(?:Condició|Condición)\s+plena", ln, re.IGNORECASE):
+            continue
+        kept.append(ln)
+    if not kept:
+        return None
+    bio = "\n\n".join(kept)
+    # Sanity floor: a single-word residue is almost certainly noise.
+    if len(bio) < 4:
+        return None
+    return bio
+
+
+def _extract_commissions(html: str) -> list[str]:
+    """Return the verbatim "Càrrecs" list as plain text strings.
+
+    Each ``<li>`` becomes one entry. Anchor tags inside the li (links to
+    the Comisión / Mesa / Junta pages) are flattened to their text
+    content. The order matches the source HTML.
+
+    Returns an empty list when the ficha has no Càrrecs block — that's
+    a legitimate "we scraped, nothing to show" signal distinct from the
+    NULL "we never scraped" state captured in the DB column.
+    """
+    block = _FICHA_CARGOS_BLOCK_RE.search(html)
+    if block is None:
+        return []
+    items: list[str] = []
+    for li_match in _FICHA_CARGOS_LI_RE.finditer(block.group(1)):
+        text = _strip_html(li_match.group(1))
+        if text:
+            items.append(text)
+    return items
 
 
 _PHOTO_PATH = "/docu/imgweb/diputados/{cod}_{leg}.jpg"
@@ -189,6 +364,18 @@ async def backfill_photos(
                 year = _extract_birth_year(ficha_html)
                 if year is not None:
                     person.birth_year = year
+            # Biography paragraph + committee/role list from the same
+            # ficha. Both are refreshed on every run — the source is the
+            # authoritative copy and a re-run is how we catch new
+            # committee assignments after a Mesa reshuffle. Commissions
+            # is always assigned (empty list when no block exists); bio
+            # is only overwritten when we actually parsed something to
+            # avoid clobbering a manual edit with NULL on a transient
+            # template change.
+            bio = _extract_bio_text(ficha_html)
+            if bio is not None:
+                person.bio_text = bio
+            person.commissions = _extract_commissions(ficha_html)
             matched.append(person)
             stats = stats.__class__(
                 codes_probed=stats.codes_probed,

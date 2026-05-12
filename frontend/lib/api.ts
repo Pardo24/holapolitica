@@ -111,6 +111,18 @@ export interface Person {
   current_constituency: string | null;
   role_title: string | null;
   role_kind: 'govern' | 'mesa' | null;
+  /**
+   * Free-text biographical paragraph scraped from the Congreso ficha page.
+   * Multi-line; paragraph breaks are encoded as `\n\n`. NULL when the
+   * scrape has never run for this deputy.
+   */
+  bio_text: string | null;
+  /**
+   * Committee assignments and parliamentary roles as published on the
+   * ficha page, verbatim. NULL before the scrape has run; empty array
+   * when the deputy has no committee membership listed.
+   */
+  commissions: string[] | null;
 }
 
 export type VoteResult = 'approved' | 'rejected' | 'tie';
@@ -181,6 +193,13 @@ export interface ParliamentaryGroupSummary {
   name_short: string;
   name_long: string;
   color_hex: string | null;
+  /**
+   * Optional URL to an official group logo. NULL in production today —
+   * see backend migration `0019_group_logo_url` for the licensing
+   * rationale. When present, GroupBadge / GroupChip render the image in
+   * place of the colored abbreviation disc.
+   */
+  logo_url: string | null;
   members_active: number;
 }
 
