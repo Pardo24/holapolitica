@@ -130,8 +130,8 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         page,
         page_size: 20,
       }),
-      api.topics.list(),
-      api.groups.list(),
+      api.topics.list().catch(() => [] as Awaited<ReturnType<typeof api.topics.list>>),
+      api.groups.list().catch(() => [] as Awaited<ReturnType<typeof api.groups.list>>),
       // Compact agenda banner above the list — same upcoming data as the
       // home page, but `mode="compact"` hides it entirely when empty so
       // the table is not preceded by a stale "no data" block.
@@ -139,12 +139,17 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         .sessions({ legislature_id: 1, upcoming_only: true })
         .then((rows) => rows.slice(0, 4))
         .catch(() => [] as ScheduledSession[]),
-      // Calendar source: most recent 200 votes irrespective of filters,
-      // aggregated by date below. We deliberately ignore the current
-      // filter set here so the strip always shows the same chronological
-      // landmarks — tapping a date stacks with the other filters via the
-      // URL, never replaces them.
-      api.votes.list({ legislature_id: 1, page: 1, page_size: 200 }),
+      // Calendar source: most recent 100 votes (backend max page_size)
+      // irrespective of filters, aggregated by date below. We deliberately
+      // ignore the current filter set here so the strip always shows the
+      // same chronological landmarks — tapping a date stacks with the
+      // other filters via the URL, never replaces them.
+      // ``.catch`` is critical: if THIS call fails the whole Promise.all
+      // would reject and the page would render the error block instead
+      // of the list. The strip just hides itself when empty.
+      api.votes
+        .list({ legislature_id: 1, page: 1, page_size: 100 })
+        .catch(() => null),
       // Per-topic initiative counts feed the mobile topic carousel
       // (every topic visible, deterministic order — never editorial).
       api.stats.topicsGlobal().catch(() => []),

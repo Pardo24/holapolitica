@@ -210,17 +210,27 @@ export function NewsletterSignup({
       <style>{`
         @media (max-width: 640px) {
           .newsletter-signup { margin-top: 20px !important; }
-          .newsletter-signup-form { flex-direction: column; gap: 6px !important; }
+          .newsletter-signup-form {
+            flex-direction: column;
+            gap: 6px !important;
+          }
           .newsletter-signup-form > input,
           .newsletter-signup-form > button { width: 100%; }
-          /* Compress the vertical footprint of the email input on mobile.
-             The global .input-modern rule uses 12px 14px padding which
-             made the field feel oversized on phones; 8px 12px + an
-             explicit 40px min-height keeps it tappable without sprawling.
-             Font-size stays at 16px (set via the inline style on the
-             <input>) so iOS Safari doesn't auto-zoom on focus. */
+          /* CRITICAL: when the form flips to flex-direction:column,
+             the inline flex:1 1 220px on the input reinterprets the
+             220 px as a MIN HEIGHT (main axis is now vertical). That
+             made the input render ~220 px tall on phones. Force the
+             flex shorthand back to a sane row-equivalent so the input
+             gets its natural content height + the explicit min-height
+             below. */
           .newsletter-signup-form > input.input-modern {
+            flex: 0 0 auto !important;
             padding: 8px 12px !important;
+            min-height: 40px !important;
+            height: 40px !important;
+          }
+          .newsletter-signup-form > button {
+            flex: 0 0 auto !important;
             min-height: 40px !important;
           }
         }

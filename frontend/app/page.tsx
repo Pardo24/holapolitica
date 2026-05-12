@@ -380,19 +380,18 @@ export default async function HomePage() {
           className="home-newsletter-row__icon"
           aria-hidden="true"
           style={{
-            flex: '0 0 220px',
+            flex: '0 0 auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'var(--paper)',
             color: 'var(--accent)',
-            borderRight: '1px solid var(--rule)',
-            padding: 24,
+            paddingLeft: 20,
+            paddingRight: 10,
           }}
         >
-          <Mail size={96} strokeWidth={1.25} aria-hidden="true" />
+          <Mail size={64} strokeWidth={1.4} aria-hidden="true" />
         </div>
-        <div className="home-newsletter-row__signup" style={{ flex: '1 1 0', minWidth: 0, padding: '8px 4px' }}>
+        <div className="home-newsletter-row__signup" style={{ flex: '1 1 0', minWidth: 0, padding: '8px 8px' }}>
           <NewsletterSignup variant="bare" />
         </div>
       </section>
