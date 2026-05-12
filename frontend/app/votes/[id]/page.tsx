@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
-import { GroupBadge } from '@/components/GroupBadge';
 import { GroupChip } from '@/components/GroupChip';
 import { ResultPill } from '@/components/ResultPill';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
@@ -350,97 +349,6 @@ export default async function VoteDetailPage({
             <span style={{ color: 'var(--ink-2)' }}>{t('cohesion_axis_center')}</span>
             <span>{t('cohesion_axis_right')}</span>
           </div>
-        </div>
-      </section>
-
-      {/* Numerical detail table */}
-      <section style={{ paddingTop: 32 }}>
-        <div className="eyebrow" style={{ marginBottom: 10 }}>
-          {t('cohesion_table_title')}
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="tab">
-            <thead>
-              <tr>
-                <th style={{ width: 200 }}>{t('cohesion_th_group')}</th>
-                <th style={{ width: 60, textAlign: 'right' }}>{t('cohesion_th_members')}</th>
-                <th style={{ width: 80, textAlign: 'right', color: 'var(--aye)' }}>{t('ayes')}</th>
-                <th style={{ width: 80, textAlign: 'right', color: 'var(--no)' }}>{t('noes')}</th>
-                <th style={{ width: 80, textAlign: 'right', color: 'var(--abst)' }}>{t('abstentions')}</th>
-                <th style={{ width: 80, textAlign: 'right', color: 'var(--nv)' }}>{t('absent')}</th>
-                <th>{t('cohesion_th_discipline')}</th>
-                <th style={{ width: 80, textAlign: 'right' }}>{t('cohesion_th_cohesion')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cohesion.map((row) => {
-                const members =
-                  row.ayes + row.noes + row.abstentions + row.no_vote;
-                const cast = row.ayes + row.noes + row.abstentions;
-                const dom = Math.max(row.ayes, row.noes, row.abstentions);
-                const cohesionPct = cast > 0 ? (dom / cast) * 100 : null;
-                return (
-                  <tr key={row.group_slug}>
-                    <td>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <GroupBadge slug={row.group_slug} color={row.group_color_hex} size="xs" />
-                        <b>{displayGroupShort(row.group_name_short)}</b>
-                      </span>
-                    </td>
-                    <td className="tabular" style={{ textAlign: 'right', color: 'var(--ink-3)' }}>
-                      {members}
-                    </td>
-                    <td
-                      className="tabular"
-                      style={{
-                        textAlign: 'right',
-                        color: row.ayes > 0 ? 'var(--aye)' : 'var(--ink-3)',
-                        fontWeight: row.ayes > 0 ? 600 : 400,
-                      }}
-                    >
-                      {row.ayes || '·'}
-                    </td>
-                    <td
-                      className="tabular"
-                      style={{
-                        textAlign: 'right',
-                        color: row.noes > 0 ? 'var(--no)' : 'var(--ink-3)',
-                        fontWeight: row.noes > 0 ? 600 : 400,
-                      }}
-                    >
-                      {row.noes || '·'}
-                    </td>
-                    <td
-                      className="tabular"
-                      style={{
-                        textAlign: 'right',
-                        color: row.abstentions > 0 ? 'var(--abst)' : 'var(--ink-3)',
-                      }}
-                    >
-                      {row.abstentions || '·'}
-                    </td>
-                    <td className="tabular" style={{ textAlign: 'right', color: 'var(--ink-3)' }}>
-                      {row.no_vote || '·'}
-                    </td>
-                    <td>
-                      <StackedBar
-                        d={{
-                          aye: row.ayes,
-                          no: row.noes,
-                          abst: row.abstentions,
-                          nv: row.no_vote,
-                        }}
-                        height={6}
-                      />
-                    </td>
-                    <td className="tabular" style={{ textAlign: 'right' }}>
-                      {cohesionPct == null ? '—' : `${cohesionPct.toFixed(0)}%`}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         </div>
       </section>
 

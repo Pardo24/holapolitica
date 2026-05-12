@@ -1,5 +1,7 @@
+import Link from 'next/link';
+import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Check, X, Circle } from 'lucide-react';
+import { ArrowUpRight, Check, X, Circle } from 'lucide-react';
 
 import type { TopicVoteStat } from '@/lib/api';
 
@@ -30,9 +32,17 @@ const MIN_N_TO_SHOW = 5;
 export async function TopicBars({
   rows,
   emptyHint,
+  groupSlug,
 }: {
   rows: TopicVoteStat[];
   emptyHint?: string;
+  /**
+   * When present, the highlighted "most-supported" / "most-rejected"
+   * cards link to ``/topics/<slug>?group=<groupSlug>`` so a reader can
+   * jump into the topic detail filtered by the current group. Used by
+   * the group detail page; persons pages leave it undefined.
+   */
+  groupSlug?: string;
 }) {
   const t = await getTranslations('topic_bars');
   const significant = rows.filter((r) => r.cast >= MIN_N_TO_SHOW);
@@ -74,6 +84,7 @@ export async function TopicBars({
             metricLabel={`% ${t('label_aye')}`}
             metricColor={C_AYE}
             castCaption={t('votes_cast', { cast: topAye!.cast, nv: topAye!.no_vote })}
+            groupSlug={groupSlug}
           />
           <HighlightCard
             label={t('most_rejection')}
@@ -82,6 +93,7 @@ export async function TopicBars({
             metricLabel={`% ${t('label_no')}`}
             metricColor={C_NO}
             castCaption={t('votes_cast', { cast: topNo!.cast, nv: topNo!.no_vote })}
+            groupSlug={groupSlug}
           />
         </div>
       )}
@@ -128,6 +140,7 @@ function HighlightCard({
   metricLabel,
   metricColor,
   castCaption,
+  groupSlug,
 }: {
   label: string;
   row: TopicVoteStat;
@@ -135,10 +148,20 @@ function HighlightCard({
   metricLabel: string;
   metricColor: string;
   castCaption: string;
+  groupSlug?: string;
 }) {
-  return (
-    <div className="rounded-lg border p-4">
-      <div className="text-xs text-[hsl(var(--muted-foreground))]">{label}</div>
+  const body = (
+    <>
+      <div className="text-xs text-[hsl(var(--muted-foreground))] flex items-center gap-2">
+        <span>{label}</span>
+        {groupSlug && (
+          <ArrowUpRight
+            size={12}
+            aria-hidden="true"
+            className="ml-auto opacity-60"
+          />
+        )}
+      </div>
       <div className="font-semibold text-base mt-1">{row.topic_name_ca}</div>
       <div className="flex items-baseline gap-2 mt-2">
         <span className="text-3xl font-bold tabular-nums" style={{ color: metricColor }}>
@@ -152,8 +175,22 @@ function HighlightCard({
       <div className="text-[11px] text-[hsl(var(--muted-foreground))] mt-1 tabular-nums">
         {castCaption}
       </div>
-    </div>
+    </>
   );
+  if (groupSlug) {
+    const href =
+      `/topics/${row.topic_slug}?group=${encodeURIComponent(groupSlug)}` as Route;
+    return (
+      <Link
+        href={href}
+        className="topic-highlight-link rounded-lg border p-4 block"
+        style={{ color: 'inherit', textDecoration: 'none' }}
+      >
+        {body}
+      </Link>
+    );
+  }
+  return <div className="rounded-lg border p-4">{body}</div>;
 }
 
 function TopicBarRow({ row, labels }: { row: TopicVoteStat; labels: BarLabels }) {

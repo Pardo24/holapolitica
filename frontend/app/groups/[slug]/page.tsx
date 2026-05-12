@@ -230,6 +230,7 @@ export default async function GroupDetailPage({
         <TopicBars
           rows={topicStats}
           emptyHint={t('vote_by_topic_empty_hint')}
+          groupSlug={group.slug}
         />
       </section>
 

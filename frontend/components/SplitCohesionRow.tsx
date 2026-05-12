@@ -19,10 +19,6 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
   const half = 50; // %
   const ayePct = (row.ayes / members) * half;
   const noPct = (row.noes / members) * half;
-  // Abstentions and no-vote are split evenly across both sides so they
-  // don't disturb the centre axis or take a side.
-  const abstPct = (row.abstentions / members) * 100;
-  const nvPct = (row.no_vote / members) * 100;
 
   return (
     <div
@@ -54,20 +50,29 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
         </span>
       </div>
       <div
-        style={{ position: 'relative', height: 18, background: 'var(--paper-3)' }}
+        style={{
+          position: 'relative',
+          height: 14,
+          background: 'var(--paper-3)',
+          borderRadius: 7,
+          overflow: 'hidden',
+        }}
         role="img"
-        aria-label={`Sí ${row.ayes}, No ${row.noes}, Abst ${row.abstentions}, NV ${row.no_vote}`}
+        aria-label={`Sí ${row.ayes}, No ${row.noes}, Abstenció ${row.abstentions}, sense vot ${row.no_vote}`}
       >
+        {/* Centre axis — single pixel line so the eye reads "balanced
+            around zero" without dominating. */}
         <div
           style={{
             position: 'absolute',
-            top: -2,
-            bottom: -2,
+            top: 0,
+            bottom: 0,
             left: '50%',
             width: 1,
-            background: 'var(--ink)',
+            background: 'var(--rule-strong)',
           }}
         />
+        {/* Sí grows leftward from the centre. */}
         <div
           style={{
             position: 'absolute',
@@ -78,6 +83,9 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
             background: 'var(--aye)',
           }}
         />
+        {/* No grows rightward from the centre. Abstencions / no-vote
+            are NOT plotted on the bar — they live as faint counts to the
+            right so the bar stays a clean two-tone Sí vs No axis. */}
         <div
           style={{
             position: 'absolute',
@@ -88,30 +96,6 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
             background: 'var(--no)',
           }}
         />
-        {row.abstentions > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              right: `calc(50% + ${ayePct}%)`,
-              width: `${abstPct / 2}%`,
-              background: 'var(--abst)',
-            }}
-          />
-        )}
-        {row.no_vote > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              right: `calc(50% + ${ayePct + abstPct / 2}%)`,
-              width: `${nvPct / 2}%`,
-              background: 'var(--nv)',
-            }}
-          />
-        )}
       </div>
       <div
         className="tabular"
@@ -119,12 +103,22 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
           fontSize: 11,
           color: 'var(--ink-3)',
           display: 'flex',
-          justifyContent: 'space-between',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 8,
         }}
       >
         <span style={{ color: 'var(--aye)', fontWeight: 600 }}>{row.ayes}</span>
         <span aria-hidden="true">·</span>
         <span style={{ color: 'var(--no)', fontWeight: 600 }}>{row.noes}</span>
+        {(row.abstentions > 0 || row.no_vote > 0) && (
+          <span
+            title={`Abst ${row.abstentions} · Sense vot ${row.no_vote}`}
+            style={{ color: 'var(--ink-3)', fontWeight: 400 }}
+          >
+            +{row.abstentions + row.no_vote}
+          </span>
+        )}
       </div>
     </div>
   );
