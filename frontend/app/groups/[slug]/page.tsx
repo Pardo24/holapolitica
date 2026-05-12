@@ -232,14 +232,6 @@ export default async function GroupDetailPage({
           members={sortMembersWithRoleFirst(members)}
           groupSlug={group.slug}
           groupColor={group.color_hex}
-          labels={{
-            title: t('members_title'),
-            searchPlaceholder: t('members_search_placeholder'),
-            searchAria: t('members_search_aria'),
-            matchCount: (count: number) =>
-              t('members_match_count', { count }),
-            empty: t('members_empty_filter'),
-          }}
         />
       )}
 

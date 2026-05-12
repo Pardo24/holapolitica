@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import type { GroupMemberRow } from '@/lib/api';
@@ -39,19 +40,21 @@ export function GroupCompositionFilter({
   members,
   groupSlug,
   groupColor,
-  labels,
 }: {
   members: GroupMemberRow[];
   groupSlug: string;
   groupColor: string | null;
-  labels: {
-    title: string;
-    searchPlaceholder: string;
-    searchAria: string;
-    matchCount: (count: number) => string;
-    empty: string;
-  };
 }) {
+  // Translations resolved on the client — passing the t() function from
+  // the server would cross the server→client boundary and crash SSR
+  // ("Functions cannot be passed directly to Client Components").
+  const t = useTranslations('group');
+  const labels = {
+    title: t('members_title'),
+    searchPlaceholder: t('members_search_placeholder'),
+    searchAria: t('members_search_aria'),
+    empty: t('members_empty_filter'),
+  };
   const [query, setQuery] = useState('');
 
   // Preserve the original "with role first, rest after" ordering set by
@@ -91,7 +94,7 @@ export function GroupCompositionFilter({
           className="tabular"
           style={{ fontSize: 11, color: 'var(--ink-3)' }}
         >
-          {labels.matchCount(filtered.length)}
+          {t('members_match_count', { count: filtered.length })}
         </div>
       </div>
 
