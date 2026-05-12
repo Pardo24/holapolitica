@@ -6,8 +6,10 @@ import { ChevronLeft, ChevronRight, Route as RouteIcon, Search } from 'lucide-re
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
+import { ActiveFilterChips, type ActiveFilter } from '@/components/ActiveFilterChips';
 import { HubTabs } from '@/components/HubTabs';
 import { MobileTopicCarousel, type MobileCarouselTopic } from '@/components/MobileTopicCarousel';
+import { MobileVoteCard } from '@/components/MobileVoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
 import { VotesCalendarStripController } from '@/components/VotesCalendarStripController';
@@ -217,6 +219,60 @@ async function VotesListTab({ params }: { params: SearchParams }) {
       ? params.date_from
       : null;
 
+  // Active-filter chips — one per applied filter, with × to remove.
+  // The list shows up between the calendar and the rest of the page.
+  const activeFilters: ActiveFilter[] = [];
+  if (activeDate) {
+    activeFilters.push({
+      paramKey: 'date_from',
+      pairParamKey: 'date_to',
+      label: new Date(`${activeDate}T12:00:00`).toLocaleDateString(locale, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }),
+    });
+  }
+  if (params.topic_slug) {
+    const topic = topics.find((tp) => tp.slug === params.topic_slug);
+    if (topic) {
+      activeFilters.push({
+        paramKey: 'topic_slug',
+        label: topic.name_ca,
+        color: topic.color_hex,
+      });
+    }
+  }
+  if (params.proposing_group_slug) {
+    if (params.proposing_group_slug === 'govern') {
+      activeFilters.push({
+        paramKey: 'proposing_group_slug',
+        label: t('proposed_by_government'),
+      });
+    } else {
+      const group = groups.find((g) => g.slug === params.proposing_group_slug);
+      if (group) {
+        activeFilters.push({
+          paramKey: 'proposing_group_slug',
+          label: displayGroupShort(group.name_short),
+          color: group.color_hex,
+        });
+      }
+    }
+  }
+  if (params.result) {
+    activeFilters.push({
+      paramKey: 'result',
+      label: t(`result.${params.result}` as 'result.approved'),
+    });
+  }
+  if (params.q) {
+    activeFilters.push({
+      paramKey: 'q',
+      label: `"${params.q}"`,
+    });
+  }
+
   const totalPages = data
     ? Math.max(1, Math.ceil(data.total / data.page_size))
     : 1;
@@ -258,6 +314,14 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           />
         </div>
       )}
+
+      {/* Active-filter chips — visible on every viewport. When a chip is
+          tapped the corresponding URL param is removed and the page
+          re-renders without that filter. */}
+      <ActiveFilterChips
+        filters={activeFilters}
+        clearAllLabel={t('filters_clear_all')}
+      />
 
       {/* Mobile-only rotating topic carousel. Surfaces the topic
           taxonomy above the list so a phone user can jump to an entire
@@ -451,8 +515,39 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         <p style={{ color: 'var(--ink-3)', padding: '24px 0' }}>{t('no_results')}</p>
       )}
 
+      {/* Mobile list — card per vote, no horizontal scroll. */}
       {data && data.items.length > 0 && (
-        <div style={{ overflowX: 'auto', marginTop: 8 }}>
+        <ul
+          className="sm:hidden"
+          style={{
+            listStyle: 'none',
+            margin: 0,
+            padding: '12px 0 0',
+            display: 'grid',
+            gap: 10,
+          }}
+        >
+          {data.items.map((v) => (
+            <MobileVoteCard
+              key={v.id}
+              vote={v}
+              locale={locale}
+              plainSummary={pickPlainSummary(v, locale)}
+              labels={{
+                proposed_by_government: t('proposed_by_government'),
+                result: t(`result.${v.result}` as 'result.approved'),
+                ayes: t('ayes'),
+                noes: t('noes'),
+                abstentions: t('abstentions'),
+              }}
+            />
+          ))}
+        </ul>
+      )}
+
+      {/* Desktop table */}
+      {data && data.items.length > 0 && (
+        <div className="hidden sm:block" style={{ overflowX: 'auto', marginTop: 8 }}>
           <table className="tab tab-votes-list">
             <thead>
               <tr>
