@@ -93,6 +93,11 @@ class PersonRead(BaseModel):
     current_group_short: str | None = None
     current_group_color: str | None = None
     current_constituency: str | None = None
+    # Public role that modifies expected voting behaviour. Frontend uses
+    # role_kind to decide whether to surface a caveat next to attendance
+    # / cohesion metrics. See Person model docstring for buckets.
+    role_title: str | None = None
+    role_kind: str | None = None
 
 
 class MandateRead(BaseModel):

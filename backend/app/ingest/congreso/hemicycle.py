@@ -116,6 +116,79 @@ class ParsedSeat:
     # Raw "Family, Given (role)" string from the hover JS — used as a
     # secondary match key. None when the JS shape diverges.
     raw_name: str | None = None
+    # Spanish role text inside the parens of raw_name. None for ordinary
+    # deputies (no parens in their hover label). Values are verbatim:
+    # "Presidente del Gobierno", "Ministra de Sanidad", "Presidenta del
+    # Congreso de los Diputados", "Vicepresidente Primero", etc.
+    role_title: str | None = None
+
+
+# Buckets for ``Person.role_kind``. The frontend uses these to decide
+# whether to attach a caveat banner to attendance/cohesion metrics.
+ROLE_KIND_GOVERN: Final[str] = "govern"
+ROLE_KIND_MESA: Final[str] = "mesa"
+
+# Substring tests, case-insensitive, run against ``role_title``. Order
+# matters — Mesa terms are checked first because "Presidenta del
+# Congreso" must NOT match the broader "Presidenta del Gobierno" branch.
+_MESA_TOKENS: Final[tuple[str, ...]] = (
+    "presidenta del congreso",
+    "presidente del congreso",
+    "vicepresidenta primera",
+    "vicepresidente primero",
+    "vicepresidenta segunda",
+    "vicepresidente segundo",
+    "vicepresidenta tercera",
+    "vicepresidente tercero",
+    "vicepresidenta cuarta",
+    "vicepresidente cuarto",
+    "secretario primero",
+    "secretaria primera",
+    "secretario segundo",
+    "secretaria segunda",
+    "secretario tercero",
+    "secretaria tercera",
+    "secretario cuarto",
+    "secretaria cuarta",
+)
+_GOVERN_TOKENS: Final[tuple[str, ...]] = (
+    "presidente del gobierno",
+    "presidenta del gobierno",
+    "vicepresidente primero del gobierno",
+    "vicepresidenta primera del gobierno",
+    "vicepresidente segundo del gobierno",
+    "vicepresidenta segunda del gobierno",
+    "vicepresidente tercero del gobierno",
+    "vicepresidenta tercera del gobierno",
+    "vicepresidente cuarto del gobierno",
+    "vicepresidenta cuarta del gobierno",
+    "ministro",  # any ministro / ministra
+    "ministra",
+)
+
+
+def classify_role(role_title: str | None) -> str | None:
+    """Return the bucket ``Person.role_kind`` for a verbatim Spanish role.
+
+    Mesa officers come first (their titles are more specific). Then
+    govern (President / VP / Ministers). Anything else is NULL.
+    """
+    if not role_title:
+        return None
+    lowered = role_title.casefold()
+    if any(tok in lowered for tok in _MESA_TOKENS):
+        return ROLE_KIND_MESA
+    if any(tok in lowered for tok in _GOVERN_TOKENS):
+        return ROLE_KIND_GOVERN
+    return None
+
+
+def extract_role_title(raw_name: str | None) -> str | None:
+    """Strip the parenthesised role from a "Family, Given (role)" string."""
+    if not raw_name:
+        return None
+    match = re.search(r"\(([^)]+)\)\s*$", raw_name)
+    return match.group(1).strip() if match else None
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,11 +235,23 @@ def parse_hemicycle_html(html: str) -> list[ParsedSeat]:
             continue
         name_match = _NAME_IN_HOVER_RE.search(block)
         cod = int(link_match.group("cod"))
+        raw_name = name_match.group(1).strip() if name_match else None
+        role_title = extract_role_title(raw_name)
+        # A Mesa officer or cabinet member appears twice in the HTML:
+        # once at their presiding/bench position (carries the role in
+        # parens) and once at their regular party seat (no role suffix).
+        # We keep the LAST coordinates (regular seat) but preserve the
+        # role we saw first — so Sánchez ends up at his Socialista seat
+        # but still marked as "Presidente del Gobierno".
+        existing = seen.get(cod)
+        if existing is not None and existing.role_title and role_title is None:
+            role_title = existing.role_title
         seen[cod] = ParsedSeat(
             cod_parlamentario=cod,
             x=int(coords_match.group("x")),
             y=int(coords_match.group("y")),
-            raw_name=(name_match.group(1).strip() if name_match else None),
+            raw_name=raw_name,
+            role_title=role_title,
         )
 
     return list(seen.values())
@@ -221,11 +306,21 @@ async def import_hemicycle_seats(
     matched_by_name = 0
     unmatched: list[int] = []
 
+    def apply(person: Person, seat: ParsedSeat) -> None:
+        person.seat_x = seat.x
+        person.seat_y = seat.y
+        # role_title is verbatim Spanish (the source language). We DON'T
+        # null an existing role when a fresh scrape happens to lack one
+        # — the role parens only appear on the presiding/bench entry, so
+        # treat them as additive overrides, not overwrites to NULL.
+        if seat.role_title:
+            person.role_title = seat.role_title
+            person.role_kind = classify_role(seat.role_title)
+
     for seat in seats:
         person: Person | None = by_cod.get(seat.cod_parlamentario)
         if person is not None:
-            person.seat_x = seat.x
-            person.seat_y = seat.y
+            apply(person, seat)
             matched_by_cod += 1
             continue
 
@@ -238,8 +333,7 @@ async def import_hemicycle_seats(
             # it without scraping the search portlet.
             if person.cod_parlamentario is None:
                 person.cod_parlamentario = seat.cod_parlamentario
-            person.seat_x = seat.x
-            person.seat_y = seat.y
+            apply(person, seat)
             matched_by_name += 1
             continue
 

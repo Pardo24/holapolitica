@@ -109,6 +109,8 @@ export interface Person {
   current_group_short: string | null;
   current_group_color: string | null;
   current_constituency: string | null;
+  role_title: string | null;
+  role_kind: 'govern' | 'mesa' | null;
 }
 
 export type VoteResult = 'approved' | 'rejected' | 'tie';
@@ -147,6 +149,8 @@ export interface Vote {
  * the frontend falls back to a synthetic curved-rows layout in that
  * case while keeping every seat clickable.
  */
+export type RoleKind = 'govern' | 'mesa' | null;
+
 export interface HemicycleSeat {
   person_id: number;
   full_name: string;
@@ -157,6 +161,10 @@ export interface HemicycleSeat {
   seat_x: number | null;
   seat_y: number | null;
   constituency: string | null;
+  // Public role that distorts ordinary voting patterns. Frontend uses
+  // role_kind to render a caveat next to attendance/cohesion metrics.
+  role_title: string | null;
+  role_kind: RoleKind;
 }
 
 export interface HemicycleLayout {

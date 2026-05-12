@@ -192,6 +192,17 @@ class Person(Base, TimestampMixin):
     seat_x: Mapped[int | None] = mapped_column(Integer)
     seat_y: Mapped[int | None] = mapped_column(Integer)
 
+    # Public office that modifies expected voting behaviour. ``role_title``
+    # is the Spanish text from the hemicycle scrape ("Presidente del
+    # Gobierno", "Ministra de Educación", "Vicepresidente Primero"…).
+    # ``role_kind`` buckets it: 'govern' (cabinet — do not vote in
+    # ordinary plenary), 'mesa' (Mesa del Congreso officers), or NULL
+    # (regular deputy). The frontend uses ``role_kind`` to attach a
+    # caveat to attendance / cohesion metrics so a 47% attendance on
+    # the President of Government isn't read as absenteeism.
+    role_title: Mapped[str | None] = mapped_column(String(200))
+    role_kind: Mapped[str | None] = mapped_column(String(16), index=True)
+
     # Relationships
     mandates: Mapped[list[Mandate]] = relationship("Mandate", back_populates="person")
 

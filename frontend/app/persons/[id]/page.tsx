@@ -184,6 +184,32 @@ export default async function PersonDetailPage({
               </span>
             )}
           </div>
+          {person.role_title && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                marginTop: 10,
+                padding: '6px 10px',
+                background: 'var(--accent-soft)',
+                color: 'var(--accent-2)',
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.01em',
+              }}
+              title={
+                person.role_kind === 'govern'
+                  ? "Càrrec executiu — per convenció parlamentària no vota en la majoria de plens"
+                  : person.role_kind === 'mesa'
+                    ? "Membre de la Mesa del Congrés — el seu rol modifica el patró de vot"
+                    : undefined
+              }
+            >
+              {person.role_title}
+            </div>
+          )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14, alignItems: 'center' }}>
             {person.biography_url ? (
               <a
@@ -221,6 +247,29 @@ export default async function PersonDetailPage({
       </header>
 
       <KpiStrip kpis={kpis} t={t} />
+
+      {person.role_kind && (
+        <div
+          role="note"
+          style={{
+            marginTop: 12,
+            padding: '12px 14px',
+            background: 'var(--paper-2)',
+            border: '1px solid var(--rule-strong)',
+            borderRadius: 10,
+            fontSize: 13,
+            lineHeight: 1.5,
+            color: 'var(--ink-2)',
+          }}
+        >
+          <strong style={{ color: 'var(--ink)' }}>
+            Avís sobre aquestes mètriques.
+          </strong>{' '}
+          {person.role_kind === 'govern'
+            ? `Aquest diputat ostenta el càrrec de ${person.role_title ?? 'membre del Govern'}. Per convenció parlamentària, el President del Govern i els ministres no participen en la majoria de votacions ordinàries del Ple. Comparar la seva assistència amb la d'un diputat sense càrrec executiu és enganyós.`
+            : `Aquest diputat és ${person.role_title ?? 'membre de la Mesa del Congrés'}. La Mesa té funcions de presidència i moderació que modifiquen el patró habitual de vot.`}
+        </div>
+      )}
 
       <section style={{ paddingTop: 28 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>

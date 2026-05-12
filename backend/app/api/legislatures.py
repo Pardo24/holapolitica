@@ -41,6 +41,11 @@ class HemicycleSeat(BaseModel):
     seat_x: int | None
     seat_y: int | None
     constituency: str | None
+    # Public role (cabinet, Mesa) — frontend uses this to attach caveats
+    # to per-deputy metrics so a 47% attendance on the President of
+    # Government isn't read as absenteeism. None for ordinary deputies.
+    role_title: str | None = None
+    role_kind: str | None = None
 
 
 class HemicycleLayout(BaseModel):
@@ -102,6 +107,8 @@ async def _compute_hemicycle(session: AsyncSession, legislature_id: int) -> Hemi
                 Person.photo_url,
                 Person.seat_x,
                 Person.seat_y,
+                Person.role_title,
+                Person.role_kind,
                 ParliamentaryGroup.slug,
                 ParliamentaryGroup.name_short,
                 ParliamentaryGroup.color_hex,
@@ -137,6 +144,8 @@ async def _compute_hemicycle(session: AsyncSession, legislature_id: int) -> Hemi
         photo_url,
         seat_x,
         seat_y,
+        role_title,
+        role_kind,
         slug,
         short,
         color,
@@ -155,6 +164,8 @@ async def _compute_hemicycle(session: AsyncSession, legislature_id: int) -> Hemi
             seat_x=seat_x,
             seat_y=seat_y,
             constituency=constituency,
+            role_title=role_title,
+            role_kind=role_kind,
         )
 
     # Sort the wire payload for a stable response: persons with a real
