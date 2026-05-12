@@ -126,13 +126,34 @@ export function CohesionCarousel({ rows }: { rows: GroupSummaryRow[] }) {
               fontWeight: 600,
               color: 'var(--ink)',
               minWidth: 0,
+              flex: 1,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              maxWidth: '100%',
             }}
           >
             {displayGroupShort(current.group_name_short)}
+          </span>
+          <span
+            className="tabular"
+            aria-label={`${current.members_active} ${t('deputies')}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '2px 8px',
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--ink-2)',
+              background: 'var(--paper-3)',
+              borderRadius: 999,
+              flex: 'none',
+            }}
+          >
+            <span>{current.members_active}</span>
+            <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>
+              {t('deputies')}
+            </span>
           </span>
         </div>
 
@@ -155,28 +176,6 @@ export function CohesionCarousel({ rows }: { rows: GroupSummaryRow[] }) {
             color="var(--accent)"
           />
         </div>
-
-        <span
-          className="tabular"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            alignSelf: 'flex-start',
-            marginTop: 'auto',
-            padding: '3px 8px',
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            background: 'var(--paper-3)',
-            borderRadius: 999,
-          }}
-        >
-          <span>{current.members_active}</span>
-          <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>
-            {t('deputies')}
-          </span>
-        </span>
       </Link>
 
       {/* Controls — neutral chevrons + "N de M" indicator. Mirrors the
