@@ -285,6 +285,8 @@
     "title": "Votacions",
     "subtitle": "Tots els registres · Congrés dels Diputats · XV leg.",
     "tab_by_topic": "Per tema",
+    "calendar_all_label": "Tots",
+    "calendar_count_suffix": "votacions",
     "records_count": "{count} registres",
     "filters": {
       "topic": "Tema",

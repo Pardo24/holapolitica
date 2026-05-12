@@ -285,6 +285,8 @@
     "title": "Votes",
     "subtitle": "All records · Spanish Congress · 15th legislature",
     "tab_by_topic": "By topic",
+    "calendar_all_label": "All",
+    "calendar_count_suffix": "votes",
     "records_count": "{count} records",
     "filters": {
       "topic": "Topic",

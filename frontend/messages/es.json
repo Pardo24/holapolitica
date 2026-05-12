@@ -285,6 +285,8 @@
     "title": "Votaciones",
     "subtitle": "Todos los registros · Congreso de los Diputados · XV leg.",
     "tab_by_topic": "Por tema",
+    "calendar_all_label": "Todos",
+    "calendar_count_suffix": "votaciones",
     "records_count": "{count} registros",
     "filters": {
       "topic": "Tema",
