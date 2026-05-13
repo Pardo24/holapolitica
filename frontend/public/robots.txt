@@ -1,0 +1,36 @@
+# Hola Política — robots.txt
+#
+# Civic-infrastructure stance: every public page is fair game for
+# search engines and archival crawlers. We do NOT carve out closed
+# corners; that would defeat the project's reason to exist.
+#
+# Two specific narrow disallows:
+#   /api/        — internal Next.js API routes (newsletter form ack,
+#                  locale switch). They return JSON to the same
+#                  origin; no SEO value, just noise.
+#   /embed/      — embed widgets are meant to live inside a third-party
+#                  iframe context, not as standalone search results.
+#                  The canonical /votes/<id> page carries the SEO.
+#
+# Public API endpoints (api.holapolitica.org) live on a different host
+# and have their own robots.txt.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /embed/
+
+# Generous crawl-delay only for known aggressive crawlers (AhrefsBot,
+# SemrushBot, DotBot). Mainstream crawlers (Googlebot, Bingbot,
+# DuckDuckBot) get full speed.
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+User-agent: DotBot
+Crawl-delay: 10
+
+# Canonical sitemap, regenerated on each build.
+Sitemap: https://holapolitica.org/sitemap.xml

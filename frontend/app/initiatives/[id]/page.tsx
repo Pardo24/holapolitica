@@ -125,21 +125,41 @@ export default async function InitiativeDetailPage({
 
       {/* Header */}
       <header style={{ paddingTop: 8, paddingBottom: 24, borderBottom: '1px solid var(--ink)' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{typeLabel}</span>
-          <span
-            className="mono"
-            style={{ fontSize: 11, color: 'var(--ink-3)', marginLeft: 'auto' }}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
+          <h1
+            className="h-headline"
+            style={{
+              margin: 0,
+              fontSize: 'clamp(24px, 3.4vw, 36px)',
+              maxWidth: 980,
+              minWidth: 0,
+              flex: '1 1 auto',
+            }}
           >
-            EXP {initiative.official_id}
-          </span>
+            <AnnotatedText text={title} />
+          </h1>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 12,
+              flex: 'none',
+            }}
+          >
+            <span
+              className="eyebrow"
+              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
+            >
+              {typeLabel}
+            </span>
+            <span
+              className="mono"
+              style={{ fontSize: 11, color: 'var(--ink-3)' }}
+            >
+              EXP {initiative.official_id}
+            </span>
+          </div>
         </div>
-        <h1
-          className="h-headline"
-          style={{ margin: 0, fontSize: 'clamp(24px, 3.4vw, 36px)', maxWidth: 980 }}
-        >
-          <AnnotatedText text={title} />
-        </h1>
 
         <div
           className="initiative-meta-strip"

@@ -8,7 +8,10 @@ import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import {
-  StatsPairFilter,
+  PairCoincidenceClient,
+  PairCoincidenceEyebrow,
+} from '@/components/PairCoincidenceClient';
+import {
   StatsTopicFilter,
 } from '@/components/StatsFilterClient';
 import { SummaryHover } from '@/components/SummaryHover';
@@ -105,6 +108,7 @@ export async function MobileStatsDashboard({
   locale: string;
 }) {
   const t = await getTranslations('dashboard');
+  const tStatsFilter = await getTranslations('stats_filter');
   const hasTopic = selectedTopic !== 'all';
   const focusedTopic = hasTopic
     ? topics.find((tt) => tt.topic_slug === selectedTopic) ?? null
@@ -215,26 +219,38 @@ export async function MobileStatsDashboard({
         </Card>
       </DashSection>
 
-      {/* ─── 2. Coincidence — pair picker ──────────────────────────── */}
-      <PairCoincidenceWidget
-        allGroups={allGroups}
-        coincidence={coincidence}
-        pairA={pairA}
-        pairB={pairB}
-        labels={{
-          eyebrowSuffix: t('pair_eyebrow_suffix'),
-          info: t('pair_info'),
-          hintPick: t('pair_hint_pick'),
-          hintSamePrefix: t('pair_hint_same_prefix'),
-          hintSameEm: t('pair_hint_same_em'),
-          hintSameSuffix: t('pair_hint_same_suffix'),
-          hintInsufficient: t('pair_hint_insufficient'),
-          and: t('pair_and'),
-          caption: (count: number) => t('pair_caption', { count }),
-          sameDirection: t('pair_same_direction'),
-          divergent: (pct: number) => t('pair_divergent', { pct }),
-        }}
-      />
+      {/* ─── 2. Coincidence — pair picker (fully client-side state) ── */}
+      <DashSection
+        eyebrow={<PairCoincidenceEyebrow suffix={t('pair_eyebrow_suffix')} />}
+        info={t('pair_info')}
+      >
+        <Card>
+          <PairCoincidenceClient
+            allGroups={allGroups}
+            coincidence={coincidence}
+            initialPairA={pairA}
+            initialPairB={pairB}
+            labels={{
+              eyebrowSuffix: t('pair_eyebrow_suffix'),
+              hintPick: t('pair_hint_pick'),
+              hintSamePrefix: t('pair_hint_same_prefix'),
+              hintSameEm: t('pair_hint_same_em'),
+              hintSameSuffix: t('pair_hint_same_suffix'),
+              hintInsufficient: t('pair_hint_insufficient'),
+              and: t('pair_and'),
+              caption: (count: number) => t('pair_caption', { count }),
+              sameDirection: t('pair_same_direction'),
+              divergent: (pct: number) => t('pair_divergent', { pct }),
+              pickerLabelA: tStatsFilter('pair_group_a'),
+              pickerLabelB: tStatsFilter('pair_group_b'),
+              pickerPlaceholderA: tStatsFilter('pair_pick_first_placeholder'),
+              pickerPlaceholderB: tStatsFilter('pair_pick_second_placeholder'),
+              pickerAriaA: tStatsFilter('pair_pick_first_aria'),
+              pickerAriaB: tStatsFilter('pair_pick_second_aria'),
+            }}
+          />
+        </Card>
+      </DashSection>
 
       {/* ─── 4. Per-group summary cards (cohesion + attendance) ────── */}
       {groupSummary.length > 0 && (
@@ -1084,193 +1100,10 @@ function InitiativeRow({ ini, locale }: { ini: InitiativeMini; locale: string })
 }
 
 // ─── Widget 4: Pair coincidence picker ────────────────────────────────────
-
-function lookupCoincidence(
-  cells: CoincidenceCell[],
-  a: string,
-  b: string,
-): CoincidenceCell | null {
-  for (const c of cells) {
-    if (
-      (c.group_a_slug === a && c.group_b_slug === b) ||
-      (c.group_a_slug === b && c.group_b_slug === a)
-    ) {
-      return c;
-    }
-  }
-  return null;
-}
-
-interface PairLabels {
-  eyebrowSuffix: string;
-  info: string;
-  hintPick: string;
-  hintSamePrefix: string;
-  hintSameEm: string;
-  hintSameSuffix: string;
-  hintInsufficient: string;
-  and: string;
-  caption: (count: number) => string;
-  sameDirection: string;
-  divergent: (pct: number) => string;
-}
-
-function PairCoincidenceWidget({
-  allGroups,
-  coincidence,
-  pairA,
-  pairB,
-  labels,
-}: {
-  allGroups: ParliamentaryGroupSummary[];
-  coincidence: CoincidenceCell[];
-  pairA: string;
-  pairB: string;
-  labels: PairLabels;
-}) {
-  const hasBoth = pairA && pairB && pairA !== 'all' && pairB !== 'all';
-  const sameGroup = hasBoth && pairA === pairB;
-  const cell = hasBoth && !sameGroup ? lookupCoincidence(coincidence, pairA, pairB) : null;
-  const pct =
-    cell && cell.coincidence != null ? Math.round(cell.coincidence * 100) : null;
-  const groupA = allGroups.find((g) => g.slug === pairA) ?? null;
-  const groupB = allGroups.find((g) => g.slug === pairB) ?? null;
-
-  return (
-    <DashSection
-      eyebrow={
-        <>
-          <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm> {labels.eyebrowSuffix}
-        </>
-      }
-      info={labels.info}
-    >
-      <Card>
-        <div style={{ marginBottom: 14 }}>
-          <StatsPairFilter allGroups={allGroups} pairA={pairA} pairB={pairB} />
-        </div>
-
-        {!hasBoth && (
-          <p style={emptyHint}>{labels.hintPick}</p>
-        )}
-        {sameGroup && (
-          <p style={emptyHint}>
-            {labels.hintSamePrefix}
-            <em>{labels.hintSameEm}</em>
-            {labels.hintSameSuffix}
-          </p>
-        )}
-        {hasBoth && !sameGroup && pct == null && (
-          <p style={emptyHint}>{labels.hintInsufficient}</p>
-        )}
-        {hasBoth && !sameGroup && pct != null && groupA && groupB && (
-          <PairResult
-            groupA={groupA}
-            groupB={groupB}
-            pct={pct}
-            votesCompared={cell?.votes_compared ?? 0}
-            labels={{
-              and: labels.and,
-              caption: labels.caption,
-              sameDirection: labels.sameDirection,
-              divergent: labels.divergent,
-            }}
-          />
-        )}
-      </Card>
-    </DashSection>
-  );
-}
-
-function PairResult({
-  groupA,
-  groupB,
-  pct,
-  votesCompared,
-  labels,
-}: {
-  groupA: ParliamentaryGroupSummary;
-  groupB: ParliamentaryGroupSummary;
-  pct: number;
-  votesCompared: number;
-  labels: {
-    and: string;
-    caption: (count: number) => string;
-    sameDirection: string;
-    divergent: (pct: number) => string;
-  };
-}) {
-  return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          marginBottom: 12,
-        }}
-      >
-        <GroupBadge slug={groupA.slug} color={groupA.color_hex} size="sm" link={false} />
-        <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{labels.and}</span>
-        <GroupBadge slug={groupB.slug} color={groupB.color_hex} size="sm" link={false} />
-        <span style={{ flex: 1, fontSize: 12, color: 'var(--ink-3)' }}>
-          {displayGroupShort(groupA.name_short)} · {displayGroupShort(groupB.name_short)}
-        </span>
-      </div>
-
-      <div
-        className="serif tabular"
-        style={{
-          fontSize: 52,
-          fontWeight: 600,
-          color: 'var(--accent)',
-          letterSpacing: '-0.02em',
-          lineHeight: 1,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {pct}
-        <span style={{ fontSize: 22, marginLeft: 2 }}>%</span>
-      </div>
-      <p style={{ fontSize: 12, color: 'var(--ink-2)', margin: '8px 0 12px' }}>
-        {labels.caption(votesCompared)}
-      </p>
-
-      {/* Single-color bar of the coincidence percentage. The detailed
-          breakdown (both-yes / both-no / both-abstain / divergent) is not
-          exposed by the backend yet — see TODO below. */}
-      <div
-        style={{
-          display: 'flex',
-          height: 14,
-          borderRadius: 3,
-          overflow: 'hidden',
-          background: 'var(--paper-3)',
-        }}
-      >
-        <span style={{ width: `${pct}%`, background: 'var(--accent)' }} />
-        <span style={{ width: `${100 - pct}%`, background: 'var(--paper-3)' }} />
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: 10,
-          color: 'var(--ink-3)',
-          marginTop: 4,
-        }}
-      >
-        <span>{labels.sameDirection}</span>
-        <span>{labels.divergent(100 - pct)}</span>
-      </div>
-      {/* TODO: when the backend exposes both-yes / both-no / both-abstain /
-          divergent breakdown for a pair, render a 4-segment stacked bar
-          here instead of the single-color split. The current
-          /metrics/coincidence endpoint only returns the total coincidence
-          ratio. */}
-    </div>
-  );
-}
+// Moved to :file:`PairCoincidenceClient.tsx` so the picker updates state
+// locally without round-tripping through the server SSR. The previously-
+// inline helpers (``lookupCoincidence``, ``PairLabels``,
+// ``PairCoincidenceWidget``, ``PairResult``) all live in that file now.
 
 // ─── Widget 5: Per-topic coincidence (all groups, symmetric) ──────────────
 

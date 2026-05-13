@@ -131,27 +131,48 @@ export default async function VoteDetailPage({
 
       {/* Header */}
       <header style={{ paddingTop: 8, paddingBottom: 24, borderBottom: '1px solid var(--ink)' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{vote.title}</span>
-          {vote.expediente_raw && (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
+          <h1
+            className="h-headline"
+            style={{
+              margin: 0,
+              fontSize: 'clamp(24px, 3.4vw, 36px)',
+              maxWidth: 980,
+              whiteSpace: 'pre-line',
+              minWidth: 0,
+              flex: '1 1 auto',
+            }}
+          >
+            {/* Wrap parliamentary jargon ("Veto del Senado", "Convalidación", …)
+                in a glossary tooltip. The helper preserves the source casing
+                from the Congreso feed and falls back to plain text when no
+                term matches. */}
+            <AnnotatedText text={subject} />
+          </h1>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 12,
+              flex: 'none',
+            }}
+          >
             <span
-              className="mono"
-              style={{ fontSize: 11, color: 'var(--ink-3)', marginLeft: 'auto' }}
+              className="eyebrow"
+              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
             >
-              EXP {vote.expediente_raw}
+              {vote.title}
             </span>
-          )}
+            {vote.expediente_raw && (
+              <span
+                className="mono"
+                style={{ fontSize: 11, color: 'var(--ink-3)' }}
+              >
+                EXP {vote.expediente_raw}
+              </span>
+            )}
+          </div>
         </div>
-        <h1
-          className="h-headline"
-          style={{ margin: 0, fontSize: 'clamp(24px, 3.4vw, 36px)', maxWidth: 980, whiteSpace: 'pre-line' }}
-        >
-          {/* Wrap parliamentary jargon ("Veto del Senado", "Convalidación", …)
-              in a glossary tooltip. The helper preserves the source casing
-              from the Congreso feed and falls back to plain text when no
-              term matches. */}
-          <AnnotatedText text={subject} />
-        </h1>
         <div
           className="vote-meta-strip"
           style={{
