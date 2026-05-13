@@ -663,7 +663,8 @@
     "principle": "This project is neutral civic infrastructure: it provides data, not opinions.",
     "complementary": "Complementary to Civio.",
     "lifecycle_link": "How a law is made",
-    "legal_link": "Data & GDPR"
+    "legal_link": "Data & GDPR",
+    "apidocs_link": "API & widgets"
   },
   "dashboard": {
     "highlights_eyebrow": "Group highlights",
@@ -857,6 +858,41 @@
     "source_label": "Source:",
     "proposed_by_label": "Proposed by",
     "proposed_government": "Government"
+  },
+  "embed_group": {
+    "not_found": "Parliamentary group not found",
+    "embed_title": "Parliamentary group · Hola Política",
+    "label_members": "Members",
+    "label_cohesion": "Average cohesion",
+    "label_attendance": "Average attendance",
+    "label_votes_counted": "votes counted",
+    "caveat": "Cohesion and attendance are averages across the votes in the current term with available data.",
+    "see_detail": "See profile →",
+    "source_label": "Source:"
+  },
+  "embed_topic": {
+    "not_found": "Topic not found",
+    "embed_title": "Topic · Hola Política",
+    "kind_theme": "Topic",
+    "kind_sdg": "Sustainable Development Goal",
+    "label_initiatives": "Initiatives",
+    "label_approved": "Approved",
+    "label_rejected": "Rejected",
+    "label_in_debate": "In progress",
+    "label_other": "Other",
+    "see_detail": "See topic →",
+    "source_label": "Source:"
+  },
+  "embed_person": {
+    "not_found": "Member of parliament not found",
+    "embed_title": "Member of parliament · Hola Política",
+    "label_attendance": "Attendance",
+    "label_dissidence": "Dissidence",
+    "label_votes_total": "Votes cast",
+    "caveat_role": "Member of parliament with institutional role: attendance and dissidence values are not comparable to the rest.",
+    "no_kpis": "No aggregate voting data yet for this member.",
+    "see_detail": "See profile →",
+    "source_label": "Source:"
   },
   "og": {
     "alt_home": "Hola Política · what Congress votes",

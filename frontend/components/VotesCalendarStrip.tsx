@@ -121,7 +121,12 @@ export function VotesCalendarStrip({
               className="tabular"
               style={{
                 fontSize: 9,
-                color: 'var(--ink-3)',
+                // When the cell is selected the parent button sets a
+                // dark background + `--paper` foreground; the explicit
+                // `--ink-3` here would render near-black on near-black
+                // and the weekday would disappear. Switch to a muted
+                // tint of the paper for active state.
+                color: isActive ? 'var(--paper-2)' : 'var(--ink-3)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
                 fontWeight: 600,
@@ -136,7 +141,10 @@ export function VotesCalendarStrip({
                 fontWeight: 700,
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
-                color: 'var(--ink)',
+                // Same reasoning as the weekday line above — the day
+                // number is the most important glyph in the cell and
+                // must be legible on both light and dark backgrounds.
+                color: isActive ? 'var(--paper)' : 'var(--ink)',
               }}
             >
               {dd}
@@ -144,7 +152,7 @@ export function VotesCalendarStrip({
             <span
               style={{
                 fontSize: 10,
-                color: 'var(--ink-3)',
+                color: isActive ? 'var(--paper-2)' : 'var(--ink-3)',
                 textTransform: 'lowercase',
               }}
             >

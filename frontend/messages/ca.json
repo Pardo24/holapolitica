@@ -662,7 +662,8 @@
     "principle": "Aquest projecte és infraestructura cívica neutra: facilita dades, no opinions.",
     "complementary": "Complementari a Civio.",
     "lifecycle_link": "Com es fa una llei",
-    "legal_link": "Dades i RGPD"
+    "legal_link": "Dades i RGPD",
+    "apidocs_link": "API i widgets"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacats per grup",
@@ -856,6 +857,41 @@
     "source_label": "Font:",
     "proposed_by_label": "Proposat per",
     "proposed_government": "Govern"
+  },
+  "embed_group": {
+    "not_found": "Grup parlamentari no trobat",
+    "embed_title": "Grup parlamentari · Hola Política",
+    "label_members": "Diputats/des",
+    "label_cohesion": "Cohesió mitjana",
+    "label_attendance": "Assistència mitjana",
+    "label_votes_counted": "vots comptats",
+    "caveat": "Cohesió i assistència són mitjanes sobre els vots de la legislatura amb dades disponibles.",
+    "see_detail": "Veure fitxa →",
+    "source_label": "Font:"
+  },
+  "embed_topic": {
+    "not_found": "Tema no trobat",
+    "embed_title": "Tema · Hola Política",
+    "kind_theme": "Tema",
+    "kind_sdg": "Objectiu de Desenvolupament Sostenible",
+    "label_initiatives": "Iniciatives",
+    "label_approved": "Aprovades",
+    "label_rejected": "Rebutjades",
+    "label_in_debate": "En tràmit",
+    "label_other": "Altres",
+    "see_detail": "Veure tema →",
+    "source_label": "Font:"
+  },
+  "embed_person": {
+    "not_found": "Diputat/da no trobat",
+    "embed_title": "Diputat/da · Hola Política",
+    "label_attendance": "Assistència",
+    "label_dissidence": "Dissidència",
+    "label_votes_total": "Vots emesos",
+    "caveat_role": "Diputat/da amb càrrec institucional: els valors d'assistència i dissidència no són comparables amb la resta.",
+    "no_kpis": "Encara no hi ha dades agregades de votació per a aquest diputat.",
+    "see_detail": "Veure fitxa →",
+    "source_label": "Font:"
   },
   "og": {
     "alt_home": "Hola Política · què vota el Congrés",

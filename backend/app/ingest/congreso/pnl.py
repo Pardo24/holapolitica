@@ -205,8 +205,16 @@ def parse_pnl_page(payload: bytes) -> _PnlSearchPage:
     return _PnlSearchPage(total=total, items=items)
 
 
-def parse_pnl_record(record: dict[str, Any]) -> ParsedInitiative:
-    """Normalize one PNL row from the Liferay search response.
+def parse_pnl_record(
+    record: dict[str, Any], *, type_code: str = "proposicion_no_ley"
+) -> ParsedInitiative:
+    """Normalize one search-portlet row into a :class:`ParsedInitiative`.
+
+    The Liferay search response shape is the same regardless of which
+    ``tipo`` was filtered on, so this parser is reused verbatim by the
+    sibling series importers in :mod:`series_search` (Moción 173, RDL
+    convalidation 130, Reforma constitucional 102). The default
+    ``type_code`` matches the original PNL caller for back-compat.
 
     Maps to the same :class:`ParsedInitiative` dataclass used by the bulk
     JSON importer so :class:`InitiativeImporter` can consume both
@@ -230,7 +238,7 @@ def parse_pnl_record(record: dict[str, Any]) -> ParsedInitiative:
     # collapse into the single :class:`InitiativeType` value below.
     return ParsedInitiative(
         official_id=official_id,
-        type_code="proposicion_no_ley",
+        type_code=type_code,
         title=title,
         submitted_at=submitted_at,
         submitted_by=submitted_by,
@@ -416,17 +424,24 @@ async def import_pnl(
     *,
     legislature_roman: str,
     client: PnlSearchClient | None = None,
+    tipo: str = PNL_TIPO_CODE,
+    type_code: str = "proposicion_no_ley",
 ) -> InitiativeImportResult:
-    """Scrape every PNL of ``legislature_roman`` and upsert via ``importer``.
+    """Scrape every record of ``tipo`` in ``legislature_roman`` and upsert.
+
+    Default ``tipo`` / ``type_code`` keep the historical PNL behaviour;
+    the sibling :mod:`series_search` module overrides both pairs to
+    import Mociones (173), RDL convalidations (130) and constitutional
+    reform proposals (102) without duplicating this orchestration.
 
     Reuses the same :class:`InitiativeImporter` plumbing as the bulk
     JSON datasets — the only difference is the source. Each parse is
     wrapped in try/except so a single malformed record can't kill the
     batch. Returns the same :class:`InitiativeImportResult` shape so
-    callers downstream (enrichment, link backfill) treat PNLs
+    callers downstream (enrichment, link backfill) treat these rows
     identically to bills.
     """
-    raw_records = await collect_pnl_records(legislature_roman, client=client)
+    raw_records = await collect_pnl_records(legislature_roman, tipo=tipo, client=client)
 
     # Synthesise the dict shape that ``InitiativeImporter._upsert_one``
     # expects. The importer reads ``parsed`` directly; the ``raw`` dict
@@ -439,12 +454,13 @@ async def import_pnl(
     parse_errors = 0
     for raw in raw_records:
         try:
-            parsed = parse_pnl_record(raw)
+            parsed = parse_pnl_record(raw, type_code=type_code)
         except Exception as e:
             parse_errors += 1
             log.warning(
                 "congreso.pnl.parse_error",
                 error=str(e),
+                tipo=tipo,
                 id_iniciativa=raw.get("id_iniciativa"),
             )
             continue
@@ -458,6 +474,8 @@ async def import_pnl(
     log.info(
         "congreso.pnl.import.done",
         legislature=legislature_roman,
+        tipo=tipo,
+        type_code=type_code,
         parsed_ok=parsed_ok,
         parse_errors=parse_errors,
         **asdict(stats),

@@ -663,7 +663,8 @@
     "principle": "Este proyecto es infraestructura cívica neutra: facilita datos, no opiniones.",
     "complementary": "Complementario a Civio.",
     "lifecycle_link": "Cómo se hace una ley",
-    "legal_link": "Datos y RGPD"
+    "legal_link": "Datos y RGPD",
+    "apidocs_link": "API y widgets"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacados por grupo",
@@ -857,6 +858,41 @@
     "source_label": "Fuente:",
     "proposed_by_label": "Propuesto por",
     "proposed_government": "Gobierno"
+  },
+  "embed_group": {
+    "not_found": "Grupo parlamentario no encontrado",
+    "embed_title": "Grupo parlamentario · Hola Política",
+    "label_members": "Diputados/as",
+    "label_cohesion": "Cohesión media",
+    "label_attendance": "Asistencia media",
+    "label_votes_counted": "votos contados",
+    "caveat": "Cohesión y asistencia son medias sobre los votos de la legislatura con datos disponibles.",
+    "see_detail": "Ver ficha →",
+    "source_label": "Fuente:"
+  },
+  "embed_topic": {
+    "not_found": "Tema no encontrado",
+    "embed_title": "Tema · Hola Política",
+    "kind_theme": "Tema",
+    "kind_sdg": "Objetivo de Desarrollo Sostenible",
+    "label_initiatives": "Iniciativas",
+    "label_approved": "Aprobadas",
+    "label_rejected": "Rechazadas",
+    "label_in_debate": "En trámite",
+    "label_other": "Otras",
+    "see_detail": "Ver tema →",
+    "source_label": "Fuente:"
+  },
+  "embed_person": {
+    "not_found": "Diputado/a no encontrado",
+    "embed_title": "Diputado/a · Hola Política",
+    "label_attendance": "Asistencia",
+    "label_dissidence": "Disidencia",
+    "label_votes_total": "Votos emitidos",
+    "caveat_role": "Diputado/a con cargo institucional: los valores de asistencia y disidencia no son comparables con el resto.",
+    "no_kpis": "Aún no hay datos agregados de votación para este diputado.",
+    "see_detail": "Ver ficha →",
+    "source_label": "Fuente:"
   },
   "og": {
     "alt_home": "Hola Política · qué vota el Congreso",

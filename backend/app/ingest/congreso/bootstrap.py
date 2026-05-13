@@ -45,6 +45,11 @@ from app.ingest.congreso.initiative_objects import (
 from app.ingest.congreso.initiatives import InitiativeImporter, InitiativeImportStats
 from app.ingest.congreso.photos import PhotoBackfillStats, backfill_photos
 from app.ingest.congreso.pnl import import_pnl_xv
+from app.ingest.congreso.series_search import (
+    import_mocion_xv,
+    import_rdl_convalidacion_xv,
+    import_reforma_constitucional_xv,
+)
 from app.ingest.congreso.votes import VoteImporter, VoteImportStats
 from app.models import Chamber, Legislature
 from app.models import Session as SessionRow
@@ -954,6 +959,11 @@ _STEPS = {
     "deputies": import_active_deputies,
     "initiatives": import_initiatives,
     "pnl_xv": import_pnl_xv,
+    "mocion_xv": import_mocion_xv,
+    "rdl_xv": import_rdl_convalidacion_xv,
+    "rdl_convalidacion_xv": import_rdl_convalidacion_xv,
+    "reforma_xv": import_reforma_constitucional_xv,
+    "reforma_constitucional_xv": import_reforma_constitucional_xv,
     "latest_votes": import_latest_session_votes,
     "link_votes_xv": backfill_vote_initiative_links,
     "backfill_vote_initiative_links": backfill_vote_initiative_links,

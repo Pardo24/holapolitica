@@ -74,6 +74,9 @@ export default async function RootLayout({
                   <Link href={'/about/data' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                     {tFooter('legal_link')}
                   </Link>
+                  <Link href={'/apidocs' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
+                    {tFooter('apidocs_link')}
+                  </Link>
                   {tFooter('license_code')} · {tFooter('license_data')} · {tFooter('complementary')}
                 </span>
               </div>
