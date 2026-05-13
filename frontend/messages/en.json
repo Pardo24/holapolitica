@@ -79,6 +79,7 @@
     "newsletter_save_cta": "Save preferences",
     "newsletter_saved": "Preferences saved. You'll get the newsletter every Friday.",
     "newsletter_save_error": "We couldn't save your preferences. Try again.",
+    "newsletter_save_needs_token": "To save preferences, open this page from the \"Manage topics\" link in your welcome email or the newsletter.",
     "newsletter_section_all_topics": "See all topics (advanced)",
     "newsletter_category_count": "{selected} of {total} selected",
     "newsletter_category_select_all": "Select the whole category",

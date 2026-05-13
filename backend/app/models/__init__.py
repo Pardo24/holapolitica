@@ -545,9 +545,24 @@ class NewsletterSubscription(Base, TimestampMixin):
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     language: Mapped[str] = mapped_column(String(2), nullable=False, default="ca")
     confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # The confirmation_token doubles as the long-lived "manage token" once
+    # the subscription is confirmed: the welcome / digest emails embed it
+    # as ``?token=`` so the recipient can update their topic preferences
+    # or unsubscribe without us asking them to remember a password. The
+    # service code intentionally NO LONGER NULLs this on confirmation —
+    # see app/alerts/service.py:confirm_newsletter_subscription.
     confirmation_token: Mapped[str | None] = mapped_column(String(64), unique=True)
     listmonk_id: Mapped[int | None] = mapped_column(Integer)
     unsubscribed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Per-subscriber topic interest filter; empty list means "every
+    # topic" (historical default for everyone who confirmed before this
+    # column existed). JSONB on Postgres, JSON on SQLite for tests.
+    topic_slugs: Mapped[list[str]] = mapped_column(
+        JSON().with_variant(JSONB(), "postgresql"),
+        nullable=False,
+        default=list,
+        server_default="[]",
+    )
 
 
 class PushSubscription(Base, TimestampMixin):

@@ -15,6 +15,7 @@ from app.alerts import (
     confirm_newsletter_subscription,
     create_alert_subscription,
     create_newsletter_subscription,
+    set_newsletter_topic_preferences,
     unsubscribe_alert,
     unsubscribe_newsletter,
 )
@@ -91,6 +92,45 @@ async def subscribe_newsletter(
             ),
         ) from e
     return SubscriptionResponse(status="pending_confirmation")
+
+
+class NewsletterPreferencesUpdate(BaseModel):
+    """Body of ``POST /newsletter/preferences``.
+
+    ``token`` is the long-lived ``confirmation_token`` from the
+    subscriber's welcome email. ``topic_slugs`` is the authoritative
+    list — it replaces the existing filter rather than appending to it
+    (the frontend reads the current value, lets the user edit it, and
+    POSTs the full set back).
+    """
+
+    token: str = Field(min_length=8, max_length=64)
+    topic_slugs: list[str] = Field(default_factory=list, max_length=50)
+
+
+class NewsletterPreferencesResponse(BaseModel):
+    status: Literal["saved"] = "saved"
+    topic_slugs: list[str]
+
+
+@router.post(
+    "/newsletter/preferences",
+    response_model=NewsletterPreferencesResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_newsletter_preferences(
+    payload: NewsletterPreferencesUpdate,
+    session: AsyncSession = Depends(get_session),
+) -> NewsletterPreferencesResponse:
+    try:
+        sub = await set_newsletter_topic_preferences(
+            session,
+            token=payload.token,
+            topic_slugs=payload.topic_slugs,
+        )
+    except SubscriptionError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return NewsletterPreferencesResponse(topic_slugs=list(sub.topic_slugs))
 
 
 @router.get("/confirm/alert/{token}", response_model=SubscriptionResponse)

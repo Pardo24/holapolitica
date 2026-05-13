@@ -79,6 +79,7 @@
     "newsletter_save_cta": "Desa les preferències",
     "newsletter_saved": "Preferències desades. Rebràs la newsletter cada divendres.",
     "newsletter_save_error": "No hem pogut desar les preferències. Torna-ho a provar.",
+    "newsletter_save_needs_token": "Per a desar les preferències cal accedir des de l'enllaç «Gestionar temes» del correu de benvinguda o de la newsletter.",
     "newsletter_section_all_topics": "Veure tots els temes (avançat)",
     "newsletter_category_count": "{selected} de {total} seleccionats",
     "newsletter_category_select_all": "Selecciona la categoria sencera",

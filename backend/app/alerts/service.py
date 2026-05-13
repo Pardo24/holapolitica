@@ -163,7 +163,45 @@ async def confirm_newsletter_subscription(
     if sub is None:
         raise SubscriptionError("Unknown or expired confirmation token")
     sub.confirmed = True
-    sub.confirmation_token = None
+    # We intentionally keep ``confirmation_token`` after confirmation so
+    # subsequent emails (welcome, digest, unsubscribe) can embed the
+    # same token as a long-lived "manage" handle for the recipient to
+    # adjust their topic_slugs or unsubscribe. See the column comment
+    # on :class:`NewsletterSubscription`.
+    await session.commit()
+    return sub
+
+
+async def set_newsletter_topic_preferences(
+    session: AsyncSession,
+    *,
+    token: str,
+    topic_slugs: list[str],
+) -> NewsletterSubscription:
+    """Replace the topic filter for a subscriber identified by ``token``.
+
+    The token must match a non-unsubscribed row. Confirmation status is
+    not enforced: a subscriber who clicks "manage topics" from the
+    confirmation email itself should still be able to set their
+    preferences in the same session, before bouncing back to read the
+    welcome page.
+
+    The ``topic_slugs`` argument is treated as authoritative — it
+    REPLACES the existing list rather than appending. Callers wanting
+    additive semantics must do a read-modify-write.
+    """
+    sub = (
+        await session.execute(
+            select(NewsletterSubscription).where(
+                NewsletterSubscription.confirmation_token == token
+            )
+        )
+    ).scalar_one_or_none()
+    if sub is None:
+        raise SubscriptionError("Unknown management token")
+    if sub.unsubscribed_at is not None:
+        raise SubscriptionError("Subscription is cancelled")
+    sub.topic_slugs = list(topic_slugs)
     await session.commit()
     return sub
 

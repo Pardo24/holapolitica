@@ -67,11 +67,22 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
   const t = useTranslations('notifications');
   const locale = useLocale();
   const [subscribed, setSubscribed] = useState<boolean>(false);
+  // Long-lived "manage" token, pulled from the URL (?token=…) when the
+  // user lands here from a confirmation / digest email. Required to
+  // POST changes to the backend. When absent we still render the
+  // picker so the user can play with it locally, but the Save button
+  // surfaces an explanation.
+  const [manageToken, setManageToken] = useState<string | null>(null);
   // Hydration: read the cookie on mount. SSR can't see it (it's an
   // optional client UX flag, not auth), so we start with the conservative
   // assumption "not subscribed" and switch once we've checked.
   useEffect(() => {
     setSubscribed(readSubscribedCookie());
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      const tok = sp.get('token');
+      if (tok && tok.length >= 8) setManageToken(tok);
+    }
   }, []);
 
   if (!subscribed) {
@@ -244,10 +255,17 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
     );
   }
 
-  return <PreferencesPicker topics={topics} locale={locale} onUnsubscribe={() => {
-    clearSubscribedCookie();
-    setSubscribed(false);
-  }} />;
+  return (
+    <PreferencesPicker
+      topics={topics}
+      locale={locale}
+      manageToken={manageToken}
+      onUnsubscribe={() => {
+        clearSubscribedCookie();
+        setSubscribed(false);
+      }}
+    />
+  );
 }
 
 // =================================================================
@@ -257,10 +275,12 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
 function PreferencesPicker({
   topics,
   locale,
+  manageToken,
   onUnsubscribe,
 }: {
   topics: Topic[];
   locale: string;
+  manageToken: string | null;
   onUnsubscribe: () => void;
 }): React.ReactElement {
   const t = useTranslations('notifications');
@@ -330,6 +350,11 @@ function PreferencesPicker({
   }, [selected, applied]);
 
   const handleSave = useCallback(async () => {
+    if (!manageToken) {
+      setStatus('error');
+      setMessage(t('newsletter_save_needs_token'));
+      return;
+    }
     setStatus('saving');
     setMessage('');
     try {
@@ -337,13 +362,14 @@ function PreferencesPicker({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Email comes from the server-side cookie session in the real
-          // backend; the mock route accepts it explicitly. We pass an
-          // empty string for now — the mock will reject without it, so
-          // future work must wire up the real email-tied session.
-          // TODO(backend): replace with the authenticated subscriber's email.
-          email: 'placeholder@example.test',
+          // The backend authenticates by token, not email. The link
+          // arrives in the welcome / digest email as `?token=…`; the
+          // useEffect above reads it on mount.
+          token: manageToken,
           topic_slugs: Array.from(selected),
+          // Forward the resolved categories too in case a future
+          // backend version wants the user's umbrella choice for the
+          // digest summary section.
           category_slugs: fullySelectedCategories,
         }),
       });
@@ -355,7 +381,7 @@ function PreferencesPicker({
       setStatus('error');
       setMessage(t('newsletter_save_error'));
     }
-  }, [selected, fullySelectedCategories, t]);
+  }, [selected, fullySelectedCategories, manageToken, t]);
 
   return (
     <div style={{ marginTop: 18, paddingBottom: dirty ? 88 : 0 }}>

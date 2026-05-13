@@ -2,36 +2,31 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Frontend mock for the newsletter topic-preferences endpoint.
+ * Proxy from the browser to the backend ``POST /newsletter/preferences``.
  *
- * TODO(backend): replace this stub with a fetch to the real
- *   ``POST /newsletter/preferences`` endpoint once it exists. The
- *   backend should:
- *     - validate the email belongs to a confirmed newsletter subscriber
- *     - upsert a row in a ``newsletter_subscriber_topics`` table that
- *       joins subscribers ↔ topic slugs
- *     - return ``204 No Content`` on success
+ * Why proxy at all (vs. fetching the backend directly from the
+ * client):
+ *   - The browser cookie ``hp_newsletter_subscribed`` is set by THIS
+ *     route too, so the manager flips into "already subscribed" mode
+ *     after a successful save without an extra round-trip.
+ *   - Keeps ``NEXT_PUBLIC_API_URL`` out of the client bundle when the
+ *     backend is on a private network in some deployments.
  *
- * For now this route just acknowledges receipt and echoes the payload
- * back so the client UX can be wired end-to-end. The cookie set here
- * keeps the user on the "already subscribed" branch of the page so the
- * topic picker stays visible after a reload.
+ * The backend authenticates the request by ``token`` — the long-lived
+ * ``confirmation_token`` from the subscriber's welcome email. There is
+ * no session here; the token is the credential.
  */
 
 const COOKIE_NAME = 'hp_newsletter_subscribed';
-// 90 days — enough to bridge the gap until the user re-confirms via
-// email link, short enough that an abandoned device clears state.
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 90;
+// Match the lifetime the backend implicitly grants by keeping the
+// confirmation_token alive after confirmation: roughly the duration we
+// expect a subscriber to stay engaged before re-confirming via a fresh
+// signup.
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 interface PreferencesPayload {
-  email?: string;
+  token?: string;
   topic_slugs?: string[];
-  /**
-   * Optional category-level subscriptions. The backend will probably
-   * expand these to their member slugs server-side; we still pass
-   * both so the API can choose.
-   */
-  category_slugs?: string[];
 }
 
 function isStringArray(v: unknown): v is string[] {
@@ -43,45 +38,58 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     body = (await request.json()) as PreferencesPayload;
   } catch {
-    return NextResponse.json(
-      { detail: 'Invalid JSON body' },
-      { status: 400 },
-    );
+    return NextResponse.json({ detail: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const email = typeof body.email === 'string' ? body.email.trim() : '';
+  const token = typeof body.token === 'string' ? body.token.trim() : '';
   const topicSlugs = isStringArray(body.topic_slugs) ? body.topic_slugs : [];
-  const categorySlugs = isStringArray(body.category_slugs) ? body.category_slugs : [];
 
-  if (!email || !email.includes('@')) {
+  if (!token) {
     return NextResponse.json(
-      { detail: 'A valid email is required' },
+      { detail: 'A management token is required' },
       { status: 400 },
     );
   }
 
-  // Echo the saved payload back so the client can render a confirmation
-  // line without re-asserting state. Real backend will likely just
-  // return 204.
-  const response = NextResponse.json(
-    {
-      ok: true,
-      email,
-      topic_slugs: topicSlugs,
-      category_slugs: categorySlugs,
-      // Tag so we don't accidentally treat a future real response as
-      // mock data in client telemetry.
-      _mock: true,
-    },
-    { status: 200 },
-  );
+  const backend = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (!backend) {
+    return NextResponse.json(
+      { detail: 'Backend not configured' },
+      { status: 503 },
+    );
+  }
 
+  const upstream = await fetch(`${backend.replace(/\/$/, '')}/newsletter/preferences`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, topic_slugs: topicSlugs }),
+    // Manager UX should fail fast — no caching, no retries on the
+    // browser-facing proxy; the backend handles its own retry policy.
+    cache: 'no-store',
+  });
+
+  let upstreamBody: unknown = null;
+  try {
+    upstreamBody = await upstream.json();
+  } catch {
+    /* upstream sent non-JSON or an empty body */
+  }
+
+  if (!upstream.ok) {
+    return NextResponse.json(
+      upstreamBody ?? { detail: 'Upstream rejected the preferences update' },
+      { status: upstream.status },
+    );
+  }
+
+  const response = NextResponse.json(upstreamBody ?? { status: 'saved' }, {
+    status: 200,
+  });
   response.cookies.set(COOKIE_NAME, '1', {
     path: '/',
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
     httpOnly: false,
   });
-
   return response;
 }

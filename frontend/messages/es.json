@@ -79,6 +79,7 @@
     "newsletter_save_cta": "Guardar preferencias",
     "newsletter_saved": "Preferencias guardadas. Recibirás la newsletter cada viernes.",
     "newsletter_save_error": "No hemos podido guardar las preferencias. Vuelve a intentarlo.",
+    "newsletter_save_needs_token": "Para guardar las preferencias entra desde el enlace «Gestionar temas» del correo de bienvenida o de la newsletter.",
     "newsletter_section_all_topics": "Ver todos los temas (avanzado)",
     "newsletter_category_count": "{selected} de {total} seleccionados",
     "newsletter_category_select_all": "Seleccionar la categoría entera",

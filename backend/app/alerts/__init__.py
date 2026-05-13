@@ -19,6 +19,7 @@ from app.alerts.service import (
     confirm_newsletter_subscription,
     create_alert_subscription,
     create_newsletter_subscription,
+    set_newsletter_topic_preferences,
     unsubscribe_alert,
     unsubscribe_newsletter,
 )
@@ -32,6 +33,7 @@ __all__ = [
     "confirm_newsletter_subscription",
     "create_alert_subscription",
     "create_newsletter_subscription",
+    "set_newsletter_topic_preferences",
     "unsubscribe_alert",
     "unsubscribe_newsletter",
 ]
