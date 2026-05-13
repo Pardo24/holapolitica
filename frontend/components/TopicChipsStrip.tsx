@@ -117,22 +117,6 @@ export function TopicChipsStrip({
         );
       })}
       <style>{`
-        .topic-chips-strip {
-          mask-image: linear-gradient(
-            to right,
-            transparent 0,
-            #000 16px,
-            #000 calc(100% - 16px),
-            transparent 100%
-          );
-          -webkit-mask-image: linear-gradient(
-            to right,
-            transparent 0,
-            #000 16px,
-            #000 calc(100% - 16px),
-            transparent 100%
-          );
-        }
         .topic-chips-strip::-webkit-scrollbar { height: 4px; }
         .topic-chips-strip::-webkit-scrollbar-thumb {
           background: var(--rule);

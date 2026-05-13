@@ -162,55 +162,21 @@ export function VotesCalendarStrip({
                 }}
               />
             ) : day.count > 0 ? (
-              day.count > 1 ? (
-                <span
-                  className="tabular"
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 600,
-                    padding: '1px 6px',
-                    borderRadius: 999,
-                    background: isActive ? 'var(--paper)' : 'var(--ink)',
-                    color: isActive ? 'var(--ink)' : 'var(--paper)',
-                  }}
-                >
-                  {day.count}
-                </span>
-              ) : (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: 999,
-                    background: 'var(--ink)',
-                  }}
-                />
-              )
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: 999,
+                  background: isActive ? 'var(--paper)' : 'var(--ink)',
+                }}
+              />
             ) : null}
           </CalendarCell>
         );
       })}
 
       <style>{`
-        .votes-calendar-strip {
-          /* Smooth fade-out on both edges so the strip reads as
-             continuous rather than abruptly cut. */
-          mask-image: linear-gradient(
-            to right,
-            transparent 0,
-            #000 16px,
-            #000 calc(100% - 16px),
-            transparent 100%
-          );
-          -webkit-mask-image: linear-gradient(
-            to right,
-            transparent 0,
-            #000 16px,
-            #000 calc(100% - 16px),
-            transparent 100%
-          );
-        }
         .votes-calendar-strip::-webkit-scrollbar { height: 4px; }
         .votes-calendar-strip::-webkit-scrollbar-thumb {
           background: var(--rule);

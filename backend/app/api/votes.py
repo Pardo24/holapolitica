@@ -78,7 +78,12 @@ async def list_votes(
         conditions.append(Vote.voted_at >= date_from)
 
     if date_to is not None:
-        conditions.append(Vote.voted_at <= date_to)
+        # ``voted_at`` is a TIMESTAMP, so a naive ``<= date_to`` compares
+        # against ``date_to 00:00:00`` and silently drops every vote
+        # cast later that same day. Cast both sides to date so the upper
+        # bound is *inclusive of the whole day*, which is what the
+        # calendar UI implies when the user picks a single date.
+        conditions.append(func.date(Vote.voted_at) <= date_to)
 
     if q:
         # Search both the procedural category (title) and the actual subject

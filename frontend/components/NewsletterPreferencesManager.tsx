@@ -33,6 +33,7 @@ import {
   type CSSProperties,
 } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { Mail, ShieldCheck, Sparkles } from 'lucide-react';
 
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { type Topic } from '@/lib/api';
@@ -75,44 +76,147 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
 
   if (!subscribed) {
     return (
-      <section className="newsletter-pref-signup" style={{ marginTop: 20 }}>
-        <div className="eyebrow" style={{ marginBottom: 4 }}>
-          {t('newsletter_eyebrow')}
-        </div>
-        <p
-          className="newsletter-pref-signup__intro"
+      <section
+        className="newsletter-pref-signup"
+        style={{
+          marginTop: 24,
+          borderRadius: 16,
+          border: '1px solid var(--rule-strong)',
+          background:
+            'linear-gradient(135deg, color-mix(in oklch, var(--accent) 6%, var(--paper)) 0%, var(--paper-2) 100%)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="newsletter-pref-signup__inner"
           style={{
-            fontSize: 13,
-            color: 'var(--ink-3)',
-            margin: '0 0 14px',
-            lineHeight: 1.5,
+            display: 'grid',
+            gridTemplateColumns: 'auto minmax(0, 1fr)',
+            alignItems: 'center',
+            gap: 24,
+            padding: '22px 24px',
           }}
         >
-          {t('newsletter_signup_intro')}
-        </p>
-        <NewsletterSignup variant="bare" />
+          <div
+            aria-hidden="true"
+            className="newsletter-pref-signup__icon"
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 16,
+              background: 'var(--paper)',
+              color: 'var(--accent)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 1px 0 rgba(15,23,42,.04)',
+              flex: 'none',
+            }}
+          >
+            <Mail size={32} strokeWidth={1.6} aria-hidden="true" />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div
+              className="eyebrow"
+              style={{ marginBottom: 4, color: 'var(--accent)' }}
+            >
+              {t('newsletter_eyebrow')}
+            </div>
+            <h2
+              className="serif newsletter-pref-signup__title"
+              style={{
+                margin: '0 0 6px',
+                fontSize: 22,
+                fontWeight: 600,
+                color: 'var(--ink)',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+              }}
+            >
+              {t('newsletter_signup_headline')}
+            </h2>
+            <p
+              className="newsletter-pref-signup__intro"
+              style={{
+                fontSize: 13,
+                color: 'var(--ink-2)',
+                margin: 0,
+                lineHeight: 1.55,
+                maxWidth: 540,
+              }}
+            >
+              {t('newsletter_signup_intro')}
+            </p>
+          </div>
+        </div>
+        <div
+          className="newsletter-pref-signup__form-wrap"
+          style={{
+            padding: '4px 24px 18px',
+          }}
+        >
+          <NewsletterSignup variant="bare" />
+          <ul
+            className="newsletter-pref-signup__trust"
+            style={{
+              listStyle: 'none',
+              margin: '12px 0 0',
+              padding: 0,
+              display: 'flex',
+              gap: 18,
+              flexWrap: 'wrap',
+              fontSize: 11,
+              color: 'var(--ink-3)',
+            }}
+          >
+            <li style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <ShieldCheck size={13} aria-hidden="true" />
+              {t('newsletter_trust_gdpr')}
+            </li>
+            <li style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Sparkles size={13} aria-hidden="true" />
+              {t('newsletter_trust_no_opinion')}
+            </li>
+          </ul>
+        </div>
         <style>{`
           @media (max-width: 640px) {
-            .newsletter-pref-signup { margin-top: 14px !important; }
+            .newsletter-pref-signup {
+              margin-top: 16px !important;
+              border-radius: 14px !important;
+            }
+            .newsletter-pref-signup__inner {
+              padding: 16px 16px 6px !important;
+              gap: 14px !important;
+            }
+            .newsletter-pref-signup__icon {
+              width: 48px !important;
+              height: 48px !important;
+              border-radius: 12px !important;
+            }
+            .newsletter-pref-signup__icon svg {
+              width: 24px !important;
+              height: 24px !important;
+            }
+            .newsletter-pref-signup__title {
+              font-size: 17px !important;
+            }
             .newsletter-pref-signup__intro {
               font-size: 12px !important;
-              margin-bottom: 10px !important;
-              line-height: 1.4 !important;
+              line-height: 1.45 !important;
             }
-            /* The bare NewsletterSignup nested below already shrinks its
-               input via its own @media query; we ALSO collapse the intro
-               copy inside that card so the whole block fits the upper
-               third of a phone screen. */
+            .newsletter-pref-signup__form-wrap {
+              padding: 4px 16px 16px !important;
+            }
+            /* The nested NewsletterSignup already has its own mobile
+               polish; we override its top margin so the form sits
+               flush against the trust signals + the card chrome above. */
             .newsletter-pref-signup .newsletter-signup {
               margin-top: 0 !important;
             }
-            .newsletter-pref-signup .newsletter-signup > .eyebrow {
-              display: none;
-            }
+            .newsletter-pref-signup .newsletter-signup > .eyebrow,
             .newsletter-pref-signup .newsletter-signup p {
-              font-size: 12px !important;
-              line-height: 1.4 !important;
-              margin-bottom: 10px !important;
+              display: none;
             }
             .newsletter-pref-signup .newsletter-signup-form {
               flex-direction: row !important;
@@ -121,14 +225,18 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
             .newsletter-pref-signup .newsletter-signup-form > input {
               flex: 1 1 auto !important;
               width: auto !important;
-              min-height: 38px !important;
+              height: 40px !important;
             }
             .newsletter-pref-signup .newsletter-signup-form > button {
               flex: 0 0 auto !important;
               width: auto !important;
-              min-height: 38px !important;
-              padding-left: 12px !important;
-              padding-right: 12px !important;
+              min-height: 40px !important;
+              padding-left: 14px !important;
+              padding-right: 14px !important;
+            }
+            .newsletter-pref-signup__trust {
+              gap: 12px !important;
+              font-size: 10px !important;
             }
           }
         `}</style>
