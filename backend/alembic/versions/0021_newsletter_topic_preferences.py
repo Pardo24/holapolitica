@@ -15,7 +15,7 @@ outweighs the storage savings.
 Default ``[]`` preserves the historical behaviour (digest covers every
 topic) for already-confirmed subscribers, so no email goes silent.
 
-Revision ID: 0021_newsletter_topic_preferences
+Revision ID: 0021_nl_topics
 Revises: 0020_object_text
 Create Date: 2026-05-13
 """
@@ -27,7 +27,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from alembic import op
 
-revision: str = "0021_newsletter_topic_preferences"
+revision: str = "0021_nl_topics"
 down_revision: str | None = "0020_object_text"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
