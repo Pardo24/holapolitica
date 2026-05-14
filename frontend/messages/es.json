@@ -481,6 +481,8 @@
     "tablist_aria": "Vistas de estadísticas",
     "highlights_title": "Destacados por grupo parlamentario",
     "highlights_subtitle": "Por cada grupo, el tema donde da más apoyo y el tema donde más rechaza. Rotamos entre todos los grupos por igual, sin ranking global. Mínimo 5 votos emitidos por tema.",
+    "cohesion_carousel_title": "Cohesión por grupo parlamentario",
+    "cohesion_carousel_subtitle": "Media de cohesión en votaciones del pleno para cada grupo. Todos los grupos, sin rankings unilaterales.",
     "coincidence_between_suffix": "entre grupos",
     "coincidence_overview_subtitle": "% de votaciones en las que cada pareja de grupos votó en el mismo sentido (Sí, No o Abstención). Matriz simétrica completa, sin rankings ni subconjuntos destacados.",
     "coincidence_topic_subtitle": "% de votaciones en las que cada pareja de grupos votó en el mismo sentido. Cobertura: todas las votaciones de la legislatura (la restricción por tema llegará en una próxima versión).",

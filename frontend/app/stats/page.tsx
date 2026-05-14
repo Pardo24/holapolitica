@@ -58,6 +58,12 @@ const STATUS_SINGULAR_KEY: Record<string, string> = {
 
 type TabKey = 'overview' | 'filtered';
 
+// ISR window for the /stats route. The Vercel edge caches the rendered
+// HTML for this many seconds; subsequent visits get served from the CDN
+// without waiting for the backend round-trip. Matches the aggregate
+// fetch revalidate so the cache layers refresh in step.
+export const revalidate = 300;
+
 interface SearchParams {
   topic?: string;
   group?: string;
@@ -328,34 +334,11 @@ export default async function StatsPage({
 
       {activeTab === 'overview' && (
         <>
-          {/* Highlights + cohesion carousel — side-by-side flex row on
-              desktop, collapses below 900px (see CSS at end of file). The
-              total-votes big-number that used to live in KpiStrip is now
-              the page-header's top-right element. */}
-          <Section
-            title={t('highlights_title')}
-            subtitle={t('highlights_subtitle')}
-          >
-            <div className="stats-carousel-row">
-              <div style={{ flex: '1 1 0', minWidth: 0 }}>
-                <HighlightsCarousel items={allHighlights} />
-              </div>
-              {groupSummary.length > 0 && (
-                <div
-                  className="stats-cohesion-col"
-                  style={{ flex: '1 1 0', minWidth: 0 }}
-                >
-                  <CohesionCarousel rows={groupSummary} />
-                </div>
-              )}
-            </div>
-          </Section>
-
-          {/* Interactive pie — the central focus of the overview. Replaces
-              the previous stack of mini-charts (per-status donut, per-type
-              donut, proposing-group vertical bars). One pie with four
-              modes: by topic, by group, by topic-acceptance, by status.
-              Hidden on mobile (the MobileStatsDashboard owns that view). */}
+          {/* Interactive pie — the central focus of the overview. The
+              previous version led with a "Destacats polítics" carousel
+              that felt editorial; the pie is purely descriptive and
+              now opens the page. Hidden on mobile (the
+              MobileStatsDashboard owns that view). */}
           <Section
             title={t('pie_title')}
             subtitle={t('pie_subtitle')}
@@ -369,6 +352,17 @@ export default async function StatsPage({
               />
             </div>
           </Section>
+
+          {/* Cohesion carousel kept below the pie — it's a comparative
+              metric, not a "destacat" per group. */}
+          {groupSummary.length > 0 && (
+            <Section
+              title={t('cohesion_carousel_title')}
+              subtitle={t('cohesion_carousel_subtitle')}
+            >
+              <CohesionCarousel rows={groupSummary} />
+            </Section>
+          )}
 
           <Section
             title={

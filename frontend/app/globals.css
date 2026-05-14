@@ -685,9 +685,11 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
   .filter-advanced-apply {
     width: 100%;
   }
+  /* Default mobile sizing for the apply button is overridden by the
+     .filter-simple-row inline-button rule above; this is the standalone
+     fallback for any caller that isn't inside a .filter-simple-row. */
   .filter-apply-btn {
     min-height: 44px;
-    width: 100%;
     justify-content: center;
   }
 }
@@ -1217,10 +1219,26 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
   .filter-rail > div:nth-child(1) { grid-column: 1 / -1; }
   .filter-rail > div:nth-child(5) { grid-column: 1 / -1; padding: 10px 14px !important; }
 
-  /* Simplified filter on /votes: stack search and topic, button below. */
+  /* Simplified filter on /votes — search + apply button share row 1,
+     topic combobox takes the full second row. Earlier version stacked
+     all three vertically; the apply button ended up far below the
+     search box and felt detached. Keeping it inline preserves the
+     desktop affordance. */
   .filter-simple-row {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "search apply"
+      "topic  topic" !important;
     gap: 8px !important;
+  }
+  .filter-simple-row > :nth-child(1) { grid-area: search; }
+  .filter-simple-row > :nth-child(2) { grid-area: topic; }
+  .filter-simple-row > :nth-child(3) {
+    grid-area: apply;
+    min-height: 44px;
+    width: auto;
+    padding: 10px 16px;
+    justify-content: center;
   }
 
   /* Votes-list table → card layout on mobile. Two-column row: a fixed
