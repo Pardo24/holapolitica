@@ -118,6 +118,7 @@ export default async function HomePage() {
             votes: (summary?.votes_total ?? 0).toLocaleString(locale),
             deputies: 350,
           }),
+          lastUpdate: t('mobile_last_update'),
           tileVotes: t('mobile_tile_votes'),
           tilePersons: t('mobile_tile_persons'),
           tileTopics: t('mobile_tile_topics'),
@@ -675,6 +676,7 @@ interface MobileDashboardLabels {
   brand: string;
   legislature: string;
   stats: string;
+  lastUpdate: string;
   tileVotes: string;
   tilePersons: string;
   tileTopics: string;
@@ -720,27 +722,72 @@ function MobileDashboard({
         paddingTop: 12,
       }}
     >
-      {/* Brand strip — name + one-line stats. No editorial copy. */}
+      {/* Brand strip — name + one-line stats + freshness indicator.
+          The top nav is hidden on mobile home (the dashboard tiles
+          ARE the navigation) so this strip carries the entire
+          brand-and-context payload above the fold. Lightweight: an
+          accented brand mark, a one-line description, and a green
+          pulse next to "last-updated" so the page feels alive. */}
       <header
         style={{
           display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
+          alignItems: 'flex-start',
+          gap: 12,
           paddingBottom: 14,
+          marginBottom: 4,
           borderBottom: '1px solid var(--rule)',
         }}
       >
-        <div
-          className="eyebrow"
-          style={{ fontSize: 10, color: 'var(--ink-3)', margin: 0 }}
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            background: 'var(--ink)',
+            color: 'var(--paper)',
+            fontWeight: 700,
+            fontSize: 14,
+            letterSpacing: '-0.02em',
+            flex: 'none',
+          }}
         >
-          {labels.brand}
-        </div>
-        <div
-          className="tabular"
-          style={{ fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.4 }}
-        >
-          {labels.legislature} · {labels.stats}
+          HP
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div
+            className="eyebrow"
+            style={{
+              fontSize: 10,
+              color: 'var(--ink-3)',
+              margin: 0,
+              letterSpacing: '0.12em',
+              fontWeight: 600,
+            }}
+          >
+            {labels.brand}
+          </div>
+          <div
+            className="tabular"
+            style={{
+              fontSize: 12,
+              color: 'var(--ink-2)',
+              lineHeight: 1.4,
+              marginTop: 2,
+            }}
+          >
+            {labels.legislature} · {labels.stats}
+          </div>
+          {latestVotes[0]?.voted_at && (
+            <FreshnessIndicator
+              isoDate={latestVotes[0].voted_at}
+              locale={locale}
+              label={labels.lastUpdate}
+            />
+          )}
         </div>
       </header>
 
@@ -763,23 +810,27 @@ function MobileDashboard({
       >
         <DashboardTile
           href="/votes"
-          icon={<VoteIcon size={30} strokeWidth={1.75} aria-hidden="true" />}
+          icon={<VoteIcon size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tileVotes}
+          tint="indigo"
         />
         <DashboardTile
           href="/persons"
-          icon={<Users size={30} strokeWidth={1.75} aria-hidden="true" />}
+          icon={<Users size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tilePersons}
+          tint="teal"
         />
         <DashboardTile
           href={{ pathname: '/votes', query: { tab: 'topics' } }}
-          icon={<Layers size={30} strokeWidth={1.75} aria-hidden="true" />}
+          icon={<Layers size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tileTopics}
+          tint="amber"
         />
         <DashboardTile
           href="/stats"
-          icon={<BarChart3 size={30} strokeWidth={1.75} aria-hidden="true" />}
+          icon={<BarChart3 size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tileStats}
+          tint="violet"
         />
       </nav>
 
@@ -909,17 +960,47 @@ function MobileDashboard({
   );
 }
 
+type TileTint = 'indigo' | 'teal' | 'amber' | 'violet';
+
+// Muted civic palette — each tile gets its own hue so the dashboard
+// scans as four distinct surfaces, but the saturations stay low to
+// keep the page from feeling like a startup landing. Foreground is
+// the full-saturation hue; background is the same hue mixed with the
+// paper colour for a ~10% tint. CSS color-mix() is supported in every
+// browser we target (2023+).
+const TILE_TINT: Record<TileTint, { fg: string; bg: string }> = {
+  indigo: {
+    fg: '#475189',
+    bg: 'color-mix(in oklch, #475189 12%, var(--paper))',
+  },
+  teal: {
+    fg: '#2F807A',
+    bg: 'color-mix(in oklch, #2F807A 12%, var(--paper))',
+  },
+  amber: {
+    fg: '#9A6628',
+    bg: 'color-mix(in oklch, #9A6628 13%, var(--paper))',
+  },
+  violet: {
+    fg: '#6E4F8E',
+    bg: 'color-mix(in oklch, #6E4F8E 12%, var(--paper))',
+  },
+};
+
 function DashboardTile({
   href,
   icon,
   label,
+  tint,
 }: {
   // `Link` accepts string or UrlObject; we type loose here because Next's
   // typed-routes infer them per-page. Both forms validate at the Link site.
   href: React.ComponentProps<typeof Link>['href'];
   icon: React.ReactNode;
   label: string;
+  tint: TileTint;
 }) {
+  const { fg, bg } = TILE_TINT[tint];
   return (
     <Link
       href={href}
@@ -942,7 +1023,22 @@ function DashboardTile({
         minWidth: 0,
       }}
     >
-      <span style={{ color: 'var(--ink)' }}>{icon}</span>
+      <span
+        aria-hidden="true"
+        className="mobile-dashboard-tile__icon"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 44,
+          height: 44,
+          borderRadius: 12,
+          background: bg,
+          color: fg,
+        }}
+      >
+        {icon}
+      </span>
       <span
         style={{
           fontSize: 15,
@@ -963,9 +1059,82 @@ function DashboardTile({
           color: var(--paper);
           border-color: var(--ink);
         }
-        .mobile-dashboard-tile:active span { color: inherit; }
+        /* Keep the colored disc legible against the dark pressed
+           background — invert it to paper/ink so the icon stays
+           visible without flashing white. */
+        .mobile-dashboard-tile:active .mobile-dashboard-tile__icon {
+          background: var(--paper);
+          color: var(--ink);
+        }
+        .mobile-dashboard-tile:active span:not(.mobile-dashboard-tile__icon) {
+          color: inherit;
+        }
       `}</style>
     </Link>
+  );
+}
+
+function FreshnessIndicator({
+  isoDate,
+  locale,
+  label,
+}: {
+  isoDate: string;
+  locale: string;
+  label: string;
+}) {
+  // Server-rendered "fa N dies / N hores" line. The pulsing dot signals
+  // the data pipeline is alive without animating anything large or
+  // expensive — purely a 6px element with a CSS keyframes.
+  const now = Date.now();
+  const then = new Date(isoDate).getTime();
+  const days = Math.max(0, Math.floor((now - then) / (1000 * 60 * 60 * 24)));
+  const hours = Math.max(0, Math.floor((now - then) / (1000 * 60 * 60)));
+  const formatted = new Date(isoDate).toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+  });
+  // Pick the most informative unit: hours when the latest vote is from
+  // the same day, days otherwise. "today" surfaces only if < 1 h.
+  const rel =
+    hours < 1 ? 'now' : hours < 24 ? `${hours}h` : `${days}d`;
+  return (
+    <p
+      style={{
+        margin: '6px 0 0',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        fontSize: 11,
+        color: 'var(--ink-3)',
+        lineHeight: 1.3,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: 999,
+          background: 'var(--aye, #16A34A)',
+          boxShadow: '0 0 0 0 rgba(22, 163, 74, .55)',
+          animation: 'hp-pulse 2.2s ease-out infinite',
+          flex: 'none',
+          display: 'inline-block',
+        }}
+      />
+      <span>
+        {label} · <span className="tabular">{formatted}</span>{' '}
+        <span style={{ color: 'var(--ink-3)' }}>({rel})</span>
+      </span>
+      <style>{`
+        @keyframes hp-pulse {
+          0%   { box-shadow: 0 0 0 0   rgba(22, 163, 74, .50); }
+          70%  { box-shadow: 0 0 0 7px rgba(22, 163, 74, 0); }
+          100% { box-shadow: 0 0 0 0   rgba(22, 163, 74, 0); }
+        }
+      `}</style>
+    </p>
   );
 }
 

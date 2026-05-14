@@ -1120,6 +1120,12 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
   .page { padding: 16px 14px 32px; font-size: 14px; }
   .topnav { gap: 10px; }
 
+  /* Home page on mobile: the dashboard tiles ARE the navigation, so
+     the redundant top bar just steals scroll real estate. Hide it
+     here, restore on larger screens (the media query above already
+     scopes this rule). */
+  .topnav--home { display: none !important; }
+
   .kpi { padding: 10px 0; }
   .kpi .value { font-size: 22px; }
   .kpi .label { font-size: 10px; letter-spacing: 0.1em; }

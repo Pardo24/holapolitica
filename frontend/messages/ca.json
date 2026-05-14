@@ -274,6 +274,7 @@
     "mobile_brand": "Hola Política",
     "mobile_legislature": "XV legislatura",
     "mobile_stats_short": "{votes} vots · {deputies} diputats",
+    "mobile_last_update": "Última votació",
     "mobile_search_placeholder": "Cerca lleis, diputats…",
     "mobile_search_aria": "Cerca lleis o diputats",
     "mobile_tile_votes": "Lleis",

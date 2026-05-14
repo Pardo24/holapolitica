@@ -16,6 +16,12 @@ export async function TopNav() {
   // falls back to "/" for the very first request before the header lands.
   const hdrs = await headers();
   const pathname = hdrs.get('x-pathname') ?? '/';
+  // On the home page the mobile dashboard IS the navigation — every
+  // primary surface is one tap away — so the top nav adds clutter
+  // without adding affordances. We tag the wrapper so the CSS rule
+  // below can hide it under the mobile breakpoint without affecting
+  // any other route.
+  const isHome = pathname === '/' || pathname.startsWith('/?');
 
   // Two-spine nav by design: Votes and Persons are the lookup surfaces;
   // Topics and Groups have been folded inside as tabs (cf. /votes "Per tema"
@@ -33,7 +39,10 @@ export async function TopNav() {
   ];
 
   return (
-    <nav className="topnav" aria-label="Primary">
+    <nav
+      className={isHome ? 'topnav topnav--home' : 'topnav'}
+      aria-label="Primary"
+    >
       <Link href="/" className="brand no-underline" style={{ color: 'inherit' }}>
         <span className="brand-mark" aria-hidden="true" />
         <span>

@@ -274,6 +274,7 @@
     "mobile_brand": "Hola Política",
     "mobile_legislature": "XV legislature",
     "mobile_stats_short": "{votes} votes · {deputies} deputies",
+    "mobile_last_update": "Latest vote",
     "mobile_search_placeholder": "Search laws, deputies…",
     "mobile_search_aria": "Search laws or deputies",
     "mobile_tile_votes": "Laws",

@@ -274,6 +274,7 @@
     "mobile_brand": "Hola Política",
     "mobile_legislature": "XV legislatura",
     "mobile_stats_short": "{votes} votos · {deputies} diputados",
+    "mobile_last_update": "Última votación",
     "mobile_search_placeholder": "Busca leyes, diputados…",
     "mobile_search_aria": "Busca leyes o diputados",
     "mobile_tile_votes": "Leyes",
