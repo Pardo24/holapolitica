@@ -108,7 +108,6 @@ export async function MobileStatsDashboard({
   locale: string;
 }) {
   const t = await getTranslations('dashboard');
-  const tStatsFilter = await getTranslations('stats_filter');
   const hasTopic = selectedTopic !== 'all';
   const focusedTopic = hasTopic
     ? topics.find((tt) => tt.topic_slug === selectedTopic) ?? null
@@ -230,24 +229,6 @@ export async function MobileStatsDashboard({
             coincidence={coincidence}
             initialPairA={pairA}
             initialPairB={pairB}
-            labels={{
-              eyebrowSuffix: t('pair_eyebrow_suffix'),
-              hintPick: t('pair_hint_pick'),
-              hintSamePrefix: t('pair_hint_same_prefix'),
-              hintSameEm: t('pair_hint_same_em'),
-              hintSameSuffix: t('pair_hint_same_suffix'),
-              hintInsufficient: t('pair_hint_insufficient'),
-              and: t('pair_and'),
-              caption: (count: number) => t('pair_caption', { count }),
-              sameDirection: t('pair_same_direction'),
-              divergent: (pct: number) => t('pair_divergent', { pct }),
-              pickerLabelA: tStatsFilter('pair_group_a'),
-              pickerLabelB: tStatsFilter('pair_group_b'),
-              pickerPlaceholderA: tStatsFilter('pair_pick_first_placeholder'),
-              pickerPlaceholderB: tStatsFilter('pair_pick_second_placeholder'),
-              pickerAriaA: tStatsFilter('pair_pick_first_aria'),
-              pickerAriaB: tStatsFilter('pair_pick_second_aria'),
-            }}
           />
         </Card>
       </DashSection>

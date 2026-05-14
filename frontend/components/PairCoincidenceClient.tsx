@@ -18,6 +18,7 @@
 
 import type { Route } from 'next';
 import { useMemo, useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
@@ -28,25 +29,6 @@ import type {
   ParliamentaryGroupSummary,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
-
-interface PairLabels {
-  eyebrowSuffix: string;
-  hintPick: string;
-  hintSamePrefix: string;
-  hintSameEm: string;
-  hintSameSuffix: string;
-  hintInsufficient: string;
-  and: string;
-  caption: (count: number) => string;
-  sameDirection: string;
-  divergent: (pct: number) => string;
-  pickerLabelA: string;
-  pickerLabelB: string;
-  pickerPlaceholderA: string;
-  pickerPlaceholderB: string;
-  pickerAriaA: string;
-  pickerAriaB: string;
-}
 
 function lookupCoincidence(
   cells: CoincidenceCell[],
@@ -69,14 +51,21 @@ export function PairCoincidenceClient({
   coincidence,
   initialPairA,
   initialPairB,
-  labels,
 }: {
   allGroups: ParliamentaryGroupSummary[];
   coincidence: CoincidenceCell[];
   initialPairA: string;
   initialPairB: string;
-  labels: PairLabels;
 }) {
+  // useTranslations works in Client Components because the next-intl
+  // provider is mounted at the root layout. The previous version
+  // received a serialized ``labels`` object — including function refs
+  // for the count-aware captions — but Next 15 refuses to ship
+  // functions across the server/client boundary, which surfaced as a
+  // generic 500 on /stats. Reading translations here keeps the bridge
+  // serialization-clean (only the primitive props are crossed).
+  const t = useTranslations('dashboard');
+  const tFilter = useTranslations('stats_filter');
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -117,7 +106,7 @@ export function PairCoincidenceClient({
     <div>
       <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
         <label style={pickerLabel}>
-          <span style={pickerLabelText}>{labels.pickerLabelA}</span>
+          <span style={pickerLabelText}>{tFilter('pair_group_a')}</span>
           <GroupCombobox
             name="pair_a"
             value={pairA && pairA !== 'all' ? pairA : ''}
@@ -128,12 +117,12 @@ export function PairCoincidenceClient({
             groups={allGroups}
             emptyValue=""
             clearLabel="—"
-            placeholder={labels.pickerPlaceholderA}
-            ariaLabel={labels.pickerAriaA}
+            placeholder={tFilter('pair_pick_first_placeholder')}
+            ariaLabel={tFilter('pair_pick_first_aria')}
           />
         </label>
         <label style={pickerLabel}>
-          <span style={pickerLabelText}>{labels.pickerLabelB}</span>
+          <span style={pickerLabelText}>{tFilter('pair_group_b')}</span>
           <GroupCombobox
             name="pair_b"
             value={pairB && pairB !== 'all' ? pairB : ''}
@@ -144,22 +133,22 @@ export function PairCoincidenceClient({
             groups={allGroups}
             emptyValue=""
             clearLabel="—"
-            placeholder={labels.pickerPlaceholderB}
-            ariaLabel={labels.pickerAriaB}
+            placeholder={tFilter('pair_pick_second_placeholder')}
+            ariaLabel={tFilter('pair_pick_second_aria')}
           />
         </label>
       </div>
 
-      {!hasBoth && <p style={emptyHint}>{labels.hintPick}</p>}
+      {!hasBoth && <p style={emptyHint}>{t('pair_hint_pick')}</p>}
       {sameGroup && (
         <p style={emptyHint}>
-          {labels.hintSamePrefix}
-          <em>{labels.hintSameEm}</em>
-          {labels.hintSameSuffix}
+          {t('pair_hint_same_prefix')}
+          <em>{t('pair_hint_same_em')}</em>
+          {t('pair_hint_same_suffix')}
         </p>
       )}
       {hasBoth && !sameGroup && pct == null && (
-        <p style={emptyHint}>{labels.hintInsufficient}</p>
+        <p style={emptyHint}>{t('pair_hint_insufficient')}</p>
       )}
       {hasBoth && !sameGroup && pct != null && groupA && groupB && (
         <PairResult
@@ -167,12 +156,6 @@ export function PairCoincidenceClient({
           groupB={groupB}
           pct={pct}
           votesCompared={cell?.votes_compared ?? 0}
-          labels={{
-            and: labels.and,
-            caption: labels.caption,
-            sameDirection: labels.sameDirection,
-            divergent: labels.divergent,
-          }}
         />
       )}
     </div>
@@ -184,19 +167,13 @@ function PairResult({
   groupB,
   pct,
   votesCompared,
-  labels,
 }: {
   groupA: ParliamentaryGroupSummary;
   groupB: ParliamentaryGroupSummary;
   pct: number;
   votesCompared: number;
-  labels: {
-    and: string;
-    caption: (count: number) => string;
-    sameDirection: string;
-    divergent: (pct: number) => string;
-  };
 }) {
+  const t = useTranslations('dashboard');
   return (
     <div>
       <div
@@ -208,7 +185,7 @@ function PairResult({
         }}
       >
         <GroupBadge slug={groupA.slug} color={groupA.color_hex} size="sm" link={false} />
-        <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{labels.and}</span>
+        <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{t('pair_and')}</span>
         <GroupBadge slug={groupB.slug} color={groupB.color_hex} size="sm" link={false} />
         <span style={{ flex: 1, fontSize: 12, color: 'var(--ink-3)' }}>
           {displayGroupShort(groupA.name_short)} · {displayGroupShort(groupB.name_short)}
@@ -229,7 +206,7 @@ function PairResult({
         <span style={{ fontSize: 22, marginLeft: 2 }}>%</span>
       </div>
       <p style={{ fontSize: 12, color: 'var(--ink-2)', margin: '8px 0 12px' }}>
-        {labels.caption(votesCompared)}
+        {t('pair_caption', { count: votesCompared })}
       </p>
       <div
         style={{
@@ -252,8 +229,8 @@ function PairResult({
           marginTop: 4,
         }}
       >
-        <span>{labels.sameDirection}</span>
-        <span>{labels.divergent(100 - pct)}</span>
+        <span>{t('pair_same_direction')}</span>
+        <span>{t('pair_divergent', { pct: 100 - pct })}</span>
       </div>
     </div>
   );
