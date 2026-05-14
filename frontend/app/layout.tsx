@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 
+import { MobileBackBar } from '@/components/MobileBackBar';
 import { PushBootstrap } from '@/components/PushBootstrap';
 import { TopNav } from '@/components/TopNav';
 
@@ -62,6 +63,7 @@ export default async function RootLayout({
           <div className="page">
             <PushBootstrap />
             <TopNav />
+            <MobileBackBar />
             <main>{children}</main>
 
             <footer style={{ marginTop: 48, paddingTop: 18, borderTop: '1px solid var(--ink)', fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.6 }}>

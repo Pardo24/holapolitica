@@ -554,6 +554,39 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
    the responsive block further down. */
 .filter-apply-btn { padding: 10px 18px; }
 
+/* Body class toggled by VotesCalendarStripController (and any other
+   filter controller that wants to opt in) while a router transition is
+   in flight. We dim the votes list area and gate pointer events so a
+   double-tap on a date doesn't queue two navigations, and we layer a
+   shimmering "loading" skeleton overlay on top of the list rows that
+   are about to be replaced. */
+body.hp-filter-pending .tab-votes-list,
+body.hp-filter-pending .mobile-votes-list {
+  position: relative;
+  pointer-events: none;
+}
+body.hp-filter-pending .tab-votes-list::after,
+body.hp-filter-pending .mobile-votes-list::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--paper) 92%, transparent) 0%,
+    color-mix(in oklch, var(--paper-2) 92%, transparent) 50%,
+    color-mix(in oklch, var(--paper) 92%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: hp-shimmer 1.2s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 8px;
+}
+@keyframes hp-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 /* /votes advanced filters block — disclosure-style toggle that looks like
    a real outline button instead of a faint text link, and a clearly
    delimited panel with breathing room when expanded. */

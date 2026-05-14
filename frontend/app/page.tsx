@@ -722,74 +722,40 @@ function MobileDashboard({
         paddingTop: 12,
       }}
     >
-      {/* Brand strip — name + one-line stats + freshness indicator.
-          The top nav is hidden on mobile home (the dashboard tiles
-          ARE the navigation) so this strip carries the entire
-          brand-and-context payload above the fold. Lightweight: an
-          accented brand mark, a one-line description, and a green
-          pulse next to "last-updated" so the page feels alive. */}
+      {/* Brand strip — name + one-line stats. No editorial copy.
+          Restored to the pre-2026-05-13 single-column layout (the
+          short-lived "HP" disc made it feel like a product card; the
+          plain wordmark scans more civic). The freshness pulse lives
+          BELOW the strip rather than inside it. */}
       <header
         style={{
           display: 'flex',
-          alignItems: 'flex-start',
-          gap: 12,
-          paddingBottom: 14,
-          marginBottom: 4,
+          flexDirection: 'column',
+          gap: 4,
+          paddingBottom: 12,
           borderBottom: '1px solid var(--rule)',
         }}
       >
-        <span
-          aria-hidden="true"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: 'var(--ink)',
-            color: 'var(--paper)',
-            fontWeight: 700,
-            fontSize: 14,
-            letterSpacing: '-0.02em',
-            flex: 'none',
-          }}
+        <div
+          className="eyebrow"
+          style={{ fontSize: 10, color: 'var(--ink-3)', margin: 0 }}
         >
-          HP
-        </span>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div
-            className="eyebrow"
-            style={{
-              fontSize: 10,
-              color: 'var(--ink-3)',
-              margin: 0,
-              letterSpacing: '0.12em',
-              fontWeight: 600,
-            }}
-          >
-            {labels.brand}
-          </div>
-          <div
-            className="tabular"
-            style={{
-              fontSize: 12,
-              color: 'var(--ink-2)',
-              lineHeight: 1.4,
-              marginTop: 2,
-            }}
-          >
-            {labels.legislature} · {labels.stats}
-          </div>
-          {latestVotes[0]?.voted_at && (
-            <FreshnessIndicator
-              isoDate={latestVotes[0].voted_at}
-              locale={locale}
-              label={labels.lastUpdate}
-            />
-          )}
+          {labels.brand}
+        </div>
+        <div
+          className="tabular"
+          style={{ fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.4 }}
+        >
+          {labels.legislature} · {labels.stats}
         </div>
       </header>
+      {latestVotes[0]?.voted_at && (
+        <FreshnessIndicator
+          isoDate={latestVotes[0].voted_at}
+          locale={locale}
+          label={labels.lastUpdate}
+        />
+      )}
 
       {/* Search bar was removed from the mobile home in 2026-05-12 — it
           competed with the 2×2 tile grid for the same screen space and
@@ -1101,7 +1067,7 @@ function FreshnessIndicator({
   return (
     <p
       style={{
-        margin: '6px 0 0',
+        margin: '10px 0 0',
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,

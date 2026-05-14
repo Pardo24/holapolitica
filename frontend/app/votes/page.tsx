@@ -501,10 +501,13 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         <p style={{ color: 'var(--ink-3)', padding: '24px 0' }}>{t('no_results')}</p>
       )}
 
-      {/* Mobile list — card per vote, no horizontal scroll. */}
+      {/* Mobile list — card per vote, no horizontal scroll. The
+          class hook `mobile-votes-list` lets the filter-pending CSS
+          rule overlay a shimmer skeleton on top of the cards while a
+          new query is in flight. */}
       {data && data.items.length > 0 && (
         <ul
-          className="sm:hidden"
+          className="sm:hidden mobile-votes-list"
           style={{
             listStyle: 'none',
             margin: 0,
