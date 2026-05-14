@@ -112,6 +112,17 @@ html { scroll-behavior: smooth; }
   }
 }
 
+/* Mobile: hide the top nav on EVERY route. Home shows the dashboard
+   tile grid as its navigation; sub-routes get the sticky
+   :file:`MobileBackBar` (with router.back()) at the very top. This
+   also matches the Capacitor-wrap target where the OS already provides
+   the address bar / system chrome and a duplicate top bar wastes
+   ~52px of safe area. Matches the 640px breakpoint where the mobile
+   dashboard takes over. */
+@media (max-width: 640px) {
+  .topnav { display: none !important; }
+}
+
 /* Bigger tap targets for visually tiny controls (the small "i" tooltip
    triggers and similar). The visible badge stays small but the hit area
    reaches the 44×44px Apple/Google guideline via padding. */
@@ -1152,12 +1163,6 @@ body.hp-filter-pending .mobile-votes-list::after {
 @media (max-width: 720px) {
   .page { padding: 16px 14px 32px; font-size: 14px; }
   .topnav { gap: 10px; }
-
-  /* Home page on mobile: the dashboard tiles ARE the navigation, so
-     the redundant top bar just steals scroll real estate. Hide it
-     here, restore on larger screens (the media query above already
-     scopes this rule). */
-  .topnav--home { display: none !important; }
 
   .kpi { padding: 10px 0; }
   .kpi .value { font-size: 22px; }

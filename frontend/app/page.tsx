@@ -46,6 +46,7 @@ function resultColor(result: VoteResult): string {
 
 export default async function HomePage() {
   const t = await getTranslations('home');
+  const tSite = await getTranslations('site');
   const tVotes = await getTranslations('votes');
   const locale = await getLocale();
 
@@ -113,6 +114,7 @@ export default async function HomePage() {
         locale={locale}
         labels={{
           brand: t('mobile_brand'),
+          motto: tSite('motto'),
           legislature: t('mobile_legislature'),
           stats: t('mobile_stats_short', {
             votes: (summary?.votes_total ?? 0).toLocaleString(locale),
@@ -674,6 +676,7 @@ function CompactVoteRow({
 
 interface MobileDashboardLabels {
   brand: string;
+  motto: string;
   legislature: string;
   stats: string;
   lastUpdate: string;
@@ -722,40 +725,104 @@ function MobileDashboard({
         paddingTop: 12,
       }}
     >
-      {/* Brand strip — name + one-line stats. No editorial copy.
-          Restored to the pre-2026-05-13 single-column layout (the
-          short-lived "HP" disc made it feel like a product card; the
-          plain wordmark scans more civic). The freshness pulse lives
-          BELOW the strip rather than inside it. */}
+      {/* Brand header — logo mark + wordmark + motto, then a meta
+          line with the legislature counters, then a green pill that
+          reports the most recent vote's recency. Everything sits
+          INSIDE a single header so the page identity is one visual
+          block; the dashboard tiles below start the navigation. */}
       <header
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-          paddingBottom: 12,
+          paddingBottom: 16,
+          marginBottom: 4,
           borderBottom: '1px solid var(--rule)',
         }}
       >
         <div
-          className="eyebrow"
-          style={{ fontSize: 10, color: 'var(--ink-3)', margin: 0 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            marginBottom: 12,
+          }}
         >
-          {labels.brand}
+          <span
+            aria-hidden="true"
+            className="mobile-home-mark"
+          />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: '-0.015em',
+                lineHeight: 1.05,
+                color: 'var(--ink)',
+              }}
+            >
+              {labels.brand}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontStyle: 'italic',
+                fontSize: 13,
+                color: 'var(--ink-3)',
+                marginTop: 3,
+                lineHeight: 1.2,
+              }}
+            >
+              {labels.motto}
+            </div>
+          </div>
         </div>
+
         <div
           className="tabular"
-          style={{ fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.4 }}
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-2)',
+            lineHeight: 1.4,
+            marginBottom: latestVotes[0]?.voted_at ? 10 : 0,
+          }}
         >
           {labels.legislature} · {labels.stats}
         </div>
+
+        {latestVotes[0]?.voted_at && (
+          <FreshnessButton
+            isoDate={latestVotes[0].voted_at}
+            locale={locale}
+            label={labels.lastUpdate}
+          />
+        )}
       </header>
-      {latestVotes[0]?.voted_at && (
-        <FreshnessIndicator
-          isoDate={latestVotes[0].voted_at}
-          locale={locale}
-          label={labels.lastUpdate}
-        />
-      )}
+
+      <style>{`
+        /* Bigger sibling of .topnav .brand-mark — same ballot/lines
+           glyph, scaled for the mobile home identity block. Lives
+           here (not globals.css) because it's bound to this single
+           surface; a future redesign should be free to rip it out. */
+        .mobile-home-mark {
+          width: 30px;
+          height: 30px;
+          flex: none;
+          align-self: center;
+          border: 1.75px solid var(--ink);
+          position: relative;
+          border-radius: 4px;
+        }
+        .mobile-home-mark::before,
+        .mobile-home-mark::after {
+          content: "";
+          position: absolute;
+          left: 4px;
+          right: 4px;
+          border-top: 1.5px solid var(--ink);
+        }
+        .mobile-home-mark::before { top: 9px; }
+        .mobile-home-mark::after  { top: 17px; }
+      `}</style>
 
       {/* Search bar was removed from the mobile home in 2026-05-12 — it
           competed with the 2×2 tile grid for the same screen space and
@@ -1040,7 +1107,7 @@ function DashboardTile({
   );
 }
 
-function FreshnessIndicator({
+function FreshnessButton({
   isoDate,
   locale,
   label,
@@ -1049,9 +1116,11 @@ function FreshnessIndicator({
   locale: string;
   label: string;
 }) {
-  // Server-rendered "fa N dies / N hores" line. The pulsing dot signals
-  // the data pipeline is alive without animating anything large or
-  // expensive — purely a 6px element with a CSS keyframes.
+  // Server-rendered green pill that reports the most recent vote's
+  // recency. Visually a button (rounded, filled with a soft green
+  // tint, ink-coloured text) but not actually clickable — it's an
+  // ambient "the pipeline is alive" signal. The pulsing dot is a
+  // tiny 7px element with a CSS keyframes; no client JS.
   const now = Date.now();
   const then = new Date(isoDate).getTime();
   const days = Math.max(0, Math.floor((now - then) / (1000 * 60 * 60 * 24)));
@@ -1060,29 +1129,35 @@ function FreshnessIndicator({
     day: 'numeric',
     month: 'short',
   });
-  // Pick the most informative unit: hours when the latest vote is from
-  // the same day, days otherwise. "today" surfaces only if < 1 h.
-  const rel =
-    hours < 1 ? 'now' : hours < 24 ? `${hours}h` : `${days}d`;
+  // Pick the most informative unit. "<1h" hides exact minutes (the
+  // data only refreshes every few hours so finer granularity would be
+  // false precision).
+  const rel = hours < 1 ? '<1h' : hours < 24 ? `${hours}h` : `${days}d`;
   return (
-    <p
+    <span
+      role="status"
+      aria-label={`${label} ${formatted}, ${rel}`}
       style={{
-        margin: '10px 0 0',
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
-        fontSize: 11,
-        color: 'var(--ink-3)',
-        lineHeight: 1.3,
+        gap: 8,
+        padding: '7px 12px 7px 10px',
+        borderRadius: 999,
+        background: 'color-mix(in oklch, #16A34A 14%, var(--paper))',
+        border: '1px solid color-mix(in oklch, #16A34A 32%, var(--paper))',
+        color: 'var(--ink)',
+        fontSize: 12,
+        fontWeight: 600,
+        lineHeight: 1.2,
       }}
     >
       <span
         aria-hidden="true"
         style={{
-          width: 7,
-          height: 7,
+          width: 8,
+          height: 8,
           borderRadius: 999,
-          background: 'var(--aye, #16A34A)',
+          background: '#16A34A',
           boxShadow: '0 0 0 0 rgba(22, 163, 74, .55)',
           animation: 'hp-pulse 2.2s ease-out infinite',
           flex: 'none',
@@ -1090,17 +1165,20 @@ function FreshnessIndicator({
         }}
       />
       <span>
-        {label} · <span className="tabular">{formatted}</span>{' '}
+        {label}{' '}
+        <span className="tabular" style={{ color: 'var(--ink-2)' }}>
+          · {formatted}
+        </span>{' '}
         <span style={{ color: 'var(--ink-3)' }}>({rel})</span>
       </span>
       <style>{`
         @keyframes hp-pulse {
           0%   { box-shadow: 0 0 0 0   rgba(22, 163, 74, .50); }
-          70%  { box-shadow: 0 0 0 7px rgba(22, 163, 74, 0); }
+          70%  { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
           100% { box-shadow: 0 0 0 0   rgba(22, 163, 74, 0); }
         }
       `}</style>
-    </p>
+    </span>
   );
 }
 

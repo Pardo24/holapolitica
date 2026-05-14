@@ -7,7 +7,6 @@ import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { ActiveFilterChips, type ActiveFilter } from '@/components/ActiveFilterChips';
-import { MobileTopicCarousel, type MobileCarouselTopic } from '@/components/MobileTopicCarousel';
 import { MobileVoteCard } from '@/components/MobileVoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
@@ -158,25 +157,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
     error = e instanceof Error ? e.message : 'unknown error';
   }
 
-  // Build the topic carousel dataset: every editorial-theme topic with
-  // at least one classified initiative, sorted by count descending so
-  // the rotation starts on the strongest signal. Server-side computation
-  // keeps the client component pure UI.
-  const carouselTopics: MobileCarouselTopic[] = topics
-    .filter((tp) => tp.kind === 'theme')
-    .map((tp) => {
-      const stat = topicCounts.find((c) => c.topic_slug === tp.slug);
-      return {
-        slug: tp.slug,
-        name: tp.name_ca,
-        color_hex: tp.color_hex,
-        icon: tp.icon,
-        count: stat?.initiatives_total ?? 0,
-      };
-    })
-    .filter((tp) => tp.count > 0)
-    .sort((a, b) => b.count - a.count);
-
   // Build the calendar strip data: aggregate vote_records by date,
   // splice upcoming sessions to the right end so the user can see the
   // next plenary without leaving the page. Sorted ascending so the strip
@@ -294,42 +274,21 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         clearAllLabel={t('filters_clear_all')}
       />
 
-      {/* Desktop-only horizontal chip strip of every theme topic.
-          Replaces the dedicated "Per tema" tab — clicking a chip
-          filters the votes list directly. Hidden on mobile, where the
-          rotating carousel below serves the same purpose. */}
-      <div className="hidden sm:block">
-        <TopicChipsStrip
-          topics={topics}
-          counts={topicCounts}
-          activeSlug={params.topic_slug ?? null}
-          baseHref="/votes"
-          allLabel={t('topic_chips_all_label')}
-          countSuffix={t('carousel_count_suffix')}
-        />
-      </div>
-
-      {/* Mobile-only rotating topic carousel. Surfaces the topic
-          taxonomy above the list so a phone user can jump to an entire
-          theme rather than scrolling 1.8 k vote rows. Hidden on
-          desktop where the chip strip above serves the same purpose
-          with all topics visible at once. */}
-      {carouselTopics.length > 0 && (
-        <div
-          className="sm:hidden"
-          style={{ paddingTop: 8, paddingBottom: 4 }}
-        >
-          <MobileTopicCarousel
-            items={carouselTopics}
-            emptyLabel={t('carousel_empty')}
-            countSuffix={t('carousel_count_suffix')}
-            prevAria={t('carousel_prev_aria')}
-            nextAria={t('carousel_next_aria')}
-            pausedLabel={t('carousel_paused')}
-            ofSeparator={t('carousel_of_separator')}
-          />
-        </div>
-      )}
+      {/* Horizontal chip strip of every theme topic — same component
+          on desktop and mobile. Each chip is a scroll-snap target so
+          a phone user can fling through the whole taxonomy and tap
+          to filter the list directly. Previously mobile got a
+          rotating one-card-at-a-time carousel; users complained that
+          they couldn't see the full set at once, so we collapsed
+          both surfaces onto the same strip. */}
+      <TopicChipsStrip
+        topics={topics}
+        counts={topicCounts}
+        activeSlug={params.topic_slug ?? null}
+        baseHref="/votes"
+        allLabel={t('topic_chips_all_label')}
+        countSuffix={t('carousel_count_suffix')}
+      />
 
       {/* Upcoming sessions, compact — renders nothing if empty so the
           table is not preceded by clutter. */}
