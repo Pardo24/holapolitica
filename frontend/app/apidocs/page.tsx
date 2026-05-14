@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 
@@ -32,7 +32,7 @@ export default function ApiDocsPage() {
         Tot el contingut de Hola Política és open data sota llicència CC-BY 4.0. Pots
         consumir l&apos;API REST directament, incrustar widgets a la teva web o
         descarregar fitxers de tota la legislatura.{' '}
-        <Link href="/about/data" style={{ color: 'var(--accent)' }}>
+        <Link href={'/about/data' as Route} style={{ color: 'var(--accent)' }}>
           Veure metodologia →
         </Link>
       </p>
