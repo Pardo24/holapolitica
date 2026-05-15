@@ -28,6 +28,28 @@
     "tagline": "Las leyes las votan nuestros representantes. Esta herramienta muestra cómo.",
     "description": "Herramienta cívica para seguir qué vota el Congreso de los Diputados. Quién propone cada ley, quién vota a favor o en contra, clasificado por tema. Sin interpretación política."
   },
+  "not_found": {
+    "title": "Esta página no existe",
+    "lede": "El enlace puede estar roto o el contenido se ha movido. Desde aquí puedes volver al inicio o explorar las votaciones.",
+    "go_home": "Volver al inicio",
+    "go_votes": "Ver votaciones"
+  },
+  "error_page": {
+    "eyebrow": "Error",
+    "title": "Algo ha fallado",
+    "lede": "Ha habido un error inesperado cargando esta página. Puedes volver a intentarlo o regresar al inicio.",
+    "digest": "Código de error",
+    "retry": "Volver a intentar",
+    "go_home": "Volver al inicio"
+  },
+  "mobile_back": {
+    "aria_back": "Volver atrás",
+    "label": "Volver"
+  },
+  "share": {
+    "copied": "Enlace copiado",
+    "copy_error": "No se ha podido copiar el enlace"
+  },
   "nav_brand": {
     "home": "Inicio"
   },
@@ -351,7 +373,9 @@
     "download_csv": "Descarga CSV",
     "tablist_aria": "Vistas de votaciones",
     "advanced_filters_summary": "Filtros avanzados",
-    "pagination_label": "Mostrando {from}–{to} de {total}"
+    "pagination_label": "Mostrando {from}–{to} de {total}",
+    "pagination_prev_aria": "Página anterior",
+    "pagination_next_aria": "Página siguiente"
   },
   "persons": {
     "title": "Diputados",

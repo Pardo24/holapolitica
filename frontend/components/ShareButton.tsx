@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowUpRight, Check, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 /**
  * One-tap sharing. On mobile uses the native share sheet (`navigator.share`);
@@ -24,6 +25,7 @@ export function ShareButton({
   label?: string;
   size?: 'sm' | 'md';
 }) {
+  const t = useTranslations('share');
   const [state, setState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const onClick = async () => {
@@ -86,7 +88,7 @@ export function ShareButton({
         )}
       </span>
       <span>
-        {state === 'copied' ? 'Enllaç copiat' : state === 'error' ? 'Error' : label}
+        {state === 'copied' ? t('copied') : state === 'error' ? t('copy_error') : label}
       </span>
     </button>
   );

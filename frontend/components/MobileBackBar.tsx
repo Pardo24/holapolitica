@@ -27,12 +27,14 @@
 
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 export function MobileBackBar() {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations('mobile_back');
   // We only know whether `router.back()` is a sensible action after
   // hydration — `window.history.length` is unknowable at SSR time. We
   // default to optimistic "history > 1" so the first paint shows a
@@ -63,16 +65,16 @@ export function MobileBackBar() {
   if (pathname === '/') return null;
 
   return (
-    <div className="mobile-back-bar" aria-label="Pàgina anterior">
+    <div className="mobile-back-bar" aria-label={t('aria_back')}>
       <Link
         href="/"
         prefetch={false}
         onClick={onBack}
         className="mobile-back-bar__btn"
-        aria-label="Tornar enrere"
+        aria-label={t('aria_back')}
       >
         <ChevronLeft size={20} strokeWidth={2.25} aria-hidden="true" />
-        <span>Tornar</span>
+        <span>{t('label')}</span>
       </Link>
       <style>{`
         .mobile-back-bar {

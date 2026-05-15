@@ -28,6 +28,28 @@
     "tagline": "Les lleis les voten els nostres representants. Aquesta eina mostra com.",
     "description": "Eina cívica per seguir què vota el Congrés dels Diputats. Qui proposa cada llei, qui hi vota a favor o en contra, classificat per tema. Sense interpretació política."
   },
+  "not_found": {
+    "title": "Aquesta pàgina no existeix",
+    "lede": "L'enllaç pot estar trencat o el contingut s'ha mogut. Des d'aquí pots tornar a l'inici o explorar les votacions.",
+    "go_home": "Tornar a l'inici",
+    "go_votes": "Veure votacions"
+  },
+  "error_page": {
+    "eyebrow": "Error",
+    "title": "Alguna cosa ha fallat",
+    "lede": "Hi ha hagut un error inesperat carregant aquesta pàgina. Pots tornar-ho a provar o tornar a l'inici.",
+    "digest": "Codi d'error",
+    "retry": "Tornar a provar",
+    "go_home": "Tornar a l'inici"
+  },
+  "mobile_back": {
+    "aria_back": "Tornar enrere",
+    "label": "Tornar"
+  },
+  "share": {
+    "copied": "Enllaç copiat",
+    "copy_error": "No s'ha pogut copiar l'enllaç"
+  },
   "nav_brand": {
     "home": "Inici"
   },
@@ -351,7 +373,9 @@
     "download_csv": "Descarrega CSV",
     "tablist_aria": "Vistes de votacions",
     "advanced_filters_summary": "Filtres avançats",
-    "pagination_label": "Mostrant {from}–{to} de {total}"
+    "pagination_label": "Mostrant {from}–{to} de {total}",
+    "pagination_prev_aria": "Pàgina anterior",
+    "pagination_next_aria": "Pàgina següent"
   },
   "persons": {
     "title": "Diputats",

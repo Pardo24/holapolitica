@@ -533,6 +533,8 @@ async function VotesListTab({ params }: { params: SearchParams }) {
             to: Math.min(page * data.page_size, data.total),
             total: data.total,
           })}
+          prevLabel={t('pagination_prev_aria')}
+          nextLabel={t('pagination_next_aria')}
         />
       )}
 
@@ -686,12 +688,16 @@ function Pagination({
   pageSize,
   searchParams,
   summaryLabel,
+  prevLabel,
+  nextLabel,
 }: {
   total: number;
   page: number;
   pageSize: number;
   searchParams: SearchParams;
   summaryLabel: string;
+  prevLabel: string;
+  nextLabel: string;
 }) {
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
   const buildHref = (p: number): Route => {
@@ -747,7 +753,7 @@ function Pagination({
         {page > 1 && (
           <Link
             href={buildHref(page - 1)}
-            aria-label="Pàgina anterior"
+            aria-label={prevLabel}
             className="pager-link"
             style={{ ...pagerLink, color: 'var(--ink-2)' }}
           >
@@ -781,7 +787,7 @@ function Pagination({
         {page < lastPage && (
           <Link
             href={buildHref(page + 1)}
-            aria-label="Pàgina següent"
+            aria-label={nextLabel}
             className="pager-link"
             style={{ ...pagerLink, color: 'var(--ink-2)' }}
           >

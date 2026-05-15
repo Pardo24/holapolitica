@@ -28,6 +28,28 @@
     "tagline": "Laws are voted by our representatives. This tool shows how.",
     "description": "Civic tool for tracking what the Spanish Congress votes. Who proposes each law, who votes for or against, classified by topic. No political interpretation."
   },
+  "not_found": {
+    "title": "This page doesn't exist",
+    "lede": "The link may be broken or the content has moved. You can return home or explore the votes from here.",
+    "go_home": "Back home",
+    "go_votes": "See votes"
+  },
+  "error_page": {
+    "eyebrow": "Error",
+    "title": "Something went wrong",
+    "lede": "An unexpected error happened while loading this page. You can retry or go back home.",
+    "digest": "Error code",
+    "retry": "Try again",
+    "go_home": "Back home"
+  },
+  "mobile_back": {
+    "aria_back": "Go back",
+    "label": "Back"
+  },
+  "share": {
+    "copied": "Link copied",
+    "copy_error": "Couldn't copy the link"
+  },
   "nav_brand": {
     "home": "Home"
   },
@@ -351,7 +373,9 @@
     "download_csv": "Download CSV",
     "tablist_aria": "Votes views",
     "advanced_filters_summary": "Advanced filters",
-    "pagination_label": "Showing {from}–{to} of {total}"
+    "pagination_label": "Showing {from}–{to} of {total}",
+    "pagination_prev_aria": "Previous page",
+    "pagination_next_aria": "Next page"
   },
   "persons": {
     "title": "Representatives",

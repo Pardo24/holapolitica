@@ -32,13 +32,13 @@ const STATUS_COLOR: Record<string, string> = {
   expired: 'var(--nv)',
 };
 
-const STATUS_LABEL_CA: Record<string, string> = {
-  approved: 'Aprovada',
-  rejected: 'Rebutjada',
-  in_debate: 'En debat',
-  submitted: 'Registrada',
-  withdrawn: 'Retirada',
-  expired: 'Caducada',
+const STATUS_KEY: Record<string, string> = {
+  approved: 'status_singular_approved',
+  rejected: 'status_singular_rejected',
+  in_debate: 'status_singular_in_debate',
+  submitted: 'status_singular_submitted',
+  withdrawn: 'status_singular_withdrawn',
+  expired: 'status_singular_expired',
 };
 
 export async function generateMetadata({
@@ -81,6 +81,19 @@ export default async function InitiativeDetailPage({
   const tVotes = await getTranslations('votes');
   const tCommon = await getTranslations('common');
   const tLifecycle = await getTranslations('lifecycle');
+  // Status labels live under the ``stats`` namespace; we look them up
+  // via a small key map so the fallback to the raw enum string remains
+  // graceful when an unexpected backend value lands.
+  const tStats = await getTranslations('stats');
+  const resolveStatusLabel = (status: string): string => {
+    const key = STATUS_KEY[status];
+    if (!key) return status;
+    try {
+      return tStats(key);
+    } catch {
+      return status;
+    }
+  };
   const locale = await getLocale();
 
   let initiative: Initiative;
@@ -105,7 +118,7 @@ export default async function InitiativeDetailPage({
     ? new Date(initiative.submitted_at).toLocaleDateString(locale, { dateStyle: 'long' })
     : null;
   const typeLabel = typeLabelCa(initiative.type);
-  const statusLabel = STATUS_LABEL_CA[initiative.status] ?? initiative.status;
+  const statusLabel = resolveStatusLabel(initiative.status);
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
   const parsedProposer = parseProposer(initiative.submitted_by, groups);
   const votes = initiative.votes ?? [];
@@ -532,7 +545,7 @@ export default async function InitiativeDetailPage({
           >
             {related.map((r) => {
               const rTitle = pickTitle(r, locale);
-              const rStatus = STATUS_LABEL_CA[r.status] ?? r.status;
+              const rStatus = resolveStatusLabel(r.status);
               const rStatusColor = STATUS_COLOR[r.status] ?? 'var(--ink-3)';
               return (
                 <li key={r.id}>
