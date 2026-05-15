@@ -69,7 +69,14 @@ next-env.d.ts
 *.sqlite
 *.sqlite3
 *.db
-data/
+# The bare `data/` rule used to match every directory called "data"
+# anywhere in the tree, which accidentally hid two real content dirs
+# from git: frontend/app/about/data (the /about/data route's
+# page.tsx) and apidocs/src/content/docs/data (Astro content). Vercel
+# never built the about/data route because the file wasn't in the
+# repo. Scoped now to repo-root data dumps + explicit backend path.
+/data/
+/backend/data/
 postgres-data/
 redis-data/
 *.dump
