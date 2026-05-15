@@ -15,8 +15,6 @@ from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.core.rate_limit import limiter
-
 from app import __version__
 from app.api import (
     agenda,
@@ -37,6 +35,7 @@ from app.api import (
 )
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.core.rate_limit import limiter
 
 configure_logging()
 log = get_logger(__name__)
