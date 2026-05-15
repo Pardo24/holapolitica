@@ -756,7 +756,12 @@
     "aria_label": "Resumen por grupo parlamentario",
     "cohesion_short": "Cohesión",
     "attendance_short": "Votos emitidos",
-    "deputies": "diputados"
+    "deputies": "diputados",
+    "women_short": "Mujeres",
+    "men_short": "Hombres",
+    "other_short": "Otros",
+    "age_avg_short": "Edad media",
+    "age_unit": " a"
   },
   "cohesion_carousel": {
     "eyebrow": "Cohesión y votos emitidos por grupo",

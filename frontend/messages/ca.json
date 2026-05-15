@@ -755,7 +755,12 @@
     "aria_label": "Resum per grup parlamentari",
     "cohesion_short": "Cohesió",
     "attendance_short": "Vots emesos",
-    "deputies": "diputats"
+    "deputies": "diputats",
+    "women_short": "Dones",
+    "men_short": "Homes",
+    "other_short": "Altres",
+    "age_avg_short": "Edat mitjana",
+    "age_unit": " a"
   },
   "cohesion_carousel": {
     "eyebrow": "Cohesió i vots emesos per grup",

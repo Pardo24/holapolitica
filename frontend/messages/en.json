@@ -756,7 +756,12 @@
     "aria_label": "Per-group parliamentary summary",
     "cohesion_short": "Cohesion",
     "attendance_short": "Votes cast",
-    "deputies": "representatives"
+    "deputies": "representatives",
+    "women_short": "Women",
+    "men_short": "Men",
+    "other_short": "Other",
+    "age_avg_short": "Avg age",
+    "age_unit": " y"
   },
   "cohesion_carousel": {
     "eyebrow": "Cohesion and votes cast by group",

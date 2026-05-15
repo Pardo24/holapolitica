@@ -43,6 +43,17 @@ export async function GroupSummaryCarousel({
       ]
     : [...rows].sort((a, b) => b.members_active - a.members_active);
 
+  const cardLabels = {
+    cohesion: t('cohesion_short'),
+    attendance: t('attendance_short'),
+    deputies: t('deputies'),
+    women: t('women_short'),
+    men: t('men_short'),
+    other: t('other_short'),
+    ageAvg: t('age_avg_short'),
+    ageUnit: t('age_unit'),
+  };
+
   return (
     <div style={{ position: 'relative' }}>
       <ul
@@ -66,11 +77,7 @@ export async function GroupSummaryCarousel({
             key={row.group_slug}
             row={row}
             highlighted={row.group_slug === highlightSlug}
-            labels={{
-              cohesion: t('cohesion_short'),
-              attendance: t('attendance_short'),
-              deputies: t('deputies'),
-            }}
+            labels={cardLabels}
           />
         ))}
       </ul>
@@ -96,14 +103,29 @@ function GroupSummaryCard({
 }: {
   row: GroupSummaryRow;
   highlighted?: boolean;
-  labels: { cohesion: string; attendance: string; deputies: string };
+  labels: {
+    cohesion: string;
+    attendance: string;
+    deputies: string;
+    women: string;
+    men: string;
+    other: string;
+    ageAvg: string;
+    ageUnit: string;
+  };
 }) {
   const cohesionPct =
     row.avg_cohesion == null ? null : Math.round(row.avg_cohesion * 100);
   const attendancePct =
     row.avg_attendance == null ? null : Math.round(row.avg_attendance * 100);
+  const genderTotal = row.members_f + row.members_m + row.members_other;
+  const fPct = genderTotal > 0 ? Math.round((row.members_f / genderTotal) * 100) : 0;
+  const mPct = genderTotal > 0 ? Math.round((row.members_m / genderTotal) * 100) : 0;
+  const otherPct = Math.max(0, 100 - fPct - mPct);
+  const avgAge =
+    row.members_age_avg == null ? null : Math.round(row.members_age_avg);
   return (
-    <li style={{ flex: '0 0 230px', width: 230, scrollSnapAlign: 'start' }}>
+    <li style={{ flex: '0 0 244px', width: 244, scrollSnapAlign: 'start' }}>
       <Link
         href={`/groups/${row.group_slug}`}
         style={{
@@ -118,7 +140,7 @@ function GroupSummaryCard({
           color: 'inherit',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, minWidth: 0 }}>
           <GroupBadge slug={row.group_slug} color={row.group_color_hex} size="sm" link={false} />
           <span
             style={{
@@ -154,6 +176,68 @@ function GroupSummaryCard({
             <span style={{ fontWeight: 400, color: 'var(--ink-3)' }}>{labels.deputies}</span>
           </span>
         </div>
+
+        {/* Demographics row — gender split (stacked horizontal bar
+            with F/M/Altres percentages) on the left and average age
+            on the right. Renders zero-state gracefully when the
+            backend has no birth_year or gender data for the group. */}
+        {genderTotal > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            <div
+              role="img"
+              aria-label={`${labels.women} ${fPct}%, ${labels.men} ${mPct}%, ${labels.other} ${otherPct}%`}
+              style={{
+                display: 'flex',
+                height: 6,
+                borderRadius: 999,
+                overflow: 'hidden',
+                background: 'var(--paper-3)',
+              }}
+            >
+              {row.members_f > 0 && (
+                <span style={{ width: `${fPct}%`, background: '#B7568C' }} />
+              )}
+              {row.members_m > 0 && (
+                <span style={{ width: `${mPct}%`, background: '#5470B0' }} />
+              )}
+              {row.members_other > 0 && (
+                <span style={{ width: `${otherPct}%`, background: 'var(--ink-3)' }} />
+              )}
+            </div>
+            <div
+              className="tabular"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: 10,
+                color: 'var(--ink-3)',
+                marginTop: 4,
+                gap: 6,
+              }}
+            >
+              <span style={{ color: 'var(--ink-2)' }}>
+                {labels.women} <strong style={{ color: 'var(--ink)' }}>{row.members_f}</strong>
+                {' · '}
+                {labels.men} <strong style={{ color: 'var(--ink)' }}>{row.members_m}</strong>
+                {row.members_other > 0 && (
+                  <>
+                    {' · '}
+                    {labels.other} <strong style={{ color: 'var(--ink)' }}>{row.members_other}</strong>
+                  </>
+                )}
+              </span>
+              {avgAge != null && (
+                <span>
+                  {labels.ageAvg}{' '}
+                  <strong style={{ color: 'var(--ink)' }}>
+                    {avgAge}
+                  </strong>
+                  {labels.ageUnit}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 'auto' }}>
           <DonutPct

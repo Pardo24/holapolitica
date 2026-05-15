@@ -322,6 +322,14 @@ export interface GroupSummaryRow {
   cohesion_votes_counted: number;
   avg_attendance: number | null;
   attendance_member_count: number;
+  // Gender + age (added 2026-05-14 to feed the demographic strip on
+  // each summary card). Counts are over currently-open mandates, same
+  // denominator as ``members_active``. ``members_age_avg`` is null
+  // when none of the deputies has a recorded birth year.
+  members_f: number;
+  members_m: number;
+  members_other: number;
+  members_age_avg: number | null;
 }
 
 export interface DissidenceRow {

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ChevronDown, ArrowRight } from 'lucide-react';
+import { ChevronDown, ArrowRight, X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
@@ -531,29 +531,42 @@ function InitiativesStateBody({
           >
             {hasTopic ? labels.topicValue : labels.filterByTopic}
           </div>
-          <StatsTopicFilter allTopics={allTopics} selectedTopic={selectedTopic} />
-          {hasTopic && (
-            <Link
-              href={
-                selectedGroup && selectedGroup !== 'all'
-                  ? (`/stats?group=${encodeURIComponent(selectedGroup)}` as Route)
-                  : ('/stats' as Route)
-              }
-              scroll={false}
-              style={{
-                fontSize: 12,
-                color: 'var(--ink-3)',
-                textDecoration: 'none',
-                padding: '6px 10px',
-                border: '1px solid var(--rule)',
-                borderRadius: 8,
-                textAlign: 'center',
-                alignSelf: 'flex-start',
-              }}
-            >
-              {labels.clearTopic}
-            </Link>
-          )}
+          {/* When a topic is active, the X to clear sits INLINE next
+              to the dropdown — same line, same visual rhythm — so
+              users don't hunt for a separate "Treure filtre" link
+              below. The X is a real <Link> so it works without JS. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <StatsTopicFilter allTopics={allTopics} selectedTopic={selectedTopic} />
+            </div>
+            {hasTopic && (
+              <Link
+                href={
+                  selectedGroup && selectedGroup !== 'all'
+                    ? (`/stats?group=${encodeURIComponent(selectedGroup)}` as Route)
+                    : ('/stats' as Route)
+                }
+                scroll={false}
+                aria-label={labels.clearTopic}
+                title={labels.clearTopic}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 36,
+                  height: 36,
+                  color: 'var(--ink-2)',
+                  background: 'var(--paper)',
+                  border: '1px solid var(--rule)',
+                  borderRadius: 999,
+                  flex: 'none',
+                  textDecoration: 'none',
+                }}
+              >
+                <X size={16} aria-hidden="true" />
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Stacked horizontal bar with inline % labels */}

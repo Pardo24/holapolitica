@@ -125,6 +125,16 @@ class GroupSummaryRow:
     cohesion_votes_counted: int
     avg_attendance: float | None
     attendance_member_count: int
+    # Demographic columns added 2026-05-14 to support the group summary
+    # cards on /stats. Counts only cover currently-open mandates (same
+    # denominator as ``members_active``) so the renderer can show
+    # "F / M / Altres" alongside the cohesion + attendance donuts.
+    # ``members_age_avg`` is the mean age of members with a known birth
+    # year; NULL when no member has the field populated.
+    members_f: int
+    members_m: int
+    members_other: int
+    members_age_avg: float | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -265,7 +275,13 @@ async def compute_group_summary(
     # Mesa role-holders. We do both counts in one pass.
     member_count_rows = (
         await session.execute(
-            select(GroupMembership.group_id, Mandate.id, Person.role_kind)
+            select(
+                GroupMembership.group_id,
+                Mandate.id,
+                Person.role_kind,
+                Person.gender,
+                Person.birth_year,
+            )
             .join(Mandate, Mandate.id == GroupMembership.mandate_id)
             .join(Person, Person.id == Mandate.person_id)
             .where(
@@ -276,10 +292,34 @@ async def compute_group_summary(
     ).all()
     members_by_group_id: Counter[int] = Counter()
     members_in_metric_by_group_id: Counter[int] = Counter()
-    for group_id, _mandate_id, role_kind in member_count_rows:
+    # Demographic aggregation — same denominator as members_active (every
+    # open mandate, role-holders included) so the cards stay coherent
+    # with the headline number. Age uses a current-year reference; we
+    # consciously use a fixed reference (datetime.now()) here even though
+    # the function is cached for an hour — the rounding to whole years
+    # is insensitive to hour-level drift.
+    gender_f_by_group: Counter[int] = Counter()
+    gender_m_by_group: Counter[int] = Counter()
+    gender_other_by_group: Counter[int] = Counter()
+    age_sum_by_group: dict[int, int] = defaultdict(int)
+    age_n_by_group: Counter[int] = Counter()
+    current_year = date.today().year
+    for group_id, _mandate_id, role_kind, gender, birth_year in member_count_rows:
         members_by_group_id[group_id] += 1
         if role_kind is None:
             members_in_metric_by_group_id[group_id] += 1
+        if gender == "F":
+            gender_f_by_group[group_id] += 1
+        elif gender == "M":
+            gender_m_by_group[group_id] += 1
+        else:
+            # 'X', NULL or any unexpected sentinel falls into "altres";
+            # the frontend renders the bucket transparently so users see
+            # both populated and missing data.
+            gender_other_by_group[group_id] += 1
+        if isinstance(birth_year, int) and 1900 < birth_year < current_year:
+            age_sum_by_group[group_id] += current_year - birth_year
+            age_n_by_group[group_id] += 1
 
     # 2) cohesion: per (vote, group), max_cast / total_cast. Average per group.
     # We exclude vote records from role-holders (govern / Mesa) via a
@@ -360,6 +400,8 @@ async def compute_group_summary(
         avg_cohesion = (cohesion_sum_by_slug.get(slug, 0.0) / coh_n) if coh_n else None
         att_t = att_total.get(slug, 0)
         avg_attendance = (att_attended.get(slug, 0) / att_t) if att_t else None
+        n_age = age_n_by_group.get(gid, 0)
+        avg_age = (age_sum_by_group.get(gid, 0) / n_age) if n_age else None
         results.append(
             GroupSummaryRow(
                 group_slug=slug,
@@ -371,6 +413,10 @@ async def compute_group_summary(
                 cohesion_votes_counted=coh_n,
                 avg_attendance=avg_attendance,
                 attendance_member_count=len(members_seen.get(slug, set())),
+                members_f=gender_f_by_group.get(gid, 0),
+                members_m=gender_m_by_group.get(gid, 0),
+                members_other=gender_other_by_group.get(gid, 0),
+                members_age_avg=avg_age,
             )
         )
     # Sort by members descending; symmetric (every group present).
