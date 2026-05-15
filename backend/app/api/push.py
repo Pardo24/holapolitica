@@ -26,11 +26,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.core.rate_limit import limiter
 from app.db.session import get_session
 from app.services.push import (
     delete_subscription,
@@ -39,7 +38,6 @@ from app.services.push import (
 )
 
 router = APIRouter(prefix="/push", tags=["push"])
-limiter = Limiter(key_func=get_remote_address)
 
 
 # ---------------------------------------------------------------------------

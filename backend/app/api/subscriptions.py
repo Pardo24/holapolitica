@@ -6,8 +6,6 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.alerts import (
@@ -21,15 +19,10 @@ from app.alerts import (
     unsubscribe_alert,
     unsubscribe_newsletter,
 )
+from app.core.rate_limit import limiter
 from app.db.session import get_session
 
 router = APIRouter(tags=["subscriptions"])
-
-# Local Limiter handle so the decorators below can reference a
-# concrete limiter object. slowapi uses ``request.app.state.limiter`` at
-# runtime, so we don't need to share the global instance here — this is
-# only for the decorator API to type-check.
-limiter = Limiter(key_func=get_remote_address)
 
 
 class AlertCreate(BaseModel):

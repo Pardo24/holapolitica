@@ -9,12 +9,13 @@ from typing import Any
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+from app.core.rate_limit import limiter
 
 from app import __version__
 from app.api import (
@@ -85,12 +86,17 @@ app = FastAPI(
 # Rate limiting (slowapi)
 # ---------------------------------------------------------------------------
 # Applied selectively via decorators on the abuse-sensitive POSTs
-# (subscriptions, push). Keyed by remote IP — same as nginx / Cloudflare
-# would do upstream. The middleware itself only intervenes when an
-# endpoint declared a limit; the rest of the API stays untouched.
-limiter = Limiter(key_func=get_remote_address, default_limits=[])
+# (subscriptions, push). The Limiter lives in :mod:`app.core.rate_limit`
+# so the routers and the ASGI middleware reference the SAME instance —
+# slowapi keeps the request counter on the instance, two different
+# Limiter objects each get their own bucket and the limits silently
+# never trigger.
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# slowapi's exported handler is typed against `RateLimitExceeded` while
+# Starlette's `add_exception_handler` expects the wider `Exception` in
+# the callable annotation. The runtime shape is correct (Starlette
+# dispatches by exception type), so this is a pure typing mismatch.
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 app.add_middleware(SlowAPIMiddleware)
 
 
