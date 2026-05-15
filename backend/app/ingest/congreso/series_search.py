@@ -138,11 +138,9 @@ async def _import_xv_step(
         log.info(
             "congreso.series.import.done",
             series=series_name,
-            **{
-                "created": result.stats.created,
-                "updated": result.stats.updated,
-                "unchanged": result.stats.unchanged,
-            },
+            seen=result.stats.seen,
+            created=result.stats.created,
+            updated=result.stats.updated,
         )
         return result.stats
 
