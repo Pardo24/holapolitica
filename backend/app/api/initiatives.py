@@ -47,20 +47,28 @@ async def get_initiative(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Initiative not found")
 
     votes = (
-        await session.execute(
-            select(Vote)
-            .where(Vote.initiative_id == initiative_id)
-            .order_by(desc(Vote.voted_at))
+        (
+            await session.execute(
+                select(Vote)
+                .where(Vote.initiative_id == initiative_id)
+                .order_by(desc(Vote.voted_at))
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     topic_rows = (
-        await session.execute(
-            select(Topic)
-            .join(InitiativeTopic, InitiativeTopic.topic_id == Topic.id)
-            .where(InitiativeTopic.initiative_id == initiative_id)
+        (
+            await session.execute(
+                select(Topic)
+                .join(InitiativeTopic, InitiativeTopic.topic_id == Topic.id)
+                .where(InitiativeTopic.initiative_id == initiative_id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     # Re-use the InitiativeRead fields by serialising the ORM row then
     # adding the joined collections. Pydantic builds the response model
@@ -86,12 +94,16 @@ async def related_initiatives(
     the list. The originating initiative itself is excluded.
     """
     own_topic_ids = (
-        await session.execute(
-            select(InitiativeTopic.topic_id).where(
-                InitiativeTopic.initiative_id == initiative_id
+        (
+            await session.execute(
+                select(InitiativeTopic.topic_id).where(
+                    InitiativeTopic.initiative_id == initiative_id
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     if not own_topic_ids:
         return []
 

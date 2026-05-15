@@ -159,6 +159,4 @@ async def import_rdl_convalidacion_xv() -> InitiativeImportStats:
 
 async def import_reforma_constitucional_xv() -> InitiativeImportStats:
     """Bootstrap entry point: import all constitutional reforms (102) of XV."""
-    return await _import_xv_step(
-        import_reforma_constitucional, "reforma_constitucional_xv"
-    )
+    return await _import_xv_step(import_reforma_constitucional, "reforma_constitucional_xv")

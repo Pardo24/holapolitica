@@ -192,9 +192,7 @@ async def set_newsletter_topic_preferences(
     """
     sub = (
         await session.execute(
-            select(NewsletterSubscription).where(
-                NewsletterSubscription.confirmation_token == token
-            )
+            select(NewsletterSubscription).where(NewsletterSubscription.confirmation_token == token)
         )
     ).scalar_one_or_none()
     if sub is None:
