@@ -32,5 +32,7 @@ Crawl-delay: 10
 User-agent: DotBot
 Crawl-delay: 10
 
-# Canonical sitemap, regenerated on each build.
-Sitemap: https://holapolitica.org/sitemap.xml
+# Canonical sitemap, regenerated on each build. Note the www host —
+# the apex redirects to it, so listing the bare apex would force
+# Google through an extra hop.
+Sitemap: https://www.holapolitica.org/sitemap.xml

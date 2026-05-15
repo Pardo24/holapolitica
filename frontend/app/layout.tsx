@@ -13,6 +13,11 @@ import './globals.css';
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('site');
   return {
+    // Anchors every relative URL Next emits for OG images, Twitter
+    // cards and `<link rel="canonical">`. Without this, opengraph
+    // image URLs become relative paths in `<head>` and many social
+    // crawlers (Slack, Bluesky) fail to render the preview.
+    metadataBase: new URL('https://www.holapolitica.org'),
     title: {
       default: t('name'),
       template: `%s · ${t('name')}`,

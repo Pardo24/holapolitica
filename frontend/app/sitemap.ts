@@ -20,7 +20,10 @@ import { api } from '@/lib/api';
  * minutes.
  */
 
-const BASE_URL = 'https://holapolitica.org';
+// Canonical host is the www subdomain — the apex 301-redirects to it,
+// so listing the bare apex here costs Google a redirect hop per URL
+// and (worse) can be read as two distinct sites for indexing purposes.
+const BASE_URL = 'https://www.holapolitica.org';
 
 export const revalidate = 300;
 
