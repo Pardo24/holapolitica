@@ -377,6 +377,12 @@
     "pagination_prev_aria": "Previous page",
     "pagination_next_aria": "Next page"
   },
+  "persons_autocomplete": {
+    "placeholder": "Search a deputy or a constituency…",
+    "aria_label": "Search deputy by name or constituency",
+    "clear": "Clear search",
+    "no_results": "No deputy matches «{query}»"
+  },
   "persons": {
     "title": "Representatives",
     "hub_eyebrow": "Spanish Congress · 15th legislature",

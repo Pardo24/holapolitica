@@ -377,6 +377,12 @@
     "pagination_prev_aria": "Página anterior",
     "pagination_next_aria": "Página siguiente"
   },
+  "persons_autocomplete": {
+    "placeholder": "Busca un diputado o una circunscripción…",
+    "aria_label": "Buscar diputado por nombre o circunscripción",
+    "clear": "Borrar búsqueda",
+    "no_results": "Ningún diputado con «{query}»"
+  },
   "persons": {
     "title": "Diputados",
     "hub_eyebrow": "Congreso de los Diputados · XV legislatura",

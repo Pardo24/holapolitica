@@ -28,6 +28,7 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search, X, User } from 'lucide-react';
 
+import { DeputiesAutocomplete } from '@/components/DeputiesAutocomplete';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { Hemicycle } from '@/components/Hemicycle';
@@ -114,6 +115,18 @@ export function DeputiesList({
 
   return (
     <div>
+      {/* Prominent search-as-you-type, ABOVE the hemicycle. A citizen
+          arriving to look up "el meu diputat" finds the affordance
+          before the chart — most users don't read parliament charts
+          left-to-right, they search by name. Navigates to the
+          person's detail page on click/Enter, separate from the
+          directory filter below. */}
+      {totalSeats > 0 && (
+        <section style={{ paddingTop: 18 }}>
+          <DeputiesAutocomplete seats={seats} />
+        </section>
+      )}
+
       {/* Top row: hemicycle (focal, ~70%) + groups sidebar (~30%).
           Collapses to a single column on narrow viewports. */}
       <section

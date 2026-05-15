@@ -377,6 +377,12 @@
     "pagination_prev_aria": "Pàgina anterior",
     "pagination_next_aria": "Pàgina següent"
   },
+  "persons_autocomplete": {
+    "placeholder": "Cerca un diputat o una circumscripció…",
+    "aria_label": "Cercar diputat per nom o circumscripció",
+    "clear": "Esborrar cerca",
+    "no_results": "Cap diputat amb «{query}»"
+  },
   "persons": {
     "title": "Diputats",
     "hub_eyebrow": "Congrés dels Diputats · XV legislatura",
