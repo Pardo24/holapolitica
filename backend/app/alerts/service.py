@@ -26,7 +26,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.alerts.email import EmailMessage, EmailSender
 from app.core.config import get_settings
 from app.core.logging import get_logger
-from app.models import AlertSubscription, NewsletterSubscription
+from app.models import (
+    AlertSubscription,
+    NewsletterSubscription,
+    ParliamentaryGroup,
+    Person,
+    Topic,
+)
 
 log = get_logger(__name__)
 
@@ -54,6 +60,23 @@ async def create_alert_subscription(
     """Create or refresh an alert subscription and dispatch the confirmation email."""
     if target_type not in ("topic", "person", "group"):
         raise SubscriptionError(f"Invalid target_type: {target_type}")
+
+    # Validate that the target actually exists before we go and email
+    # a confirmation link. Previously an attacker could POST any int
+    # against /alerts and we'd persist an orphan row + send a
+    # confirmation — both DB bloat and free email amplification. The
+    # SELECT cost here is one indexed lookup per request, which the
+    # surrounding rate limit (10/min/IP) already caps.
+    _target_table = {
+        "topic": Topic,
+        "person": Person,
+        "group": ParliamentaryGroup,
+    }[target_type]
+    target_exists = (
+        await session.execute(select(_target_table.id).where(_target_table.id == target_id))
+    ).scalar_one_or_none() is not None
+    if not target_exists:
+        raise SubscriptionError(f"Unknown {target_type} id: {target_id}")
 
     existing = (
         await session.execute(
