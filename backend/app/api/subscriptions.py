@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.alerts import (
@@ -22,6 +24,12 @@ from app.alerts import (
 from app.db.session import get_session
 
 router = APIRouter(tags=["subscriptions"])
+
+# Local Limiter handle so the decorators below can reference a
+# concrete limiter object. slowapi uses ``request.app.state.limiter`` at
+# runtime, so we don't need to share the global instance here — this is
+# only for the decorator API to type-check.
+limiter = Limiter(key_func=get_remote_address)
 
 
 class AlertCreate(BaseModel):
@@ -44,8 +52,11 @@ class SubscriptionResponse(BaseModel):
 
 
 @router.post("/alerts", response_model=SubscriptionResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def subscribe_alert(
-    payload: AlertCreate, session: AsyncSession = Depends(get_session)
+    request: Request,
+    payload: AlertCreate,
+    session: AsyncSession = Depends(get_session),
 ) -> SubscriptionResponse:
     try:
         await create_alert_subscription(
@@ -64,8 +75,11 @@ async def subscribe_alert(
 @router.post(
     "/newsletter", response_model=SubscriptionResponse, status_code=status.HTTP_201_CREATED
 )
+@limiter.limit("10/minute")
 async def subscribe_newsletter(
-    payload: NewsletterCreate, session: AsyncSession = Depends(get_session)
+    request: Request,
+    payload: NewsletterCreate,
+    session: AsyncSession = Depends(get_session),
 ) -> SubscriptionResponse:
     try:
         await create_newsletter_subscription(
@@ -118,7 +132,9 @@ class NewsletterPreferencesResponse(BaseModel):
     response_model=NewsletterPreferencesResponse,
     status_code=status.HTTP_200_OK,
 )
+@limiter.limit("20/minute")
 async def update_newsletter_preferences(
+    request: Request,
     payload: NewsletterPreferencesUpdate,
     session: AsyncSession = Depends(get_session),
 ) -> NewsletterPreferencesResponse:

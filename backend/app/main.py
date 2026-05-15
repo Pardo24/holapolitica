@@ -7,8 +7,13 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app import __version__
@@ -37,13 +42,28 @@ log = get_logger(__name__)
 settings = get_settings()
 
 
+_DEFAULT_SECRET = "change-me-in-production-please"
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Run startup and shutdown tasks."""
+    # Refuse to boot in production with the placeholder secret. The
+    # default value used to silently propagate when an operator forgot
+    # to set ``SECRET_KEY`` in .env; any token signed with it would be
+    # trivially forgeable. Failing fast here makes the misconfiguration
+    # visible.
+    if settings.is_production and settings.secret_key == _DEFAULT_SECRET:
+        raise RuntimeError(
+            "SECRET_KEY is the default placeholder in production. "
+            "Set the SECRET_KEY env var to a random 64-char string."
+        )
     log.info("backend.startup", version=__version__, environment=settings.environment)
     yield
     log.info("backend.shutdown")
 
+
+_docs_enabled = settings.backend_docs_public or not settings.is_production
 
 app = FastAPI(
     title="Hola Política API",
@@ -53,10 +73,60 @@ app = FastAPI(
     ),
     version="0.1.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    # In production the Swagger UI and ReDoc HTML are hidden — the
+    # OpenAPI JSON spec is still served so internal tooling and the
+    # /apidocs static page on the frontend can reference endpoints.
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
     openapi_url="/openapi.json",
 )
+
+# ---------------------------------------------------------------------------
+# Rate limiting (slowapi)
+# ---------------------------------------------------------------------------
+# Applied selectively via decorators on the abuse-sensitive POSTs
+# (subscriptions, push). Keyed by remote IP — same as nginx / Cloudflare
+# would do upstream. The middleware itself only intervenes when an
+# endpoint declared a limit; the rest of the API stays untouched.
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
+
+# ---------------------------------------------------------------------------
+# Security headers
+# ---------------------------------------------------------------------------
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Attach defensive HTTP headers to every response.
+
+    None of the headers below carry credentials or affect caching; they're
+    a baseline against MIME sniffing, click-jacking and referer leakage
+    that nginx / Cloudflare would otherwise have to set for us. HSTS is
+    only attached in production — local dev runs over plain HTTP and the
+    header would persist in browsers and break the next dev session.
+    """
+
+    async def dispatch(
+        self, request: Request, call_next: Any
+    ) -> Response:  # pragma: no cover — trivial wiring
+        response: Response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        # The API serves JSON — never frame it.
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        response.headers.setdefault(
+            "Permissions-Policy", "geolocation=(), camera=(), microphone=()"
+        )
+        if settings.is_production:
+            response.headers.setdefault(
+                "Strict-Transport-Security",
+                "max-age=31536000; includeSubDomains",
+            )
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 # CORS

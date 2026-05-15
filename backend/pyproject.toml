@@ -24,6 +24,12 @@ dependencies = [
     "pypdf>=5.0.0",
     "pywebpush>=2.0.0",
     "aiosmtplib>=3.0.0",
+    # Rate limiter for the public POST endpoints. We previously had NO
+    # abuse control on /newsletter, /alerts, /push/subscribe — anyone
+    # could fire the confirmation email job at unbounded rate. slowapi
+    # is the standard FastAPI-friendly limiter (in-memory by default,
+    # uses Redis when configured) and weighs ~2 KB.
+    "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]

@@ -26,6 +26,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -37,6 +39,7 @@ from app.services.push import (
 )
 
 router = APIRouter(prefix="/push", tags=["push"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +124,7 @@ def _interests_slugs_from(subscription_interests: list[object]) -> list[str]:
     response_model=SubscriptionResponse,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("20/minute")
 async def subscribe(
     payload: SubscribeRequest,
     request: Request,
@@ -143,7 +147,9 @@ async def subscribe(
 
 
 @router.patch("/interests", response_model=SubscriptionResponse)
+@limiter.limit("30/minute")
 async def patch_interests(
+    request: Request,
     payload: InterestsRequest,
     session: AsyncSession = Depends(get_session),
 ) -> SubscriptionResponse:
@@ -162,7 +168,9 @@ async def patch_interests(
 
 
 @router.post("/unsubscribe", response_model=StatusResponse)
+@limiter.limit("20/minute")
 async def unsubscribe(
+    request: Request,
     payload: UnsubscribeRequest,
     session: AsyncSession = Depends(get_session),
 ) -> StatusResponse:
