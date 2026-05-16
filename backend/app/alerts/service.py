@@ -67,13 +67,19 @@ async def create_alert_subscription(
     # confirmation — both DB bloat and free email amplification. The
     # SELECT cost here is one indexed lookup per request, which the
     # surrounding rate limit (10/min/IP) already caps.
-    _target_table = {
-        "topic": Topic,
-        "person": Person,
-        "group": ParliamentaryGroup,
-    }[target_type]
+    #
+    # We branch on ``target_type`` instead of using a {str: Model} map
+    # because mypy can't infer the concrete ``.id`` column off a
+    # ``type[Base]`` reference, while a per-branch select against a
+    # named model resolves cleanly.
+    if target_type == "topic":
+        exists_stmt = select(Topic.id).where(Topic.id == target_id)
+    elif target_type == "person":
+        exists_stmt = select(Person.id).where(Person.id == target_id)
+    else:  # "group"
+        exists_stmt = select(ParliamentaryGroup.id).where(ParliamentaryGroup.id == target_id)
     target_exists = (
-        await session.execute(select(_target_table.id).where(_target_table.id == target_id))
+        await session.execute(exists_stmt)
     ).scalar_one_or_none() is not None
     if not target_exists:
         raise SubscriptionError(f"Unknown {target_type} id: {target_id}")

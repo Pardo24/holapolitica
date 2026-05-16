@@ -155,9 +155,7 @@ class BlueskyClient:
             facets.append(
                 {
                     "index": {"byteStart": idx[0], "byteEnd": idx[1]},
-                    "features": [
-                        {"$type": "app.bsky.richtext.facet#link", "uri": url}
-                    ],
+                    "features": [{"$type": "app.bsky.richtext.facet#link", "uri": url}],
                 }
             )
 

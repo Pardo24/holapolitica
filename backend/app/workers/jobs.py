@@ -392,12 +392,22 @@ async def _post_recent_votes_to_bluesky_async() -> dict[str, int | str]:
 
     redis = Redis.from_url(settings.redis_url)
     raw = redis.get(_BLUESKY_STATE_KEY)
-    # `None` (cold start) → 0; any malformed value → 0 (safer than
-    # crashing the cron).
-    try:
-        last_id = int(raw.decode()) if raw else 0
-    except (AttributeError, ValueError):
-        last_id = 0
+    # The redis-py stub overloads `get()` so its return type is
+    # Awaitable[Any] | Any; the sync client returns bytes | None. We
+    # coerce to a string before parsing so the type checker sees a
+    # clean ``int(...)`` call, and any other value (None / awaitable)
+    # falls through to 0 — the safer default for a cron worker.
+    last_id = 0
+    if isinstance(raw, (bytes, bytearray)):
+        try:
+            last_id = int(raw.decode())
+        except ValueError:
+            last_id = 0
+    elif isinstance(raw, str):
+        try:
+            last_id = int(raw)
+        except ValueError:
+            last_id = 0
 
     async with AsyncSessionLocal() as db:
         rows = (
@@ -459,8 +469,10 @@ def _format_bluesky_post(vote: object, site_url: str) -> str:
 
     assert isinstance(vote, Vote)
     raw_subject = (vote.description or vote.title or "").strip()
-    subject = raw_subject if len(raw_subject) <= _BLUESKY_TITLE_CHAR_BUDGET else (
-        raw_subject[: _BLUESKY_TITLE_CHAR_BUDGET - 1].rstrip() + "…"
+    subject = (
+        raw_subject
+        if len(raw_subject) <= _BLUESKY_TITLE_CHAR_BUDGET
+        else (raw_subject[: _BLUESKY_TITLE_CHAR_BUDGET - 1].rstrip() + "…")
     )
     result_label = {
         VoteResult.APPROVED: "Aprovada",
