@@ -78,9 +78,7 @@ async def create_alert_subscription(
         exists_stmt = select(Person.id).where(Person.id == target_id)
     else:  # "group"
         exists_stmt = select(ParliamentaryGroup.id).where(ParliamentaryGroup.id == target_id)
-    target_exists = (
-        await session.execute(exists_stmt)
-    ).scalar_one_or_none() is not None
+    target_exists = (await session.execute(exists_stmt)).scalar_one_or_none() is not None
     if not target_exists:
         raise SubscriptionError(f"Unknown {target_type} id: {target_id}")
 
