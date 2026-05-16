@@ -75,7 +75,10 @@ export default async function AvuiPage() {
     upcoming,
   ] = await Promise.all([
     api.stats.summary().catch(() => null) as Promise<StatsSummary | null>,
-    api.votes.list({ page: 1, page_size: 8 }).catch(() => null),
+    // 24 votes covers the last ~2-3 plenary sessions which lets us
+    // surface a "closest margin" pick across a wider window without
+    // an extra backend hop.
+    api.votes.list({ page: 1, page_size: 24 }).catch(() => null),
     api.metrics.groupSummary(1).catch(() => [] as GroupSummaryRow[]),
     api.metrics.coincidence(1).catch(() => [] as CoincidenceCell[]),
     api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
@@ -86,6 +89,12 @@ export default async function AvuiPage() {
 
   const latestVote: Vote | null = votesPage?.items[0] ?? null;
   const recentVotes: Vote[] = (votesPage?.items ?? []).slice(0, 4);
+  // Closest-margin vote across the loaded window. Pure data: smallest
+  // |ayes - noes| with ≥30 votes cast (filters out procedural votes
+  // where almost nobody is in the chamber). Tied votes are interesting
+  // too, but treat them as a special case so the caption can say
+  // "empat" rather than a misleading "0 vots de marge".
+  const closestVote = pickClosestMarginVote(votesPage?.items ?? [], latestVote?.id);
 
   // Date in the page header — long form, local. We use the latest
   // vote's date when available (anchors the page to the data it shows
@@ -247,6 +256,18 @@ export default async function AvuiPage() {
           )}
         </aside>
       </section>
+
+      {/* Closest-margin band — purely data-driven: across the recent
+          window, the vote with the smallest |ayes − noes| difference.
+          Surfaces where the chamber was most split without editorial
+          framing. Hidden when the lead vote already is the closest
+          (avoids a redundant card). */}
+      {closestVote && (
+        <section style={{ paddingTop: 22 }}>
+          <BandHeader title={t('band_closest_title')} caption={t('band_closest_caption')} />
+          <ClosestVoteCard vote={closestVote} locale={locale} t={t} />
+        </section>
+      )}
 
       {/* Topic strip — what parliament has been voting on, taxonomy
           surface. Same component the /votes hub uses. */}
@@ -658,6 +679,128 @@ function RecentVotesList({
         {t('recent_see_all')} →
       </Link>
     </div>
+  );
+}
+
+/**
+ * Pick the vote with the smallest |ayes − noes| margin across the
+ * recent-vote window. Ties (|margin| = 0) win because they're the
+ * literal extreme case. We exclude the lead vote (passed via
+ * ``leadVoteId``) so the page never shows the same vote twice, and
+ * we require a minimum cast threshold to filter out procedural
+ * single-vote oddities. Returns null when no vote clears the bar.
+ */
+function pickClosestMarginVote(
+  votes: Vote[],
+  leadVoteId: number | undefined,
+): Vote | null {
+  const MIN_CAST = 30;
+  let best: Vote | null = null;
+  let bestMargin = Number.POSITIVE_INFINITY;
+  for (const v of votes) {
+    if (leadVoteId != null && v.id === leadVoteId) continue;
+    const cast = v.ayes + v.noes + v.abstentions;
+    if (cast < MIN_CAST) continue;
+    const margin = Math.abs(v.ayes - v.noes);
+    if (margin < bestMargin) {
+      best = v;
+      bestMargin = margin;
+    }
+  }
+  return best;
+}
+
+function ClosestVoteCard({
+  vote,
+  locale,
+  t,
+}: {
+  vote: Vote;
+  locale: string;
+  t: AvuiT;
+}) {
+  const subject = vote.description?.trim() || vote.title;
+  const dateStr = new Date(vote.voted_at).toLocaleDateString(locale, {
+    dateStyle: 'long',
+  });
+  const margin = Math.abs(vote.ayes - vote.noes);
+  return (
+    <Link
+      href={`/votes/${vote.id}` as Route}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) auto',
+        gap: 16,
+        padding: '16px 18px',
+        border: '1px solid var(--rule-strong)',
+        borderRadius: 12,
+        background: 'var(--paper-2)',
+        color: 'inherit',
+        textDecoration: 'none',
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div
+          className="tabular"
+          style={{ fontSize: 11, color: 'var(--ink-3)' }}
+        >
+          {dateStr}
+        </div>
+        <div
+          className="serif"
+          style={{
+            margin: '4px 0 8px',
+            fontSize: 17,
+            fontWeight: 600,
+            lineHeight: 1.3,
+            color: 'var(--ink)',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {subject}
+        </div>
+        <StackedBar
+          d={{
+            aye: vote.ayes,
+            no: vote.noes,
+            abst: vote.abstentions,
+            nv: vote.absent,
+          }}
+          height={10}
+        />
+      </div>
+      <div
+        style={{
+          textAlign: 'right',
+          minWidth: 92,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'flex-end',
+        }}
+      >
+        <div
+          className="tabular"
+          style={{
+            fontSize: 32,
+            fontWeight: 700,
+            color: margin === 0 ? 'var(--abst)' : 'var(--ink)',
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+          }}
+        >
+          {margin === 0 ? t('closest_tie_label') : `±${margin}`}
+        </div>
+        <div
+          style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+        >
+          {margin === 0 ? t('closest_tie_caption') : t('closest_margin_caption')}
+        </div>
+      </div>
+    </Link>
   );
 }
 

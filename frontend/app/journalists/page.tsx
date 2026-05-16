@@ -44,12 +44,76 @@ export default async function JournalistsPage() {
       <h1 className="h-headline" style={{ margin: '6px 0 14px' }}>
         Eines llestes per a periodistes
       </h1>
-      <p style={{ fontSize: 16, color: 'var(--ink-2)', lineHeight: 1.6, margin: '0 0 28px' }}>
+      <p style={{ fontSize: 16, color: 'var(--ink-2)', lineHeight: 1.6, margin: '0 0 22px' }}>
         Quatre maneres d&apos;incorporar el que vota el Congrés en una peça:
         widgets responsius, cards socials, API REST i descàrregues directes.
         Tot CC-BY 4.0 — només cal citar <em>Hola Política</em> i la font
         original (Congreso de los Diputados).
       </p>
+
+      {/* Live-example callout — points the reader at /avui as a real
+          composed page using exactly these widgets, so the abstract
+          "compose your own piece" claim has a working precedent. */}
+      <aside
+        style={{
+          margin: '0 0 32px',
+          padding: '14px 16px',
+          background: 'var(--paper-2)',
+          border: '1px solid var(--rule-strong)',
+          borderRadius: 12,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          flexWrap: 'wrap',
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            background: 'var(--ink)',
+            color: 'var(--paper)',
+            fontWeight: 700,
+            fontSize: 14,
+            fontFamily: 'var(--font-serif)',
+            flex: 'none',
+          }}
+        >
+          A
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+            Veure-ho fet
+          </div>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5 }}>
+            La portada <Link href={'/avui' as Route} style={{ color: 'var(--accent)' }}>/avui</Link> és
+            una composició automàtica d&apos;aquests mateixos widgets. Cada
+            30 minuts es regenera amb les dades més recents.
+          </p>
+        </div>
+        <Link
+          href={'/avui' as Route}
+          style={{
+            display: 'inline-block',
+            padding: '8px 14px',
+            border: '1px solid var(--ink)',
+            borderRadius: 999,
+            background: 'var(--paper)',
+            color: 'var(--ink)',
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: 'none',
+            flex: 'none',
+          }}
+        >
+          Anar a /avui →
+        </Link>
+      </aside>
 
       <Section title="Widgets per a articles">
         <p>
