@@ -26,7 +26,9 @@ import { pickPlainSummary } from '@/lib/glossary';
  * Cache: ISR with very long revalidate (effectively immutable). Past
  * data doesn't change; the underlying Vote rows are append-only.
  */
-export const revalidate = 60 * 60 * 24 * 30; // 30 days
+// 30 days, in seconds. Next requires this to be a literal number (its
+// segment-config parser refuses BinaryExpressions).
+export const revalidate = 2592000;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
