@@ -344,3 +344,129 @@ def _site_url() -> str:
     s = get_settings()
     origin = s.backend_cors_origins.split(",")[0].strip().rstrip("/")
     return origin or "http://localhost:3000"
+
+
+# ---------------------------------------------------------------------------
+# Social — Bluesky publisher
+# ---------------------------------------------------------------------------
+
+_BLUESKY_STATE_KEY = "social:bluesky:last_posted_vote_id"
+_BLUESKY_POST_LIMIT_PER_RUN = 5
+_BLUESKY_TITLE_CHAR_BUDGET = 220  # leaves room for URL + spacing under 300
+
+
+def post_recent_votes_to_bluesky() -> dict[str, int | str]:
+    """Publish newly-ingested plenary votes to the project's Bluesky account.
+
+    No-op when ``bluesky_enable`` is false or credentials are missing.
+    Otherwise:
+      1. Read the last-posted vote id from Redis.
+      2. Fetch up to N votes from the DB with id strictly greater.
+      3. Post each one (oldest first so the feed reads chronologically).
+      4. Update the marker after each successful post so a crash leaves
+         state consistent.
+
+    Returns a structured summary the scheduler can log; never raises
+    so the cron job keeps firing.
+    """
+    return asyncio.run(_post_recent_votes_to_bluesky_async())
+
+
+async def _post_recent_votes_to_bluesky_async() -> dict[str, int | str]:
+    from redis import Redis
+    from sqlalchemy import select
+
+    from app.models import Session as SessionRow
+    from app.models import Vote
+    from app.social.bluesky import BlueskyClient, BlueskySocialError
+
+    settings = get_settings()
+    if not settings.bluesky_enable:
+        log.info("bluesky.skip", reason="disabled")
+        return {"status": "disabled", "posted": 0}
+
+    client_or_none = BlueskyClient.from_settings()
+    if client_or_none is None:
+        log.warning("bluesky.skip", reason="missing_credentials")
+        return {"status": "missing_credentials", "posted": 0}
+
+    redis = Redis.from_url(settings.redis_url)
+    raw = redis.get(_BLUESKY_STATE_KEY)
+    # `None` (cold start) → 0; any malformed value → 0 (safer than
+    # crashing the cron).
+    try:
+        last_id = int(raw.decode()) if raw else 0
+    except (AttributeError, ValueError):
+        last_id = 0
+
+    async with AsyncSessionLocal() as db:
+        rows = (
+            (
+                await db.execute(
+                    select(Vote)
+                    .join(SessionRow, SessionRow.id == Vote.session_id)
+                    .where(Vote.id > last_id)
+                    .order_by(Vote.id.asc())
+                    .limit(_BLUESKY_POST_LIMIT_PER_RUN)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    if not rows:
+        log.info("bluesky.skip", reason="no_new_votes", last_id=last_id)
+        return {"status": "nothing_new", "posted": 0, "last_id": last_id}
+
+    posted = 0
+    skipped = 0
+    site_url = settings.public_site_url.rstrip("/")
+    try:
+        async with client_or_none as client:
+            for vote in rows:
+                text = _format_bluesky_post(vote, site_url)
+                url = f"{site_url}/votes/{vote.id}"
+                try:
+                    uri = await client.post_with_link(text, url)
+                    posted += 1
+                    redis.set(_BLUESKY_STATE_KEY, str(vote.id))
+                    log.info("bluesky.posted", vote_id=vote.id, at_uri=uri)
+                except BlueskySocialError as e:
+                    skipped += 1
+                    log.warning("bluesky.post.failed", vote_id=vote.id, error=str(e))
+                    # Stop after the first failure so we don't burn the
+                    # rate budget on a recurring issue (e.g. expired
+                    # access token). Next cron tick will retry.
+                    break
+    except BlueskySocialError as e:
+        # Login-level failure: the whole batch is dropped, but state
+        # isn't updated so the next run will retry the same window.
+        log.error("bluesky.session.failed", error=str(e))
+        return {"status": "session_failed", "posted": posted, "skipped": skipped}
+
+    return {"status": "ok", "posted": posted, "skipped": skipped, "last_id": int(rows[-1].id)}
+
+
+def _format_bluesky_post(vote: object, site_url: str) -> str:
+    """Render the post text. Strictly factual: subject + counts + URL.
+
+    Caps the subject at ``_BLUESKY_TITLE_CHAR_BUDGET`` graphemes so the
+    final string stays under Bluesky's 300-grapheme limit. No emojis,
+    no editorial adjectives.
+    """
+    # Local import to avoid a circular dep at module load.
+    from app.models import Vote, VoteResult
+
+    assert isinstance(vote, Vote)
+    raw_subject = (vote.description or vote.title or "").strip()
+    subject = raw_subject if len(raw_subject) <= _BLUESKY_TITLE_CHAR_BUDGET else (
+        raw_subject[: _BLUESKY_TITLE_CHAR_BUDGET - 1].rstrip() + "…"
+    )
+    result_label = {
+        VoteResult.APPROVED: "Aprovada",
+        VoteResult.REJECTED: "Rebutjada",
+        VoteResult.TIE: "Empat",
+    }.get(vote.result, str(vote.result))
+    counts = f"{vote.ayes} a favor · {vote.noes} en contra · {vote.abstentions} abst."
+    url = f"{site_url}/votes/{vote.id}"
+    return f"{result_label} · {subject}\n\n{counts}\n\n{url}"

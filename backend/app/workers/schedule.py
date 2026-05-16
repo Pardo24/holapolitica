@@ -70,6 +70,18 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         jobs.ingest_upcoming_agenda,
     ),
     ("monitor-newsletter-weekly", "newsletter", "0 8 * * 1", jobs.send_weekly_digest),
+    # Bluesky distribution — runs 30 minutes AFTER each ingest cron so
+    # newly-imported votes have a chance to land before we tweet. A no-
+    # op when ``BLUESKY_ENABLE`` is false (the default); the job exits
+    # cleanly without consuming the rate budget. Operator turns it on
+    # by setting BLUESKY_HANDLE + BLUESKY_APP_PASSWORD in .env and
+    # flipping BLUESKY_ENABLE=true, then re-running ``install``.
+    (
+        "monitor-social-bluesky",
+        "newsletter",
+        "30 */4 * * *",
+        jobs.post_recent_votes_to_bluesky,
+    ),
 ]
 
 

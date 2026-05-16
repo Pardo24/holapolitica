@@ -112,6 +112,21 @@ class Settings(BaseSettings):
     vapid_private_key: str | None = None
     vapid_subject: str = "mailto:noreply@monitorparlamentari.cat"
 
+    # Bluesky / AT Protocol publishing (optional growth channel).
+    # When ``bluesky_enable`` is True the worker posts each newly-
+    # ingested plenary vote as a short status linking back to the vote
+    # detail page. Posts are factual only — title + URL — so Bluesky's
+    # built-in OG card renderer becomes the visual. App-password auth
+    # (not the main login password) per AT Protocol guidance; rotate
+    # in the Bluesky account settings whenever needed.
+    bluesky_enable: bool = False
+    bluesky_handle: str | None = None
+    bluesky_app_password: str | None = None
+    bluesky_pds_url: str = "https://bsky.social"
+    # Public URL of the frontend, embedded in each post so Bluesky can
+    # fetch the OG card. Falls back to the canonical host.
+    public_site_url: str = "https://www.holapolitica.org"
+
     @property
     def is_development(self) -> bool:
         return self.environment == "development"
