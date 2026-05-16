@@ -37,6 +37,7 @@ import { Mail, ShieldCheck, Sparkles } from 'lucide-react';
 
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { type Topic } from '@/lib/api';
+import { pickTopicName } from '@/lib/topics';
 import {
   TOPIC_CATEGORIES,
   categoryLabel,
@@ -639,7 +640,7 @@ function CategoryAccordion({
                       flex: 'none',
                     }}
                   />
-                  <span>{tp.name_ca}</span>
+                  <span>{pickTopicName(tp, locale)}</span>
                 </button>
               </li>
             );

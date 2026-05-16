@@ -22,6 +22,7 @@ import { VoteBreakdown } from '@/components/VoteBreakdown';
 import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
+import { pickTopicName } from '@/lib/topics';
 
 interface SearchParams {
   /**
@@ -189,7 +190,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
     if (topic) {
       activeFilters.push({
         paramKey: 'topic_slug',
-        label: topic.name_ca,
+        label: pickTopicName(topic, locale),
         color: topic.color_hex,
       });
     }

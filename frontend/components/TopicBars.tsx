@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowUpRight } from 'lucide-react';
 
-import type { TopicVoteStat } from '@/lib/api';
+import type { Topic, TopicVoteStat } from '@/lib/api';
+import { resolveTopicName } from '@/lib/topics';
 
 const C_AYE = '#16a34a';
 const C_NO = '#dc2626';
@@ -33,6 +34,7 @@ export async function TopicBars({
   rows,
   emptyHint,
   groupSlug,
+  allTopics,
 }: {
   rows: TopicVoteStat[];
   emptyHint?: string;
@@ -43,8 +45,20 @@ export async function TopicBars({
    * the group detail page; persons pages leave it undefined.
    */
   groupSlug?: string;
+  /**
+   * Full topic catalogue with ``name_es`` / ``name_en`` so the row
+   * labels can localise. The backend's ``TopicVoteStat`` only carries
+   * ``topic_name_ca`` to keep the per-group matrix lean; we resolve
+   * the localised name client-side via this lookup. Optional —
+   * callers that don't pass it (or pass an empty list) fall back to
+   * Catalan, which is the original behaviour.
+   */
+  allTopics?: Topic[];
 }) {
   const t = await getTranslations('topic_bars');
+  const locale = await getLocale();
+  const nameOf = (r: TopicVoteStat) =>
+    resolveTopicName(r.topic_slug, allTopics, locale, r.topic_name_ca);
   const significant = rows.filter((r) => r.cast >= MIN_N_TO_SHOW);
   if (significant.length === 0) {
     return (
@@ -80,6 +94,7 @@ export async function TopicBars({
           <HighlightCard
             label={t('most_support')}
             row={topAye!}
+            name={nameOf(topAye!)}
             metric={topAye!.ayes / topAye!.cast}
             metricLabel={`% ${t('label_aye')}`}
             metricColor={C_AYE}
@@ -89,6 +104,7 @@ export async function TopicBars({
           <HighlightCard
             label={t('most_rejection')}
             row={topNo!}
+            name={nameOf(topNo!)}
             metric={topNo!.noes / topNo!.cast}
             metricLabel={`% ${t('label_no')}`}
             metricColor={C_NO}
@@ -118,6 +134,7 @@ export async function TopicBars({
               <TopicBarRow
                 key={r.topic_slug}
                 row={r}
+                name={nameOf(r)}
                 labels={{
                   aye: t('label_aye'),
                   no: t('label_no'),
@@ -150,6 +167,7 @@ interface BarLabels {
 function HighlightCard({
   label,
   row,
+  name,
   metric,
   metricLabel,
   metricColor,
@@ -158,6 +176,7 @@ function HighlightCard({
 }: {
   label: string;
   row: TopicVoteStat;
+  name: string;
   metric: number;
   metricLabel: string;
   metricColor: string;
@@ -176,7 +195,7 @@ function HighlightCard({
           />
         )}
       </div>
-      <div className="font-semibold text-base mt-1">{row.topic_name_ca}</div>
+      <div className="font-semibold text-base mt-1">{name}</div>
       <div className="flex items-baseline gap-2 mt-2">
         <span className="text-3xl font-bold tabular-nums" style={{ color: metricColor }}>
           {(metric * 100).toFixed(0)}%
@@ -230,10 +249,12 @@ function HighlightCard({
  */
 function TopicBarRow({
   row,
+  name,
   labels,
   stanceLabels,
 }: {
   row: TopicVoteStat;
+  name: string;
   labels: BarLabels;
   stanceLabels: StanceLabels;
 }) {
@@ -256,7 +277,7 @@ function TopicBarRow({
           lineHeight: 1.3,
         }}
       >
-        {row.topic_name_ca}
+        {name}
       </div>
       <div
         style={{

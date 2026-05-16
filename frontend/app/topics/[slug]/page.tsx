@@ -20,6 +20,7 @@ import {
 } from '@/lib/api';
 import { glossaryShort, pickPlainSummary, typeLabelCa } from '@/lib/glossary';
 import { displayGroupShort, parseProposer, type ParsedProposer } from '@/lib/groups';
+import { pickTopicName } from '@/lib/topics';
 
 interface Params {
   slug: string;
@@ -107,6 +108,7 @@ export default async function TopicDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+  const topicLabel = pickTopicName(topic, locale);
 
   const [initiatives, upcomingAgenda, topicGlobals, groups] = await Promise.all([
     api.topics.initiatives(slug, { legislature_id: 1 }),
@@ -240,7 +242,7 @@ export default async function TopicDetailPage({
           {t('breadcrumb_topics')}
         </Link>
         {' / '}
-        <span style={{ color: 'var(--ink)' }}>{topic.name_ca}</span>
+        <span style={{ color: 'var(--ink)' }}>{topicLabel}</span>
       </div>
 
       <header
@@ -257,7 +259,7 @@ export default async function TopicDetailPage({
             className="h-display"
             style={{ margin: 0, fontSize: 'clamp(32px, 4.4vw, 48px)' }}
           >
-            {topic.name_ca}
+            {topicLabel}
           </h1>
           <span
             className="eyebrow"

@@ -14,6 +14,7 @@ import {
   type Mandate,
   type Person,
   type PersonKPIs,
+  type Topic,
   type TopicVoteStat,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
@@ -77,12 +78,15 @@ export default async function PersonDetailPage({
   let mandates: Mandate[] = [];
   let topicStats: TopicVoteStat[] = [];
   let kpis: PersonKPIs;
+  let allTopics: Topic[] = [];
   try {
-    [person, mandates, topicStats, kpis] = await Promise.all([
+    [person, mandates, topicStats, kpis, allTopics] = await Promise.all([
       api.persons.get(personId),
       api.persons.mandates(personId),
       api.persons.topicStats(personId),
       api.persons.kpis(personId),
+      // Used by TopicBars to localise per-topic names.
+      api.topics.list().catch(() => [] as Topic[]),
     ]);
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
@@ -381,6 +385,7 @@ export default async function PersonDetailPage({
         <TopicBars
           rows={topicStats}
           emptyHint={t('vote_by_topic_empty_hint')}
+          allTopics={allTopics}
         />
       </section>
 

@@ -11,6 +11,7 @@ import {
   type GroupComposition,
   type GroupMemberRow,
   type ParliamentaryGroupSummary,
+  type Topic,
   type TopicVoteStat,
 } from '@/lib/api';
 import { displayGroupFullName, groupAbbreviation, groupInfo } from '@/lib/groups';
@@ -31,14 +32,19 @@ export default async function GroupDetailPage({
   let members: GroupMemberRow[] = [];
   let topicStats: TopicVoteStat[] = [];
   let composition: GroupComposition | null = null;
+  let allTopics: Topic[] = [];
   try {
-    [group, members, topicStats, composition] = await Promise.all([
+    [group, members, topicStats, composition, allTopics] = await Promise.all([
       api.groups.get(slug),
       api.groups.members(slug),
       api.groups.topicStats(slug),
       // Composition is non-essential — if it fails (e.g. older backend
       // without the endpoint), the page still renders the rest.
       api.groups.composition(slug).catch(() => null),
+      // Used by TopicBars to localise per-topic names (the underlying
+      // TopicVoteStat only ships topic_name_ca to keep the matrix
+      // payload small).
+      api.topics.list().catch(() => [] as Topic[]),
     ]);
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
@@ -238,6 +244,7 @@ export default async function GroupDetailPage({
           rows={topicStats}
           emptyHint={t('vote_by_topic_empty_hint')}
           groupSlug={group.slug}
+          allTopics={allTopics}
         />
       </section>
 

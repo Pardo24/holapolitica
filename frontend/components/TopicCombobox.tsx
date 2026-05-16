@@ -11,8 +11,10 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 import type { Topic, TopicKind } from '@/lib/api';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * Typeahead combobox for selecting a topic (theme or SDG).
@@ -77,8 +79,15 @@ export function TopicCombobox({
     const norm = normalize(query);
     const themes = topics.filter((t) => t.kind === 'theme');
     const sdgs = topics.filter((t) => t.kind === 'sdg');
+    // Match against any of the three translated names so a user
+    // typing "housing" still finds "Habitatge" on the English UI and
+    // vice versa. Avoids surprising "no results" when the visible
+    // chip is localised but the search index isn't.
     const matchTopic = (t: Topic) =>
-      norm === '' || normalize(t.name_ca).includes(norm);
+      norm === '' ||
+      normalize(t.name_ca).includes(norm) ||
+      (t.name_es ? normalize(t.name_es).includes(norm) : false) ||
+      (t.name_en ? normalize(t.name_en).includes(norm) : false);
 
     const filteredThemes = themes.filter(matchTopic);
     const filteredSdgs = sdgs.filter(matchTopic);
@@ -325,6 +334,7 @@ export function TopicCombobox({
 }
 
 function TopicChipInner({ topic }: { topic: Topic }) {
+  const locale = useLocale();
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
       <span
@@ -346,7 +356,7 @@ function TopicChipInner({ topic }: { topic: Topic }) {
           color: 'var(--ink)',
         }}
       >
-        {topic.name_ca}
+        {pickTopicName(topic, locale)}
       </span>
     </span>
   );

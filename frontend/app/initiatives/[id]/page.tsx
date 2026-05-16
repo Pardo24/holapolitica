@@ -17,6 +17,7 @@ import {
 } from '@/lib/api';
 import { parseProposer, displayGroupShort } from '@/lib/groups';
 import { typeLabelCa, pickPlainSummary } from '@/lib/glossary';
+import { pickTopicName } from '@/lib/topics';
 import { topicIcon } from '@/lib/topic_icons';
 
 interface Params {
@@ -381,7 +382,7 @@ export default async function InitiativeDetailPage({
                       >
                         <Icon size={12} strokeWidth={2.2} aria-hidden="true" />
                       </span>
-                      {tp.name_ca}
+                      {pickTopicName(tp, locale)}
                     </Link>
                   );
                 })}

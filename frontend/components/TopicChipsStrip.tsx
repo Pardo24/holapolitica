@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import type { Route } from 'next';
+import { getLocale } from 'next-intl/server';
 
 import type { Topic, TopicGlobalStat } from '@/lib/api';
 import { topicIcon } from '@/lib/topic_icons';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * Horizontal scroll-snap strip of every editorial-theme topic.
@@ -22,7 +24,7 @@ import { topicIcon } from '@/lib/topic_icons';
  * pinned, never editorially weighted.
  */
 
-export function TopicChipsStrip({
+export async function TopicChipsStrip({
   topics,
   counts,
   activeSlug,
@@ -43,6 +45,12 @@ export function TopicChipsStrip({
   allLabel: string;
   countSuffix: string;
 }) {
+  // Reading locale here keeps the chip strip drop-in: callers don't
+  // need to thread the locale prop through (and there are many call
+  // sites, both desktop and mobile). The cost is one async hop, which
+  // we're already paying because the component is rendered on the
+  // server.
+  const locale = await getLocale();
   const countBySlug = new Map(counts.map((c) => [c.topic_slug, c.initiatives_total] as const));
   const ordered = topics
     .filter((tp) => tp.kind === 'theme')
@@ -101,7 +109,7 @@ export function TopicChipsStrip({
             >
               <Icon size={12} strokeWidth={2.2} aria-hidden="true" />
             </span>
-            <span style={{ whiteSpace: 'nowrap' }}>{tp.name_ca}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{pickTopicName(tp, locale)}</span>
             <span
               className="tabular"
               style={{

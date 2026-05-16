@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { PageHeader } from '@/components/PageHeader';
 import {
@@ -9,6 +9,7 @@ import {
   type TopicGlobalStat,
 } from '@/lib/api';
 import { topicIcon } from '@/lib/topic_icons';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * Agenda 2030 landing — UN Sustainable Development Goals (SDG) lens
@@ -43,6 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Agenda2030Page() {
   const t = await getTranslations('agenda_2030');
+  const locale = await getLocale();
 
   const [sdgTopics, globals] = await Promise.all([
     api.topics.list({ kind: 'sdg' }),
@@ -149,6 +151,7 @@ export default async function Agenda2030Page() {
             count={countsBySlug.get(top.slug) ?? 0}
             iniciativesLabel={t('count_iniciatives_label')}
             emptyLabel={t('count_empty_label')}
+            locale={locale}
           />
         ))}
       </ul>
@@ -194,11 +197,13 @@ function SDGCard({
   count,
   iniciativesLabel,
   emptyLabel,
+  locale,
 }: {
   top: Topic;
   count: number;
   iniciativesLabel: string;
   emptyLabel: string;
+  locale: string;
 }) {
   const color = top.color_hex ?? '#1a2138';
   const num = top.slug.match(SDG_NUMBER_RE)?.[1] ?? '';
@@ -257,7 +262,7 @@ function SDGCard({
             wordBreak: 'break-word',
           }}
         >
-          {top.name_ca}
+          {pickTopicName(top, locale)}
         </span>
         <span
           className="tabular"
