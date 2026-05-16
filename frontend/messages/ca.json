@@ -512,8 +512,6 @@
     "tablist_aria": "Vistes d'estadístiques",
     "highlights_title": "Destacats per grup parlamentari",
     "highlights_subtitle": "Per cada grup, el tema on dóna més suport i el tema on rebutja més. Rotem entre tots els grups per igual, sense rànquing global. Mínim 5 vots emesos per tema.",
-    "cohesion_carousel_title": "Cohesió per grup parlamentari",
-    "cohesion_carousel_subtitle": "Mitjana de cohesió en votacions del ple per a cada grup. Tots els grups, sense rànquings unilaterals.",
     "coincidence_between_suffix": "entre grups",
     "coincidence_overview_subtitle": "% de votacions on cada parella de grups ha votat el mateix sentit (Sí, No o Abstenció). Matriu simètrica completa, sense rànquings ni subconjunts destacats.",
     "coincidence_topic_subtitle": "% de votacions on cada parella de grups ha votat el mateix sentit. Cobertura: totes les votacions de la legislatura (la restricció per tema arribarà en una propera versió).",

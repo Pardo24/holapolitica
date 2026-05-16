@@ -512,8 +512,6 @@
     "tablist_aria": "Statistics views",
     "highlights_title": "Highlights by parliamentary group",
     "highlights_subtitle": "For each group, the topic it most supports and the topic it most rejects. We rotate through every group equally, no global ranking. Minimum 5 votes cast per topic.",
-    "cohesion_carousel_title": "Cohesion by parliamentary group",
-    "cohesion_carousel_subtitle": "Average plenary-vote cohesion for each group. Every group, no unilateral rankings.",
     "coincidence_between_suffix": "between groups",
     "coincidence_overview_subtitle": "% of votes where each pair of groups voted the same way (Aye, No or Abstain). Full symmetric matrix, no rankings or highlighted subsets.",
     "coincidence_topic_subtitle": "% of votes where each pair of groups voted the same way. Scope: every vote in the legislature (per-topic filtering arrives in a future release).",

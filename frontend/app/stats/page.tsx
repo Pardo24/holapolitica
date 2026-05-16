@@ -4,7 +4,6 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
-import { CohesionCarousel } from '@/components/CohesionCarousel';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
@@ -353,14 +352,23 @@ export default async function StatsPage({
             </div>
           </Section>
 
-          {/* Cohesion carousel kept below the pie — it's a comparative
-              metric, not a "destacat" per group. */}
+          {/* Per-group summary cards take the spot the standalone
+              CohesionCarousel used to hold — they already include the
+              cohesion donut alongside attendance, member count and
+              the demographic strip (F/M, average age). One card per
+              group, all groups shown for symmetry. */}
           {groupSummary.length > 0 && (
             <Section
-              title={t('cohesion_carousel_title')}
-              subtitle={t('cohesion_carousel_subtitle')}
+              title={t('group_summary_title')}
+              subtitle={
+                <>
+                  <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />,{' '}
+                  <GlossaryTerm term="vots emesos">vots emesos</GlossaryTerm>
+                  {t('group_summary_subtitle_suffix')}
+                </>
+              }
             >
-              <CohesionCarousel rows={groupSummary} />
+              <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
             </Section>
           )}
 
@@ -378,21 +386,6 @@ export default async function StatsPage({
               cells={coincidence}
               highlightSlug={null}
             />
-          </Section>
-
-          {/* Per-group summary cards — cohesion + attendance + members per
-              group, horizontally scrollable for symmetry across all groups. */}
-          <Section
-            title={t('group_summary_title')}
-            subtitle={
-              <>
-                <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />,{' '}
-                <GlossaryTerm term="vots emesos">vots emesos</GlossaryTerm>
-                {t('group_summary_subtitle_suffix')}
-              </>
-            }
-          >
-            <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
           </Section>
         </>
       )}
