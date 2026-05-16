@@ -40,7 +40,19 @@
     "newsletter_caption": "Cada viernes, las votaciones de la semana en el Congreso en un correo breve. Sin opinión, sin seguimiento.",
     "journalists_eyebrow": "¿Eres periodista?",
     "journalists_caption": "Widgets, cards sociales y API REST para redacciones. Licencia CC-BY 4.0.",
-    "journalists_cta": "Herramientas para redacciones →"
+    "journalists_cta": "Herramientas para redacciones →",
+    "archive_meta_title": "Hoy · archivo {date} · Hola Política",
+    "archive_meta_description": "Resumen del Congreso de los Diputados del {date}: votaciones del pleno con resultados y márgenes.",
+    "archive_ribbon": "Archivo",
+    "archive_back_to_today": "Ver el día más reciente",
+    "archive_eyebrow": "Resumen diario · archivo",
+    "archive_title": "{count, plural, =1 {1 votación en el pleno} other {# votaciones en el pleno}}",
+    "archive_lead_eyebrow": "Última votación del día",
+    "archive_other_votes": "{count, plural, =1 {Otra votación del día} other {Otras # votaciones del día}}",
+    "archive_cite_eyebrow": "Enlace estable para citar",
+    "ayes_short": "Sí",
+    "noes_short": "No",
+    "abst_short": "Abst."
   },
   "avui_og": {
     "brand": "Hola Política",

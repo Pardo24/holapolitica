@@ -40,7 +40,19 @@
     "newsletter_caption": "Every Friday, the week's votes in Congress in a short email. No opinion, no tracking.",
     "journalists_eyebrow": "Are you a journalist?",
     "journalists_caption": "Widgets, social cards and REST API for newsrooms. CC-BY 4.0.",
-    "journalists_cta": "Tools for newsrooms →"
+    "journalists_cta": "Tools for newsrooms →",
+    "archive_meta_title": "Today · archive {date} · Hola Política",
+    "archive_meta_description": "Spanish Congress summary for {date}: plenary votes with results and margins.",
+    "archive_ribbon": "Archive",
+    "archive_back_to_today": "See the most recent day",
+    "archive_eyebrow": "Daily summary · archive",
+    "archive_title": "{count, plural, =1 {1 plenary vote} other {# plenary votes}}",
+    "archive_lead_eyebrow": "Last vote of the day",
+    "archive_other_votes": "{count, plural, =1 {Other vote that day} other {Other # votes that day}}",
+    "archive_cite_eyebrow": "Stable link for citation",
+    "ayes_short": "Aye",
+    "noes_short": "No",
+    "abst_short": "Abst."
   },
   "avui_og": {
     "brand": "Hola Política",

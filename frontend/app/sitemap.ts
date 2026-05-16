@@ -107,6 +107,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
+  // /avui archive — one entry per distinct date with at least one vote
+  // in the recent window. Lets Google discover the permalink shape and
+  // index a few snapshots; older days remain reachable via direct
+  // links from articles citing them. Set as immutable (changeFreq:
+  // 'never') because past data doesn't change.
+  const archiveDates = new Set<string>();
+  for (const v of votesPage?.items ?? []) {
+    archiveDates.add(new Date(v.voted_at).toISOString().slice(0, 10));
+  }
+  const avuiArchiveEntries: MetadataRoute.Sitemap = [...archiveDates].map(
+    (date) => ({
+      url: `${BASE_URL}/avui/${date}`,
+      lastModified: new Date(date),
+      changeFrequency: 'never' as const,
+      priority: 0.55,
+    }),
+  );
+
   // Linter wants ``initiativesPage`` referenced; we keep the slot for
   // when the backend grows a paginated /initiatives endpoint.
   void initiativesPage;
@@ -117,5 +135,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...groupEntries,
     ...voteEntries,
     ...initiativeEntries,
+    ...avuiArchiveEntries,
   ];
 }

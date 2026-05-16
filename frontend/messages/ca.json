@@ -40,7 +40,19 @@
     "newsletter_caption": "Cada divendres, les votacions de la setmana al Congrés en un correu curt. Sense opinió, sense seguiment.",
     "journalists_eyebrow": "Ets periodista?",
     "journalists_caption": "Widgets, cards socials i API REST per a redaccions. Llicència CC-BY 4.0.",
-    "journalists_cta": "Eines per a redaccions →"
+    "journalists_cta": "Eines per a redaccions →",
+    "archive_meta_title": "Avui · arxiu {date} · Hola Política",
+    "archive_meta_description": "Resum del Congrés dels Diputats del {date}: votacions del ple amb resultats i marges.",
+    "archive_ribbon": "Arxiu",
+    "archive_back_to_today": "Veure el dia més recent",
+    "archive_eyebrow": "Resum diari · arxiu",
+    "archive_title": "{count, plural, =1 {1 votació al ple} other {# votacions al ple}}",
+    "archive_lead_eyebrow": "Última votació del dia",
+    "archive_other_votes": "{count, plural, =1 {Altra votació del dia} other {Altres # votacions del dia}}",
+    "archive_cite_eyebrow": "Enllaç estable per a citar",
+    "ayes_short": "Sí",
+    "noes_short": "No",
+    "abst_short": "Abst."
   },
   "avui_og": {
     "brand": "Hola Política",
