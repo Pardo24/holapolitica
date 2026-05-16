@@ -777,7 +777,12 @@
     "label_aye": "Sí",
     "label_no": "No",
     "label_abst": "Abstenció",
-    "label_nv": "No vota / absent"
+    "label_nv": "No vota / absent",
+    "stance_aye_pct": "{pct}% a favor",
+    "stance_no_pct": "{pct}% en contra",
+    "stance_abst_pct": "{pct}% abstenció",
+    "stance_divided": "Dividit",
+    "low_confidence_aria": "Mostra reduïda — pocs vots emesos"
   },
   "group_summary_carousel": {
     "empty": "Encara no hi ha prou dades per al resum per grup.",

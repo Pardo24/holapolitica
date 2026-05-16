@@ -778,7 +778,12 @@
     "label_aye": "Sí",
     "label_no": "No",
     "label_abst": "Abstención",
-    "label_nv": "No vota / ausente"
+    "label_nv": "No vota / ausente",
+    "stance_aye_pct": "{pct}% a favor",
+    "stance_no_pct": "{pct}% en contra",
+    "stance_abst_pct": "{pct}% abstención",
+    "stance_divided": "Dividido",
+    "low_confidence_aria": "Muestra reducida — pocos votos emitidos"
   },
   "group_summary_carousel": {
     "empty": "Aún no hay suficientes datos para el resumen por grupo.",

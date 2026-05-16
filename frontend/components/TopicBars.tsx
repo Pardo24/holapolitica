@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ArrowUpRight, Check, X, Circle } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 import type { TopicVoteStat } from '@/lib/api';
 
@@ -106,7 +106,14 @@ export async function TopicBars({
             </span>
             <span className="hidden group-open/topics:inline">{t('hide')}</span>
           </summary>
-          <ul className="mt-3 space-y-2">
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: '12px 0 0',
+              padding: 0,
+              borderTop: '1px solid var(--rule)',
+            }}
+          >
             {rest.map((r) => (
               <TopicBarRow
                 key={r.topic_slug}
@@ -116,6 +123,13 @@ export async function TopicBars({
                   no: t('label_no'),
                   abst: t('label_abst'),
                   nv: t('label_nv'),
+                }}
+                stanceLabels={{
+                  aye_pct: (pct: number) => t('stance_aye_pct', { pct }),
+                  no_pct: (pct: number) => t('stance_no_pct', { pct }),
+                  abst_pct: (pct: number) => t('stance_abst_pct', { pct }),
+                  divided: t('stance_divided'),
+                  low_confidence_aria: t('low_confidence_aria'),
                 }}
               />
             ))}
@@ -193,14 +207,139 @@ function HighlightCard({
   return <div className="rounded-lg border p-4">{body}</div>;
 }
 
-function TopicBarRow({ row, labels }: { row: TopicVoteStat; labels: BarLabels }) {
+/**
+ * Stance-led row for a single topic.
+ *
+ * Layout (top to bottom):
+ *   1. Topic name on its own line — no truncation, reads like a
+ *      headline so the reader knows the subject before the figure.
+ *   2. Stance phrase + segmented bar on the same line. Stance is the
+ *      dominant percentage rendered in the same colour the bar uses
+ *      for that segment (green / red / yellow). Below 50% in any
+ *      single direction we say "Dividit" in neutral ink; we
+ *      deliberately don't compute a "majority of cast" stance because
+ *      that would invent a finer threshold than the underlying data
+ *      supports.
+ *   3. A `n=X` badge tags rows below the highlight threshold so the
+ *      reader can tell which percentages are statistically thin.
+ *
+ * Skim path: percentage → bar → topic name. Exact Sí/No/Abst counts
+ * are preserved on the bar's `aria-label` and per-segment `title` so
+ * a hover / screen-reader still gets them, but they don't crowd the
+ * default view.
+ */
+function TopicBarRow({
+  row,
+  labels,
+  stanceLabels,
+}: {
+  row: TopicVoteStat;
+  labels: BarLabels;
+  stanceLabels: StanceLabels;
+}) {
+  const stance = computeStance(row, stanceLabels);
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)_auto] items-center gap-3">
-      <span className="text-sm font-medium truncate">{row.topic_name_ca}</span>
-      <TopicBar row={row} labels={labels} />
-      <BarLegend row={row} />
+    <li
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        padding: '12px 0',
+        borderBottom: '1px solid var(--rule)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          lineHeight: 1.3,
+        }}
+      >
+        {row.topic_name_ca}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          minWidth: 0,
+        }}
+      >
+        <span
+          className="tabular"
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: stance.color,
+            flex: 'none',
+            minWidth: 124,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          {stance.label}
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <TopicBar row={row} labels={labels} />
+        </span>
+        {row.cast < MIN_N_FOR_HIGHLIGHT && (
+          <span
+            className="tabular"
+            aria-label={stanceLabels.low_confidence_aria}
+            style={{
+              fontSize: 10,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--ink-3)',
+              border: '1px solid var(--rule)',
+              borderRadius: 4,
+              padding: '1px 5px',
+              flex: 'none',
+            }}
+          >
+            n={row.cast}
+          </span>
+        )}
+      </div>
     </li>
   );
+}
+
+interface StanceLabels {
+  aye_pct: (pct: number) => string;
+  no_pct: (pct: number) => string;
+  abst_pct: (pct: number) => string;
+  divided: string;
+  low_confidence_aria: string;
+}
+
+interface Stance {
+  label: string;
+  color: string;
+}
+
+/**
+ * Pick the dominant stance for the row.
+ *
+ * "Dominant" = the choice with the largest share ≥ 50% of casts. Below
+ * 50% in all three directions we return "Dividit" — the user can't
+ * read a clear position from the data and we don't invent one.
+ */
+function computeStance(row: TopicVoteStat, l: StanceLabels): Stance {
+  if (row.cast === 0) return { label: l.divided, color: 'var(--ink-2)' };
+  const ayePct = row.ayes / row.cast;
+  const noPct = row.noes / row.cast;
+  const abstPct = row.abstentions / row.cast;
+  if (ayePct >= 0.5 && ayePct >= noPct && ayePct >= abstPct) {
+    return { label: l.aye_pct(Math.round(ayePct * 100)), color: C_AYE };
+  }
+  if (noPct >= 0.5 && noPct >= ayePct && noPct >= abstPct) {
+    return { label: l.no_pct(Math.round(noPct * 100)), color: C_NO };
+  }
+  if (abstPct >= 0.5 && abstPct >= ayePct && abstPct >= noPct) {
+    return { label: l.abst_pct(Math.round(abstPct * 100)), color: C_ABST };
+  }
+  return { label: l.divided, color: 'var(--ink-2)' };
 }
 
 function TopicBar({ row, labels }: { row: TopicVoteStat; labels: BarLabels | null }) {
@@ -239,24 +378,3 @@ function TopicBar({ row, labels }: { row: TopicVoteStat; labels: BarLabels | nul
   );
 }
 
-function BarLegend({ row }: { row: TopicVoteStat }) {
-  const badge = row.cast < MIN_N_FOR_HIGHLIGHT ? (
-    <span className="text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))] border rounded px-1 py-0.5">
-      n={row.cast}
-    </span>
-  ) : null;
-  return (
-    <span className="text-[11px] tabular-nums text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-      <span style={{ color: C_AYE, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-        <Check size={12} aria-hidden="true" /> {row.ayes}
-      </span>
-      <span style={{ color: C_NO, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-        <X size={12} aria-hidden="true" /> {row.noes}
-      </span>
-      <span style={{ color: C_ABST, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-        <Circle size={12} aria-hidden="true" /> {row.abstentions}
-      </span>
-      {badge}
-    </span>
-  );
-}

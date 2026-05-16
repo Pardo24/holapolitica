@@ -778,7 +778,12 @@
     "label_aye": "Aye",
     "label_no": "No",
     "label_abst": "Abstention",
-    "label_nv": "No-vote / absent"
+    "label_nv": "No-vote / absent",
+    "stance_aye_pct": "{pct}% in favour",
+    "stance_no_pct": "{pct}% against",
+    "stance_abst_pct": "{pct}% abstention",
+    "stance_divided": "Divided",
+    "low_confidence_aria": "Limited sample — few votes cast"
   },
   "group_summary_carousel": {
     "empty": "Not enough data yet for the per-group summary.",
