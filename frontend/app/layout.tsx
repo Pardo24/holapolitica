@@ -75,6 +75,9 @@ export default async function RootLayout({
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span>{tFooter('principle')}</span>
                 <span>
+                  <Link href={'/avui' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
+                    {tFooter('avui_link')}
+                  </Link>
                   <Link href={'/recorregut' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                     {tFooter('lifecycle_link')}
                   </Link>

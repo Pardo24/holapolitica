@@ -110,7 +110,7 @@ export default function ApiDocsPage() {
             <RowEmbed path="/embed/groups/{slug}" desc="Cohesió mitjana, assistència mitjana, mida del grup." h="220px" />
             <RowEmbed path="/embed/topics/{slug}" desc="Distribució d'iniciatives sobre el tema (aprovades, rebutjades, en tràmit)." h="220px" />
             <RowEmbed path="/embed/persons/{id}" desc="Fitxa breu del diputat: foto, grup, KPIs (assistència, dissidència)." h="220px" />
-            <RowEmbed path="/api/og/vote/{id}" desc="Imatge social 1200×630 (PNG) per a Open Graph / Twitter." h="—" />
+            <RowEmbed path="/votes/{id}/opengraph-image" desc="Imatge social 1200×630 (PNG) per a Open Graph / Twitter. Mateixa convenció per a /groups/{slug}, /topics/{slug}, /persons/{id}, /initiatives/{id} i /stats." h="—" />
           </tbody>
         </table>
         <p style={{ marginTop: 14 }}>

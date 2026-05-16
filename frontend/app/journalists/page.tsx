@@ -113,11 +113,19 @@ export default async function JournalistsPage() {
           el resultat de la votació o la fitxa del diputat — sense haver
           de fer cap muntatge.
         </p>
+        <p>
+          Si voleu utilitzar la imatge directament com a fitxer (header
+          d&apos;article, etc.), aquestes són les URLs estables de la
+          convenció Next.js:
+        </p>
         <pre style={preStyle}>
-{`https://holapolitica.org/api/og/vote/${sampleVoteId}
-https://holapolitica.org/api/og/group/gp-socialista
-https://holapolitica.org/api/og/topic/habitatge
-https://holapolitica.org/api/og/person/<id>`}
+{`https://holapolitica.org/opengraph-image
+https://holapolitica.org/votes/${sampleVoteId}/opengraph-image
+https://holapolitica.org/groups/gp-socialista/opengraph-image
+https://holapolitica.org/topics/habitatge/opengraph-image
+https://holapolitica.org/persons/<id>/opengraph-image
+https://holapolitica.org/initiatives/<id>/opengraph-image
+https://holapolitica.org/stats/opengraph-image`}
         </pre>
       </Section>
 

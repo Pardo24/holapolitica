@@ -274,7 +274,14 @@ function TopicBarRow({
             color: stance.color,
             flex: 'none',
             minWidth: 124,
+            // Cap the stance phrase so a long translation can't push
+            // the segmented bar below its own minimum width. The bar
+            // is the second visual signal and must stay readable.
+            maxWidth: 180,
             letterSpacing: '-0.01em',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
           {stance.label}
