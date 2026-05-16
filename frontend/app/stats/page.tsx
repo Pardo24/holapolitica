@@ -34,6 +34,7 @@ import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
+import { pickTopicName, resolveTopicName } from '@/lib/topics';
 
 // Status color mapping retained because individual sections / fallback
 // labels still reference it; PLURAL_KEY / TYPE_KEY tables were used only
@@ -182,9 +183,13 @@ export default async function StatsPage({
   const focusedTopic = hasTopic
     ? topics.find((tt) => tt.topic_slug === selectedTopic) ?? null
     : null;
+  // Prefer the localised name from the full Topic catalogue (which
+  // carries name_es / name_en); fall back to the metric row's
+  // Catalan-only name and finally the bare slug.
+  const focusedFullTopic = allTopics.find((tt) => tt.slug === selectedTopic);
   const focusedTopicName =
-    focusedTopic?.topic_name_ca ??
-    allTopics.find((tt) => tt.slug === selectedTopic)?.name_ca ??
+    (focusedFullTopic && pickTopicName(focusedFullTopic, locale)) ||
+    focusedTopic?.topic_name_ca ||
     selectedTopic;
   const focusedGroup =
     allGroups.find((g) => g.slug === selectedGroup) ?? null;
@@ -202,6 +207,7 @@ export default async function StatsPage({
   const kpi = computeKpis({
     summary,
     focusedTopic,
+    focusedTopicName,
     selectedGroup: hasGroup ? selectedGroup : null,
     groupActivity,
     cross,
@@ -405,6 +411,8 @@ export default async function StatsPage({
           {!anyFilter && (
             <FilteredTabTopicPicker
               topics={topics}
+              allTopics={allTopics}
+              locale={locale}
               labels={{
                 title: t('pick_topic_title'),
                 subtitle: t('pick_topic_subtitle', { tab: t('tab_filtered') }),
@@ -1061,9 +1069,13 @@ const selectStyle = {
  */
 function FilteredTabTopicPicker({
   topics,
+  allTopics,
+  locale,
   labels,
 }: {
   topics: TopicGlobalStat[];
+  allTopics: Topic[];
+  locale: string;
   labels: {
     title: string;
     subtitle: string;
@@ -1151,7 +1163,7 @@ function FilteredTabTopicPicker({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {topic.topic_name_ca}
+                    {resolveTopicName(topic.topic_slug, allTopics, locale, topic.topic_name_ca)}
                   </span>
                   <span
                     className="tabular"
@@ -1294,6 +1306,7 @@ function filterHighlights(
 function computeKpis({
   summary,
   focusedTopic,
+  focusedTopicName,
   selectedGroup,
   groupActivity,
   cross,
@@ -1303,6 +1316,9 @@ function computeKpis({
 }: {
   summary: StatsSummary;
   focusedTopic: TopicGlobalStat | null;
+  /** Pre-resolved localised name for the focused topic; computed up
+   *  the call site where allTopics + locale are in scope. */
+  focusedTopicName: string;
   selectedGroup: string | null;
   groupActivity: GroupActivity | null;
   cross: CrossTopicGroup | null;
@@ -1319,7 +1335,7 @@ function computeKpis({
     // Both filters: precise joint count.
     initiatives = cross.joint_initiatives_total;
     classified = cross.joint_initiatives_total;
-    scopeBits.push(t('scope_topic', { name: cross.topic.name_ca }));
+    scopeBits.push(t('scope_topic', { name: focusedTopicName }));
     scopeBits.push(
       t('scope_group', { name: displayGroupShort(cross.group.name_short) }),
     );
@@ -1327,7 +1343,7 @@ function computeKpis({
     if (focusedTopic) {
       initiatives = focusedTopic.initiatives_total;
       classified = focusedTopic.initiatives_total;
-      scopeBits.push(t('scope_topic', { name: focusedTopic.topic_name_ca }));
+      scopeBits.push(t('scope_topic', { name: focusedTopicName }));
     }
     if (selectedGroup) {
       if (groupActivity) {
