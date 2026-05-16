@@ -42,6 +42,21 @@
     "journalists_caption": "Widgets, social cards and REST API for newsrooms. CC-BY 4.0.",
     "journalists_cta": "Tools for newsrooms →"
   },
+  "avui_og": {
+    "brand": "Hola Política",
+    "eyebrow": "Today in Congress",
+    "lead_eyebrow": "Latest plenary vote",
+    "empty_title": "No votes recorded yet.",
+    "result_approved": "Approved",
+    "result_rejected": "Rejected",
+    "result_tie": "Tie",
+    "ayes_short": "Aye",
+    "noes_short": "No",
+    "abst_short": "Abst.",
+    "counter_votes": "Votes",
+    "counter_initiatives": "Initiatives",
+    "counter_classified": "Classified"
+  },
   "about_data": {
     "eyebrow": "Transparency",
     "title": "About the data",

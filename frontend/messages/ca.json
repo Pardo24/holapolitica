@@ -42,6 +42,21 @@
     "journalists_caption": "Widgets, cards socials i API REST per a redaccions. Llicència CC-BY 4.0.",
     "journalists_cta": "Eines per a redaccions →"
   },
+  "avui_og": {
+    "brand": "Hola Política",
+    "eyebrow": "Avui al Congrés",
+    "lead_eyebrow": "Última votació al ple",
+    "empty_title": "Encara no hi ha votacions registrades.",
+    "result_approved": "Aprovada",
+    "result_rejected": "Rebutjada",
+    "result_tie": "Empat",
+    "ayes_short": "Sí",
+    "noes_short": "No",
+    "abst_short": "Abst.",
+    "counter_votes": "Votacions",
+    "counter_initiatives": "Iniciatives",
+    "counter_classified": "Classificades"
+  },
   "about_data": {
     "eyebrow": "Transparència",
     "title": "Sobre les dades",

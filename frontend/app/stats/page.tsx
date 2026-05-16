@@ -676,7 +676,7 @@ export default async function StatsPage({
                 title={t('group_voting_patterns', { group: focusedGroupName })}
                 subtitle={t('group_voting_patterns_caption')}
               >
-                <HighlightsCarousel items={highlights} />
+                <HighlightsCarousel items={highlights} allTopics={allTopics} />
               </Section>
             </>
           )}

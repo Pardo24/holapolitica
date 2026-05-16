@@ -42,6 +42,21 @@
     "journalists_caption": "Widgets, cards sociales y API REST para redacciones. Licencia CC-BY 4.0.",
     "journalists_cta": "Herramientas para redacciones →"
   },
+  "avui_og": {
+    "brand": "Hola Política",
+    "eyebrow": "Hoy en el Congreso",
+    "lead_eyebrow": "Última votación del pleno",
+    "empty_title": "Aún no hay votaciones registradas.",
+    "result_approved": "Aprobada",
+    "result_rejected": "Rechazada",
+    "result_tie": "Empate",
+    "ayes_short": "Sí",
+    "noes_short": "No",
+    "abst_short": "Abst.",
+    "counter_votes": "Votaciones",
+    "counter_initiatives": "Iniciativas",
+    "counter_classified": "Clasificadas"
+  },
   "about_data": {
     "eyebrow": "Transparencia",
     "title": "Sobre los datos",

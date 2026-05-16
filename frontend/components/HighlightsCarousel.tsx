@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
-import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
+import type { Topic } from '@/lib/api';
 import { type Highlight } from '@/lib/highlights';
 import { displayGroupShort } from '@/lib/groups';
+import { resolveTopicName } from '@/lib/topics';
 
 const ROTATE_MS = 6000;
 
@@ -18,10 +20,32 @@ const KIND_COLOR: Record<Highlight['kind'], string> = {
   most_abst: 'var(--abst)',
 };
 
-export function HighlightsCarousel({ items }: { items: Highlight[] }) {
+export function HighlightsCarousel({
+  items,
+  allTopics,
+}: {
+  items: Highlight[];
+  /**
+   * Optional topic catalogue for locale-aware topic names. Each
+   * Highlight only carries `topic_name_ca` (the metric server response
+   * is intentionally lean); we look up the localised label when this
+   * prop is provided and fall back to the Catalan bundle otherwise.
+   */
+  allTopics?: Topic[];
+}) {
   const t = useTranslations('dashboard');
+  const locale = useLocale();
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  // Pre-resolve the localised name once per (items, locale, allTopics)
+  // pair so the carousel doesn't recompute on every rotation tick.
+  const resolvedNames = useMemo(
+    () =>
+      items.map((h) =>
+        resolveTopicName(h.topic_slug, allTopics, locale, h.topic_name_ca),
+      ),
+    [items, allTopics, locale],
+  );
 
   useEffect(() => {
     if (items.length === 0 || paused) return;
@@ -115,6 +139,7 @@ export function HighlightsCarousel({ items }: { items: Highlight[] }) {
       >
         <HighlightCard
           h={current}
+          topicName={resolvedNames[idx] ?? current.topic_name_ca}
           stanceLabel={t(`highlights_stance.${current.kind}`)}
           castCaption={t('highlights_cast_caption', { count: current.cast_total })}
           temporalityCaption={t('highlights_temporality')}
@@ -244,11 +269,13 @@ const navBtnStyle: React.CSSProperties = {
 
 function HighlightCard({
   h,
+  topicName,
   stanceLabel,
   castCaption,
   temporalityCaption,
 }: {
   h: Highlight;
+  topicName: string;
   stanceLabel: string;
   castCaption: string;
   temporalityCaption: string;
@@ -264,7 +291,7 @@ function HighlightCard({
     <Link
       href={href}
       className="highlights-card-link"
-      aria-label={`${displayGroupShort(h.group_name_short)} · ${pct}% ${stanceLabel} · ${h.topic_name_ca}`}
+      aria-label={`${displayGroupShort(h.group_name_short)} · ${pct}% ${stanceLabel} · ${topicName}`}
       style={{
         display: 'block',
         padding: '14px 22px 12px',
@@ -367,7 +394,7 @@ function HighlightCard({
                 transform: 'translateY(-2px)',
               }}
             />
-            {h.topic_name_ca}
+            {topicName}
           </span>
           <p style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>
             {castCaption}

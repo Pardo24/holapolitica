@@ -23,6 +23,7 @@ import {
   api,
   type ParliamentaryGroupSummary,
   type ScheduledSession,
+  type Topic,
   type TopicVoteStat,
   type Vote,
   type VoteResult,
@@ -54,8 +55,9 @@ export default async function HomePage() {
   let latestVotes: Vote[] = [];
   let upcomingSessions: ScheduledSession[] = [];
   let allGroups: ParliamentaryGroupSummary[] = [];
+  let allTopics: Topic[] = [];
   try {
-    [summary, latestVotes, upcomingSessions, allGroups] = await Promise.all([
+    [summary, latestVotes, upcomingSessions, allGroups, allTopics] = await Promise.all([
       api.stats.summary(),
       api.votes
         .list({ page: 1, page_size: 5 })
@@ -65,6 +67,8 @@ export default async function HomePage() {
         .then((rows) => rows.slice(0, 4))
         .catch(() => [] as ScheduledSession[]),
       api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
+      // Powers locale-aware topic names inside HighlightsCarousel.
+      api.topics.list().catch(() => [] as Topic[]),
     ]);
   } catch {
     /* backend not ready — render with zeros */
@@ -109,6 +113,7 @@ export default async function HomePage() {
           data as the desktop layout below. */}
       <MobileDashboard
         highlights={highlights}
+        allTopics={allTopics}
         latestVotes={latestVotes}
         upcomingSessions={upcomingSessions}
         locale={locale}
@@ -216,7 +221,7 @@ export default async function HomePage() {
           {/* HighlightsCarousel — rotating per-group "top-supported / top-
               rejected topic" cards. Symmetric: every group is shown in turn.
               The component handles its own empty state internally. */}
-          <HighlightsCarousel items={highlights} />
+          <HighlightsCarousel items={highlights} allTopics={allTopics} />
 
           <aside
           style={{
@@ -697,12 +702,14 @@ interface MobileDashboardLabels {
 
 function MobileDashboard({
   highlights,
+  allTopics,
   latestVotes,
   upcomingSessions,
   locale,
   labels,
 }: {
   highlights: Highlight[];
+  allTopics: Topic[];
   latestVotes: Vote[];
   upcomingSessions: ScheduledSession[];
   locale: string;
@@ -875,7 +882,7 @@ function MobileDashboard({
         seeAllHref="/stats"
         seeAllLabel={labels.highlightsSeeAll}
       >
-        <HighlightsCarousel items={highlights} />
+        <HighlightsCarousel items={highlights} allTopics={allTopics} />
       </DashboardSection>
 
       {/* Upcoming sessions — hidden entirely when there are none, to keep
