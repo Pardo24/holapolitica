@@ -439,6 +439,7 @@
     "filter_group_placeholder": "Tots els grups",
     "filter_active_count": "{count, plural, =0 {Cap diputat coincideix} =1 {1 diputat coincideix} other {# diputats coincideixen}}",
     "filter_active_total": "{filtered} de {total} diputats",
+    "show_remaining": "Mostra els {count, plural, =1 {# diputat restant} other {# diputats restants}}",
     "clear_filters": "Neteja filtres",
     "search_input_aria": "Cerca diputats per nom o circumscripció"
   },

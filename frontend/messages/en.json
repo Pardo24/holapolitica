@@ -439,6 +439,7 @@
     "filter_group_placeholder": "All groups",
     "filter_active_count": "{count, plural, =0 {No representative matches} =1 {1 representative matches} other {# representatives match}}",
     "filter_active_total": "{filtered} of {total} representatives",
+    "show_remaining": "Show the {count, plural, =1 {# remaining representative} other {# remaining representatives}}",
     "clear_filters": "Clear filters",
     "search_input_aria": "Search representatives by name or constituency"
   },

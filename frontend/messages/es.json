@@ -439,6 +439,7 @@
     "filter_group_placeholder": "Todos los grupos",
     "filter_active_count": "{count, plural, =0 {Ningún diputado coincide} =1 {1 diputado coincide} other {# diputados coinciden}}",
     "filter_active_total": "{filtered} de {total} diputados",
+    "show_remaining": "Muestra los {count, plural, =1 {# diputado restante} other {# diputados restantes}}",
     "clear_filters": "Limpiar filtros",
     "search_input_aria": "Buscar diputados por nombre o circunscripción"
   },
