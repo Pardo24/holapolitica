@@ -1060,6 +1060,9 @@
     "age_40_49": "40-49",
     "age_50_59": "50-59",
     "age_60p": "60+",
+    "parity_reference_tooltip": "Media de la cámara:",
+    "parity_reference_caption": "Línea: {pct}% F en la cámara entera",
+    "age_reference_caption": "Línea: distribución por edad en la cámara entera",
     "caveat": "Cohesión y asistencia son medias sobre los votos de la legislatura con datos disponibles.",
     "see_detail": "Ver ficha →",
     "source_label": "Fuente:"

@@ -1060,6 +1060,9 @@
     "age_40_49": "40-49",
     "age_50_59": "50-59",
     "age_60p": "60+",
+    "parity_reference_tooltip": "Chamber average:",
+    "parity_reference_caption": "Line: {pct}% F across the whole chamber",
+    "age_reference_caption": "Line: age distribution across the whole chamber",
     "caveat": "Cohesion and attendance are averages across the votes in the current term with available data.",
     "see_detail": "See profile →",
     "source_label": "Source:"

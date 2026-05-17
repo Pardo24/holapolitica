@@ -296,6 +296,32 @@ export interface GroupComposition {
   member_parties: GroupCompositionPartyRow[];
 }
 
+/**
+ * Chamber-wide composition aggregate for one legislature. Same
+ * shape as ``GroupComposition`` minus ``member_parties`` — used as
+ * a reference line on the group composition embed so a reader can
+ * compare a group's split against the chamber as a whole.
+ */
+export interface LegislatureComposition {
+  members_total: number;
+  gender_distribution: {
+    F: number;
+    M: number;
+    X: number;
+    unknown: number;
+    [key: string]: number;
+  };
+  age_buckets: {
+    '<30': number;
+    '30-39': number;
+    '40-49': number;
+    '50-59': number;
+    '60+': number;
+    unknown: number;
+    [key: string]: number;
+  };
+}
+
 export interface Paginated<T> {
   total: number;
   page: number;
@@ -618,6 +644,11 @@ export const api = {
       request<HemicycleLayout>(`/legislatures/${legislatureId}/hemicycle`, {
         revalidate: AGG_REVALIDATE,
       }),
+    composition: (legislatureId: number) =>
+      request<LegislatureComposition>(
+        `/legislatures/${legislatureId}/composition`,
+        { revalidate: AGG_REVALIDATE },
+      ),
   },
   persons: {
     list: (params: {

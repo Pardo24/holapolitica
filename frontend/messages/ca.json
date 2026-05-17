@@ -1059,6 +1059,9 @@
     "age_40_49": "40-49",
     "age_50_59": "50-59",
     "age_60p": "60+",
+    "parity_reference_tooltip": "Mitjana de la cambra:",
+    "parity_reference_caption": "Línia: {pct}% F a la cambra sencera",
+    "age_reference_caption": "Línia: distribució per edat a la cambra sencera",
     "caveat": "Cohesió i assistència són mitjanes sobre els vots de la legislatura amb dades disponibles.",
     "see_detail": "Veure fitxa →",
     "source_label": "Font:"

@@ -58,6 +58,13 @@ export default async function EmbedGroupPage({
       </div>
     );
   }
+  // Chamber-wide composition for the same legislature — used as a
+  // reference line so the reader can see whether the group's gender
+  // split / age distribution skews from the chamber as a whole.
+  // Best-effort: the embed still renders even if the reference fails.
+  const reference = await api.legislatures
+    .composition(group.legislature_id)
+    .catch(() => null);
 
   const color = group.color_hex ?? 'var(--ink)';
 
@@ -81,10 +88,23 @@ export default async function EmbedGroupPage({
     (acc, b) => acc + (composition.age_buckets[b.key] ?? 0),
     0,
   );
-  const ageMax = Math.max(
-    1,
-    ...buckets.map((b) => composition.age_buckets[b.key] ?? 0),
+  // Pre-compute per-bucket shares so the histogram bars and the
+  // legislature-reference markers sit on a single scale (proportion
+  // of the GROUP, vs proportion of the CHAMBER). The visual ceiling
+  // is the largest group-share across buckets, so the tallest bar
+  // fills the column. The reference marker may sit anywhere from 0
+  // to slightly above 100% of that ceiling (when the chamber's
+  // share exceeds the group's tallest bucket); clamp to 100%.
+  const groupShares = buckets.map((b) =>
+    ageTotal > 0 ? (composition.age_buckets[b.key] ?? 0) / ageTotal : 0,
   );
+  const maxGroupShare = Math.max(0.001, ...groupShares);
+  const refAgeTotal = reference
+    ? buckets.reduce(
+        (acc, b) => acc + (reference.age_buckets[b.key] ?? 0),
+        0,
+      )
+    : 0;
 
   return (
     <article className="embed-card" lang={locale}>
@@ -178,7 +198,14 @@ export default async function EmbedGroupPage({
               {gd.unknown > 0 ? ` · ${gd.unknown} ?` : ''}
             </span>
           </div>
-          <div style={{ display: 'flex', height: 8, background: 'var(--rule)' }}>
+          <div
+            style={{
+              position: 'relative',
+              display: 'flex',
+              height: 8,
+              background: 'var(--rule)',
+            }}
+          >
             {gd.F > 0 && (
               <span
                 style={{
@@ -211,7 +238,63 @@ export default async function EmbedGroupPage({
                 }}
               />
             )}
+            {/* Reference marker — the legislature-wide F share as a
+                vertical hairline. Lets the reader see at a glance
+                whether this group's share is to the left of the
+                chamber average (under-represented F) or to the
+                right (over-represented). Drawn only when the
+                reference is loaded; gracefully absent otherwise. */}
+            {reference != null &&
+              (() => {
+                const refTotal =
+                  (reference.gender_distribution.F ?? 0) +
+                  (reference.gender_distribution.M ?? 0) +
+                  (reference.gender_distribution.X ?? 0) +
+                  (reference.gender_distribution.unknown ?? 0);
+                if (refTotal === 0) return null;
+                const refFShare =
+                  (reference.gender_distribution.F ?? 0) / refTotal;
+                return (
+                  <span
+                    aria-hidden="true"
+                    title={`${t('parity_reference_tooltip')} ${Math.round(refFShare * 100)}% F`}
+                    style={{
+                      position: 'absolute',
+                      top: -2,
+                      bottom: -2,
+                      left: `${refFShare * 100}%`,
+                      width: 2,
+                      background: 'var(--ink)',
+                      transform: 'translateX(-50%)',
+                    }}
+                  />
+                );
+              })()}
           </div>
+          {reference != null && (
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 9,
+                color: 'var(--ink-3)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {t('parity_reference_caption', {
+                pct: Math.round(
+                  ((reference.gender_distribution.F ?? 0) /
+                    Math.max(
+                      1,
+                      (reference.gender_distribution.F ?? 0) +
+                        (reference.gender_distribution.M ?? 0) +
+                        (reference.gender_distribution.X ?? 0) +
+                        (reference.gender_distribution.unknown ?? 0),
+                    )) *
+                    100,
+                ),
+              })}
+            </div>
+          )}
         </section>
       )}
 
@@ -237,13 +320,31 @@ export default async function EmbedGroupPage({
               alignItems: 'end',
             }}
           >
-            {buckets.map((b) => {
+            {buckets.map((b, idx) => {
               const n = composition.age_buckets[b.key] ?? 0;
-              const heightPct = n === 0 ? 0 : Math.max(8, (n / ageMax) * 100);
+              const share = groupShares[idx] ?? 0;
+              // Visual height: group's share of total scaled to the
+              // tallest bucket. 8% min floor so a 1-deputy bucket
+              // doesn't render as an invisible sliver.
+              const heightPct =
+                n === 0 ? 0 : Math.max(8, (share / maxGroupShare) * 100);
+              const refN =
+                reference && refAgeTotal > 0
+                  ? reference.age_buckets[b.key] ?? 0
+                  : 0;
+              const refShare = refAgeTotal > 0 ? refN / refAgeTotal : 0;
+              // Clamp the reference line at 100% so a chamber-wide
+              // share that exceeds the group's tallest bucket still
+              // pins to the top of the column rather than overflowing.
+              const refHeightPct = Math.min(
+                100,
+                (refShare / maxGroupShare) * 100,
+              );
               return (
                 <div key={b.key} style={{ textAlign: 'center', minWidth: 0 }}>
                   <div
                     style={{
+                      position: 'relative',
                       height: 42,
                       display: 'flex',
                       alignItems: 'flex-end',
@@ -260,6 +361,29 @@ export default async function EmbedGroupPage({
                         display: 'block',
                       }}
                     />
+                    {/* Legislature-wide reference line — a 2px
+                        horizontal hairline at the chamber's share
+                        for this bucket. Lets the reader compare
+                        "this group's share vs the chamber's share"
+                        at a glance, without us claiming anything
+                        about over/under-representation. */}
+                    {reference && refN > 0 && (
+                      <span
+                        aria-hidden="true"
+                        title={`Mitjana cambra: ${refN} (${Math.round(refShare * 100)}%)`}
+                        style={{
+                          position: 'absolute',
+                          left: '12%',
+                          right: '12%',
+                          bottom: `${refHeightPct}%`,
+                          height: 2,
+                          background: 'var(--ink)',
+                          borderRadius: 1,
+                          opacity: 0.85,
+                          transform: 'translateY(50%)',
+                        }}
+                      />
+                    )}
                   </div>
                   <div
                     className="tabular"
@@ -286,6 +410,31 @@ export default async function EmbedGroupPage({
               );
             })}
           </div>
+          {reference != null && (
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 9,
+                color: 'var(--ink-3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                letterSpacing: '0.04em',
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  display: 'inline-block',
+                  width: 12,
+                  height: 2,
+                  background: 'var(--ink)',
+                  borderRadius: 1,
+                }}
+              />
+              {t('age_reference_caption')}
+            </div>
+          )}
         </section>
       )}
 

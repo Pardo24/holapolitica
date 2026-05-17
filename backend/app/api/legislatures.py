@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.groups import _AGE_BUCKETS, _GENDER_KEYS, _age_bucket_for
 from app.db import get_session
 from app.ingest.congreso.hemicycle import (
     HEMICYCLE_IMAGE_HEIGHT,
@@ -182,6 +185,90 @@ async def _compute_hemicycle(session: AsyncSession, legislature_id: int) -> Hemi
         image_width=HEMICYCLE_IMAGE_WIDTH,
         image_height=HEMICYCLE_IMAGE_HEIGHT,
         seats=seated + unseated,
+    )
+
+
+class LegislatureComposition(BaseModel):
+    """Chamber-wide demographic aggregate for one legislature.
+
+    Mirrors :class:`GroupComposition` but computed across **every**
+    open mandate in the legislature, not just one group. Used as a
+    reference line on the group composition embed so a reader can
+    see at a glance whether a given group's gender split or age
+    distribution is broadly representative or skews from the
+    chamber as a whole.
+
+    No party breakdown here — that's group-specific by construction.
+    """
+
+    members_total: int
+    gender_distribution: dict[str, int]
+    age_buckets: dict[str, int]
+
+
+async def _compute_legislature_composition(
+    session: AsyncSession, legislature_id: int, as_of: date
+) -> LegislatureComposition:
+    """Aggregate gender + age across every open mandate of the legislature.
+
+    Counts every seat once: a person is in the aggregate if they
+    hold an open Mandate in this legislature, regardless of whether
+    they belong to a parliamentary group right now (so "no adscrits"
+    are included, same as the hemicycle layout).
+    """
+    rows = (
+        await session.execute(
+            select(Person.gender, Person.birth_year)
+            .join(Mandate, Mandate.person_id == Person.id)
+            .where(Mandate.legislature_id == legislature_id)
+            .where(Mandate.end_date.is_(None))
+        )
+    ).all()
+
+    gender_distribution: dict[str, int] = {k: 0 for k in _GENDER_KEYS}
+    age_buckets: dict[str, int] = {k: 0 for k in _AGE_BUCKETS}
+    for gender, birth_year in rows:
+        if gender in ("F", "M", "X"):
+            gender_distribution[gender] += 1
+        else:
+            gender_distribution["unknown"] += 1
+        age_buckets[_age_bucket_for(birth_year, as_of)] += 1
+
+    return LegislatureComposition(
+        members_total=len(rows),
+        gender_distribution=gender_distribution,
+        age_buckets=age_buckets,
+    )
+
+
+@router.get(
+    "/{legislature_id}/composition",
+    response_model=LegislatureComposition,
+)
+async def get_legislature_composition(
+    legislature_id: int,
+    session: AsyncSession = Depends(get_session),
+) -> LegislatureComposition:
+    """Chamber-wide composition aggregate for one legislature.
+
+    Used by the group composition embed widget as a reference line
+    so the reader can compare a group's gender split / age bands
+    against the chamber as a whole. Cached for 1 h — the underlying
+    open-mandate set turns over only when a deputy is substituted
+    (days at most), so a stale-by-an-hour snapshot is fine.
+    """
+    exists = (
+        await session.execute(select(Legislature.id).where(Legislature.id == legislature_id))
+    ).scalar_one_or_none()
+    if exists is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Legislature not found")
+
+    today = date.today()
+    cache_key = f"legislatures:{legislature_id}:composition:{today.isoformat()}"
+    return await cached(
+        cache_key,
+        3600,
+        lambda: _compute_legislature_composition(session, legislature_id, today),
     )
 
 
