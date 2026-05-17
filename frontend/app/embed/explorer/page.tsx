@@ -126,13 +126,16 @@ export default async function EmbedExplorerPage({
 
   // Construct an equivalent /votes URL with the same filters so the
   // "See all" link carries the journalist's selection through to
-  // the main site. Same param names, no proprietary mapping.
+  // the main site. The embed exposes short param names (topic,
+  // group, from, to) but the /votes page uses the full backend
+  // names (topic_slug, proposing_group_slug, date_from, date_to);
+  // remap here so the deep-link actually preselects the filters.
   const detailQuery = new URLSearchParams();
-  if (topicSlug) detailQuery.set('topic', topicSlug);
+  if (topicSlug) detailQuery.set('topic_slug', topicSlug);
   if (result) detailQuery.set('result', result);
-  if (groupSlug) detailQuery.set('group', groupSlug);
-  if (dateFrom) detailQuery.set('from', dateFrom);
-  if (dateTo) detailQuery.set('to', dateTo);
+  if (groupSlug) detailQuery.set('proposing_group_slug', groupSlug);
+  if (dateFrom) detailQuery.set('date_from', dateFrom);
+  if (dateTo) detailQuery.set('date_to', dateTo);
   const detailUrl = `/votes${detailQuery.toString() ? `?${detailQuery.toString()}` : ''}`;
 
   const filterChips: { label: string; color?: string }[] = [];
