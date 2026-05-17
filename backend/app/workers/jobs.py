@@ -107,7 +107,7 @@ async def _warm_aggregate_caches() -> None:
                 "metrics:coincidence:1::",
                 86400,
                 lambda: compute_group_coincidence_matrix(
-                    session, legislature_id=1, date_from=None, date_to=None
+                    session, legislature_id=1, from_date=None, to_date=None
                 ),
             )
         log.info("cache.warmed", scope="aggregates")
