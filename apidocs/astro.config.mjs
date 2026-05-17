@@ -18,9 +18,15 @@ export default defineConfig({
       description:
         "Documentació tècnica i de dades del projecte Hola Política. " +
         "API pública, diccionari de dades, metodologia, dumps massius.",
-      defaultLocale: 'ca',
+      // Starlight 0.39 strictly validates content paths per locale.
+      // We keep the Catalan files at /docs (no /ca prefix) so the
+      // default locale is `root` and the other locales go under
+      // /es and /en when their content lands. Switching to a
+      // `ca` non-root prefix would require moving every existing
+      // .md file under /docs/ca which we defer to the i18n round.
+      defaultLocale: 'root',
       locales: {
-        ca: { label: 'Català', lang: 'ca' },
+        root: { label: 'Català', lang: 'ca' },
         es: { label: 'Español', lang: 'es' },
         en: { label: 'English', lang: 'en' },
       },
@@ -31,6 +37,11 @@ export default defineConfig({
           href: 'https://github.com/danpinto/monitor-parlamentari',
         },
       ],
+      // Sidebar — only slugs with backing markdown files are listed.
+      // Starlight 0.39 strictly validates slug existence and would
+      // fail the build for missing entries. As the docs site grows
+      // (api/topics, api/groups, data/dictionary, embed/widgets, …)
+      // re-add the items below alongside the new .md file.
       sidebar: [
         {
           label: 'Començar',
@@ -53,10 +64,6 @@ export default defineConfig({
           items: [
             { label: 'Votacions / Votes', slug: 'api/votes' },
             { label: 'Iniciatives / Initiatives', slug: 'api/initiatives' },
-            { label: 'Temes / Topics', slug: 'api/topics' },
-            { label: 'Grups / Groups', slug: 'api/groups' },
-            { label: 'Persones / Persons', slug: 'api/persons' },
-            { label: 'Estadístiques / Stats', slug: 'api/stats' },
           ],
         },
         {
@@ -64,37 +71,13 @@ export default defineConfig({
           translations: { es: 'Datos', en: 'Data' },
           items: [
             {
-              label: 'Diccionari de dades',
-              translations: {
-                es: 'Diccionario de datos',
-                en: 'Data dictionary',
-              },
-              slug: 'data/dictionary',
-            },
-            {
               label: 'Dumps CC-BY 4.0',
               slug: 'data/dumps',
-            },
-            {
-              label: 'Metodologia',
-              translations: { es: 'Metodología', en: 'Methodology' },
-              slug: 'data/methodology',
             },
             {
               label: 'Neutralitat',
               translations: { es: 'Neutralidad', en: 'Neutrality' },
               slug: 'data/neutrality',
-            },
-          ],
-        },
-        {
-          label: 'Embed',
-          items: [
-            { label: 'Widgets', slug: 'embed/widgets' },
-            {
-              label: 'Cards socials',
-              translations: { es: 'Cards sociales', en: 'Social cards' },
-              slug: 'embed/cards',
             },
           ],
         },
