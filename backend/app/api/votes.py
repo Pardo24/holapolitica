@@ -306,11 +306,18 @@ async def _compute_dissidents(db: AsyncSession, vote_id: int) -> VoteDissidentsR
         assert isinstance(members, list)
         if not choices:
             continue
-        # Skip 'no_vote' from the majority calculation — a deputy
-        # who didn't vote isn't taking a stance, and counting them
-        # as "the majority" would inflate dissidence on procedural
-        # votes that some groups deliberately sit out.
-        choices_excluding_absent = Counter({k: v for k, v in choices.items() if k != "no_vote"})
+        # Skip non-stance choices from BOTH the majority calculation
+        # and the dissidents list. ``absent`` (didn't attend) and
+        # ``no_vote_recorded`` (present but didn't press a button —
+        # e.g. presidency or deliberate non-vote) are not a stance.
+        # Counting them in the majority would inflate dissidence on
+        # procedural votes some groups deliberately sit out; counting
+        # them as dissidents would misrepresent passive absence as
+        # active dissent.
+        non_stance = {"absent", "no_vote_recorded"}
+        choices_excluding_absent = Counter(
+            {k: v for k, v in choices.items() if k not in non_stance}
+        )
         if not choices_excluding_absent:
             continue
         majority_choice, majority_count = choices_excluding_absent.most_common(1)[0]
@@ -318,10 +325,10 @@ async def _compute_dissidents(db: AsyncSession, vote_id: int) -> VoteDissidentsR
         for m in members:
             assert isinstance(m, dict)
             ch = m["choice"]
-            # A dissident is a deputy who VOTED but voted differently
-            # from the group majority. no_vote (absent) is not
-            # dissidence — they took no stance.
-            if ch == "no_vote" or ch == majority_choice:
+            # A dissident is a deputy who took a STANCE different
+            # from the group majority. Absences and no-vote-recorded
+            # are not dissent.
+            if ch in non_stance or ch == majority_choice:
                 continue
             dissidents.append(
                 DissidentPerson(
