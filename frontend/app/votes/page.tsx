@@ -635,6 +635,59 @@ function VoteTableRow({
                 <AnnotatedText text={subject} />
               </SummaryHover>
             </div>
+            {/* Topic badges — render up to two of the classified topics
+                as subtle coloured chips below the subject so a reader
+                scanning the list can spot "housing", "labour", "climate"
+                at a glance. Plain text + 1px hairline + a 6px coloured
+                dot; no rounded card chrome, in line with the rest of
+                the site's newspaper aesthetic. */}
+            {vote.topics && vote.topics.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  marginTop: 6,
+                }}
+              >
+                {vote.topics.slice(0, 2).map((topic) => (
+                  <span
+                    key={topic.slug}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '1px 7px 2px',
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: 'var(--ink-2)',
+                      background: topic.color_hex
+                        ? `color-mix(in oklch, ${topic.color_hex} 14%, var(--paper))`
+                        : 'var(--paper-2)',
+                      border: `1px solid ${
+                        topic.color_hex
+                          ? `color-mix(in oklch, ${topic.color_hex} 32%, var(--paper))`
+                          : 'var(--rule)'
+                      }`,
+                      letterSpacing: '0.01em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 999,
+                        background: topic.color_hex ?? 'var(--ink-3)',
+                        flex: 'none',
+                      }}
+                    />
+                    {pickTopicName(topic, locale)}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </td>

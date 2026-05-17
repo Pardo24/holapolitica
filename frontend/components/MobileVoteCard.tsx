@@ -8,6 +8,7 @@ import { StackedBar } from '@/components/StackedBar';
 import { SummaryHover } from '@/components/SummaryHover';
 import type { Vote } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * Mobile-only one-card-per-vote row for the /votes list.
@@ -128,6 +129,53 @@ export function MobileVoteCard({
             <AnnotatedText text={subject} />
           </SummaryHover>
         </div>
+        {vote.topics && vote.topics.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 6,
+              marginTop: 2,
+            }}
+          >
+            {vote.topics.slice(0, 2).map((topic) => (
+              <span
+                key={topic.slug}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '1px 7px 2px',
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: 'var(--ink-2)',
+                  background: topic.color_hex
+                    ? `color-mix(in oklch, ${topic.color_hex} 14%, var(--paper))`
+                    : 'var(--paper-2)',
+                  border: `1px solid ${
+                    topic.color_hex
+                      ? `color-mix(in oklch, ${topic.color_hex} 32%, var(--paper))`
+                      : 'var(--rule)'
+                  }`,
+                  letterSpacing: '0.01em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    background: topic.color_hex ?? 'var(--ink-3)',
+                    flex: 'none',
+                  }}
+                />
+                {pickTopicName(topic, locale)}
+              </span>
+            ))}
+          </div>
+        )}
         <div
           style={{
             display: 'flex',

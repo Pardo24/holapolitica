@@ -220,6 +220,31 @@ export default async function VoteDetailPage({
               </span>
             </div>
           </div>
+          {initiative?.source_url && (
+            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
+              <span className="eyebrow">{tInitiative('source_pdf_cta')}</span>
+              <div style={{ marginTop: 2 }}>
+                <a
+                  href={initiative.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    color: 'var(--ink)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  PDF
+                  <ExternalLink size={12} aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          )}
           {initiative?.boe_url && initiative?.boe_id && (
             <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
               <span className="eyebrow">{tInitiative('boe_cta')}</span>
