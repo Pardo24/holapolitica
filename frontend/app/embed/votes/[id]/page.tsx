@@ -49,8 +49,25 @@ export default async function EmbedVotePage({
 
   // Cohesion strip: best-effort. If the cohesion endpoint errors (it
   // returns 404 on votes that haven't been processed yet) we just
-  // skip the strip — the rest of the widget still renders.
-  const cohesion = await api.metrics.cohesion(Number(id)).catch(() => []);
+  // skip the strip — the rest of the widget still renders. We also
+  // pull the per-group legislature-average cohesion so each row
+  // gets a reference marker — "this group voted 96% united today;
+  // their typical legislature cohesion is 92%". The Vote payload
+  // doesn't carry a legislature_id, but Hola Política is currently
+  // scoped to a single active legislature (XV = id 1); when phase 2
+  // ships we'll thread the linked initiative's legislature_id here.
+  const ACTIVE_LEGISLATURE_ID = 1;
+  const [cohesion, groupAverages] = await Promise.all([
+    api.metrics.cohesion(Number(id)).catch(() => []),
+    api.metrics
+      .groupSummary(ACTIVE_LEGISLATURE_ID)
+      .catch(() => [] as Awaited<ReturnType<typeof api.metrics.groupSummary>>),
+  ]);
+  const avgCohesionBySlug = new Map(
+    groupAverages
+      .filter((g) => g.avg_cohesion != null)
+      .map((g) => [g.group_slug, g.avg_cohesion as number] as const),
+  );
   const topGroups = [...cohesion]
     .filter((c) => c.cohesion != null && c.members_voting > 0)
     .sort((a, b) => (b.members_voting ?? 0) - (a.members_voting ?? 0))
@@ -222,6 +239,8 @@ export default async function EmbedVotePage({
                 noes={g.noes}
                 abstentions={g.abstentions}
                 noVote={g.no_vote}
+                voteCohesion={g.cohesion}
+                avgCohesion={avgCohesionBySlug.get(g.group_slug) ?? null}
               />
             ))}
           </ul>
@@ -389,6 +408,8 @@ function CohesionRow({
   noes,
   abstentions,
   noVote,
+  voteCohesion,
+  avgCohesion,
 }: {
   label: string;
   color: string;
@@ -396,14 +417,22 @@ function CohesionRow({
   noes: number;
   abstentions: number;
   noVote: number;
+  voteCohesion: number | null;
+  avgCohesion: number | null;
 }) {
   const total = ayes + noes + abstentions + noVote;
   if (total === 0) return null;
+  // Pre-format the "this-vote vs legislature-average" cohesion delta
+  // so the row gets a single, compact "92% (avg 88%)" pill. Avg is
+  // best-effort: skipped when groupSummary failed for this group.
+  const votePct =
+    voteCohesion != null ? Math.round(voteCohesion * 100) : null;
+  const avgPct = avgCohesion != null ? Math.round(avgCohesion * 100) : null;
   return (
     <li
       style={{
         display: 'grid',
-        gridTemplateColumns: '80px minmax(0, 1fr)',
+        gridTemplateColumns: '76px minmax(0, 1fr) 84px',
         alignItems: 'center',
         gap: 10,
         fontSize: 11,
@@ -462,6 +491,38 @@ function CohesionRow({
           <span style={{ width: `${(noVote / total) * 100}%`, background: 'var(--nv, #CBD5E1)' }} />
         )}
       </div>
+      {votePct != null ? (
+        <span
+          className="tabular"
+          title={
+            avgPct != null
+              ? `Cohesió en aquesta votació: ${votePct}% · mitjana de la legislatura: ${avgPct}%`
+              : undefined
+          }
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            color: 'var(--ink-2)',
+            textAlign: 'right',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {votePct}%
+          {avgPct != null && (
+            <span
+              style={{
+                color: 'var(--ink-3)',
+                fontWeight: 400,
+                marginLeft: 4,
+              }}
+            >
+              · {avgPct}%
+            </span>
+          )}
+        </span>
+      ) : (
+        <span />
+      )}
     </li>
   );
 }
