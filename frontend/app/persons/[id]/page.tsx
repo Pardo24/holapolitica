@@ -453,38 +453,70 @@ export default async function PersonDetailPage({
         {mandates.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_mandates')}</p>
         ) : (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {mandates.map((m) => (
-              <li
-                key={m.id}
-                style={{
-                  borderBottom: '1px solid var(--rule)',
-                  padding: '10px 0',
-                  fontSize: 13,
-                  display: 'flex',
-                  gap: 18,
-                  flexWrap: 'wrap',
-                }}
+          <>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {mandates.slice(0, 3).map((m) => (
+                <MandateLi
+                  key={m.id}
+                  mandate={m}
+                  locale={locale}
+                  labels={{
+                    dates: t('mandate_dates', {
+                      from: new Date(m.start_date).toLocaleDateString(locale),
+                      to: m.end_date
+                        ? new Date(m.end_date).toLocaleDateString(locale)
+                        : t('mandate_current'),
+                    }),
+                    constituency: t('constituency'),
+                    list: t('list'),
+                  }}
+                />
+              ))}
+            </ul>
+            {/* Truncate-and-reveal for deputies with a long mandate
+                history — frequent for senior politicians who span
+                several legislatures + chamber switches. The remaining
+                items live inside a <details>, so toggling is a pure-
+                HTML affordance that works without JS. */}
+            {mandates.length > 3 && (
+              <details
+                style={{ marginTop: 0, padding: 0 }}
               >
-                <span className="tabular" style={{ fontWeight: 600 }}>
-                  {t('mandate_dates', {
-                    from: new Date(m.start_date).toLocaleDateString(locale),
-                    to: m.end_date ? new Date(m.end_date).toLocaleDateString(locale) : t('mandate_current'),
-                  })}
-                </span>
-                {m.constituency && (
-                  <span style={{ color: 'var(--ink-3)' }}>
-                    {t('constituency')}: {m.constituency}
-                  </span>
-                )}
-                {m.electoral_list_party && (
-                  <span style={{ color: 'var(--ink-3)' }}>
-                    {t('list')}: {m.electoral_list_party}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
+                <summary
+                  style={{
+                    cursor: 'pointer',
+                    listStyle: 'none',
+                    padding: '12px 0',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: 'var(--ink-2)',
+                    borderBottom: '1px solid var(--rule)',
+                  }}
+                >
+                  {t('mandates_show_more', { count: mandates.length - 3 })}
+                </summary>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {mandates.slice(3).map((m) => (
+                    <MandateLi
+                      key={m.id}
+                      mandate={m}
+                      locale={locale}
+                      labels={{
+                        dates: t('mandate_dates', {
+                          from: new Date(m.start_date).toLocaleDateString(locale),
+                          to: m.end_date
+                            ? new Date(m.end_date).toLocaleDateString(locale)
+                            : t('mandate_current'),
+                        }),
+                        constituency: t('constituency'),
+                        list: t('list'),
+                      }}
+                    />
+                  ))}
+                </ul>
+              </details>
+            )}
+          </>
         )}
       </section>
 
@@ -515,8 +547,59 @@ export default async function PersonDetailPage({
           .person-header img,
           .person-header > div:first-child { width: 100% !important; max-width: 192px; }
         }
+        @media (max-width: 560px) {
+          /* Stance arc — on narrow viewports the topic name + phrase
+             were sharing a single row, squeezing the phrase into many
+             4-word lines. Stack vertically so each row gets one line
+             for the topic chip and full width for the sentence. */
+          .stance-arc-row {
+            grid-template-columns: 1fr !important;
+            gap: 4px !important;
+            padding: 10px 0 !important;
+          }
+        }
       `}</style>
     </article>
+  );
+}
+
+/** Single mandate row — extracted so both the visible-first-3 list
+ *  and the inside-details "show more" list share one implementation
+ *  and stay in visual lockstep. */
+function MandateLi({
+  mandate,
+  locale: _locale,
+  labels,
+}: {
+  mandate: Mandate;
+  locale: string;
+  labels: { dates: string; constituency: string; list: string };
+}) {
+  return (
+    <li
+      style={{
+        borderBottom: '1px solid var(--rule)',
+        padding: '10px 0',
+        fontSize: 13,
+        display: 'flex',
+        gap: 18,
+        flexWrap: 'wrap',
+      }}
+    >
+      <span className="tabular" style={{ fontWeight: 600 }}>
+        {labels.dates}
+      </span>
+      {mandate.constituency && (
+        <span style={{ color: 'var(--ink-3)' }}>
+          {labels.constituency}: {mandate.constituency}
+        </span>
+      )}
+      {mandate.electoral_list_party && (
+        <span style={{ color: 'var(--ink-3)' }}>
+          {labels.list}: {mandate.electoral_list_party}
+        </span>
+      )}
+    </li>
   );
 }
 
@@ -602,9 +685,10 @@ function StanceArc({
           return (
             <li
               key={row.topic_slug}
+              className="stance-arc-row"
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, auto) minmax(0, 1fr)',
+                gridTemplateColumns: 'minmax(0, 180px) minmax(0, 1fr)',
                 gap: 12,
                 alignItems: 'baseline',
                 padding: '6px 0',
@@ -620,7 +704,6 @@ function StanceArc({
                   gap: 6,
                   fontWeight: 600,
                   color: 'var(--ink)',
-                  whiteSpace: 'nowrap',
                 }}
               >
                 <span

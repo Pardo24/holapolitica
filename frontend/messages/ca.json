@@ -572,6 +572,7 @@
     "stance_mostly_noes": "Majoritàriament en contra: {ayes} sí · {noes} no · {abst} abst. de {total}.",
     "stance_mostly_abstentions": "Majoritàriament abstenció: {ayes} sí · {noes} no · {abst} abst. de {total}.",
     "stance_mixed": "Vot dividit: {ayes} sí · {noes} no · {abst} abst. de {total}.",
+    "mandates_show_more": "Veure {count, plural, =1 {# càrrec més} other {# càrrecs més}}",
     "kpi_no_votes_yet": "Encara no hi ha vots registrats per a aquesta persona.",
     "kpi_votes_cast_label": "Vots emesos",
     "kpi_of_possible": "de {total} possibles",
@@ -805,7 +806,7 @@
   "newsletter": {
     "signup_eyebrow": "Newsletter setmanal",
     "signup_body": "Un correu cada divendres amb les votacions de la setmana al Congrés. Sense valoracions, només dades.",
-    "signup_placeholder": "el-teu-correu@exemple.cat",
+    "signup_placeholder": "Escriu aquí el teu correu",
     "signup_cta": "Subscriu-te",
     "signup_sending": "Enviant…",
     "signup_success": "Revisa el teu correu per confirmar la subscripció.",

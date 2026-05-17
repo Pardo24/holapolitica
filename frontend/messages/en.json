@@ -572,6 +572,7 @@
     "stance_mostly_noes": "Mostly against: {ayes} aye · {noes} no · {abst} abst. of {total}.",
     "stance_mostly_abstentions": "Mostly abstention: {ayes} aye · {noes} no · {abst} abst. of {total}.",
     "stance_mixed": "Split vote: {ayes} aye · {noes} no · {abst} abst. of {total}.",
+    "mandates_show_more": "Show {count, plural, =1 {# more role} other {# more roles}}",
     "kpi_no_votes_yet": "No votes recorded for this person yet.",
     "kpi_votes_cast_label": "Votes cast",
     "kpi_of_possible": "out of {total} possible",
@@ -806,7 +807,7 @@
   "newsletter": {
     "signup_eyebrow": "Weekly newsletter",
     "signup_body": "One email every Friday with the week's Congress votes. No commentary, just data.",
-    "signup_placeholder": "your-email@example.com",
+    "signup_placeholder": "Type your email here",
     "signup_cta": "Subscribe",
     "signup_sending": "Sending…",
     "signup_success": "Check your inbox to confirm the subscription.",

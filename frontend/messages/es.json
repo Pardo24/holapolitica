@@ -572,6 +572,7 @@
     "stance_mostly_noes": "Mayoritariamente en contra: {ayes} sí · {noes} no · {abst} abst. de {total}.",
     "stance_mostly_abstentions": "Mayoritariamente abstención: {ayes} sí · {noes} no · {abst} abst. de {total}.",
     "stance_mixed": "Voto dividido: {ayes} sí · {noes} no · {abst} abst. de {total}.",
+    "mandates_show_more": "Ver {count, plural, =1 {# cargo más} other {# cargos más}}",
     "kpi_no_votes_yet": "Aún no hay votos registrados para esta persona.",
     "kpi_votes_cast_label": "Votos emitidos",
     "kpi_of_possible": "de {total} posibles",
@@ -806,7 +807,7 @@
   "newsletter": {
     "signup_eyebrow": "Newsletter semanal",
     "signup_body": "Un correo cada viernes con las votaciones de la semana en el Congreso. Sin valoraciones, sólo datos.",
-    "signup_placeholder": "tu-correo@ejemplo.es",
+    "signup_placeholder": "Escribe aquí tu correo",
     "signup_cta": "Suscríbete",
     "signup_sending": "Enviando…",
     "signup_success": "Revisa tu correo para confirmar la suscripción.",

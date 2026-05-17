@@ -369,10 +369,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter signup — single card with a decorative Mail icon on the
-          LEFT and the form body on the right, kept within the same
-          bordered surface. On narrow viewports the icon column is hidden
-          and the form expands to full width (see media query below). */}
+      {/* Newsletter signup — single card with title + caption above
+          the form, mail icon as a quiet accent on the left. On narrow
+          viewports the icon column is hidden and the copy + form
+          collapse to a single column (media query below). */}
       <section
         className="home-newsletter-row"
         aria-label={t('newsletter_section_aria') /* falls back to default text if missing */}
@@ -395,13 +395,57 @@ export default async function HomePage() {
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--accent)',
-            paddingLeft: 20,
-            paddingRight: 10,
+            paddingLeft: 24,
+            paddingRight: 18,
+            borderRight: '1px solid var(--rule)',
+            background: 'var(--paper)',
           }}
         >
-          <Mail size={64} strokeWidth={1.4} aria-hidden="true" />
+          <Mail size={48} strokeWidth={1.4} aria-hidden="true" />
         </div>
-        <div className="home-newsletter-row__signup" style={{ flex: '1 1 0', minWidth: 0, padding: '8px 8px' }}>
+        <div
+          className="home-newsletter-row__signup"
+          style={{
+            flex: '1 1 0',
+            minWidth: 0,
+            padding: '18px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div>
+            <div
+              className="eyebrow"
+              style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 4 }}
+            >
+              Newsletter
+            </div>
+            <h2
+              className="serif"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(18px, 2vw, 22px)',
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+                color: 'var(--ink)',
+                lineHeight: 1.2,
+              }}
+            >
+              {t('newsletter_title')}
+            </h2>
+            <p
+              style={{
+                margin: '4px 0 0',
+                fontSize: 13,
+                color: 'var(--ink-2)',
+                lineHeight: 1.55,
+                maxWidth: 540,
+              }}
+            >
+              {t('newsletter_caption')}
+            </p>
+          </div>
           <NewsletterSignup variant="bare" />
         </div>
       </section>
