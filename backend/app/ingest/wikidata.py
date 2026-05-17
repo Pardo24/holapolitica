@@ -55,15 +55,15 @@ USER_AGENT = (
     "contact daniel@holapolitica.org) python-httpx"
 )
 
-# Q18171058 = Member of the Congress of Deputies of Spain.
-# We cast the filter wide: anyone with that position-held statement,
-# regardless of legislature. The frontend only shows the link if our
-# Person row still exists, so retired deputies don't leak.
+# Q18171345 = Member of the Congress of Deputies of Spain (the lower
+# house). We cast the filter wide: anyone with that position-held
+# statement, regardless of legislature. The frontend only shows the
+# link if our Person row still exists, so retired deputies don't leak.
 SPARQL_QUERY = """
 SELECT DISTINCT ?person ?personLabel ?dob
        ?wikiCa ?wikiEs ?wikiEn ?occupationLabel ?educationLabel
 WHERE {
-  ?person wdt:P39 wd:Q18171058 .
+  ?person wdt:P39 wd:Q18171345 .
   OPTIONAL { ?person wdt:P569 ?dob }
   OPTIONAL { ?person wdt:P106 ?occupation }
   OPTIONAL { ?person wdt:P69 ?education }
