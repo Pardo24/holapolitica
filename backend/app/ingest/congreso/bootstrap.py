@@ -986,12 +986,38 @@ async def _enrich_wikipedia_step() -> dict[str, int]:
         return await enrich_persons_wikipedia(session)
 
 
+async def _reset_boe_step() -> dict[str, int]:
+    """Bootstrap entry — clear every BOE match so the next enrichment
+    re-runs from scratch.
+
+    Useful after a matcher-logic change (e.g. tightening the ambito
+    filter or lowering the score threshold) so existing rows are
+    re-evaluated against the new rules. Operates only on rows that
+    have a non-NULL ``boe_id``; rows that were already empty are
+    left alone.
+    """
+    from sqlalchemy import update
+
+    from app.models import Initiative
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            update(Initiative)
+            .where(Initiative.boe_id.is_not(None))
+            .values(boe_id=None, boe_url=None, boe_entry_in_force=None)
+        )
+        await session.commit()
+        reset_count = getattr(result, "rowcount", 0) or 0
+        return {"reset": int(reset_count)}
+
+
 _STEPS = {
     "deputies": import_active_deputies,
     "initiatives": import_initiatives,
     "enrich_wikidata": _enrich_wikidata_step,
     "enrich_boe": _enrich_boe_step,
     "enrich_wikipedia": _enrich_wikipedia_step,
+    "reset_boe": _reset_boe_step,
     "pnl_xv": import_pnl_xv,
     "mocion_xv": import_mocion_xv,
     "rdl_xv": import_rdl_convalidacion_xv,
