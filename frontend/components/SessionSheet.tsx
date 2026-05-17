@@ -638,6 +638,32 @@ export async function SessionSheet({
           https://www.holapolitica.org/avui/{date}
         </code>
       </section>
+      <style>{`
+        @media (max-width: 600px) {
+          /* On narrow viewports the 28px sequence gutter + auto-width
+             count panel were squeezing the title into 4-word lines.
+             Stack: gutter collapses (sequence + counts go inline above
+             the title), title takes full width, count panel drops
+             below the title block. Padding tightened so each row
+             stays scannable when the screen is short. */
+          .session-vote-row {
+            grid-template-columns: 1fr !important;
+            row-gap: 8px !important;
+            column-gap: 0 !important;
+          }
+          .session-vote-row > *:first-child {
+            display: none !important;
+          }
+          .session-vote-row > div:nth-child(3) {
+            align-items: flex-start !important;
+            min-width: 0 !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            justify-content: flex-start !important;
+            gap: 14px !important;
+          }
+        }
+      `}</style>
     </article>
   );
 }
@@ -752,6 +778,7 @@ function VoteRow({
     >
       <Link
         href={`/votes/${vote.id}` as Route}
+        className="session-vote-row"
         style={{
           display: 'grid',
           // Three columns: a narrow sequence-number gutter, a wide
