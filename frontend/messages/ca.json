@@ -1032,15 +1032,24 @@
     "see_detail": "Veure detall →",
     "source_label": "Font:",
     "proposed_by_label": "Proposat per",
-    "proposed_government": "Govern"
+    "proposed_government": "Govern",
+    "cohesion_eyebrow": "Com han votat els grups majoritaris"
   },
   "embed_group": {
     "not_found": "Grup parlamentari no trobat",
     "embed_title": "Grup parlamentari · Hola Política",
     "label_members": "Diputats/des",
+    "label_seats": "escons",
     "label_cohesion": "Cohesió mitjana",
     "label_attendance": "Assistència mitjana",
     "label_votes_counted": "vots comptats",
+    "parity_label": "Paritat",
+    "age_label": "Edat",
+    "age_lt30": "<30",
+    "age_30_39": "30-39",
+    "age_40_49": "40-49",
+    "age_50_59": "50-59",
+    "age_60p": "60+",
     "caveat": "Cohesió i assistència són mitjanes sobre els vots de la legislatura amb dades disponibles.",
     "see_detail": "Veure fitxa →",
     "source_label": "Font:"

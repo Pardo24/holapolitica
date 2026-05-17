@@ -1033,15 +1033,24 @@
     "see_detail": "See detail →",
     "source_label": "Source:",
     "proposed_by_label": "Proposed by",
-    "proposed_government": "Government"
+    "proposed_government": "Government",
+    "cohesion_eyebrow": "How the largest groups voted"
   },
   "embed_group": {
     "not_found": "Parliamentary group not found",
     "embed_title": "Parliamentary group · Hola Política",
     "label_members": "Members",
+    "label_seats": "seats",
     "label_cohesion": "Average cohesion",
     "label_attendance": "Average attendance",
     "label_votes_counted": "votes counted",
+    "parity_label": "Parity",
+    "age_label": "Age",
+    "age_lt30": "<30",
+    "age_30_39": "30-39",
+    "age_40_49": "40-49",
+    "age_50_59": "50-59",
+    "age_60p": "60+",
     "caveat": "Cohesion and attendance are averages across the votes in the current term with available data.",
     "see_detail": "See profile →",
     "source_label": "Source:"

@@ -242,6 +242,28 @@ a { color: inherit; }
   .page { padding: 18px 16px 32px; }
 }
 
+/* Embed widgets — chrome-less shell rendered by app/layout.tsx for
+   any path under /embed/*. No nav, no footer; the iframe host owns
+   the surrounding chrome. The shell stays edge-to-edge so iframes
+   sized to N×Mpx fit pixel-perfect. */
+.embed-shell {
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 12px;
+}
+/* Card surface inside an embed — minimal: 1px hairline, no
+   radius, no shadow, no tinted background. Matches the rest of
+   Hola Política's newspaper look. */
+.embed-card {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 14px 16px;
+  display: block;
+}
+
 /* nav — same treatment across pages */
 .topnav {
   display: flex;

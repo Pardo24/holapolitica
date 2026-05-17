@@ -1033,15 +1033,24 @@
     "see_detail": "Ver detalle →",
     "source_label": "Fuente:",
     "proposed_by_label": "Propuesto por",
-    "proposed_government": "Gobierno"
+    "proposed_government": "Gobierno",
+    "cohesion_eyebrow": "Cómo han votado los grupos mayoritarios"
   },
   "embed_group": {
     "not_found": "Grupo parlamentario no encontrado",
     "embed_title": "Grupo parlamentario · Hola Política",
     "label_members": "Diputados/as",
+    "label_seats": "escaños",
     "label_cohesion": "Cohesión media",
     "label_attendance": "Asistencia media",
     "label_votes_counted": "votos contados",
+    "parity_label": "Paridad",
+    "age_label": "Edad",
+    "age_lt30": "<30",
+    "age_30_39": "30-39",
+    "age_40_49": "40-49",
+    "age_50_59": "50-59",
+    "age_60p": "60+",
     "caveat": "Cohesión y asistencia son medias sobre los votos de la legislatura con datos disponibles.",
     "see_detail": "Ver ficha →",
     "source_label": "Fuente:"

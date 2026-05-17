@@ -1,6 +1,11 @@
+import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, type PersonKPIs } from '@/lib/api';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Embed widget for a member of parliament.
@@ -39,43 +44,20 @@ export default async function EmbedPersonPage({
     return <div style={{ padding: 16, fontFamily: 'sans-serif' }}>{t('not_found')}</div>;
   }
 
-  const groupColor = person.current_group_color ?? '#0F172A';
+  const groupColor = person.current_group_color ?? 'var(--ink)';
   const attendance = kpis?.attendance_pct;
   const dissidence = kpis?.dissidence_pct;
   const votesCast = kpis?.votes_cast ?? 0;
 
   return (
-    <html lang={locale}>
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="noindex" />
-        <title>{t('embed_title')}</title>
-      </head>
-      <body
-        style={{
-          margin: 0,
-          padding: 16,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          background: 'transparent',
-          color: '#0F172A',
-        }}
-      >
-        <article
-          style={{
-            border: '1px solid #E2E8F0',
-            borderRadius: 12,
-            padding: 16,
-            background: 'white',
-          }}
-        >
+    <article className="embed-card" lang={locale}>
           <header
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 12,
               marginBottom: 12,
-              borderBottom: '1px solid #E2E8F0',
+              borderBottom: '1px solid var(--rule)',
               paddingBottom: 12,
             }}
           >
@@ -126,7 +108,7 @@ export default async function EmbedPersonPage({
                 style={{
                   margin: '4px 0 0',
                   fontSize: 11,
-                  color: '#64748B',
+                  color: 'var(--ink-3)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
@@ -142,7 +124,7 @@ export default async function EmbedPersonPage({
                       padding: '1px 8px',
                       borderRadius: 999,
                       background: `${groupColor}1A`,
-                      color: '#0F172A',
+                      color: 'var(--ink)',
                       fontWeight: 600,
                     }}
                   >
@@ -172,23 +154,23 @@ export default async function EmbedPersonPage({
                 gap: 10,
                 margin: 0,
                 padding: '4px 0 10px',
-                borderBottom: '1px solid #E2E8F0',
+                borderBottom: '1px solid var(--rule)',
               }}
             >
               <Cell
                 label={t('label_attendance')}
                 value={attendance != null ? `${Math.round(attendance * 100)}%` : '—'}
-                color="#0E7490"
+                color="var(--accent, oklch(0.55 0.10 220))"
               />
               <Cell
                 label={t('label_dissidence')}
                 value={dissidence != null ? `${Math.round(dissidence * 100)}%` : '—'}
-                color="#9333EA"
+                color="oklch(0.55 0.18 300)"
               />
               <Cell label={t('label_votes_total')} value={String(votesCast)} color="#0F172A" />
             </dl>
           ) : (
-            <p style={{ margin: 0, fontSize: 12, color: '#64748B', fontStyle: 'italic' }}>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--ink-3)', fontStyle: 'italic' }}>
               {t('no_kpis')}
             </p>
           )}
@@ -198,7 +180,7 @@ export default async function EmbedPersonPage({
               style={{
                 margin: '8px 0 0',
                 fontSize: 10,
-                color: '#94A3B8',
+                color: 'var(--ink-3)',
                 lineHeight: 1.4,
               }}
             >
@@ -210,7 +192,7 @@ export default async function EmbedPersonPage({
             style={{
               marginTop: 10,
               fontSize: 11,
-              color: '#64748B',
+              color: 'var(--ink-3)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -220,7 +202,12 @@ export default async function EmbedPersonPage({
             <a
               href={`/persons/${person.id}`}
               target="_top"
-              style={{ color: '#1E40AF', textDecoration: 'none', fontWeight: 600 }}
+              style={{
+                color: 'var(--ink)',
+                textDecoration: 'underline',
+                textUnderlineOffset: 3,
+                fontWeight: 600,
+              }}
             >
               {t('see_detail')}
             </a>
@@ -230,22 +217,20 @@ export default async function EmbedPersonPage({
               <a
                 href="/"
                 target="_top"
-                style={{ color: '#0F172A', textDecoration: 'underline', fontWeight: 600 }}
+                style={{ color: 'var(--ink)', textDecoration: 'none', fontWeight: 700 }}
               >
                 Hola Política
               </a>
             </span>
           </footer>
         </article>
-      </body>
-    </html>
   );
 }
 
 function Cell({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div>
-      <dt style={{ fontSize: 10, color: '#64748B', margin: 0 }}>{label}</dt>
+      <dt style={{ fontSize: 10, color: 'var(--ink-3)', margin: 0 }}>{label}</dt>
       <dd
         style={{
           fontSize: 22,

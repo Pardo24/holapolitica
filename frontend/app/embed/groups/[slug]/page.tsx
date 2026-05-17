@@ -1,19 +1,33 @@
+import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api } from '@/lib/api';
 
 /**
- * Embed widget for a parliamentary group.
+ * Embed widget for a parliamentary group — composition card.
  *
- *   <iframe src="https://holapolitica.org/embed/groups/sumar"
- *           width="100%" height="220" frameborder="0"></iframe>
+ * Usage:
+ *   <iframe src="https://www.holapolitica.org/embed/groups/sumar"
+ *           width="100%" height="280" frameborder="0"
+ *           loading="lazy"></iframe>
  *
- * Same rules as `/embed/votes/[id]` — see CLAUDE.md:
- *   sub-1s render, inline CSS, no third-party scripts, factual only,
- *   attribution and link back. Metrics are hardcoded to legislature 1
- *   (XV) for now; the widget is meant for Spanish national coverage
- *   and we'll re-evaluate when phase 2 (autonomies) lands.
+ * Replaces the earlier two-stat (cohesion + attendance) variant which
+ * Daniel flagged as low-value. The new widget surfaces the FACTUAL
+ * demographic composition of the group: total seats, gender split as
+ * a stacked bar, and age distribution as a small histogram. Cohesion
+ * + attendance remain on /groups/[slug] for analysts; the embed
+ * focuses on the picture a newsroom is most likely to want next to
+ * a story about who decided what.
+ *
+ * Same embed contract as the rest of /embed/*:
+ *   - sub-1s render, inline styles, no JS / external assets
+ *   - factual only (zero editorial framing)
+ *   - attribution + link back to the canonical page
  */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function EmbedGroupPage({
   params,
 }: {
@@ -24,195 +38,293 @@ export default async function EmbedGroupPage({
   const locale = await getLocale();
 
   let group;
-  let summary = null as Awaited<ReturnType<typeof api.metrics.groupSummary>>[number] | null;
+  let composition;
   try {
     group = await api.groups.get(slug);
-    const all = await api.metrics.groupSummary(1).catch(() => []);
-    summary = all.find((r) => r.group_slug === slug) ?? null;
+    composition = await api.groups.composition(slug);
   } catch {
-    return <div style={{ padding: 16, fontFamily: 'sans-serif' }}>{t('not_found')}</div>;
+    return (
+      <div
+        style={{
+          padding: 20,
+          fontSize: 13,
+          color: 'var(--ink-3)',
+          textAlign: 'center',
+          border: '1px solid var(--rule)',
+          background: 'var(--paper)',
+        }}
+      >
+        {t('not_found')}
+      </div>
+    );
   }
 
-  const cohesion = summary?.avg_cohesion;
-  const attendance = summary?.avg_attendance;
-  const color = group.color_hex ?? '#0F172A';
+  const color = group.color_hex ?? 'var(--ink)';
+
+  // Gender split — F / M / X / unknown. We render the bar only when
+  // at least one bucket has a value; otherwise we leave the slot
+  // empty rather than draw an empty grey rectangle.
+  const gd = composition.gender_distribution;
+  const genderTotal = (gd.F ?? 0) + (gd.M ?? 0) + (gd.X ?? 0) + (gd.unknown ?? 0);
+
+  // Age buckets in stable display order. The widget renders every
+  // non-zero bucket; an empty bucket disappears entirely (rather
+  // than showing "0" — too much noise in a small card).
+  const buckets: { key: keyof typeof composition.age_buckets; label: string }[] = [
+    { key: '<30', label: t('age_lt30') },
+    { key: '30-39', label: t('age_30_39') },
+    { key: '40-49', label: t('age_40_49') },
+    { key: '50-59', label: t('age_50_59') },
+    { key: '60+', label: t('age_60p') },
+  ];
+  const ageTotal = buckets.reduce(
+    (acc, b) => acc + (composition.age_buckets[b.key] ?? 0),
+    0,
+  );
+  const ageMax = Math.max(
+    1,
+    ...buckets.map((b) => composition.age_buckets[b.key] ?? 0),
+  );
 
   return (
-    <html lang={locale}>
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="noindex" />
-        <title>{t('embed_title')}</title>
-      </head>
-      <body
+    <article className="embed-card" lang={locale}>
+      <header
         style={{
-          margin: 0,
-          padding: 16,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          background: 'transparent',
-          color: '#0F172A',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          marginBottom: 14,
+          paddingBottom: 10,
+          borderBottom: `1px solid ${color}`,
         }}
       >
-        <article
+        <span
+          aria-hidden="true"
           style={{
-            border: '1px solid #E2E8F0',
-            borderRadius: 12,
-            padding: 16,
-            background: 'white',
+            width: 14,
+            height: 14,
+            borderRadius: 3,
+            background: color,
+            flex: 'none',
+            display: 'inline-block',
+          }}
+        />
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h1
+            className="serif"
+            style={{
+              margin: 0,
+              fontSize: 16,
+              lineHeight: 1.25,
+              fontWeight: 700,
+              color: 'var(--ink)',
+              letterSpacing: '-0.005em',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {group.name_long}
+          </h1>
+          <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--ink-3)' }}>
+            {group.name_short}
+          </p>
+        </div>
+        <span
+          className="tabular"
+          style={{
+            fontSize: 22,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            letterSpacing: '-0.01em',
+            lineHeight: 1,
+            whiteSpace: 'nowrap',
           }}
         >
-          <header
+          {composition.members_total}
+          <span
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              marginBottom: 14,
-              borderBottom: '1px solid #E2E8F0',
-              paddingBottom: 10,
+              fontSize: 10,
+              fontWeight: 600,
+              color: 'var(--ink-3)',
+              marginLeft: 4,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
             }}
           >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 999,
-                background: color,
-                flex: 'none',
-                display: 'inline-block',
-              }}
-            />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: 16,
-                  lineHeight: 1.2,
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {group.name_long}
-              </h1>
-              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#64748B' }}>
-                {group.name_short}
-              </p>
-            </div>
-            <span
-              style={{
-                background: `${color}1A`,
-                color: '#0F172A',
-                fontWeight: 700,
-                fontSize: 12,
-                padding: '4px 10px',
-                borderRadius: 6,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {group.members_active} {t('label_members').toLowerCase()}
-            </span>
-          </header>
+            {t('label_seats')}
+          </span>
+        </span>
+      </header>
 
-          <dl
+      {genderTotal > 0 && (
+        <section style={{ marginBottom: 14 }}>
+          <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 14,
-              margin: 0,
-              padding: '4px 0 10px',
-              borderBottom: '1px solid #E2E8F0',
-            }}
-          >
-            <Stat
-              label={t('label_cohesion')}
-              value={cohesion != null ? `${Math.round(cohesion * 100)}%` : '—'}
-              hint={
-                summary && summary.cohesion_votes_counted > 0
-                  ? `${summary.cohesion_votes_counted} ${t('label_votes_counted')}`
-                  : null
-              }
-              color="#1E40AF"
-            />
-            <Stat
-              label={t('label_attendance')}
-              value={attendance != null ? `${Math.round(attendance * 100)}%` : '—'}
-              hint={null}
-              color="#0E7490"
-            />
-          </dl>
-
-          <p style={{ margin: '8px 0 0', fontSize: 10, color: '#94A3B8', lineHeight: 1.4 }}>
-            {t('caveat')}
-          </p>
-
-          <footer
-            style={{
-              marginTop: 10,
-              fontSize: 11,
-              color: '#64748B',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 8,
+              fontSize: 10,
+              color: 'var(--ink-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontWeight: 700,
+              marginBottom: 6,
             }}
           >
-            <a
-              href={`/groups/${group.slug}`}
-              target="_top"
-              style={{ color: '#1E40AF', textDecoration: 'none', fontWeight: 600 }}
-            >
-              {t('see_detail')}
-            </a>
-            <span>
-              {t('source_label')}{' '}
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a
-                href="/"
-                target="_top"
-                style={{ color: '#0F172A', textDecoration: 'underline', fontWeight: 600 }}
-              >
-                Hola Política
-              </a>
+            <span>{t('parity_label')}</span>
+            <span className="tabular" style={{ color: 'var(--ink-2)' }}>
+              {gd.F} F · {gd.M} M
+              {gd.X > 0 ? ` · ${gd.X} X` : ''}
+              {gd.unknown > 0 ? ` · ${gd.unknown} ?` : ''}
             </span>
-          </footer>
-        </article>
-      </body>
-    </html>
-  );
-}
+          </div>
+          <div style={{ display: 'flex', height: 8, background: 'var(--rule)' }}>
+            {gd.F > 0 && (
+              <span
+                style={{
+                  width: `${(gd.F / genderTotal) * 100}%`,
+                  background: 'oklch(0.65 0.18 350)',
+                }}
+              />
+            )}
+            {gd.M > 0 && (
+              <span
+                style={{
+                  width: `${(gd.M / genderTotal) * 100}%`,
+                  background: 'oklch(0.55 0.12 250)',
+                }}
+              />
+            )}
+            {gd.X > 0 && (
+              <span
+                style={{
+                  width: `${(gd.X / genderTotal) * 100}%`,
+                  background: 'oklch(0.55 0.10 280)',
+                }}
+              />
+            )}
+            {gd.unknown > 0 && (
+              <span
+                style={{
+                  width: `${(gd.unknown / genderTotal) * 100}%`,
+                  background: 'var(--ink-3)',
+                }}
+              />
+            )}
+          </div>
+        </section>
+      )}
 
-function Stat({
-  label,
-  value,
-  hint,
-  color,
-}: {
-  label: string;
-  value: string;
-  hint: string | null;
-  color: string;
-}) {
-  return (
-    <div>
-      <dt style={{ fontSize: 11, color: '#64748B', margin: 0 }}>{label}</dt>
-      <dd
+      {ageTotal > 0 && (
+        <section style={{ marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 10,
+              color: 'var(--ink-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontWeight: 700,
+              marginBottom: 8,
+            }}
+          >
+            {t('age_label')}
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: 8,
+              alignItems: 'end',
+            }}
+          >
+            {buckets.map((b) => {
+              const n = composition.age_buckets[b.key] ?? 0;
+              const heightPct = n === 0 ? 0 : Math.max(8, (n / ageMax) * 100);
+              return (
+                <div key={b.key} style={{ textAlign: 'center', minWidth: 0 }}>
+                  <div
+                    style={{
+                      height: 42,
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      justifyContent: 'center',
+                      marginBottom: 4,
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: '70%',
+                        height: `${heightPct}%`,
+                        background: n > 0 ? color : 'var(--rule)',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+                  <div
+                    className="tabular"
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {n}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      color: 'var(--ink-3)',
+                      marginTop: 2,
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {b.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <footer
         style={{
-          fontSize: 26,
-          fontWeight: 600,
-          margin: 0,
-          color,
-          letterSpacing: '-0.01em',
-          lineHeight: 1.1,
+          marginTop: 14,
+          paddingTop: 10,
+          borderTop: '1px solid var(--rule)',
+          fontSize: 11,
+          color: 'var(--ink-3)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 8,
         }}
       >
-        {value}
-      </dd>
-      {hint && (
-        <p style={{ margin: '2px 0 0', fontSize: 10, color: '#94A3B8' }}>{hint}</p>
-      )}
-    </div>
+        <a
+          href={`/groups/${group.slug}`}
+          target="_top"
+          style={{
+            color: 'var(--ink)',
+            textDecoration: 'underline',
+            textUnderlineOffset: 3,
+            fontWeight: 600,
+          }}
+        >
+          {t('see_detail')}
+        </a>
+        <span>
+          {t('source_label')}{' '}
+          <a
+            href="/"
+            target="_top"
+            style={{ color: 'var(--ink)', textDecoration: 'none', fontWeight: 700 }}
+          >
+            Hola Política
+          </a>
+        </span>
+      </footer>
+    </article>
   );
 }

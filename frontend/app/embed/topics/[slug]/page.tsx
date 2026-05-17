@@ -1,6 +1,11 @@
+import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, type Topic, type TopicGlobalStat } from '@/lib/api';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Embed widget for a topic / SDG.
@@ -37,7 +42,7 @@ export default async function EmbedTopicPage({
   const name =
     (locale === 'es' ? topic.name_es : locale === 'en' ? topic.name_en : topic.name_ca) ||
     topic.name_ca;
-  const color = topic.color_hex ?? '#0F172A';
+  const color = topic.color_hex ?? 'var(--ink)';
   const kindLabel = topic.kind === 'sdg' ? t('kind_sdg') : t('kind_theme');
 
   const total = stat?.initiatives_total ?? 0;
@@ -47,37 +52,14 @@ export default async function EmbedTopicPage({
   const other = stat?.initiatives_other ?? 0;
 
   return (
-    <html lang={locale}>
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="noindex" />
-        <title>{t('embed_title')}</title>
-      </head>
-      <body
-        style={{
-          margin: 0,
-          padding: 16,
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          background: 'transparent',
-          color: '#0F172A',
-        }}
-      >
-        <article
-          style={{
-            border: '1px solid #E2E8F0',
-            borderRadius: 12,
-            padding: 16,
-            background: 'white',
-          }}
-        >
+    <article className="embed-card" lang={locale}>
           <header
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 12,
               marginBottom: 12,
-              borderBottom: '1px solid #E2E8F0',
+              borderBottom: `1px solid ${color}`,
               paddingBottom: 10,
             }}
           >
@@ -99,7 +81,7 @@ export default async function EmbedTopicPage({
                   fontSize: 10,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
-                  color: '#64748B',
+                  color: 'var(--ink-3)',
                   fontWeight: 600,
                 }}
               >
@@ -122,7 +104,7 @@ export default async function EmbedTopicPage({
             <span
               style={{
                 background: `${color}1A`,
-                color: '#0F172A',
+                color: 'var(--ink)',
                 fontWeight: 700,
                 fontSize: 14,
                 padding: '6px 12px',
@@ -136,10 +118,10 @@ export default async function EmbedTopicPage({
 
           <SegBar
             segments={[
-              { n: approved, color: '#16A34A', label: t('label_approved') },
-              { n: rejected, color: '#DC2626', label: t('label_rejected') },
-              { n: inDebate, color: '#CA8A04', label: t('label_in_debate') },
-              { n: other, color: '#CBD5E1', label: t('label_other') },
+              { n: approved, color: 'var(--aye)', label: t('label_approved') },
+              { n: rejected, color: 'var(--no)', label: t('label_rejected') },
+              { n: inDebate, color: 'var(--abst)', label: t('label_in_debate') },
+              { n: other, color: 'var(--nv, #CBD5E1)', label: t('label_other') },
             ]}
           />
 
@@ -150,20 +132,20 @@ export default async function EmbedTopicPage({
               gap: 10,
               margin: 0,
               padding: '10px 0',
-              borderBottom: '1px solid #E2E8F0',
+              borderBottom: '1px solid var(--rule)',
             }}
           >
-            <Cell n={approved} color="#16A34A" label={t('label_approved')} />
-            <Cell n={rejected} color="#DC2626" label={t('label_rejected')} />
-            <Cell n={inDebate} color="#CA8A04" label={t('label_in_debate')} />
-            <Cell n={other} color="#94A3B8" label={t('label_other')} />
+            <Cell n={approved} color="var(--aye)" label={t('label_approved')} />
+            <Cell n={rejected} color="var(--no)" label={t('label_rejected')} />
+            <Cell n={inDebate} color="var(--abst)" label={t('label_in_debate')} />
+            <Cell n={other} color="var(--ink-3)" label={t('label_other')} />
           </dl>
 
           <footer
             style={{
               marginTop: 10,
               fontSize: 11,
-              color: '#64748B',
+              color: 'var(--ink-3)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -173,7 +155,12 @@ export default async function EmbedTopicPage({
             <a
               href={`/topics/${topic.slug}`}
               target="_top"
-              style={{ color: '#1E40AF', textDecoration: 'none', fontWeight: 600 }}
+              style={{
+                color: 'var(--ink)',
+                textDecoration: 'underline',
+                textUnderlineOffset: 3,
+                fontWeight: 600,
+              }}
             >
               {t('see_detail')}
             </a>
@@ -183,22 +170,20 @@ export default async function EmbedTopicPage({
               <a
                 href="/"
                 target="_top"
-                style={{ color: '#0F172A', textDecoration: 'underline', fontWeight: 600 }}
+                style={{ color: 'var(--ink)', textDecoration: 'none', fontWeight: 700 }}
               >
                 Hola Política
               </a>
             </span>
           </footer>
         </article>
-      </body>
-    </html>
   );
 }
 
 function Cell({ n, color, label }: { n: number; color: string; label: string }) {
   return (
     <div>
-      <dt style={{ fontSize: 10, color: '#64748B', margin: 0 }}>{label}</dt>
+      <dt style={{ fontSize: 10, color: 'var(--ink-3)', margin: 0 }}>{label}</dt>
       <dd style={{ fontSize: 20, fontWeight: 600, margin: 0, color }}>{n}</dd>
     </div>
   );
@@ -223,7 +208,7 @@ function SegBar({
         height: 8,
         borderRadius: 999,
         overflow: 'hidden',
-        background: '#F1F5F9',
+        background: 'var(--rule)',
         margin: '4px 0 10px',
       }}
     >
