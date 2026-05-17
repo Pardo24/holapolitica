@@ -501,6 +501,7 @@ export default async function PersonDetailPage({
         >
           {t('vote_by_topic_subtitle')}
         </p>
+        <StanceArc rows={topicStats} locale={locale} t={t} />
         <TopicBars
           rows={topicStats}
           emptyHint={t('vote_by_topic_empty_hint')}
@@ -516,6 +517,130 @@ export default async function PersonDetailPage({
         }
       `}</style>
     </article>
+  );
+}
+
+/**
+ * "Stance arc" — a single sentence per topic describing how the
+ * deputy has voted on classified initiatives in that area. Inspired
+ * by TheyWorkForYou's plain-language voting record but kept strictly
+ * descriptive (no opinion words like "supported" / "opposed"): we
+ * state the literal vote-choice breakdown and leave interpretation
+ * to the reader.
+ *
+ * Only the top 5 topics by vote count are surfaced so the section
+ * doesn't dwarf the bar chart that follows. Topics with fewer than
+ * 3 votes are also suppressed — a single Aye carries no signal.
+ */
+function StanceArc({
+  rows,
+  locale,
+  t,
+}: {
+  rows: TopicVoteStat[];
+  locale: string;
+  t: Awaited<ReturnType<typeof getTranslations<'person'>>>;
+}) {
+  // Cast = ayes + noes + abstentions (no_vote = absent, not counted).
+  // Sort by cast desc; keep the heaviest 5; skip anything <3 votes
+  // because the single-vote case isn't a "pattern".
+  const ranked = [...rows]
+    .filter((r) => r.cast >= 3)
+    .sort((a, b) => b.cast - a.cast)
+    .slice(0, 5);
+  if (ranked.length === 0) return null;
+  return (
+    <section
+      style={{
+        margin: '0 0 22px',
+        padding: '14px 18px',
+        background: 'var(--paper-2)',
+        border: '1px solid var(--rule)',
+      }}
+    >
+      <div
+        className="eyebrow"
+        style={{ fontSize: 10, marginBottom: 8, color: 'var(--ink-3)' }}
+      >
+        {t('stance_arc_eyebrow')}
+      </div>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {ranked.map((row) => {
+          const name =
+            (locale === 'es' && (row as { topic_name_es?: string }).topic_name_es) ||
+            (locale === 'en' && (row as { topic_name_en?: string }).topic_name_en) ||
+            row.topic_name_ca;
+          // Pick whichever stance (Sí / No / Abst.) the deputy used
+          // most often. Ties fall back to the order ayes > noes >
+          // abstentions which is meaningless on its own but stable.
+          const choices: { key: 'ayes' | 'noes' | 'abstentions'; n: number }[] = [
+            { key: 'ayes', n: row.ayes },
+            { key: 'noes', n: row.noes },
+            { key: 'abstentions', n: row.abstentions },
+          ];
+          choices.sort((a, b) => b.n - a.n);
+          const top = choices[0]!;
+          const share = top.n / row.cast;
+          let intensity: 'majority' | 'mostly' | 'mixed';
+          if (share >= 0.75) intensity = 'majority';
+          else if (share >= 0.55) intensity = 'mostly';
+          else intensity = 'mixed';
+          // i18n key shape: stance_<intensity>_<choice> — gives 9
+          // localisable variants and lets each language pick the
+          // natural verb tense without us interpolating prose.
+          const phraseKey =
+            intensity === 'mixed'
+              ? 'stance_mixed'
+              : `stance_${intensity}_${top.key}`;
+          const phrase = t(phraseKey, {
+            count: top.n,
+            total: row.cast,
+            ayes: row.ayes,
+            noes: row.noes,
+            abst: row.abstentions,
+          });
+          return (
+            <li
+              key={row.topic_slug}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, auto) minmax(0, 1fr)',
+                gap: 12,
+                alignItems: 'baseline',
+                padding: '6px 0',
+                borderTop: '1px solid var(--rule)',
+                fontSize: 13.5,
+                lineHeight: 1.5,
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 2,
+                    background: row.topic_color_hex ?? 'var(--ink-3)',
+                    flex: 'none',
+                  }}
+                />
+                {name}
+              </span>
+              <span style={{ color: 'var(--ink-2)' }}>{phrase}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

@@ -19,6 +19,21 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
   const half = 50; // %
   const ayePct = (row.ayes / members) * half;
   const noPct = (row.noes / members) * half;
+  // Dissident count — members of the group who voted opposite the
+  // group's majority choice. Computed from the same Sí/No/Abst
+  // counts so it's symmetric (every group exposed identically). We
+  // don't NAME individual dissenters yet (that needs a per-deputy
+  // endpoint); the count alone is the journalistic signal — "PSOE 3
+  // votaren contra del grup" reads better than a 96% cohesion
+  // percentage. Skipped when the group is tiny (size < 5) or had no
+  // dissent — no need to render "0 dissidents".
+  const cast = row.ayes + row.noes + row.abstentions;
+  let dissidents = 0;
+  if (cast > 0) {
+    const majority = Math.max(row.ayes, row.noes, row.abstentions);
+    dissidents = cast - majority;
+  }
+  const showDissidents = members >= 5 && dissidents > 0;
 
   return (
     <div
@@ -48,6 +63,25 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
         <span className="tabular" style={{ fontSize: 10, color: 'var(--ink-3)', flex: 'none' }}>
           {members}
         </span>
+        {showDissidents && (
+          <span
+            title={`${dissidents} ${dissidents === 1 ? 'dissident' : 'dissidents'}`}
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: 'var(--ink-2)',
+              background: 'var(--paper-3)',
+              border: '1px solid var(--rule)',
+              padding: '0 6px',
+              borderRadius: 999,
+              letterSpacing: '0.04em',
+              flex: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ↯ {dissidents}
+          </span>
+        )}
       </div>
       <div
         style={{
