@@ -74,6 +74,25 @@ export async function SessionSheet({
   const tightestVote = tightestVoteId
     ? ordered.find((v) => v.id === tightestVoteId) ?? null
     : null;
+  // Dossier-iframe target: prefer the tightest vote when it links to
+  // an initiative, otherwise pick the vote-with-initiative_id whose
+  // margin is closest, since only Proyecto/Proposición/Reforma series
+  // have backing Initiative rows (PNL / Moción / RDL convalidation
+  // don't, so their votes can never link). Without this fallback the
+  // dossier widget on /avui silently disappeared on any session
+  // dominated by non-legislative votes.
+  const featuredInitiativeVote =
+    tightestVote?.initiative_id != null
+      ? tightestVote
+      : ordered
+          .filter(
+            (v) =>
+              v.initiative_id != null && v.ayes + v.noes >= 30,
+          )
+          .sort(
+            (a, b) =>
+              Math.abs(a.ayes - a.noes) - Math.abs(b.ayes - b.noes),
+          )[0] ?? null;
 
   // Session number — every vote in the bucket shares the same
   // ``session_id``; we display the smallest sequence's session as the
@@ -323,7 +342,7 @@ export async function SessionSheet({
           dossier height, lazy-loaded, and gets a clear caption so a
           reader knows this is the day's contentious law in dossier
           form. */}
-      {tightestVote?.initiative_id != null && (
+      {featuredInitiativeVote?.initiative_id != null && (
         <section
           style={{
             marginBottom: 28,
@@ -349,7 +368,7 @@ export async function SessionSheet({
             {t('featured_dossier_caption')}
           </p>
           <iframe
-            src={`/embed/initiatives/${tightestVote.initiative_id}`}
+            src={`/embed/initiatives/${featuredInitiativeVote.initiative_id}`}
             title={t('featured_dossier_iframe_title')}
             width="100%"
             height={480}
