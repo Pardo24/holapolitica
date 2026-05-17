@@ -1,17 +1,19 @@
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api } from '@/lib/api';
 
 export const revalidate = 600;
 
-export const metadata: Metadata = {
-  title: 'Per a periodistes · Hola Política',
-  description:
-    'Eines llestes per a redaccions: widgets embedables, cards socials, API REST i datasets ' +
-    'oberts del Congrés dels Diputats. Tot sota CC-BY 4.0 amb atribució.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('journalists');
+  return {
+    title: t('meta_title'),
+    description: t('meta_description'),
+  };
+}
 
 /**
  * Friendly landing for newsrooms — counterpart to the technical
@@ -27,6 +29,9 @@ export const metadata: Metadata = {
  * journalist can build a piece on themselves.
  */
 export default async function JournalistsPage() {
+  const t = await getTranslations('journalists');
+  // locale is reserved for future deep-links (e.g. /apidocs?lang=X).
+  await getLocale();
   // Live preview ids — pick the most recent vote so the demo always
   // shows fresh content. Group + topic + initiative slugs/ids are
   // stable references we know exist in the XV legislature; hard-coded
@@ -44,16 +49,15 @@ export default async function JournalistsPage() {
   return (
     <article style={{ maxWidth: 880, paddingTop: 24, paddingBottom: 64 }}>
       <div className="eyebrow" style={{ marginBottom: 8 }}>
-        Per a redaccions
+        {t('eyebrow')}
       </div>
       <h1 className="h-headline" style={{ margin: '6px 0 14px' }}>
-        Eines llestes per a periodistes
+        {t('h1')}
       </h1>
       <p style={{ fontSize: 16, color: 'var(--ink-2)', lineHeight: 1.6, margin: '0 0 22px' }}>
-        Quatre maneres d&apos;incorporar el que vota el Congrés en una peça:
-        widgets responsius, cards socials, API REST i descàrregues directes.
-        Tot CC-BY 4.0 — només cal citar <em>Hola Política</em> i la font
-        original (Congreso de los Diputados).
+        {t.rich('intro', {
+          em: (chunks) => <em>{chunks}</em>,
+        })}
       </p>
 
       {/* Live-example callout — points the reader at /avui as a real
@@ -93,12 +97,16 @@ export default async function JournalistsPage() {
         </span>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
-            Veure-ho fet
+            {t('live_example_title')}
           </div>
           <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5 }}>
-            La portada <Link href={'/avui' as Route} style={{ color: 'var(--accent)' }}>/avui</Link> és
-            una composició automàtica d&apos;aquests mateixos widgets. Cada
-            30 minuts es regenera amb les dades més recents.
+            {t.rich('live_example_body', {
+              link: (chunks) => (
+                <Link href={'/avui' as Route} style={{ color: 'var(--accent)' }}>
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </div>
         <Link
@@ -116,97 +124,95 @@ export default async function JournalistsPage() {
             flex: 'none',
           }}
         >
-          Anar a /avui →
+          {t('live_example_cta')}
         </Link>
       </aside>
 
-      <Section title="Widgets per a articles">
+      <Section title={t('widgets_section_title')}>
         <p>
-          Cada widget és un <code style={inlineCode}>&lt;iframe&gt;</code> de
-          menys d&apos;un segon de càrrega, sense cookies de tercers, amb
-          enllaç a la font original. Copia el fragment i enganxa&apos;l al
-          CMS. Cinc widgets, ordenats per utilitat editorial.
+          {t.rich('widgets_intro', {
+            code: (chunks) => <code style={inlineCode}>{chunks}</code>,
+          })}
         </p>
 
+        {/* Dossier FIRST — Daniel: 'el primer widget sigui Fitxa
+            completa d'una llei'. This is the most newsroom-ready
+            widget: drop it into an article about ONE law and you're
+            done. */}
         <EmbedExample
-          title="Explorador filtrat (la URL és l'estat)"
-          description="Tres filtres a la URL i sortiu amb la vista que volíeu: per tema, per resultat, per grup proposant, per finestra temporal. Compartir l'iframe amb un altre periodista equival a compartir la consulta exacta — la URL és la query. Patró d'Our World in Data."
-          src="/embed/explorer?topic=habitatge&result=approved&limit=6"
-          height={520}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="Votacions filtrades — Hola Política"\n></iframe>\n<!-- Paràmetres acceptats: topic, result (approved|rejected|tie), group, from, to, limit (1-20) -->`}
-        />
-
-        <EmbedExample
-          title="Fitxa completa d'una llei (dossier)"
-          description="Un sol iframe amb tot el que un article sobre una llei sol voler al costat: el títol, el resum en llenguatge planer, els temes classificats, el resultat de la votació final i els enllaços a BOE + data d'entrada en vigor. Pensat per a la peça monogràfica sobre UNA llei."
+          title={t('widget_dossier_title')}
+          description={t('widget_dossier_desc')}
           src={`/embed/initiatives/${sampleInitiativeId}`}
           height={460}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="460" frameborder="0"\n  loading="lazy"\n  title="Llei al Congrés — Hola Política"\n></iframe>`}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="460" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_dossier')}"\n></iframe>`}
         />
 
         <EmbedExample
-          title="Resultat d'una votació · amb cohesió per grup"
-          description="Per a una votació concreta: totals (Sí · No · Abst. · Absents), barra apilada, qui la proposa i — la dada periodística clau — la tira de cohesió per als 4 grups majoritaris (com va votar cada grup com a bloc) + percentatge vs mitjana de la legislatura."
+          title={t('widget_explorer_title')}
+          description={t('widget_explorer_desc')}
+          src="/embed/explorer?topic=habitatge&result=approved&limit=6"
+          height={520}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_explorer')}"\n></iframe>\n<!-- ${t('explorer_params_comment')} -->`}
+        />
+
+        <EmbedExample
+          title={t('widget_vote_title')}
+          description={t('widget_vote_desc')}
           src={`/embed/votes/${sampleVoteId}`}
           height={400}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="400" frameborder="0"\n  loading="lazy"\n  title="Votació al Congrés — Hola Política"\n></iframe>`}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="400" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
         />
 
         <EmbedExample
-          title="Composició d'un grup parlamentari (paritat + edat)"
-          description="Per a una peça sobre un grup: total d'escons, repartiment de gènere com a barra apilada amb la mitjana de la cambra com a línia de referència, i histograma per franja d'edat — també amb línia de referència legislativa. Útil per a contextualitzar diferències demogràfiques sense afirmar res."
+          title={t('widget_group_title')}
+          description={t('widget_group_desc')}
           src="/embed/groups/gp-socialista"
           height={300}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="300" frameborder="0"\n  loading="lazy"\n  title="Grup parlamentari — Hola Política"\n></iframe>`}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="300" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_group')}"\n></iframe>`}
         />
 
         <EmbedExample
-          title="Snapshot per tema"
-          description="Per a una peça centrada en un tema: quantes iniciatives s'han presentat, aprovat, rebutjat o estan en tràmit. Petit, ràpid, complementa bé un article temàtic."
+          title={t('widget_topic_title')}
+          description={t('widget_topic_desc')}
           src="/embed/topics/habitatge"
           height={220}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/topics/<slug>"\n  width="100%" height="220" frameborder="0"\n  loading="lazy"\n  title="Tema — Hola Política"\n></iframe>`}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/topics/<slug>"\n  width="100%" height="220" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_topic')}"\n></iframe>`}
         />
 
         <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-          Tots els slugs (grup, tema) i identificadors (vot, llei, persona)
-          són els de la nostra base de dades. Pots trobar-los navegant a{' '}
-          <Link href={'/votes' as Route} style={{ color: 'var(--accent)' }}>
-            /votes
-          </Link>
-          ,{' '}
-          <Link href={'/groups' as Route} style={{ color: 'var(--accent)' }}>
-            /groups
-          </Link>
-          ,{' '}
-          <Link href={'/topics' as Route} style={{ color: 'var(--accent)' }}>
-            /topics
-          </Link>{' '}
-          o{' '}
-          <Link href={'/persons' as Route} style={{ color: 'var(--accent)' }}>
-            /persons
-          </Link>{' '}
-          — o consultant la API a{' '}
-          <Link href={'/apidocs' as Route} style={{ color: 'var(--accent)' }}>
-            /apidocs
-          </Link>
-          .
+          {t.rich('ids_explainer', {
+            votes: (chunks) => (
+              <Link href={'/votes' as Route} style={{ color: 'var(--accent)' }}>
+                {chunks}
+              </Link>
+            ),
+            groups: (chunks) => (
+              <Link href={'/groups' as Route} style={{ color: 'var(--accent)' }}>
+                {chunks}
+              </Link>
+            ),
+            topics: (chunks) => (
+              <Link href={'/topics' as Route} style={{ color: 'var(--accent)' }}>
+                {chunks}
+              </Link>
+            ),
+            persons: (chunks) => (
+              <Link href={'/persons' as Route} style={{ color: 'var(--accent)' }}>
+                {chunks}
+              </Link>
+            ),
+            apidocs: (chunks) => (
+              <Link href={'/apidocs' as Route} style={{ color: 'var(--accent)' }}>
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </Section>
 
-      <Section title="Cards socials (Open Graph)">
-        <p>
-          Cada votació, iniciativa, grup o persona té una imatge OG 1200×630
-          que es genera automàticament. Quan compartiu un enllaç de Hola
-          Política a Bluesky, X o LinkedIn, la previsualització ja inclou
-          el resultat de la votació o la fitxa del diputat — sense haver
-          de fer cap muntatge.
-        </p>
-        <p>
-          Si voleu utilitzar la imatge directament com a fitxer (header
-          d&apos;article, etc.), aquestes són les URLs estables de la
-          convenció Next.js:
-        </p>
+      <Section title={t('og_section_title')}>
+        <p>{t('og_intro_1')}</p>
+        <p>{t('og_intro_2')}</p>
         <pre style={preStyle}>
 {`https://holapolitica.org/opengraph-image
 https://holapolitica.org/votes/${sampleVoteId}/opengraph-image
@@ -218,74 +224,76 @@ https://holapolitica.org/stats/opengraph-image`}
         </pre>
       </Section>
 
-      <Section title="Idees de talls de dades">
-        <p>
-          Aquestes són rutes obertes que es poden creuar amb facilitat —
-          no són «històries», són dades sense interpretació que la
-          redacció pot vestir:
-        </p>
+      <Section title={t('data_ideas_section_title')}>
+        <p>{t('data_ideas_intro')}</p>
         <ul style={listStyle}>
           <li>
-            <strong>Cohesió mitjana per grup</strong> a la legislatura
-            actual i comparació amb anteriors (quan tinguem cobertura
-            històrica completa).
+            {t.rich('data_idea_cohesion', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
           <li>
-            <strong>Aprovació per tema</strong>: quins blocs temàtics tenen
-            més iniciatives aprovades respecte rebutjades. Tots els temes,
-            sense rànquings.
+            {t.rich('data_idea_topic_approval', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
           <li>
-            <strong>Coincidència entre parelles de grups</strong>: matriu
-            simètrica completa amb el percentatge de vots on dos grups
-            voten igual sentit.
+            {t.rich('data_idea_coincidence', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
           <li>
-            <strong>Demografia per grup</strong>: distribució per gènere
-            i edat mitjana de membres actius. Totes les forces visibles.
+            {t.rich('data_idea_demographics', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
           <li>
-            <strong>Assistència agregada</strong> per grup i diputat.
-            Caveats clars per a càrrecs institucionals (govern, mesa) on
-            la mètrica no és comparable amb la resta.
+            {t.rich('data_idea_attendance', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
         </ul>
       </Section>
 
-      <Section title="API REST i datasets">
+      <Section title={t('api_section_title')}>
         <p>
-          L&apos;API està documentada a{' '}
-          <Link href={'/apidocs' as Route} style={{ color: 'var(--accent)' }}>
-            /apidocs
-          </Link>{' '}
-          — endpoints REST públics, paginació estable, JSON. Cap clau
-          d&apos;API ni registre. Cache de 5 minuts a la capa Vercel + 1
-          hora al backend.
+          {t.rich('api_intro', {
+            apidocs: (chunks) => (
+              <Link href={'/apidocs' as Route} style={{ color: 'var(--accent)' }}>
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
         <p>
-          <strong>Volums alts d&apos;ús</strong> (&gt; 100 req/min sostingudes)
-          envieu-nos un correu abans de desplegar res — així us avancem
-          quotes i preparem el caché.
+          {t.rich('api_high_volume', {
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
         </p>
       </Section>
 
-      <Section title="Llicències">
+      <Section title={t('license_section_title')}>
         <ul style={listStyle}>
           <li>
-            <strong>Dades</strong>: CC-BY 4.0. Atribució a{' '}
-            <em>Hola Política</em> i la font original (Congreso de los
-            Diputados).
+            {t.rich('license_data', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+              em: (chunks) => <em>{chunks}</em>,
+            })}
           </li>
           <li>
-            <strong>Codi font</strong>: EUPL-1.2 — repositori a{' '}
-            <ExternalLink href="https://github.com/Pardo24/holapolitica">
-              github.com/Pardo24/holapolitica
-            </ExternalLink>
-            .
+            {t.rich('license_code', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+              link: (chunks) => (
+                <ExternalLink href="https://github.com/Pardo24/holapolitica">
+                  {chunks}
+                </ExternalLink>
+              ),
+            })}
           </li>
           <li>
-            <strong>Widgets i imatges OG</strong>: lliures d&apos;ús
-            editorial amb la mateixa obligació d&apos;atribució.
+            {t.rich('license_widgets', {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </li>
         </ul>
       </Section>
@@ -300,12 +308,10 @@ https://holapolitica.org/stats/opengraph-image`}
         }}
       >
         <div className="eyebrow" style={{ marginBottom: 6 }}>
-          Contacte editorial
+          {t('contact_eyebrow')}
         </div>
         <p style={{ margin: '0 0 12px', color: 'var(--ink-2)', fontSize: 14 }}>
-          Si la teva redacció vol un tall específic (per exemple, totes les
-          votacions d&apos;un partit en un trimestre, o l&apos;activitat per
-          circumscripció), escrivim-vos i ho preparem.
+          {t('contact_body')}
         </p>
         <a
           href="mailto:daniel@holapolitica.org"
@@ -339,7 +345,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function EmbedExample({
+async function EmbedExample({
   title,
   description,
   src,
@@ -352,6 +358,8 @@ function EmbedExample({
   height: number;
   snippet: string;
 }) {
+  const t = await getTranslations('journalists');
+  const snippetSummary = t('snippet_summary');
   return (
     <div
       style={{
@@ -397,7 +405,7 @@ function EmbedExample({
             padding: '4px 0',
           }}
         >
-          Fragment HTML
+          {snippetSummary}
         </summary>
         <pre style={preStyle}>{snippet}</pre>
       </details>
