@@ -44,11 +44,13 @@ export default async function AvuiPage() {
   const t = await getTranslations('avui');
   const locale = await getLocale();
 
-  // One paginated call covers many sessions. 200 votes covers roughly
-  // 12 plenary days (≈15-20 votes per day) which is plenty for the
-  // "sessions anteriors" sidebar without paying for a deeper window.
+  // One paginated call covers many sessions. 100 votes (the backend's
+  // hard cap) covers roughly 5-7 plenary days (≈15-20 votes per day)
+  // which is plenty for the "sessions anteriors" sidebar — going
+  // wider would need a second page fetch and isn't worth the round
+  // trip yet.
   const votesPage = await api.votes
-    .list({ page: 1, page_size: 200 })
+    .list({ page: 1, page_size: 100 })
     .catch(() => null);
   const items: Vote[] = votesPage?.items ?? [];
 

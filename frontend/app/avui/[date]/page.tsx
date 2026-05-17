@@ -68,7 +68,10 @@ export default async function AvuiArchivePage({
       .list({ date_from: date, date_to: date, page: 1, page_size: 50 })
       .catch(() => null),
     api.votes
-      .list({ page: 1, page_size: 200 })
+      // Page-size hard cap is 100 server-side. The context window
+      // only needs to cover prev/next neighbour dates so 100 is
+      // ample (≈5-7 plenary days back).
+      .list({ page: 1, page_size: 100 })
       .catch(() => null),
   ]);
 
