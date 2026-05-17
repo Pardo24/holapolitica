@@ -108,6 +108,17 @@ export default async function PersonDetailPage({
     person.wikipedia_url_es ||
     person.wikipedia_url_en ||
     null;
+  // Locale-resolved Wikipedia extract — same CA → ES → EN cascade as
+  // the article URL so the blurb stays in the user's language when
+  // available and falls back gracefully when not.
+  const wikiSummary =
+    (locale === 'ca' && person.wikipedia_summary_ca) ||
+    (locale === 'es' && person.wikipedia_summary_es) ||
+    (locale === 'en' && person.wikipedia_summary_en) ||
+    person.wikipedia_summary_ca ||
+    person.wikipedia_summary_es ||
+    person.wikipedia_summary_en ||
+    null;
 
   return (
     <article>
@@ -317,6 +328,48 @@ export default async function PersonDetailPage({
                   </span>
                   {person.education}
                 </span>
+              )}
+            </div>
+          )}
+          {wikiSummary && (
+            <div
+              style={{
+                marginTop: 14,
+                paddingTop: 14,
+                borderTop: '1px solid var(--rule)',
+                maxWidth: 720,
+              }}
+            >
+              <p
+                className="serif"
+                style={{
+                  margin: 0,
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: 'var(--ink-2)',
+                  fontStyle: 'normal',
+                }}
+              >
+                {wikiSummary}
+              </p>
+              {enrichedWiki && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 11,
+                    color: 'var(--ink-3)',
+                  }}
+                >
+                  {t('wikipedia_attribution')}{' '}
+                  <a
+                    href={enrichedWiki}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--ink-2)', textDecoration: 'underline' }}
+                  >
+                    Wikipedia
+                  </a>
+                </div>
               )}
             </div>
           )}

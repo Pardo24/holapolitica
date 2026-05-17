@@ -435,6 +435,25 @@ def enrich_initiatives_boe() -> dict[str, int]:
     return asyncio.run(_run())
 
 
+def enrich_persons_wikipedia() -> dict[str, int]:
+    """Fetch Wikipedia summary extracts for every person with a URL.
+
+    Follow-up to :func:`enrich_persons_wikidata`: the Wikidata pass
+    sets each person's per-locale Wikipedia URL; this job calls the
+    Wikipedia REST summary API to pull the article's first paragraph
+    and persists it for in-app display.
+    """
+    from app.ingest.wikipedia import enrich_persons_wikipedia as _enrich
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            counts = await _enrich(session)
+        await _invalidate_aggregate_caches()
+        return counts
+
+    return asyncio.run(_run())
+
+
 # ---------------------------------------------------------------------------
 # Social — Bluesky publisher
 # ---------------------------------------------------------------------------

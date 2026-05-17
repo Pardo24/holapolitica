@@ -533,6 +533,7 @@
     "wikipedia_link": "Wikipedia",
     "profession_label": "Professió",
     "education_label": "Formació",
+    "wikipedia_attribution": "Resum de",
     "mandates_title": "Mandats",
     "no_mandates": "No s'han registrat mandats per a aquesta persona.",
     "mandate_dates": "{from} → {to}",

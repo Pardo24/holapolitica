@@ -533,6 +533,7 @@
     "wikipedia_link": "Wikipedia",
     "profession_label": "Profession",
     "education_label": "Education",
+    "wikipedia_attribution": "Summary from",
     "mandates_title": "Mandates",
     "no_mandates": "No mandates recorded for this person.",
     "mandate_dates": "{from} → {to}",

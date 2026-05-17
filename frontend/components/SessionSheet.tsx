@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { ResultPill } from '@/components/ResultPill';
+import { StackedBar } from '@/components/StackedBar';
 import type { InitiativeTopicSlug, Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
@@ -185,68 +186,66 @@ export async function SessionSheet({
         </div>
       </header>
 
-      {/* Stats strip — aggregated session metrics. */}
+      {/* Stats kicker — single newspaper-style line. Eyebrow above
+          tabular value, cells separated by thin rules. Mirrors the
+          ``vote-meta-strip`` pattern on /votes/[id] so /avui reads in
+          the same visual language as the rest of the site (no rounded
+          dashboard cards). */}
       <section
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: 10,
+          display: 'flex',
+          gap: 22,
+          alignItems: 'baseline',
+          flexWrap: 'wrap',
+          paddingBottom: 18,
           marginBottom: 28,
+          borderBottom: '1px solid var(--rule)',
         }}
       >
-        <StatBox
+        <KickerStat
           label={t('stat_approved')}
           value={counts.approved}
           color="var(--aye, #16A34A)"
         />
-        <StatBox
+        <KickerStat
           label={t('stat_rejected')}
           value={counts.rejected}
           color="var(--no, #DC2626)"
+          divided
         />
-        <StatBox
-          label={t('stat_tie')}
-          value={counts.tie}
-          color="var(--abst, #CA8A04)"
-        />
+        {counts.tie > 0 && (
+          <KickerStat
+            label={t('stat_tie')}
+            value={counts.tie}
+            color="var(--abst, #CA8A04)"
+            divided
+          />
+        )}
         {tightestVote && (
           <Link
             href={`/votes/${tightestVote.id}` as Route}
             style={{
-              padding: '12px 14px',
-              border: '1px solid var(--rule-strong)',
-              borderRadius: 10,
-              background: 'var(--paper-2)',
               color: 'inherit',
               textDecoration: 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
+              borderLeft: '1px solid var(--rule)',
+              paddingLeft: 22,
             }}
           >
+            <span className="eyebrow">{t('stat_tightest_label')}</span>
             <div
               className="tabular"
               style={{
                 fontSize: 22,
                 fontWeight: 700,
                 color: 'var(--ink)',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.01em',
+                marginTop: 2,
+                lineHeight: 1.05,
               }}
             >
               {tightestMargin === 0
                 ? t('stat_tightest_tie')
                 : `±${tightestMargin}`}
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: 'var(--ink-3)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                fontWeight: 600,
-              }}
-            >
-              {t('stat_tightest_label')}
             </div>
           </Link>
         )}
@@ -418,49 +417,44 @@ export async function SessionSheet({
   );
 }
 
-function StatBox({
+/**
+ * One cell of the stats kicker — eyebrow caption above a tabular
+ * value, optionally preceded by a thin vertical rule. Same visual
+ * pattern as the meta strip on /votes/[id], keeping the two routes
+ * in one design language.
+ */
+function KickerStat({
   label,
   value,
   color,
+  divided = false,
 }: {
   label: string;
   value: number;
   color: string;
+  divided?: boolean;
 }) {
   return (
     <div
-      style={{
-        padding: '12px 14px',
-        border: '1px solid var(--rule)',
-        borderRadius: 10,
-        background: 'var(--paper-2)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-      }}
+      style={
+        divided
+          ? { borderLeft: '1px solid var(--rule)', paddingLeft: 22 }
+          : undefined
+      }
     >
+      <span className="eyebrow">{label}</span>
       <div
         className="tabular"
         style={{
-          fontSize: 28,
+          fontSize: 22,
           fontWeight: 700,
           color,
-          letterSpacing: '-0.02em',
-          lineHeight: 1,
+          letterSpacing: '-0.01em',
+          marginTop: 2,
+          lineHeight: 1.05,
         }}
       >
         {value}
-      </div>
-      <div
-        style={{
-          fontSize: 10,
-          color: 'var(--ink-3)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          fontWeight: 600,
-        }}
-      >
-        {label}
       </div>
     </div>
   );
@@ -672,7 +666,7 @@ function VoteRow({
             flexDirection: 'column',
             alignItems: 'flex-end',
             gap: 2,
-            minWidth: 96,
+            minWidth: 110,
             paddingTop: 2,
           }}
         >
@@ -691,6 +685,21 @@ function VoteRow({
             value={vote.abstentions}
             color="var(--abst, #CA8A04)"
           />
+          {/* Micro stacked bar — visual companion to the count column.
+              Lets the eye perceive the proportion (a 200-50 vote and a
+              140-130 vote both show 3 lines of numbers; the bar
+              distinguishes them at a glance). */}
+          <div style={{ width: 110, marginTop: 6 }}>
+            <StackedBar
+              d={{
+                aye: vote.ayes,
+                no: vote.noes,
+                abst: vote.abstentions,
+                nv: vote.absent,
+              }}
+              height={5}
+            />
+          </div>
           <span
             className="tabular"
             style={{

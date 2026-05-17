@@ -304,21 +304,22 @@ export default async function VoteDetailPage({
           <div
             style={{
               marginTop: summary ? 28 : 0,
-              padding: '18px 20px',
+              padding: '24px 26px',
               border: '1px solid var(--rule)',
               background: 'var(--paper-2)',
             }}
           >
-            <div className="eyebrow">
+            <div className="eyebrow" style={{ marginBottom: 22 }}>
               {t('totals_label', { total: totalCast + vote.absent })}
             </div>
             <div
+              className="vote-totals-grid"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                gap: 0,
-                marginTop: 8,
-                marginBottom: 12,
+                columnGap: 28,
+                rowGap: 22,
+                marginBottom: 22,
               }}
             >
               {[
@@ -326,23 +327,44 @@ export default async function VoteDetailPage({
                 { label: t('noes'), n: vote.noes, color: 'var(--no)' },
                 { label: t('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
                 { label: t('absent'), n: vote.absent, color: 'var(--nv)' },
-              ].map((c, i) => (
+              ].map((c) => (
                 <div
                   key={c.label}
-                  style={{
-                    borderLeft: i > 0 ? '1px solid var(--rule)' : 'none',
-                    paddingLeft: i > 0 ? 10 : 0,
-                    minWidth: 0,
-                  }}
+                  style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}
                 >
-                  <div className="eyebrow">{c.label}</div>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 7,
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      color: 'var(--ink-2)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      marginBottom: 10,
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: 999,
+                        background: c.color,
+                        flex: 'none',
+                      }}
+                    />
+                    {c.label}
+                  </div>
                   <div
                     className="tabular"
                     style={{
-                      fontSize: 'clamp(20px, 7vw, 32px)',
+                      fontSize: 'clamp(30px, 6.4vw, 44px)',
                       fontWeight: 600,
                       color: c.color,
-                      letterSpacing: '-0.02em',
+                      letterSpacing: '-0.015em',
+                      lineHeight: 1,
                     }}
                   >
                     {c.n}
@@ -352,11 +374,16 @@ export default async function VoteDetailPage({
             </div>
             <StackedBar
               d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
-              height={14}
+              height={12}
             />
-            <div
-              className="tabular"
-              style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 6 }}
+            <p
+              style={{
+                fontSize: 12.5,
+                lineHeight: 1.55,
+                color: 'var(--ink-2)',
+                marginTop: 14,
+                marginBottom: 0,
+              }}
             >
               {t('majority_caveat', {
                 needed,
@@ -364,7 +391,7 @@ export default async function VoteDetailPage({
                 noes: vote.noes,
                 margin: margin >= 0 ? `+${margin}` : String(margin),
               })}
-            </div>
+            </p>
           </div>
         </div>
 
@@ -404,6 +431,9 @@ export default async function VoteDetailPage({
       <style>{`
         @media (max-width: 860px) {
           .vote-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+        }
+        @media (max-width: 520px) {
+          .vote-totals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; column-gap: 20px !important; row-gap: 20px !important; }
         }
       `}</style>
     </article>

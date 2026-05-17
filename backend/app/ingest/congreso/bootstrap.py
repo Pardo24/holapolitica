@@ -976,11 +976,22 @@ async def _enrich_boe_step() -> dict[str, int]:
         return await enrich_initiatives_with_boe(session)
 
 
+async def _enrich_wikipedia_step() -> dict[str, int]:
+    """Bootstrap entry — fetch Wikipedia summary extracts for every
+    person with a Wikipedia URL set but no extract yet.
+    """
+    from app.ingest.wikipedia import enrich_persons_wikipedia
+
+    async with AsyncSessionLocal() as session:
+        return await enrich_persons_wikipedia(session)
+
+
 _STEPS = {
     "deputies": import_active_deputies,
     "initiatives": import_initiatives,
     "enrich_wikidata": _enrich_wikidata_step,
     "enrich_boe": _enrich_boe_step,
+    "enrich_wikipedia": _enrich_wikipedia_step,
     "pnl_xv": import_pnl_xv,
     "mocion_xv": import_mocion_xv,
     "rdl_xv": import_rdl_convalidacion_xv,

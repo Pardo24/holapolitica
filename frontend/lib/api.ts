@@ -166,6 +166,9 @@ export interface Person {
   wikipedia_url_ca?: string | null;
   wikipedia_url_es?: string | null;
   wikipedia_url_en?: string | null;
+  wikipedia_summary_ca?: string | null;
+  wikipedia_summary_es?: string | null;
+  wikipedia_summary_en?: string | null;
   education?: string | null;
   profession?: string | null;
 }

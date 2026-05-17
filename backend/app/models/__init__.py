@@ -233,6 +233,13 @@ class Person(Base, TimestampMixin):
     wikipedia_url_ca: Mapped[str | None] = mapped_column(String(500))
     wikipedia_url_es: Mapped[str | None] = mapped_column(String(500))
     wikipedia_url_en: Mapped[str | None] = mapped_column(String(500))
+    # Plain-text extract (first paragraph) pulled from Wikipedia REST
+    # summary API per locale. Stored server-side so the frontend reads
+    # in one DB query and stays resilient to Wikipedia downtime; the
+    # worker refreshes them periodically.
+    wikipedia_summary_ca: Mapped[str | None] = mapped_column(Text)
+    wikipedia_summary_es: Mapped[str | None] = mapped_column(Text)
+    wikipedia_summary_en: Mapped[str | None] = mapped_column(Text)
     education: Mapped[str | None] = mapped_column(String(255))
     profession: Mapped[str | None] = mapped_column(String(255))
 

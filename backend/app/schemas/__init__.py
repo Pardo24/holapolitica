@@ -114,6 +114,9 @@ class PersonRead(BaseModel):
     wikipedia_url_ca: str | None = None
     wikipedia_url_es: str | None = None
     wikipedia_url_en: str | None = None
+    wikipedia_summary_ca: str | None = None
+    wikipedia_summary_es: str | None = None
+    wikipedia_summary_en: str | None = None
     education: str | None = None
     profession: str | None = None
 
