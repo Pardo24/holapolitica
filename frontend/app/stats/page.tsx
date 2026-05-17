@@ -367,13 +367,7 @@ export default async function StatsPage({
           {groupSummary.length > 0 && (
             <Section
               title={t('group_summary_title')}
-              subtitle={
-                <>
-                  <Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />,{' '}
-                  <GlossaryTerm term="vots emesos">vots emesos</GlossaryTerm>
-                  {t('group_summary_subtitle_suffix')}
-                </>
-              }
+              subtitle={t('group_summary_subtitle')}
             >
               <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
             </Section>
