@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { ExternalLink } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
@@ -78,6 +79,7 @@ export default async function VoteDetailPage({
 
   const t = await getTranslations('votes');
   const tCommon = await getTranslations('common');
+  const tInitiative = await getTranslations('initiative_detail');
   const locale = await getLocale();
 
   let vote: Vote;
@@ -218,6 +220,32 @@ export default async function VoteDetailPage({
               </span>
             </div>
           </div>
+          {initiative?.boe_url && initiative?.boe_id && (
+            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
+              <span className="eyebrow">{tInitiative('boe_cta')}</span>
+              <div style={{ marginTop: 2 }}>
+                <a
+                  href={initiative.boe_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={initiative.boe_id}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    color: 'var(--ink)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  <span className="mono">{initiative.boe_id}</span>
+                  <ExternalLink size={12} aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

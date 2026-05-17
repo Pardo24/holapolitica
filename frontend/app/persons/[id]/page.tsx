@@ -96,6 +96,18 @@ export default async function PersonDetailPage({
   const wikiSearch = `https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(
     person.full_name + ' diputado',
   )}`;
+  // Prefer the locale-matched Wikipedia URL surfaced by the Wikidata
+  // enrichment worker. We fall back through CA → ES → EN so a CA
+  // visitor on a deputy without a Catalan Wikipedia entry still
+  // lands on the most relevant article rather than a search page.
+  const enrichedWiki =
+    (locale === 'ca' && person.wikipedia_url_ca) ||
+    (locale === 'es' && person.wikipedia_url_es) ||
+    (locale === 'en' && person.wikipedia_url_en) ||
+    person.wikipedia_url_ca ||
+    person.wikipedia_url_es ||
+    person.wikipedia_url_en ||
+    null;
 
   return (
     <article>
@@ -222,7 +234,7 @@ export default async function PersonDetailPage({
             </div>
           )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14, alignItems: 'center' }}>
-            {person.biography_url ? (
+            {person.biography_url && (
               <a
                 href={person.biography_url}
                 target="_blank"
@@ -237,9 +249,10 @@ export default async function PersonDetailPage({
               >
                 {t('biography_link')} <ArrowUpRight size={14} aria-hidden="true" />
               </a>
-            ) : (
+            )}
+            {enrichedWiki ? (
               <a
-                href={wikiSearch}
+                href={enrichedWiki}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -250,10 +263,63 @@ export default async function PersonDetailPage({
                   gap: 4,
                 }}
               >
-                {t('wikipedia_search')} <ArrowUpRight size={14} aria-hidden="true" />
+                {t('wikipedia_link')} <ArrowUpRight size={14} aria-hidden="true" />
               </a>
+            ) : (
+              !person.biography_url && (
+                <a
+                  href={wikiSearch}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: 13,
+                    color: 'var(--ink)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  {t('wikipedia_search')} <ArrowUpRight size={14} aria-hidden="true" />
+                </a>
+              )
             )}
           </div>
+          {(person.profession || person.education) && (
+            <div
+              style={{
+                marginTop: 10,
+                fontSize: 13,
+                color: 'var(--ink-2)',
+                display: 'flex',
+                gap: 14,
+                flexWrap: 'wrap',
+                lineHeight: 1.5,
+              }}
+            >
+              {person.profession && (
+                <span>
+                  <span
+                    className="eyebrow"
+                    style={{ fontSize: 10, marginRight: 6, color: 'var(--ink-3)' }}
+                  >
+                    {t('profession_label')}
+                  </span>
+                  {person.profession}
+                </span>
+              )}
+              {person.education && (
+                <span>
+                  <span
+                    className="eyebrow"
+                    style={{ fontSize: 10, marginRight: 6, color: 'var(--ink-3)' }}
+                  >
+                    {t('education_label')}
+                  </span>
+                  {person.education}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </header>
 

@@ -82,6 +82,12 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "30 */4 * * *",
         jobs.post_recent_votes_to_bluesky,
     ),
+    # Open-data enrichment — runs once a day. Wikidata at 03:00 and
+    # BOE at 03:30 to keep both off the morning ingest window and
+    # spread out the external-API load. Both are idempotent so a
+    # missed run just gets picked up the next day.
+    ("monitor-enrich-wikidata", "ingest", "0 3 * * *", jobs.enrich_persons_wikidata),
+    ("monitor-enrich-boe", "ingest", "30 3 * * *", jobs.enrich_initiatives_boe),
 ]
 
 

@@ -158,6 +158,16 @@ export interface Person {
    * when the deputy has no committee membership listed.
    */
   commissions: string[] | null;
+  // Wikidata enrichment — populated by the nightly worker. NULL when
+  // the matcher couldn't pair the person with a single confident
+  // Wikidata candidate. The three Wikipedia URLs are pre-resolved
+  // for each UI locale.
+  wikidata_qid?: string | null;
+  wikipedia_url_ca?: string | null;
+  wikipedia_url_es?: string | null;
+  wikipedia_url_en?: string | null;
+  education?: string | null;
+  profession?: string | null;
 }
 
 export type VoteResult = 'approved' | 'rejected' | 'tie';
@@ -509,6 +519,12 @@ export interface Initiative {
   plain_summary_es: string | null;
   plain_summary_provider: string | null;
   plain_summary_generated_at: string | null;
+  // BOE link — populated by the nightly enrichment worker for
+  // approved laws that have been formally published. NULL when the
+  // initiative hasn't reached publication or the matcher couldn't
+  // confidently pair it.
+  boe_id?: string | null;
+  boe_url?: string | null;
   /**
    * Populated by the dedicated `/initiatives/{id}` detail endpoint;
    * legacy callers that hit the same endpoint may receive empty arrays

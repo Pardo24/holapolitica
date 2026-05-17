@@ -392,6 +392,50 @@ def _site_url() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Open-data enrichment workers
+# ---------------------------------------------------------------------------
+#
+# Both jobs are best-effort and idempotent: they re-fetch the external
+# source on each run and only update rows that gained new information.
+# Failures are logged and swallowed so a single misbehaving upstream
+# never blocks the cron.
+
+
+def enrich_persons_wikidata() -> dict[str, int]:
+    """Match every Person to a Wikidata Q-id and persist linked URLs.
+
+    Runs the one-shot SPARQL query at query.wikidata.org and pairs
+    candidates to local persons via name + birth-year. Updated rows
+    pick up Wikipedia URLs (CA/ES/EN), education + profession labels
+    and (when missing) birth_year.
+    """
+    from app.ingest.wikidata import enrich_persons_from_wikidata
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            counts = await enrich_persons_from_wikidata(session)
+        # Persons table is read by the deputies hub + group composition;
+        # bust those caches so the next visitor sees the enriched data.
+        await _invalidate_aggregate_caches()
+        return counts
+
+    return asyncio.run(_run())
+
+
+def enrich_initiatives_boe() -> dict[str, int]:
+    """Match every approved publishable initiative to its BOE entry."""
+    from app.ingest.boe import enrich_initiatives_with_boe
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            counts = await enrich_initiatives_with_boe(session)
+        await _invalidate_aggregate_caches()
+        return counts
+
+    return asyncio.run(_run())
+
+
+# ---------------------------------------------------------------------------
 # Social — Bluesky publisher
 # ---------------------------------------------------------------------------
 

@@ -223,6 +223,19 @@ class Person(Base, TimestampMixin):
         JSON().with_variant(JSONB(), "postgresql")
     )
 
+    # Wikidata enrichment — populated by the background worker
+    # ``enrich_persons_wikidata``. All columns are nullable; an
+    # unmatched person looks identical to one whose match failed
+    # rather than carrying a placeholder. ``wikidata_qid`` is the
+    # durable identifier; the per-locale Wikipedia URLs are
+    # pre-computed so the frontend never has to hit Wikidata.
+    wikidata_qid: Mapped[str | None] = mapped_column(String(16), unique=True)
+    wikipedia_url_ca: Mapped[str | None] = mapped_column(String(500))
+    wikipedia_url_es: Mapped[str | None] = mapped_column(String(500))
+    wikipedia_url_en: Mapped[str | None] = mapped_column(String(500))
+    education: Mapped[str | None] = mapped_column(String(255))
+    profession: Mapped[str | None] = mapped_column(String(255))
+
     # Relationships
     mandates: Mapped[list[Mandate]] = relationship("Mandate", back_populates="person")
 
@@ -397,6 +410,16 @@ class Initiative(Base, TimestampMixin):
     # name and group, exceeding 255 chars.
     submitted_by: Mapped[str | None] = mapped_column(Text)
     source_url: Mapped[str | None] = mapped_column(String(500))
+    # Reference to the Boletín Oficial del Estado entry when an
+    # approved initiative ends up published as law. ``boe_id`` is the
+    # canonical "BOE-A-YYYY-NNNNN" identifier; ``boe_url`` is the
+    # direct link to the boe.es entry. Both NULL until the worker
+    # ``enrich_initiatives_boe`` matches the expediente. Always
+    # nullable: many initiatives never reach publication (PNL,
+    # rejected projects, etc.) and we'd rather show nothing than
+    # invent a placeholder.
+    boe_id: Mapped[str | None] = mapped_column(String(40))
+    boe_url: Mapped[str | None] = mapped_column(String(500))
     # Plain-language explanations produced by an LLM, per locale. May be
     # NULL when the generator returned [INSUFICIENT] or when generation
     # hasn't run yet. See ``app.services.plain_summary``.

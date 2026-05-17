@@ -105,6 +105,17 @@ class PersonRead(BaseModel):
     # been scraped yet — frontend hides the section in that case.
     bio_text: str | None = None
     commissions: list[str] | None = None
+    # Wikidata enrichment (best-effort, populated by background
+    # worker). NULL when the matcher couldn't find a confident pair.
+    # ``wikidata_qid`` is the durable Q-id; the three localised
+    # Wikipedia URLs let the frontend deep-link to the visitor's
+    # language without an additional client-side lookup.
+    wikidata_qid: str | None = None
+    wikipedia_url_ca: str | None = None
+    wikipedia_url_es: str | None = None
+    wikipedia_url_en: str | None = None
+    education: str | None = None
+    profession: str | None = None
 
 
 class MandateRead(BaseModel):
@@ -198,6 +209,13 @@ class InitiativeRead(BaseModel):
     plain_summary_es: str | None = None
     plain_summary_provider: str | None = None
     plain_summary_generated_at: datetime | None = None
+    # Boletín Oficial del Estado reference — populated by the worker
+    # ``enrich_initiatives_boe`` for approved initiatives that have
+    # been formally published as law. NULL otherwise. ``boe_id`` is
+    # the human-readable BOE-A-YYYY-NNNNN string; ``boe_url`` is the
+    # deep link the frontend renders.
+    boe_id: str | None = None
+    boe_url: str | None = None
 
 
 class InitiativeVoteSummary(BaseModel):

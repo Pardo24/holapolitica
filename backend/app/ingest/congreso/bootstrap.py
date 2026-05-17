@@ -955,9 +955,32 @@ async def _run_all() -> None:
     await import_latest_session_votes()
 
 
+async def _enrich_wikidata_step() -> dict[str, int]:
+    """Bootstrap entry — run the Wikidata enrichment once.
+
+    Same code path as the recurring worker job; we just expose it as
+    a one-shot via the CLI so an operator can backfill or rerun
+    after a schema change without waiting for the cron.
+    """
+    from app.ingest.wikidata import enrich_persons_from_wikidata
+
+    async with AsyncSessionLocal() as session:
+        return await enrich_persons_from_wikidata(session)
+
+
+async def _enrich_boe_step() -> dict[str, int]:
+    """Bootstrap entry — run the BOE matcher once."""
+    from app.ingest.boe import enrich_initiatives_with_boe
+
+    async with AsyncSessionLocal() as session:
+        return await enrich_initiatives_with_boe(session)
+
+
 _STEPS = {
     "deputies": import_active_deputies,
     "initiatives": import_initiatives,
+    "enrich_wikidata": _enrich_wikidata_step,
+    "enrich_boe": _enrich_boe_step,
     "pnl_xv": import_pnl_xv,
     "mocion_xv": import_mocion_xv,
     "rdl_xv": import_rdl_convalidacion_xv,

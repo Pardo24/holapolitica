@@ -313,32 +313,70 @@ export default async function InitiativeDetailPage({
             </p>
           )}
 
-          {initiative.source_url && (
-            <a
-              href={initiative.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="initiative-source-link"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                marginTop: 18,
-                padding: '8px 14px',
-                border: '1px solid var(--rule-strong)',
-                borderRadius: 10,
-                background: 'var(--paper-2)',
-                color: 'var(--ink)',
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              <FileText size={14} aria-hidden="true" />
-              {t('source_pdf_cta')}
-              <ExternalLink size={12} aria-hidden="true" />
-            </a>
-          )}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 10,
+              marginTop: 18,
+            }}
+          >
+            {initiative.source_url && (
+              <a
+                href={initiative.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="initiative-source-link"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 14px',
+                  border: '1px solid var(--rule-strong)',
+                  borderRadius: 10,
+                  background: 'var(--paper-2)',
+                  color: 'var(--ink)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                <FileText size={14} aria-hidden="true" />
+                {t('source_pdf_cta')}
+                <ExternalLink size={12} aria-hidden="true" />
+              </a>
+            )}
+            {initiative.boe_url && initiative.boe_id && (
+              <a
+                href={initiative.boe_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={initiative.boe_id}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 14px',
+                  border: '1px solid var(--ink)',
+                  borderRadius: 10,
+                  background: 'var(--ink)',
+                  color: 'var(--paper)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                {t('boe_cta')}
+                <span
+                  className="mono"
+                  style={{ fontSize: 11, opacity: 0.85, fontWeight: 500 }}
+                >
+                  {initiative.boe_id}
+                </span>
+                <ExternalLink size={12} aria-hidden="true" />
+              </a>
+            )}
+          </div>
 
           {topics.length > 0 && (
             <div style={{ marginTop: 24 }}>
