@@ -31,11 +31,15 @@ const nextConfig = {
         source: '/embed/:path*',
         headers: COMMON_SECURITY_HEADERS,
       },
-      // Everything else: deny framing entirely. Vercel applies the
-      // first matching pattern, so this catch-all has to come after
-      // the embed rule above.
+      // Everything else: deny framing. Crucially, the catch-all must
+      // NOT also match /embed/* — Next.js applies every matching
+      // rule in order and the later one wins for same-key headers,
+      // so a naive ``/:path*`` source ends up setting
+      // X-Frame-Options: DENY on the very embed routes that need to
+      // be iframable. The negative lookahead excludes ``/embed/``
+      // from the catch-all entirely.
       {
-        source: '/:path*',
+        source: '/((?!embed/).*)',
         headers: [
           ...COMMON_SECURITY_HEADERS,
           { key: 'X-Frame-Options', value: 'DENY' },

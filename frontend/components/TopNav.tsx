@@ -36,6 +36,7 @@ export async function TopNav() {
   ];
   const secondary: { href: Route; label: string }[] = [
     { href: '/stats', label: t('stats') },
+    { href: '/journalists' as Route, label: t('journalists') },
     { href: '/notifications', label: t('notifications') },
   ];
 

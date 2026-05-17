@@ -160,22 +160,26 @@ export default async function AvuiPage() {
         </section>
       )}
 
+      {/* Closing block — centered newsletter call with a quiet
+          journalists link below. Symmetric single-column layout so
+          the bottom of /avui reads as a calm "subscribe" footer
+          rather than a two-up call-to-action splitting attention. */}
       <section
         style={{
-          marginTop: 32,
-          paddingTop: 24,
+          marginTop: 48,
+          paddingTop: 32,
           borderTop: '1px solid var(--ink)',
-          display: 'grid',
-          gridTemplateColumns: '1.2fr 0.8fr',
-          gap: 28,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
         }}
-        className="avui-closing"
       >
-        <div>
+        <div style={{ width: '100%', maxWidth: 560 }}>
           <h2
             style={{
               margin: 0,
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: 700,
               fontFamily: 'var(--font-serif)',
               letterSpacing: '-0.01em',
@@ -185,61 +189,42 @@ export default async function AvuiPage() {
           </h2>
           <p
             style={{
-              margin: '6px 0 14px',
+              margin: '8px auto 16px',
               fontSize: 14,
               color: 'var(--ink-2)',
               lineHeight: 1.6,
+              maxWidth: 480,
             }}
           >
             {t('newsletter_caption')}
           </p>
           <NewsletterSignup />
-        </div>
-        <div
-          style={{
-            padding: '14px 16px',
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule-strong)',
-            borderRadius: 12,
-          }}
-        >
-          <div className="eyebrow" style={{ fontSize: 10 }}>
-            {t('journalists_eyebrow')}
-          </div>
-          <p
+          <div
             style={{
-              margin: '4px 0 10px',
+              marginTop: 26,
+              paddingTop: 18,
+              borderTop: '1px solid var(--rule)',
               fontSize: 13,
-              color: 'var(--ink-2)',
+              color: 'var(--ink-3)',
               lineHeight: 1.5,
             }}
           >
-            {t('journalists_caption')}
-          </p>
-          <Link
-            href={'/journalists' as Route}
-            style={{
-              display: 'inline-block',
-              padding: '8px 14px',
-              border: '1px solid var(--ink)',
-              borderRadius: 999,
-              background: 'var(--paper)',
-              color: 'var(--ink)',
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            {t('journalists_cta')}
-          </Link>
+            {t('journalists_caption')}{' '}
+            <Link
+              href={'/journalists' as Route}
+              style={{
+                color: 'var(--ink)',
+                textDecoration: 'underline',
+                textUnderlineOffset: 3,
+                fontWeight: 600,
+                marginLeft: 4,
+              }}
+            >
+              {t('journalists_cta')}
+            </Link>
+          </div>
         </div>
       </section>
-
-      <style>{`
-        @media (max-width: 720px) {
-          .avui-closing { grid-template-columns: 1fr !important; gap: 22px !important; }
-        }
-      `}</style>
     </>
   );
 }
