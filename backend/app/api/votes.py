@@ -5,27 +5,34 @@ allow journalists and citizens to query "all housing-related votes in the curren
 legislature where Pedro Sánchez voted Aye" in a single request.
 """
 
+from collections import Counter
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, func, select
+from pydantic import BaseModel
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db import get_session
 from app.models import (
+    GroupMembership,
     Initiative,
     InitiativeTopic,
     InitiativeType,
+    Mandate,
     ParliamentaryGroup,
+    Person,
     Topic,
     Vote,
+    VoteRecord,
     VoteResult,
 )
 from app.models import (
     Session as SessionModel,
 )
 from app.schemas import InitiativeTopicSlug, VoteRead
+from app.services.cache import cached
 from app.services.proposing_group import resolve_proposing_group
 
 router = APIRouter(prefix="/votes", tags=["votes"])
@@ -173,6 +180,194 @@ async def _load_topics_by_initiative(
     for initiative_id, topic in rows:
         by_id.setdefault(initiative_id, []).append(topic)
     return by_id
+
+
+class DissidentPerson(BaseModel):
+    """A single deputy who voted opposite their group's majority position."""
+
+    person_id: int
+    full_name: str
+    photo_url: str | None
+    constituency: str | None
+    vote_choice: str  # 'aye' / 'no' / 'abstention' / 'no_vote'
+
+
+class GroupDissidentBlock(BaseModel):
+    """Per-group dissident bucket: the group, its majority position,
+    and the list of deputies who broke ranks. Symmetric by
+    construction — every group with at least one dissident appears,
+    regardless of which side broke. Groups with full unity disappear
+    so the section never gets padded with "0 dissidents" noise.
+    """
+
+    group_slug: str
+    group_name_short: str
+    group_color_hex: str | None
+    majority_choice: str  # the choice the majority of the group made
+    majority_count: int
+    dissidents: list[DissidentPerson]
+
+
+class VoteDissidentsResponse(BaseModel):
+    blocks: list[GroupDissidentBlock]
+
+
+async def _compute_dissidents(db: AsyncSession, vote_id: int) -> VoteDissidentsResponse:
+    """Identify every deputy who voted against their group's majority on this vote.
+
+    The grouping is "the deputy's group AT THE TIME of the vote"
+    (open GroupMembership intersecting ``vote.voted_at``), not the
+    deputy's current group — a substitution that happened after the
+    vote shouldn't reshuffle who counts as a dissident retroactively.
+
+    Returns one :class:`GroupDissidentBlock` per group that had at
+    least one dissident; groups with full unity are omitted from
+    the response (the cohesion endpoint already shows them as 100%).
+    """
+    vote = (await db.execute(select(Vote).where(Vote.id == vote_id))).scalar_one_or_none()
+    if vote is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vote not found")
+
+    # One query: every VoteRecord on this vote, joined to the deputy
+    # and the parliamentary group they belonged to at the moment of
+    # the vote. Group membership is point-in-time — a deputy who
+    # switched groups after this vote stays attributed to their
+    # original group here.
+    rows = (
+        await db.execute(
+            select(
+                VoteRecord.choice,
+                Person.id,
+                Person.full_name,
+                Person.photo_url,
+                Mandate.constituency,
+                ParliamentaryGroup.slug,
+                ParliamentaryGroup.name_short,
+                ParliamentaryGroup.color_hex,
+            )
+            .join(Mandate, Mandate.id == VoteRecord.mandate_id)
+            .join(Person, Person.id == Mandate.person_id)
+            .join(GroupMembership, GroupMembership.mandate_id == Mandate.id)
+            .join(
+                ParliamentaryGroup,
+                ParliamentaryGroup.id == GroupMembership.group_id,
+            )
+            .where(VoteRecord.vote_id == vote_id)
+            .where(GroupMembership.start_date <= vote.voted_at)
+            .where(
+                or_(
+                    GroupMembership.end_date.is_(None),
+                    GroupMembership.end_date > vote.voted_at,
+                )
+            )
+        )
+    ).all()
+
+    # Bucket choices per group, track per-deputy choice + identity.
+    by_group: dict[str, dict[str, object]] = {}
+    for (
+        choice,
+        person_id,
+        full_name,
+        photo_url,
+        constituency,
+        slug,
+        short,
+        color,
+    ) in rows:
+        if slug not in by_group:
+            by_group[slug] = {
+                "slug": slug,
+                "short": short,
+                "color": color,
+                "choices": Counter(),
+                "members": [],
+            }
+        counter = by_group[slug]["choices"]
+        assert isinstance(counter, Counter)
+        counter[choice] += 1
+        members = by_group[slug]["members"]
+        assert isinstance(members, list)
+        members.append(
+            {
+                "person_id": person_id,
+                "full_name": full_name,
+                "photo_url": photo_url,
+                "constituency": constituency,
+                "choice": choice,
+            }
+        )
+
+    blocks: list[GroupDissidentBlock] = []
+    for _slug, info in by_group.items():
+        choices = info["choices"]
+        members = info["members"]
+        assert isinstance(choices, Counter)
+        assert isinstance(members, list)
+        if not choices:
+            continue
+        # Skip 'no_vote' from the majority calculation — a deputy
+        # who didn't vote isn't taking a stance, and counting them
+        # as "the majority" would inflate dissidence on procedural
+        # votes that some groups deliberately sit out.
+        choices_excluding_absent = Counter({k: v for k, v in choices.items() if k != "no_vote"})
+        if not choices_excluding_absent:
+            continue
+        majority_choice, majority_count = choices_excluding_absent.most_common(1)[0]
+        dissidents: list[DissidentPerson] = []
+        for m in members:
+            assert isinstance(m, dict)
+            ch = m["choice"]
+            # A dissident is a deputy who VOTED but voted differently
+            # from the group majority. no_vote (absent) is not
+            # dissidence — they took no stance.
+            if ch == "no_vote" or ch == majority_choice:
+                continue
+            dissidents.append(
+                DissidentPerson(
+                    person_id=int(m["person_id"]),
+                    full_name=str(m["full_name"]),
+                    photo_url=(str(m["photo_url"]) if m["photo_url"] is not None else None),
+                    constituency=(
+                        str(m["constituency"]) if m["constituency"] is not None else None
+                    ),
+                    vote_choice=str(ch),
+                )
+            )
+        if not dissidents:
+            continue
+        dissidents.sort(key=lambda d: d.full_name.casefold())
+        blocks.append(
+            GroupDissidentBlock(
+                group_slug=str(info["slug"]),
+                group_name_short=str(info["short"]),
+                group_color_hex=(str(info["color"]) if info["color"] is not None else None),
+                majority_choice=str(majority_choice),
+                majority_count=int(majority_count),
+                dissidents=dissidents,
+            )
+        )
+    # Stable order: groups with more dissidents first; ties by name.
+    blocks.sort(key=lambda b: (-len(b.dissidents), b.group_name_short))
+    return VoteDissidentsResponse(blocks=blocks)
+
+
+@router.get("/{vote_id}/dissidents", response_model=VoteDissidentsResponse)
+async def get_vote_dissidents(
+    vote_id: int, db: AsyncSession = Depends(get_session)
+) -> VoteDissidentsResponse:
+    """Per-group list of deputies who voted against their group on this vote.
+
+    Cached for 1 h — the underlying data (VoteRecords for a closed
+    vote) doesn't change once a vote is published; the only reason
+    to invalidate is a backfill of historical group memberships,
+    which is rare.
+    """
+    return await cached(
+        f"votes:{vote_id}:dissidents:v1",
+        3600,
+        lambda: _compute_dissidents(db, vote_id),
+    )
 
 
 @router.get("/{vote_id}", response_model=VoteRead)

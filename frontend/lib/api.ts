@@ -329,6 +329,29 @@ export interface Paginated<T> {
   items: T[];
 }
 
+export interface DissidentPerson {
+  person_id: number;
+  full_name: string;
+  photo_url: string | null;
+  constituency: string | null;
+  /** 'aye' | 'no' | 'abstention' | 'no_vote' — the choice this person actually cast. */
+  vote_choice: string;
+}
+
+export interface GroupDissidentBlock {
+  group_slug: string;
+  group_name_short: string;
+  group_color_hex: string | null;
+  /** The vote choice the majority of this group made (the dissidents are everyone else). */
+  majority_choice: string;
+  majority_count: number;
+  dissidents: DissidentPerson[];
+}
+
+export interface VoteDissidents {
+  blocks: GroupDissidentBlock[];
+}
+
 export interface CohesionResult {
   group_slug: string;
   group_name_short: string;
@@ -873,5 +896,9 @@ export const api = {
       return request<Paginated<Vote>>(`/votes${suffix}`);
     },
     get: (id: number) => request<Vote>(`/votes/${id}`),
+    dissidents: (id: number) =>
+      request<VoteDissidents>(`/votes/${id}/dissidents`, {
+        revalidate: AGG_REVALIDATE,
+      }),
   },
 };

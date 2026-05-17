@@ -91,6 +91,13 @@ export default async function VoteDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+  // Named dissenters — deputies who voted against their group's
+  // majority position on this vote. Best-effort: if the endpoint
+  // returns an error (no records ingested yet, e.g. for very recent
+  // votes) the rest of the page still renders.
+  const dissidents = await api.votes
+    .dissidents(voteId)
+    .catch(() => ({ blocks: [] as Awaited<ReturnType<typeof api.votes.dissidents>>['blocks'] }));
 
   // When the vote links to an initiative (Proyectos/Proposiciones/etc.),
   // pull its full preamble so we can render the bill author's own
@@ -460,6 +467,24 @@ export default async function VoteDetailPage({
             <span style={{ color: 'var(--ink-2)' }}>{t('cohesion_axis_center')}</span>
             <span>{t('cohesion_axis_right')}</span>
           </div>
+
+          {dissidents.blocks.length > 0 && (
+            <DissidentsSection
+              blocks={dissidents.blocks}
+              eyebrow={t('dissidents_title')}
+              help={t('dissidents_help')}
+              majorityLabels={{
+                aye: t('dissidents_majority_aye'),
+                no: t('dissidents_majority_no'),
+                abstention: t('dissidents_majority_abst'),
+              }}
+              choiceLabels={{
+                aye: t('dissidents_choice_aye'),
+                no: t('dissidents_choice_no'),
+                abstention: t('dissidents_choice_abst'),
+              }}
+            />
+          )}
         </div>
       </section>
 
@@ -472,6 +497,168 @@ export default async function VoteDetailPage({
         }
       `}</style>
     </article>
+  );
+}
+
+/**
+ * "Diputats que han votat contra el seu grup" — abgeordnetenwatch's
+ * named-dissenter pattern, scaled to the per-vote view. Renders one
+ * block per group that had at least one dissenter, with the deputy
+ * name as a Link to their profile. Symmetric by construction:
+ * EVERY group with dissent appears (no editorial choice about which
+ * cantó to surface).
+ */
+function DissidentsSection({
+  blocks,
+  eyebrow,
+  help,
+  majorityLabels,
+  choiceLabels,
+}: {
+  blocks: import('@/lib/api').GroupDissidentBlock[];
+  eyebrow: string;
+  help: string;
+  majorityLabels: { aye: string; no: string; abstention: string };
+  choiceLabels: { aye: string; no: string; abstention: string };
+}) {
+  const choiceLabelFor = (c: string): string => {
+    if (c === 'aye') return choiceLabels.aye;
+    if (c === 'no') return choiceLabels.no;
+    if (c === 'abstention') return choiceLabels.abstention;
+    return c;
+  };
+  const majorityLabelFor = (c: string): string => {
+    if (c === 'aye') return majorityLabels.aye;
+    if (c === 'no') return majorityLabels.no;
+    if (c === 'abstention') return majorityLabels.abstention;
+    return c;
+  };
+  const choiceColor = (c: string): string => {
+    if (c === 'aye') return 'var(--aye)';
+    if (c === 'no') return 'var(--no)';
+    if (c === 'abstention') return 'var(--abst)';
+    return 'var(--ink-3)';
+  };
+  return (
+    <section
+      style={{
+        marginTop: 26,
+        paddingTop: 16,
+        borderTop: '1px solid var(--ink)',
+      }}
+    >
+      <div className="eyebrow" style={{ marginBottom: 6 }}>
+        {eyebrow}
+      </div>
+      <p
+        style={{
+          fontSize: 12,
+          color: 'var(--ink-3)',
+          marginTop: 0,
+          marginBottom: 16,
+          lineHeight: 1.5,
+        }}
+      >
+        {help}
+      </p>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 14 }}>
+        {blocks.map((block) => (
+          <li
+            key={block.group_slug}
+            style={{
+              borderTop: `2px solid ${block.group_color_hex ?? 'var(--ink)'}`,
+              paddingTop: 8,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                gap: 10,
+                flexWrap: 'wrap',
+                marginBottom: 6,
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: 'var(--ink)',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 2,
+                    background: block.group_color_hex ?? 'var(--ink)',
+                  }}
+                />
+                {block.group_name_short}
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: 'var(--ink-3)',
+                }}
+              >
+                {majorityLabelFor(block.majority_choice)} ·{' '}
+                <span className="tabular">{block.majority_count}</span>
+              </span>
+            </div>
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '4px 14px',
+              }}
+            >
+              {block.dissidents.map((d) => (
+                <li
+                  key={d.person_id}
+                  style={{
+                    fontSize: 13,
+                    lineHeight: 1.5,
+                    color: 'var(--ink-2)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Link
+                    href={`/persons/${d.person_id}`}
+                    style={{
+                      color: 'var(--ink)',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: 3,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {d.full_name}
+                  </Link>
+                  <span
+                    style={{
+                      marginLeft: 6,
+                      fontSize: 11,
+                      color: choiceColor(d.vote_choice),
+                      fontWeight: 600,
+                    }}
+                  >
+                    {choiceLabelFor(d.vote_choice)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
