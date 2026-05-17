@@ -56,6 +56,19 @@
     "previous_sessions_eyebrow": "{count, plural, =1 {Sessió anterior} other {# sessions anteriors}}",
     "session_count_short": "{count, plural, =1 {# votació} other {# votacions}}"
   },
+  "coincidence_progressive": {
+    "chips_aria": "Tria un grup parlamentari per veure-hi la coincidència amb tots els altres",
+    "all_groups": "Tots",
+    "prompt": "Tria un grup per veure amb quins altres grups coincideix més en les seves votacions.",
+    "focused_aria": "Coincidència de {group} amb cada altre grup",
+    "focused_caption": "Percentatge de votacions on {group} ha votat el mateix sentit que cada altre grup. Ordenat de més coincidència a menys; tots els grups, sense rànquings unilaterals.",
+    "row_aria": "{group} · {pct}% de coincidència",
+    "row_no_data": "{group} · sense prou dades",
+    "row_votes": "{count} votacions",
+    "row_low_n": "Mostra reduïda",
+    "show_matrix": "Veure la matriu completa",
+    "hide_matrix": "Amagar la matriu completa"
+  },
   "session_sheet": {
     "eyebrow": "Sessió plenària · núm. {sessionNumber}",
     "vote_count": "{count, plural, =1 {# votació} other {# votacions}}",
@@ -150,6 +163,7 @@
     "home": "Inici"
   },
   "nav": {
+    "avui": "Avui",
     "votes": "Votacions",
     "persons": "Representants",
     "stats": "Estadístiques",
@@ -393,6 +407,8 @@
     "mobile_legislature": "XV legislatura",
     "mobile_stats_short": "{votes} vots · {deputies} diputats",
     "mobile_last_update": "Última votació",
+    "mobile_session_banner_eyebrow": "Resum del darrer ple",
+    "mobile_session_banner_cta": "Veure les votacions de la sessió",
     "mobile_search_placeholder": "Cerca lleis, diputats…",
     "mobile_search_aria": "Cerca lleis o diputats",
     "mobile_tile_votes": "Lleis",

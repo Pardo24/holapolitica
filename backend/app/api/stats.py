@@ -45,8 +45,14 @@ from app.services.cache import cached
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
-# Default TTL for cached read endpoints in this module.
-_CACHE_TTL = 3600  # 1 hour
+# Default TTL for cached read endpoints in this module. Set to 24 h
+# because cache freshness is event-driven: every ingest worker
+# (latest votes, deputies, initiatives, classify) calls
+# ``_invalidate_aggregate_caches`` which wipes the ``stats:*`` and
+# ``metrics:*`` namespaces. The TTL is a safety net for the
+# unlikely case Redis is restored from a snapshot taken before an
+# ingest — a worst-case 24 h of stale data instead of forever.
+_CACHE_TTL = 86400  # 24 hours
 
 
 # ---------------------------------------------------------------------------

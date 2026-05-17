@@ -31,8 +31,10 @@ from app.services.cache import cached
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
 
-# Same TTL as the stats endpoints — both flip when an ingest job runs.
-_CACHE_TTL = 3600
+# Same TTL as the stats endpoints. Both namespaces are wiped by
+# ``_invalidate_aggregate_caches`` on every ingest run, so a 24 h
+# value is event-driven freshness with a long safety net.
+_CACHE_TTL = 86400
 
 
 @router.get("/group-summary", response_model=list[GroupSummaryRow])

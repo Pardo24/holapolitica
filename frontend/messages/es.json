@@ -56,6 +56,19 @@
     "previous_sessions_eyebrow": "{count, plural, =1 {Sesión anterior} other {# sesiones anteriores}}",
     "session_count_short": "{count, plural, =1 {# votación} other {# votaciones}}"
   },
+  "coincidence_progressive": {
+    "chips_aria": "Elige un grupo parlamentario para ver su coincidencia con todos los demás",
+    "all_groups": "Todos",
+    "prompt": "Elige un grupo para ver con qué otros grupos coincide más en sus votaciones.",
+    "focused_aria": "Coincidencia de {group} con cada otro grupo",
+    "focused_caption": "Porcentaje de votaciones donde {group} ha votado en el mismo sentido que cada otro grupo. Ordenado de mayor a menor coincidencia; todos los grupos, sin rankings unilaterales.",
+    "row_aria": "{group} · {pct}% de coincidencia",
+    "row_no_data": "{group} · sin suficientes datos",
+    "row_votes": "{count} votaciones",
+    "row_low_n": "Muestra reducida",
+    "show_matrix": "Ver la matriz completa",
+    "hide_matrix": "Ocultar la matriz completa"
+  },
   "session_sheet": {
     "eyebrow": "Sesión plenaria · núm. {sessionNumber}",
     "vote_count": "{count, plural, =1 {# votación} other {# votaciones}}",
@@ -150,6 +163,7 @@
     "home": "Inicio"
   },
   "nav": {
+    "avui": "Hoy",
     "votes": "Votaciones",
     "persons": "Representantes",
     "stats": "Estadísticas",
@@ -393,6 +407,8 @@
     "mobile_legislature": "XV legislatura",
     "mobile_stats_short": "{votes} votos · {deputies} diputados",
     "mobile_last_update": "Última votación",
+    "mobile_session_banner_eyebrow": "Resumen del último pleno",
+    "mobile_session_banner_cta": "Ver las votaciones de la sesión",
     "mobile_search_placeholder": "Busca leyes, diputados…",
     "mobile_search_aria": "Busca leyes o diputados",
     "mobile_tile_votes": "Leyes",

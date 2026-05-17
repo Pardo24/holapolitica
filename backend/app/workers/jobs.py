@@ -66,11 +66,53 @@ def classify_initiative(initiative_id: int, kind: str = "theme") -> int:
 
 
 async def _invalidate_aggregate_caches() -> None:
-    """Bust every ``stats:*`` and ``metrics:*`` Redis cache entry."""
+    """Bust + pre-warm the ``stats:*`` and ``metrics:*`` Redis caches.
+
+    Wiping leaves the next user request paying the SQL cost. We
+    follow up by re-running the most-hit factories ourselves so the
+    cache is warm by the time a real visitor arrives — the dashboard
+    on /, /stats and /avui all hit these same keys on first paint.
+    """
     from app.services.cache import invalidate
 
     await invalidate("stats:")
     await invalidate("metrics:")
+    await _warm_aggregate_caches()
+
+
+async def _warm_aggregate_caches() -> None:
+    """Populate the expensive aggregate keys for legislature 1.
+
+    The two metric functions below are the slowest queries the API
+    serves (full per-legislature aggregation across every vote
+    record); the lighter ``stats:*`` keys re-warm cheaply on first
+    real request. Failures here are logged and swallowed — warming
+    is a nice-to-have, freshness is contractually guaranteed by the
+    invalidation step above plus the 24 h TTL safety net.
+    """
+    from app.metrics import (
+        compute_group_coincidence_matrix,
+        compute_group_summary,
+    )
+    from app.services.cache import cached
+
+    try:
+        async with AsyncSessionLocal() as session:
+            await cached(
+                "metrics:group-summary:1",
+                86400,
+                lambda: compute_group_summary(session, legislature_id=1),
+            )
+            await cached(
+                "metrics:coincidence:1::",
+                86400,
+                lambda: compute_group_coincidence_matrix(
+                    session, legislature_id=1, date_from=None, date_to=None
+                ),
+            )
+        log.info("cache.warmed", scope="aggregates")
+    except Exception as e:  # noqa: BLE001 - warming is best-effort
+        log.warning("cache.warm.failed", error=str(e))
 
 
 def generate_plain_summary_for_initiative(

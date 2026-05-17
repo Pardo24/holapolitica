@@ -56,6 +56,19 @@
     "previous_sessions_eyebrow": "{count, plural, =1 {Previous session} other {# previous sessions}}",
     "session_count_short": "{count, plural, =1 {# vote} other {# votes}}"
   },
+  "coincidence_progressive": {
+    "chips_aria": "Pick a parliamentary group to see its coincidence with every other group",
+    "all_groups": "All",
+    "prompt": "Pick a group to see which other groups it most overlaps with in its votes.",
+    "focused_aria": "Coincidence of {group} with every other group",
+    "focused_caption": "Percentage of votes where {group} cast the same vote as each other group. Sorted highest to lowest; every group included, no unilateral rankings.",
+    "row_aria": "{group} · {pct}% coincidence",
+    "row_no_data": "{group} · not enough data",
+    "row_votes": "{count} votes",
+    "row_low_n": "Limited sample",
+    "show_matrix": "Show the full matrix",
+    "hide_matrix": "Hide the full matrix"
+  },
   "session_sheet": {
     "eyebrow": "Plenary session · no. {sessionNumber}",
     "vote_count": "{count, plural, =1 {# vote} other {# votes}}",
@@ -150,6 +163,7 @@
     "home": "Home"
   },
   "nav": {
+    "avui": "Today",
     "votes": "Votes",
     "persons": "Representatives",
     "stats": "Stats",
@@ -393,6 +407,8 @@
     "mobile_legislature": "XV legislature",
     "mobile_stats_short": "{votes} votes · {deputies} deputies",
     "mobile_last_update": "Latest vote",
+    "mobile_session_banner_eyebrow": "Latest plenary summary",
+    "mobile_session_banner_cta": "See every vote of the session",
     "mobile_search_placeholder": "Search laws, deputies…",
     "mobile_search_aria": "Search laws or deputies",
     "mobile_tile_votes": "Laws",

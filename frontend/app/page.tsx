@@ -126,6 +126,8 @@ export default async function HomePage() {
             deputies: 350,
           }),
           lastUpdate: t('mobile_last_update'),
+          sessionBannerEyebrow: t('mobile_session_banner_eyebrow'),
+          sessionBannerCta: t('mobile_session_banner_cta'),
           tileVotes: t('mobile_tile_votes'),
           tilePersons: t('mobile_tile_persons'),
           tileTopics: t('mobile_tile_topics'),
@@ -685,6 +687,8 @@ interface MobileDashboardLabels {
   legislature: string;
   stats: string;
   lastUpdate: string;
+  sessionBannerEyebrow: string;
+  sessionBannerCta: string;
   tileVotes: string;
   tilePersons: string;
   tileTopics: string;
@@ -835,6 +839,66 @@ function MobileDashboard({
           competed with the 2×2 tile grid for the same screen space and
           users reach the votes index via the "Votacions" tile anyway. The
           desktop home still surfaces a search via the topnav. */}
+
+      {/* Hero banner pointing at /avui — the citizen-friendly daily
+          sheet. Sits ABOVE the tile grid because it's the entry-point
+          we want a returning visitor to land on; tiles below are
+          navigation to the deeper lookup surfaces. */}
+      {latestVotes[0]?.voted_at && (
+        <Link
+          href={`/avui/${latestVotes[0].voted_at.slice(0, 10)}` as Route}
+          style={{
+            display: 'block',
+            padding: '14px 16px',
+            border: '1px solid var(--ink)',
+            background: 'var(--ink)',
+            color: 'var(--paper)',
+            borderRadius: 14,
+            textDecoration: 'none',
+            marginBottom: 14,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              color: 'var(--paper-2)',
+              marginBottom: 4,
+            }}
+          >
+            {labels.sessionBannerEyebrow}
+          </div>
+          <div
+            className="serif"
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              lineHeight: 1.25,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })}
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: 'var(--paper-2)',
+              marginTop: 4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            {labels.sessionBannerCta} →
+          </div>
+        </Link>
+      )}
 
       {/* 2×2 tile grid. Uses minmax(0, 1fr) so long labels can't push the
           row beyond the viewport. Each tile is a ~120px-tall touch target

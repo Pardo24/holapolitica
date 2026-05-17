@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
+import { CoincidenceProgressive } from '@/components/CoincidenceProgressive';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
@@ -387,11 +388,13 @@ export default async function StatsPage({
             }
             subtitle={t('coincidence_overview_subtitle')}
           >
-            <CoincidenceMatrix
-              groups={allGroups}
-              cells={coincidence}
-              highlightSlug={null}
-            />
+            <CoincidenceProgressive groups={allGroups} cells={coincidence}>
+              <CoincidenceMatrix
+                groups={allGroups}
+                cells={coincidence}
+                highlightSlug={null}
+              />
+            </CoincidenceProgressive>
           </Section>
         </>
       )}
@@ -620,11 +623,13 @@ export default async function StatsPage({
                 }
                 subtitle={t('coincidence_topic_subtitle')}
               >
-                <CoincidenceMatrix
-                  groups={allGroups}
-                  cells={coincidence}
-                  highlightSlug={null}
-                />
+                <CoincidenceProgressive groups={allGroups} cells={coincidence}>
+                  <CoincidenceMatrix
+                    groups={allGroups}
+                    cells={coincidence}
+                    highlightSlug={null}
+                  />
+                </CoincidenceProgressive>
               </Section>
             </>
           )}

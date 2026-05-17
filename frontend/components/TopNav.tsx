@@ -23,13 +23,14 @@ export async function TopNav() {
   // any other route.
   const isHome = pathname === '/' || pathname.startsWith('/?');
 
-  // Two-spine nav by design: Votes and Persons are the lookup surfaces;
-  // Topics and Groups have been folded inside as tabs (cf. /votes "Per tema"
-  // and /persons "Grups polítics"). The standalone /topics and /groups
-  // routes remain accessible by direct link / SEO, but they no longer
-  // crowd the primary navigation — a mobile-first cognitive-load fix.
-  // Stats + Notifications are exploration surfaces, kept secondary.
+  // Three-entry primary nav: /avui is the "newspaper-style daily
+  // sheet" — the most citizen-friendly entry point and the one we
+  // want a returning reader to bookmark — sitting alongside the two
+  // lookup surfaces (Votes, Persons). Topics and Groups are still
+  // reachable via the existing tabs inside /votes and /persons; Stats
+  // + Notifications stay secondary.
   const primary: { href: Route; label: string }[] = [
+    { href: '/avui' as Route, label: t('avui') },
     { href: '/votes', label: t('votes') },
     { href: '/persons', label: t('persons') },
   ];

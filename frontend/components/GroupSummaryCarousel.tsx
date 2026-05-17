@@ -177,21 +177,104 @@ function GroupSummaryCard({
           </span>
         </div>
 
-        {/* Demographics row — gender split (stacked horizontal bar
-            with F/M/Altres percentages) on the left and average age
-            on the right. Renders zero-state gracefully when the
-            backend has no birth_year or gender data for the group. */}
+        {/* Demographics — the dominant block on each card. Two columns:
+            LEFT shows the F / M / Altres counts stacked (big numbers,
+            tinted dots) so the gender split reads at a glance; RIGHT
+            shows the average age as a single large figure. Below
+            both, a thin stacked bar gives the proportional shape. */}
         {genderTotal > 0 && (
           <div style={{ marginBottom: 12 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                gap: 14,
+                alignItems: 'center',
+              }}
+            >
+              <div
+                className="tabular"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 10,
+                  alignItems: 'baseline',
+                }}
+              >
+                <GenderStat
+                  count={row.members_f}
+                  label={labels.women}
+                  color="#B7568C"
+                />
+                <GenderStat
+                  count={row.members_m}
+                  label={labels.men}
+                  color="#5470B0"
+                />
+                {row.members_other > 0 && (
+                  <GenderStat
+                    count={row.members_other}
+                    label={labels.other}
+                    color="var(--ink-3)"
+                  />
+                )}
+              </div>
+              {avgAge != null && (
+                <div
+                  style={{
+                    textAlign: 'right',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: 2,
+                  }}
+                >
+                  <div
+                    className="tabular"
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 700,
+                      color: 'var(--ink)',
+                      letterSpacing: '-0.01em',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {avgAge}
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: 'var(--ink-3)',
+                        fontWeight: 600,
+                        marginLeft: 2,
+                      }}
+                    >
+                      {labels.ageUnit.trim()}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      color: 'var(--ink-3)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {labels.ageAvg}
+                  </div>
+                </div>
+              )}
+            </div>
             <div
               role="img"
               aria-label={`${labels.women} ${fPct}%, ${labels.men} ${mPct}%, ${labels.other} ${otherPct}%`}
               style={{
                 display: 'flex',
-                height: 6,
+                height: 5,
                 borderRadius: 999,
                 overflow: 'hidden',
                 background: 'var(--paper-3)',
+                marginTop: 8,
               }}
             >
               {row.members_f > 0 && (
@@ -204,102 +287,93 @@ function GroupSummaryCard({
                 <span style={{ width: `${otherPct}%`, background: 'var(--ink-3)' }} />
               )}
             </div>
-            <div
-              className="tabular"
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: 10,
-                color: 'var(--ink-3)',
-                marginTop: 4,
-                gap: 6,
-              }}
-            >
-              <span style={{ color: 'var(--ink-2)' }}>
-                {labels.women} <strong style={{ color: 'var(--ink)' }}>{row.members_f}</strong>
-                {' · '}
-                {labels.men} <strong style={{ color: 'var(--ink)' }}>{row.members_m}</strong>
-                {row.members_other > 0 && (
-                  <>
-                    {' · '}
-                    {labels.other} <strong style={{ color: 'var(--ink)' }}>{row.members_other}</strong>
-                  </>
-                )}
-              </span>
-              {avgAge != null && (
-                <span>
-                  {labels.ageAvg}{' '}
-                  <strong style={{ color: 'var(--ink)' }}>
-                    {avgAge}
-                  </strong>
-                  {labels.ageUnit}
-                </span>
-              )}
-            </div>
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 'auto' }}>
-          <DonutPct
-            value={cohesionPct}
-            label={<Tooltip term={labels.cohesion} explanation={glossaryShort('cohesion')} />}
-            color="var(--ink)"
-          />
-          <DonutPct
-            value={attendancePct}
-            label={<GlossaryTerm term="Vots emesos">{labels.attendance}</GlossaryTerm>}
-            color="var(--accent)"
-          />
+        {/* Cohesion + attendance — secondary metrics, rendered as a
+            compact one-line caption rather than the previous twin
+            donuts so the demographic block above stays the focal
+            point. */}
+        <div
+          style={{
+            marginTop: 'auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 12,
+            fontSize: 11,
+            color: 'var(--ink-3)',
+            paddingTop: 10,
+            borderTop: '1px solid var(--rule)',
+          }}
+        >
+          <span>
+            <Tooltip term={labels.cohesion} explanation={glossaryShort('cohesion')} />{' '}
+            <strong className="tabular" style={{ color: 'var(--ink)', fontWeight: 700 }}>
+              {cohesionPct == null ? '—' : `${cohesionPct}%`}
+            </strong>
+          </span>
+          <span>
+            <GlossaryTerm term="Vots emesos">{labels.attendance}</GlossaryTerm>{' '}
+            <strong
+              className="tabular"
+              style={{ color: 'var(--accent)', fontWeight: 700 }}
+            >
+              {attendancePct == null ? '—' : `${attendancePct}%`}
+            </strong>
+          </span>
         </div>
       </Link>
     </li>
   );
 }
 
-function DonutPct({
-  value,
+/**
+ * Compact stat element for a single gender bucket — a tinted dot
+ * followed by the count and the label. Kept in flex so the three
+ * stats wrap gracefully on narrow cards.
+ */
+function GenderStat({
+  count,
   label,
   color,
 }: {
-  value: number | null;
-  label: React.ReactNode;
+  count: number;
+  label: string;
   color: string;
 }) {
-  const r = 20;
-  const c = 25;
-  const sw = 5;
-  const C = 2 * Math.PI * r;
-  const dash = value == null ? 0 : (value / 100) * C;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <svg width={2 * c} height={2 * c} viewBox={`0 0 ${2 * c} ${2 * c}`}>
-        <circle cx={c} cy={c} r={r} fill="none" stroke="var(--paper-3)" strokeWidth={sw} />
-        {value != null && (
-          <circle
-            cx={c}
-            cy={c}
-            r={r}
-            fill="none"
-            stroke={color}
-            strokeWidth={sw}
-            strokeDasharray={`${dash} ${C - dash}`}
-            transform={`rotate(-90 ${c} ${c})`}
-            strokeLinecap="round"
-          />
-        )}
-        <text
-          x={c}
-          y={c + 4}
-          textAnchor="middle"
-          fontSize="13"
-          fontWeight="600"
-          fill="var(--ink)"
-          style={{ fontVariantNumeric: 'tabular-nums' }}
-        >
-          {value == null ? '—' : `${value}%`}
-        </text>
-      </svg>
-      <span style={{ fontSize: 10, color: 'var(--ink-3)' }}>{label}</span>
-    </div>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        gap: 4,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          display: 'inline-block',
+          width: 7,
+          height: 7,
+          borderRadius: 999,
+          background: color,
+          transform: 'translateY(-1px)',
+        }}
+      />
+      <strong
+        className="tabular"
+        style={{
+          fontSize: 18,
+          fontWeight: 700,
+          color: 'var(--ink)',
+          letterSpacing: '-0.01em',
+          lineHeight: 1,
+        }}
+      >
+        {count}
+      </strong>
+      <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{label}</span>
+    </span>
   );
 }
