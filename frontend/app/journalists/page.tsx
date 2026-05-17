@@ -27,14 +27,19 @@ export const metadata: Metadata = {
  * journalist can build a piece on themselves.
  */
 export default async function JournalistsPage() {
-  // Live preview ids: pick the most recent vote so the iframe always
-  // shows real, fresh content. The group + topic are stable slugs we
-  // know will exist in the legislature; we keep them hard-coded so the
-  // demo doesn't shift between page loads.
+  // Live preview ids — pick the most recent vote so the demo always
+  // shows fresh content. Group + topic + initiative slugs/ids are
+  // stable references we know exist in the XV legislature; hard-coded
+  // so the demo doesn't shift between page loads.
+  //
+  // Initiative 6 = "Proyecto de Ley Orgánica del derecho de defensa"
+  // — a real published law with BOE id + entry-into-force date + a
+  // final vote. The canonical "complete dossier" example.
   const latest = await api.votes
     .list({ page: 1, page_size: 1 })
     .catch(() => null);
   const sampleVoteId = latest?.items[0]?.id ?? 1;
+  const sampleInitiativeId = 6;
 
   return (
     <article style={{ maxWidth: 880, paddingTop: 24, paddingBottom: 64 }}>
@@ -120,36 +125,52 @@ export default async function JournalistsPage() {
           Cada widget és un <code style={inlineCode}>&lt;iframe&gt;</code> de
           menys d&apos;un segon de càrrega, sense cookies de tercers, amb
           enllaç a la font original. Copia el fragment i enganxa&apos;l al
-          CMS.
+          CMS. Cinc widgets, ordenats per utilitat editorial.
         </p>
 
         <EmbedExample
-          title="Resultat d'una votació"
-          description="Totals (Sí · No · Abst. · Absents), barra apilada, propietat institucional + enllaç a la fitxa."
+          title="Explorador filtrat (la URL és l'estat)"
+          description="Tres filtres a la URL i sortiu amb la vista que volíeu: per tema, per resultat, per grup proposant, per finestra temporal. Compartir l'iframe amb un altre periodista equival a compartir la consulta exacta — la URL és la query. Patró d'Our World in Data."
+          src="/embed/explorer?topic=habitatge&result=approved&limit=6"
+          height={520}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="Votacions filtrades — Hola Política"\n></iframe>\n<!-- Paràmetres acceptats: topic, result (approved|rejected|tie), group, from, to, limit (1-20) -->`}
+        />
+
+        <EmbedExample
+          title="Fitxa completa d'una llei (dossier)"
+          description="Un sol iframe amb tot el que un article sobre una llei sol voler al costat: el títol, el resum en llenguatge planer, els temes classificats, el resultat de la votació final i els enllaços a BOE + data d'entrada en vigor. Pensat per a la peça monogràfica sobre UNA llei."
+          src={`/embed/initiatives/${sampleInitiativeId}`}
+          height={460}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="460" frameborder="0"\n  loading="lazy"\n  title="Llei al Congrés — Hola Política"\n></iframe>`}
+        />
+
+        <EmbedExample
+          title="Resultat d'una votació · amb cohesió per grup"
+          description="Per a una votació concreta: totals (Sí · No · Abst. · Absents), barra apilada, qui la proposa i — la dada periodística clau — la tira de cohesió per als 4 grups majoritaris (com va votar cada grup com a bloc) + percentatge vs mitjana de la legislatura."
           src={`/embed/votes/${sampleVoteId}`}
-          height={320}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="320" frameborder="0"\n  loading="lazy"\n  title="Votació al Congrés — Hola Política"\n></iframe>`}
+          height={400}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="400" frameborder="0"\n  loading="lazy"\n  title="Votació al Congrés — Hola Política"\n></iframe>`}
         />
 
         <EmbedExample
-          title="Fitxa de grup parlamentari"
-          description="Cohesió mitjana, vots emesos i mida del grup. Mateix patró visual per a totes les forces."
+          title="Composició d'un grup parlamentari (paritat + edat)"
+          description="Per a una peça sobre un grup: total d'escons, repartiment de gènere com a barra apilada amb la mitjana de la cambra com a línia de referència, i histograma per franja d'edat — també amb línia de referència legislativa. Útil per a contextualitzar diferències demogràfiques sense afirmar res."
           src="/embed/groups/gp-socialista"
-          height={220}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="220" frameborder="0"\n  loading="lazy"\n  title="Grup parlamentari — Hola Política"\n></iframe>`}
+          height={300}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="300" frameborder="0"\n  loading="lazy"\n  title="Grup parlamentari — Hola Política"\n></iframe>`}
         />
 
         <EmbedExample
-          title="Tema · distribució d'iniciatives"
-          description="Per a un tema concret: quantes iniciatives s'han aprovat, rebutjat o estan en tràmit."
+          title="Snapshot per tema"
+          description="Per a una peça centrada en un tema: quantes iniciatives s'han presentat, aprovat, rebutjat o estan en tràmit. Petit, ràpid, complementa bé un article temàtic."
           src="/embed/topics/habitatge"
           height={220}
           snippet={`<iframe\n  src="https://holapolitica.org/embed/topics/<slug>"\n  width="100%" height="220" frameborder="0"\n  loading="lazy"\n  title="Tema — Hola Política"\n></iframe>`}
         />
 
         <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-          Tots els slugs (grup, tema) i identificadors (vot, persona) són els
-          de la nostra base de dades. Pots trobar-los a{' '}
+          Tots els slugs (grup, tema) i identificadors (vot, llei, persona)
+          són els de la nostra base de dades. Pots trobar-los navegant a{' '}
           <Link href={'/votes' as Route} style={{ color: 'var(--accent)' }}>
             /votes
           </Link>
@@ -164,6 +185,10 @@ export default async function JournalistsPage() {
           o{' '}
           <Link href={'/persons' as Route} style={{ color: 'var(--accent)' }}>
             /persons
+          </Link>{' '}
+          — o consultant la API a{' '}
+          <Link href={'/apidocs' as Route} style={{ color: 'var(--accent)' }}>
+            /apidocs
           </Link>
           .
         </p>
