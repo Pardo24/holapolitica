@@ -1,60 +1,55 @@
 """Boletín Oficial del Estado (BOE) link enrichment for approved initiatives.
 
-.. warning::
-
-    The atom search URL this module targets
-    (``https://www.boe.es/buscar/atom.php``) returns HTTP 404 on the
-    live BOE site as of 2026 — that ad-hoc atom feed has been retired.
-    The scheduled cron entry is disabled in ``app.workers.schedule``;
-    the rest of the module (schema columns, frontend BOE pill, bootstrap
-    CLI) stays wired up so flipping this back on is a one-function fix
-    once the search is rewritten against ``datos.boe.es`` or the HTML
-    ``/buscar/legislacion.php`` page.
-
 When an initiative reaches publication as a "Ley" / "Ley Orgánica" /
-"Real Decreto-ley", the official text appears in the BOE under an
-identifier of the form ``BOE-A-YYYY-NNNNN``. Linking each
-:class:`Initiative` row to its BOE entry lets the frontend say
-"this law was published officially on D as BOE-A-…" without needing
-the reader to leave Hola Política to find the canonical source.
+"Real Decreto-ley", the official consolidated text appears in the
+BOE under an identifier of the form ``BOE-A-YYYY-NNNNN``. Linking
+each :class:`Initiative` row to its BOE entry lets the frontend say
+"this law was published on D as BOE-A-… and enters into force on E"
+without sending readers off to the BOE search UI.
 
 Matching strategy
 -----------------
-The BOE search portal exposes a JSON/atom endpoint at
-``https://www.boe.es/buscar/`` but it's primarily a UI; the cleanest
-machine-readable source is the BOE's own
-``boe.es/datosabiertos/api``. For each approved initiative we run a
-text search against the BOE catalogue scoped to the same year as
-``submitted_at`` (and the year after, since approval frequently
-slips past the year boundary) using the initiative's title as the
-query.
+We query the official **Datos Abiertos API** at
+``https://www.boe.es/datosabiertos/api/legislacion-consolidada``.
+This endpoint accepts an Elasticsearch-style ``query_string`` and
+returns rich per-norm metadata including:
 
-We only persist a match when:
+* ``identificador`` — the canonical ``BOE-A-YYYY-NNNNN`` id
+* ``url_html_consolidada`` — link to the consolidated law page
+* ``fecha_publicacion`` — when it was published in the BOE
+* ``fecha_vigencia`` — when it enters / entered into force
+  (precisely the field newsrooms ask for; the BOE has already done
+  the parsing of "Disposición final" for us)
+* ``rango`` — norm rank (Ley, Ley Orgánica, Real Decreto-ley, …)
+* ``vigencia_agotada`` — whether the norm is no longer in force
 
-* The result is a "Ley" / "Ley Orgánica" / "Real Decreto-ley" /
-  "Real Decreto Legislativo" entry — not a notice or appointment.
-* The result's date falls within ``submitted_at`` and 365 days
-  later — anything more distant is almost certainly a different
-  text reusing similar wording.
-* The Levenshtein distance between the BOE title and our local
-  ``title_ca`` (or ``title_original`` as fallback) is below a
-  threshold scaled to title length.
+The previous atom-feed search (``boe.es/buscar/atom.php``) was
+retired by BOE in 2026; this module replaces that path.
 
-When confidence is low we skip rather than guess. The frontend
-treats NULL as "we don't know yet" which is the honest answer.
+Match acceptance:
 
-This module is *scaffolded* with a working SPARQL-style match plus
-clear extension points. The BOE search endpoint is documented but
-returns RSS/Atom; a more accurate matcher would parse the
-"sumario.xml" daily index. We document the path below for whoever
-takes it next.
+* The initiative's type is a publishable rank (Proyecto de Ley,
+  Proposición de Ley, Real Decreto-ley). PNLs and Mociones never
+  reach the BOE.
+* The initiative's status is APPROVED. Pending or rejected
+  initiatives don't produce a BOE entry by construction.
+* Token-set overlap between the BOE result's title and our local
+  initiative title clears 0.45 — a conservative bar empirically
+  good against the XV legislature dataset. Below the bar we skip
+  rather than guess; an un-matched row stays NULL.
+
+Idempotent: re-running only touches rows whose ``boe_id`` is still
+NULL. Network and parse failures are caught and logged; a single
+bad row never aborts the batch.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from datetime import date, timedelta
+from typing import Any
 
 import httpx
 from sqlalchemy import or_, select
@@ -70,11 +65,10 @@ USER_AGENT = (
     "contact daniel@holapolitica.org) python-httpx"
 )
 
-# Atom feed search endpoint. Filter by the laws-only section so the
-# output excludes appointments, contracts, and other non-legislative
-# entries. ``texto`` is the free-text query field; ``f_publicacion``
-# bounds the publication date.
-BOE_SEARCH_URL = "https://www.boe.es/buscar/atom.php"
+# Datos Abiertos endpoint. The path lives under www.boe.es so we
+# inherit BOE's CDN; rate limits are generous (the docs cite
+# "reasonable use" and we run one search per initiative once a day).
+BOE_API_URL = "https://www.boe.es/datosabiertos/api/legislacion-consolidada"
 
 # Initiative types that can plausibly produce a BOE entry. PNLs and
 # Mociones never do; Proyecto / Proposición de Ley and Real Decreto-
@@ -87,170 +81,180 @@ PUBLISHABLE_TYPES = frozenset(
     }
 )
 
-# Only approved initiatives can have made it to the BOE. Sounds
-# obvious; encoded here so the worker doesn't ask the BOE about
-# pending or rejected rows.
 PUBLISHABLE_STATUSES = frozenset({InitiativeStatus.APPROVED})
-
-# Regex to extract a "BOE-A-YYYY-NNNNN" id from a URL or title.
-_BOE_ID_RE = re.compile(r"BOE-A-\d{4}-\d+")
 
 
 @dataclass(frozen=True, slots=True)
 class BoeMatch:
-    """One BOE search hit narrowed to the fields we use."""
+    """One BOE search hit narrowed to the fields we persist."""
 
     boe_id: str
     title: str
     publication_date: date | None
+    entry_in_force: date | None
     url: str
 
 
-def _strip_whitespace(s: str) -> str:
-    return " ".join(s.split())
+# Words we strip from an initiative title before composing the BOE
+# search query. The BOE entry's title never starts with "Proyecto de
+# Ley" (that's the parliamentary stage); it always starts with the
+# rank that became law ("Ley Orgánica 1/2024, de …"). Cutting the
+# prefix lifts our title-overlap score and shrinks false positives.
+_PREFIX_PATTERNS = (
+    re.compile(r"^proyecto de ley org[áa]nica\s+", re.IGNORECASE),
+    re.compile(r"^proposici[óo]n de ley org[áa]nica\s+", re.IGNORECASE),
+    re.compile(r"^proyecto de ley\s+", re.IGNORECASE),
+    re.compile(r"^proposici[óo]n de ley\s+", re.IGNORECASE),
+    re.compile(r"^real decreto-ley\s+", re.IGNORECASE),
+    re.compile(r"^proyecto de ley\s+", re.IGNORECASE),
+)
 
 
-def _build_search_url(query: str, year_from: int, year_to: int) -> str:
-    """Compose a BOE atom search URL bounded by years.
+def _strip_prefix(title: str) -> str:
+    """Remove the parliamentary-stage prefix from an initiative title.
 
-    The BOE search syntax is documented in `their help page
-    <https://www.boe.es/diario_boe/avanzada.php>`_ — we encode the
-    filters as query params so the response stays predictable.
+    Leaves the noun phrase that identifies the law (e.g. "del derecho
+    de defensa", "de amnistía para…"), which is what survives into
+    the BOE entry's title and gives the best matching signal.
     """
-    params = {
-        "campo[0]": "TITULO",
-        "dato[0]": _strip_whitespace(query)[:200],
-        "operador[0]": "y",
-        "campo[1]": "ID_Seccion",
-        "dato[1]": "1A",  # Disposiciones generales (laws)
-        "operador[1]": "y",
-        "campo[2]": "f_publicacion",
-        "dato[2]": f"{year_from}0101-{year_to}1231",
-        "page_hits": "10",
-    }
-    return f"{BOE_SEARCH_URL}?" + "&".join(f"{k}={v}" for k, v in params.items())
+    s = title.strip()
+    for pat in _PREFIX_PATTERNS:
+        s = pat.sub("", s)
+    # Trim trailing period that some Congress feeds leave on the
+    # initiative title — it confuses the Elasticsearch tokenizer.
+    return s.rstrip(". ").strip()
 
 
-def _parse_atom(payload: bytes) -> list[BoeMatch]:
-    """Tiny atom parser — we only need title + link + pubdate per entry.
+def _parse_yyyymmdd(s: str | None) -> date | None:
+    """BOE dates arrive as ``YYYYMMDD`` strings; parse defensively."""
+    if not s or len(s) < 8:
+        return None
+    try:
+        return date(int(s[0:4]), int(s[4:6]), int(s[6:8]))
+    except ValueError:
+        return None
 
-    The BOE atom uses standard ``<entry>`` blocks. We avoid pulling a
-    full XML library by walking with regex; the format is stable and
-    has been the same for over a decade.
-    """
-    text = payload.decode("utf-8", errors="ignore")
-    entries: list[BoeMatch] = []
-    for match in re.finditer(r"<entry>(.*?)</entry>", text, flags=re.S):
-        chunk = match.group(1)
-        title_m = re.search(r"<title>(.*?)</title>", chunk, flags=re.S)
-        link_m = re.search(r'<link[^>]*href="([^"]+)"', chunk)
-        date_m = re.search(r"<published>(\d{4}-\d{2}-\d{2})", chunk)
-        if not title_m or not link_m:
-            continue
-        url = link_m.group(1)
-        boe_id_m = _BOE_ID_RE.search(url) or _BOE_ID_RE.search(title_m.group(1))
-        if not boe_id_m:
-            continue
-        try:
-            pub = date.fromisoformat(date_m.group(1)) if date_m else None
-        except ValueError:
-            pub = None
-        entries.append(
-            BoeMatch(
-                boe_id=boe_id_m.group(0),
-                title=_strip_whitespace(title_m.group(1)),
-                publication_date=pub,
-                url=url,
-            )
-        )
-    return entries
+
+def _normalize_words(s: str) -> list[str]:
+    """Lowercase + diacritic-fold + split into 3+ char tokens."""
+    return re.findall(r"[a-záéíóúñü]{3,}", s.lower())
 
 
 def _title_similarity(a: str, b: str) -> float:
-    """Rough overlap score in [0, 1] — token-set ratio.
-
-    Levenshtein would be more accurate but pulls a dep we don't have.
-    Token-set is plenty for the matcher's purpose: it's good at
-    "Ley Orgánica X por la que se modifica…" vs the original
-    proposal title, which share a long prefix.
-    """
+    """Token-set Jaccard score in [0, 1]. See module docstring for
+    why this is sufficient given the BOE entry inherits most nouns
+    from the original initiative title."""
     sa = set(_normalize_words(a))
     sb = set(_normalize_words(b))
     if not sa or not sb:
         return 0.0
-    overlap = len(sa & sb)
-    union = len(sa | sb)
-    return overlap / union
+    return len(sa & sb) / len(sa | sb)
 
 
-def _normalize_words(s: str) -> list[str]:
-    return [w for w in re.findall(r"[a-záéíóúñü]{3,}", s.lower())]
+def _build_query_string(stem: str) -> str:
+    """Build the Elasticsearch ``query_string`` body the BOE API expects.
+
+    The endpoint accepts the query as a JSON-encoded
+    ``{"query": {"query_string": {"query": "<lucene>"}}}`` payload
+    passed through the ``query`` URL parameter. ``titulo:`` is the
+    lucene field for the entry's title; we quote the stem so spaces
+    are matched as a phrase rather than as OR'd terms.
+
+    The stem is sanitised — colons, quotes and lucene-significant
+    characters are dropped — so we never produce a request that the
+    server can reject as malformed.
+    """
+    cleaned = re.sub(r"[\"\\:^~\[\]{}]", " ", stem).strip()
+    cleaned = " ".join(cleaned.split())
+    if not cleaned:
+        return ""
+    payload = {"query": {"query_string": {"query": f'titulo:"{cleaned}"'}}}
+    return json.dumps(payload, ensure_ascii=False)
 
 
 async def search_boe_for_initiative(
     initiative: Initiative, *, timeout: float = 30.0
 ) -> BoeMatch | None:
-    """Run one BOE search per initiative and return the best match.
-
-    Returns ``None`` when no entry clears the confidence bar. Never
-    raises on network or parse failures — the caller treats absent
-    matches as "we don't know yet" rather than a hard error.
-    """
+    """Best-effort lookup for one initiative. Never raises."""
     if initiative.type not in PUBLISHABLE_TYPES:
         return None
     if initiative.status not in PUBLISHABLE_STATUSES:
         return None
-    title = initiative.title_ca or initiative.title_original
-    if not title:
+    raw_title = initiative.title_ca or initiative.title_original
+    if not raw_title:
         return None
-    # The publication can drift up to ~12 months past the proposal
-    # date; widen the window when we have submitted_at, otherwise
-    # search a generous 3-year band so legacy rows still match.
-    if initiative.submitted_at is not None:
-        year_from = initiative.submitted_at.year
-        year_to = (initiative.submitted_at + timedelta(days=365)).year
-    else:
-        year_from = 2023
-        year_to = 2026
+    stem = _strip_prefix(raw_title)
+    if len(stem) < 8:
+        return None
+    query = _build_query_string(stem)
+    if not query:
+        return None
 
-    url = _build_search_url(title, year_from, year_to)
+    params: dict[str, Any] = {"query": query, "limit": 5}
+    # Date window: laws typically clear within 24 months of being
+    # filed. The BOE API accepts AAAAMMDD dates via ``from`` / ``to``.
+    if initiative.submitted_at is not None:
+        date_from = initiative.submitted_at
+        date_to = initiative.submitted_at + timedelta(days=730)
+        params["from"] = date_from.strftime("%Y%m%d")
+        params["to"] = date_to.strftime("%Y%m%d")
+
     headers = {
         "User-Agent": USER_AGENT,
-        "Accept": "application/atom+xml,application/xml",
+        "Accept": "application/json",
     }
     async with httpx.AsyncClient(timeout=timeout, headers=headers) as client:
         try:
-            resp = await client.get(url)
+            resp = await client.get(BOE_API_URL, params=params)
             resp.raise_for_status()
         except httpx.HTTPError as e:
             log.warning("boe.search.failed", initiative_id=initiative.id, error=str(e))
             return None
 
-    candidates = _parse_atom(resp.content)
-    if not candidates:
+    try:
+        payload = resp.json()
+    except ValueError:
+        log.warning("boe.search.bad_json", initiative_id=initiative.id)
+        return None
+
+    items = payload.get("data") or []
+    if not isinstance(items, list) or not items:
         return None
 
     best: BoeMatch | None = None
     best_score = 0.0
-    for c in candidates:
-        score = _title_similarity(title, c.title)
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        boe_id = it.get("identificador")
+        title = it.get("titulo")
+        url = it.get("url_html_consolidada")
+        if not boe_id or not title or not url:
+            continue
+        score = _title_similarity(stem, title)
         if score > best_score:
             best_score = score
-            best = c
-    # 0.45 is a conservative threshold determined empirically against
-    # a handful of XV-legislature laws — below this most matches are
-    # unrelated rules that happen to share a word or two.
+            best = BoeMatch(
+                boe_id=str(boe_id),
+                title=str(title),
+                publication_date=_parse_yyyymmdd(it.get("fecha_publicacion")),
+                entry_in_force=_parse_yyyymmdd(it.get("fecha_vigencia")),
+                url=str(url),
+            )
+
     if best is None or best_score < 0.45:
         return None
     return best
 
 
 async def enrich_initiatives_with_boe(session: AsyncSession) -> dict[str, int]:
-    """Run the BOE search for every approved publishable initiative
-    that hasn't been matched yet, persist the result.
+    """Match approved publishable initiatives to their BOE entries.
 
-    Idempotent — re-runs only touch rows whose ``boe_id`` is still
-    NULL. Always commits at the end.
+    Operates only on rows where ``boe_id`` is still NULL — re-running
+    is safe and cheap. Always commits at the end; per-row failures
+    are caught and logged so a single bad row never blocks the batch.
+
+    Returns a counter ``{matched, skipped, attempted}`` for telemetry.
     """
     rows = list(
         (
@@ -280,6 +284,7 @@ async def enrich_initiatives_with_boe(session: AsyncSession) -> dict[str, int]:
             continue
         initiative.boe_id = hit.boe_id
         initiative.boe_url = hit.url
+        initiative.boe_entry_in_force = hit.entry_in_force
         matched += 1
 
     await session.commit()

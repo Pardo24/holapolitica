@@ -219,6 +219,7 @@ class InitiativeRead(BaseModel):
     # deep link the frontend renders.
     boe_id: str | None = None
     boe_url: str | None = None
+    boe_entry_in_force: date | None = None
 
 
 class InitiativeVoteSummary(BaseModel):

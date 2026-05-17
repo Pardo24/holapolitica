@@ -427,6 +427,11 @@ class Initiative(Base, TimestampMixin):
     # invent a placeholder.
     boe_id: Mapped[str | None] = mapped_column(String(40))
     boe_url: Mapped[str | None] = mapped_column(String(500))
+    # When the published law enters into force, lifted from the
+    # ``fecha_vigencia`` field of the BOE consolidated-legislation API
+    # (the BOE has already parsed the "Disposición final"). NULL until
+    # the worker matches the initiative against its published norm.
+    boe_entry_in_force: Mapped[date | None] = mapped_column(Date)
     # Plain-language explanations produced by an LLM, per locale. May be
     # NULL when the generator returned [INSUFICIENT] or when generation
     # hasn't run yet. See ``app.services.plain_summary``.

@@ -82,15 +82,15 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "30 */4 * * *",
         jobs.post_recent_votes_to_bluesky,
     ),
-    # Open-data enrichment — Wikidata at 03:00 sets the per-locale
-    # Wikipedia URLs, Wikipedia summary fetch follows at 03:30 to
-    # ingest extracts for any newly-linked persons. Both idempotent.
-    # BOE enrichment is NOT scheduled yet: the atom search endpoint our
-    # client targets returns 404 against the live site. The job code
-    # stays in place so we can switch it back on once the URL format is
-    # rewritten against datos.boe.es. See app.ingest.boe.
+    # Open-data enrichment — chained at night so each pass depends
+    # on the previous: Wikidata at 03:00 sets per-locale Wikipedia
+    # URLs, Wikipedia REST at 03:30 ingests article extracts for any
+    # newly-linked persons, BOE consolidated-legislation API at 04:00
+    # matches approved laws to their BOE_A_… entries (+ entry-into-
+    # force date). All idempotent; a missed run picks up next day.
     ("monitor-enrich-wikidata", "ingest", "0 3 * * *", jobs.enrich_persons_wikidata),
     ("monitor-enrich-wikipedia", "ingest", "30 3 * * *", jobs.enrich_persons_wikipedia),
+    ("monitor-enrich-boe", "ingest", "0 4 * * *", jobs.enrich_initiatives_boe),
 ]
 
 

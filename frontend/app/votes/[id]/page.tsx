@@ -271,6 +271,16 @@ export default async function VoteDetailPage({
               </div>
             </div>
           )}
+          {initiative?.boe_entry_in_force && (
+            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
+              <span className="eyebrow">{tInitiative('entry_in_force')}</span>
+              <div className="tabular" style={{ marginTop: 2, fontSize: 13 }}>
+                {new Date(initiative.boe_entry_in_force).toLocaleDateString(locale, {
+                  dateStyle: 'medium',
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

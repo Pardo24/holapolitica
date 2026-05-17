@@ -529,6 +529,13 @@ export interface Initiative {
   boe_id?: string | null;
   boe_url?: string | null;
   /**
+   * Date the published law enters into force. ISO YYYY-MM-DD. Lifted
+   * from the BOE consolidated-legislation API's ``fecha_vigencia``
+   * field (already parsed from the law's "Disposición final" by the
+   * BOE itself). NULL while the initiative remains a bill.
+   */
+  boe_entry_in_force?: string | null;
+  /**
    * Populated by the dedicated `/initiatives/{id}` detail endpoint;
    * legacy callers that hit the same endpoint may receive empty arrays
    * if the backend has not been upgraded yet.

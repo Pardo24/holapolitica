@@ -377,6 +377,30 @@ export default async function InitiativeDetailPage({
               </a>
             )}
           </div>
+          {initiative.boe_entry_in_force && (
+            <div
+              style={{
+                marginTop: 14,
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: 8,
+                fontSize: 13,
+                color: 'var(--ink-2)',
+              }}
+            >
+              <span
+                className="eyebrow"
+                style={{ fontSize: 10, color: 'var(--ink-3)' }}
+              >
+                {t('entry_in_force')}
+              </span>
+              <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+                {new Date(initiative.boe_entry_in_force).toLocaleDateString(locale, {
+                  dateStyle: 'long',
+                })}
+              </span>
+            </div>
+          )}
 
           {topics.length > 0 && (
             <div style={{ marginTop: 24 }}>
