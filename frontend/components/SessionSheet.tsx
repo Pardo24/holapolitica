@@ -314,6 +314,55 @@ export async function SessionSheet({
         </p>
       </section>
 
+      {/* Featured-law dossier embed — when the day's tightest vote
+          links to an initiative, render the /embed/initiatives
+          widget inline as a same-origin iframe. This is the literal
+          fulfilment of the /journalists claim that "/avui is a
+          composition of these widgets" — Daniel's ask: '/avui ha
+          d'usar els widgets'. The iframe is bounded to a clear
+          dossier height, lazy-loaded, and gets a clear caption so a
+          reader knows this is the day's contentious law in dossier
+          form. */}
+      {tightestVote?.initiative_id != null && (
+        <section
+          style={{
+            marginBottom: 28,
+            padding: '14px 16px',
+            background: 'var(--paper-2)',
+            border: '1px solid var(--rule)',
+          }}
+        >
+          <div
+            className="eyebrow"
+            style={{ marginBottom: 4, fontSize: 10, color: 'var(--ink-3)' }}
+          >
+            {t('featured_dossier_eyebrow')}
+          </div>
+          <p
+            style={{
+              margin: '0 0 10px',
+              fontSize: 12,
+              color: 'var(--ink-3)',
+              lineHeight: 1.5,
+            }}
+          >
+            {t('featured_dossier_caption')}
+          </p>
+          <iframe
+            src={`/embed/initiatives/${tightestVote.initiative_id}`}
+            title={t('featured_dossier_iframe_title')}
+            width="100%"
+            height={480}
+            loading="lazy"
+            style={{
+              border: '1px solid var(--rule)',
+              background: 'var(--paper)',
+              display: 'block',
+            }}
+          />
+        </section>
+      )}
+
       {/* Topic-distribution chart — the visual lede. One row per
           topic in this session: topic colour swatch + name on the
           left, a stacked horizontal bar showing how many of those
