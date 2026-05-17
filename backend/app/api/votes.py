@@ -146,9 +146,7 @@ async def list_votes(
         "total": total,
         "page": page,
         "page_size": page_size,
-        "items": [
-            _serialize_vote(v, groups, topics_by_initiative) for v in items
-        ],
+        "items": [_serialize_vote(v, groups, topics_by_initiative) for v in items],
     }
 
 
