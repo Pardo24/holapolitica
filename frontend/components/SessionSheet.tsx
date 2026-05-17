@@ -186,69 +186,90 @@ export async function SessionSheet({
         </div>
       </header>
 
-      {/* Stats kicker — single newspaper-style line. Eyebrow above
-          tabular value, cells separated by thin rules. Mirrors the
-          ``vote-meta-strip`` pattern on /votes/[id] so /avui reads in
-          the same visual language as the rest of the site (no rounded
-          dashboard cards). */}
+      {/* Lede — newspaper-style prose summary. The day's counts live
+          inside a single serif paragraph so the page reads as
+          editorial copy, not a dashboard. The "tightest margin"
+          phrase wraps a Link to that specific vote so the lede
+          remains scannable but every figure stays one click from its
+          source. No editorial framing ("histórico", "polémico"); the
+          sentence only states facts in the order a journalist would. */}
       <section
         style={{
-          display: 'flex',
-          gap: 22,
-          alignItems: 'baseline',
-          flexWrap: 'wrap',
-          paddingBottom: 18,
-          marginBottom: 28,
-          borderBottom: '1px solid var(--rule)',
+          marginBottom: 32,
+          paddingBottom: 0,
+          maxWidth: 720,
         }}
       >
-        <KickerStat
-          label={t('stat_approved')}
-          value={counts.approved}
-          color="var(--aye, #16A34A)"
-        />
-        <KickerStat
-          label={t('stat_rejected')}
-          value={counts.rejected}
-          color="var(--no, #DC2626)"
-          divided
-        />
-        {counts.tie > 0 && (
-          <KickerStat
-            label={t('stat_tie')}
-            value={counts.tie}
-            color="var(--abst, #CA8A04)"
-            divided
-          />
-        )}
-        {tightestVote && (
-          <Link
-            href={`/votes/${tightestVote.id}` as Route}
-            style={{
-              color: 'inherit',
-              textDecoration: 'none',
-              borderLeft: '1px solid var(--rule)',
-              paddingLeft: 22,
-            }}
-          >
-            <span className="eyebrow">{t('stat_tightest_label')}</span>
-            <div
-              className="tabular"
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                letterSpacing: '-0.01em',
-                marginTop: 2,
-                lineHeight: 1.05,
-              }}
-            >
-              {tightestMargin === 0
-                ? t('stat_tightest_tie')
-                : `±${tightestMargin}`}
-            </div>
-          </Link>
-        )}
+        <div
+          className="eyebrow"
+          style={{ marginBottom: 8 }}
+        >
+          {t('lede_eyebrow')}
+        </div>
+        <p
+          className="serif"
+          style={{
+            margin: 0,
+            fontSize: 'clamp(17px, 1.7vw, 19px)',
+            lineHeight: 1.55,
+            color: 'var(--ink-2)',
+            fontWeight: 400,
+          }}
+        >
+          {t.rich(
+            counts.tie > 0 ? 'lede_paragraph_with_tie' : 'lede_paragraph',
+            {
+              total: ordered.length,
+              approved: counts.approved,
+              rejected: counts.rejected,
+              tie: counts.tie,
+              n: (chunks) => (
+                <strong
+                  className="tabular"
+                  style={{
+                    color: 'var(--ink)',
+                    fontWeight: 600,
+                    letterSpacing: '-0.005em',
+                  }}
+                >
+                  {chunks}
+                </strong>
+              ),
+            },
+          )}
+          {tightestVote ? (
+            <>
+              {' '}
+              {t.rich('lede_tightest_phrase', {
+                margin: tightestMargin,
+                a: (chunks) => (
+                  <Link
+                    href={`/votes/${tightestVote.id}` as Route}
+                    style={{
+                      color: 'var(--ink)',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: 3,
+                    }}
+                  >
+                    {chunks}
+                  </Link>
+                ),
+                n: (chunks) => (
+                  <strong
+                    className="tabular"
+                    style={{
+                      color: 'var(--ink)',
+                      fontWeight: 600,
+                      letterSpacing: '-0.005em',
+                    }}
+                  >
+                    {chunks}
+                  </strong>
+                ),
+              })}
+            </>
+          ) : null}
+        </p>
       </section>
 
       {/* Vote list — grouped by topic so the page reads as a topic-
@@ -292,21 +313,21 @@ export async function SessionSheet({
                     justifyContent: 'space-between',
                     gap: 12,
                     flexWrap: 'wrap',
-                    paddingBottom: 8,
-                    marginBottom: 14,
-                    borderBottom: `2px solid ${
+                    paddingBottom: 6,
+                    marginBottom: 12,
+                    borderBottom: `1px solid ${
                       topic?.color_hex ?? 'var(--ink)'
                     }`,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                     {topic?.color_hex && (
                       <span
                         aria-hidden="true"
                         style={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: 3,
+                          width: 9,
+                          height: 9,
+                          borderRadius: 2,
                           background: topic.color_hex,
                           display: 'inline-block',
                         }}
@@ -316,9 +337,10 @@ export async function SessionSheet({
                       className="serif"
                       style={{
                         margin: 0,
-                        fontSize: 'clamp(20px, 2.6vw, 26px)',
-                        fontWeight: 700,
-                        letterSpacing: '-0.01em',
+                        fontSize: 'clamp(15px, 1.5vw, 17px)',
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
                         color: 'var(--ink)',
                       }}
                     >
@@ -417,48 +439,6 @@ export async function SessionSheet({
   );
 }
 
-/**
- * One cell of the stats kicker — eyebrow caption above a tabular
- * value, optionally preceded by a thin vertical rule. Same visual
- * pattern as the meta strip on /votes/[id], keeping the two routes
- * in one design language.
- */
-function KickerStat({
-  label,
-  value,
-  color,
-  divided = false,
-}: {
-  label: string;
-  value: number;
-  color: string;
-  divided?: boolean;
-}) {
-  return (
-    <div
-      style={
-        divided
-          ? { borderLeft: '1px solid var(--rule)', paddingLeft: 22 }
-          : undefined
-      }
-    >
-      <span className="eyebrow">{label}</span>
-      <div
-        className="tabular"
-        style={{
-          fontSize: 22,
-          fontWeight: 700,
-          color,
-          letterSpacing: '-0.01em',
-          marginTop: 2,
-          lineHeight: 1.05,
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
 
 function NavButton({
   href,
@@ -598,11 +578,11 @@ function VoteRow({
               className="serif"
               style={{
                 margin: 0,
-                fontSize: 'clamp(18px, 2.2vw, 22px)',
-                fontWeight: 600,
+                fontSize: 'clamp(16px, 1.6vw, 18px)',
+                fontWeight: 400,
                 color: 'var(--ink)',
-                lineHeight: 1.3,
-                letterSpacing: '-0.01em',
+                lineHeight: 1.4,
+                letterSpacing: '-0.005em',
                 flex: '1 1 280px',
                 minWidth: 0,
               }}
