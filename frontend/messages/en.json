@@ -87,6 +87,7 @@
     "topic_chart_legend_approved": "Approved",
     "topic_chart_legend_rejected": "Rejected",
     "topic_chart_legend_tie": "Tied",
+    "lede_topics_prefix": "Most active topics:",
     "list_eyebrow": "Every vote of the session",
     "list_empty": "No votes recorded for this session.",
     "result_approved": "Approved",

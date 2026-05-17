@@ -87,6 +87,7 @@
     "topic_chart_legend_approved": "Aprobadas",
     "topic_chart_legend_rejected": "Rechazadas",
     "topic_chart_legend_tie": "Empates",
+    "lede_topics_prefix": "Temas con más actividad:",
     "list_eyebrow": "Todas las votaciones de la sesión",
     "list_empty": "No se han registrado votaciones para esta sesión.",
     "result_approved": "Aprobada",

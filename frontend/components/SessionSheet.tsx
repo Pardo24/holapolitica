@@ -269,6 +269,48 @@ export async function SessionSheet({
               })}
             </>
           ) : null}
+          {/* Dominant-topics phrase — third sentence of the lede.
+              Lists up to 3 of the most-voted topics this session, each
+              linked to /votes?topic=<slug> so a reader can keep
+              browsing votes in the same area. Excluded when the only
+              bucket would be the unclassified one. Daniel:
+              'informe resumido de los resultados a traves de lenguaje
+              natural ... MUY importante que esten clasificadas por
+              tema.' */}
+          {(() => {
+            const topTopics = groupVotesByTopic(ordered, locale)
+              .filter((g) => g.key !== '__unclassified' && g.topic != null)
+              .slice(0, 3);
+            if (topTopics.length === 0) return null;
+            return (
+              <>
+                {' '}
+                {t('lede_topics_prefix')}{' '}
+                {topTopics.map((g, i) => (
+                  <span key={g.key}>
+                    {i > 0 ? ', ' : ''}
+                    <Link
+                      href={`/votes?topic=${g.topic!.slug}` as Route}
+                      style={{
+                        color: 'var(--ink)',
+                        textDecoration: 'underline',
+                        textUnderlineOffset: 3,
+                      }}
+                    >
+                      {pickTopicName(g.topic!, locale)}
+                    </Link>
+                    <span
+                      className="tabular"
+                      style={{ color: 'var(--ink-3)', marginLeft: 4 }}
+                    >
+                      ({g.votes.length})
+                    </span>
+                  </span>
+                ))}
+                .
+              </>
+            );
+          })()}
         </p>
       </section>
 
