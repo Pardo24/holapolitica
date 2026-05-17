@@ -91,7 +91,15 @@
     "margin_tie": "marge empat",
     "cite_eyebrow": "Enllaç estable per a citar",
     "archive_ribbon": "Arxiu",
-    "archive_back_to_latest": "Veure la sessió més recent"
+    "archive_back_to_latest": "Veure la sessió més recent",
+    "section_unclassified": "Sense classificar",
+    "section_aria": "Votacions agrupades sota el tema {topic}",
+    "section_aria_unclassified": "Votacions sense classificació temàtica",
+    "section_total": "{count, plural, =1 {# votació} other {# votacions}}",
+    "section_approved": "{count} aprovades",
+    "section_rejected": "{count} rebutjades",
+    "section_tie": "{count, plural, =1 {# empat} other {# empats}}",
+    "proposed_by_government": "Govern"
   },
   "avui_og": {
     "brand": "Hola Política",

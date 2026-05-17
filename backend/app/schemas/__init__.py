@@ -283,6 +283,12 @@ class VoteRead(BaseModel):
     plain_summary_ca: str | None = None
     plain_summary_es: str | None = None
     plain_summary_provider: str | None = None
+    # Topics attached to the linked Initiative (when one exists and has
+    # been classified). Empty list when the vote has no initiative,
+    # the initiative hasn't been classified yet, or the classifier
+    # declined. The list_votes handler populates this in a single bulk
+    # JOIN, so it costs one extra query per page, not N+1.
+    topics: list[InitiativeTopicSlug] = []
 
 
 class VoteRecordRead(BaseModel):

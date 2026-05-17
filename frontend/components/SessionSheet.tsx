@@ -4,8 +4,9 @@ import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { ResultPill } from '@/components/ResultPill';
-import type { Vote } from '@/lib/api';
+import type { InitiativeTopicSlug, Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * Plenary-session summary sheet — the canonical render for one day's
@@ -251,38 +252,136 @@ export async function SessionSheet({
         )}
       </section>
 
-      {/* Vote list — every vote of the session, chronological. */}
-      <section style={{ marginBottom: 28 }}>
-        <div
-          className="eyebrow"
-          style={{ marginBottom: 12, color: 'var(--ink-3)' }}
-        >
-          {t('list_eyebrow')}
-        </div>
-        {ordered.length === 0 ? (
-          <p style={{ color: 'var(--ink-3)', fontSize: 14 }}>
-            {t('list_empty')}
-          </p>
-        ) : (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {ordered.map((v, i) => (
-              <VoteRow
-                key={v.id}
-                vote={v}
-                locale={locale}
-                showSummary={i === 0}
-                resultLabel={t(`result_${v.result}`)}
-                ayesLabel={t('ayes_short')}
-                noesLabel={t('noes_short')}
-                abstLabel={t('abst_short')}
-                marginLabel={(margin) =>
-                  margin === 0 ? t('margin_tie') : t('margin_short', { margin })
+      {/* Vote list — grouped by topic so the page reads as a topic-
+          structured agenda rather than a flat dump. Each section
+          carries a small summary line (N votes, M approved, K
+          rejected) so readers can skim before diving into the
+          individual rows. Votes without a classified topic fall into
+          a "Sense classificar" bucket pinned to the bottom. */}
+      {ordered.length === 0 ? (
+        <section style={{ marginBottom: 28 }}>
+          <div
+            className="eyebrow"
+            style={{ marginBottom: 12, color: 'var(--ink-3)' }}
+          >
+            {t('list_eyebrow')}
+          </div>
+          <p style={{ color: 'var(--ink-3)', fontSize: 14 }}>{t('list_empty')}</p>
+        </section>
+      ) : (
+        <>
+          {groupVotesByTopic(ordered, locale).map(({ topic, votes: groupVotes, key }) => {
+            const sectionCounts = {
+              approved: groupVotes.filter((v) => v.result === 'approved').length,
+              rejected: groupVotes.filter((v) => v.result === 'rejected').length,
+              tie: groupVotes.filter((v) => v.result === 'tie').length,
+            };
+            return (
+              <section
+                key={key}
+                style={{ marginBottom: 36 }}
+                aria-label={
+                  topic
+                    ? t('section_aria', { topic: pickTopicName(topic, locale) })
+                    : t('section_aria_unclassified')
                 }
-              />
-            ))}
-          </ul>
-        )}
-      </section>
+              >
+                <header
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    flexWrap: 'wrap',
+                    paddingBottom: 8,
+                    marginBottom: 14,
+                    borderBottom: `2px solid ${
+                      topic?.color_hex ?? 'var(--ink)'
+                    }`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {topic?.color_hex && (
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: 3,
+                          background: topic.color_hex,
+                          display: 'inline-block',
+                        }}
+                      />
+                    )}
+                    <h2
+                      className="serif"
+                      style={{
+                        margin: 0,
+                        fontSize: 'clamp(20px, 2.6vw, 26px)',
+                        fontWeight: 700,
+                        letterSpacing: '-0.01em',
+                        color: 'var(--ink)',
+                      }}
+                    >
+                      {topic
+                        ? pickTopicName(topic, locale)
+                        : t('section_unclassified')}
+                    </h2>
+                  </div>
+                  <div
+                    className="tabular"
+                    style={{
+                      fontSize: 12,
+                      color: 'var(--ink-3)',
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      gap: 10,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span style={{ color: 'var(--ink-2)', fontWeight: 600 }}>
+                      {t('section_total', { count: groupVotes.length })}
+                    </span>
+                    {sectionCounts.approved > 0 && (
+                      <span style={{ color: 'var(--aye, #16A34A)' }}>
+                        {t('section_approved', { count: sectionCounts.approved })}
+                      </span>
+                    )}
+                    {sectionCounts.rejected > 0 && (
+                      <span style={{ color: 'var(--no, #DC2626)' }}>
+                        {t('section_rejected', { count: sectionCounts.rejected })}
+                      </span>
+                    )}
+                    {sectionCounts.tie > 0 && (
+                      <span style={{ color: 'var(--abst, #CA8A04)' }}>
+                        {t('section_tie', { count: sectionCounts.tie })}
+                      </span>
+                    )}
+                  </div>
+                </header>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {groupVotes.map((v, i) => (
+                    <VoteRow
+                      key={v.id}
+                      vote={v}
+                      locale={locale}
+                      showSummary={i === 0 && groupVotes.length <= 3}
+                      resultLabel={t(`result_${v.result}`)}
+                      ayesLabel={t('ayes_short')}
+                      noesLabel={t('noes_short')}
+                      abstLabel={t('abst_short')}
+                      proposedByGovernmentLabel={t('proposed_by_government')}
+                      marginLabel={(margin) =>
+                        margin === 0 ? t('margin_tie') : t('margin_short', { margin })
+                      }
+                    />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </>
+      )}
 
       {/* Citation footer — appears for both archive and live pages so
           the URL is always handy. */}
@@ -421,6 +520,7 @@ function VoteRow({
   ayesLabel,
   noesLabel,
   abstLabel,
+  proposedByGovernmentLabel,
   marginLabel,
 }: {
   vote: Vote;
@@ -430,15 +530,24 @@ function VoteRow({
   ayesLabel: string;
   noesLabel: string;
   abstLabel: string;
+  proposedByGovernmentLabel: string;
   marginLabel: (margin: number) => string;
 }) {
   const subject = vote.description?.trim() || vote.title;
   const summary = showSummary ? pickPlainSummary(vote, locale) : null;
   const margin = Math.abs(vote.ayes - vote.noes);
+  const proposer = vote.proposing_group_short
+    ? {
+        short: vote.proposing_group_short,
+        color: vote.proposing_group_color ?? 'var(--ink-3)',
+      }
+    : vote.proposed_by_government
+      ? { short: proposedByGovernmentLabel, color: 'var(--ink)' }
+      : null;
   return (
     <li
       style={{
-        padding: '20px 0',
+        padding: '22px 0',
         borderBottom: '1px solid var(--rule)',
       }}
     >
@@ -446,22 +555,29 @@ function VoteRow({
         href={`/votes/${vote.id}` as Route}
         style={{
           display: 'grid',
-          gridTemplateColumns: '32px minmax(0, 1fr) auto',
+          // Three columns: a narrow sequence-number gutter, a wide
+          // title+meta column that flexes, and a fixed-width count
+          // panel pinned to the right. Counts visually anchor the
+          // row's right edge so the eye scans down them without
+          // hopping inside the metadata line.
+          gridTemplateColumns: '28px minmax(0, 1fr) auto',
           columnGap: 16,
-          rowGap: 8,
+          rowGap: 6,
           color: 'inherit',
           textDecoration: 'none',
-          alignItems: 'baseline',
+          alignItems: 'start',
         }}
       >
         {/* Sequence number — quiet anchor in the left gutter. */}
         <span
           className="tabular"
+          aria-hidden="true"
           style={{
             fontSize: 11,
             color: 'var(--ink-3)',
             fontWeight: 600,
             letterSpacing: '0.08em',
+            paddingTop: 4,
           }}
         >
           {vote.sequence_in_session != null
@@ -469,71 +585,74 @@ function VoteRow({
             : '—'}
         </span>
 
-        {/* Title — the main thing to read. Large, serif, generous
-            line-height. Drops the previous 2-3 line clamp to a 3-line
-            cap that's only enforced for the densest rows. */}
-        <h3
-          className="serif"
-          style={{
-            margin: 0,
-            fontSize: 'clamp(17px, 2vw, 19px)',
-            fontWeight: 600,
-            color: 'var(--ink)',
-            lineHeight: 1.35,
-            letterSpacing: '-0.005em',
-          }}
-        >
-          {subject}
-        </h3>
-
-        {/* Result pill — vertically centered with the title baseline. */}
-        <ResultPill result={vote.result} label={resultLabel} />
-
-        {/* Spacer cell (left gutter remains empty on the metadata row). */}
-        <span aria-hidden="true" />
-
-        {/* Counts row — Sí / No / Abst. each tinted in its semantic
-            colour. Replaces the previous stacked-color bar: the
-            colours of the numbers do the visualisation work, the
-            text stays the primary signal. */}
-        <div
-          className="tabular"
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            gap: 14,
-            fontSize: 13,
-            color: 'var(--ink-3)',
-            flexWrap: 'wrap',
-          }}
-        >
-          <CountStat label={ayesLabel} value={vote.ayes} color="var(--aye, #16A34A)" />
-          <CountStat label={noesLabel} value={vote.noes} color="var(--no, #DC2626)" />
-          <CountStat label={abstLabel} value={vote.abstentions} color="var(--abst, #CA8A04)" />
-        </div>
-
-        {/* Margin — derived metric, kept muted on the right. */}
-        <span
-          className="tabular"
-          style={{
-            fontSize: 11,
-            color: 'var(--ink-3)',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {marginLabel(margin)}
-        </span>
-
-        {/* Plain summary — only for the first vote, so the page has
-            a "lede" without picking an editorial highlight. */}
-        {summary && (
-          <>
-            <span aria-hidden="true" />
-            <p
+        {/* Title + result pill + proposing-group chip stack. The
+            result pill sits on the top-right of the title block (not
+            in its own grid column) so it visually associates with
+            the headline; the proposer chip sits BELOW the title so
+            attribution reads "the law, who tabled it" without
+            interrupting the headline. */}
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <h3
               className="serif"
               style={{
                 margin: 0,
-                gridColumn: '2 / span 2',
+                fontSize: 'clamp(18px, 2.2vw, 22px)',
+                fontWeight: 600,
+                color: 'var(--ink)',
+                lineHeight: 1.3,
+                letterSpacing: '-0.01em',
+                flex: '1 1 280px',
+                minWidth: 0,
+              }}
+            >
+              {subject}
+            </h3>
+            <span style={{ flex: 'none' }}>
+              <ResultPill result={vote.result} label={resultLabel} />
+            </span>
+          </div>
+          {proposer && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                marginTop: 8,
+                padding: '3px 10px',
+                borderRadius: 999,
+                background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
+                border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--ink)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 999,
+                  background: proposer.color,
+                }}
+              />
+              {proposer.short}
+            </span>
+          )}
+          {summary && (
+            <p
+              className="serif"
+              style={{
+                margin: '10px 0 0',
                 fontSize: 14,
                 color: 'var(--ink-2)',
                 lineHeight: 1.55,
@@ -541,21 +660,61 @@ function VoteRow({
             >
               {summary}
             </p>
-          </>
-        )}
+          )}
+        </div>
+
+        {/* Count panel — right-aligned column. The three figures stack
+            vertically so the digits sit on a tight tabular grid
+            (185 / 152 / 11 etc.) and the labels match in width. */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 2,
+            minWidth: 96,
+            paddingTop: 2,
+          }}
+        >
+          <CountRow
+            label={ayesLabel}
+            value={vote.ayes}
+            color="var(--aye, #16A34A)"
+          />
+          <CountRow
+            label={noesLabel}
+            value={vote.noes}
+            color="var(--no, #DC2626)"
+          />
+          <CountRow
+            label={abstLabel}
+            value={vote.abstentions}
+            color="var(--abst, #CA8A04)"
+          />
+          <span
+            className="tabular"
+            style={{
+              fontSize: 10,
+              color: 'var(--ink-3)',
+              marginTop: 4,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {marginLabel(margin)}
+          </span>
+        </div>
       </Link>
     </li>
   );
 }
 
 /**
- * Inline count chip used inside the vote row's metadata line —
- * "Sí 187", "No 152", "Abst. 11". The value carries the semantic
- * colour (green / red / amber) so the eye can scan results without a
- * graphical bar; the label stays muted so the typography hierarchy
- * is value > label.
+ * One row of the right-aligned count panel — "Sí 187" / "No 152" /
+ * "Abst. 11". The numeric value is bold + tinted (green / red /
+ * amber) and the label sits to its right in a muted weight so the
+ * digits anchor the eye, the label disambiguates.
  */
-function CountStat({
+function CountRow({
   label,
   value,
   color,
@@ -565,18 +724,84 @@ function CountStat({
   color: string;
 }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        gap: 6,
+      }}
+    >
       <strong
+        className="tabular"
         style={{
-          fontSize: 15,
+          fontSize: 16,
           fontWeight: 700,
           color,
           letterSpacing: '-0.01em',
+          minWidth: 36,
+          textAlign: 'right',
+          display: 'inline-block',
         }}
       >
         {value}
       </strong>
-      <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{label}</span>
+      <span
+        style={{
+          fontSize: 11,
+          color: 'var(--ink-3)',
+          minWidth: 32,
+          textAlign: 'left',
+          display: 'inline-block',
+        }}
+      >
+        {label}
+      </span>
     </span>
   );
+}
+
+interface TopicGroup {
+  /** Stable key used by React; the slug, or "__unclassified". */
+  key: string;
+  /** The full topic record for naming + colouring, or null when none. */
+  topic: InitiativeTopicSlug | null;
+  votes: Vote[];
+}
+
+/**
+ * Bucket the session's votes by their primary topic.
+ *
+ * Each Vote may carry zero, one or several topics through its linked
+ * Initiative. We pick the FIRST topic listed as the canonical bucket
+ * (the backend returns them in JOIN order; the order is stable across
+ * runs because InitiativeTopic rows are created in classification
+ * order). Votes without an initiative or without a classified topic
+ * fall into a single "Sense classificar" bucket pinned to the end.
+ *
+ * Topic order: sections are sorted by number of votes descending so
+ * the heaviest topic of the day reads first. The unclassified bucket
+ * is forced last regardless of size; that's a presentational rule,
+ * not a curation one — it still surfaces every uncategorised vote.
+ */
+function groupVotesByTopic(
+  votes: Vote[],
+  _locale: string,
+): TopicGroup[] {
+  const buckets = new Map<string, TopicGroup>();
+  for (const v of votes) {
+    const primary = v.topics && v.topics.length > 0 ? v.topics[0] : null;
+    const key = primary ? primary.slug : '__unclassified';
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.votes.push(v);
+    } else {
+      buckets.set(key, { key, topic: primary ?? null, votes: [v] });
+    }
+  }
+  const ordered = [...buckets.values()].sort((a, b) => {
+    if (a.key === '__unclassified') return 1;
+    if (b.key === '__unclassified') return -1;
+    return b.votes.length - a.votes.length;
+  });
+  return ordered;
 }

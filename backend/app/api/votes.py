@@ -25,7 +25,7 @@ from app.models import (
 from app.models import (
     Session as SessionModel,
 )
-from app.schemas import VoteRead
+from app.schemas import InitiativeTopicSlug, VoteRead
 from app.services.proposing_group import resolve_proposing_group
 
 router = APIRouter(prefix="/votes", tags=["votes"])
@@ -135,12 +135,46 @@ async def list_votes(
 
     groups = list((await db.execute(select(ParliamentaryGroup))).scalars().all())
 
+    # Bulk-load topics for every initiative present in this page. One
+    # JOIN regardless of how many votes link to an initiative; cheaper
+    # than N round-trips and keeps the response shape consistent with
+    # the single-vote endpoint that exposes the same field.
+    init_ids = [v.initiative_id for v in items if v.initiative_id is not None]
+    topics_by_initiative = await _load_topics_by_initiative(db, init_ids)
+
     return {
         "total": total,
         "page": page,
         "page_size": page_size,
-        "items": [_serialize_vote(v, groups) for v in items],
+        "items": [
+            _serialize_vote(v, groups, topics_by_initiative) for v in items
+        ],
     }
+
+
+async def _load_topics_by_initiative(
+    db: AsyncSession, initiative_ids: list[int]
+) -> dict[int, list[Topic]]:
+    """Bulk-load topic rows attached to a list of initiative ids.
+
+    Returns a ``{initiative_id: [Topic, ...]}`` map (empty list for
+    unclassified initiatives). One indexed query regardless of input
+    size; called by the list endpoint to populate ``VoteRead.topics``
+    without an N+1 pattern.
+    """
+    if not initiative_ids:
+        return {}
+    rows = (
+        await db.execute(
+            select(InitiativeTopic.initiative_id, Topic)
+            .join(Topic, Topic.id == InitiativeTopic.topic_id)
+            .where(InitiativeTopic.initiative_id.in_(initiative_ids))
+        )
+    ).all()
+    by_id: dict[int, list[Topic]] = {iid: [] for iid in initiative_ids}
+    for initiative_id, topic in rows:
+        by_id.setdefault(initiative_id, []).append(topic)
+    return by_id
 
 
 @router.get("/{vote_id}", response_model=VoteRead)
@@ -153,10 +187,17 @@ async def get_vote(vote_id: int, db: AsyncSession = Depends(get_session)) -> Vot
     if vote is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vote not found")
     groups = list((await db.execute(select(ParliamentaryGroup))).scalars().all())
-    return _serialize_vote(vote, groups)
+    topics_by_initiative = await _load_topics_by_initiative(
+        db, [vote.initiative_id] if vote.initiative_id is not None else []
+    )
+    return _serialize_vote(vote, groups, topics_by_initiative)
 
 
-def _serialize_vote(vote: Vote, groups: list[ParliamentaryGroup]) -> VoteRead:
+def _serialize_vote(
+    vote: Vote,
+    groups: list[ParliamentaryGroup],
+    topics_by_initiative: dict[int, list[Topic]] | None = None,
+) -> VoteRead:
     """Build a ``VoteRead`` and enrich it with proposing group + plain summary."""
     base = VoteRead.model_validate(vote)
     update: dict[str, object] = {}
@@ -185,4 +226,25 @@ def _serialize_vote(vote: Vote, groups: list[ParliamentaryGroup]) -> VoteRead:
         update["plain_summary_ca"] = summary_ca
         update["plain_summary_es"] = summary_es
         update["plain_summary_provider"] = summary_provider
+    # Topics attached to the linked Initiative — bulk-loaded by the
+    # list handler. Translated to the InitiativeTopicSlug shape the
+    # frontend already consumes on /initiatives/<id>.
+    if (
+        topics_by_initiative is not None
+        and vote.initiative_id is not None
+        and vote.initiative_id in topics_by_initiative
+    ):
+        topic_rows = topics_by_initiative[vote.initiative_id]
+        update["topics"] = [
+            InitiativeTopicSlug(
+                slug=t.slug,
+                name_ca=t.name_ca,
+                name_es=t.name_es,
+                name_en=t.name_en,
+                color_hex=t.color_hex,
+                icon=t.icon,
+                kind=t.kind,
+            )
+            for t in topic_rows
+        ]
     return base.model_copy(update=update) if update else base

@@ -185,6 +185,10 @@ export interface Vote {
   plain_summary_ca: string | null;
   plain_summary_es: string | null;
   plain_summary_provider: string | null;
+  // Topics attached to the linked Initiative. Empty when the vote has
+  // no initiative or its initiative hasn't been LLM-classified yet.
+  // Populated by the backend `_load_topics_by_initiative` bulk join.
+  topics?: InitiativeTopicSlug[];
 }
 
 /**

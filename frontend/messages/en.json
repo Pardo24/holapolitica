@@ -91,7 +91,15 @@
     "margin_tie": "tie margin",
     "cite_eyebrow": "Stable link for citation",
     "archive_ribbon": "Archive",
-    "archive_back_to_latest": "See the latest session"
+    "archive_back_to_latest": "See the latest session",
+    "section_unclassified": "Unclassified",
+    "section_aria": "Votes grouped under the topic {topic}",
+    "section_aria_unclassified": "Votes without a topic classification",
+    "section_total": "{count, plural, =1 {# vote} other {# votes}}",
+    "section_approved": "{count} approved",
+    "section_rejected": "{count} rejected",
+    "section_tie": "{count, plural, =1 {# tie} other {# ties}}",
+    "proposed_by_government": "Government"
   },
   "avui_og": {
     "brand": "Hola Política",

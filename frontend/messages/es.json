@@ -91,7 +91,15 @@
     "margin_tie": "margen empate",
     "cite_eyebrow": "Enlace estable para citar",
     "archive_ribbon": "Archivo",
-    "archive_back_to_latest": "Ver la sesión más reciente"
+    "archive_back_to_latest": "Ver la sesión más reciente",
+    "section_unclassified": "Sin clasificar",
+    "section_aria": "Votaciones agrupadas bajo el tema {topic}",
+    "section_aria_unclassified": "Votaciones sin clasificación temática",
+    "section_total": "{count, plural, =1 {# votación} other {# votaciones}}",
+    "section_approved": "{count} aprobadas",
+    "section_rejected": "{count} rechazadas",
+    "section_tie": "{count, plural, =1 {# empate} other {# empates}}",
+    "proposed_by_government": "Gobierno"
   },
   "avui_og": {
     "brand": "Hola Política",
