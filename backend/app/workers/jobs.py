@@ -111,7 +111,10 @@ async def _warm_aggregate_caches() -> None:
                 ),
             )
         log.info("cache.warmed", scope="aggregates")
-    except Exception as e:  # noqa: BLE001 - warming is best-effort
+    except Exception as e:
+        # Warming is best-effort; the user-facing API still works
+        # because the next request will re-run the factory through
+        # the normal cached() path.
         log.warning("cache.warm.failed", error=str(e))
 
 
