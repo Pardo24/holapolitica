@@ -255,6 +255,7 @@ export default async function EmbedVotePage({
         </a>
         <span>
           {t('source_label')}{' '}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
             target="_top"
