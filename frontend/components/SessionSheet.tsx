@@ -272,6 +272,167 @@ export async function SessionSheet({
         </p>
       </section>
 
+      {/* Topic-distribution chart — the visual lede. One row per
+          topic in this session: topic colour swatch + name on the
+          left, a stacked horizontal bar showing how many of those
+          votes ended approved / rejected / in tie, and the total
+          count on the right. Sorted by vote count (the existing
+          groupVotesByTopic order) so the dominant topic of the day
+          reads first. Bars scale to the busiest topic of the session
+          so the chart is self-comparative without needing a
+          legislature-wide reference. Hidden when there's only one
+          topic or none — a chart of one bar is noise. */}
+      {ordered.length > 0 && (() => {
+        const chartGroups = groupVotesByTopic(ordered, locale).filter(
+          (g) => g.key !== '__unclassified',
+        );
+        if (chartGroups.length < 2) return null;
+        const maxCount = Math.max(...chartGroups.map((g) => g.votes.length));
+        return (
+          <section style={{ marginBottom: 32 }}>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>
+              {t('topic_chart_eyebrow')}
+            </div>
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'grid',
+                gap: 7,
+              }}
+            >
+              {chartGroups.map(({ topic, votes: gv, key }) => {
+                const approved = gv.filter((v) => v.result === 'approved').length;
+                const rejected = gv.filter((v) => v.result === 'rejected').length;
+                const tie = gv.filter((v) => v.result === 'tie').length;
+                const total = gv.length;
+                // Bar width relative to the busiest topic of the
+                // session, so the heaviest section fills 100%. This
+                // makes the chart act as a "what dominated today"
+                // visual without claiming anything about volumes.
+                const widthPct = (total / maxCount) * 100;
+                return (
+                  <li
+                    key={key}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns:
+                        'minmax(140px, 200px) minmax(0, 1fr) 38px',
+                      alignItems: 'center',
+                      gap: 12,
+                      fontSize: 12.5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        minWidth: 0,
+                        overflow: 'hidden',
+                        fontWeight: 500,
+                        color: 'var(--ink)',
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 9,
+                          height: 9,
+                          borderRadius: 2,
+                          background: topic?.color_hex ?? 'var(--ink-3)',
+                          flex: 'none',
+                        }}
+                      />
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {topic
+                          ? pickTopicName(topic, locale)
+                          : t('section_unclassified')}
+                      </span>
+                    </span>
+                    <div
+                      style={{
+                        position: 'relative',
+                        height: 12,
+                        background: 'var(--rule)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          height: '100%',
+                          width: `${widthPct}%`,
+                        }}
+                      >
+                        {approved > 0 && (
+                          <span
+                            title={`Aprovades: ${approved}`}
+                            style={{
+                              width: `${(approved / total) * 100}%`,
+                              background: 'var(--aye)',
+                            }}
+                          />
+                        )}
+                        {rejected > 0 && (
+                          <span
+                            title={`Rebutjades: ${rejected}`}
+                            style={{
+                              width: `${(rejected / total) * 100}%`,
+                              background: 'var(--no)',
+                            }}
+                          />
+                        )}
+                        {tie > 0 && (
+                          <span
+                            title={`Empats: ${tie}`}
+                            style={{
+                              width: `${(tie / total) * 100}%`,
+                              background: 'var(--abst)',
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <span
+                      className="tabular"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--ink)',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {total}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <div
+              style={{
+                marginTop: 10,
+                display: 'flex',
+                gap: 16,
+                fontSize: 10.5,
+                color: 'var(--ink-3)',
+                flexWrap: 'wrap',
+              }}
+            >
+              <LegendDot color="var(--aye)" label={t('topic_chart_legend_approved')} />
+              <LegendDot color="var(--no)" label={t('topic_chart_legend_rejected')} />
+              <LegendDot color="var(--abst)" label={t('topic_chart_legend_tie')} />
+            </div>
+          </section>
+        );
+      })()}
+
       {/* Vote list — grouped by topic so the page reads as a topic-
           structured agenda rather than a flat dump. Each section
           carries a small summary line (N votes, M approved, K
@@ -439,6 +600,28 @@ export async function SessionSheet({
   );
 }
 
+
+/** Small legend swatch + label, used below the topic-distribution
+ *  chart at the top of /avui. Inline-only — kept here rather than
+ *  in components/ because it's bound to this widget's vocabulary
+ *  and we don't want it picked up by unrelated pages. */
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+      <span
+        aria-hidden="true"
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: 2,
+          background: color,
+          display: 'inline-block',
+        }}
+      />
+      {label}
+    </span>
+  );
+}
 
 function NavButton({
   href,
