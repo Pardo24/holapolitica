@@ -135,9 +135,53 @@ def _parse_yyyymmdd(s: str | None) -> date | None:
         return None
 
 
+# Common Spanish stop-words that survive the 3+ char filter and
+# distort the Jaccard score (they're in every law title and so
+# never carry matching signal). We drop them from the token-set on
+# both sides of the comparison.
+_STOP_WORDS = frozenset(
+    {
+        "del",
+        "los",
+        "las",
+        "una",
+        "para",
+        "por",
+        "que",
+        "con",
+        "como",
+        "sobre",
+        "esta",
+        "este",
+        "esos",
+        "esas",
+        "sus",
+        "ley",
+        "leyes",
+        "real",
+        "decreto",
+        "decretos",
+        "art",
+        "articulo",
+        "artículo",
+        "modifica",
+        "modificacion",
+        "modificación",
+        "establece",
+        "regula",
+        "regulacion",
+        "regulación",
+    }
+)
+
+
 def _normalize_words(s: str) -> list[str]:
-    """Lowercase + diacritic-fold + split into 3+ char tokens."""
-    return re.findall(r"[a-záéíóúñü]{3,}", s.lower())
+    """Lowercase + diacritic-fold + split into 3+ char tokens, with
+    Spanish stop-words removed so the Jaccard score reflects
+    *content* overlap rather than legalese boilerplate.
+    """
+    tokens = re.findall(r"[a-z\xe1\xe9\xed\xf3\xfa\xf1\xfc]{3,}", s.lower())
+    return [t for t in tokens if t not in _STOP_WORDS]
 
 
 def _title_similarity(a: str, b: str) -> float:
@@ -242,7 +286,14 @@ async def search_boe_for_initiative(
                 url=str(url),
             )
 
-    if best is None or best_score < 0.45:
+    # 0.40 threshold — calibrated after the first prod run (9/26
+    # matched at 0.45). Lowering to 0.40 with the stop-word filter
+    # active makes the score more meaningful (we're comparing
+    # content tokens, not legalese) and pulls in a handful of
+    # genuine matches that were sitting just below the old bar. The
+    # date-window filter remains as the hard guardrail against
+    # cross-year false positives.
+    if best is None or best_score < 0.40:
         return None
     return best
 
@@ -286,6 +337,13 @@ async def enrich_initiatives_with_boe(session: AsyncSession) -> dict[str, int]:
         initiative.boe_url = hit.url
         initiative.boe_entry_in_force = hit.entry_in_force
         matched += 1
+        log.info(
+            "boe.matched",
+            initiative_id=initiative.id,
+            boe_id=hit.boe_id,
+            initiative_title=(initiative.title_ca or initiative.title_original)[:100],
+            boe_title=hit.title[:100],
+        )
 
     await session.commit()
     log.info("boe.enriched", matched=matched, skipped=skipped, attempted=len(rows))
