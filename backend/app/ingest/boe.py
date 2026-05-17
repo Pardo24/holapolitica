@@ -1,5 +1,16 @@
 """Boletín Oficial del Estado (BOE) link enrichment for approved initiatives.
 
+.. warning::
+
+    The atom search URL this module targets
+    (``https://www.boe.es/buscar/atom.php``) returns HTTP 404 on the
+    live BOE site as of 2026 — that ad-hoc atom feed has been retired.
+    The scheduled cron entry is disabled in ``app.workers.schedule``;
+    the rest of the module (schema columns, frontend BOE pill, bootstrap
+    CLI) stays wired up so flipping this back on is a one-function fix
+    once the search is rewritten against ``datos.boe.es`` or the HTML
+    ``/buscar/legislacion.php`` page.
+
 When an initiative reaches publication as a "Ley" / "Ley Orgánica" /
 "Real Decreto-ley", the official text appears in the BOE under an
 identifier of the form ``BOE-A-YYYY-NNNNN``. Linking each
