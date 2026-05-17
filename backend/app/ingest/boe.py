@@ -270,6 +270,16 @@ async def search_boe_for_initiative(
     for it in items:
         if not isinstance(it, dict):
             continue
+        # Hard filter: the Congress of Deputies only passes STATE laws.
+        # The BOE indexes regional norms (Catalan, Basque, Andalusian
+        # parliaments) under ``ambito.codigo == "2"``; matching one of
+        # those to a state-level initiative is by definition wrong.
+        # Pulled from a real false positive on the first 0.40 run
+        # ("Proyecto de Ley de Movilidad Sostenible" → Basque Country
+        # Mobility Law).
+        ambito = it.get("ambito") or {}
+        if isinstance(ambito, dict) and ambito.get("codigo") not in (None, "1"):
+            continue
         boe_id = it.get("identificador")
         title = it.get("titulo")
         url = it.get("url_html_consolidada")
