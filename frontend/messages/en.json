@@ -1,9 +1,9 @@
 {
   "avui": {
-    "meta_title": "Today · Hola Política",
-    "meta_description": "Daily summary of Spanish Congress activity: the latest plenary vote, per-group indicators and the topics that filled the week.",
+    "meta_title": "Plenary chronicle · Hola Política",
+    "meta_description": "Journalistic chronicle of the latest Spanish Congress plenary: votes grouped by topic, tightest margins and a factual summary of the session.",
     "eyebrow": "Daily summary of parliamentary activity",
-    "title": "Today in Congress",
+    "title": "Plenary chronicle",
     "fresh_now": "Data refreshed less than an hour ago",
     "fresh_hours": "Last vote {hours, plural, =1 {# hour} other {# hours}} ago",
     "fresh_days": "Last vote {days, plural, =1 {# day} other {# days}} ago",
@@ -175,7 +175,7 @@
     "home": "Home"
   },
   "nav": {
-    "avui": "Today",
+    "avui": "Plenary chronicle",
     "votes": "Votes",
     "persons": "Representatives",
     "stats": "Stats",
@@ -830,7 +830,7 @@
     "legal_link": "Data & GDPR",
     "apidocs_link": "API & widgets",
     "journalists_link": "For journalists",
-    "avui_link": "Today"
+    "avui_link": "Plenary chronicle"
   },
   "dashboard": {
     "highlights_eyebrow": "Group highlights",

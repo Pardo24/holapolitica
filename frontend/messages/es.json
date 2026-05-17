@@ -1,9 +1,9 @@
 {
   "avui": {
-    "meta_title": "Hoy · Hola Política",
-    "meta_description": "Resumen diario de la actividad en el Congreso de los Diputados: última votación del pleno, indicadores por grupo parlamentario y temas que han ocupado la semana.",
+    "meta_title": "Crónica del pleno · Hola Política",
+    "meta_description": "Crónica periodística del último pleno del Congreso de los Diputados: votaciones por tema, márgenes más ajustados y resumen factual de la sesión.",
     "eyebrow": "Resumen diario de la actividad parlamentaria",
-    "title": "Hoy en el Congreso",
+    "title": "Crónica del pleno",
     "fresh_now": "Datos actualizados hace menos de una hora",
     "fresh_hours": "Última votación hace {hours, plural, =1 {# hora} other {# horas}}",
     "fresh_days": "Última votación hace {days, plural, =1 {# día} other {# días}}",
@@ -175,7 +175,7 @@
     "home": "Inicio"
   },
   "nav": {
-    "avui": "Hoy",
+    "avui": "Crónica del pleno",
     "votes": "Votaciones",
     "persons": "Representantes",
     "stats": "Estadísticas",
@@ -830,7 +830,7 @@
     "legal_link": "Datos y RGPD",
     "apidocs_link": "API y widgets",
     "journalists_link": "Para periodistas",
-    "avui_link": "Hoy"
+    "avui_link": "Crónica del pleno"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacados por grupo",

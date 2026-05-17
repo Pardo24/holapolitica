@@ -1,9 +1,9 @@
 {
   "avui": {
-    "meta_title": "Avui · Hola Política",
-    "meta_description": "Resum diari de l'activitat al Congrés dels Diputats: última votació al ple, indicadors per grup parlamentari i temes que han ocupat la setmana.",
+    "meta_title": "Crònica del ple · Hola Política",
+    "meta_description": "Crònica periodística del darrer ple del Congrés dels Diputats: votacions per tema, marges més ajustats i resum factual de la sessió.",
     "eyebrow": "Resum diari de l'activitat parlamentària",
-    "title": "Avui al Congrés",
+    "title": "Crònica del ple",
     "fresh_now": "Dades actualitzades fa menys d'una hora",
     "fresh_hours": "Última votació fa {hours, plural, =1 {# hora} other {# hores}}",
     "fresh_days": "Última votació fa {days, plural, =1 {# dia} other {# dies}}",
@@ -175,7 +175,7 @@
     "home": "Inici"
   },
   "nav": {
-    "avui": "Avui",
+    "avui": "Crònica del ple",
     "votes": "Votacions",
     "persons": "Representants",
     "stats": "Estadístiques",
@@ -829,7 +829,7 @@
     "legal_link": "Dades i RGPD",
     "apidocs_link": "API i widgets",
     "journalists_link": "Per a periodistes",
-    "avui_link": "Avui"
+    "avui_link": "Crònica del ple"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacats per grup",
