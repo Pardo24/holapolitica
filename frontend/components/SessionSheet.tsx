@@ -4,7 +4,6 @@ import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { ResultPill } from '@/components/ResultPill';
-import { StackedBar } from '@/components/StackedBar';
 import type { Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 
@@ -439,7 +438,7 @@ function VoteRow({
   return (
     <li
       style={{
-        padding: '14px 0',
+        padding: '20px 0',
         borderBottom: '1px solid var(--rule)',
       }}
     >
@@ -447,84 +446,94 @@ function VoteRow({
         href={`/votes/${vote.id}` as Route}
         style={{
           display: 'grid',
-          gridTemplateColumns: '36px minmax(0, 1fr) auto',
-          gap: 14,
+          gridTemplateColumns: '32px minmax(0, 1fr) auto',
+          columnGap: 16,
+          rowGap: 8,
           color: 'inherit',
           textDecoration: 'none',
-          alignItems: 'start',
+          alignItems: 'baseline',
         }}
       >
+        {/* Sequence number — quiet anchor in the left gutter. */}
         <span
           className="tabular"
           style={{
             fontSize: 11,
             color: 'var(--ink-3)',
             fontWeight: 600,
-            paddingTop: 3,
+            letterSpacing: '0.08em',
           }}
         >
           {vote.sequence_in_session != null
             ? String(vote.sequence_in_session).padStart(2, '0')
             : '—'}
         </span>
-        <div style={{ minWidth: 0 }}>
-          <div
-            className="serif"
-            style={{
-              fontSize: 16,
-              fontWeight: 600,
-              color: 'var(--ink)',
-              lineHeight: 1.35,
-              display: '-webkit-box',
-              WebkitLineClamp: showSummary ? 3 : 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {subject}
-          </div>
-          <div
-            className="tabular"
-            style={{
-              marginTop: 6,
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              flexWrap: 'wrap',
-            }}
-          >
-            <span style={{ color: 'var(--ink-2)' }}>
-              {vote.ayes} {ayesLabel}
-            </span>
-            <span>·</span>
-            <span style={{ color: 'var(--ink-2)' }}>
-              {vote.noes} {noesLabel}
-            </span>
-            <span>·</span>
-            <span>
-              {vote.abstentions} {abstLabel}
-            </span>
-            <span>·</span>
-            <span style={{ color: 'var(--ink-2)' }}>{marginLabel(margin)}</span>
-          </div>
-          <div style={{ marginTop: 8 }}>
-            <StackedBar
-              d={{
-                aye: vote.ayes,
-                no: vote.noes,
-                abst: vote.abstentions,
-                nv: vote.absent,
-              }}
-              height={6}
-            />
-          </div>
-          {summary && (
+
+        {/* Title — the main thing to read. Large, serif, generous
+            line-height. Drops the previous 2-3 line clamp to a 3-line
+            cap that's only enforced for the densest rows. */}
+        <h3
+          className="serif"
+          style={{
+            margin: 0,
+            fontSize: 'clamp(17px, 2vw, 19px)',
+            fontWeight: 600,
+            color: 'var(--ink)',
+            lineHeight: 1.35,
+            letterSpacing: '-0.005em',
+          }}
+        >
+          {subject}
+        </h3>
+
+        {/* Result pill — vertically centered with the title baseline. */}
+        <ResultPill result={vote.result} label={resultLabel} />
+
+        {/* Spacer cell (left gutter remains empty on the metadata row). */}
+        <span aria-hidden="true" />
+
+        {/* Counts row — Sí / No / Abst. each tinted in its semantic
+            colour. Replaces the previous stacked-color bar: the
+            colours of the numbers do the visualisation work, the
+            text stays the primary signal. */}
+        <div
+          className="tabular"
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 14,
+            fontSize: 13,
+            color: 'var(--ink-3)',
+            flexWrap: 'wrap',
+          }}
+        >
+          <CountStat label={ayesLabel} value={vote.ayes} color="var(--aye, #16A34A)" />
+          <CountStat label={noesLabel} value={vote.noes} color="var(--no, #DC2626)" />
+          <CountStat label={abstLabel} value={vote.abstentions} color="var(--abst, #CA8A04)" />
+        </div>
+
+        {/* Margin — derived metric, kept muted on the right. */}
+        <span
+          className="tabular"
+          style={{
+            fontSize: 11,
+            color: 'var(--ink-3)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {marginLabel(margin)}
+        </span>
+
+        {/* Plain summary — only for the first vote, so the page has
+            a "lede" without picking an editorial highlight. */}
+        {summary && (
+          <>
+            <span aria-hidden="true" />
             <p
               className="serif"
               style={{
-                margin: '10px 0 0',
+                margin: 0,
+                gridColumn: '2 / span 2',
                 fontSize: 14,
                 color: 'var(--ink-2)',
                 lineHeight: 1.55,
@@ -532,10 +541,42 @@ function VoteRow({
             >
               {summary}
             </p>
-          )}
-        </div>
-        <ResultPill result={vote.result} label={resultLabel} />
+          </>
+        )}
       </Link>
     </li>
+  );
+}
+
+/**
+ * Inline count chip used inside the vote row's metadata line —
+ * "Sí 187", "No 152", "Abst. 11". The value carries the semantic
+ * colour (green / red / amber) so the eye can scan results without a
+ * graphical bar; the label stays muted so the typography hierarchy
+ * is value > label.
+ */
+function CountStat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: string;
+}) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
+      <strong
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          color,
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {value}
+      </strong>
+      <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{label}</span>
+    </span>
   );
 }
