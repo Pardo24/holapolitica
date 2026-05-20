@@ -190,7 +190,8 @@
     "about": "About",
     "newsletter": "Newsletter",
     "notifications": "Notifications",
-    "journalists": "Press"
+    "journalists": "Press",
+    "joc": "Quiz"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",
@@ -767,6 +768,30 @@
     "pie_mode_topic_acceptance": "Acceptance by topic",
     "pie_mode_status": "Global outcomes",
     "pie_mode_aria": "Distribution display mode"
+  },
+  "quiz": {
+    "meta_title": "Civic quiz · Hola Política",
+    "meta_description": "Learn how Congress votes by playing: guess who tabled a law or what the result was, with each vote's plain-language summary in front of you.",
+    "eyebrow": "Civic quiz",
+    "h1": "Learn the votes by guessing them",
+    "lede": "Read the summary of a law and try to guess which group tabled it or how it ended. No opinions, just facts — and a link to the full record at the end.",
+    "empty": "Not enough votes with a summary yet to build a question. Come back in a few minutes.",
+    "question_proposer": "Which group tabled this law?",
+    "question_result": "What happened with this vote?",
+    "option_government": "Government",
+    "result_approved": "Approved",
+    "result_rejected": "Rejected",
+    "result_tie": "Tied",
+    "submit": "Confirm",
+    "correct": "Correct!",
+    "wrong": "No, that wasn't it.",
+    "actual_breakdown": "Actual outcome",
+    "go_to_vote": "See the full vote record",
+    "new_question": "New question",
+    "aye_label": "Aye",
+    "no_label": "No",
+    "abst_label": "Abst.",
+    "about_quiz": "Questions are generated randomly from real Congress votes with a summary available. All the information also lives at <link>/avui</link> and in each vote's record, no game required."
   },
   "onboarding": {
     "close_aria": "Close the introduction",

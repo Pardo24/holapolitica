@@ -190,7 +190,8 @@
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificacions",
-    "journalists": "Premsa"
+    "journalists": "Premsa",
+    "joc": "Joc"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",
@@ -767,6 +768,30 @@
     "pie_mode_topic_acceptance": "Acceptació per tema",
     "pie_mode_status": "Resultats globals",
     "pie_mode_aria": "Modalitat de visualització de la distribució"
+  },
+  "quiz": {
+    "meta_title": "Joc cívic · Hola Política",
+    "meta_description": "Aprèn com vota el Congrés jugant: endevina qui ha proposat una llei o quin va ser el resultat, amb el resum de cada votació al davant.",
+    "eyebrow": "Joc cívic",
+    "h1": "Aprèn votant les votacions",
+    "lede": "Mira el resum d'una llei i intenta endevinar quin grup l'ha proposada o quin va ser el resultat. Sense valoracions, només fets — i un enllaç a la fitxa completa al final.",
+    "empty": "Encara no hi ha prou votacions amb resum per a generar una pregunta. Torna en uns minuts.",
+    "question_proposer": "Quin grup ha proposat aquesta llei?",
+    "question_result": "Què va passar amb aquesta votació?",
+    "option_government": "Govern",
+    "result_approved": "Aprovada",
+    "result_rejected": "Rebutjada",
+    "result_tie": "Empat",
+    "submit": "Confirmar",
+    "correct": "Encertada!",
+    "wrong": "No, no era aquesta.",
+    "actual_breakdown": "Resultat real",
+    "go_to_vote": "Veure la fitxa de la votació",
+    "new_question": "Nova pregunta",
+    "aye_label": "Sí",
+    "no_label": "No",
+    "abst_label": "Abst.",
+    "about_quiz": "Les preguntes es generen aleatòriament a partir de votacions reals del Congrés amb resum disponible. Tota la informació també està a <link>/avui</link> i a la fitxa de cada votació, sense joc."
   },
   "onboarding": {
     "close_aria": "Tancar la presentació",

@@ -190,7 +190,8 @@
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificaciones",
-    "journalists": "Prensa"
+    "journalists": "Prensa",
+    "joc": "Juego"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",
@@ -767,6 +768,30 @@
     "pie_mode_topic_acceptance": "Aceptación por tema",
     "pie_mode_status": "Resultados globales",
     "pie_mode_aria": "Modalidad de visualización de la distribución"
+  },
+  "quiz": {
+    "meta_title": "Juego cívico · Hola Política",
+    "meta_description": "Aprende cómo vota el Congreso jugando: adivina quién ha propuesto una ley o cuál fue el resultado, con el resumen de cada votación delante.",
+    "eyebrow": "Juego cívico",
+    "h1": "Aprende votando las votaciones",
+    "lede": "Mira el resumen de una ley e intenta adivinar qué grupo la ha propuesto o cuál fue el resultado. Sin valoraciones, solo hechos — y un enlace a la ficha completa al final.",
+    "empty": "Aún no hay suficientes votaciones con resumen para generar una pregunta. Vuelve en unos minutos.",
+    "question_proposer": "¿Qué grupo ha propuesto esta ley?",
+    "question_result": "¿Qué pasó con esta votación?",
+    "option_government": "Gobierno",
+    "result_approved": "Aprobada",
+    "result_rejected": "Rechazada",
+    "result_tie": "Empate",
+    "submit": "Confirmar",
+    "correct": "¡Acertaste!",
+    "wrong": "No, no era esta.",
+    "actual_breakdown": "Resultado real",
+    "go_to_vote": "Ver la ficha de la votación",
+    "new_question": "Nueva pregunta",
+    "aye_label": "Sí",
+    "no_label": "No",
+    "abst_label": "Abst.",
+    "about_quiz": "Las preguntas se generan aleatoriamente a partir de votaciones reales del Congreso con resumen disponible. Toda la información también está en <link>/avui</link> y en la ficha de cada votación, sin juego."
   },
   "onboarding": {
     "close_aria": "Cerrar la presentación",
