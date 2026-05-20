@@ -13,6 +13,7 @@ import {
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
+import { OnboardingModal } from '@/components/OnboardingModal';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { GroupChip } from '@/components/GroupChip';
@@ -107,6 +108,10 @@ export default async function HomePage() {
 
   return (
     <div>
+      {/* First-visit onboarding overlay — auto-opens once per
+          device (localStorage flag, see OnboardingModal); skipped
+          on every subsequent visit. */}
+      <OnboardingModal />
       {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
           native-app-style entry point: brand strip, search, 2×2 tile grid,
           and three compact content sections that reuse the same fetched
