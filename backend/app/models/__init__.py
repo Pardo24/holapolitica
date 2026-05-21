@@ -630,6 +630,11 @@ class PushSubscription(Base, TimestampMixin):
         back_populates="subscription",
         cascade="all, delete-orphan",
     )
+    group_interests: Mapped[list[PushGroupInterest]] = relationship(
+        "PushGroupInterest",
+        back_populates="subscription",
+        cascade="all, delete-orphan",
+    )
 
 
 class PushTopicInterest(Base, TimestampMixin):
@@ -652,6 +657,37 @@ class PushTopicInterest(Base, TimestampMixin):
 
     subscription: Mapped[PushSubscription] = relationship(
         "PushSubscription", back_populates="interests"
+    )
+
+
+class PushGroupInterest(Base, TimestampMixin):
+    """Junction: which parliamentary groups a push subscription follows.
+
+    Parallel to :class:`PushTopicInterest`; the fan-out logic unions
+    the two interest sets so a notification fires when EITHER the
+    topic OR the proposing group matches. Symmetric by construction
+    — every group can be followed, no curated 'recommended' list.
+    """
+
+    __tablename__ = "push_group_interests"
+    __table_args__ = (
+        UniqueConstraint("subscription_id", "group_id", name="uq_push_group_interest"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    subscription_id: Mapped[int] = mapped_column(
+        ForeignKey("push_subscriptions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    group_id: Mapped[int] = mapped_column(
+        ForeignKey("parliamentary_groups.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    subscription: Mapped[PushSubscription] = relationship(
+        "PushSubscription", back_populates="group_interests"
     )
 
 

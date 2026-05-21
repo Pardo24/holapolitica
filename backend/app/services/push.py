@@ -39,6 +39,8 @@ from app.core.logging import get_logger
 from app.models import (
     Initiative,
     InitiativeTopic,
+    ParliamentaryGroup,
+    PushGroupInterest,
     PushSubscription,
     PushTopicInterest,
     Topic,
@@ -283,21 +285,61 @@ async def _resolve_vote_topics(
 
 
 async def _subscriptions_interested_in(
-    session: AsyncSession, topic_ids: list[int]
+    session: AsyncSession,
+    topic_ids: list[int],
+    group_ids: list[int] | None = None,
 ) -> list[PushSubscription]:
-    """Distinct subscriptions following any of ``topic_ids``."""
-    if not topic_ids:
+    """Distinct subscriptions following ANY of ``topic_ids`` or
+    ``group_ids`` (the union).
+
+    The two interest channels are additive, not intersective: a
+    reader who follows the housing topic AND the Sumar group
+    receives a notification on a Sumar-proposed labour vote
+    (matches the group) AND on a housing vote tabled by any group
+    (matches the topic). This keeps the mental model simple — every
+    follow is a separate "send me alerts when…" rule.
+    """
+    group_ids = group_ids or []
+    if not topic_ids and not group_ids:
         return []
-    result = await session.execute(
-        select(PushSubscription)
-        .join(
-            PushTopicInterest,
-            PushTopicInterest.subscription_id == PushSubscription.id,
+    subs: dict[int, PushSubscription] = {}
+    if topic_ids:
+        rows = (
+            (
+                await session.execute(
+                    select(PushSubscription)
+                    .join(
+                        PushTopicInterest,
+                        PushTopicInterest.subscription_id == PushSubscription.id,
+                    )
+                    .where(PushTopicInterest.topic_id.in_(topic_ids))
+                    .distinct()
+                )
+            )
+            .scalars()
+            .all()
         )
-        .where(PushTopicInterest.topic_id.in_(topic_ids))
-        .distinct()
-    )
-    return list(result.scalars().all())
+        for s in rows:
+            subs[s.id] = s
+    if group_ids:
+        rows = (
+            (
+                await session.execute(
+                    select(PushSubscription)
+                    .join(
+                        PushGroupInterest,
+                        PushGroupInterest.subscription_id == PushSubscription.id,
+                    )
+                    .where(PushGroupInterest.group_id.in_(group_ids))
+                    .distinct()
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for s in rows:
+            subs[s.id] = s
+    return list(subs.values())
 
 
 async def fan_out_new_vote(
@@ -317,12 +359,20 @@ async def fan_out_new_vote(
     vote, topics = await _resolve_vote_topics(session, vote_id)
     if vote is None:
         return FanOutResult(vote_id=vote_id, sent=0, deleted=0, failed=0, skipped=0)
-    if not topics:
-        return FanOutResult(vote_id=vote_id, sent=0, deleted=0, failed=0, skipped=1)
 
     topic_ids = [t.id for t in topics]
     primary_topic_name = topics[0].name_ca if topics else None
-    subs = await _subscriptions_interested_in(session, topic_ids)
+    # Proposing group is the OTHER interest channel: subscribers
+    # following a group get notified on votes that group tabled,
+    # regardless of topic. When the vote has neither classified
+    # topics nor a known proposing group there's no one to notify,
+    # so we skip cleanly rather than fan-out to zero subscribers.
+    group_ids: list[int] = []
+    if vote.proposing_group_id is not None:
+        group_ids = [vote.proposing_group_id]
+    if not topic_ids and not group_ids:
+        return FanOutResult(vote_id=vote_id, sent=0, deleted=0, failed=0, skipped=1)
+    subs = await _subscriptions_interested_in(session, topic_ids, group_ids)
     if not subs:
         return FanOutResult(vote_id=vote_id, sent=0, deleted=0, failed=0, skipped=0)
 
@@ -371,6 +421,7 @@ async def upsert_subscription(
     auth: str,
     user_agent: str | None,
     topic_slugs: list[str],
+    group_slugs: list[str] | None = None,
 ) -> PushSubscription:
     """Idempotent insert/update on ``endpoint`` with topic-interest sync.
 
@@ -409,8 +460,55 @@ async def upsert_subscription(
         sub.failed_send_count = 0
 
     await _sync_interests(session, sub, topic_slugs)
+    await _sync_group_interests(session, sub, group_slugs or [])
     await session.commit()
     return sub
+
+
+async def _sync_group_interests(
+    session: AsyncSession,
+    subscription: PushSubscription,
+    group_slugs: list[str],
+) -> None:
+    """Replace the subscription's group interests with the slugs
+    provided. Mirrors :func:`_sync_interests` but keyed on
+    :class:`ParliamentaryGroup`. Unknown slugs are silently ignored
+    so a client cached against a stale group list never fails the
+    upsert."""
+    desired = (
+        (
+            await session.execute(
+                select(ParliamentaryGroup).where(ParliamentaryGroup.slug.in_(group_slugs))
+            )
+        )
+        .scalars()
+        .all()
+    )
+    desired_ids = {g.id for g in desired}
+
+    existing = (
+        (
+            await session.execute(
+                select(PushGroupInterest).where(
+                    PushGroupInterest.subscription_id == subscription.id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    existing_ids = {row.group_id for row in existing}
+
+    to_remove = existing_ids - desired_ids
+    if to_remove:
+        await session.execute(
+            delete(PushGroupInterest).where(
+                PushGroupInterest.subscription_id == subscription.id,
+                PushGroupInterest.group_id.in_(to_remove),
+            )
+        )
+    for gid in desired_ids - existing_ids:
+        session.add(PushGroupInterest(subscription_id=subscription.id, group_id=gid))
 
 
 async def _sync_interests(
@@ -454,15 +552,28 @@ async def _sync_interests(
 
 
 async def update_interests(
-    session: AsyncSession, *, endpoint: str, topic_slugs: list[str]
+    session: AsyncSession,
+    *,
+    endpoint: str,
+    topic_slugs: list[str],
+    group_slugs: list[str] | None = None,
 ) -> PushSubscription | None:
-    """Update interests for an existing endpoint. Returns None if not found."""
+    """Update interests (topics + groups) for an existing endpoint.
+
+    Returns ``None`` if no subscription matches. Pass an empty list
+    to clear that channel; pass ``None`` for ``group_slugs`` if the
+    caller doesn't want to touch the group set (kept for backwards
+    compatibility with the original topic-only API). The default
+    of ``None`` preserves the existing group interests untouched.
+    """
     sub = (
         await session.execute(select(PushSubscription).where(PushSubscription.endpoint == endpoint))
     ).scalar_one_or_none()
     if sub is None:
         return None
     await _sync_interests(session, sub, topic_slugs)
+    if group_slugs is not None:
+        await _sync_group_interests(session, sub, group_slugs)
     await session.commit()
     return sub
 

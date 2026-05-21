@@ -64,11 +64,20 @@ class SubscribeRequest(BaseModel):
     endpoint: str = Field(..., min_length=1)
     keys: PushKeys
     topic_slugs: list[str] = Field(default_factory=list)
+    # Parliamentary group slugs the subscriber wants to follow. A
+    # vote tabled by any of these groups triggers a notification
+    # regardless of topic match. Optional; omit to keep
+    # backwards-compat with the original topic-only payload.
+    group_slugs: list[str] = Field(default_factory=list)
 
 
 class InterestsRequest(BaseModel):
     endpoint: str = Field(..., min_length=1)
     topic_slugs: list[str] = Field(default_factory=list)
+    # When omitted the existing group interests are LEFT UNTOUCHED
+    # (None semantics). Pass an empty list explicitly to clear all
+    # group interests.
+    group_slugs: list[str] | None = None
 
 
 class UnsubscribeRequest(BaseModel):
@@ -79,6 +88,7 @@ class SubscriptionResponse(BaseModel):
     id: int
     endpoint: str
     topic_slugs: list[str]
+    group_slugs: list[str]
 
 
 class StatusResponse(BaseModel):
@@ -136,11 +146,13 @@ async def subscribe(
         auth=payload.keys.auth,
         user_agent=ua,
         topic_slugs=payload.topic_slugs,
+        group_slugs=payload.group_slugs,
     )
     return SubscriptionResponse(
         id=sub.id,
         endpoint=sub.endpoint,
         topic_slugs=list(payload.topic_slugs),
+        group_slugs=list(payload.group_slugs),
     )
 
 
@@ -155,13 +167,19 @@ async def patch_interests(
         session,
         endpoint=payload.endpoint,
         topic_slugs=payload.topic_slugs,
+        group_slugs=payload.group_slugs,
     )
     if sub is None:
         raise HTTPException(status_code=404, detail="Subscription not found.")
+    # For the response we echo back the requested topic slugs and —
+    # for groups — whatever the caller provided (None means "kept as
+    # they were"; we don't refetch to spare the roundtrip, the
+    # client already knows the value it didn't change).
     return SubscriptionResponse(
         id=sub.id,
         endpoint=sub.endpoint,
         topic_slugs=list(payload.topic_slugs),
+        group_slugs=list(payload.group_slugs) if payload.group_slugs is not None else [],
     )
 
 
