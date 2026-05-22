@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { NewsletterPreferencesManager } from '@/components/NewsletterPreferencesManager';
 import { NotificationsManager } from '@/components/NotificationsManager';
 import { PageHeader } from '@/components/PageHeader';
-import { api, type Topic } from '@/lib/api';
+import { api, type ParliamentaryGroupSummary, type Topic } from '@/lib/api';
 
 /**
  * /notifications — Newsletter topic-preferences manager (formerly Web Push).
@@ -34,10 +34,19 @@ const ENABLE_BROWSER_PUSH = false;
 export default async function NotificationsPage() {
   const t = await getTranslations('notifications');
   let topics: Topic[] = [];
+  let groups: ParliamentaryGroupSummary[] = [];
   try {
-    topics = await api.topics.list();
+    [topics, groups] = await Promise.all([
+      api.topics.list(),
+      // Active legislature only — the push channel is for current
+      // votes, no point offering historical groups that can't propose
+      // new content. Failure is best-effort: the group section just
+      // disappears when the call errors.
+      api.groups.list(1).catch(() => [] as ParliamentaryGroupSummary[]),
+    ]);
   } catch {
     topics = [];
+    groups = [];
   }
 
   return (
@@ -65,7 +74,9 @@ export default async function NotificationsPage() {
 
       <NewsletterPreferencesManager topics={topics} />
 
-      {ENABLE_BROWSER_PUSH && <NotificationsManager topics={topics} />}
+      {ENABLE_BROWSER_PUSH && (
+        <NotificationsManager topics={topics} groups={groups} />
+      )}
 
       <section style={{ marginTop: 32, fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.55 }}>
         <h2 style={{ fontSize: 13, color: 'var(--ink)', margin: '0 0 6px' }}>

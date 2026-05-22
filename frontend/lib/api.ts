@@ -821,22 +821,36 @@ export const api = {
       endpoint: string;
       keys: { p256dh: string; auth: string };
       topic_slugs: string[];
+      // Optional group follow list — empty/omitted keeps the
+      // backwards-compatible topic-only behaviour. The server reads
+      // a missing field as 'no groups'.
+      group_slugs?: string[];
     }) =>
-      request<{ id: number; endpoint: string; topic_slugs: string[] }>(
-        '/push/subscribe',
-        {
-          method: 'POST',
-          body: JSON.stringify(body),
-        },
-      ),
-    updateInterests: (body: { endpoint: string; topic_slugs: string[] }) =>
-      request<{ id: number; endpoint: string; topic_slugs: string[] }>(
-        '/push/interests',
-        {
-          method: 'PATCH',
-          body: JSON.stringify(body),
-        },
-      ),
+      request<{
+        id: number;
+        endpoint: string;
+        topic_slugs: string[];
+        group_slugs: string[];
+      }>('/push/subscribe', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateInterests: (body: {
+      endpoint: string;
+      topic_slugs: string[];
+      // When omitted the server preserves the existing group set
+      // untouched (None semantics). Pass an empty array to clear.
+      group_slugs?: string[];
+    }) =>
+      request<{
+        id: number;
+        endpoint: string;
+        topic_slugs: string[];
+        group_slugs: string[];
+      }>('/push/interests', {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
     unsubscribe: (body: { endpoint: string }) =>
       request<{ status: string; detail: string | null }>('/push/unsubscribe', {
         method: 'POST',

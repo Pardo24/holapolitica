@@ -48,7 +48,13 @@ import {
 import { useTranslations } from 'next-intl';
 import { X, ChevronDown, ChevronUp } from 'lucide-react';
 
-import { ApiError, api, type Topic, type TopicKind } from '@/lib/api';
+import {
+  ApiError,
+  api,
+  type ParliamentaryGroupSummary,
+  type Topic,
+  type TopicKind,
+} from '@/lib/api';
 
 type Phase =
   | 'init'
@@ -59,6 +65,10 @@ type Phase =
 
 interface Props {
   topics: Topic[];
+  // Parliamentary groups available for follow. Optional so older
+  // mount sites that pre-date the group channel keep compiling;
+  // when absent the group section disappears entirely.
+  groups?: ParliamentaryGroupSummary[];
 }
 
 /** Convert a base64url VAPID public key into the Uint8Array shape the
@@ -97,7 +107,7 @@ function normalize(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
-export function NotificationsManager({ topics }: Props) {
+export function NotificationsManager({ topics, groups = [] }: Props) {
   const t = useTranslations('notifications');
   const [phase, setPhase] = useState<Phase>('init');
   // `selected` is the in-flight selection (dirty). `applied` is the last
@@ -105,6 +115,10 @@ export function NotificationsManager({ topics }: Props) {
   // decide whether to show the "unsaved changes" sticky bar.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [applied, setApplied] = useState<Set<string>>(new Set());
+  // Parallel state for parliamentary-group follow. Same semantics
+  // as the topic Sets — the dirty check unions both diffs.
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
+  const [appliedGroups, setAppliedGroups] = useState<Set<string>>(new Set());
   const [endpoint, setEndpoint] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -141,6 +155,8 @@ export function NotificationsManager({ topics }: Props) {
         // their interests. This is also the safest default privacy-wise.
         setSelected(new Set());
         setApplied(new Set());
+        setSelectedGroups(new Set());
+        setAppliedGroups(new Set());
         setPhase('subscribed');
         return;
       }
@@ -199,6 +215,18 @@ export function NotificationsManager({ topics }: Props) {
     });
   }, []);
 
+  // Toggle a parliamentary-group follow. Same mechanic as the topic
+  // toggle but on the groups Set so a click on a group chip flips
+  // whether the subscriber gets notified on votes that group tabled.
+  const toggleGroup = useCallback((slug: string) => {
+    setSelectedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  }, []);
+
   const handleEnable = useCallback(async () => {
     setBusy(true);
     setMessage(null);
@@ -222,9 +250,11 @@ export function NotificationsManager({ topics }: Props) {
         endpoint: serialized.endpoint,
         keys: serialized.keys,
         topic_slugs: Array.from(selected),
+        group_slugs: Array.from(selectedGroups),
       });
       setEndpoint(serialized.endpoint);
       setApplied(new Set(selected));
+      setAppliedGroups(new Set(selectedGroups));
       setPhase('subscribed');
       setMessage(t('msg_enabled'));
     } catch (err) {
@@ -233,7 +263,7 @@ export function NotificationsManager({ topics }: Props) {
     } finally {
       setBusy(false);
     }
-  }, [selected, t]);
+  }, [selected, selectedGroups, t]);
 
   const handleApply = useCallback(async () => {
     if (!endpoint) return;
@@ -243,8 +273,10 @@ export function NotificationsManager({ topics }: Props) {
       await api.push.updateInterests({
         endpoint,
         topic_slugs: Array.from(selected),
+        group_slugs: Array.from(selectedGroups),
       });
       setApplied(new Set(selected));
+      setAppliedGroups(new Set(selectedGroups));
       setMessage(t('msg_saved'));
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -258,7 +290,7 @@ export function NotificationsManager({ topics }: Props) {
     } finally {
       setBusy(false);
     }
-  }, [endpoint, selected, t]);
+  }, [endpoint, selected, selectedGroups, t]);
 
   const handleStop = useCallback(async () => {
     setBusy(true);
@@ -398,6 +430,10 @@ export function NotificationsManager({ topics }: Props) {
       topics={topics}
       selected={selected}
       applied={applied}
+      groups={groups}
+      selectedGroups={selectedGroups}
+      appliedGroups={appliedGroups}
+      onToggleGroup={toggleGroup}
       masterOn={masterOn}
       busy={busy}
       message={message}
@@ -420,6 +456,13 @@ interface SubscribedViewProps {
   topics: Topic[];
   selected: Set<string>;
   applied: Set<string>;
+  // Parliamentary-group follow channel. Optional so the legacy
+  // mount sites (topics-only) keep compiling; when ``groups`` is
+  // empty the group section is hidden.
+  groups: ParliamentaryGroupSummary[];
+  selectedGroups: Set<string>;
+  appliedGroups: Set<string>;
+  onToggleGroup: (slug: string) => void;
   masterOn: boolean;
   busy: boolean;
   message: string | null;
@@ -436,6 +479,10 @@ function SubscribedView({
   topics,
   selected,
   applied,
+  groups,
+  selectedGroups,
+  appliedGroups,
+  onToggleGroup,
   masterOn,
   busy,
   message,
@@ -460,13 +507,19 @@ function SubscribedView({
   );
 
   // "Dirty" = current selection differs from what's persisted server-side.
+  // Both interest channels (topics + groups) count; we union the diffs so
+  // changing only the group set still surfaces the sticky Apply bar.
   const dirty = useMemo(() => {
     if (selected.size !== applied.size) return true;
     for (const slug of selected) {
       if (!applied.has(slug)) return true;
     }
+    if (selectedGroups.size !== appliedGroups.size) return true;
+    for (const slug of selectedGroups) {
+      if (!appliedGroups.has(slug)) return true;
+    }
     return false;
-  }, [selected, applied]);
+  }, [selected, applied, selectedGroups, appliedGroups]);
 
   const count = selected.size;
   const statusLine = masterOn
@@ -639,6 +692,87 @@ function SubscribedView({
           </div>
         )}
       </section>
+
+      {/* Parliamentary-group follow — second interest channel.
+          Only rendered while subscribed AND the parent passed a
+          groups list; the row of chips is symmetric (every group
+          present, no editorial highlight). Clicking a chip toggles
+          the follow; the dirty-check above unions the change with
+          topic-set changes so the sticky Apply bar surfaces it. */}
+      {masterOn && groups.length > 0 && (
+        <section style={{ ...cardStyle, marginTop: 12 }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: 13,
+              fontWeight: 700,
+              color: 'var(--ink)',
+              letterSpacing: '-0.005em',
+            }}
+          >
+            {t('groups_section_title')}
+          </h3>
+          <p
+            style={{
+              margin: '4px 0 12px',
+              fontSize: 12,
+              color: 'var(--ink-3)',
+              lineHeight: 1.5,
+            }}
+          >
+            {t('groups_section_caption')}
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 6,
+            }}
+          >
+            {groups.map((g) => {
+              const isOn = selectedGroups.has(g.slug);
+              const color = g.color_hex ?? 'var(--ink-3)';
+              return (
+                <button
+                  key={g.slug}
+                  type="button"
+                  onClick={() => onToggleGroup(g.slug)}
+                  aria-pressed={isOn}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 11px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    background: isOn
+                      ? `color-mix(in oklch, ${color} 24%, var(--paper))`
+                      : 'var(--paper-2)',
+                    border: `1px solid ${
+                      isOn
+                        ? color
+                        : 'var(--rule)'
+                    }`,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: 999,
+                      background: color,
+                    }}
+                  />
+                  {g.name_short}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Inline status message — non-sticky, in-document. */}
       {message && (

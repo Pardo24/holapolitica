@@ -275,7 +275,9 @@
     "select_all": "Selecciona tots",
     "clear_section": "Buida selecció",
     "unsaved_changes": "Tens canvis sense desar",
-    "unsaved_changes_apply": "Aplica els canvis a la subscripció"
+    "unsaved_changes_apply": "Aplica els canvis a la subscripció",
+    "groups_section_title": "Segueix grups parlamentaris",
+    "groups_section_caption": "Rebràs un avís quan algun d'aquests grups proposi una votació nova, encara que el tema no estigui a la teva llista."
   },
   "topics": {
     "title": "Temes",

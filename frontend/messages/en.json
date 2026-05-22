@@ -275,7 +275,9 @@
     "select_all": "Select all",
     "clear_section": "Clear section",
     "unsaved_changes": "You have unsaved changes",
-    "unsaved_changes_apply": "Apply changes to subscription"
+    "unsaved_changes_apply": "Apply changes to subscription",
+    "groups_section_title": "Follow parliamentary groups",
+    "groups_section_caption": "You'll get an alert when any of these groups tables a new vote, even if the topic isn't on your list."
   },
   "topics": {
     "title": "Topics",

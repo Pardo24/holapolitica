@@ -275,7 +275,9 @@
     "select_all": "Seleccionar todos",
     "clear_section": "Vaciar selección",
     "unsaved_changes": "Tienes cambios sin guardar",
-    "unsaved_changes_apply": "Aplica los cambios a la suscripción"
+    "unsaved_changes_apply": "Aplica los cambios a la suscripción",
+    "groups_section_title": "Sigue grupos parlamentarios",
+    "groups_section_caption": "Recibirás un aviso cuando alguno de estos grupos proponga una votación nueva, aunque el tema no esté en tu lista."
   },
   "topics": {
     "title": "Temas",
