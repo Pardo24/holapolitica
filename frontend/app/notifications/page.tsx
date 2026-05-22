@@ -29,7 +29,7 @@ import { api, type ParliamentaryGroupSummary, type Topic } from '@/lib/api';
 // Feature flag — set to `true` to reactivate the browser-Push manager
 // alongside the newsletter picker. We keep the legacy component
 // untouched so reverting is a one-line change.
-const ENABLE_BROWSER_PUSH = false;
+const ENABLE_BROWSER_PUSH = true;
 
 export default async function NotificationsPage() {
   const t = await getTranslations('notifications');
