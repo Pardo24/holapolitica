@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { MobileBackBar } from '@/components/MobileBackBar';
 import { PushBootstrap } from '@/components/PushBootstrap';
 import { TopNav } from '@/components/TopNav';
@@ -83,6 +84,7 @@ export default async function RootLayout({
           ) : (
             <div className="page">
               <PushBootstrap />
+              <InstallPrompt />
               <TopNav />
               <MobileBackBar />
               <main>{children}</main>

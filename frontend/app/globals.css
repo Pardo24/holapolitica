@@ -63,6 +63,10 @@ html, body {
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  /* iOS / Android: kill the 300ms click delay so taps feel native.
+     Setting touch-action: manipulation lets the browser skip the
+     double-tap-zoom heuristic on every clickable element below. */
+  touch-action: manipulation;
   margin: 0;
   /* Subtle gradient gives the page warmth without losing the paper feel.
      A warm corner up top, paper everywhere else — vivid edge, calm middle. */
@@ -109,6 +113,29 @@ html { scroll-behavior: smooth; }
 @media (max-width: 640px) {
   input, select, textarea {
     font-size: 16px !important;
+  }
+}
+
+/* Mobile: ensure every clickable text-only link or button reaches the
+   Apple/Google ≥44×44px tap-target floor without redesigning each
+   one. Existing visible padding stays; the rule adds room around
+   the hit box for anchor + button that are direct children of list
+   items, table cells, paragraphs and the navigation strips. Larger
+   composed buttons (.btn-ink, ResultPill, GroupChip) keep their
+   own padding and aren't affected — this only kicks in when nothing
+   else expanded the hit area. */
+@media (pointer: coarse) {
+  li > a:not([style*="padding"]),
+  td > a:not([style*="padding"]),
+  p > a:not([style*="padding"]) {
+    min-height: 24px;
+    display: inline-block;
+    padding-block: 6px;
+  }
+  /* Plain <button> elements without explicit padding — typical for
+     icon-only triggers — get a guaranteed touch area. */
+  button:not([style*="padding"]):not(.no-touch-pad) {
+    min-height: 44px;
   }
 }
 

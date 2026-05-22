@@ -795,6 +795,14 @@
     "abst_label": "Abst.",
     "about_quiz": "Las preguntas se generan aleatoriamente a partir de votaciones reales del Congreso con resumen disponible. Toda la información también está en <link>/avui</link> y en la ficha de cada votación, sin juego."
   },
+  "install_prompt": {
+    "region_aria": "Banner para instalar Hola Política en la pantalla de inicio",
+    "title": "Añade Hola Política al inicio",
+    "body": "Tenla a un toque, sin barra del navegador. Notificaciones de las votaciones que sigues incluidas.",
+    "ios_body": "Toca el botón 'Compartir' de Safari y elige 'Añadir a la pantalla de inicio'.",
+    "install_cta": "Instalar",
+    "dismiss_aria": "Cerrar el banner de instalación"
+  },
   "onboarding": {
     "close_aria": "Cerrar la presentación",
     "slide_aria": "Ir a la diapositiva {n}",

@@ -795,6 +795,14 @@
     "abst_label": "Abst.",
     "about_quiz": "Les preguntes es generen aleatòriament a partir de votacions reals del Congrés amb resum disponible. Tota la informació també està a <link>/avui</link> i a la fitxa de cada votació, sense joc."
   },
+  "install_prompt": {
+    "region_aria": "Banner per a instal·lar Hola Política a la pantalla d'inici",
+    "title": "Afegeix Hola Política a l'inici",
+    "body": "Tens-la a un toc, sense barra del navegador. Notificacions de les votacions que segueixes inclosos.",
+    "ios_body": "Toca el botó 'Compartir' del Safari i tria 'Afegir a la pantalla d'inici'.",
+    "install_cta": "Instal·lar",
+    "dismiss_aria": "Amagar el banner d'instal·lació"
+  },
   "onboarding": {
     "close_aria": "Tancar la presentació",
     "slide_aria": "Anar a la diapositiva {n}",

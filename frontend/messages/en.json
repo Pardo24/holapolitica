@@ -795,6 +795,14 @@
     "abst_label": "Abst.",
     "about_quiz": "Questions are generated randomly from real Congress votes with a summary available. All the information also lives at <link>/avui</link> and in each vote's record, no game required."
   },
+  "install_prompt": {
+    "region_aria": "Banner to install Hola Política on the home screen",
+    "title": "Add Hola Política to your home screen",
+    "body": "Keep it one tap away, no browser bar. Notifications for the votes you follow included.",
+    "ios_body": "Tap Safari's 'Share' button and choose 'Add to Home Screen'.",
+    "install_cta": "Install",
+    "dismiss_aria": "Dismiss install banner"
+  },
   "onboarding": {
     "close_aria": "Close the introduction",
     "slide_aria": "Go to slide {n}",
