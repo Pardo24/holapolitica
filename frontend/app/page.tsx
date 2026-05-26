@@ -974,7 +974,7 @@ function MobileDashboard({
           tint="teal"
         />
         <DashboardTile
-          href={{ pathname: '/votes', query: { tab: 'topics' } }}
+          href="/topics"
           icon={<Layers size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tileTopics}
           tint="amber"

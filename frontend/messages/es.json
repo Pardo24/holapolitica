@@ -281,7 +281,11 @@
   },
   "topics": {
     "title": "Temas",
-    "subtitle": "Taxonomía temática que utilizamos para clasificar las iniciativas. Cuando el clasificador automático esté activo, cada tema mostrará las votaciones relacionadas."
+    "subtitle": "Taxonomía temática que utilizamos para clasificar las iniciativas. Cuando el clasificador automático esté activo, cada tema mostrará las votaciones relacionadas.",
+    "follow_banner_eyebrow": "Sigue los temas",
+    "follow_banner_title": "Elige los temas que te importan y recibe avisos",
+    "follow_banner_body": "Cada tema agrupa votaciones, iniciativas y noticias relacionadas. Suscríbete y te enviaremos un correo semanal — solo los temas que tú elijas, sin seguimiento.",
+    "follow_banner_cta": "Configura las notificaciones"
   },
   "about": {
     "title": "Sobre el proyecto",
@@ -641,7 +645,20 @@
     "filter_query_label": "Busca por nombre",
     "filter_query_label_short": "Busca",
     "filter_query_placeholder": "Busca por palabras del título…",
-    "filter_query_clear_aria": "Borra la búsqueda"
+    "filter_query_clear_aria": "Borra la búsqueda",
+    "hub_whats_now_eyebrow": "Qué pasa ahora",
+    "hub_last_vote_label": "Última votación",
+    "hub_next_vote_label": "Próxima votación",
+    "hub_no_recent_votes": "Aún no hay una votación reciente registrada bajo este tema.",
+    "hub_no_upcoming": "Ningún punto de este tema en el orden del día de la próxima sesión.",
+    "hub_news_eyebrow": "Noticias recientes",
+    "hub_news_intro": "Menciones en prensa generalista sobre este tema, agregadas automáticamente desde Google News. No comisariamos ningún medio.",
+    "hub_news_empty": "Sin menciones recientes en prensa para este tema.",
+    "hub_news_attribution": "Fuente: Google News · orden cronológico",
+    "hub_subscribe_eyebrow": "Sigue este tema",
+    "hub_subscribe_title": "Recibe en tu correo qué pasa con {topic}",
+    "hub_subscribe_body": "Configura una suscripción por tema y te enviaremos un resumen cuando haya votaciones o iniciativas nuevas clasificadas bajo {topic}.",
+    "hub_subscribe_cta": "Activa las notificaciones"
   },
   "stats": {
     "title": "Estadísticas",

@@ -281,7 +281,11 @@
   },
   "topics": {
     "title": "Topics",
-    "subtitle": "The topic taxonomy we use to classify initiatives. Once the automatic classifier is active, each topic will show its related votes."
+    "subtitle": "The topic taxonomy we use to classify initiatives. Once the automatic classifier is active, each topic will show its related votes.",
+    "follow_banner_eyebrow": "Follow topics",
+    "follow_banner_title": "Pick the topics that matter to you and get alerts",
+    "follow_banner_body": "Each topic groups related votes, initiatives and press mentions. Subscribe and you'll get a weekly email — only the topics you choose, no tracking.",
+    "follow_banner_cta": "Configure notifications"
   },
   "about": {
     "title": "About the project",
@@ -641,7 +645,20 @@
     "filter_query_label": "Search by name",
     "filter_query_label_short": "Search",
     "filter_query_placeholder": "Search by title words…",
-    "filter_query_clear_aria": "Clear the search"
+    "filter_query_clear_aria": "Clear the search",
+    "hub_whats_now_eyebrow": "What's happening now",
+    "hub_last_vote_label": "Most recent vote",
+    "hub_next_vote_label": "Next scheduled vote",
+    "hub_no_recent_votes": "No recent vote recorded under this topic yet.",
+    "hub_no_upcoming": "No item on this topic in the next plenary's agenda.",
+    "hub_news_eyebrow": "Recent press",
+    "hub_news_intro": "Mentions of this topic across general-news outlets, aggregated automatically from Google News. We don't curate any outlet.",
+    "hub_news_empty": "No recent press mentions for this topic.",
+    "hub_news_attribution": "Source: Google News · publication order",
+    "hub_subscribe_eyebrow": "Follow this topic",
+    "hub_subscribe_title": "Get email updates on {topic}",
+    "hub_subscribe_body": "Subscribe to per-topic emails and we'll send a digest whenever new votes or initiatives are classified under {topic}.",
+    "hub_subscribe_cta": "Enable notifications"
   },
   "stats": {
     "title": "Statistics",

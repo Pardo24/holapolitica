@@ -281,7 +281,11 @@
   },
   "topics": {
     "title": "Temes",
-    "subtitle": "Taxonomia temàtica que utilitzem per classificar les iniciatives. Quan el classificador automàtic estigui actiu, cada tema mostrarà les votacions relacionades."
+    "subtitle": "Taxonomia temàtica que utilitzem per classificar les iniciatives. Quan el classificador automàtic estigui actiu, cada tema mostrarà les votacions relacionades.",
+    "follow_banner_eyebrow": "Segueix els temes",
+    "follow_banner_title": "Tria els temes que t'importen i rep avisos",
+    "follow_banner_body": "Cada tema agrupa votacions, iniciatives i notícies relacionades. Subscriu-te i et farem arribar un correu setmanal — només els temes que tu triïs, sense seguiment.",
+    "follow_banner_cta": "Configura les notificacions"
   },
   "about": {
     "title": "Sobre el projecte",
@@ -641,7 +645,20 @@
     "filter_query_label": "Cerca per nom",
     "filter_query_label_short": "Cerca",
     "filter_query_placeholder": "Cerca per paraules del títol…",
-    "filter_query_clear_aria": "Esborra la cerca"
+    "filter_query_clear_aria": "Esborra la cerca",
+    "hub_whats_now_eyebrow": "Què passa ara",
+    "hub_last_vote_label": "Darrera votació",
+    "hub_next_vote_label": "Pròxima votació",
+    "hub_no_recent_votes": "Encara no hi ha una votació recent registrada sota aquest tema.",
+    "hub_no_upcoming": "Cap punt d'aquest tema a l'ordre del dia de la pròxima sessió.",
+    "hub_news_eyebrow": "Notícies recents",
+    "hub_news_intro": "Mencions a la premsa generalista sobre aquest tema, agregades automàticament des de Google News. No comissàriem cap mitjà.",
+    "hub_news_empty": "Sense mencions recents a la premsa per aquest tema.",
+    "hub_news_attribution": "Font: Google News · ordre cronològic",
+    "hub_subscribe_eyebrow": "Segueix aquest tema",
+    "hub_subscribe_title": "Rep al teu correu què passa amb {topic}",
+    "hub_subscribe_body": "Configura una subscripció per tema i et farem arribar un resum quan hi hagi votacions o iniciatives noves classificades sota {topic}.",
+    "hub_subscribe_cta": "Activa les notificacions"
   },
   "stats": {
     "title": "Estadístiques",

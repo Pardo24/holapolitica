@@ -131,6 +131,20 @@ export interface Topic {
   description_en: string | null;
 }
 
+/**
+ * One press mention of a topic, surfaced by the Topic Hub. Sourced from
+ * Google News' public RSS aggregator via the backend's
+ * /topics/{slug}/news endpoint. Strictly pass-through — Hola Política
+ * never curates which outlets appear.
+ */
+export interface TopicNewsItem {
+  title: string;
+  url: string;
+  source: string;
+  /** ISO-8601 string, or null when the source omitted the field. */
+  published_at: string | null;
+}
+
 export interface Person {
   id: number;
   full_name: string;
@@ -716,6 +730,17 @@ export const api = {
         revalidate: AGG_REVALIDATE,
       });
     },
+    // Recent press mentions of this topic, sourced via the backend's
+    // Google News RSS pass-through. Returns ``[]`` on upstream failure
+    // — the Topic Hub treats an empty list as "no news section here",
+    // same null-tolerant contract as the rest of the enrichments.
+    news: (slug: string, locale: string) =>
+      request<TopicNewsItem[]>(
+        `/topics/${slug}/news?locale=${locale}`,
+        // Backend already caches 1h in Redis; mirror that here so we
+        // don't refetch on every render in the same window.
+        { revalidate: 3600 },
+      ),
   },
   groups: {
     list: (legislatureId?: number) =>

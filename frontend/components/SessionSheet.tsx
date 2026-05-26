@@ -309,7 +309,7 @@ export async function SessionSheet({
                   <span key={g.key}>
                     {i > 0 ? ', ' : ''}
                     <Link
-                      href={`/votes?topic_slug=${g.topic!.slug}` as Route}
+                      href={`/topics/${g.topic!.slug}` as Route}
                       style={{
                         color: 'var(--ink)',
                         textDecoration: 'underline',

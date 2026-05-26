@@ -2,11 +2,13 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { ArrowRight, Bell, ExternalLink, Newspaper } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
+import { ResultPill } from '@/components/ResultPill';
 import { SummaryHover } from '@/components/SummaryHover';
 import { TopicGroupFilter } from '@/components/TopicGroupFilter';
 import { Tooltip } from '@/components/Tooltip';
@@ -17,6 +19,8 @@ import {
   type ParliamentaryGroupSummary,
   type ScheduledAgendaItem,
   type Topic,
+  type TopicNewsItem,
+  type Vote,
 } from '@/lib/api';
 import { glossaryShort, pickPlainSummary, typeLabelCa } from '@/lib/glossary';
 import { displayGroupShort, parseProposer, type ParsedProposer } from '@/lib/groups';
@@ -110,12 +114,28 @@ export default async function TopicDetailPage({
   }
   const topicLabel = pickTopicName(topic, locale);
 
-  const [initiatives, upcomingAgenda, topicGlobals, groups] = await Promise.all([
-    api.topics.initiatives(slug, { legislature_id: 1 }),
-    api.agenda.itemsByTopic(slug).catch(() => [] as ScheduledAgendaItem[]),
-    api.stats.topicsGlobal().catch(() => []),
-    api.groups.list(1).catch(() => [] as ParliamentaryGroupSummary[]),
-  ]);
+  const [initiatives, upcomingAgenda, topicGlobals, groups, recentVotesPage, news] =
+    await Promise.all([
+      api.topics.initiatives(slug, { legislature_id: 1 }),
+      api.agenda.itemsByTopic(slug).catch(() => [] as ScheduledAgendaItem[]),
+      api.stats.topicsGlobal().catch(() => []),
+      api.groups.list(1).catch(() => [] as ParliamentaryGroupSummary[]),
+      // Most recent vote(s) classified under this topic. We only need the
+      // first record for the "Què passa ara" lede; over-fetching by 3 keeps
+      // the API call cheap if we later want to surface a small "also
+      // recently" list. Empty list on failure.
+      api.votes
+        .list({ topic_slug: slug, legislature_id: 1, page: 1, page_size: 3 })
+        .catch(() => ({ total: 0, page: 1, page_size: 3, items: [] as Vote[] })),
+      // Google News RSS pass-through. Backend returns [] on upstream
+      // failure; the section disappears gracefully in that case.
+      api.topics.news(slug, locale).catch(() => [] as TopicNewsItem[]),
+    ]);
+  const recentVotes = recentVotesPage.items;
+  const lastVote = recentVotes[0] ?? null;
+  // Pick the next agenda item that points at THIS topic. ``upcomingAgenda``
+  // is already filtered to the topic on the backend; we just take the head.
+  const nextAgendaItem = upcomingAgenda[0] ?? null;
 
   // Pre-resolve the proposer parse per initiative once. Used both for the
   // group filter (matching) and for rendering badges in the row. Keeps the
@@ -303,6 +323,47 @@ export default async function TopicDetailPage({
           </div>
         </div>
       </header>
+
+      {/* "Què passa ara" — narrative lede that answers, in two cards, the
+          two most-asked questions about a topic: what was the most recent
+          decision, and what's coming next. Either side can be empty (no
+          votes yet / nothing on the next agenda) and we render an honest
+          empty-state copy rather than hiding the section, so the page
+          structure stays predictable across topics. */}
+      <section style={{ paddingTop: 28 }} aria-labelledby="topic-whats-now">
+        <h2
+          id="topic-whats-now"
+          className="eyebrow"
+          style={{ marginBottom: 10 }}
+        >
+          {t('hub_whats_now_eyebrow')}
+        </h2>
+        <div
+          className="topic-whats-now"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 14,
+          }}
+        >
+          <TopicLastVoteCard
+            vote={lastVote}
+            locale={locale}
+            label={t('hub_last_vote_label')}
+            emptyLabel={t('hub_no_recent_votes')}
+          />
+          <TopicNextAgendaCard
+            item={nextAgendaItem}
+            label={t('hub_next_vote_label')}
+            emptyLabel={t('hub_no_upcoming')}
+          />
+        </div>
+        <style>{`
+          @media (max-width: 720px) {
+            .topic-whats-now { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
+      </section>
 
       {/* Stats widget for this topic */}
       <section style={{ paddingTop: 28 }}>
@@ -624,7 +685,456 @@ export default async function TopicDetailPage({
         )}
       </section>
 
+      {/* Press-mentions feed — Google News RSS aggregator, pass-through
+          (no curation). The section only renders when the upstream
+          returned at least one item; an empty feed means either Google
+          had no recent results or the request failed, and either way the
+          hub reads cleaner without an empty section. */}
+      <section style={{ paddingTop: 36 }} aria-labelledby="topic-news-title">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+            marginBottom: 6,
+          }}
+        >
+          <h2 id="topic-news-title" className="eyebrow" style={{ margin: 0 }}>
+            {t('hub_news_eyebrow')}
+          </h2>
+          <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+            {t('hub_news_attribution')}
+          </span>
+        </div>
+        <p
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-3)',
+            margin: '0 0 12px',
+            maxWidth: 640,
+            lineHeight: 1.5,
+          }}
+        >
+          {t('hub_news_intro')}
+        </p>
+        {news.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
+            {t('hub_news_empty')}
+          </p>
+        ) : (
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              border: '1px solid var(--rule)',
+              borderRadius: 12,
+              background: 'var(--paper-2)',
+              overflow: 'hidden',
+            }}
+          >
+            {news.map((n, i) => (
+              <NewsRow key={`${n.url}-${i}`} item={n} locale={locale} isFirst={i === 0} />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Subscribe CTA — the "you've read about this topic, now follow it"
+          payoff at the bottom of the hub. Links to /notifications, which
+          is the central preferences surface for both newsletter and push.
+          Phrased around the topic name so the user sees what they're
+          subscribing to in their own language. */}
+      <section
+        style={{ paddingTop: 36, paddingBottom: 16 }}
+        aria-labelledby="topic-subscribe-title"
+      >
+        <div
+          className="topic-subscribe-cta"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto minmax(0, 1fr) auto',
+            gap: 18,
+            alignItems: 'center',
+            padding: '20px 22px',
+            borderRadius: 16,
+            background: `color-mix(in oklch, ${topic.color_hex ?? 'var(--accent)'} 10%, var(--paper-2))`,
+            border: `1px solid color-mix(in oklch, ${topic.color_hex ?? 'var(--accent)'} 30%, var(--rule-strong))`,
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 48,
+              height: 48,
+              borderRadius: 14,
+              background: `color-mix(in oklch, ${topic.color_hex ?? 'var(--accent)'} 22%, var(--paper))`,
+              color: topic.color_hex ?? 'var(--accent)',
+              flex: 'none',
+            }}
+          >
+            <Bell size={24} strokeWidth={1.8} aria-hidden="true" />
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div className="eyebrow" style={{ marginBottom: 4 }}>
+              {t('hub_subscribe_eyebrow')}
+            </div>
+            <h2
+              id="topic-subscribe-title"
+              className="serif"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(17px, 2vw, 20px)',
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+                color: 'var(--ink)',
+                lineHeight: 1.2,
+              }}
+            >
+              {t('hub_subscribe_title', { topic: topicLabel })}
+            </h2>
+            <p
+              style={{
+                margin: '4px 0 0',
+                fontSize: 13,
+                color: 'var(--ink-2)',
+                lineHeight: 1.5,
+                maxWidth: 580,
+              }}
+            >
+              {t('hub_subscribe_body', { topic: topicLabel })}
+            </p>
+          </div>
+          <Link
+            href="/notifications"
+            className="btn-ink"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              flex: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t('hub_subscribe_cta')} <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </div>
+        <style>{`
+          @media (max-width: 720px) {
+            .topic-subscribe-cta {
+              grid-template-columns: minmax(0, 1fr) !important;
+              gap: 12px !important;
+              padding: 18px !important;
+            }
+            .topic-subscribe-cta > a {
+              justify-content: center;
+            }
+          }
+        `}</style>
+      </section>
+
     </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Topic Hub helper cards
+// ---------------------------------------------------------------------------
+
+function TopicLastVoteCard({
+  vote,
+  locale,
+  label,
+  emptyLabel,
+}: {
+  vote: Vote | null;
+  locale: string;
+  label: string;
+  emptyLabel: string;
+}) {
+  if (!vote) {
+    return (
+      <div
+        style={{
+          padding: '16px 18px',
+          borderRadius: 12,
+          border: '1px solid var(--rule)',
+          background: 'var(--paper-2)',
+          fontSize: 13,
+          color: 'var(--ink-3)',
+          minHeight: 130,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        <div className="eyebrow">{label}</div>
+        <p style={{ margin: 0 }}>{emptyLabel}</p>
+      </div>
+    );
+  }
+  const subject = vote.description?.trim() || vote.title;
+  const voteDate = new Date(vote.voted_at);
+  const dateLabel = voteDate.toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'long',
+  });
+  const resultLabel =
+    vote.result === 'approved'
+      ? locale === 'es'
+        ? 'Aprobada'
+        : locale === 'en'
+          ? 'Approved'
+          : 'Aprovada'
+      : vote.result === 'rejected'
+        ? locale === 'es'
+          ? 'Rechazada'
+          : locale === 'en'
+            ? 'Rejected'
+            : 'Rebutjada'
+        : locale === 'es'
+          ? 'Empate'
+          : locale === 'en'
+            ? 'Tie'
+            : 'Empat';
+  return (
+    <Link
+      href={`/votes/${vote.id}`}
+      style={{
+        padding: '16px 18px',
+        borderRadius: 12,
+        border: '1px solid var(--rule-strong)',
+        background: 'var(--paper)',
+        minHeight: 130,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+        }}
+      >
+        <span className="eyebrow">{label}</span>
+        <span
+          className="tabular"
+          style={{ fontSize: 11, color: 'var(--ink-3)' }}
+        >
+          {dateLabel}
+        </span>
+      </div>
+      <div
+        style={{
+          fontSize: 14,
+          lineHeight: 1.4,
+          color: 'var(--ink)',
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: 3,
+          overflow: 'hidden',
+        }}
+      >
+        {subject}
+      </div>
+      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ResultPill result={vote.result} label={resultLabel} />
+        <span className="tabular" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+          {vote.ayes} · {vote.noes} · {vote.abstentions}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function TopicNextAgendaCard({
+  item,
+  label,
+  emptyLabel,
+}: {
+  item: ScheduledAgendaItem | null;
+  label: string;
+  emptyLabel: string;
+}) {
+  if (!item) {
+    return (
+      <div
+        style={{
+          padding: '16px 18px',
+          borderRadius: 12,
+          border: '1px solid var(--rule)',
+          background: 'var(--paper-2)',
+          fontSize: 13,
+          color: 'var(--ink-3)',
+          minHeight: 130,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        <div className="eyebrow">{label}</div>
+        <p style={{ margin: 0 }}>{emptyLabel}</p>
+      </div>
+    );
+  }
+  return (
+    <div
+      style={{
+        padding: '16px 18px',
+        borderRadius: 12,
+        border: '1px solid var(--rule-strong)',
+        background: 'var(--paper)',
+        minHeight: 130,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+      }}
+    >
+      <div className="eyebrow">{label}</div>
+      <div
+        style={{
+          fontSize: 14,
+          lineHeight: 1.4,
+          color: 'var(--ink)',
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: 3,
+          overflow: 'hidden',
+        }}
+      >
+        {item.subject}
+      </div>
+      {(item.kind || item.proposing_group) && (
+        <div
+          style={{
+            marginTop: 'auto',
+            fontSize: 11,
+            color: 'var(--ink-3)',
+            display: 'flex',
+            gap: 8,
+            flexWrap: 'wrap',
+          }}
+        >
+          {item.kind && <span>{item.kind}</span>}
+          {item.kind && item.proposing_group && <span aria-hidden="true">·</span>}
+          {item.proposing_group && <span>{item.proposing_group}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NewsRow({
+  item,
+  locale,
+  isFirst,
+}: {
+  item: TopicNewsItem;
+  locale: string;
+  isFirst: boolean;
+}) {
+  // Format the publication timestamp as "12 may" (or "12 May" / "12 may.")
+  // — short enough to sit on the same row as the title without truncating
+  // it. Falls back to "" when the source omitted the field.
+  let dateLabel = '';
+  if (item.published_at) {
+    const d = new Date(item.published_at);
+    if (!Number.isNaN(d.getTime())) {
+      dateLabel = d
+        .toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+        .replace(/\.$/, '');
+    }
+  }
+  return (
+    <li
+      style={{
+        borderTop: isFirst ? 'none' : '1px solid var(--rule)',
+        minWidth: 0,
+      }}
+    >
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'auto minmax(0, 1fr) auto',
+          gap: 12,
+          padding: '12px 14px',
+          textDecoration: 'none',
+          color: 'inherit',
+          alignItems: 'center',
+          minWidth: 0,
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            background: 'var(--paper)',
+            border: '1px solid var(--rule)',
+            color: 'var(--ink-3)',
+            flex: 'none',
+          }}
+        >
+          <Newspaper size={14} strokeWidth={1.8} aria-hidden="true" />
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13,
+              lineHeight: 1.4,
+              color: 'var(--ink)',
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+              overflow: 'hidden',
+              wordBreak: 'break-word',
+            }}
+          >
+            {item.title}
+          </div>
+          {(item.source || dateLabel) && (
+            <div
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-3)',
+                marginTop: 3,
+                display: 'flex',
+                gap: 6,
+                flexWrap: 'wrap',
+              }}
+            >
+              {item.source && <span>{item.source}</span>}
+              {item.source && dateLabel && <span aria-hidden="true">·</span>}
+              {dateLabel && (
+                <span className="tabular">{dateLabel}</span>
+              )}
+            </div>
+          )}
+        </div>
+        <ExternalLink
+          size={14}
+          aria-hidden="true"
+          style={{ color: 'var(--ink-3)', flex: 'none' }}
+        />
+      </a>
+    </li>
   );
 }
 

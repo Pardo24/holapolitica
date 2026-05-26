@@ -182,6 +182,17 @@ class TopicRead(BaseModel):
     description_en: str | None = None
 
 
+class TopicNewsRead(BaseModel):
+    """One Google News press mention for a topic, normalised for the API."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    title: str
+    url: str
+    source: str
+    published_at: datetime | None = None
+
+
 # ---------------------------------------------------------------------------
 # Initiatives
 # ---------------------------------------------------------------------------
