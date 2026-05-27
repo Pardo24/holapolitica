@@ -670,6 +670,7 @@ function AdvancedSection({
   selected: Set<string>;
   onToggle: (slug: string) => void;
 }): React.ReactElement {
+  const locale = useLocale();
   const t = useTranslations('notifications');
   const ts = slugs
     .map((s) => topicBySlug.get(s))
@@ -726,7 +727,7 @@ function AdvancedSection({
                     flex: 'none',
                   }}
                 />
-                <span>{tp.name_ca}</span>
+                <span>{pickTopicName(tp, locale)}</span>
               </button>
             </li>
           );

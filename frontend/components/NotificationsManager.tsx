@@ -56,6 +56,7 @@ import {
   type TopicKind,
 } from '@/lib/api';
 import { groupTopicsByCategory, categoryLabel } from '@/lib/topic_categories';
+import { pickTopicName } from '@/lib/topics';
 
 type Phase =
   | 'init'
@@ -415,9 +416,9 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
                         checked={checked}
                         onChange={() => toggle(topic.slug)}
                         disabled={busy}
-                        aria-label={topic.name_ca}
+                        aria-label={pickTopicName(topic, locale)}
                       />
-                      <span style={{ flex: 1 }}>{topic.name_ca}</span>
+                      <span style={{ flex: 1 }}>{pickTopicName(topic, locale)}</span>
                     </label>
                   </li>
                 );
@@ -715,7 +716,7 @@ function SubscribedView({
                 <TopicChip
                   topic={topic}
                   disabled={busy || !masterOn}
-                  removeLabel={t('remove_topic', { name: topic.name_ca })}
+                  removeLabel={t('remove_topic', { name: pickTopicName(topic, locale) })}
                   onRemove={() => onRemove(topic.slug)}
                 />
               </li>
@@ -934,6 +935,7 @@ function TopicChip({
   removeLabel: string;
   onRemove: () => void;
 }) {
+  const locale = useLocale();
   return (
     <span style={chipStyle}>
       <span
@@ -956,7 +958,7 @@ function TopicChip({
           whiteSpace: 'nowrap',
         }}
       >
-        {topic.name_ca}
+        {pickTopicName(topic, locale)}
       </span>
       <button
         type="button"
@@ -990,6 +992,7 @@ function TopicTypeahead({
   onPick: (slug: string) => void;
 }) {
   const t = useTranslations('notifications');
+  const locale = useLocale();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -1003,8 +1006,14 @@ function TopicTypeahead({
   const rows = useMemo(() => {
     const norm = normalize(query);
     const available = topics.filter((tp) => !selected.has(tp.slug));
+    // Match against any of the three translated names so the
+    // typeahead stays useful when the UI language differs from the
+    // user's mental model ("housing" → "Habitatge", etc.).
     const match = (tp: Topic) =>
-      norm === '' || normalize(tp.name_ca).includes(norm);
+      norm === '' ||
+      normalize(tp.name_ca).includes(norm) ||
+      (tp.name_es ? normalize(tp.name_es).includes(norm) : false) ||
+      (tp.name_en ? normalize(tp.name_en).includes(norm) : false);
     const filteredThemes = available.filter((tp) => tp.kind === 'theme' && match(tp));
     // SDG entries are intentionally filtered out at the search level —
     // the dropdown never offers them while the Agenda 2030 taxonomy is
@@ -1210,7 +1219,7 @@ function TopicTypeahead({
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {row.topic.name_ca}
+                  {pickTopicName(row.topic, locale)}
                 </span>
               </li>
             );
@@ -1249,6 +1258,7 @@ function TopicSectionAccordion({
   selectAllLabel: string;
   clearLabel: string;
 }) {
+  const locale = useLocale();
   const selectedInSection = topics.filter((tp) => selected.has(tp.slug)).length;
   const slugs = topics.map((tp) => tp.slug);
 
@@ -1357,7 +1367,7 @@ function TopicSectionAccordion({
                     checked={checked}
                     disabled={busy}
                     onChange={() => onToggle(tp.slug)}
-                    aria-label={tp.name_ca}
+                    aria-label={pickTopicName(tp, locale)}
                     style={{ accentColor: 'var(--accent)' }}
                   />
                   <span
@@ -1379,7 +1389,7 @@ function TopicSectionAccordion({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {tp.name_ca}
+                    {pickTopicName(tp, locale)}
                   </span>
                 </label>
               </li>
