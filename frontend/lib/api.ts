@@ -189,6 +189,27 @@ export interface Person {
 
 export type VoteResult = 'approved' | 'rejected' | 'tie';
 
+/** Parliamentary procedural types we track. Mirrors the backend
+ *  ``InitiativeType`` enum. */
+export type InitiativeType =
+  | 'proyecto_ley'
+  | 'proposicion_ley'
+  | 'proposicion_no_ley'
+  | 'real_decreto_ley'
+  | 'mocion'
+  | 'interpelacion'
+  | 'other';
+
+/** Lifecycle states an Initiative goes through. Mirrors the backend
+ *  ``InitiativeStatus`` enum. */
+export type InitiativeStatus =
+  | 'submitted'
+  | 'in_debate'
+  | 'approved'
+  | 'rejected'
+  | 'withdrawn'
+  | 'expired';
+
 export interface Vote {
   id: number;
   session_id: number;
@@ -582,7 +603,7 @@ export interface Initiative {
   id: number;
   chamber_id: number;
   legislature_id: number;
-  type: string;
+  type: InitiativeType;
   official_id: string;
   title_original: string;
   title_ca: string | null;
@@ -597,7 +618,7 @@ export interface Initiative {
    * (1-12 k chars); the UI collapses it.
    */
   object_text: string | null;
-  status: string;
+  status: InitiativeStatus;
   submitted_at: string | null;
   submitted_by: string | null;
   source_url: string | null;

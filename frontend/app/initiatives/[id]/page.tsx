@@ -7,6 +7,7 @@ import { ArrowRight, ExternalLink, FileText, Route as RouteIcon } from 'lucide-r
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
+import { LawJourney } from '@/components/LawJourney';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import {
@@ -128,8 +129,20 @@ export default async function InitiativeDetailPage({
 
   return (
     <article>
+      {/* Trajectory banner — dark, full-bleed strip pinned at the top
+          of the page that names the procedural type (Projecte de Llei,
+          PNL, Moció, RDL...) and highlights the current step in its
+          Reglament-defined journey. Same component is used on
+          /votes/[id]; the data shape (type + status + BOE flag) feeds
+          both surfaces identically. */}
+      <LawJourney
+        type={initiative.type}
+        status={initiative.status}
+        hasBoe={!!initiative.boe_url}
+      />
+
       {/* Breadcrumb */}
-      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
+      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 6 }}>
         <Link href="/votes" style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_root')}
         </Link>

@@ -32,6 +32,7 @@ import { ExternalLink, FileText } from 'lucide-react';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { Hemicycle } from '@/components/Hemicycle';
+import { LawJourney } from '@/components/LawJourney';
 import { ResultPill } from '@/components/ResultPill';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
 import { StackedBar } from '@/components/StackedBar';
@@ -269,8 +270,24 @@ export default async function VoteDetailPage({
 
   return (
     <article>
+      {/* Trajectory banner — same dark strip used on /initiatives/[id].
+          When the vote has a linked initiative we use the initiative's
+          type + status; this lets a PNL vote that ALREADY happened
+          still show "Proposició no de Llei → Votació" as the
+          terminal step. Skipped when the vote has no initiative (the
+          legacy unlinked-vote case) to avoid guessing a journey from
+          incomplete data. */}
+      {initiative && (
+        <LawJourney
+          type={initiative.type}
+          status={initiative.status}
+          hasBoe={!!initiative.boe_url}
+          voteResult={vote.result}
+        />
+      )}
+
       {/* Breadcrumb */}
-      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
+      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 6 }}>
         <Link href="/votes" style={{ color: 'var(--ink-2)' }}>
           {t('header_subject_breadcrumb')}
         </Link>
