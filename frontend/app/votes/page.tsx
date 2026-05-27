@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon } from 'lucide-react';
+import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, SearchX } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
@@ -284,7 +284,20 @@ async function VotesListTab({ params }: { params: SearchParams }) {
       )}
 
       {data && data.items.length === 0 && (
-        <p style={{ color: 'var(--ink-3)', padding: '24px 0' }}>{t('no_results')}</p>
+        <div
+          style={{
+            padding: '32px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
+            color: 'var(--ink-3)',
+            textAlign: 'center',
+          }}
+        >
+          <SearchX size={32} strokeWidth={1.4} aria-hidden="true" />
+          <p style={{ margin: 0, fontSize: 14 }}>{t('no_results')}</p>
+        </div>
       )}
 
       {/* Single responsive list — CompactVoteRow uses the same flat
