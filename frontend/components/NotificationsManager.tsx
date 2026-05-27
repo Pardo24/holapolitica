@@ -344,13 +344,12 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
         {themesByCategory.map(({ category, topics: catTopics }) => (
           <details
             key={category ? category.slug : 'altres'}
-            // Open the first category by default so the user can pick
-            // immediately. Subsequent categories collapse to keep the
-            // panel compact.
-            open={
-              category != null &&
-              category.slug === themesByCategory[0]?.category?.slug
-            }
+            // Open every category by default — Daniel preferred seeing
+            // all the checkboxes at once (faster to pick a couple
+            // across umbrellas) over the compact-first-only layout.
+            // The user can still collapse a category by clicking its
+            // header.
+            open
             style={{
               border: '1px solid var(--rule)',
               borderRadius: 8,
@@ -756,18 +755,17 @@ function SubscribedView({
               gap: 10,
             }}
           >
-            {themesByCategory.map(({ category, topics: catTopics }, idx) => (
+            {themesByCategory.map(({ category, topics: catTopics }) => (
               <TopicSectionAccordion
                 key={category ? category.slug : 'altres'}
                 title={category ? categoryLabel(category, locale) : t('section_other')}
                 topics={catTopics}
                 selected={selected}
                 busy={busy || !masterOn}
-                // Open the first category by default so the user can
-                // start picking without an extra tap; the rest stay
-                // collapsed so a 17-topic list doesn't unfurl all at
-                // once on mount.
-                defaultOpen={idx === 0}
+                // Open every category by default — Daniel's call: it's
+                // faster to scan and tick across umbrellas at once
+                // than to click through six collapsed sections.
+                defaultOpen
                 onToggle={onToggle}
                 onSelectAll={onSelectAll}
                 onClearGroup={onClearGroup}

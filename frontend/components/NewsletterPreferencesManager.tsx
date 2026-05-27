@@ -538,6 +538,10 @@ function CategoryAccordion({
 
   return (
     <details
+      // All categories expand by default. Daniel preferred a fully-
+      // opened picker over a tap-to-expand list — easier to tick
+      // checkboxes across umbrellas in a single pass.
+      open
       style={{
         borderRadius: 12,
         border: '1px solid var(--rule)',
