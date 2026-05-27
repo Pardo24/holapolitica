@@ -6,7 +6,7 @@
 **Live site:** holapolitica.org
 **Public API:** api.holapolitica.org
 **Licence:** EUPL-1.2 (code) · CC-BY 4.0 (data) · CC-BY-SA 4.0 (editorial)
-**Funder request:** NLnet NGI Zero Commons Fund — €30,000 over 12 months
+**Funder request:** NLnet NGI Zero Commons Fund — €33,200 over 12 months
 
 ---
 
@@ -16,10 +16,10 @@ Three workstreams, executed in parallel.
 
 | Workstream | % of budget | Outcome at month 12 |
 |---|---|---|
-| **Phase 2 — Parlament de Catalunya ingest** | 47 % | First multilingual platform tracking individual votes from the Catalan Parliament |
-| **Operational stabilisation (Phase 1)** | 33 % | Production reliability sufficient for journalist + research consumption |
-| **Accessibility + documentation** | 12 % | WCAG AA compliance + contributor-ready repository |
-| **Infrastructure** | 8 % | Hetzner + Mistral + Listmonk costs covered for 12 months |
+| **Phase 2 — Parlament de Catalunya ingest** | 49 % | First multilingual platform tracking individual votes from the Catalan Parliament |
+| **Operational stabilisation (Phase 1)** | 30 % | Production reliability sufficient for journalist + research consumption |
+| **Accessibility + documentation** | 13 % | WCAG AA compliance + contributor-ready repository |
+| **Infrastructure** | 7 % | Hetzner + Mistral + Listmonk costs covered for 12 months |
 
 ---
 
@@ -28,11 +28,11 @@ Three workstreams, executed in parallel.
 ### Months 1-2 — BOPC parser foundation
 - Investigate Catalan Parliament SIAP backend for any structured endpoint (the public-facing UI is JS-driven; the underlying AJAX may yield JSON).
 - If no structured endpoint exists (expected): build pdfplumber + table-heuristic parser on a corpus of 50 BOPC documents across format variations.
-- Migration: extend the data model to support a second chamber + per-deputy + group-block vote types.
+- Migration: extend the data model to support a second chamber + per-deputy + group-block vote types. **Additive schema only** — existing `vote_records` preserved unchanged; new column / new table for group-block variant.
 
 ### Months 3-4 — Ingestion pipeline
 - Periodic BOPC fetcher (weekly cadence — the Catalan Parliament publishes less frequently than the Spanish Congress).
-- Multi-chamber data model migration (idempotent, zero-downtime).
+- Multi-chamber data model migration (idempotent, zero-downtime, additive only).
 - Catalan Parliament deputies + group-membership history importer.
 
 ### Months 5-6 — UI + classifier
@@ -88,6 +88,7 @@ Three workstreams, executed in parallel.
 2. **Catalan classifier accuracy lower than Spanish.** Manual review buffer baked into the budget (semi-annual audit).
 3. **Solo developer becomes unavailable.** Operations runbook + contributor docs reduce bus factor; advisory board (planned via separate Bofill grant) provides governance continuity.
 4. **Volume growth exceeds infrastructure budget.** Reserve included in infrastructure line; Hetzner allows in-place upgrades.
+5. **Phase 2 milestone slip.** If BOPC parsing or the multi-chamber migration runs longer than estimated, I will proactively contact NLnet to renegotiate scope — preference is to deliver less BOPC coverage well (e.g. partial legislature ingest with the parser stable) rather than rush a fragile parser into production. Scope adjustments will be agreed in writing before they affect the milestone schedule.
 
 ---
 
@@ -98,7 +99,7 @@ Three workstreams, executed in parallel.
 - **No corporate sponsorships.** GitHub Sponsors via Open Collective Europe in setup.
 - **No revenue.**
 
-If both NLnet and Bofill fund, the combined €45,000 covers Phase 2 ingest, operational stabilisation, association legal-entity registration, and the first advisory board cycle — at which point the project is ready for Civitates / Stichting Democratie en Media size grants for Phase 3.
+If both NLnet and Bofill fund, the combined €48,200 covers Phase 2 ingest, operational stabilisation, association legal-entity registration, and the first advisory board cycle — at which point the project is ready for Civitates / Stichting Democratie en Media size grants for Phase 3.
 
 ---
 
