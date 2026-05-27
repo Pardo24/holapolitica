@@ -272,18 +272,43 @@ def ingest_pnl() -> dict[str, int]:
     and inherits topics through to their linked votes — closing the
     "lots of votes with no theme" gap on /avui.
 
-    Idempotent: re-runs upsert by ``official_id``. Polite to the
-    upstream portal (one-second inter-page delay). XV legislatura only
-    for now — earlier legislatures aren't yet imported anywhere.
+    Two-step body:
+
+    1. Upsert PNLs into the ``initiatives`` table via
+       :func:`import_pnl_xv` — idempotent (lookups by ``official_id``)
+       and polite (one-second inter-page delay).
+    2. Run :func:`backfill_vote_initiative_links` so any pre-existing
+       PNL vote whose ``expediente_raw`` matches a newly-created
+       initiative gets its ``initiative_id`` populated. Without this
+       step the topics that the next classifier tick assigns sit on
+       the Initiative side and never propagate to the votes that
+       /avui actually renders. The backfill is cheap when nothing new
+       was ingested — it just scans the still-unmatched votes and
+       finds no candidates.
+
+    XV legislatura only for now — earlier legislatures aren't yet
+    imported anywhere.
     """
     from dataclasses import asdict
 
+    from app.ingest.congreso.bootstrap import backfill_vote_initiative_links
     from app.ingest.congreso.pnl import import_pnl_xv
 
     async def _run() -> dict[str, int]:
         stats = await import_pnl_xv()
+        link_stats = await backfill_vote_initiative_links()
         await _invalidate_aggregate_caches()
-        return {k: int(v) for k, v in asdict(stats).items()}
+        # Merge both counter dicts into a single response so the RQ
+        # dashboard surfaces the full picture in one place.
+        out = {k: int(v) for k, v in asdict(stats).items()}
+        out.update(
+            {
+                "votes_processed": link_stats.votes_processed,
+                "votes_linked": link_stats.votes_linked,
+                "votes_unmatched": link_stats.votes_unmatched,
+            }
+        )
+        return out
 
     return asyncio.run(_run())
 
