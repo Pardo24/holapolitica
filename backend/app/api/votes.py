@@ -44,14 +44,40 @@ from app.services.proposing_group import resolve_proposing_group
 router = APIRouter(prefix="/votes", tags=["votes"])
 
 
+def _split_csv(value: str | None) -> list[str]:
+    """Parse a possibly-comma-separated query value into a clean slug list.
+
+    ``?topic_slug=habitatge,sanitat`` and ``?topic_slug=habitatge`` both
+    come through here. Empty strings and whitespace-only tokens are
+    dropped so a trailing comma in the URL doesn't widen the filter
+    to "everything".
+    """
+    if value is None:
+        return []
+    return [token.strip() for token in value.split(",") if token.strip()]
+
+
 @router.get("", response_model=dict)
 async def list_votes(
     chamber_id: int | None = Query(None, description="Filter by chamber"),
     legislature_id: int | None = Query(None, description="Filter by legislature"),
-    topic_slug: str | None = Query(None, description="Filter by topic slug, e.g. 'habitatge'"),
+    topic_slug: str | None = Query(
+        None,
+        description=(
+            "Filter by topic slug. Accepts either a single slug ('habitatge') "
+            "or a comma-separated list ('habitatge,sanitat') — the list is "
+            "evaluated as OR across values."
+        ),
+    ),
     initiative_type: InitiativeType | None = Query(None, description="Filter by initiative type"),
     proposing_group_slug: str | None = Query(
-        None, description="Filter by the parliamentary group that proposed the vote"
+        None,
+        description=(
+            "Filter by the parliamentary group that proposed the vote. "
+            "Accepts a single slug or a comma-separated list; the synthetic "
+            "slug 'govern' matches Government-proposed votes and composes "
+            "with any number of group slugs as OR."
+        ),
     ),
     result: VoteResult | None = Query(None, description="Filter by vote result"),
     date_from: date | None = Query(None, description="Earliest vote date (inclusive)"),
@@ -64,6 +90,9 @@ async def list_votes(
     """List votes with combinable filters.
 
     Returns paginated results. All filters are optional and combine with AND.
+    Within ``topic_slug`` and ``proposing_group_slug`` multiple values
+    compose as OR (a vote matches if it touches ANY of the selected
+    topics, regardless of how many other topics it also touches).
     """
     base_stmt = (
         select(Vote)
@@ -71,7 +100,10 @@ async def list_votes(
         .options(selectinload(Vote.initiative))
     )
     count_stmt = (
-        select(func.count(Vote.id))
+        # Distinct so multi-topic / multi-group filters that JOIN
+        # InitiativeTopic don't inflate the count for a vote that
+        # matches more than one of the selected topics.
+        select(func.count(func.distinct(Vote.id)))
         .select_from(Vote)
         .join(SessionModel, Vote.session_id == SessionModel.id)
     )
@@ -104,23 +136,33 @@ async def list_votes(
         # description; without this OR, common queries return nothing.
         conditions.append(Vote.title.ilike(f"%{q}%") | Vote.description.ilike(f"%{q}%"))
 
-    if proposing_group_slug == "govern":
-        # Synthetic slug — votes whose proposer is the Government itself
-        # (Proyectos de Ley, Real Decreto-ley convalidations). See
-        # migration 0009 for the rule and ingestion's
-        # ``_looks_government_proposed``.
-        conditions.append(Vote.proposed_by_government.is_(True))
-    elif proposing_group_slug is not None:
-        base_stmt = base_stmt.join(
-            ParliamentaryGroup, ParliamentaryGroup.id == Vote.proposing_group_id
-        )
-        count_stmt = count_stmt.join(
-            ParliamentaryGroup, ParliamentaryGroup.id == Vote.proposing_group_id
-        )
-        conditions.append(ParliamentaryGroup.slug == proposing_group_slug)
+    group_slugs = _split_csv(proposing_group_slug)
+    if group_slugs:
+        wants_government = "govern" in group_slugs
+        real_group_slugs = [s for s in group_slugs if s != "govern"]
+        # Multi-select OR: government flag + any selected real groups.
+        # When the synthetic 'govern' slug is alongside other slugs we
+        # match votes that are EITHER government-proposed OR proposed
+        # by any of the selected groups.
+        clauses = []
+        if wants_government:
+            clauses.append(Vote.proposed_by_government.is_(True))
+        if real_group_slugs:
+            base_stmt = base_stmt.join(
+                ParliamentaryGroup, ParliamentaryGroup.id == Vote.proposing_group_id
+            )
+            count_stmt = count_stmt.join(
+                ParliamentaryGroup, ParliamentaryGroup.id == Vote.proposing_group_id
+            )
+            clauses.append(ParliamentaryGroup.slug.in_(real_group_slugs))
+        if len(clauses) == 1:
+            conditions.append(clauses[0])
+        elif len(clauses) > 1:
+            conditions.append(or_(*clauses))
 
+    topic_slugs = _split_csv(topic_slug)
     # Initiative-based filters require joining the Initiative table
-    needs_initiative_join = initiative_type is not None or topic_slug is not None
+    needs_initiative_join = initiative_type is not None or bool(topic_slugs)
     if needs_initiative_join:
         base_stmt = base_stmt.join(Initiative, Vote.initiative_id == Initiative.id)
         count_stmt = count_stmt.join(Initiative, Vote.initiative_id == Initiative.id)
@@ -128,14 +170,14 @@ async def list_votes(
         if initiative_type is not None:
             conditions.append(Initiative.type == initiative_type)
 
-        if topic_slug is not None:
+        if topic_slugs:
             base_stmt = base_stmt.join(
                 InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id
             ).join(Topic, Topic.id == InitiativeTopic.topic_id)
             count_stmt = count_stmt.join(
                 InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id
             ).join(Topic, Topic.id == InitiativeTopic.topic_id)
-            conditions.append(Topic.slug == topic_slug)
+            conditions.append(Topic.slug.in_(topic_slugs))
 
     if conditions:
         base_stmt = base_stmt.where(and_(*conditions))

@@ -1,21 +1,17 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight, Route as RouteIcon, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Route as RouteIcon } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
-import { GroupCombobox } from '@/components/GroupCombobox';
-import { ActiveFilterChips, type ActiveFilter } from '@/components/ActiveFilterChips';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
 import { TopicChipsStrip } from '@/components/TopicChipsStrip';
 import { VotesCalendarStripController } from '@/components/VotesCalendarStripController';
 import type { CalendarDay } from '@/components/VotesCalendarStrip';
-import { TopicCombobox } from '@/components/TopicCombobox';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
+import { VotesFilterCard } from '@/components/VotesFilterCard';
 import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
-import { displayGroupShort } from '@/lib/groups';
-import { pickTopicName } from '@/lib/topics';
 
 interface SearchParams {
   /**
@@ -164,59 +160,18 @@ async function VotesListTab({ params }: { params: SearchParams }) {
       ? params.date_from
       : null;
 
-  // Active-filter chips — one per applied filter, with × to remove.
-  // The list shows up between the calendar and the rest of the page.
-  const activeFilters: ActiveFilter[] = [];
-  if (activeDate) {
-    activeFilters.push({
-      paramKey: 'date_from',
-      pairParamKey: 'date_to',
-      label: new Date(`${activeDate}T12:00:00`).toLocaleDateString(locale, {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }),
-    });
-  }
-  if (params.topic_slug) {
-    const topic = topics.find((tp) => tp.slug === params.topic_slug);
-    if (topic) {
-      activeFilters.push({
-        paramKey: 'topic_slug',
-        label: pickTopicName(topic, locale),
-        color: topic.color_hex,
-      });
-    }
-  }
-  if (params.proposing_group_slug) {
-    if (params.proposing_group_slug === 'govern') {
-      activeFilters.push({
-        paramKey: 'proposing_group_slug',
-        label: t('proposed_by_government'),
-      });
-    } else {
-      const group = groups.find((g) => g.slug === params.proposing_group_slug);
-      if (group) {
-        activeFilters.push({
-          paramKey: 'proposing_group_slug',
-          label: displayGroupShort(group.name_short),
-          color: group.color_hex,
-        });
-      }
-    }
-  }
-  if (params.result) {
-    activeFilters.push({
-      paramKey: 'result',
-      label: t(`result.${params.result}` as 'result.approved'),
-    });
-  }
-  if (params.q) {
-    activeFilters.push({
-      paramKey: 'q',
-      label: `"${params.q}"`,
-    });
-  }
+  // Topic / group filters can now be a comma-separated list (the
+  // backend OR's across the slugs). Split here so the chip strip and
+  // the filter card both see arrays; the API call still forwards the
+  // raw comma-joined string so the backend keeps the URL shape stable.
+  const topicSlugs = (params.topic_slug ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const groupSlugs = (params.proposing_group_slug ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   const totalPages = data
     ? Math.max(1, Math.ceil(data.total / data.page_size))
@@ -267,8 +222,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
       <TopicChipsStrip
         topics={topics}
         counts={topicCounts}
-        activeSlug={params.topic_slug ?? null}
-        baseHref="/votes"
+        activeSlugs={topicSlugs}
         allLabel={t('topic_chips_all_label')}
         countSuffix={t('carousel_count_suffix')}
         locale={locale}
@@ -278,177 +232,40 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           table is not preceded by clutter. */}
       <UpcomingAgenda sessions={upcomingSessions} mode="compact" />
 
-      {/* Unified filter form — every control visible at once with the
-          active-filter chips inside the same card so the "what's
-          applied" and "how to change it" surfaces live as one block.
-          Responsive grid: single column on phones, two columns at
-          sm:, three on wide (the result selector below sits full-width
-          as colored chip buttons). */}
-      <form
-        method="GET"
-        className="votes-filter-form"
-        style={{
-          marginTop: 14,
-          padding: 16,
-          border: '1px solid var(--rule-strong)',
-          borderRadius: 12,
-          background: 'var(--paper-2)',
+      {/* Auto-apply filter card. Owns its own URL state via the
+          router — no Apply button, no GET form, no advanced collapse.
+          Multi-value for topic + group via comma-separated URL params
+          (backend OR's across the values); selected chips render
+          inline under each combobox with their own × to remove a
+          single value. */}
+      <VotesFilterCard
+        topics={topics}
+        groups={groups}
+        initialQ={params.q ?? ''}
+        initialTopicSlugs={topicSlugs}
+        initialGroupSlugs={groupSlugs}
+        initialResult={params.result ?? ''}
+        hasOtherActiveFilters={Boolean(activeDate)}
+        locale={locale}
+        labels={{
+          search: t('filters.search'),
+          search_placeholder: t('filters.search'),
+          topics_label: t('filters.all_topics'),
+          topics_placeholder: t('filters.all_topics'),
+          topics_clear: t('filters.all_topics'),
+          groups_label: t('filters.proposing_group'),
+          groups_placeholder: t('filters.all_groups'),
+          groups_clear: t('filters.all_groups'),
+          group_government: t('filters.proposing_government'),
+          result_label: t('filters.result'),
+          result_all: t('filters.all_results'),
+          result_approved: t('result.approved'),
+          result_rejected: t('result.rejected'),
+          result_tie: t('result.tie'),
+          clear_all: t('filters_clear_all'),
+          remove_label: 'Treu',
         }}
-      >
-        <div
-          className="votes-filter-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            gap: 10,
-            alignItems: 'stretch',
-          }}
-        >
-          <FilterField label={t('filters.search')}>
-            <label
-              className="search-chip"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 14px',
-                border: '1px solid var(--rule-strong)',
-                borderRadius: 10,
-                background: 'var(--paper)',
-                transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                width: '100%',
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{ color: 'var(--ink-3)', display: 'inline-flex' }}
-              >
-                <Search size={14} aria-hidden="true" />
-              </span>
-              <input
-                type="search"
-                name="q"
-                placeholder={t('filters.search')}
-                defaultValue={params.q ?? ''}
-                style={{
-                  border: 0,
-                  background: 'transparent',
-                  fontSize: 14,
-                  flex: 1,
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  color: 'var(--ink)',
-                  minWidth: 0,
-                }}
-              />
-            </label>
-          </FilterField>
-          <FilterField label={t('filters.all_topics')}>
-            <TopicCombobox
-              name="topic_slug"
-              value={params.topic_slug ?? ''}
-              topics={topics}
-              emptyValue=""
-              clearLabel={t('filters.all_topics')}
-              placeholder={t('filters.all_topics')}
-              ariaLabel={t('filters.all_topics')}
-            />
-          </FilterField>
-          <FilterField label={t('filters.proposing_group')}>
-            <GroupCombobox
-              name="proposing_group_slug"
-              value={params.proposing_group_slug ?? ''}
-              groups={groups}
-              extraOptions={[
-                { slug: 'govern', label: t('filters.proposing_government') },
-              ]}
-              emptyValue=""
-              clearLabel={t('filters.all_groups')}
-              placeholder={t('filters.all_groups')}
-              ariaLabel={t('filters.proposing_group')}
-            />
-          </FilterField>
-        </div>
-
-        {/* Result as semantic chip-radios. Native <select> is hard to
-            read at a glance because the colour cue is missing until
-            the user opens the dropdown; this gives each option its
-            own coloured chip so the affordance reads correctly
-            inline. The form submits ``result=approved`` etc. via the
-            checked radio's value. */}
-        <div style={{ marginTop: 12 }}>
-          <FilterField label={t('filters.result')}>
-            <div
-              role="radiogroup"
-              aria-label={t('filters.result')}
-              className="result-chip-row"
-              style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
-            >
-              <ResultChip
-                name="result"
-                value=""
-                checked={!params.result}
-                label={t('filters.all_results')}
-                accent="ink"
-              />
-              <ResultChip
-                name="result"
-                value="approved"
-                checked={params.result === 'approved'}
-                label={t('result.approved')}
-                accent="aye"
-              />
-              <ResultChip
-                name="result"
-                value="rejected"
-                checked={params.result === 'rejected'}
-                label={t('result.rejected')}
-                accent="no"
-              />
-              <ResultChip
-                name="result"
-                value="tie"
-                checked={params.result === 'tie'}
-                label={t('result.tie')}
-                accent="abst"
-              />
-            </div>
-          </FilterField>
-        </div>
-
-        {/* Active-filter chips moved INSIDE the form so applied
-            filters and the controls that produce them share a single
-            visual region. The chips themselves are the "×" affordance
-            for removing one filter at a time without affecting the
-            others; the "Clear all" link inside ActiveFilterChips
-            wipes the lot. */}
-        {activeFilters.length > 0 && (
-          <div
-            style={{
-              marginTop: 12,
-              paddingTop: 12,
-              borderTop: '1px solid var(--rule)',
-            }}
-          >
-            <ActiveFilterChips
-              filters={activeFilters}
-              clearAllLabel={t('filters_clear_all')}
-            />
-          </div>
-        )}
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            marginTop: 12,
-          }}
-        >
-          <button type="submit" className="btn-ink btn-sm">
-            {t('filters.apply')}
-          </button>
-        </div>
-      </form>
+      />
 
       {error && (
         <div
@@ -525,120 +342,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           .filter-rail { grid-template-columns: 1fr 1fr !important; }
           .filter-rail > div:nth-child(n+5) { grid-column: 1 / -1; }
         }
-        /* Responsive collapse for the unified filter form: 4 cols on a
-           wide desktop, 2 cols on tablets, 1 col on phones. The form
-           wrapper keeps its padded card frame at every viewport. */
-        @media (max-width: 980px) {
-          .votes-filter-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-        }
-        @media (max-width: 540px) {
-          .votes-filter-grid {
-            grid-template-columns: minmax(0, 1fr) !important;
-          }
-        }
       `}</style>
-    </div>
-  );
-}
-
-/** Coloured radio-chip used in the result row of the filter form.
- *  Renders as a chip that shows its semantic colour (green / red /
- *  ocre) so the affordance reads at a glance. Native radio input is
- *  hidden but stays in the DOM so the form submits the right value
- *  with no client JS. */
-function ResultChip({
-  name,
-  value,
-  checked,
-  label,
-  accent,
-}: {
-  name: string;
-  value: string;
-  checked: boolean;
-  label: string;
-  accent: 'ink' | 'aye' | 'no' | 'abst';
-}) {
-  const accentVar = accent === 'ink' ? 'var(--ink-2)' : `var(--${accent})`;
-  return (
-    <label
-      style={{
-        cursor: 'pointer',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '6px 12px',
-        borderRadius: 999,
-        fontSize: 13,
-        fontWeight: 600,
-        border: checked
-          ? `1.5px solid ${accentVar}`
-          : '1px solid var(--rule-strong)',
-        background: checked
-          ? `color-mix(in oklch, ${accentVar} 14%, var(--paper))`
-          : 'var(--paper)',
-        color: checked ? accentVar : 'var(--ink-2)',
-        transition: 'background-color 120ms ease, border-color 120ms ease',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        defaultChecked={checked}
-        style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
-      />
-      {accent !== 'ink' && (
-        <span
-          aria-hidden="true"
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 999,
-            background: accentVar,
-            display: 'inline-block',
-          }}
-        />
-      )}
-      {label}
-    </label>
-  );
-}
-
-/** Field wrapper for the unified filter form. Keeps the label
- *  separated from the control (combobox, select, search input) so a
- *  user can scan the form without parsing each control's own chrome. */
-function FilterField({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
-        minWidth: 0,
-      }}
-    >
-      <span
-        style={{
-          fontSize: 10.5,
-          fontWeight: 700,
-          color: 'var(--ink-3)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-        }}
-      >
-        {label}
-      </span>
-      {children}
     </div>
   );
 }

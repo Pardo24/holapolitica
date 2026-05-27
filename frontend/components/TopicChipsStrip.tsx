@@ -1,8 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import type { Route } from 'next';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import type { Topic, TopicGlobalStat } from '@/lib/api';
@@ -14,11 +13,10 @@ import { pickTopicName } from '@/lib/topics';
  *
  * Each chip carries the topic icon, name, classified-initiative count
  * and a colour swatch matching the canonical taxonomy. Clicking a
- * chip filters the votes list by that topic.
- *
- * Used to be a server component, but the scroll-aware end arrows
- * need the rendered scrollWidth — so we ship as a client component
- * and let the parent thread `locale` in.
+ * chip TOGGLES its membership in the URL's ``topic_slug`` list (a
+ * comma-separated value the backend OR's across), so the user can
+ * stack multiple themes from the strip in addition to the combobox
+ * inside the filter card.
  *
  * Neutrality (CLAUDE.md "regla de simetria"): every topic with ≥1
  * classified initiative is present, sorted by count desc — never
@@ -28,26 +26,22 @@ import { pickTopicName } from '@/lib/topics';
 export function TopicChipsStrip({
   topics,
   counts,
-  activeSlug,
-  baseHref,
+  activeSlugs,
   allLabel,
   countSuffix,
   locale,
 }: {
   topics: Topic[];
   counts: TopicGlobalStat[];
-  activeSlug: string | null;
-  /**
-   * URL prefix for the "filter by topic" link. Used as
-   * `<baseHref>?topic_slug=<slug>`. Existing search params are NOT
-   * preserved here — the strip is meant as a primary entry point;
-   * use the chip × on ActiveFilterChips to undo.
-   */
-  baseHref: '/votes';
+  /** Currently-applied topic slugs from the URL — used to highlight
+   *  every active chip and to compute the toggle semantics on click. */
+  activeSlugs: string[];
   allLabel: string;
   countSuffix: string;
   locale: string;
 }) {
+  const router = useRouter();
+  const sp = useSearchParams();
   const countBySlug = useMemo(
     () => new Map(counts.map((c) => [c.topic_slug, c.initiatives_total] as const)),
     [counts],
@@ -97,6 +91,29 @@ export function TopicChipsStrip({
     el.scrollBy({ left: direction * distance, behavior: 'smooth' });
   }
 
+  const toggleSlug = useCallback(
+    (slug: string) => {
+      const next = new URLSearchParams(sp.toString());
+      const updated = activeSlugs.includes(slug)
+        ? activeSlugs.filter((s) => s !== slug)
+        : [...activeSlugs, slug];
+      if (updated.length === 0) next.delete('topic_slug');
+      else next.set('topic_slug', updated.join(','));
+      next.delete('page');
+      const qs = next.toString();
+      router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+    },
+    [activeSlugs, sp, router],
+  );
+
+  const clearAll = useCallback(() => {
+    const next = new URLSearchParams(sp.toString());
+    next.delete('topic_slug');
+    next.delete('page');
+    const qs = next.toString();
+    router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+  }, [sp, router]);
+
   if (ordered.length === 0) return null;
 
   return (
@@ -140,23 +157,24 @@ export function TopicChipsStrip({
           padding: '6px 2px 6px',
         }}
       >
-        <Link
-          href={`${baseHref}?tab=votes` as Route}
-          aria-current={activeSlug === null ? 'page' : undefined}
-          style={chipStyle(activeSlug === null, 'var(--ink-3)')}
+        <button
+          type="button"
+          aria-pressed={activeSlugs.length === 0}
+          onClick={clearAll}
+          style={chipStyle(activeSlugs.length === 0, 'var(--ink-3)')}
         >
           <span>{allLabel}</span>
-        </Link>
+        </button>
         {ordered.map((tp) => {
           const Icon = topicIcon(tp.icon);
           const c = tp.color_hex ?? 'var(--ink-3)';
-          const isActive = activeSlug === tp.slug;
-          const href = `${baseHref}?tab=votes&topic_slug=${encodeURIComponent(tp.slug)}` as Route;
+          const isActive = activeSlugs.includes(tp.slug);
           return (
-            <Link
+            <button
+              type="button"
               key={tp.slug}
-              href={href}
-              aria-current={isActive ? 'page' : undefined}
+              aria-pressed={isActive}
+              onClick={() => toggleSlug(tp.slug)}
               title={`${tp.count} ${countSuffix}`}
               style={chipStyle(isActive, c)}
             >
@@ -190,7 +208,7 @@ export function TopicChipsStrip({
               >
                 {tp.count}
               </span>
-            </Link>
+            </button>
           );
         })}
       </div>
