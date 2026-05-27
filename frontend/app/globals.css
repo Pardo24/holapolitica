@@ -1223,15 +1223,20 @@ body.hp-filter-pending .mobile-votes-list::after {
   .tab th { font-size: 10px; padding: 6px 8px; }
   .tab td { padding: 8px 6px; font-size: 12px; }
 
-  /* Home-page vote rows: two-column layout on mobile — date on the
-     left, the rest stacks on the right. The result indicator is
-     rendered inline next to the proposer chip (see CompactVoteRow);
-     the desktop result column is hidden via `hidden sm:block`. */
+  /* Narrow-desktop layout for CompactVoteRow (641-720px). Below 640px
+     the row is hidden anyway via `hidden sm:block` on the wrapper, so
+     this template only fires in the tight desktop band where the
+     4-col grid would be too cramped. Three columns: date · subject ·
+     result-pill pinned top-right, with the stacked bar wrapping to a
+     full-width second row. Previously the 4th cell (ResultPill) had
+     no `grid-area` and the auto-placer dropped it into row 3, col 1
+     — visually "the result badge fell to the left" which is exactly
+     the regression Daniel reported. */
   .vote-row-grid {
-    grid-template-columns: minmax(52px, max-content) 1fr !important;
+    grid-template-columns: minmax(52px, max-content) 1fr auto !important;
     grid-template-areas:
-      "date  subject"
-      ".     bar"
+      "date  subject  result"
+      ".     bar      bar"
       !important;
     gap: 6px 12px !important;
     padding: 18px 0 !important;
@@ -1240,8 +1245,7 @@ body.hp-filter-pending .mobile-votes-list::after {
   .vote-row-grid > *:nth-child(1) { grid-area: date; }
   .vote-row-grid > *:nth-child(2) { grid-area: subject; }
   .vote-row-grid > *:nth-child(3) { grid-area: bar; padding-top: 4px; }
-  /* 4th cell (desktop-only result column) is `display:none` on mobile,
-     so it doesn't claim a grid area. */
+  .vote-row-grid > *:nth-child(4) { grid-area: result; }
 
   /* Upcoming-row on home: similar — date prominent, title full-width. */
   .upcoming-row-grid {
