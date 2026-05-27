@@ -40,13 +40,13 @@ router = APIRouter(prefix="/agenda", tags=["agenda"])
 async def get_upcoming(
     session: AsyncSession = Depends(get_session),
 ) -> ScheduledSession:
-    """Return the next plenary session whose orden del día is published.
+    """Return the next plenary session.
 
     "Next" = earliest date >= today with status ∈ {``scheduled``,
-    ``modified``}. ``planned`` rows (calendar markers, no PDF yet) are
-    excluded here — the home widget would have nothing to render. They
-    surface via :func:`list_sessions` for callers that explicitly want
-    them.
+    ``modified``, ``planned``}. ``planned`` rows (calendar markers, no
+    PDF yet) are also returned so the home widget always has something to
+    show — the frontend renders a "agenda no publicada encara" caption
+    when ``status == 'planned'`` and ``items`` is empty.
     """
     today = _date.today()
     stmt = (
@@ -57,6 +57,7 @@ async def get_upcoming(
                 [
                     ScheduledSessionStatus.SCHEDULED,
                     ScheduledSessionStatus.MODIFIED,
+                    ScheduledSessionStatus.PLANNED,
                 ]
             )
         )
