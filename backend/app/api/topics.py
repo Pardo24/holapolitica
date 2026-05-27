@@ -116,13 +116,9 @@ async def list_topic_news(
     renders the hub without a news section in that case — same null-
     tolerant contract as the Wikidata / BOE enrichments.
     """
-    topic = (
-        await session.execute(select(Topic).where(Topic.slug == slug))
-    ).scalar_one_or_none()
+    topic = (await session.execute(select(Topic).where(Topic.slug == slug))).scalar_one_or_none()
     if topic is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
 
     # Pick the locale-appropriate display name as the search term so the
     # feed matches the language the visitor is reading the hub in.
@@ -143,9 +139,7 @@ async def list_topic_news(
                 "title": it.title,
                 "url": it.url,
                 "source": it.source,
-                "published_at": (
-                    it.published_at.isoformat() if it.published_at else None
-                ),
+                "published_at": (it.published_at.isoformat() if it.published_at else None),
             }
             for it in items
         ]

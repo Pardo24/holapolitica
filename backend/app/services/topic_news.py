@@ -44,8 +44,7 @@ from app.core.logging import get_logger
 log = get_logger(__name__)
 
 USER_AGENT = (
-    "monitor-parlamentari/0.1 (+https://www.holapolitica.org; "
-    "contact daniel@holapolitica.org)"
+    "monitor-parlamentari/0.1 (+https://www.holapolitica.org; " "contact daniel@holapolitica.org)"
 )
 
 NEWS_BASE_URL = "https://news.google.com/rss/search"
