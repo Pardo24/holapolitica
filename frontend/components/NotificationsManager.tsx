@@ -348,7 +348,12 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
                   borderRadius: 6,
                   cursor: 'pointer',
                   background: checked ? 'var(--ink)' : 'transparent',
-                  color: checked ? 'var(--bg)' : 'var(--ink)',
+                  // `--bg` is not a defined token — paper is. The
+                  // typo silently fell back to the inherited dark
+                  // ink, turning the checked chip into black text on
+                  // black background (unreadable). Daniel reported
+                  // it twice; this is the actual fix.
+                  color: checked ? 'var(--paper)' : 'var(--ink)',
                   fontSize: 13,
                   minHeight: 44,
                 }}

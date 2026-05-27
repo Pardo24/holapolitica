@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { Bell } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -36,10 +37,22 @@ export async function TopNav() {
     { href: '/votes', label: t('votes') },
     { href: '/persons', label: t('persons') },
   ];
-  const secondary: { href: Route; label: string }[] = [
+  // `icon` is optional per-entry. Only /notifications carries one
+  // today (Lucide Bell) — the bell is more recognisable than the
+  // "Notificacions" / "Notificaciones" / "Notifications" wordmark and
+  // shortens the strip without losing the semantic anchor.
+  const secondary: {
+    href: Route;
+    label: string;
+    icon?: React.ReactNode;
+  }[] = [
     { href: '/stats', label: t('stats') },
     { href: '/journalists' as Route, label: t('journalists') },
-    { href: '/notifications', label: t('notifications') },
+    {
+      href: '/notifications',
+      label: t('notifications'),
+      icon: <Bell size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
   ];
 
   return (
@@ -65,7 +78,7 @@ export async function TopNav() {
         <li className="nav-divider" aria-hidden="true" />
         {secondary.map((it) => (
           <li key={it.href}>
-            <NavLink href={it.href} label={it.label} />
+            <NavLink href={it.href} label={it.label} icon={it.icon} />
           </li>
         ))}
       </ul>

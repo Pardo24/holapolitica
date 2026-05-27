@@ -11,13 +11,20 @@ import { usePathname } from 'next/navigation';
  * would freeze on the first path. `usePathname()` is reactive in App
  * Router and works during SSR too (Next threads the URL through the
  * render context), so the underline is correct on first paint.
+ *
+ * Optional ``icon`` renders inline before the label — used by the
+ * /notifications entry to carry a Lucide Bell so the bell affordance
+ * is visible without any text-label dependency. Other entries stay
+ * text-only by passing no icon.
  */
 export function NavLink({
   href,
   label,
+  icon,
 }: {
   href: Route;
   label: string;
+  icon?: React.ReactNode;
 }) {
   const pathname = usePathname() ?? '';
   const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -26,8 +33,18 @@ export function NavLink({
       href={href}
       className={active ? 'active' : ''}
       aria-current={active ? 'page' : undefined}
+      style={
+        icon
+          ? {
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }
+          : undefined
+      }
     >
-      {label}
+      {icon}
+      <span>{label}</span>
     </Link>
   );
 }

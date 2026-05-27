@@ -284,25 +284,28 @@ a { color: inherit; }
 /* Card surface inside an embed — minimal: 1px hairline, no
    radius, no shadow, no tinted background. Matches the rest of
    Hola Política's newspaper look. */
+/* Base embed card — rounded, soft tinted, gentle shadow. Every
+   widget (vote, initiative, group, person, topic, explorer) ships
+   in this format so a journalist who copies one iframe and then
+   another sees a coherent set of "stickers" rather than a mix of
+   styles. Each widget controls its own width via the iframe; the
+   base style doesn't constrain it. */
 .embed-card {
   border: 1px solid var(--rule);
-  background: var(--paper);
-  padding: 14px 16px;
-  display: block;
-}
-
-/* Friendlier variant used by the per-topic embed. Rounded corners,
-   a soft tinted background, a max-width so the card never sprawls
-   into a wide banner inside its iframe host, and a gentle shadow so
-   it reads as a "sticker" of a topic rather than chrome. */
-.embed-card.embed-card--topic {
-  border-radius: 18px;
   background: var(--paper-2);
+  border-radius: 18px;
   padding: 18px 20px;
-  max-width: 440px;
-  margin-inline: auto;
+  display: block;
   box-shadow: 0 1px 2px rgba(20, 28, 60, 0.04),
               0 8px 24px -18px rgba(20, 28, 60, 0.15);
+}
+
+/* Per-topic variant — the topic widget is small and informational
+   so we additionally cap its width and centre it. The other widgets
+   stay full-width within their iframe. */
+.embed-card.embed-card--topic {
+  max-width: 440px;
+  margin-inline: auto;
 }
 
 /* nav — same treatment across pages */
