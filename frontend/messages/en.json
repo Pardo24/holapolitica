@@ -448,7 +448,16 @@
     "mobile_section_highlights": "Highlights",
     "mobile_section_upcoming": "Upcoming sessions",
     "mobile_section_latest": "Latest laws",
-    "mobile_see_all": "See all"
+    "mobile_see_all": "See all",
+    "newsletter_title": "Weekly digest in your inbox",
+    "newsletter_caption": "Every Friday, the week's votes in Congress in a short email. No opinion, no tracking.",
+    "surfaces_eyebrow": "Start here",
+    "surface_cronica_title": "Latest plenary chronicle",
+    "surface_cronica_body": "Journalistic recap of the most recent session: what was voted, how each group voted, the tightest margins.",
+    "surface_cronica_cta": "Read the chronicle",
+    "surface_joc_title": "Civic game",
+    "surface_joc_body": "Guess who proposed a vote or how it ended. A light way to learn how Congress votes.",
+    "surface_joc_cta": "Test yourself"
   },
   "votes": {
     "title": "Votes",

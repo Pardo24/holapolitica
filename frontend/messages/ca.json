@@ -448,7 +448,16 @@
     "mobile_section_highlights": "Destacats",
     "mobile_section_upcoming": "Pròximes sessions",
     "mobile_section_latest": "Darreres lleis",
-    "mobile_see_all": "Veure totes"
+    "mobile_see_all": "Veure totes",
+    "newsletter_title": "Resum setmanal al teu correu",
+    "newsletter_caption": "Cada divendres, les votacions de la setmana al Congrés en un correu curt. Sense opinió, sense seguiment.",
+    "surfaces_eyebrow": "Comença per aquí",
+    "surface_cronica_title": "Crònica del darrer ple",
+    "surface_cronica_body": "Resum periodístic de la sessió més recent: què s'ha votat, com ha votat cada grup, els marges més ajustats.",
+    "surface_cronica_cta": "Llegeix la crònica",
+    "surface_joc_title": "Joc cívic",
+    "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
+    "surface_joc_cta": "Posa't a prova"
   },
   "votes": {
     "title": "Votacions",

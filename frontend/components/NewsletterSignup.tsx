@@ -94,7 +94,12 @@ export function NewsletterSignup({
 
   return (
     <section
-      aria-labelledby="newsletter-signup-heading"
+      // ``card`` variant owns its own heading and points the section at it;
+      // ``bare`` variant inherits its heading from the parent home row,
+      // so we fall back to a plain aria-label to keep the landmark named.
+      {...(variant === 'card'
+        ? { 'aria-labelledby': 'newsletter-signup-heading' }
+        : { 'aria-label': t('signup_eyebrow') })}
       // Cap the desktop width so the signup card doesn't sprawl across
       // wide containers. 480px keeps it comfortable for an email + button
       // on one row while staying readable on narrow desktops. We center it
@@ -104,27 +109,42 @@ export function NewsletterSignup({
       // is narrower than 480px on phones).
       style={{
         ...containerStyle,
-        maxWidth: 480,
+        // ``card`` keeps the centred max-width cap so the standalone
+        // card doesn't sprawl. ``bare`` lives inside a row that already
+        // controls its own column width and expects the form to align
+        // left under the parent's title + caption (no centring, no cap).
+        ...(variant === 'card'
+          ? { maxWidth: 480, marginInline: 'auto' }
+          : null),
         width: '100%',
-        marginInline: 'auto',
         minWidth: 0,
       }}
       className="newsletter-signup"
     >
-      <div className="eyebrow" style={{ marginBottom: 6 }}>
-        {t('signup_eyebrow')}
-      </div>
-      <p
-        id="newsletter-signup-heading"
-        style={{
-          margin: '0 0 14px',
-          fontSize: 14,
-          color: 'var(--ink-2)',
-          lineHeight: 1.5,
-        }}
-      >
-        {t('signup_body')}
-      </p>
+      {/* The "bare" variant is used INSIDE a parent that already shows
+          its own title + caption (e.g. the home row that bundles the
+          mail icon + eyebrow + h2 + caption). Rendering our own eyebrow
+          + body there would duplicate the text. The "card" variant is
+          standalone and owns its own header. Either way the form below
+          carries the same accessible label. */}
+      {variant === 'card' && (
+        <>
+          <div className="eyebrow" style={{ marginBottom: 6 }}>
+            {t('signup_eyebrow')}
+          </div>
+          <p
+            id="newsletter-signup-heading"
+            style={{
+              margin: '0 0 14px',
+              fontSize: 14,
+              color: 'var(--ink-2)',
+              lineHeight: 1.5,
+            }}
+          >
+            {t('signup_body')}
+          </p>
+        </>
+      )}
 
       <form
         onSubmit={handleSubmit}

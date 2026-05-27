@@ -4,6 +4,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
   BarChart3,
+  FileText,
+  Gamepad2,
   Layers,
   Mail,
   Users,
@@ -374,6 +376,179 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Home surfaces row — replaces the /avui + /joc entries that used
+          to live in the top nav. Two side-by-side cards: the journalistic
+          chronicle of the latest plenary (left, slightly more prominent
+          via the ink background) and the civic game (right, paper
+          background with a short explainer). Cards collapse to a single
+          column under the same 860px breakpoint as the hero. */}
+      <section
+        className="home-surfaces"
+        aria-label={t('surfaces_eyebrow')}
+        style={{
+          marginTop: 28,
+          display: 'grid',
+          gridTemplateColumns: '1.15fr 1fr',
+          gap: 14,
+        }}
+      >
+        <Link
+          href={'/avui' as Route}
+          className="home-surface-card home-surface-card--ink"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '56px minmax(0, 1fr)',
+            gap: 18,
+            alignItems: 'center',
+            padding: '22px 24px',
+            borderRadius: 16,
+            background: 'var(--ink)',
+            color: 'var(--paper)',
+            textDecoration: 'none',
+            border: '1px solid var(--ink)',
+            minHeight: 132,
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 56,
+              height: 56,
+              borderRadius: 14,
+              background: 'color-mix(in oklch, var(--paper) 14%, var(--ink))',
+              color: 'var(--paper)',
+              flex: 'none',
+            }}
+          >
+            <FileText size={26} strokeWidth={1.6} aria-hidden="true" />
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div
+              className="eyebrow"
+              style={{
+                color: 'color-mix(in oklch, var(--paper) 70%, transparent)',
+                marginBottom: 4,
+              }}
+            >
+              {t('surfaces_eyebrow')}
+            </div>
+            <h2
+              className="serif"
+              style={{
+                margin: 0,
+                fontSize: 22,
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+              }}
+            >
+              {t('surface_cronica_title')}
+            </h2>
+            <p
+              style={{
+                margin: '6px 0 10px',
+                fontSize: 13,
+                color: 'color-mix(in oklch, var(--paper) 80%, transparent)',
+                lineHeight: 1.45,
+                maxWidth: 480,
+              }}
+            >
+              {t('surface_cronica_body')}
+            </p>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              {t('surface_cronica_cta')} <ArrowRight size={14} aria-hidden="true" />
+            </span>
+          </div>
+        </Link>
+
+        <Link
+          href={'/joc' as Route}
+          className="home-surface-card"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '56px minmax(0, 1fr)',
+            gap: 18,
+            alignItems: 'center',
+            padding: '22px 24px',
+            borderRadius: 16,
+            background: 'var(--paper-2)',
+            color: 'var(--ink)',
+            textDecoration: 'none',
+            border: '1px solid var(--rule-strong)',
+            minHeight: 132,
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 56,
+              height: 56,
+              borderRadius: 14,
+              background: 'color-mix(in oklch, var(--accent) 18%, var(--paper))',
+              color: 'var(--accent)',
+              flex: 'none',
+            }}
+          >
+            <Gamepad2 size={26} strokeWidth={1.6} aria-hidden="true" />
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div className="eyebrow" style={{ marginBottom: 4 }}>
+              {t('surfaces_eyebrow')}
+            </div>
+            <h2
+              className="serif"
+              style={{
+                margin: 0,
+                fontSize: 22,
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+                color: 'var(--ink)',
+              }}
+            >
+              {t('surface_joc_title')}
+            </h2>
+            <p
+              style={{
+                margin: '6px 0 10px',
+                fontSize: 13,
+                color: 'var(--ink-2)',
+                lineHeight: 1.45,
+                maxWidth: 480,
+              }}
+            >
+              {t('surface_joc_body')}
+            </p>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                color: 'var(--ink)',
+              }}
+            >
+              {t('surface_joc_cta')} <ArrowRight size={14} aria-hidden="true" />
+            </span>
+          </div>
+        </Link>
+      </section>
+
       {/* Newsletter signup — single card with title + caption above
           the form, mail icon as a quiet accent on the left. On narrow
           viewports the icon column is hidden and the copy + form
@@ -400,13 +575,13 @@ export default async function HomePage() {
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--accent)',
-            paddingLeft: 24,
-            paddingRight: 18,
+            paddingLeft: 32,
+            paddingRight: 26,
             borderRight: '1px solid var(--rule)',
             background: 'var(--paper)',
           }}
         >
-          <Mail size={48} strokeWidth={1.4} aria-hidden="true" />
+          <Mail size={64} strokeWidth={1.3} aria-hidden="true" />
         </div>
         <div
           className="home-newsletter-row__signup"
@@ -514,6 +689,10 @@ export default async function HomePage() {
         @media (max-width: 860px) {
           .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; padding-top: 24px !important; padding-bottom: 24px !important; }
           .home-coverage { grid-template-columns: repeat(2, 1fr) !important; }
+          /* Surfaces row stacks under 860 so each card keeps a
+             comfortable internal layout; on a narrow tablet two
+             cards side-by-side were cramming the body copy. */
+          .home-surfaces { grid-template-columns: 1fr !important; }
           /* Newsletter row collapses: signup goes full-width and the
              decorative iconography is hidden to save vertical space on
              phones (the desktop block is hidden below 640px anyway, but

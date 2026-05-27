@@ -23,20 +23,18 @@ export async function TopNav() {
   // any other route.
   const isHome = pathname === '/' || pathname.startsWith('/?');
 
-  // Three-entry primary nav: /avui is the "newspaper-style daily
-  // sheet" — the most citizen-friendly entry point and the one we
-  // want a returning reader to bookmark — sitting alongside the two
-  // lookup surfaces (Votes, Persons). Topics and Groups are still
-  // reachable via the existing tabs inside /votes and /persons; Stats
-  // + Notifications stay secondary.
+  // Slim primary nav: the two lookup surfaces (Votes, Persons) get
+  // the prime nav slots. /avui (Crònica del ple) and /joc moved to
+  // dedicated home-page CTAs — they are entry-point experiences, not
+  // recurring lookups, so the top nav doesn't need to carry them.
+  // Topics and Groups remain reachable via tabs inside /votes and
+  // /persons.
   const primary: { href: Route; label: string }[] = [
-    { href: '/avui' as Route, label: t('avui') },
     { href: '/votes', label: t('votes') },
     { href: '/persons', label: t('persons') },
   ];
   const secondary: { href: Route; label: string }[] = [
     { href: '/stats', label: t('stats') },
-    { href: '/joc' as Route, label: t('joc') },
     { href: '/journalists' as Route, label: t('journalists') },
     { href: '/notifications', label: t('notifications') },
   ];

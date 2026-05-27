@@ -448,7 +448,16 @@
     "mobile_section_highlights": "Destacados",
     "mobile_section_upcoming": "Próximas sesiones",
     "mobile_section_latest": "Últimas leyes",
-    "mobile_see_all": "Ver todas"
+    "mobile_see_all": "Ver todas",
+    "newsletter_title": "Resumen semanal en tu correo",
+    "newsletter_caption": "Cada viernes, las votaciones de la semana en el Congreso en un correo breve. Sin opinión, sin seguimiento.",
+    "surfaces_eyebrow": "Empieza por aquí",
+    "surface_cronica_title": "Crónica del último pleno",
+    "surface_cronica_body": "Resumen periodístico de la sesión más reciente: qué se ha votado, cómo ha votado cada grupo, los márgenes más ajustados.",
+    "surface_cronica_cta": "Lee la crónica",
+    "surface_joc_title": "Juego cívico",
+    "surface_joc_body": "Adivina quién propuso una votación o cómo salió. Una forma ligera de aprender cómo vota el Congreso.",
+    "surface_joc_cta": "Ponte a prueba"
   },
   "votes": {
     "title": "Votaciones",
