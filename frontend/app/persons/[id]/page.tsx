@@ -668,20 +668,18 @@ function StanceArc({
           if (share >= 0.75) intensity = 'majority';
           else if (share >= 0.55) intensity = 'mostly';
           else intensity = 'mixed';
-          // i18n key shape: stance_<intensity>_<choice> — gives 9
-          // localisable variants and lets each language pick the
-          // natural verb tense without us interpolating prose.
+          // Two parts: a short headline phrase ("Majoritàriament a
+          // favor") rendered prominently, and the per-choice counts
+          // rendered smaller with semantic colours below. Daniel
+          // wanted the phrase to land first and the numbers to play a
+          // supporting role, not the other way round — and to avoid
+          // the previous "wall of comma-separated coloured digits"
+          // that became hard to read across many rows.
           const phraseKey =
             intensity === 'mixed'
-              ? 'stance_mixed'
-              : `stance_${intensity}_${top.key}`;
-          const phrase = t(phraseKey, {
-            count: top.n,
-            total: row.cast,
-            ayes: row.ayes,
-            noes: row.noes,
-            abst: row.abstentions,
-          });
+              ? 'stance_phrase_mixed'
+              : `stance_phrase_${intensity}_${top.key}`;
+          const phrase = t(phraseKey);
           return (
             <li
               key={row.topic_slug}
@@ -689,12 +687,12 @@ function StanceArc({
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 180px) minmax(0, 1fr)',
-                gap: 12,
-                alignItems: 'baseline',
-                padding: '6px 0',
+                gap: 16,
+                alignItems: 'center',
+                padding: '12px 0',
                 borderTop: '1px solid var(--rule)',
                 fontSize: 13.5,
-                lineHeight: 1.5,
+                lineHeight: 1.4,
               }}
             >
               <span
@@ -704,6 +702,7 @@ function StanceArc({
                   gap: 6,
                   fontWeight: 600,
                   color: 'var(--ink)',
+                  minWidth: 0,
                 }}
               >
                 <span
@@ -716,9 +715,59 @@ function StanceArc({
                     flex: 'none',
                   }}
                 />
-                {name}
+                <span
+                  style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {name}
+                </span>
               </span>
-              <span style={{ color: 'var(--ink-2)' }}>{phrase}</span>
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: 'var(--ink)',
+                    letterSpacing: '-0.005em',
+                  }}
+                >
+                  {phrase}
+                </div>
+                <div
+                  style={{
+                    marginTop: 3,
+                    fontSize: 11,
+                    color: 'var(--ink-3)',
+                    display: 'inline-flex',
+                    alignItems: 'baseline',
+                    gap: 8,
+                    flexWrap: 'wrap',
+                  }}
+                  className="tabular"
+                >
+                  {row.ayes > 0 && (
+                    <span style={{ color: 'var(--aye)', fontWeight: 600 }}>
+                      Sí {row.ayes}
+                    </span>
+                  )}
+                  {row.noes > 0 && (
+                    <span style={{ color: 'var(--no)', fontWeight: 600 }}>
+                      No {row.noes}
+                    </span>
+                  )}
+                  {row.abstentions > 0 && (
+                    <span style={{ color: 'var(--abst)', fontWeight: 600 }}>
+                      Abst. {row.abstentions}
+                    </span>
+                  )}
+                  <span style={{ color: 'var(--ink-3)' }}>
+                    · {row.cast} total
+                  </span>
+                </div>
+              </div>
             </li>
           );
         })}
