@@ -77,7 +77,10 @@ export function CompactVoteRow({
     <li>
       <Link
         href={`/votes/${v.id}`}
-        className="initiative-row"
+        // Intentionally no .initiative-row class — that selector ships
+        // a desktop override forcing a 2-col grid for the topics/[slug]
+        // InitiativeRow, and our row needs a 3rd `auto` column on the
+        // right for the result badge. All visual styling sits inline.
         style={{
           textDecoration: 'none',
           color: 'inherit',
