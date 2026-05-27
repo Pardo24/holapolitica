@@ -130,6 +130,30 @@ export async function TopicChipsStrip({
           background: var(--rule);
           border-radius: 999px;
         }
+        /* Desktop bump: the default chip is sized for a phone scroll,
+           which makes the topic taxonomy hard to read on a wide
+           screen. From 720 px upwards we grow the font, the inner
+           icon disc and the padding so the strip carries the same
+           visual weight as the filter form below it. */
+        @media (min-width: 720px) {
+          .topic-chips-strip > a {
+            font-size: 14px !important;
+            padding: 8px 14px !important;
+            min-height: 40px !important;
+            gap: 10px !important;
+          }
+          .topic-chips-strip > a > span:first-child {
+            width: 26px !important;
+            height: 26px !important;
+          }
+          .topic-chips-strip > a > span:first-child svg {
+            width: 14px !important;
+            height: 14px !important;
+          }
+          .topic-chips-strip > a > .tabular {
+            font-size: 12px !important;
+          }
+        }
       `}</style>
     </div>
   );
