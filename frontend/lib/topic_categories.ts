@@ -1,24 +1,19 @@
 /**
  * Macro-category grouping for the newsletter / push topic picker.
  *
- * Maps the editorial theme topic slugs into 6 broad umbrellas. The
- * picker presents these as collapsible sections — a user can pick
- * individual themes inside a category or subscribe to the whole
- * category at once.
+ * Maps the 17 editorial theme topic slugs into 6 broad umbrellas so
+ * the picker on /notifications doesn't dump all themes in a single
+ * wall of checkboxes. The slugs here MUST match the canonical
+ * taxonomy seeded in ``backend/alembic/versions/0002_seed.py``.
+ * Adding a new topic on the backend requires updating this file too
+ * or the topic falls through to the "Altres" bucket.
  *
- * Slugs referenced here must match the canonical taxonomy served by
- * ``api.topics.list({ kind: 'theme' })``. Topics that don't appear in
- * any category fall into the "Altres" bucket the consumer composes
- * on the fly so the picker never silently drops a theme.
+ * The umbrellas are an editorial UX choice, not a taxonomy fact —
+ * they exist to chunk the picker, nothing more. They are NOT
+ * surfaced on votes, on /stats, or on any analytics surface.
  *
- * The SDG (Agenda 2030) slugs that used to live here are gone for the
- * launch — the taxonomy is disabled site-wide while no initiative is
- * classified against it. Restore them from git history once the
- * classifier ships SDG coverage.
- *
- * Source of truth for theme slugs: backend ``classify/topics.py``.
- * Hardcoded here on purpose: the umbrellas are a UX grouping, not a
- * taxonomy fact, and shouldn't change by round-trip.
+ * Previous SDG slugs are gone: the Agenda 2030 taxonomy is disabled
+ * site-wide for the launch.
  */
 
 export interface TopicCategory {
@@ -33,52 +28,46 @@ export interface TopicCategory {
 
 export const TOPIC_CATEGORIES: TopicCategory[] = [
   {
+    slug: 'serveis-publics',
+    label_ca: 'Serveis públics',
+    label_es: 'Servicios públicos',
+    label_en: 'Public services',
+    topic_slugs: ['habitatge', 'sanitat', 'transport'],
+  },
+  {
     slug: 'drets-justicia',
     label_ca: 'Drets i justícia',
     label_es: 'Derechos y justicia',
     label_en: 'Rights & justice',
-    topic_slugs: ['drets-civils', 'dones-igualtat', 'justicia', 'immigracio'],
+    topic_slugs: ['igualtat', 'justicia', 'immigracio', 'tecnologia-drets'],
   },
   {
     slug: 'economia-treball',
     label_ca: 'Economia i treball',
     label_es: 'Economía y trabajo',
     label_en: 'Economy & labour',
-    topic_slugs: [
-      'economia',
-      'fiscalitat-pressupostos',
-      'drets-laborals',
-      'industria',
-      'comerc',
-    ],
+    topic_slugs: ['economia', 'drets-laborals'],
   },
   {
     slug: 'medi-ambient-clima',
     label_ca: 'Medi ambient i clima',
     label_es: 'Medio ambiente y clima',
     label_en: 'Environment & climate',
-    topic_slugs: ['medi-ambient', 'energia', 'transport-mobilitat'],
-  },
-  {
-    slug: 'salut-benestar',
-    label_ca: 'Salut i benestar',
-    label_es: 'Salud y bienestar',
-    label_en: 'Health & wellbeing',
-    topic_slugs: ['salut', 'drogues'],
+    topic_slugs: ['medi-ambient', 'energia'],
   },
   {
     slug: 'educacio-cultura',
     label_ca: 'Educació i cultura',
     label_es: 'Educación y cultura',
     label_en: 'Education & culture',
-    topic_slugs: ['educacio', 'cultura'],
+    topic_slugs: ['educacio', 'cultura-llengua', 'memoria'],
   },
   {
-    slug: 'territori-estat',
-    label_ca: 'Territori i Estat',
-    label_es: 'Territorio y Estado',
-    label_en: 'Territory & state',
-    topic_slugs: ['territoris', 'administracions', 'exterior', 'defensa'],
+    slug: 'estat-institucions',
+    label_ca: 'Estat i institucions',
+    label_es: 'Estado e instituciones',
+    label_en: 'State & institutions',
+    topic_slugs: ['institucions', 'internacional', 'seguretat'],
   },
 ];
 
@@ -97,8 +86,7 @@ export function categoryLabel(cat: TopicCategory, locale: string): string {
 /**
  * Group a flat list of theme topics by macro-category. Topics that
  * aren't listed in any category land in the final ``other`` bucket so
- * the picker never silently loses a theme. Used by the newsletter /
- * push topic picker on /notifications.
+ * the picker never silently loses a theme.
  */
 export function groupTopicsByCategory<T extends { slug: string }>(
   topics: T[],
