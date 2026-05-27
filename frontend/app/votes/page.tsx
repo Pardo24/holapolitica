@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight, Route as RouteIcon, Search } from 'lucide-re
 import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { ActiveFilterChips, type ActiveFilter } from '@/components/ActiveFilterChips';
-import { MobileVoteCard } from '@/components/MobileVoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
 import { TopicChipsStrip } from '@/components/TopicChipsStrip';
@@ -15,7 +14,6 @@ import type { CalendarDay } from '@/components/VotesCalendarStrip';
 import { TopicCombobox } from '@/components/TopicCombobox';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
-import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -456,48 +454,22 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         <p style={{ color: 'var(--ink-3)', padding: '24px 0' }}>{t('no_results')}</p>
       )}
 
-      {/* Mobile list — card per vote, no horizontal scroll. The
-          class hook `mobile-votes-list` lets the filter-pending CSS
-          rule overlay a shimmer skeleton on top of the cards while a
-          new query is in flight. */}
+      {/* Single responsive list — CompactVoteRow uses the same flat
+          ``.initiative-row`` shape at every viewport (no separate
+          mobile/desktop variants). The previous design rendered two
+          parallel <ul>'s gated by `sm:hidden` / `hidden sm:block`,
+          which left both in the HTML and read as a duplicated
+          "filtered list". One list, one source of truth. */}
       {data && data.items.length > 0 && (
         <ul
-          className="sm:hidden mobile-votes-list"
+          className="votes-list"
           style={{
             listStyle: 'none',
             margin: 0,
-            padding: '12px 0 0',
+            padding: '8px 0 0',
             display: 'grid',
-            gap: 10,
+            gap: 0,
           }}
-        >
-          {data.items.map((v) => (
-            <MobileVoteCard
-              key={v.id}
-              vote={v}
-              locale={locale}
-              plainSummary={pickPlainSummary(v, locale)}
-              labels={{
-                proposed_by_government: t('proposed_by_government'),
-                result: t(`result.${v.result}` as 'result.approved'),
-                ayes: t('ayes'),
-                noes: t('noes'),
-                abstentions: t('abstentions'),
-              }}
-            />
-          ))}
-        </ul>
-      )}
-
-      {/* Desktop list — uses the shared CompactVoteRow so /votes and
-          the home "latest votes" surface have the same visual rhythm
-          (4-col grid: date · title+meta · stacked bar · result pill).
-          Mobile path is handled by MobileVoteCard above; this list is
-          sm: and up. */}
-      {data && data.items.length > 0 && (
-        <ul
-          className="hidden sm:block votes-list"
-          style={{ listStyle: 'none', margin: 0, padding: '4px 0 0' }}
         >
           {data.items.map((vote) => (
             <CompactVoteRow

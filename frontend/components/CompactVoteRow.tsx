@@ -2,25 +2,33 @@ import Link from 'next/link';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
-import { ResultPill } from '@/components/ResultPill';
-import { StackedBar } from '@/components/StackedBar';
 import { SummaryHover } from '@/components/SummaryHover';
-import { VoteBreakdown } from '@/components/VoteBreakdown';
 import type { Vote, VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
+import { pickTopicName } from '@/lib/topics';
 
 /**
- * One row in a flat list of votes — the canonical "law list" row.
+ * One row in a flat "law list" — the canonical vote-row across the
+ * site. Same component on home (latest votes), /votes (filtered
+ * list), /topics/[slug] meta and any future surface that lists votes.
  *
- * This shape is shared between the home page (recent votes) and the
- * /votes list (all votes with filters). Keeping a single component
- * means both surfaces have the same visual rhythm: 4-column grid
- * (date · title + meta · stacked bar · result pill on desktop) and a
- * vertically-stacked compact form on mobile.
+ * Layout: a single ``.initiative-row`` grid (3 columns: date · title
+ * + meta · result badge) at every viewport. Date compresses to
+ * ``XV · 26 març`` on phones and expands to ``26 de març de 2026``
+ * on desktop via the existing ``.sm:hidden`` / ``.hidden sm:inline``
+ * helpers. No stacked bar / count column — the detail page is one
+ * click away for that.
  *
- * No editorial framing — only factual labels (proposer, result,
- * counts). See ``docs/neutrality-guidelines.md``.
+ * Why a single row at all sizes: the previous design rendered TWO
+ * <ul>'s (mobile MobileVoteCard + desktop CompactVoteRow) gated by
+ * ``sm:hidden`` and ``hidden sm:block``. Both ended up in the HTML
+ * source, which Daniel noticed as a "duplicate filtered list",
+ * conceptually confusing. One component fixes both the duplication
+ * and the visual mismatch.
+ *
+ * Neutrality: only factual labels (proposer, result, counts via the
+ * detail page). No editorial framing.
  */
 
 export interface CompactVoteRowLabels {
@@ -53,10 +61,8 @@ export function CompactVoteRow({
   locale: string;
 }) {
   const subject = v.description?.trim() || v.title;
-  const total = v.ayes + v.noes + v.abstentions;
   const voteDate = new Date(v.voted_at);
   const isCurrentYear = voteDate.getFullYear() === new Date().getFullYear();
-  // Short form for mobile (e.g. "19 nov"), long form for desktop.
   const shortDate = voteDate
     .toLocaleDateString(locale, {
       day: 'numeric',
@@ -66,81 +72,39 @@ export function CompactVoteRow({
     .replace(/\.$/, '');
   const longDate = voteDate.toLocaleDateString(locale, { dateStyle: 'long' });
   const plainSummary = pickPlainSummary(v, locale);
-
+  const topics = v.topics ?? [];
   return (
-    <li style={{ position: 'relative', borderTop: '1px solid var(--rule)' }}>
+    <li>
       <Link
         href={`/votes/${v.id}`}
-        aria-label={subject}
+        className="initiative-row"
         style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 0,
           textDecoration: 'none',
+          color: 'inherit',
+          borderBottom: '1px solid var(--rule)',
+          padding: '14px 0',
+          display: 'grid',
+          gap: 12,
+          gridTemplateColumns: 'minmax(56px, max-content) minmax(0, 1fr) auto',
+          alignItems: 'baseline',
         }}
       >
         <span
-          style={{
-            position: 'absolute',
-            width: 1,
-            height: 1,
-            overflow: 'hidden',
-            clip: 'rect(0 0 0 0)',
-          }}
-        >
-          {subject}
-        </span>
-      </Link>
-      <div
-        className="vote-row-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '90px minmax(0, 1fr) 220px 120px',
-          gap: 24,
-          padding: '26px 0',
-          alignItems: 'start',
-          position: 'relative',
-          zIndex: 1,
-          pointerEvents: 'none',
-        }}
-      >
-        <div
           className="tabular"
           style={{
             fontSize: 12,
             color: 'var(--ink-3)',
+            whiteSpace: 'nowrap',
             fontVariantNumeric: 'tabular-nums',
-            minWidth: 0,
           }}
         >
-          {/* Mobile compresses the date cell into a single inline string:
-              "XV · 19 nov". Desktop keeps the longer date + expediente
-              two-liner. */}
-          <span className="sm:hidden whitespace-nowrap">XV · {shortDate}</span>
+          <span className="sm:hidden">XV · {shortDate}</span>
           <span className="hidden sm:inline">{longDate}</span>
-          {v.expediente_raw && (
-            <>
-              <br />
-              <span
-                className="mono hidden sm:inline"
-                style={{ fontSize: 11, wordBreak: 'break-all' }}
-              >
-                {v.expediente_raw}
-              </span>
-            </>
-          )}
-        </div>
+        </span>
         <div style={{ minWidth: 0 }}>
-          {/* Type label above the title — desktop only. */}
-          <div
-            className="hidden sm:flex"
-            style={{ gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}
-          >
-            <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{v.title}</span>
-          </div>
           <div
             className="line-clamp-2 sm:line-clamp-3"
-            style={{ fontSize: 15, lineHeight: 1.4, color: 'var(--ink)' }}
+            style={{ fontSize: 14, lineHeight: 1.4, color: 'var(--ink)' }}
           >
             <SummaryHover
               summary={plainSummary}
@@ -154,88 +118,125 @@ export function CompactVoteRow({
           <div
             style={{
               display: 'flex',
-              gap: 8,
-              marginTop: 8,
               alignItems: 'center',
-              fontSize: 12,
-              color: 'var(--ink-3)',
+              gap: 8,
               flexWrap: 'wrap',
+              marginTop: 6,
+              fontSize: 11,
+              color: 'var(--ink-3)',
+              lineHeight: 1.3,
+              minWidth: 0,
             }}
           >
-            <span className="hidden sm:inline">{labels.proposed_by}</span>
-            {v.proposed_by_government && !v.proposing_group_short ? (
-              <span className="badge" style={{ fontWeight: 600 }}>
-                <span className="gdot" style={{ background: 'var(--ink)' }} />
-                {labels.proposed_by_government}
-              </span>
-            ) : v.proposing_group_short ? (
+            {(v.proposed_by_government && !v.proposing_group_short) ||
+            v.proposing_group_short ? (
               <span style={{ pointerEvents: 'auto' }}>
-                <GroupChip
-                  slug={v.proposing_group_slug ?? undefined}
-                  short={displayGroupShort(v.proposing_group_short)}
-                  color={v.proposing_group_color}
-                  size="xs"
-                />
+                {v.proposed_by_government && !v.proposing_group_short ? (
+                  <span className="badge" style={{ fontWeight: 600, fontSize: 11 }}>
+                    <span className="gdot" style={{ background: 'var(--ink)' }} />
+                    {labels.proposed_by_government}
+                  </span>
+                ) : v.proposing_group_short ? (
+                  <GroupChip
+                    slug={v.proposing_group_slug ?? undefined}
+                    short={displayGroupShort(v.proposing_group_short)}
+                    color={v.proposing_group_color}
+                    size="xs"
+                  />
+                ) : null}
               </span>
             ) : null}
-            {/* Mobile-only: colored result disc on the same baseline as
-                the proposer chip. Desktop keeps the dedicated result
-                cell on the right. */}
-            <span className="sm:hidden inline-flex items-center gap-2">
-              <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>
-                ·
-              </span>
-              <span
-                role="img"
-                aria-label={labels.result}
-                title={labels.result}
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 999,
-                  display: 'inline-block',
-                  background:
-                    v.result === 'tie' ? 'transparent' : resultColor(v.result),
-                  border:
-                    v.result === 'tie'
-                      ? `2px solid ${resultColor(v.result)}`
-                      : '0',
-                  boxSizing: 'border-box',
-                }}
-              />
-            </span>
+            {topics.length > 0 && (
+              <>
+                <span aria-hidden="true">·</span>
+                {topics.slice(0, 2).map((topic) => (
+                  <span
+                    key={topic.slug}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '1px 7px 2px',
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: 'var(--ink-2)',
+                      background: topic.color_hex
+                        ? `color-mix(in oklch, ${topic.color_hex} 14%, var(--paper))`
+                        : 'var(--paper-2)',
+                      border: `1px solid ${
+                        topic.color_hex
+                          ? `color-mix(in oklch, ${topic.color_hex} 32%, var(--paper))`
+                          : 'var(--rule)'
+                      }`,
+                      letterSpacing: '0.01em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 999,
+                        background: topic.color_hex ?? 'var(--ink-3)',
+                        flex: 'none',
+                      }}
+                    />
+                    {pickTopicName(topic, locale)}
+                  </span>
+                ))}
+              </>
+            )}
+            {v.expediente_raw && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span
+                  className="mono"
+                  style={{ fontSize: 10, color: 'var(--ink-3)', wordBreak: 'break-all' }}
+                >
+                  {v.expediente_raw}
+                </span>
+              </>
+            )}
           </div>
         </div>
-        <div>
-          <StackedBar
-            d={{ aye: v.ayes, no: v.noes, abst: v.abstentions, nv: v.absent }}
-          />
-          <VoteBreakdown
-            ayes={v.ayes}
-            noes={v.noes}
-            abstentions={v.abstentions}
-            size="sm"
-            labels={{
-              ayes: labels.ayes,
-              noes: labels.noes,
-              abstentions: labels.abstentions,
+        <span
+          aria-label={labels.result}
+          style={{
+            flex: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+          }}
+        >
+          {/* Disc on mobile, labelled pill on desktop. Same semantics
+              (color encodes outcome), different visual weight. */}
+          <span
+            className="sm:hidden inline-block align-middle"
+            role="img"
+            aria-label={labels.result}
+            title={labels.result}
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: 999,
+              background:
+                v.result === 'tie' ? 'transparent' : resultColor(v.result),
+              border:
+                v.result === 'tie'
+                  ? `2px solid ${resultColor(v.result)}`
+                  : '0',
+              boxSizing: 'border-box',
             }}
           />
-        </div>
-        {/* Desktop-only column — on mobile the result lives inline with
-            the proposer chip above. */}
-        <div className="hidden sm:block" style={{ textAlign: 'right' }}>
-          <ResultPill result={v.result} label={labels.result} />
-          {total > 0 && (
-            <div
-              className="tabular"
-              style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4 }}
-            >
-              {total}
-            </div>
-          )}
-        </div>
-      </div>
+          <span
+            className={`badge badge-${v.result === 'approved' ? 'aye' : v.result === 'rejected' ? 'no' : 'tie'} hidden sm:inline-flex`}
+            style={{ fontWeight: 600 }}
+          >
+            {labels.result}
+          </span>
+        </span>
+      </Link>
     </li>
   );
 }
