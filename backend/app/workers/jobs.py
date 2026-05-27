@@ -262,53 +262,93 @@ def ingest_initiatives() -> int:
 
 
 def ingest_pnl() -> dict[str, int]:
-    """RQ entrypoint: scrape Proposiciones no de Ley and upsert them.
+    """RQ entrypoint: scrape every Liferay-portlet initiative series.
 
     The Congreso bulk JSON dataset only covers Proyectos (121),
-    Proposiciones de Ley (122) and Reformas (127). PNLs (162) are
-    scraped from the Liferay search portlet by :mod:`app.ingest.congreso.pnl`,
-    which yields the same :class:`InitiativeImporter` rows. Once PNLs
-    exist as Initiative records the scheduled classifier picks them up
-    and inherits topics through to their linked votes — closing the
-    "lots of votes with no theme" gap on /avui.
+    Proposiciones de Ley (122) and Reformas (127). The Liferay search
+    portlet additionally exposes four series that this job scrapes
+    using the shared :func:`import_pnl` machinery:
 
-    Two-step body:
+    * **PNL (162)** — Proposiciones no de Ley. ~half of plenary votes.
+    * **Moción (173)** — follow-up motions after interpellations.
+    * **Convalidación RDL (130)** — Cortes ratification of Royal
+      Decree-Laws within 30 days. The vote IS the convalidation, so
+      without this series the corresponding plenary vote has no
+      initiative to link to.
+    * **Reforma constitucional (102)** — rare but disproportionately
+      worth surfacing for civic transparency.
 
-    1. Upsert PNLs into the ``initiatives`` table via
-       :func:`import_pnl_xv` — idempotent (lookups by ``official_id``)
-       and polite (one-second inter-page delay).
+    Three-step body:
+
+    1. Upsert each series into the ``initiatives`` table via the
+       series-specific ``import_*_xv`` helpers — all idempotent
+       (lookups by ``official_id``) and polite (one-second inter-page
+       delay each). The four runs share an :class:`InitiativeImporter`
+       upsert path, so per-series caches don't fight each other.
     2. Run :func:`backfill_vote_initiative_links` so any pre-existing
-       PNL vote whose ``expediente_raw`` matches a newly-created
+       vote whose ``expediente_raw`` matches a newly-created
        initiative gets its ``initiative_id`` populated. Without this
        step the topics that the next classifier tick assigns sit on
        the Initiative side and never propagate to the votes that
-       /avui actually renders. The backfill is cheap when nothing new
-       was ingested — it just scans the still-unmatched votes and
-       finds no candidates.
+       /avui actually renders.
+    3. Bust the aggregate caches so /stats and /avui reflect the
+       newly-linked rows on next paint.
 
-    XV legislatura only for now — earlier legislatures aren't yet
-    imported anywhere.
+    Idempotent: re-runs upsert by ``official_id``; the backfill is a
+    cheap no-op when no new initiatives have appeared. XV legislatura
+    only for now — earlier legislatures aren't yet imported anywhere.
     """
     from dataclasses import asdict
 
     from app.ingest.congreso.bootstrap import backfill_vote_initiative_links
     from app.ingest.congreso.pnl import import_pnl_xv
+    from app.ingest.congreso.series_search import (
+        import_mocion_xv,
+        import_rdl_convalidacion_xv,
+        import_reforma_constitucional_xv,
+    )
 
     async def _run() -> dict[str, int]:
-        stats = await import_pnl_xv()
+        # Serialise the four imports to be polite to the upstream
+        # portal — the shared 1 s inter-page delay only applies within
+        # a single series. Each call commits inside the importer; a
+        # crash mid-batch loses at most one series' progress.
+        pnl_stats = await import_pnl_xv()
+        mocion_stats = await import_mocion_xv()
+        rdl_stats = await import_rdl_convalidacion_xv()
+        reforma_stats = await import_reforma_constitucional_xv()
+
         link_stats = await backfill_vote_initiative_links()
         await _invalidate_aggregate_caches()
-        # Merge both counter dicts into a single response so the RQ
-        # dashboard surfaces the full picture in one place.
-        out = {k: int(v) for k, v in asdict(stats).items()}
-        out.update(
+
+        # Sum the per-series counters so the response is one tidy
+        # dict; per-series detail is still in the structured logs.
+        seen = pnl_stats.seen + mocion_stats.seen + rdl_stats.seen + reforma_stats.seen
+        created = (
+            pnl_stats.created + mocion_stats.created + rdl_stats.created + reforma_stats.created
+        )
+        updated = (
+            pnl_stats.updated + mocion_stats.updated + rdl_stats.updated + reforma_stats.updated
+        )
+        merged = {"seen": seen, "created": created, "updated": updated}
+        # Surface per-series counts too so the RQ dashboard makes the
+        # contribution of each series legible at a glance.
+        merged["pnl_seen"] = pnl_stats.seen
+        merged["mocion_seen"] = mocion_stats.seen
+        merged["rdl_seen"] = rdl_stats.seen
+        merged["reforma_seen"] = reforma_stats.seen
+        merged.update(
             {
                 "votes_processed": link_stats.votes_processed,
                 "votes_linked": link_stats.votes_linked,
                 "votes_unmatched": link_stats.votes_unmatched,
             }
         )
-        return out
+        # Keep the raw PNL fields under their original keys for any
+        # log scraper that already consumes them.
+        for k, v in asdict(pnl_stats).items():
+            merged.setdefault(k, int(v))
+        return merged
 
     return asyncio.run(_run())
 
