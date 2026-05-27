@@ -593,7 +593,20 @@ export default async function VoteDetailPage({
                   borderTop: '1px solid var(--rule)',
                 }}
               >
-                <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
+                {/* Hemicycle is naturally responsive (SVG fills its
+                    container), but inside the Recompte card on a wide
+                    desktop it expands to ~480 px wide which dwarfs the
+                    surrounding KPIs and reads as "the chart is the
+                    page". Cap to 360 px and centre so the chart sits
+                    as a complement to the counts, not the headline. */}
+                <div
+                  style={{
+                    maxWidth: 360,
+                    marginInline: 'auto',
+                  }}
+                >
+                  <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
+                </div>
                 {/* Compact legend — pairs each color used by the
                     vote-mode hemicycle with its labelled count so a
                     first-time reader can decode the dots without

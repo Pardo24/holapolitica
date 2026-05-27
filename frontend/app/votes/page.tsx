@@ -282,158 +282,129 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         baseHref="/votes"
         allLabel={t('topic_chips_all_label')}
         countSuffix={t('carousel_count_suffix')}
+        locale={locale}
       />
 
       {/* Upcoming sessions, compact — renders nothing if empty so the
           table is not preceded by clutter. */}
       <UpcomingAgenda sessions={upcomingSessions} mode="compact" />
 
-      {/* Filter form — primary row (search + topic) always visible; the
-          advanced block (proposing group, result) sits inside a <details>
-          so server-side state survives without client JS. The summary is
-          styled as a real button (44px tall on mobile, chip-count when
-          there are active advanced filters) so it's discoverable. */}
-      {(() => {
-        // Count of currently-applied "advanced" filters (everything except
-        // the primary row q/topic). Surfaced on the toggle so users can
-        // tell at a glance that a non-default filter is in effect even
-        // when the panel is collapsed.
-        const advancedCount =
-          (params.proposing_group_slug ? 1 : 0) + (params.result ? 1 : 0);
-        // `open` defaults to expanded when an advanced filter is already
-        // applied so the user can see/edit what's filtering the table.
-        const advancedOpen = advancedCount > 0;
-        return (
-          <form
-            method="GET"
-            style={{
-              paddingTop: 6,
-              paddingBottom: 14,
-              borderBottom: '1px solid var(--rule)',
-            }}
-            className="filter-simple"
-          >
-            <div
+      {/* Unified filter form — every control visible at once. We used
+          to hide proposing-group + result behind a <details>; users
+          missed they existed and applied filters from the chip strip
+          alone. Flat layout makes the four controls equally discoverable
+          and removes the "Advanced ▸" indirection. Responsive grid:
+          single column on phones, two columns at sm:, four on wide. */}
+      <form
+        method="GET"
+        className="votes-filter-form"
+        style={{
+          marginTop: 14,
+          padding: 14,
+          border: '1px solid var(--rule-strong)',
+          borderRadius: 12,
+          background: 'var(--paper-2)',
+        }}
+      >
+        <div
+          className="votes-filter-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+            gap: 10,
+            alignItems: 'stretch',
+          }}
+        >
+          <FilterField label={t('filters.search')}>
+            <label
+              className="search-chip"
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1.4fr 1fr auto',
-                gap: 10,
+                display: 'flex',
                 alignItems: 'center',
+                gap: 8,
+                padding: '10px 14px',
+                border: '1px solid var(--rule-strong)',
+                borderRadius: 10,
+                background: 'var(--paper)',
+                transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                width: '100%',
               }}
-              className="filter-simple-row"
             >
-              <label
-                className="search-chip"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '10px 14px',
-                  border: '1px solid var(--rule-strong)',
-                  borderRadius: 10,
-                  background: 'var(--paper)',
-                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                }}
+              <span
+                aria-hidden="true"
+                style={{ color: 'var(--ink-3)', display: 'inline-flex' }}
               >
-                <span aria-hidden="true" style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
-                  <Search size={14} aria-hidden="true" />
-                </span>
-                <input
-                  type="search"
-                  name="q"
-                  placeholder={t('filters.search')}
-                  defaultValue={params.q ?? ''}
-                  style={{
-                    border: 0,
-                    background: 'transparent',
-                    fontSize: 14,
-                    flex: 1,
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    color: 'var(--ink)',
-                    minWidth: 0,
-                  }}
-                />
-              </label>
-              <TopicCombobox
-                name="topic_slug"
-                value={params.topic_slug ?? ''}
-                topics={topics}
-                emptyValue=""
-                clearLabel={t('filters.all_topics')}
-                placeholder={t('filters.all_topics')}
-                ariaLabel={t('filters.all_topics')}
+                <Search size={14} aria-hidden="true" />
+              </span>
+              <input
+                type="search"
+                name="q"
+                placeholder={t('filters.search')}
+                defaultValue={params.q ?? ''}
+                style={{
+                  border: 0,
+                  background: 'transparent',
+                  fontSize: 14,
+                  flex: 1,
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  color: 'var(--ink)',
+                  minWidth: 0,
+                }}
               />
-              <button type="submit" className="btn-ink btn-sm filter-apply-btn">
-                {t('filters.apply')}
-              </button>
-            </div>
-            <details className="filter-advanced-details" open={advancedOpen}>
-              <summary className="filter-advanced-summary">
-                <span aria-hidden="true" className="filter-advanced-caret" style={{ display: 'inline-flex' }}>
-                  <ChevronRight size={14} aria-hidden="true" />
-                </span>
-                <span>
-                  {t('advanced_filters_summary')}
-                  {advancedCount > 0 && (
-                    <span
-                      className="filter-advanced-count"
-                      aria-label={`${advancedCount} ${t('advanced_filters_summary')}`}
-                    >
-                      {advancedCount}
-                    </span>
-                  )}
-                </span>
-              </summary>
-              <div className="filter-advanced">
-                {/* Field wrappers are <div>s (not <label>s) because
-                    GroupCombobox renders multiple internal form controls;
-                    a label would clobber its focus management. The visible
-                    field label is associated via aria-label on the inner
-                    control instead. */}
-                <div className="filter-advanced-field">
-                  <span className="filter-advanced-field-label">
-                    {t('filters.proposing_group')}
-                  </span>
-                  <GroupCombobox
-                    name="proposing_group_slug"
-                    value={params.proposing_group_slug ?? ''}
-                    groups={groups}
-                    extraOptions={[
-                      { slug: 'govern', label: t('filters.proposing_government') },
-                    ]}
-                    emptyValue=""
-                    clearLabel={t('filters.all_groups')}
-                    placeholder={t('filters.all_groups')}
-                    ariaLabel={t('filters.proposing_group')}
-                  />
-                </div>
-                <label className="filter-advanced-field">
-                  <span className="filter-advanced-field-label">
-                    {t('filters.result')}
-                  </span>
-                  <select
-                    name="result"
-                    defaultValue={params.result ?? ''}
-                    className="filter-advanced-select"
-                  >
-                    <option value="">{t('filters.all_results')}</option>
-                    <option value="approved">{t('result.approved')}</option>
-                    <option value="rejected">{t('result.rejected')}</option>
-                    <option value="tie">{t('result.tie')}</option>
-                  </select>
-                </label>
-                <button
-                  type="submit"
-                  className="btn-ink btn-sm filter-advanced-apply"
-                >
-                  {t('filters.apply')}
-                </button>
-              </div>
-            </details>
-          </form>
-        );
-      })()}
+            </label>
+          </FilterField>
+          <FilterField label={t('filters.all_topics')}>
+            <TopicCombobox
+              name="topic_slug"
+              value={params.topic_slug ?? ''}
+              topics={topics}
+              emptyValue=""
+              clearLabel={t('filters.all_topics')}
+              placeholder={t('filters.all_topics')}
+              ariaLabel={t('filters.all_topics')}
+            />
+          </FilterField>
+          <FilterField label={t('filters.proposing_group')}>
+            <GroupCombobox
+              name="proposing_group_slug"
+              value={params.proposing_group_slug ?? ''}
+              groups={groups}
+              extraOptions={[
+                { slug: 'govern', label: t('filters.proposing_government') },
+              ]}
+              emptyValue=""
+              clearLabel={t('filters.all_groups')}
+              placeholder={t('filters.all_groups')}
+              ariaLabel={t('filters.proposing_group')}
+            />
+          </FilterField>
+          <FilterField label={t('filters.result')}>
+            <select
+              name="result"
+              defaultValue={params.result ?? ''}
+              className="filter-advanced-select"
+              aria-label={t('filters.result')}
+            >
+              <option value="">{t('filters.all_results')}</option>
+              <option value="approved">{t('result.approved')}</option>
+              <option value="rejected">{t('result.rejected')}</option>
+              <option value="tie">{t('result.tie')}</option>
+            </select>
+          </FilterField>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginTop: 12,
+          }}
+        >
+          <button type="submit" className="btn-ink btn-sm">
+            {t('filters.apply')}
+          </button>
+        </div>
+      </form>
 
       {error && (
         <div
@@ -510,7 +481,55 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           .filter-rail { grid-template-columns: 1fr 1fr !important; }
           .filter-rail > div:nth-child(n+5) { grid-column: 1 / -1; }
         }
+        /* Responsive collapse for the unified filter form: 4 cols on a
+           wide desktop, 2 cols on tablets, 1 col on phones. The form
+           wrapper keeps its padded card frame at every viewport. */
+        @media (max-width: 980px) {
+          .votes-filter-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+        @media (max-width: 540px) {
+          .votes-filter-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+        }
       `}</style>
+    </div>
+  );
+}
+
+/** Field wrapper for the unified filter form. Keeps the label
+ *  separated from the control (combobox, select, search input) so a
+ *  user can scan the form without parsing each control's own chrome. */
+function FilterField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        minWidth: 0,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          color: 'var(--ink-3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}
+      >
+        {label}
+      </span>
+      {children}
     </div>
   );
 }
