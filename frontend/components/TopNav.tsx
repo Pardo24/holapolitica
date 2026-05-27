@@ -11,11 +11,14 @@ export async function TopNav() {
   const tSite = await getTranslations('site');
   const locale = await getLocale();
 
-  // Capture the current path (including search) so the locale switcher
-  // round-trips back to the page the user was on. Set by middleware.ts;
-  // falls back to "/" for the very first request before the header lands.
+  // Capture the current path AND the current query string so the
+  // locale switcher round-trips back to the page the user was on with
+  // every filter intact. Both headers are injected by middleware.ts;
+  // fall back to "/" for the very first request before they land.
   const hdrs = await headers();
   const pathname = hdrs.get('x-pathname') ?? '/';
+  const search = hdrs.get('x-search') ?? '';
+  const fullPath = `${pathname}${search}`;
   // On the home page the mobile dashboard IS the navigation — every
   // primary surface is one tap away — so the top nav adds clutter
   // without adding affordances. We tag the wrapper so the CSS rule
@@ -89,7 +92,7 @@ export async function TopNav() {
                 style={{ display: 'inline' }}
               >
                 <input type="hidden" name="locale" value={l} />
-                <input type="hidden" name="redirect" value={pathname} />
+                <input type="hidden" name="redirect" value={fullPath} />
                 <button
                   type="submit"
                   className={isActive ? 'lang-btn active' : 'lang-btn'}

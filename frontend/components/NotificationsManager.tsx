@@ -46,7 +46,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { useTranslations } from 'next-intl';
-import { X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bell, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 import {
   ApiError,
@@ -545,6 +545,26 @@ function SubscribedView({
             minHeight: 44,
           }}
         >
+          {/* Lucide bell — gives the push section its own visual
+              identity vs the Mail-iconed newsletter card above. Round
+              tile, accent colour, same sizing as the newsletter
+              hero icon so the two surfaces read as siblings. */}
+          <span
+            aria-hidden="true"
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 14,
+              background: 'color-mix(in oklch, var(--accent) 14%, var(--paper))',
+              color: 'var(--accent)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 'none',
+            }}
+          >
+            <Bell size={22} strokeWidth={1.7} aria-hidden="true" />
+          </span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
               {masterOn ? t('master_on') : t('master_off')}

@@ -52,23 +52,25 @@ export default async function EmbedTopicPage({
   const other = stat?.initiatives_other ?? 0;
 
   return (
-    <article className="embed-card" lang={locale}>
+    <article className="embed-card embed-card--topic" lang={locale}>
           <header
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 12,
               marginBottom: 12,
-              borderBottom: `1px solid ${color}`,
-              paddingBottom: 10,
+              // Softer ribbon under the title — no full-width borderBottom
+              // because the new rounded card already frames the content;
+              // a thicker accent dot does the colour-coding instead.
+              paddingBottom: 8,
             }}
           >
             <span
               aria-hidden="true"
               style={{
-                width: 12,
-                height: 12,
-                borderRadius: 3,
+                width: 18,
+                height: 18,
+                borderRadius: 999,
                 background: color,
                 flex: 'none',
                 display: 'inline-block',
@@ -107,8 +109,8 @@ export default async function EmbedTopicPage({
                 color: 'var(--ink)',
                 fontWeight: 700,
                 fontSize: 14,
-                padding: '6px 12px',
-                borderRadius: 6,
+                padding: '6px 14px',
+                borderRadius: 999,
                 whiteSpace: 'nowrap',
               }}
             >

@@ -196,7 +196,19 @@ export function TopicChipsStrip({
               >
                 <Icon size={12} strokeWidth={2.2} aria-hidden="true" />
               </span>
-              <span style={{ whiteSpace: 'nowrap' }}>{pickTopicName(tp, locale)}</span>
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  // Force the active text to paper-white explicitly.
+                  // The chip's button-level ``color`` is paper too, but
+                  // some browsers' default <button> color cascade was
+                  // bleeding through and leaving the name as the legacy
+                  // ink even when the background was dark — unreadable.
+                  color: isActive ? 'var(--paper)' : 'var(--ink)',
+                }}
+              >
+                {pickTopicName(tp, locale)}
+              </span>
               <span
                 className="tabular"
                 style={{
