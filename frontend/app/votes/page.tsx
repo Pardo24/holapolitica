@@ -3,8 +3,7 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight, Route as RouteIcon, Search } from 'lucide-react';
 
-import { AnnotatedText } from '@/components/AnnotatedText';
-import { GroupChip } from '@/components/GroupChip';
+import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { ActiveFilterChips, type ActiveFilter } from '@/components/ActiveFilterChips';
 import { MobileVoteCard } from '@/components/MobileVoteCard';
@@ -13,12 +12,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { TopicChipsStrip } from '@/components/TopicChipsStrip';
 import { VotesCalendarStripController } from '@/components/VotesCalendarStripController';
 import type { CalendarDay } from '@/components/VotesCalendarStrip';
-import { ResultPill } from '@/components/ResultPill';
-import { StackedBar } from '@/components/StackedBar';
-import { SummaryHover } from '@/components/SummaryHover';
 import { TopicCombobox } from '@/components/TopicCombobox';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
-import { VoteBreakdown } from '@/components/VoteBreakdown';
 import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
@@ -494,28 +489,28 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         </ul>
       )}
 
-      {/* Desktop list — row-based to match the InitiativeRow layout
-          used on /topics/[slug] and /initiatives/[id]. Each row is a
-          flat 3-column grid (date | title+meta | result+counts) and
-          relies on the .initiative-row CSS scaffold for the breakpoint
-          rules (110px date column on desktop). Mobile path is handled
-          by MobileVoteCard above; this list is sm: and up. */}
+      {/* Desktop list — uses the shared CompactVoteRow so /votes and
+          the home "latest votes" surface have the same visual rhythm
+          (4-col grid: date · title+meta · stacked bar · result pill).
+          Mobile path is handled by MobileVoteCard above; this list is
+          sm: and up. */}
       {data && data.items.length > 0 && (
         <ul
           className="hidden sm:block votes-list"
           style={{ listStyle: 'none', margin: 0, padding: '4px 0 0' }}
         >
           {data.items.map((vote) => (
-            <VoteListRow
+            <CompactVoteRow
               key={vote.id}
-              vote={vote}
+              v={vote}
               locale={locale}
-              t={{
+              labels={{
                 ayes: t('ayes'),
                 noes: t('noes'),
                 abstentions: t('abstentions'),
+                proposed_by: t('proposed_by'),
                 proposed_by_government: t('proposed_by_government'),
-                result: t(`result.${vote.result}`),
+                result: t(`result.${vote.result}` as 'result.approved'),
               }}
             />
           ))}
@@ -545,227 +540,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         }
       `}</style>
     </div>
-  );
-}
-
-interface RowLabels {
-  ayes: string;
-  noes: string;
-  abstentions: string;
-  proposed_by_government: string;
-  result: string;
-}
-
-function VoteListRow({
-  vote,
-  locale,
-  t,
-}: {
-  vote: Vote;
-  locale: string;
-  t: RowLabels;
-}) {
-  const subject = vote.description?.trim() || vote.title;
-  const date = new Date(vote.voted_at);
-  const plainSummary = pickPlainSummary(vote, locale);
-  const longDate = date.toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  return (
-    <li
-      className="votes-list-row"
-      style={{
-        // Mirrors the .initiative-row scaffold from /topics/[slug],
-        // extended with a right-side affordance for the vote result.
-        // The desktop grid uses ``110px``-wide date + flexible title
-        // + an auto-sized right column with the result pill and a
-        // compact count breakdown. Bottom border separates rows.
-        display: 'grid',
-        gridTemplateColumns: '110px minmax(0, 1fr) 160px',
-        gap: 18,
-        alignItems: 'baseline',
-        padding: '14px 0',
-        borderBottom: '1px solid var(--rule)',
-        position: 'relative',
-      }}
-    >
-      <Link
-        href={`/votes/${vote.id}`}
-        aria-label={subject}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 0,
-          textDecoration: 'none',
-        }}
-      >
-        <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-          {subject}
-        </span>
-      </Link>
-      <span
-        className="tabular"
-        style={{
-          fontSize: 12,
-          color: 'var(--ink-3)',
-          whiteSpace: 'nowrap',
-          fontVariantNumeric: 'tabular-nums',
-          position: 'relative',
-          zIndex: 1,
-          pointerEvents: 'none',
-        }}
-      >
-        {longDate}
-      </span>
-      <div style={{ minWidth: 0, position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
-        <div
-          className="line-clamp-3"
-          style={{
-            fontSize: 14,
-            lineHeight: 1.4,
-            color: 'var(--ink)',
-          }}
-        >
-          <SummaryHover
-            summary={plainSummary}
-            fallback={vote.description ?? undefined}
-            provider={vote.plain_summary_provider}
-            visibleText={subject}
-          >
-            <AnnotatedText text={subject} />
-          </SummaryHover>
-        </div>
-        {/* Meta strip — same layout vocabulary as InitiativeRow's
-            ``.initiative-row__meta`` line: badges + dot-separated
-            labels in a small, low-contrast row beneath the title.
-            Proposer (with GroupChip for the live logo / abbreviation
-            disc), then up to two topic chips, then the expediente
-            code in monospace. */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginTop: 6,
-            fontSize: 11,
-            color: 'var(--ink-3)',
-            lineHeight: 1.3,
-            minWidth: 0,
-          }}
-        >
-          <span style={{ pointerEvents: 'auto' }}>
-            {vote.proposed_by_government && !vote.proposing_group_short ? (
-              <span className="badge" style={{ fontWeight: 600 }}>
-                <span className="gdot" style={{ background: 'var(--ink)' }} />
-                {t.proposed_by_government}
-              </span>
-            ) : vote.proposing_group_short ? (
-              <GroupChip
-                slug={vote.proposing_group_slug ?? undefined}
-                short={displayGroupShort(vote.proposing_group_short)}
-                color={vote.proposing_group_color}
-                size="xs"
-              />
-            ) : null}
-          </span>
-          {vote.topics && vote.topics.length > 0 && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  flexWrap: 'wrap',
-                }}
-              >
-                {vote.topics.slice(0, 2).map((topic) => (
-                  <span
-                    key={topic.slug}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '1px 7px 2px',
-                      fontSize: 10.5,
-                      fontWeight: 600,
-                      color: 'var(--ink-2)',
-                      background: topic.color_hex
-                        ? `color-mix(in oklch, ${topic.color_hex} 14%, var(--paper))`
-                        : 'var(--paper-2)',
-                      border: `1px solid ${
-                        topic.color_hex
-                          ? `color-mix(in oklch, ${topic.color_hex} 32%, var(--paper))`
-                          : 'var(--rule)'
-                      }`,
-                      letterSpacing: '0.01em',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 999,
-                        background: topic.color_hex ?? 'var(--ink-3)',
-                        flex: 'none',
-                      }}
-                    />
-                    {pickTopicName(topic, locale)}
-                  </span>
-                ))}
-              </span>
-            </>
-          )}
-          {vote.expediente_raw && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span
-                className="mono"
-                style={{ fontSize: 10, color: 'var(--ink-3)', wordBreak: 'break-all' }}
-              >
-                {vote.expediente_raw}
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-      <div
-        style={{
-          textAlign: 'right',
-          position: 'relative',
-          zIndex: 1,
-          pointerEvents: 'none',
-          minWidth: 0,
-        }}
-      >
-        <ResultPill
-          result={vote.result}
-          label={t.result}
-          responsive
-          mobileVariant="disc"
-        />
-        <div style={{ marginTop: 6 }}>
-          <StackedBar
-            d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
-            height={6}
-          />
-        </div>
-        <div style={{ marginTop: 4 }}>
-          <VoteBreakdown
-            ayes={vote.ayes}
-            noes={vote.noes}
-            abstentions={vote.abstentions}
-            size="sm"
-            labels={{ ayes: t.ayes, noes: t.noes, abstentions: t.abstentions }}
-          />
-        </div>
-      </div>
-    </li>
   );
 }
 
