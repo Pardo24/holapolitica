@@ -38,7 +38,12 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowUpRight, User, X } from 'lucide-react';
 
-import type { HemicycleSeat, HemicycleLayout } from '@/lib/api';
+import type {
+  HemicycleSeat,
+  HemicycleLayout,
+  VoteHemicycleSeat,
+  VoteHemicycleLayout,
+} from '@/lib/api';
 
 // SVG viewBox we render into. We pick a 2.2:1 ratio that matches the
 // real chamber's aspect and gives a comfortable reading area for the
@@ -66,6 +71,25 @@ const SEAT_STROKE = 'rgba(20, 28, 60, 0.18)';
 const SEAT_STROKE_W = 1;
 
 const DEFAULT_COLOR = '#9ca3af';
+
+/**
+ * Color mapping for the vote-mode rendering. Keeps each seat
+ * visually consistent with the rest of the site's vote semantics
+ * (StackedBar, ResultPill): green for aye, red for no, ocre for
+ * abstention, neutral grey for any "not cast" state (absent,
+ * not-recorded, or no VoteRecord row for the seat). Resolved against
+ * the same OKLCH tokens used by globals.css so dark-mode swaps
+ * propagate automatically.
+ */
+const VOTE_CHOICE_COLOR: Record<string, string> = {
+  aye: 'oklch(0.55 0.12 152)',
+  no: 'oklch(0.55 0.16 26)',
+  abstention: 'oklch(0.68 0.13 82)',
+  absent: 'oklch(0.85 0.005 250)',
+  no_vote_recorded: 'oklch(0.85 0.005 250)',
+};
+
+export type HemicycleColorMode = 'group' | 'vote';
 
 /**
  * Map a seat from source-image pixel space (536×393) into the
@@ -205,8 +229,24 @@ function useIsTouch(): boolean {
 
 export function Hemicycle({
   layout,
+  coloredBy = 'group',
 }: {
-  layout: HemicycleLayout;
+  // Accepts both the legislature-wide layout (group colors) and the
+  // per-vote layout (each seat carries a `vote_choice`). The two
+  // shapes share every field except `vote_choice`, so we widen the
+  // type here and let the seat renderer branch on `coloredBy`.
+  layout: HemicycleLayout | VoteHemicycleLayout;
+  /**
+   * How to fill each seat:
+   *
+   * - `'group'` (default) — the deputy's parliamentary group color,
+   *   as on the legislature-wide hemicycle.
+   * - `'vote'` — the choice cast on a specific vote. Requires the
+   *   layout to be a `VoteHemicycleLayout` (i.e. each seat carries
+   *   a `vote_choice`). When passed without those fields the seats
+   *   fall back to the group color, never crash.
+   */
+  coloredBy?: HemicycleColorMode;
 }) {
   const t = useTranslations('hemicycle');
   const [selected, setSelected] = useState<SelectedSeat | null>(null);
@@ -285,6 +325,7 @@ export function Hemicycle({
               onHover={handleSeatHover}
               onTap={handleSeatTap}
               isTouch={isTouch}
+              coloredBy={coloredBy}
             />
           ))}
         </svg>
@@ -329,6 +370,7 @@ interface SeatDotProps {
   onHover: (seat: PlacedSeat) => void;
   onTap: (seat: PlacedSeat) => void;
   isTouch: boolean;
+  coloredBy: HemicycleColorMode;
 }
 
 function SeatDot({
@@ -336,8 +378,18 @@ function SeatDot({
   onHover,
   onTap,
   isTouch,
+  coloredBy,
 }: SeatDotProps) {
-  const color = seat.group_color ?? DEFAULT_COLOR;
+  // In `vote` mode the placed seat carries a `vote_choice`; fall back
+  // to the group color when the field is missing (e.g. the parent
+  // passed `coloredBy="vote"` with a legacy layout). Reading via the
+  // generic indexer avoids a type assertion while keeping null-safe.
+  const voteChoice =
+    coloredBy === 'vote' ? (seat as PlacedSeat & Partial<VoteHemicycleSeat>).vote_choice : null;
+  const color =
+    coloredBy === 'vote' && voteChoice
+      ? VOTE_CHOICE_COLOR[voteChoice] ?? DEFAULT_COLOR
+      : seat.group_color ?? DEFAULT_COLOR;
   const href = `/persons/${seat.person_id}` as Route;
 
   // Two interaction modes:

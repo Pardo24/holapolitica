@@ -252,6 +252,26 @@ export interface HemicycleLayout {
   seats: HemicycleSeat[];
 }
 
+/**
+ * One seat on a vote-specific hemicycle, served from
+ * `/votes/{id}/hemicycle`. Same shape as `HemicycleSeat` plus the
+ * choice the seat-holder cast on this particular vote — used by
+ * `<Hemicycle coloredBy="vote" />` to fill each dot with the aye /
+ * no / abstention / no_vote semantic color instead of the group
+ * color. Deputies on an open mandate without a vote record default
+ * to `"absent"` so every seat stays accounted for.
+ */
+export type VoteChoice = 'aye' | 'no' | 'abstention' | 'absent' | 'no_vote_recorded';
+
+export interface VoteHemicycleSeat extends HemicycleSeat {
+  vote_choice: VoteChoice;
+}
+
+export interface VoteHemicycleLayout extends HemicycleLayout {
+  vote_id: number;
+  seats: VoteHemicycleSeat[];
+}
+
 export interface ParliamentaryGroupSummary {
   id: number;
   legislature_id: number;
@@ -937,6 +957,16 @@ export const api = {
     get: (id: number) => request<Vote>(`/votes/${id}`),
     dissidents: (id: number) =>
       request<VoteDissidents>(`/votes/${id}/dissidents`, {
+        revalidate: AGG_REVALIDATE,
+      }),
+    /**
+     * Hemicycle layout for one specific vote — seats are the same
+     * as `/legislatures/{id}/hemicycle` but each carries the choice
+     * cast on this vote. Cached server-side for 1 h; once a vote is
+     * published the records don't change.
+     */
+    hemicycle: (id: number) =>
+      request<VoteHemicycleLayout>(`/votes/${id}/hemicycle`, {
         revalidate: AGG_REVALIDATE,
       }),
   },

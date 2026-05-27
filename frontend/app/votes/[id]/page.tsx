@@ -31,6 +31,7 @@ import { ExternalLink, FileText } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
+import { Hemicycle } from '@/components/Hemicycle';
 import { ResultPill } from '@/components/ResultPill';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
 import { StackedBar } from '@/components/StackedBar';
@@ -40,6 +41,7 @@ import {
   type CohesionResult,
   type Initiative,
   type Vote,
+  type VoteHemicycleLayout,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { pickPlainSummary } from '@/lib/glossary';
@@ -105,6 +107,39 @@ function Lbl({ children, style }: { children: React.ReactNode; style?: React.CSS
       }}
     >
       {children}
+    </span>
+  );
+}
+
+/** Inline color swatch + label + tabular count. Used by the
+ *  vote-coloured hemicycle legend in the totals card. Kept here
+ *  (not in components/) because the swatch styling is bound to this
+ *  one widget. */
+function LegendSwatch({
+  color,
+  label,
+  value,
+}: {
+  color: string;
+  label: string;
+  value: number;
+}) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span
+        aria-hidden="true"
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: 999,
+          background: color,
+          display: 'inline-block',
+        }}
+      />
+      <span>{label}</span>
+      <span className="tabular" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>
+        {value}
+      </span>
     </span>
   );
 }
@@ -208,6 +243,17 @@ export default async function VoteDetailPage({
     } catch {
       initiative = null;
     }
+  }
+
+  // Per-vote hemicycle — each seat coloured by the choice cast on
+  // THIS vote, not by the deputy's group. Failure is best-effort: the
+  // chart simply isn't rendered when the layout can't be loaded
+  // (rare; the endpoint is cached server-side).
+  let voteHemicycleLayout: VoteHemicycleLayout | null = null;
+  try {
+    voteHemicycleLayout = await api.votes.hemicycle(voteId);
+  } catch {
+    voteHemicycleLayout = null;
   }
 
   const subject = vote.description?.trim() || vote.title;
@@ -543,17 +589,45 @@ export default async function VoteDetailPage({
               })}
             </p>
 
-            {/* ─────────────────────────────────────────────────────────
-                OPTIONAL: mini hemicycle inside the totals card.
-                Requires adding a `coloredBy="vote"` mode to the
-                Hemicycle component AND a per-vote seat-choices
-                endpoint. See exports/Hemicycle-vote-mode.md.
-                Uncomment when both are in place.
-
-                <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--rule)' }}>
-                  <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
+            {voteHemicycleLayout && (
+              <div
+                style={{
+                  marginTop: 18,
+                  paddingTop: 18,
+                  borderTop: '1px solid var(--rule)',
+                }}
+              >
+                <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
+                {/* Compact legend — pairs each color used by the
+                    vote-mode hemicycle with its labelled count so a
+                    first-time reader can decode the dots without
+                    hovering. Sentence-case, no eyebrow, in line with
+                    the rest of the redesign. */}
+                <div
+                  style={{
+                    marginTop: 10,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 14,
+                    fontSize: 11,
+                    color: 'var(--ink-3)',
+                  }}
+                >
+                  <LegendSwatch color="var(--aye)" label={t('ayes')} value={vote.ayes} />
+                  <LegendSwatch color="var(--no)" label={t('noes')} value={vote.noes} />
+                  <LegendSwatch
+                    color="var(--abst)"
+                    label={t('abstentions')}
+                    value={vote.abstentions}
+                  />
+                  <LegendSwatch
+                    color="var(--nv)"
+                    label={t('absent')}
+                    value={vote.absent}
+                  />
                 </div>
-            ───────────────────────────────────────────────────────── */}
+              </div>
+            )}
           </section>
         </div>
 

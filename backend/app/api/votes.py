@@ -14,7 +14,12 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.api.legislatures import HemicycleLayout, HemicycleSeat
 from app.db import get_session
+from app.ingest.congreso.hemicycle import (
+    HEMICYCLE_IMAGE_HEIGHT,
+    HEMICYCLE_IMAGE_WIDTH,
+)
 from app.models import (
     GroupMembership,
     Initiative,
@@ -25,6 +30,7 @@ from app.models import (
     Person,
     Topic,
     Vote,
+    VoteChoice,
     VoteRecord,
     VoteResult,
 )
@@ -448,3 +454,157 @@ def _serialize_vote(
             for t in topic_rows
         ]
     return base.model_copy(update=update) if update else base
+
+
+# ---------------------------------------------------------------------------
+# Per-vote hemicycle — seats coloured by vote choice
+# ---------------------------------------------------------------------------
+
+
+class VoteHemicycleSeat(HemicycleSeat):
+    """One seat with the choice cast on a specific vote.
+
+    Extends :class:`HemicycleSeat` with a single new field so the
+    frontend's existing :class:`Hemicycle` component can switch its
+    fill rule by passing ``coloredBy="vote"`` and look at
+    ``seat.vote_choice`` instead of ``seat.group_color``. Persons who
+    were on an open mandate but cast no record (procedural quirks,
+    presiding role) come through as ``vote_choice="absent"`` so the
+    chart still accounts for every seat.
+    """
+
+    vote_choice: str
+
+
+class VoteHemicycleLayout(HemicycleLayout):
+    """Per-vote hemicycle response: same shape as the legislature layout,
+    but every seat carries the choice the seat-holder cast."""
+
+    vote_id: int
+    seats: list[VoteHemicycleSeat]  # type: ignore[assignment]
+
+
+async def _compute_vote_hemicycle(session: AsyncSession, vote_id: int) -> VoteHemicycleLayout:
+    """Build the seat-by-choice layout for a single vote.
+
+    Anchors on the vote's parent session to resolve the legislature,
+    then runs the same per-seat enrichment as the legislature-wide
+    layout, LEFT JOINing :class:`VoteRecord` on ``(vote_id, mandate)``
+    to pull the actual choice. Mandates without a record default to
+    ``"absent"`` — visually identical to deputies who showed up and
+    were marked absent in the source data.
+    """
+    vote_row = (
+        await session.execute(
+            select(Vote.id, SessionModel.legislature_id)
+            .join(SessionModel, SessionModel.id == Vote.session_id)
+            .where(Vote.id == vote_id)
+        )
+    ).one_or_none()
+    if vote_row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vote not found")
+    _, legislature_id = vote_row
+
+    rows = (
+        await session.execute(
+            select(
+                Person.id,
+                Person.full_name,
+                Person.photo_url,
+                Person.seat_x,
+                Person.seat_y,
+                Person.role_title,
+                Person.role_kind,
+                ParliamentaryGroup.slug,
+                ParliamentaryGroup.name_short,
+                ParliamentaryGroup.color_hex,
+                Mandate.constituency,
+                Mandate.start_date,
+                VoteRecord.choice,
+            )
+            .join(Mandate, Mandate.person_id == Person.id)
+            .outerjoin(
+                GroupMembership,
+                (GroupMembership.mandate_id == Mandate.id) & (GroupMembership.end_date.is_(None)),
+            )
+            .outerjoin(
+                ParliamentaryGroup,
+                ParliamentaryGroup.id == GroupMembership.group_id,
+            )
+            .outerjoin(
+                VoteRecord,
+                (VoteRecord.mandate_id == Mandate.id) & (VoteRecord.vote_id == vote_id),
+            )
+            .where(Mandate.legislature_id == legislature_id)
+            .where(Mandate.end_date.is_(None))
+            .order_by(Person.id, Mandate.start_date.desc())
+        )
+    ).all()
+
+    by_person: dict[int, VoteHemicycleSeat] = {}
+    for (
+        pid,
+        full_name,
+        photo_url,
+        seat_x,
+        seat_y,
+        role_title,
+        role_kind,
+        slug,
+        short,
+        color,
+        constituency,
+        _start,
+        choice,
+    ) in rows:
+        if pid in by_person:
+            continue
+        # No VoteRecord row → the deputy is treated as absent. The
+        # frontend's color map paints this in the neutral "no-vote"
+        # grey so the seat stays visible without claiming a position
+        # the person never expressed.
+        resolved_choice: str = choice.value if choice is not None else VoteChoice.ABSENT.value
+        by_person[pid] = VoteHemicycleSeat(
+            person_id=pid,
+            full_name=full_name,
+            photo_url=photo_url,
+            group_slug=slug,
+            group_short=short,
+            group_color=color,
+            seat_x=seat_x,
+            seat_y=seat_y,
+            constituency=constituency,
+            role_title=role_title,
+            role_kind=role_kind,
+            vote_choice=resolved_choice,
+        )
+
+    seated = [s for s in by_person.values() if s.seat_y is not None and s.seat_x is not None]
+    unseated = [s for s in by_person.values() if s.seat_y is None or s.seat_x is None]
+    seated.sort(key=lambda s: ((s.seat_y or 0), (s.seat_x or 0), s.person_id))
+    unseated.sort(key=lambda s: (s.full_name, s.person_id))
+
+    return VoteHemicycleLayout(
+        legislature_id=legislature_id,
+        vote_id=vote_id,
+        image_width=HEMICYCLE_IMAGE_WIDTH,
+        image_height=HEMICYCLE_IMAGE_HEIGHT,
+        seats=seated + unseated,
+    )
+
+
+@router.get("/{vote_id}/hemicycle", response_model=VoteHemicycleLayout)
+async def get_vote_hemicycle(
+    vote_id: int, db: AsyncSession = Depends(get_session)
+) -> VoteHemicycleLayout:
+    """Per-vote hemicycle: every seat carries the choice cast on this vote.
+
+    Cached for 1 h — once a vote is published, neither its records
+    nor the seat positions change. Cache busts implicitly when the
+    hemicycle ingest re-runs (new key version) or the cache TTL lapses.
+    """
+    return await cached(
+        f"votes:{vote_id}:hemicycle:v1",
+        3600,
+        lambda: _compute_vote_hemicycle(db, vote_id),
+    )
