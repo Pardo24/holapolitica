@@ -502,7 +502,9 @@ function SubscribedView({
   const t = useTranslations('notifications');
   const [showAll, setShowAll] = useState(false);
   const themes = useMemo(() => topics.filter((tp) => tp.kind === 'theme'), [topics]);
-  const sdgs = useMemo(() => topics.filter((tp) => tp.kind === 'sdg'), [topics]);
+  // sdgs split removed: the Agenda 2030 taxonomy is disabled for the
+  // launch (no classified initiatives use it yet). When re-enabling,
+  // restore: const sdgs = useMemo(() => topics.filter((tp) => tp.kind === 'sdg'), [topics]);
   const selectedTopics = useMemo(
     () =>
       // Preserve the canonical topic order from the server (matches the
@@ -701,19 +703,12 @@ function SubscribedView({
               selectAllLabel={t('select_all')}
               clearLabel={t('clear_section')}
             />
-            <div style={{ height: 10 }} />
-            <TopicSectionAccordion
-              title={t('section_sdg')}
-              topics={sdgs}
-              selected={selected}
-              busy={busy || !masterOn}
-              defaultOpen={false}
-              onToggle={onToggle}
-              onSelectAll={onSelectAll}
-              onClearGroup={onClearGroup}
-              selectAllLabel={t('select_all')}
-              clearLabel={t('clear_section')}
-            />
+            {/* SDG section disabled for the public launch — no
+                initiative is classified against the Agenda 2030
+                taxonomy yet, so the section would show empty
+                checkboxes and no meaningful notification could fire
+                from them. Restore once the classifier ships SDG
+                coverage. */}
           </div>
         )}
       </section>
@@ -947,7 +942,9 @@ function TopicTypeahead({
     const match = (tp: Topic) =>
       norm === '' || normalize(tp.name_ca).includes(norm);
     const filteredThemes = available.filter((tp) => tp.kind === 'theme' && match(tp));
-    const filteredSdgs = available.filter((tp) => tp.kind === 'sdg' && match(tp));
+    // SDG entries are intentionally filtered out at the search level —
+    // the dropdown never offers them while the Agenda 2030 taxonomy is
+    // unused. Re-introduce when the classifier ships SDG coverage.
     const out: Array<
       | { kind: 'header'; label: string; topicKind: TopicKind }
       | { kind: 'option'; topic: Topic }
@@ -955,10 +952,6 @@ function TopicTypeahead({
     if (filteredThemes.length > 0) {
       out.push({ kind: 'header', label: t('section_themes'), topicKind: 'theme' });
       filteredThemes.forEach((tp) => out.push({ kind: 'option', topic: tp }));
-    }
-    if (filteredSdgs.length > 0) {
-      out.push({ kind: 'header', label: t('section_sdg'), topicKind: 'sdg' });
-      filteredSdgs.forEach((tp) => out.push({ kind: 'option', topic: tp }));
     }
     return out;
   }, [topics, selected, query, t]);

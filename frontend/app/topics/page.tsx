@@ -4,25 +4,18 @@ import { getTranslations } from 'next-intl/server';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TopicListPanel } from '@/components/TopicListPanel';
-import type { TopicKind } from '@/lib/api';
 
-// Default classification knowledge base. The editorial taxonomy stays the
-// landing experience; the SDG tab is a secondary lens (cf. CLAUDE.md
-// "mirall, no megàfon" — UN-official descriptive framing, no editorialising).
-const DEFAULT_KIND: TopicKind = 'theme';
+/*
+ * The SDG (Agenda 2030) taxonomy is disabled for the public launch
+ * because no initiative has been classified against it yet by the
+ * auto-classifier. Stripped the ``?kind=sdg`` branch + searchParams
+ * handling; the editorial-theme taxonomy is the only one rendered.
+ * To re-enable, restore the kind switching from git history once the
+ * SDG classifier ships.
+ */
 
-interface SearchParams {
-  kind?: string;
-}
-
-export default async function TopicsPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
+export default async function TopicsPage() {
   const t = await getTranslations('topics');
-  const { kind: rawKind } = await searchParams;
-  const activeKind: TopicKind = rawKind === 'sdg' ? 'sdg' : DEFAULT_KIND;
 
   return (
     <div>
@@ -120,7 +113,7 @@ export default async function TopicsPage({
         </Link>
       </section>
 
-      <TopicListPanel activeKind={activeKind} hrefBase="/topics" />
+      <TopicListPanel />
 
       {/* Mobile: stack the banner contents instead of side-by-side. The
           three-column grid collapses to a single column and the CTA

@@ -72,13 +72,14 @@ export function TopicCombobox({
     [topics, selected],
   );
 
-  // Build the flat list of choices (including the "clear" entry at top),
-  // grouped/ordered so themes precede SDGs. We expose flat indices so the
-  // keyboard nav can target every row including the headers' first row.
+  // Build the flat list of choices (including the "clear" entry at top).
+  // SDG entries are filtered out for the public launch — no initiative
+  // has been classified against them yet, so showing them in the
+  // dropdown would mislead. Keep the data path intact (themes survive
+  // verbatim) so re-enabling SDGs later is a one-line change.
   const items = useMemo(() => {
     const norm = normalize(query);
     const themes = topics.filter((t) => t.kind === 'theme');
-    const sdgs = topics.filter((t) => t.kind === 'sdg');
     // Match against any of the three translated names so a user
     // typing "housing" still finds "Habitatge" on the English UI and
     // vice versa. Avoids surprising "no results" when the visible
@@ -90,7 +91,6 @@ export function TopicCombobox({
       (t.name_en ? normalize(t.name_en).includes(norm) : false);
 
     const filteredThemes = themes.filter(matchTopic);
-    const filteredSdgs = sdgs.filter(matchTopic);
 
     const rows: Array<
       | { kind: 'clear'; value: string }
@@ -102,12 +102,8 @@ export function TopicCombobox({
       if (themeHeader) rows.push({ kind: 'header', label: themeHeader, topicKind: 'theme' });
       filteredThemes.forEach((t) => rows.push({ kind: 'option', topic: t }));
     }
-    if (filteredSdgs.length > 0) {
-      rows.push({ kind: 'header', label: sdgHeader, topicKind: 'sdg' });
-      filteredSdgs.forEach((t) => rows.push({ kind: 'option', topic: t }));
-    }
     return rows;
-  }, [topics, query, emptyValue, themeHeader, sdgHeader]);
+  }, [topics, query, emptyValue, themeHeader]);
 
   // Indices that the keyboard can land on (skip headers).
   const focusableIndices = useMemo(

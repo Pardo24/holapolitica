@@ -1,50 +1,25 @@
 import Link from 'next/link';
-import type { Route } from 'next';
 import { ArrowRight } from 'lucide-react';
 
-import {
-  api,
-  type Topic,
-  type TopicGlobalStat,
-  type TopicKind,
-} from '@/lib/api';
+import { api, type Topic, type TopicGlobalStat } from '@/lib/api';
 import { topicIcon } from '@/lib/topic_icons';
 
 /**
- * Renders the topic taxonomy directory: a tab switcher between the editorial
- * "theme" KB and the UN SDG KB, and a grid of topic cards. Used both by
- * `/topics` (its own page) and by `/votes?tab=topics` (the "Per tema" tab
- * inside the votes hub) — so a user landing on `/votes` and switching to
- * "Per tema" sees exactly the same surface as the standalone /topics page
- * without us duplicating the fetch+layout logic.
+ * Renders the editorial-theme taxonomy as a grid of topic cards.
  *
- * Tabs are encoded in the URL as ``?kind=theme`` (default) vs ``?kind=sdg``
- * so they survive bookmarks and hard reloads. ``hrefBase`` is the route the
- * tab links point at — pass ``/topics`` or ``/votes`` so the panel composes
- * cleanly under either parent.
+ * The component used to host a "themes vs SDGs" tab switcher; the SDG
+ * lane is disabled for the public launch (no SDG-classified
+ * initiatives yet), so we render the editorial themes only. Restore
+ * the previous tab structure from git history once SDG
+ * classification ships in production.
  *
- * No editorial commentary is rendered on the cards themselves — only the
- * topic name, color, kind eyebrow, and a count of classified initiatives.
- * "Mirall, no megàfon".
+ * No editorial commentary is rendered on the cards themselves — only
+ * the topic name, color, kind eyebrow, and a count of classified
+ * initiatives. "Mirall, no megàfon".
  */
-export async function TopicListPanel({
-  activeKind,
-  hrefBase,
-  extraTabParams,
-}: {
-  activeKind: TopicKind;
-  /** Where the tab links point. e.g. ``/topics`` or ``/votes``. */
-  hrefBase: '/topics' | '/votes';
-  /**
-   * Extra query params to merge into the tab links so non-kind state
-   * survives the tab toggle. The votes hub passes ``tab=topics`` here
-   * so switching theme/SDG stays on the right outer tab.
-   */
-  extraTabParams?: Record<string, string>;
-}) {
-  const [themeTopics, sdgTopics, globals] = await Promise.all([
+export async function TopicListPanel() {
+  const [themeTopics, globals] = await Promise.all([
     api.topics.list({ kind: 'theme' }),
-    api.topics.list({ kind: 'sdg' }),
     api.stats.topicsGlobal().catch(() => [] as TopicGlobalStat[]),
   ]);
 
@@ -52,67 +27,8 @@ export async function TopicListPanel({
     globals.map((g) => [g.topic_slug, g.initiatives_total] as const),
   );
 
-  const visibleTopics = activeKind === 'sdg' ? sdgTopics : themeTopics;
-  const themeTotal = themeTopics.reduce(
-    (acc, top) => acc + (countsBySlug.get(top.slug) ?? 0),
-    0,
-  );
-  const sdgTotal = sdgTopics.reduce(
-    (acc, top) => acc + (countsBySlug.get(top.slug) ?? 0),
-    0,
-  );
-
-  const buildHref = (kind: TopicKind): Route => {
-    const sp = new URLSearchParams();
-    for (const [k, v] of Object.entries(extraTabParams ?? {})) {
-      if (v) sp.set(k, v);
-    }
-    if (kind === 'sdg') sp.set('kind', 'sdg');
-    const qs = sp.toString();
-    return (qs ? `${hrefBase}?${qs}` : hrefBase) as Route;
-  };
-
   return (
     <div>
-      <nav
-        aria-label="Bases de coneixement de classificació"
-        style={{
-          display: 'flex',
-          gap: 0,
-          marginTop: 18,
-          borderBottom: '1px solid var(--rule)',
-        }}
-      >
-        <KindTabLink
-          href={buildHref('theme')}
-          active={activeKind === 'theme'}
-          label="Temes editorial"
-          sublabel={`${themeTopics.length} categories · ${themeTotal} iniciatives`}
-        />
-        <KindTabLink
-          href={buildHref('sdg')}
-          active={activeKind === 'sdg'}
-          label="ODS (Agenda 2030)"
-          sublabel={`${sdgTopics.length} objectius · ${sdgTotal} iniciatives`}
-        />
-      </nav>
-
-      {activeKind === 'sdg' && (
-        <p
-          style={{
-            fontSize: 12,
-            color: 'var(--ink-3)',
-            marginTop: 14,
-            marginBottom: 0,
-            maxWidth: 760,
-          }}
-        >
-          Classificació segons els 17 Objectius de Desenvolupament Sostenible
-          adoptats per Nacions Unides l&apos;any 2015 (Agenda 2030). Definicions
-          oficials de l&apos;ONU.
-        </p>
-      )}
-
       <ul
         className="topic-grid"
         style={{
@@ -124,7 +40,7 @@ export async function TopicListPanel({
           gap: 14,
         }}
       >
-        {visibleTopics.map((topic) => (
+        {themeTopics.map((topic) => (
           <TopicCard
             key={topic.slug}
             topic={topic}
@@ -165,51 +81,8 @@ export async function TopicListPanel({
   );
 }
 
-function KindTabLink({
-  href,
-  active,
-  label,
-  sublabel,
-}: {
-  href: Route;
-  active: boolean;
-  label: string;
-  sublabel: string;
-}) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '12px 18px',
-        textDecoration: 'none',
-        color: active ? 'var(--ink)' : 'var(--ink-3)',
-        borderBottom: active
-          ? '2px solid var(--ink)'
-          : '2px solid transparent',
-        marginBottom: -1,
-        fontWeight: active ? 600 : 400,
-      }}
-      aria-current={active ? 'page' : undefined}
-    >
-      <span style={{ fontSize: 14 }}>{label}</span>
-      <span
-        className="tabular"
-        style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}
-      >
-        {sublabel}
-      </span>
-    </Link>
-  );
-}
-
 function TopicCard({ topic, count }: { topic: Topic; count: number }) {
   const color = topic.color_hex ?? '#1a2138';
-  const isSdg = topic.kind === 'sdg';
-  // SDG slugs are ``sdg-01-poverty``…``sdg-17-partnerships``; pull the
-  // numeric prefix for the eyebrow so the UN's numbering is visible.
-  const sdgNumber = isSdg ? topic.slug.match(/^sdg-(\d{2})/)?.[1] : null;
   const Icon = topicIcon(topic.icon);
   return (
     <li>
@@ -264,7 +137,7 @@ function TopicCard({ topic, count }: { topic: Topic; count: number }) {
             className="eyebrow topic-card-eyebrow"
             style={{ fontSize: 10, color }}
           >
-            {isSdg ? (sdgNumber ? `ODS ${sdgNumber}` : 'ODS') : 'Tema'}
+            Tema
           </span>
         </div>
         <h2
