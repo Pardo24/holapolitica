@@ -7,6 +7,12 @@
 *.key
 *.pem
 
+# apidocs is a sibling project (Astro / Starlight) with its own
+# Vercel deploy. We don't run its install from this repo, so its
+# package-lock has been bleeding into commits when `git add -A` runs
+# without a path filter. Belongs in the docs project, not here.
+apidocs/package-lock.json
+
 # ============================================================================
 # Python
 # ============================================================================
