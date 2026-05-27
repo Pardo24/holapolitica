@@ -260,21 +260,10 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         </div>
       )}
 
-      {/* Active-filter chips — visible on every viewport. When a chip is
-          tapped the corresponding URL param is removed and the page
-          re-renders without that filter. */}
-      <ActiveFilterChips
-        filters={activeFilters}
-        clearAllLabel={t('filters_clear_all')}
-      />
-
       {/* Horizontal chip strip of every theme topic — same component
           on desktop and mobile. Each chip is a scroll-snap target so
           a phone user can fling through the whole taxonomy and tap
-          to filter the list directly. Previously mobile got a
-          rotating one-card-at-a-time carousel; users complained that
-          they couldn't see the full set at once, so we collapsed
-          both surfaces onto the same strip. */}
+          to filter the list directly. */}
       <TopicChipsStrip
         topics={topics}
         counts={topicCounts}
@@ -289,18 +278,18 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           table is not preceded by clutter. */}
       <UpcomingAgenda sessions={upcomingSessions} mode="compact" />
 
-      {/* Unified filter form — every control visible at once. We used
-          to hide proposing-group + result behind a <details>; users
-          missed they existed and applied filters from the chip strip
-          alone. Flat layout makes the four controls equally discoverable
-          and removes the "Advanced ▸" indirection. Responsive grid:
-          single column on phones, two columns at sm:, four on wide. */}
+      {/* Unified filter form — every control visible at once with the
+          active-filter chips inside the same card so the "what's
+          applied" and "how to change it" surfaces live as one block.
+          Responsive grid: single column on phones, two columns at
+          sm:, three on wide (the result selector below sits full-width
+          as colored chip buttons). */}
       <form
         method="GET"
         className="votes-filter-form"
         style={{
           marginTop: 14,
-          padding: 14,
+          padding: 16,
           border: '1px solid var(--rule-strong)',
           borderRadius: 12,
           background: 'var(--paper-2)',
@@ -310,7 +299,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           className="votes-filter-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
             gap: 10,
             alignItems: 'stretch',
           }}
@@ -379,20 +368,75 @@ async function VotesListTab({ params }: { params: SearchParams }) {
               ariaLabel={t('filters.proposing_group')}
             />
           </FilterField>
+        </div>
+
+        {/* Result as semantic chip-radios. Native <select> is hard to
+            read at a glance because the colour cue is missing until
+            the user opens the dropdown; this gives each option its
+            own coloured chip so the affordance reads correctly
+            inline. The form submits ``result=approved`` etc. via the
+            checked radio's value. */}
+        <div style={{ marginTop: 12 }}>
           <FilterField label={t('filters.result')}>
-            <select
-              name="result"
-              defaultValue={params.result ?? ''}
-              className="filter-advanced-select"
+            <div
+              role="radiogroup"
               aria-label={t('filters.result')}
+              className="result-chip-row"
+              style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
             >
-              <option value="">{t('filters.all_results')}</option>
-              <option value="approved">{t('result.approved')}</option>
-              <option value="rejected">{t('result.rejected')}</option>
-              <option value="tie">{t('result.tie')}</option>
-            </select>
+              <ResultChip
+                name="result"
+                value=""
+                checked={!params.result}
+                label={t('filters.all_results')}
+                accent="ink"
+              />
+              <ResultChip
+                name="result"
+                value="approved"
+                checked={params.result === 'approved'}
+                label={t('result.approved')}
+                accent="aye"
+              />
+              <ResultChip
+                name="result"
+                value="rejected"
+                checked={params.result === 'rejected'}
+                label={t('result.rejected')}
+                accent="no"
+              />
+              <ResultChip
+                name="result"
+                value="tie"
+                checked={params.result === 'tie'}
+                label={t('result.tie')}
+                accent="abst"
+              />
+            </div>
           </FilterField>
         </div>
+
+        {/* Active-filter chips moved INSIDE the form so applied
+            filters and the controls that produce them share a single
+            visual region. The chips themselves are the "×" affordance
+            for removing one filter at a time without affecting the
+            others; the "Clear all" link inside ActiveFilterChips
+            wipes the lot. */}
+        {activeFilters.length > 0 && (
+          <div
+            style={{
+              marginTop: 12,
+              paddingTop: 12,
+              borderTop: '1px solid var(--rule)',
+            }}
+          >
+            <ActiveFilterChips
+              filters={activeFilters}
+              clearAllLabel={t('filters_clear_all')}
+            />
+          </div>
+        )}
+
         <div
           style={{
             display: 'flex',
@@ -496,6 +540,71 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         }
       `}</style>
     </div>
+  );
+}
+
+/** Coloured radio-chip used in the result row of the filter form.
+ *  Renders as a chip that shows its semantic colour (green / red /
+ *  ocre) so the affordance reads at a glance. Native radio input is
+ *  hidden but stays in the DOM so the form submits the right value
+ *  with no client JS. */
+function ResultChip({
+  name,
+  value,
+  checked,
+  label,
+  accent,
+}: {
+  name: string;
+  value: string;
+  checked: boolean;
+  label: string;
+  accent: 'ink' | 'aye' | 'no' | 'abst';
+}) {
+  const accentVar = accent === 'ink' ? 'var(--ink-2)' : `var(--${accent})`;
+  return (
+    <label
+      style={{
+        cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '6px 12px',
+        borderRadius: 999,
+        fontSize: 13,
+        fontWeight: 600,
+        border: checked
+          ? `1.5px solid ${accentVar}`
+          : '1px solid var(--rule-strong)',
+        background: checked
+          ? `color-mix(in oklch, ${accentVar} 14%, var(--paper))`
+          : 'var(--paper)',
+        color: checked ? accentVar : 'var(--ink-2)',
+        transition: 'background-color 120ms ease, border-color 120ms ease',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        defaultChecked={checked}
+        style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
+      />
+      {accent !== 'ink' && (
+        <span
+          aria-hidden="true"
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            background: accentVar,
+            display: 'inline-block',
+          }}
+        />
+      )}
+      {label}
+    </label>
   );
 }
 

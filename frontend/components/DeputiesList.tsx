@@ -442,14 +442,25 @@ export function DeputiesList({
       <style>{`
         .persons-hub-grid {
           display: grid;
-          grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+          /* Was 7:3 — the hemicycle ate ~70% of a wide-desktop page
+             which dwarfed everything else. 5:5 plus an absolute cap
+             on the hemicycle column gives the deputies list room to
+             breathe and stops the chart from feeling like the page
+             headline on big monitors. */
+          grid-template-columns: minmax(0, 5fr) minmax(0, 5fr);
           gap: 28px;
           align-items: start;
+        }
+        .persons-hub-hemicycle {
+          max-width: 520px;
         }
         @media (max-width: 900px) {
           .persons-hub-grid {
             grid-template-columns: 1fr;
             gap: 20px;
+          }
+          .persons-hub-hemicycle {
+            max-width: none;
           }
         }
       `}</style>

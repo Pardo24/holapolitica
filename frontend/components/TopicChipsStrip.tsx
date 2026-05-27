@@ -100,7 +100,7 @@ export function TopicChipsStrip({
   if (ordered.length === 0) return null;
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="topic-chips-wrapper" style={{ position: 'relative' }}>
       {canLeft && (
         <button
           type="button"
@@ -133,8 +133,11 @@ export function TopicChipsStrip({
           // Lock vertical overflow so the bigger desktop chips can't
           // push the strip into a scrollable box of their own.
           overflowY: 'hidden',
+          // Symmetric vertical padding so the absolute-positioned
+          // arrows land exactly on the chip midline (the previous
+          // ``4 / 12`` was visually off-centre).
           scrollSnapType: 'x proximity',
-          padding: '4px 2px 12px',
+          padding: '6px 2px 6px',
         }}
       >
         <Link
@@ -221,12 +224,12 @@ export function TopicChipsStrip({
             font-size: 12px !important;
           }
         }
-        /* End-of-strip arrow buttons. Pinned absolutely to the
-           horizontal edges of the strip wrapper with a soft fade
-           background so they read as a hint of "more to see" rather
-           than chrome. Hidden on touch devices where the user can
-           just swipe; shown on devices with a pointer that has hover
-           (typically desktop). */
+        /* End-of-strip arrow buttons. On desktop the wrapper reserves
+           38 px of horizontal padding so the buttons live INSIDE that
+           reserved space without overlapping the first/last chip
+           (previously the left button covered the "Tots els temes"
+           chip on wide screens). On touch the wrapper has no extra
+           padding and the buttons are hidden — users swipe instead. */
         .topic-chips-arrow {
           position: absolute;
           top: 50%;
@@ -254,10 +257,14 @@ export function TopicChipsStrip({
         .topic-chips-arrow:active {
           transform: translateY(-50%) scale(0.94);
         }
-        .topic-chips-arrow--left { left: -6px; }
-        .topic-chips-arrow--right { right: -6px; }
+        .topic-chips-arrow--left { left: 0; }
+        .topic-chips-arrow--right { right: 0; }
         @media (hover: hover) and (pointer: fine) {
           .topic-chips-arrow { display: inline-flex; }
+          .topic-chips-wrapper {
+            padding-left: 38px;
+            padding-right: 38px;
+          }
         }
       `}</style>
     </div>
