@@ -110,6 +110,9 @@ function normalize(s: string): string {
 
 export function NotificationsManager({ topics, groups = [] }: Props) {
   const t = useTranslations('notifications');
+  // `locale` is used by the pre-subscription topic grid to localise
+  // the macro-category labels rendered around each accordion section.
+  const locale = useLocale();
   const [phase, setPhase] = useState<Phase>('init');
   // `selected` is the in-flight selection (dirty). `applied` is the last
   // selection successfully persisted to the server; we use the diff to
@@ -318,62 +321,114 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
     }
   }, [endpoint, t]);
 
-  // Pre-subscribed phases (not-granted, granted-no-sub) still use the
-  // legacy flat grid because the user hasn't committed to any subscription
-  // yet — this is essentially an opt-in selection step before the
-  // permission prompt. Keeping it visually different from the post-
-  // subscription "settings" view makes the journey clearer.
+  // Pre-subscribed phases (not-granted, granted-no-sub) show the
+  // same macro-category grouping as the post-subscribe SubscribedView
+  // — a wall of 17 flat checkboxes is daunting, and the user is
+  // making the same choice in both surfaces (which themes to listen
+  // to). SDGs are filtered out because the Agenda 2030 taxonomy is
+  // disabled site-wide.
+  const themesByCategory = useMemo(() => {
+    const themes = topics.filter((tp) => tp.kind === 'theme');
+    return groupTopicsByCategory(themes);
+  }, [topics]);
   const topicGrid = useMemo(
     () => (
-      <ul
+      <div
         style={{
-          listStyle: 'none',
-          margin: '16px 0 0',
-          padding: 0,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))',
-          gap: 8,
+          marginTop: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
         }}
       >
-        {topics.map((topic) => {
-          const checked = selected.has(topic.slug);
-          return (
-            <li key={topic.slug}>
-              <label
+        {themesByCategory.map(({ category, topics: catTopics }) => (
+          <details
+            key={category ? category.slug : 'altres'}
+            // Open the first category by default so the user can pick
+            // immediately. Subsequent categories collapse to keep the
+            // panel compact.
+            open={
+              category != null &&
+              category.slug === themesByCategory[0]?.category?.slug
+            }
+            style={{
+              border: '1px solid var(--rule)',
+              borderRadius: 8,
+              background: 'var(--paper)',
+            }}
+          >
+            <summary
+              style={{
+                cursor: 'pointer',
+                padding: '10px 14px',
+                fontSize: 13,
+                fontWeight: 700,
+                color: 'var(--ink)',
+                listStyle: 'none',
+                userSelect: 'none',
+              }}
+            >
+              {category ? categoryLabel(category, locale) : t('section_other')}
+              <span
+                className="tabular"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '10px 12px',
-                  border: '1px solid var(--ink)',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                  background: checked ? 'var(--ink)' : 'transparent',
-                  // `--bg` is not a defined token — paper is. The
-                  // typo silently fell back to the inherited dark
-                  // ink, turning the checked chip into black text on
-                  // black background (unreadable). Daniel reported
-                  // it twice; this is the actual fix.
-                  color: checked ? 'var(--paper)' : 'var(--ink)',
-                  fontSize: 13,
-                  minHeight: 44,
+                  marginLeft: 8,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--ink-3)',
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggle(topic.slug)}
-                  disabled={busy}
-                  aria-label={topic.name_ca}
-                />
-                <span style={{ flex: 1 }}>{topic.name_ca}</span>
-              </label>
-            </li>
-          );
-        })}
-      </ul>
+                · {catTopics.length}
+              </span>
+            </summary>
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: '4px 14px 14px',
+                display: 'grid',
+                gridTemplateColumns:
+                  'repeat(auto-fill, minmax(min(220px, 100%), 1fr))',
+                gap: 8,
+              }}
+            >
+              {catTopics.map((topic) => {
+                const checked = selected.has(topic.slug);
+                return (
+                  <li key={topic.slug}>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '10px 12px',
+                        border: '1px solid var(--ink)',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        background: checked ? 'var(--ink)' : 'transparent',
+                        color: checked ? 'var(--paper)' : 'var(--ink)',
+                        fontSize: 13,
+                        minHeight: 44,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggle(topic.slug)}
+                        disabled={busy}
+                        aria-label={topic.name_ca}
+                      />
+                      <span style={{ flex: 1 }}>{topic.name_ca}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
+        ))}
+      </div>
     ),
-    [topics, selected, busy, toggle],
+    [themesByCategory, selected, busy, toggle, locale, t],
   );
 
   if (phase === 'init') {
