@@ -51,6 +51,24 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
     ("monitor-ingest-latest-votes", "ingest", "0 */4 * * *", jobs.ingest_latest_votes),
     ("monitor-ingest-deputies", "ingest", "30 6 * * *", jobs.ingest_active_deputies),
     ("monitor-ingest-initiatives", "ingest", "45 6 * * *", jobs.ingest_initiatives),
+    # PNL (Proposición no de Ley, series 162) scraped from the
+    # Liferay search portlet — daily, after the bulk-JSON initiatives
+    # importer so the two upserts don't fight for the same row. PNLs
+    # are roughly half of plenary votes; without this job the topic
+    # classifier (below) never sees them, leaving /avui rows
+    # "Sense classificar" forever. See ``app/ingest/congreso/pnl.py``.
+    ("monitor-ingest-pnl", "ingest", "50 6 * * *", jobs.ingest_pnl),
+    # Auto-classify any initiative that still lacks a topic from the
+    # current LLM provider. Runs every 6 h so a backlog after the daily
+    # PNL ingest catches up within a day, then becomes a near-no-op
+    # (just newly-imported rows each tick). ``batch_size=200`` caps
+    # the LLM cost — Mistral pricing makes a full run cents/day.
+    (
+        "monitor-classify-pending",
+        "ingest",
+        "30 */6 * * *",
+        jobs.classify_pending_initiatives,
+    ),
     # Upcoming agenda: daily at 08:00 (after the calendar publishes any
     # overnight Mesa decisions), plus an extra Monday 14:00 run because the
     # Mesa typically tweaks the week's pleno on Friday afternoon / Monday

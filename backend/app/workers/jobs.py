@@ -261,6 +261,128 @@ def ingest_initiatives() -> int:
     return asyncio.run(_run())
 
 
+def ingest_pnl() -> dict[str, int]:
+    """RQ entrypoint: scrape Proposiciones no de Ley and upsert them.
+
+    The Congreso bulk JSON dataset only covers Proyectos (121),
+    Proposiciones de Ley (122) and Reformas (127). PNLs (162) are
+    scraped from the Liferay search portlet by :mod:`app.ingest.congreso.pnl`,
+    which yields the same :class:`InitiativeImporter` rows. Once PNLs
+    exist as Initiative records the scheduled classifier picks them up
+    and inherits topics through to their linked votes — closing the
+    "lots of votes with no theme" gap on /avui.
+
+    Idempotent: re-runs upsert by ``official_id``. Polite to the
+    upstream portal (one-second inter-page delay). XV legislatura only
+    for now — earlier legislatures aren't yet imported anywhere.
+    """
+    from dataclasses import asdict
+
+    from app.ingest.congreso.pnl import import_pnl_xv
+
+    async def _run() -> dict[str, int]:
+        stats = await import_pnl_xv()
+        await _invalidate_aggregate_caches()
+        return {k: int(v) for k, v in asdict(stats).items()}
+
+    return asyncio.run(_run())
+
+
+def classify_pending_initiatives(batch_size: int = 200, kind: str = "theme") -> dict[str, int]:
+    """RQ entrypoint: classify a batch of initiatives that still lack a topic.
+
+    Builds the classifier configured by :data:`Settings.llm_provider`
+    (Mistral in production, Keyword fallback in dev) and walks every
+    Initiative that has NO :class:`InitiativeTopic` row from that
+    classifier in the requested knowledge base. Each row is classified
+    in its own DB session so a single failure doesn't roll back the
+    whole batch.
+
+    ``batch_size`` caps the work per cron tick so a runaway provider
+    can't pin the worker. With ~200 initiatives per run at <1 s/call
+    via Mistral the batch finishes well under a minute, and the
+    scheduler can catch up over a few ticks even on a backlog of
+    several thousand. The classifier service itself is idempotent:
+    re-running on an already-classified initiative replaces just that
+    row's topic assignments, which is why we filter ahead of time
+    here — to actually make forward progress and not burn budget on
+    re-classification.
+
+    Returns a small counter dict for RQ dashboard surfacing.
+    """
+    from sqlalchemy import exists as sql_exists
+    from sqlalchemy import select as _select
+
+    from app.classify.service import (
+        ClassificationService,
+        _classified_by_label,
+    )
+    from app.models import Initiative, InitiativeTopic
+
+    async def _run() -> dict[str, int]:
+        classifier = build_classifier()
+        classified_by = _classified_by_label(classifier.name, kind)
+
+        # Pick up to ``batch_size`` initiatives with NO existing topic
+        # from this (classifier, kind) pair. Newest first so reading
+        # users see fresh classifications on /avui sooner; the
+        # scheduler still catches up on the tail across multiple ticks.
+        async with AsyncSessionLocal() as session:
+            subq = (
+                _select(InitiativeTopic.id)
+                .where(InitiativeTopic.initiative_id == Initiative.id)
+                .where(InitiativeTopic.classified_by == classified_by)
+            )
+            stmt = (
+                _select(Initiative.id)
+                .where(~sql_exists(subq))
+                .order_by(Initiative.id.desc())
+                .limit(batch_size)
+            )
+            ids = [int(i) for i in (await session.execute(stmt)).scalars().all()]
+
+        if not ids:
+            log.info(
+                "classify.pending.empty",
+                kind=kind,
+                classifier=classifier.name,
+            )
+            return {"attempted": 0, "succeeded": 0, "failed": 0}
+
+        succeeded = 0
+        failed = 0
+        for initiative_id in ids:
+            try:
+                async with AsyncSessionLocal() as session:
+                    service = ClassificationService(session, classifier)
+                    await service.classify_initiative(initiative_id, kind=kind)
+                succeeded += 1
+            except Exception as exc:
+                log.warning(
+                    "classify.pending.failed",
+                    initiative_id=initiative_id,
+                    error=str(exc),
+                )
+                failed += 1
+
+        # Bust caches once at the end so /avui + /stats + topic globals
+        # see the new assignments. Skipping when every row failed would
+        # be a premature optimisation — invalidate is cheap.
+        await _invalidate_aggregate_caches()
+
+        log.info(
+            "classify.pending.done",
+            kind=kind,
+            classifier=classifier.name,
+            attempted=len(ids),
+            succeeded=succeeded,
+            failed=failed,
+        )
+        return {"attempted": len(ids), "succeeded": succeeded, "failed": failed}
+
+    return asyncio.run(_run())
+
+
 def ingest_upcoming_agenda() -> dict[str, int]:
     """RQ entrypoint: refresh the upcoming agenda (calendar + next orden del día).
 
