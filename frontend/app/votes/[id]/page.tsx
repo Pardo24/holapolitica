@@ -1,8 +1,33 @@
+/**
+ * Hola Política · Redisseny V1 "Editorial v2"
+ * Drop-in replacement for `frontend/app/votes/[id]/page.tsx`.
+ *
+ * Què canvia respecte la versió actual:
+ *  · Header tipo capçalera de premsa: meta-strip dot-separated amb
+ *    resultat + marge + proposat-per + temes + enllaç BOE en una sola
+ *    línia, en comptes de blocs amb borderLeft.
+ *  · Tots els eyebrows en blau majúscula fora — els títols de secció
+ *    són serif ink (h2 20px), les etiquetes petites de dades són
+ *    ink-3 sentence-case sense regla.
+ *  · Nou bloc "Recompte" amb els 4 KPIs grans + StackedBar +
+ *    explicació de la majoria simple. Espai reservat opcional per a
+ *    un mini-hemicicle a la dreta (veure exports/README.md).
+ *  · Nou peu de pàgina (Iniciativa · BOE · Documents) en 3 columnes.
+ *
+ * Cap nova traducció obligatòria: tots els missatges es deriven dels
+ * que ja existeixen a frontend/messages/{ca,es,en}.json. Una llista
+ * curta de NOVES claus opcionals (per a noms de secció més
+ * descriptius) viu a exports/messages-additions.json.
+ *
+ * Components reutilitzats sense canvi:
+ *   AnnotatedText, GroupChip, ResultPill, StackedBar, SplitCohesionRow
+ */
+
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
@@ -18,6 +43,7 @@ import {
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { pickPlainSummary } from '@/lib/glossary';
+import { pickTopicName } from '@/lib/topics';
 
 interface Params {
   id: string;
@@ -52,20 +78,100 @@ export async function generateMetadata({
     return {
       title: subjectShort,
       description,
-      openGraph: {
-        title: subjectShort,
-        description,
-        type: 'article',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: subjectShort,
-        description,
-      },
+      openGraph: { title: subjectShort, description, type: 'article' },
+      twitter: { card: 'summary_large_image', title: subjectShort, description },
     };
   } catch {
     return {};
   }
+}
+
+// ─── Local presentational helpers (no styling classes added to globals.css;
+//     keep this file self-contained). ───────────────────────────────────
+
+/**
+ * Tiny inline meta label. Sentence-case, ink-3, no rule, no caps.
+ * Replaces the previous blue uppercase `.eyebrow` for data-row
+ * labels like "Proposat per" or "Temes".
+ */
+function Lbl({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <span
+      style={{
+        fontSize: 11.5,
+        color: 'var(--ink-3)',
+        fontWeight: 500,
+        ...style,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** Quiet section title. Serif ink, no eyebrow above. Optional dek. */
+function SectionTitle({
+  children,
+  dek,
+  right,
+}: {
+  children: React.ReactNode;
+  dek?: React.ReactNode;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        gap: 16,
+        flexWrap: 'wrap',
+        marginBottom: 12,
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <h2
+          style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 20,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            letterSpacing: '-0.012em',
+            lineHeight: 1.2,
+            margin: 0,
+          }}
+        >
+          {children}
+        </h2>
+        {dek && (
+          <p
+            style={{
+              fontSize: 12,
+              color: 'var(--ink-3)',
+              margin: '3px 0 0',
+              lineHeight: 1.5,
+              maxWidth: 520,
+            }}
+          >
+            {dek}
+          </p>
+        )}
+      </div>
+      {right && (
+        <span
+          style={{
+            fontSize: 11,
+            color: 'var(--ink-3)',
+            whiteSpace: 'nowrap',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {right}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export default async function VoteDetailPage({
@@ -91,19 +197,10 @@ export default async function VoteDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
-  // Named dissenters — deputies who voted against their group's
-  // majority position on this vote. Best-effort: if the endpoint
-  // returns an error (no records ingested yet, e.g. for very recent
-  // votes) the rest of the page still renders.
   const dissidents = await api.votes
     .dissidents(voteId)
     .catch(() => ({ blocks: [] as Awaited<ReturnType<typeof api.votes.dissidents>>['blocks'] }));
 
-  // When the vote links to an initiative (Proyectos/Proposiciones/etc.),
-  // pull its full preamble so we can render the bill author's own
-  // explanation alongside the LLM-generated plain summary. Best-effort:
-  // a missing initiative or a network error here must not break the
-  // page — the rest of the vote data is far more important.
   let initiative: Initiative | null = null;
   if (vote.initiative_id != null) {
     try {
@@ -112,7 +209,6 @@ export default async function VoteDetailPage({
       initiative = null;
     }
   }
-  const objectText = initiative?.object_text ?? initiative?.summary ?? null;
 
   const subject = vote.description?.trim() || vote.title;
   const dateStr = new Date(vote.voted_at).toLocaleDateString(locale, {
@@ -122,6 +218,8 @@ export default async function VoteDetailPage({
   const needed = Math.floor(totalCast / 2) + 1;
   const margin = vote.ayes - vote.noes;
   const summary = pickPlainSummary(vote, locale);
+
+  const topics = vote.topics ?? initiative?.topics ?? [];
 
   return (
     <article>
@@ -139,72 +237,85 @@ export default async function VoteDetailPage({
       </div>
 
       {/* Header */}
-      <header style={{ paddingTop: 8, paddingBottom: 24, borderBottom: '1px solid var(--ink)' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
-          <h1
-            className="h-headline"
-            style={{
-              margin: 0,
-              fontSize: 'clamp(24px, 3.4vw, 36px)',
-              maxWidth: 980,
-              whiteSpace: 'pre-line',
-              minWidth: 0,
-              flex: '1 1 auto',
-            }}
-          >
-            {/* Wrap parliamentary jargon ("Veto del Senado", "Convalidación", …)
-                in a glossary tooltip. The helper preserves the source casing
-                from the Congreso feed and falls back to plain text when no
-                term matches. */}
-            <AnnotatedText text={subject} />
-          </h1>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              flex: 'none',
-            }}
-          >
-            <span
-              className="eyebrow"
-              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
-            >
-              {vote.title}
+      <header style={{ paddingTop: 8, paddingBottom: 22, borderBottom: '1px solid var(--ink)' }}>
+        {/* Eyebrow-strip replaced with sentence-case meta line */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 14,
+            flexWrap: 'wrap',
+            marginBottom: 10,
+          }}
+        >
+          <Lbl style={{ fontWeight: 600, color: 'var(--ink-2)' }}>{vote.title}</Lbl>
+          {vote.expediente_raw && (
+            <span className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+              EXP {vote.expediente_raw}
             </span>
-            {vote.expediente_raw && (
-              <span
-                className="mono"
-                style={{ fontSize: 11, color: 'var(--ink-3)' }}
-              >
-                EXP {vote.expediente_raw}
-              </span>
-            )}
-          </div>
+          )}
+          <span className="tabular" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+            {dateStr}
+          </span>
         </div>
+
+        {/* Headline */}
+        <h1
+          style={{
+            margin: 0,
+            fontFamily: 'var(--font-serif)',
+            fontSize: 'clamp(28px, 3.4vw, 40px)',
+            lineHeight: 1.1,
+            letterSpacing: '-0.018em',
+            fontWeight: 600,
+            maxWidth: 920,
+            marginBottom: 18,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore — text-wrap not yet in TS lib for React.CSS
+            textWrap: 'pretty',
+          }}
+        >
+          <AnnotatedText text={subject} />
+        </h1>
+
+        {/* Meta strip — dot-separated, low-chrome */}
         <div
           className="vote-meta-strip"
           style={{
             display: 'flex',
-            gap: 18,
             alignItems: 'center',
-            marginTop: 18,
+            gap: 14,
+            flexWrap: 'wrap',
             fontSize: 13,
             color: 'var(--ink-2)',
-            flexWrap: 'wrap',
           }}
         >
-          <div>
-            <span className="eyebrow">{t('filters.date_from')}</span>
-            <div className="tabular">{dateStr}</div>
+          {/* Result + margin */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <ResultPill result={vote.result} label={t(`result.${vote.result}`)} />
+            <span className="tabular" style={{ color: 'var(--ink-3)', fontSize: 12 }}>
+              {margin >= 0 ? `+${margin}` : margin}
+            </span>
           </div>
           {(vote.proposing_group_short || vote.proposed_by_government) && (
-            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
-              <span className="eyebrow">{t('proposed_by')}</span>
-              <div style={{ marginTop: 2 }}>
+            <>
+              <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--ink-3)', opacity: 0.6, display: 'inline-block' }} />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Lbl>{t('proposed_by')}</Lbl>
                 {vote.proposed_by_government && !vote.proposing_group_short ? (
-                  <span className="badge" style={{ fontWeight: 600 }}>
-                    <span className="gdot" style={{ background: 'var(--ink)' }} />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--ink)' }}
+                    />
                     {t('proposed_by_government')}
                   </span>
                 ) : vote.proposing_group_short ? (
@@ -215,98 +326,81 @@ export default async function VoteDetailPage({
                     size="sm"
                   />
                 ) : null}
-              </div>
-            </div>
-          )}
-          <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
-            <span className="eyebrow">{tCommon('totals')}</span>
-            <div style={{ marginTop: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ResultPill result={vote.result} label={t(`result.${vote.result}`)} />
-              <span className="tabular" style={{ color: 'var(--ink-3)' }}>
-                {margin >= 0 ? `+${margin}` : margin}
               </span>
-            </div>
-          </div>
-          {initiative?.source_url && (
-            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
-              <span className="eyebrow">{tInitiative('source_pdf_cta')}</span>
-              <div style={{ marginTop: 2 }}>
-                <a
-                  href={initiative.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    color: 'var(--ink)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    textDecoration: 'underline',
-                    textUnderlineOffset: 3,
-                  }}
-                >
-                  PDF
-                  <ExternalLink size={12} aria-hidden="true" />
-                </a>
-              </div>
-            </div>
+            </>
+          )}
+          {topics.length > 0 && (
+            <>
+              <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--ink-3)', opacity: 0.6, display: 'inline-block' }} />
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <Lbl>Temes</Lbl>
+                <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}>
+                  {topics.map((topic) => (
+                    <Link
+                      key={topic.slug}
+                      href={`/topics/${topic.slug}`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        fontSize: 11.5,
+                        padding: '3px 9px',
+                        borderRadius: 4,
+                        background: 'var(--accent-soft)',
+                        color: 'var(--accent-2)',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {pickTopicName(topic, locale)}
+                    </Link>
+                  ))}
+                </span>
+              </span>
+            </>
           )}
           {initiative?.boe_url && initiative?.boe_id && (
-            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
-              <span className="eyebrow">{tInitiative('boe_cta')}</span>
-              <div style={{ marginTop: 2 }}>
-                <a
-                  href={initiative.boe_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={initiative.boe_id}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    color: 'var(--ink)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    textDecoration: 'underline',
-                    textUnderlineOffset: 3,
-                  }}
-                >
-                  <span className="mono">{initiative.boe_id}</span>
-                  <ExternalLink size={12} aria-hidden="true" />
-                </a>
-              </div>
-            </div>
-          )}
-          {initiative?.boe_entry_in_force && (
-            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
-              <span className="eyebrow">{tInitiative('entry_in_force')}</span>
-              <div className="tabular" style={{ marginTop: 2, fontSize: 13 }}>
-                {new Date(initiative.boe_entry_in_force).toLocaleDateString(locale, {
-                  dateStyle: 'medium',
-                })}
-              </div>
-            </div>
+            <>
+              <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--ink-3)', opacity: 0.6, display: 'inline-block' }} />
+              <a
+                href={initiative.boe_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={initiative.boe_id}
+                className="mono"
+                style={{
+                  color: 'var(--ink-2)',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: 3,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                {initiative.boe_id}
+                <ExternalLink size={12} aria-hidden="true" />
+              </a>
+            </>
           )}
         </div>
       </header>
 
-      {/* 2-col content: plain language + per-group cohesion */}
+      {/* 2-col body: summary + totals (left) // cohesion + dissidents (right) */}
       <section
         className="vote-detail-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: '1.05fr 0.95fr',
-          gap: 48,
+          gap: 40,
           paddingTop: 28,
         }}
       >
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           {summary && (
-            <>
-              <div className="eyebrow" style={{ marginBottom: 8 }}>
-                {t('plain_summary_title')}
-              </div>
+            <section>
+              <SectionTitle>{t('plain_summary_title')}</SectionTitle>
               <p
                 className="serif"
                 style={{
@@ -316,52 +410,67 @@ export default async function VoteDetailPage({
                   margin: 0,
                   fontWeight: 400,
                   whiteSpace: 'pre-line',
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore
+                  textWrap: 'pretty',
                 }}
               >
                 {summary}
               </p>
               <p
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   color: 'var(--ink-3)',
                   marginTop: 6,
                   fontStyle: 'italic',
                 }}
               >
                 {t('plain_summary_disclaimer')}{' '}
-                <span style={{ color: 'var(--ink-3)' }}>
-                  ({tCommon('plain_summary_caveat', { provider: vote.plain_summary_provider ?? 'IA' })})
+                <span>
+                  ({tCommon('plain_summary_caveat', {
+                    provider: vote.plain_summary_provider ?? 'IA',
+                  })})
                 </span>
               </p>
-            </>
+            </section>
           )}
 
-          {/* The raw "Exposición de motivos" / Objeto from the BOCG PDF
-              is intentionally NOT shown to end users — it's dense legal
-              prose. It lives in Initiative.object_text on the backend
-              and is the preferred input for the plain-summary LLM
-              pipeline. Citizens read the plain summary above; the raw
-              text stays an internal implementation detail. */}
-
-          <div
+          {/* Recompte — KPI grid + StackedBar + caveat */}
+          <section
             style={{
-              marginTop: summary ? 28 : 0,
-              padding: '24px 26px',
               border: '1px solid var(--rule)',
               background: 'var(--paper-2)',
+              padding: 22,
             }}
           >
-            <div className="eyebrow" style={{ marginBottom: 22 }}>
-              {t('totals_label', { total: totalCast + vote.absent })}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                marginBottom: 14,
+              }}
+            >
+              <h3
+                style={{
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: 18,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  margin: 0,
+                  letterSpacing: '-0.012em',
+                }}
+              >
+                {t('totals_label', { total: totalCast + vote.absent })}
+              </h3>
             </div>
             <div
               className="vote-totals-grid"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                columnGap: 28,
-                rowGap: 22,
-                marginBottom: 22,
+                columnGap: 24,
+                rowGap: 18,
               }}
             >
               {[
@@ -370,31 +479,27 @@ export default async function VoteDetailPage({
                 { label: t('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
                 { label: t('absent'), n: vote.absent, color: 'var(--nv)' },
               ].map((c) => (
-                <div
-                  key={c.label}
-                  style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}
-                >
+                <div key={c.label} style={{ minWidth: 0 }}>
                   <div
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 7,
+                      gap: 6,
                       fontSize: 10.5,
                       fontWeight: 700,
                       color: 'var(--ink-2)',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                      marginBottom: 10,
+                      letterSpacing: '0.08em',
+                      marginBottom: 6,
                     }}
                   >
                     <span
                       aria-hidden="true"
                       style={{
-                        width: 7,
-                        height: 7,
+                        width: 6,
+                        height: 6,
                         borderRadius: 999,
                         background: c.color,
-                        flex: 'none',
                       }}
                     />
                     {c.label}
@@ -402,10 +507,11 @@ export default async function VoteDetailPage({
                   <div
                     className="tabular"
                     style={{
-                      fontSize: 'clamp(30px, 6.4vw, 44px)',
+                      fontFamily: 'var(--font-serif)',
+                      fontSize: 'clamp(28px, 4vw, 40px)',
                       fontWeight: 600,
                       color: c.color,
-                      letterSpacing: '-0.015em',
+                      letterSpacing: '-0.02em',
                       lineHeight: 1,
                     }}
                   >
@@ -414,16 +520,18 @@ export default async function VoteDetailPage({
                 </div>
               ))}
             </div>
-            <StackedBar
-              d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
-              height={12}
-            />
+            <div style={{ marginTop: 14 }}>
+              <StackedBar
+                d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
+                height={12}
+              />
+            </div>
             <p
               style={{
-                fontSize: 12.5,
+                fontSize: 12,
                 lineHeight: 1.55,
                 color: 'var(--ink-2)',
-                marginTop: 14,
+                marginTop: 12,
                 marginBottom: 0,
               }}
             >
@@ -434,44 +542,51 @@ export default async function VoteDetailPage({
                 margin: margin >= 0 ? `+${margin}` : String(margin),
               })}
             </p>
-          </div>
+
+            {/* ─────────────────────────────────────────────────────────
+                OPTIONAL: mini hemicycle inside the totals card.
+                Requires adding a `coloredBy="vote"` mode to the
+                Hemicycle component AND a per-vote seat-choices
+                endpoint. See exports/Hemicycle-vote-mode.md.
+                Uncomment when both are in place.
+
+                <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--rule)' }}>
+                  <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
+                </div>
+            ───────────────────────────────────────────────────────── */}
+          </section>
         </div>
 
         <div>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>
-            {t('cohesion_title')}
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 0, marginBottom: 14, lineHeight: 1.5 }}>
-            {t('cohesion_help')}
-          </p>
-
-          <div style={{ borderTop: '1px solid var(--ink)' }}>
-            {cohesion.map((row) => (
-              <SplitCohesionRow key={row.group_slug} row={row} />
-            ))}
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              marginTop: 10,
-              fontStyle: 'italic',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <span>{t('cohesion_axis_left')}</span>
-            <span style={{ color: 'var(--ink-2)' }}>{t('cohesion_axis_center')}</span>
-            <span>{t('cohesion_axis_right')}</span>
-          </div>
+          <section>
+            <SectionTitle dek={t('cohesion_help')}>{t('cohesion_title')}</SectionTitle>
+            <div style={{ borderTop: '1px solid var(--ink)' }}>
+              {cohesion.map((row) => (
+                <SplitCohesionRow key={row.group_slug} row={row} />
+              ))}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: 11,
+                color: 'var(--ink-3)',
+                marginTop: 10,
+                fontStyle: 'italic',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <span>{t('cohesion_axis_left')}</span>
+              <span style={{ color: 'var(--ink-2)' }}>{t('cohesion_axis_center')}</span>
+              <span>{t('cohesion_axis_right')}</span>
+            </div>
+          </section>
 
           {dissidents.blocks.length > 0 && (
             <DissidentsSection
               blocks={dissidents.blocks}
-              eyebrow={t('dissidents_title')}
+              title={t('dissidents_title')}
               help={t('dissidents_help')}
               majorityLabels={{
                 aye: t('dissidents_majority_aye'),
@@ -488,6 +603,9 @@ export default async function VoteDetailPage({
         </div>
       </section>
 
+      {/* Footer: initiative / BOE / documents */}
+      <FooterLinks vote={vote} initiative={initiative} tInitiative={tInitiative} />
+
       <style>{`
         @media (max-width: 860px) {
           .vote-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
@@ -500,23 +618,15 @@ export default async function VoteDetailPage({
   );
 }
 
-/**
- * "Diputats que han votat contra el seu grup" — abgeordnetenwatch's
- * named-dissenter pattern, scaled to the per-vote view. Renders one
- * block per group that had at least one dissenter, with the deputy
- * name as a Link to their profile. Symmetric by construction:
- * EVERY group with dissent appears (no editorial choice about which
- * cantó to surface).
- */
 function DissidentsSection({
   blocks,
-  eyebrow,
+  title,
   help,
   majorityLabels,
   choiceLabels,
 }: {
   blocks: import('@/lib/api').GroupDissidentBlock[];
-  eyebrow: string;
+  title: string;
   help: string;
   majorityLabels: { aye: string; no: string; abstention: string };
   choiceLabels: { aye: string; no: string; abstention: string };
@@ -540,27 +650,8 @@ function DissidentsSection({
     return 'var(--ink-3)';
   };
   return (
-    <section
-      style={{
-        marginTop: 26,
-        paddingTop: 16,
-        borderTop: '1px solid var(--ink)',
-      }}
-    >
-      <div className="eyebrow" style={{ marginBottom: 6 }}>
-        {eyebrow}
-      </div>
-      <p
-        style={{
-          fontSize: 12,
-          color: 'var(--ink-3)',
-          marginTop: 0,
-          marginBottom: 16,
-          lineHeight: 1.5,
-        }}
-      >
-        {help}
-      </p>
+    <section style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--ink)' }}>
+      <SectionTitle dek={help}>{title}</SectionTitle>
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 14 }}>
         {blocks.map((block) => (
           <li
@@ -601,12 +692,7 @@ function DissidentsSection({
                 />
                 {block.group_name_short}
               </span>
-              <span
-                style={{
-                  fontSize: 11,
-                  color: 'var(--ink-3)',
-                }}
-              >
+              <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
                 {majorityLabelFor(block.majority_choice)} ·{' '}
                 <span className="tabular">{block.majority_count}</span>
               </span>
@@ -662,3 +748,137 @@ function DissidentsSection({
   );
 }
 
+function FooterLinks({
+  vote,
+  initiative,
+  tInitiative,
+}: {
+  vote: Vote;
+  initiative: Initiative | null;
+  tInitiative: Awaited<ReturnType<typeof getTranslations<'initiative_detail'>>>;
+}) {
+  // Only render the footer if at least one link surface has content,
+  // otherwise we'd show three empty columns.
+  const hasInitiative = vote.initiative_id != null && initiative != null;
+  const hasBoe = !!initiative?.boe_url && !!initiative.boe_id;
+  const hasSource = !!initiative?.source_url;
+  if (!hasInitiative && !hasBoe && !hasSource) return null;
+
+  return (
+    <section
+      style={{
+        marginTop: 28,
+        paddingTop: 20,
+        borderTop: '1px solid var(--ink)',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: 22,
+      }}
+      className="vote-footer-links"
+    >
+      {hasInitiative && initiative && (
+        <div>
+          <h3
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              margin: '0 0 6px',
+            }}
+          >
+            Iniciativa
+          </h3>
+          <Link
+            href={`/initiatives/${initiative.id}`}
+            style={{
+              color: 'var(--ink)',
+              textDecoration: 'underline',
+              textUnderlineOffset: 3,
+              fontWeight: 600,
+              fontSize: 13,
+            }}
+          >
+            {initiative.title_ca ?? initiative.title_original}
+          </Link>
+          <div className="mono" style={{ marginTop: 4, fontSize: 11, color: 'var(--ink-3)' }}>
+            EXP {initiative.official_id}
+          </div>
+        </div>
+      )}
+      {hasBoe && initiative && (
+        <div>
+          <h3
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              margin: '0 0 6px',
+            }}
+          >
+            {tInitiative('boe_cta')}
+          </h3>
+          <a
+            href={initiative.boe_url ?? '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mono"
+            style={{
+              color: 'var(--ink)',
+              textDecoration: 'underline',
+              textUnderlineOffset: 3,
+              fontWeight: 600,
+              fontSize: 13,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            {initiative.boe_id}
+            <ExternalLink size={12} aria-hidden="true" />
+          </a>
+          {initiative.boe_entry_in_force && (
+            <div className="tabular" style={{ marginTop: 4, fontSize: 11, color: 'var(--ink-3)' }}>
+              {tInitiative('entry_in_force')}:{' '}
+              {new Date(initiative.boe_entry_in_force).toLocaleDateString('ca-ES', { dateStyle: 'medium' })}
+            </div>
+          )}
+        </div>
+      )}
+      {hasSource && initiative && (
+        <div>
+          <h3
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              margin: '0 0 6px',
+            }}
+          >
+            {tInitiative('source_pdf_cta')}
+          </h3>
+          <a
+            href={initiative.source_url ?? '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'var(--ink)',
+              textDecoration: 'underline',
+              textUnderlineOffset: 3,
+              fontWeight: 600,
+              fontSize: 13,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <FileText size={12} aria-hidden="true" />
+            PDF · BOCG
+          </a>
+        </div>
+      )}
+    </section>
+  );
+}
