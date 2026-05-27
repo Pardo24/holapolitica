@@ -143,40 +143,40 @@ export default async function JournalistsPage() {
           title={t('widget_dossier_title')}
           description={t('widget_dossier_desc')}
           src={`/embed/initiatives/${sampleInitiativeId}`}
-          height={460}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="460" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_dossier')}"\n></iframe>`}
+          height={560}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="560" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_dossier')}"\n></iframe>`}
         />
 
         <EmbedExample
           title={t('widget_explorer_title')}
           description={t('widget_explorer_desc')}
           src="/embed/explorer?topic=habitatge&result=approved&limit=6"
-          height={520}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_explorer')}"\n></iframe>\n<!-- ${t('explorer_params_comment')} -->`}
+          height={640}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="640" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_explorer')}"\n></iframe>\n<!-- ${t('explorer_params_comment')} -->`}
         />
 
         <EmbedExample
           title={t('widget_vote_title')}
           description={t('widget_vote_desc')}
           src={`/embed/votes/${sampleVoteId}`}
-          height={400}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="400" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
+          height={520}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
         />
 
         <EmbedExample
           title={t('widget_group_title')}
           description={t('widget_group_desc')}
           src="/embed/groups/gp-socialista"
-          height={300}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="300" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_group')}"\n></iframe>`}
+          height={400}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="400" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_group')}"\n></iframe>`}
         />
 
         <EmbedExample
           title={t('widget_topic_title')}
           description={t('widget_topic_desc')}
           src="/embed/topics/habitatge"
-          height={220}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/topics/<slug>"\n  width="100%" height="220" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_topic')}"\n></iframe>`}
+          height={280}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/topics/<slug>"\n  width="100%" height="280" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_topic')}"\n></iframe>`}
         />
 
         <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>

@@ -394,12 +394,14 @@ function StackedBar({
 }
 
 /**
- * One row of the per-group cohesion strip. Renders a thin stacked
- * bar of the group's own ayes / noes / abstentions / no-vote so the
- * journalist can see at a glance "PSOE voted block-aye, PP split"
- * without leaving their CMS. No numeric cohesion percentage —
- * different newsroom audiences read 0.92 differently; the visual
- * proportion is the universal language.
+ * One row of the per-group cohesion strip. Previous design rendered a
+ * 6 px stacked bar per group — at 4 groups stacked the slivers were
+ * too thin to identify and the colour mix read as visual noise. The
+ * new layout shows the GROUP'S MAJORITY VOTE as a single coloured
+ * pill ("Sí 120" / "No 88" / "Abst. 11" / "Absent 3"), which a
+ * journalist can parse at a glance, plus the cohesion percentage to
+ * the right. When the group split (no clear majority) we render a
+ * subtle "Dividit" pill to flag the case without inventing a winner.
  */
 function CohesionRow({
   label,
@@ -422,20 +424,41 @@ function CohesionRow({
 }) {
   const total = ayes + noes + abstentions + noVote;
   if (total === 0) return null;
-  // Pre-format the "this-vote vs legislature-average" cohesion delta
-  // so the row gets a single, compact "92% (avg 88%)" pill. Avg is
-  // best-effort: skipped when groupSummary failed for this group.
   const votePct =
     voteCohesion != null ? Math.round(voteCohesion * 100) : null;
   const avgPct = avgCohesion != null ? Math.round(avgCohesion * 100) : null;
+
+  // Find the majority choice. Ties between buckets are extremely rare
+  // (a group of 12 voting 6-6 ayes/noes happens once in a legislature
+  // at most) so we just pick the highest and surface the second-place
+  // count as a footnote only when the gap is small.
+  const buckets = [
+    { key: 'aye', n: ayes, color: 'var(--aye)', label: 'Sí' },
+    { key: 'no', n: noes, color: 'var(--no)', label: 'No' },
+    { key: 'abst', n: abstentions, color: 'var(--abst)', label: 'Abst.' },
+    { key: 'absent', n: noVote, color: 'var(--ink-3)', label: 'Absent' },
+  ];
+  const sorted = [...buckets].sort((a, b) => b.n - a.n);
+  const winner = sorted[0]!;
+  const runnerUp = sorted[1]!;
+  // A group reads as "Dividit" when the top two buckets are within
+  // 30% of each other AND neither carried > 60% of the group. Tuned
+  // so a tight PSOE+ERC alignment vs a defecting handful (e.g. 96-3)
+  // still reads as "Sí", but a genuine internal split (8-6-2) flips
+  // to "Dividit". The boundary is arbitrary but applied consistently.
+  const isSplit =
+    runnerUp.n > 0 &&
+    winner.n / total < 0.6 &&
+    runnerUp.n / winner.n > 0.7;
+
   return (
     <li
       style={{
         display: 'grid',
-        gridTemplateColumns: '76px minmax(0, 1fr) 84px',
+        gridTemplateColumns: '110px minmax(0, 1fr) 86px',
         alignItems: 'center',
-        gap: 10,
-        fontSize: 11,
+        gap: 12,
+        fontSize: 12,
         color: 'var(--ink)',
       }}
     >
@@ -443,7 +466,7 @@ function CohesionRow({
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 5,
+          gap: 6,
           minWidth: 0,
           overflow: 'hidden',
         }}
@@ -451,8 +474,8 @@ function CohesionRow({
         <span
           aria-hidden="true"
           style={{
-            width: 7,
-            height: 7,
+            width: 9,
+            height: 9,
             borderRadius: 999,
             background: color,
             flex: 'none',
@@ -461,7 +484,7 @@ function CohesionRow({
         />
         <span
           style={{
-            fontWeight: 600,
+            fontWeight: 700,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -470,27 +493,54 @@ function CohesionRow({
           {label}
         </span>
       </span>
-      <div
-        style={{
-          display: 'flex',
-          height: 6,
-          overflow: 'hidden',
-          background: 'var(--rule)',
-        }}
-      >
-        {ayes > 0 && (
-          <span style={{ width: `${(ayes / total) * 100}%`, background: 'var(--aye)' }} />
-        )}
-        {noes > 0 && (
-          <span style={{ width: `${(noes / total) * 100}%`, background: 'var(--no)' }} />
-        )}
-        {abstentions > 0 && (
-          <span style={{ width: `${(abstentions / total) * 100}%`, background: 'var(--abst)' }} />
-        )}
-        {noVote > 0 && (
-          <span style={{ width: `${(noVote / total) * 100}%`, background: 'var(--nv, #CBD5E1)' }} />
-        )}
-      </div>
+      {isSplit ? (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 10px',
+            borderRadius: 999,
+            background: 'var(--paper-3)',
+            border: '1px dashed var(--rule-strong)',
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--ink-2)',
+            whiteSpace: 'nowrap',
+            justifySelf: 'start',
+          }}
+        >
+          Dividit · {winner.label} {winner.n} / {runnerUp.label} {runnerUp.n}
+        </span>
+      ) : (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            padding: '4px 12px',
+            borderRadius: 999,
+            background: `color-mix(in oklch, ${winner.color} 18%, var(--paper))`,
+            border: `1px solid color-mix(in oklch, ${winner.color} 38%, var(--paper))`,
+            fontSize: 12,
+            fontWeight: 700,
+            color: winner.color,
+            whiteSpace: 'nowrap',
+            justifySelf: 'start',
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: 999,
+              background: winner.color,
+            }}
+          />
+          {winner.label} · {winner.n}
+        </span>
+      )}
       {votePct != null ? (
         <span
           className="tabular"
@@ -500,7 +550,7 @@ function CohesionRow({
               : undefined
           }
           style={{
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 600,
             color: 'var(--ink-2)',
             textAlign: 'right',
