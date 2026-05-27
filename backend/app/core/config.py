@@ -59,11 +59,14 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production-please"
     access_token_expire_minutes: int = 60 * 8  # 8 hours
 
-    # Expose Swagger / ReDoc only in non-production by default. Set
-    # BACKEND_DOCS_PUBLIC=true to override (e.g. for staging) — in
-    # production the OpenAPI spec is still useful internally but the
-    # interactive UIs shouldn't be discoverable.
-    backend_docs_public: bool = False
+    # Expose Swagger / ReDoc publicly by default. The whole project
+    # is open-data infrastructure under CC-BY 4.0 — hiding the
+    # interactive API docs would contradict the mission and force
+    # journalists / researchers to read the OpenAPI JSON by hand. Set
+    # BACKEND_DOCS_PUBLIC=false to lock them down on a staging /
+    # private instance where the visible UIs would otherwise leak
+    # info during a partial deploy.
+    backend_docs_public: bool = True
 
     # LLM provider for topic classification. ``keyword`` runs locally with
     # no API key — used as a fallback while we wire a real LLM in.
