@@ -3,9 +3,10 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import { GroupBadge } from '@/components/GroupBadge';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
-import type { InitiativeTopicSlug, Vote } from '@/lib/api';
+import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
 
@@ -51,6 +52,19 @@ export async function SessionSheet({
   locale: string;
 }) {
   const t = await getTranslations('session_sheet');
+
+  // Resolve the per-group ``logo_url`` so each VoteRow can render a
+  // proper branded badge instead of a generic colored dot. Today
+  // every entry is null in production (logos aren't seeded yet) so
+  // the badge falls back to the abbreviation disc; the API call is
+  // still cheap (one Redis-cached call per render). Failure is
+  // best-effort — the row just renders without a logo.
+  const groups = await api.groups
+    .list()
+    .catch(() => [] as ParliamentaryGroupSummary[]);
+  const groupBySlug = new Map<string, ParliamentaryGroupSummary>(
+    groups.map((g) => [g.slug, g]),
+  );
 
   // Order chronologically (oldest first within the session) so the
   // sheet reads top-to-bottom in vote sequence. We re-sort defensively
@@ -390,13 +404,20 @@ export async function SessionSheet({
           groupVotesByTopic order) so the dominant topic of the day
           reads first. Bars scale to the busiest topic of the session
           so the chart is self-comparative without needing a
-          legislature-wide reference. Hidden when there's only one
-          topic or none — a chart of one bar is noise. */}
+          legislature-wide reference.
+
+          We INCLUDE the ``__unclassified`` bucket (when present) so
+          every session day gets a chart, including days where the
+          classifier hasn't yet labelled some / all votes. Reporting
+          "X votes unclassified" honestly is better than hiding the
+          widget entirely — the page structure stays consistent
+          across days and the unclassified bar acts as a self-
+          documenting "still pending" affordance. The chart only
+          renders when there is at least one bucket, which is the
+          same as "at least one vote in the session". */}
       {ordered.length > 0 && (() => {
-        const chartGroups = groupVotesByTopic(ordered, locale).filter(
-          (g) => g.key !== '__unclassified',
-        );
-        if (chartGroups.length < 2) return null;
+        const chartGroups = groupVotesByTopic(ordered, locale);
+        if (chartGroups.length < 1) return null;
         const maxCount = Math.max(...chartGroups.map((g) => g.votes.length));
         return (
           <section style={{ marginBottom: 32 }}>
@@ -652,22 +673,28 @@ export async function SessionSheet({
                   </div>
                 </header>
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                  {groupVotes.map((v, i) => (
-                    <VoteRow
-                      key={v.id}
-                      vote={v}
-                      locale={locale}
-                      showSummary={i === 0 && groupVotes.length <= 3}
-                      resultLabel={t(`result_${v.result}`)}
-                      ayesLabel={t('ayes_short')}
-                      noesLabel={t('noes_short')}
-                      abstLabel={t('abst_short')}
-                      proposedByGovernmentLabel={t('proposed_by_government')}
-                      marginLabel={(margin) =>
-                        margin === 0 ? t('margin_tie') : t('margin_short', { margin })
-                      }
-                    />
-                  ))}
+                  {groupVotes.map((v, i) => {
+                    const proposerGroup = v.proposing_group_slug
+                      ? groupBySlug.get(v.proposing_group_slug) ?? null
+                      : null;
+                    return (
+                      <VoteRow
+                        key={v.id}
+                        vote={v}
+                        locale={locale}
+                        showSummary={i === 0 && groupVotes.length <= 3}
+                        proposerLogoUrl={proposerGroup?.logo_url ?? null}
+                        resultLabel={t(`result_${v.result}`)}
+                        ayesLabel={t('ayes_short')}
+                        noesLabel={t('noes_short')}
+                        abstLabel={t('abst_short')}
+                        proposedByGovernmentLabel={t('proposed_by_government')}
+                        marginLabel={(margin) =>
+                          margin === 0 ? t('margin_tie') : t('margin_short', { margin })
+                        }
+                      />
+                    );
+                  })}
                 </ul>
               </section>
             );
@@ -809,6 +836,7 @@ function VoteRow({
   vote,
   locale,
   showSummary,
+  proposerLogoUrl,
   resultLabel,
   ayesLabel,
   noesLabel,
@@ -819,6 +847,14 @@ function VoteRow({
   vote: Vote;
   locale: string;
   showSummary: boolean;
+  /**
+   * Pre-resolved logo URL for the proposing parliamentary group, when
+   * one is on file. Null for government-proposed votes, unknown
+   * groups, or groups whose ``logo_url`` hasn't been populated yet
+   * (the typical case in production today; ``GroupBadge`` falls back
+   * to the abbreviation disc when this is null).
+   */
+  proposerLogoUrl: string | null;
   resultLabel: string;
   ayesLabel: string;
   noesLabel: string;
@@ -829,13 +865,30 @@ function VoteRow({
   const subject = vote.description?.trim() || vote.title;
   const summary = showSummary ? pickPlainSummary(vote, locale) : null;
   const margin = Math.abs(vote.ayes - vote.noes);
+  // Topic chips — every topic the vote inherits from its linked
+  // initiative gets a chip on the row itself. Even though the
+  // surrounding section header already names the primary topic, the
+  // row-level chips make the classification visible per vote without
+  // forcing the reader to remember the section context (and also
+  // surface SECONDARY topics — a vote can have several when the
+  // initiative was classified across multiple themes).
+  const topics: InitiativeTopicSlug[] = vote.topics ?? [];
   const proposer = vote.proposing_group_short
     ? {
+        kind: 'group' as const,
         short: vote.proposing_group_short,
+        slug: vote.proposing_group_slug,
         color: vote.proposing_group_color ?? 'var(--ink-3)',
+        logoUrl: proposerLogoUrl,
       }
     : vote.proposed_by_government
-      ? { short: proposedByGovernmentLabel, color: 'var(--ink)' }
+      ? {
+          kind: 'government' as const,
+          short: proposedByGovernmentLabel,
+          slug: null,
+          color: 'var(--ink)',
+          logoUrl: null,
+        }
       : null;
   return (
     <li
@@ -913,34 +966,106 @@ function VoteRow({
               <ResultPill result={vote.result} label={resultLabel} />
             </span>
           </div>
-          {proposer && (
-            <span
+          {/* Metadata strip — proposer badge (with logo when available)
+              and topic chips. Both sit on the same line so the vote
+              row reads "the law, who tabled it, what theme(s) it
+              touches" without breaking into multiple stacked rows. On
+              narrow viewports the strip flex-wraps. */}
+          {(proposer || topics.length > 0) && (
+            <div
               style={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                gap: 8,
                 marginTop: 8,
-                padding: '3px 10px',
-                borderRadius: 999,
-                background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
-                border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--ink)',
-                whiteSpace: 'nowrap',
+                flexWrap: 'wrap',
+                minWidth: 0,
               }}
             >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: proposer.color,
-                }}
-              />
-              {proposer.short}
-            </span>
+              {proposer && proposer.kind === 'group' && proposer.slug && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '2px 10px 2px 2px',
+                    borderRadius: 999,
+                    background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
+                    border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <GroupBadge
+                    slug={proposer.slug}
+                    color={proposer.color}
+                    size="xs"
+                    link={false}
+                    logoUrl={proposer.logoUrl}
+                  />
+                  {proposer.short}
+                </span>
+              )}
+              {proposer && proposer.kind === 'government' && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    background: 'var(--paper-2)',
+                    border: '1px solid var(--rule-strong)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 999,
+                      background: proposer.color,
+                    }}
+                  />
+                  {proposer.short}
+                </span>
+              )}
+              {topics.map((tp) => (
+                <span
+                  key={tp.slug}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    background: `color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 10%, var(--paper))`,
+                    border: `1px solid color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 28%, var(--paper))`,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 2,
+                      background: tp.color_hex ?? 'var(--ink-3)',
+                    }}
+                  />
+                  {pickTopicName(tp, locale)}
+                </span>
+              ))}
+            </div>
           )}
           {summary && (
             <p

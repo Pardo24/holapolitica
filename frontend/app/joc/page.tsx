@@ -43,6 +43,8 @@ type QuizQuestion =
   | {
       kind: 'proposer';
       vote: Vote;
+      /** Display text for the law title — sanitized to remove proposer hints. */
+      subject: string;
       summary: string;
       options: { id: string; label: string; color: string | null }[];
       correctId: string;
@@ -50,6 +52,8 @@ type QuizQuestion =
   | {
       kind: 'result';
       vote: Vote;
+      /** Display text for the law title — proposer kept (result quiz doesn't care). */
+      subject: string;
       summary: string;
     };
 
@@ -65,6 +69,50 @@ function pickEligibleVote(items: Vote[], locale: string): Vote | null {
   });
   if (eligible.length === 0) return null;
   return eligible[Math.floor(Math.random() * eligible.length)] ?? null;
+}
+
+/**
+ * Redact proposer mentions from a piece of vote-related text so the
+ * quiz's "who tabled this?" question doesn't give the answer away in
+ * the prompt. The Congreso's own vote descriptions are formatted as
+ * "Proposición no de Ley del Grupo Parlamentario X, sobre Y" — and
+ * sometimes the LLM-generated plain summary echoes the same phrase —
+ * so a player who reads the subject can read the answer too. We:
+ *
+ *   - strip the "del Grupo Parlamentario <name>" boilerplate that
+ *     follows an initiative type label;
+ *   - strip "del Gobierno" / "del Govern" only when this vote is
+ *     actually government-proposed (avoids over-redacting unrelated
+ *     mentions in non-government summaries);
+ *   - blank out any literal occurrence of the actual proposer's
+ *     short name (case-insensitive, word-boundary) with an ellipsis.
+ *
+ * Only applied to proposer-type questions; result-type questions
+ * happily keep the proposer name in view.
+ */
+const PROPOSER_REDACTION = /,?\s*del\s+grupo\s+parlamentario\s+[^,.;]+([,.;]|$)/gi;
+const GOVERNMENT_PATTERNS: RegExp[] = [
+  /,?\s*del\s+gobierno\b/gi,
+  /,?\s*del\s+govern\b/gi,
+  /,?\s*by\s+the\s+government\b/gi,
+];
+
+function sanitizeForProposerQuiz(text: string, vote: Vote): string {
+  let s = text.replace(PROPOSER_REDACTION, '$1');
+  if (vote.proposed_by_government) {
+    for (const re of GOVERNMENT_PATTERNS) s = s.replace(re, '');
+  }
+  if (vote.proposing_group_short) {
+    const esc = vote.proposing_group_short.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    s = s.replace(new RegExp(`\\b${esc}\\b`, 'gi'), '[…]');
+  }
+  // Collapse double spaces / orphan commas left behind by the regex
+  // replacements so the prompt reads cleanly.
+  return s
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*,/g, ',')
+    .trim();
 }
 
 export default async function JocPage() {
@@ -94,13 +142,22 @@ export default async function JocPage() {
     );
   }
 
-  const summary = pickPlainSummary(vote, locale)!;
+  const rawSummary = pickPlainSummary(vote, locale)!;
+  const rawSubject = vote.description?.trim() || vote.title;
 
   // Build the question. 50/50 between the two question kinds; when
   // the vote doesn't have a clear group-level proposer (only the
   // government flag), proposer questions are still meaningful — the
   // 'Govern' option becomes the correct answer.
   const kind: 'proposer' | 'result' = Math.random() < 0.5 ? 'proposer' : 'result';
+
+  // For proposer questions we redact group references from BOTH the
+  // headline (`subject`) and the LLM summary so the prompt doesn't
+  // hand the player the answer. Result questions keep the raw text.
+  const subject =
+    kind === 'proposer' ? sanitizeForProposerQuiz(rawSubject, vote) : rawSubject;
+  const summary =
+    kind === 'proposer' ? sanitizeForProposerQuiz(rawSummary, vote) : rawSummary;
 
   let question: QuizQuestion;
   if (kind === 'proposer') {
@@ -141,12 +198,13 @@ export default async function JocPage() {
     question = {
       kind: 'proposer',
       vote,
+      subject,
       summary,
       options,
       correctId: correctLabel,
     };
   } else {
-    question = { kind: 'result', vote, summary };
+    question = { kind: 'result', vote, subject, summary };
   }
 
   return (

@@ -27,6 +27,8 @@ export type QuizQuestion =
   | {
       kind: 'proposer';
       vote: Vote;
+      /** Display text for the law title — already sanitized by the server. */
+      subject: string;
       summary: string;
       options: { id: string; label: string; color: string | null }[];
       correctId: string;
@@ -34,6 +36,8 @@ export type QuizQuestion =
   | {
       kind: 'result';
       vote: Vote;
+      /** Display text for the law title — raw, no redaction needed here. */
+      subject: string;
       summary: string;
     };
 
@@ -82,7 +86,10 @@ export function QuizCard({
       : question.vote.result;
   const wasCorrect = picked === correctId;
 
-  const subject = question.vote.description?.trim() || question.vote.title;
+  // Server has already sanitized the subject for proposer-kind
+  // questions (stripped "del Grupo Parlamentario X" patterns) so the
+  // headline can't leak the answer. We trust that string verbatim.
+  const subject = question.subject;
 
   return (
     <section
