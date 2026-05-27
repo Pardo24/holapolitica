@@ -316,8 +316,6 @@ export default async function VoteDetailPage({
             fontWeight: 600,
             maxWidth: 920,
             marginBottom: 18,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore — text-wrap not yet in TS lib for React.CSS
             textWrap: 'pretty',
           }}
         >
@@ -456,8 +454,6 @@ export default async function VoteDetailPage({
                   margin: 0,
                   fontWeight: 400,
                   whiteSpace: 'pre-line',
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
                   textWrap: 'pretty',
                 }}
               >
