@@ -536,12 +536,14 @@ export default async function TopicDetailPage({
       {/* Initiatives — unified section with a subset segmented control and
           a group-proposer filter. Replaces the two static lists. */}
       <section style={{ paddingTop: 32 }}>
-        <div className="eyebrow" style={{ marginBottom: 6 }}>
+        <div className="eyebrow" style={{ marginBottom: 18 }}>
           {t('initiatives_section_title')}
         </div>
 
         {/* Segmented buttons: per votar / votades. URL-driven so it works
-            without client JS and is shareable. */}
+            without client JS and is shareable. The extra top margin sits
+            below the section eyebrow so the segmented control reads as a
+            distinct affordance, not a sub-title glued to the heading. */}
         <div
           role="tablist"
           aria-label={t('subset_tablist_aria')}
@@ -551,7 +553,7 @@ export default async function TopicDetailPage({
             borderRadius: 999,
             padding: 2,
             background: 'var(--paper-2)',
-            marginTop: 4,
+            marginTop: 0,
             marginBottom: 14,
           }}
         >

@@ -494,33 +494,32 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         </ul>
       )}
 
-      {/* Desktop table */}
+      {/* Desktop list — row-based to match the InitiativeRow layout
+          used on /topics/[slug] and /initiatives/[id]. Each row is a
+          flat 3-column grid (date | title+meta | result+counts) and
+          relies on the .initiative-row CSS scaffold for the breakpoint
+          rules (110px date column on desktop). Mobile path is handled
+          by MobileVoteCard above; this list is sm: and up. */}
       {data && data.items.length > 0 && (
-        <div className="hidden sm:block" style={{ overflowX: 'auto', marginTop: 8 }}>
-          <table className="tab tab-votes-list">
-            <thead>
-              <tr>
-                <th style={{ width: 100 }}>{t('filters.date_from')}</th>
-                <th style={{ width: 110 }}>{t('expediente_label')}</th>
-                <th>{t('header_subject_breadcrumb')}</th>
-                <th style={{ width: 160 }}>{t('proposed_by')}</th>
-                <th style={{ width: 240 }}>{t('cohesion_title')}</th>
-                <th style={{ width: 110, textAlign: 'right' }}>{t('filters.result')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((vote) => (
-                <VoteTableRow key={vote.id} vote={vote} locale={locale} t={{
-                  ayes: t('ayes'),
-                  noes: t('noes'),
-                  abstentions: t('abstentions'),
-                  proposed_by_government: t('proposed_by_government'),
-                  result: t(`result.${vote.result}`),
-                }} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul
+          className="hidden sm:block votes-list"
+          style={{ listStyle: 'none', margin: 0, padding: '4px 0 0' }}
+        >
+          {data.items.map((vote) => (
+            <VoteListRow
+              key={vote.id}
+              vote={vote}
+              locale={locale}
+              t={{
+                ayes: t('ayes'),
+                noes: t('noes'),
+                abstentions: t('abstentions'),
+                proposed_by_government: t('proposed_by_government'),
+                result: t(`result.${vote.result}`),
+              }}
+            />
+          ))}
+        </ul>
       )}
 
       {data && data.total > 0 && (
@@ -557,7 +556,7 @@ interface RowLabels {
   result: string;
 }
 
-function VoteTableRow({
+function VoteListRow({
   vote,
   locale,
   t,
@@ -569,85 +568,118 @@ function VoteTableRow({
   const subject = vote.description?.trim() || vote.title;
   const date = new Date(vote.voted_at);
   const plainSummary = pickPlainSummary(vote, locale);
-  const isCurrentYear = date.getFullYear() === new Date().getFullYear();
-  // Short form for mobile: "19 nov" (no year if current). Long form for
-  // desktop: "19 de nov. 2025" via the locale's medium date style.
-  const shortDate = date
-    .toLocaleDateString(locale, {
-      day: 'numeric',
-      month: 'short',
-      ...(isCurrentYear ? {} : { year: '2-digit' }),
-    })
-    .replace(/\.$/, '');
   const longDate = date.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
   return (
-    <tr style={{ position: 'relative' }}>
-      <td className="tabular" style={{ color: 'var(--ink-2)', fontSize: 12, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-        {/* Mobile compresses legislatura + date into a single inline
-            string ("XV · 19 nov"). The legislatura prefix used to live
-            above the title in a separate row; we collapse it here so the
-            title is the first thing the user reads on a phone. */}
-        <span className="sm:hidden">XV · {shortDate}</span>
-        <span className="hidden sm:inline">{longDate}</span>
-      </td>
-      <td className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-        {vote.expediente_raw ?? '—'}
-      </td>
-      <td>
-        <div style={{ position: 'relative' }}>
-          <Link
-            href={`/votes/${vote.id}`}
-            style={{
-              position: 'absolute',
-              inset: '-10px -10px',
-              zIndex: 0,
-            }}
-            aria-label={subject}
+    <li
+      className="votes-list-row"
+      style={{
+        // Mirrors the .initiative-row scaffold from /topics/[slug],
+        // extended with a right-side affordance for the vote result.
+        // The desktop grid uses ``110px``-wide date + flexible title
+        // + an auto-sized right column with the result pill and a
+        // compact count breakdown. Bottom border separates rows.
+        display: 'grid',
+        gridTemplateColumns: '110px minmax(0, 1fr) 160px',
+        gap: 18,
+        alignItems: 'baseline',
+        padding: '14px 0',
+        borderBottom: '1px solid var(--rule)',
+        position: 'relative',
+      }}
+    >
+      <Link
+        href={`/votes/${vote.id}`}
+        aria-label={subject}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          textDecoration: 'none',
+        }}
+      >
+        <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+          {subject}
+        </span>
+      </Link>
+      <span
+        className="tabular"
+        style={{
+          fontSize: 12,
+          color: 'var(--ink-3)',
+          whiteSpace: 'nowrap',
+          fontVariantNumeric: 'tabular-nums',
+          position: 'relative',
+          zIndex: 1,
+          pointerEvents: 'none',
+        }}
+      >
+        {longDate}
+      </span>
+      <div style={{ minWidth: 0, position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
+        <div
+          className="line-clamp-3"
+          style={{
+            fontSize: 14,
+            lineHeight: 1.4,
+            color: 'var(--ink)',
+          }}
+        >
+          <SummaryHover
+            summary={plainSummary}
+            fallback={vote.description ?? undefined}
+            provider={vote.plain_summary_provider}
+            visibleText={subject}
           >
-            <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
-              {subject}
-            </span>
-          </Link>
-          <div style={{ position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
-            {/* Single subject line. The previously-rendered short
-                ``vote.title`` row above was identical to ``subject`` whenever
-                ``description`` was empty (subject = description || title), so
-                it read as a duplicate. We keep the descriptive subject only;
-                proposer + result live in their own columns to the right. */}
-            <div
-              className="line-clamp-2 sm:line-clamp-3"
-              style={{ lineHeight: 1.35, color: 'var(--ink)' }}
-            >
-              <SummaryHover
-                summary={plainSummary}
-                fallback={vote.description ?? undefined}
-                provider={vote.plain_summary_provider}
-                visibleText={subject}
-              >
-                {/* Inline glossary annotation — wraps any Senate/lectura
-                    única/convalidación terms in a hover-definition span.
-                    Returns the bare string when no term matches, so
-                    SummaryHover's child stays cheap in the common case. */}
-                <AnnotatedText text={subject} />
-              </SummaryHover>
-            </div>
-            {/* Topic badges — render up to two of the classified topics
-                as subtle coloured chips below the subject so a reader
-                scanning the list can spot "housing", "labour", "climate"
-                at a glance. Plain text + 1px hairline + a 6px coloured
-                dot; no rounded card chrome, in line with the rest of
-                the site's newspaper aesthetic. */}
-            {vote.topics && vote.topics.length > 0 && (
-              <div
+            <AnnotatedText text={subject} />
+          </SummaryHover>
+        </div>
+        {/* Meta strip — same layout vocabulary as InitiativeRow's
+            ``.initiative-row__meta`` line: badges + dot-separated
+            labels in a small, low-contrast row beneath the title.
+            Proposer (with GroupChip for the live logo / abbreviation
+            disc), then up to two topic chips, then the expediente
+            code in monospace. */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
+            marginTop: 6,
+            fontSize: 11,
+            color: 'var(--ink-3)',
+            lineHeight: 1.3,
+            minWidth: 0,
+          }}
+        >
+          <span style={{ pointerEvents: 'auto' }}>
+            {vote.proposed_by_government && !vote.proposing_group_short ? (
+              <span className="badge" style={{ fontWeight: 600 }}>
+                <span className="gdot" style={{ background: 'var(--ink)' }} />
+                {t.proposed_by_government}
+              </span>
+            ) : vote.proposing_group_short ? (
+              <GroupChip
+                slug={vote.proposing_group_slug ?? undefined}
+                short={displayGroupShort(vote.proposing_group_short)}
+                color={vote.proposing_group_color}
+                size="xs"
+              />
+            ) : null}
+          </span>
+          {vote.topics && vote.topics.length > 0 && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span
                 style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
                   gap: 6,
-                  marginTop: 6,
+                  flexWrap: 'wrap',
                 }}
               >
                 {vote.topics.slice(0, 2).map((topic) => (
@@ -686,53 +718,54 @@ function VoteTableRow({
                     {pickTopicName(topic, locale)}
                   </span>
                 ))}
-              </div>
-            )}
-          </div>
+              </span>
+            </>
+          )}
+          {vote.expediente_raw && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span
+                className="mono"
+                style={{ fontSize: 10, color: 'var(--ink-3)', wordBreak: 'break-all' }}
+              >
+                {vote.expediente_raw}
+              </span>
+            </>
+          )}
         </div>
-      </td>
-      <td style={{ position: 'relative', zIndex: 2 }}>
-        {vote.proposed_by_government && !vote.proposing_group_short ? (
-          <span className="badge" style={{ fontWeight: 600 }}>
-            <span className="gdot" style={{ background: 'var(--ink)' }} />
-            {t.proposed_by_government}
-          </span>
-        ) : vote.proposing_group_short ? (
-          <GroupChip
-            slug={vote.proposing_group_slug ?? undefined}
-            short={displayGroupShort(vote.proposing_group_short)}
-            color={vote.proposing_group_color}
-            size="xs"
-          />
-        ) : (
-          <span style={{ color: 'var(--ink-3)', fontSize: 11 }}>—</span>
-        )}
-      </td>
-      <td>
-        <StackedBar
-          d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
-          height={6}
-        />
-        <VoteBreakdown
-          ayes={vote.ayes}
-          noes={vote.noes}
-          abstentions={vote.abstentions}
-          size="sm"
-          labels={{ ayes: t.ayes, noes: t.noes, abstentions: t.abstentions }}
-        />
-      </td>
-      <td style={{ textAlign: 'right' }}>
-        {/* Mobile uses the colored disc only — the inline subject row used
-            to also show a colored "aprovada"/"rebutjada" word, which was
-            redundant with the disc. Desktop keeps the labelled pill. */}
+      </div>
+      <div
+        style={{
+          textAlign: 'right',
+          position: 'relative',
+          zIndex: 1,
+          pointerEvents: 'none',
+          minWidth: 0,
+        }}
+      >
         <ResultPill
           result={vote.result}
           label={t.result}
           responsive
           mobileVariant="disc"
         />
-      </td>
-    </tr>
+        <div style={{ marginTop: 6 }}>
+          <StackedBar
+            d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
+            height={6}
+          />
+        </div>
+        <div style={{ marginTop: 4 }}>
+          <VoteBreakdown
+            ayes={vote.ayes}
+            noes={vote.noes}
+            abstentions={vote.abstentions}
+            size="sm"
+            labels={{ ayes: t.ayes, noes: t.noes, abstentions: t.abstentions }}
+          />
+        </div>
+      </div>
+    </li>
   );
 }
 

@@ -621,11 +621,13 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
    shimmering "loading" skeleton overlay on top of the list rows that
    are about to be replaced. */
 body.hp-filter-pending .tab-votes-list,
+body.hp-filter-pending .votes-list,
 body.hp-filter-pending .mobile-votes-list {
   position: relative;
   pointer-events: none;
 }
 body.hp-filter-pending .tab-votes-list::after,
+body.hp-filter-pending .votes-list::after,
 body.hp-filter-pending .mobile-votes-list::after {
   content: "";
   position: absolute;
