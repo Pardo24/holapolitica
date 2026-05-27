@@ -14,6 +14,7 @@ import {
   api,
   ApiError,
   type Initiative,
+  type InitiativeVoteSummary,
   type ParliamentaryGroupSummary,
 } from '@/lib/api';
 import { parseProposer, displayGroupShort } from '@/lib/groups';
@@ -468,86 +469,46 @@ export default async function InitiativeDetailPage({
 
         <div>
           <div className="eyebrow" style={{ marginBottom: 8 }}>
-            {t('vote_box_title')}
+            {votes.length > 1
+              ? t('vote_box_title_multipart', { n: votes.length })
+              : t('vote_box_title')}
           </div>
-          {primaryVote ? (
-            <Link
-              href={`/votes/${primaryVote.id}` as Route}
-              className="initiative-vote-card"
+          {votes.length > 1 && (
+            <p
               style={{
-                display: 'block',
-                padding: '16px 18px',
-                borderRadius: 12,
-                border: '1px solid var(--rule-strong)',
-                background: 'var(--paper-2)',
-                color: 'inherit',
-                textDecoration: 'none',
+                margin: '0 0 12px',
+                fontSize: 12,
+                color: 'var(--ink-3)',
+                lineHeight: 1.5,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <ResultPill
-                  result={primaryVote.result}
-                  label={tVotes(`result.${primaryVote.result}`)}
-                />
-                <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 'auto' }}>
-                  {new Date(primaryVote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                  gap: 0,
-                  marginBottom: 10,
-                }}
-              >
-                {[
-                  { label: tVotes('ayes'), n: primaryVote.ayes, color: 'var(--aye)' },
-                  { label: tVotes('noes'), n: primaryVote.noes, color: 'var(--no)' },
-                  { label: tVotes('abstentions'), n: primaryVote.abstentions, color: 'var(--abst)' },
-                ].map((c, i) => (
-                  <div
-                    key={c.label}
-                    style={{
-                      borderLeft: i > 0 ? '1px solid var(--rule)' : 'none',
-                      paddingLeft: i > 0 ? 10 : 0,
-                      minWidth: 0,
-                    }}
-                  >
-                    <div className="eyebrow">{c.label}</div>
-                    <div
-                      className="tabular"
-                      style={{ fontSize: 24, fontWeight: 600, color: c.color, letterSpacing: '-0.02em' }}
-                    >
-                      {c.n}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <StackedBar
-                d={{
-                  aye: primaryVote.ayes,
-                  no: primaryVote.noes,
-                  abst: primaryVote.abstentions,
-                  nv: primaryVote.absent,
-                }}
-                height={10}
+              {t('vote_box_multipart_explainer')}
+            </p>
+          )}
+          {primaryVote ? (
+            votes.length === 1 ? (
+              <VoteCardBig
+                vote={primaryVote}
+                locale={locale}
+                t={t}
+                tVotes={tVotes}
               />
-              <span
-                style={{
-                  marginTop: 10,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: 'var(--ink-2)',
-                }}
-              >
-                {t('view_vote_detail')}
-                <ArrowRight size={12} aria-hidden="true" />
-              </span>
-            </Link>
+            ) : (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {votes.map((v, i) => (
+                  <li key={v.id}>
+                    <VoteCardCompact
+                      vote={v}
+                      index={i + 1}
+                      total={votes.length}
+                      locale={locale}
+                      t={t}
+                      tVotes={tVotes}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )
           ) : (
             <p
               style={{
@@ -562,34 +523,6 @@ export default async function InitiativeDetailPage({
             >
               {t('no_vote_yet')}
             </p>
-          )}
-
-          {votes.length > 1 && (
-            <ul style={{ listStyle: 'none', margin: '12px 0 0', padding: 0 }}>
-              {votes.slice(1).map((v) => (
-                <li key={v.id} style={{ borderTop: '1px solid var(--rule)', padding: '8px 0' }}>
-                  <Link
-                    href={`/votes/${v.id}` as Route}
-                    style={{
-                      display: 'flex',
-                      gap: 10,
-                      alignItems: 'baseline',
-                      fontSize: 13,
-                      color: 'inherit',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <ResultPill result={v.result} label={tVotes(`result.${v.result}`)} />
-                    <span style={{ flex: 1 }}>
-                      {new Date(v.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })}
-                    </span>
-                    <span className="tabular" style={{ color: 'var(--ink-3)' }}>
-                      {v.ayes} / {v.noes} / {v.abstentions}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       </section>
@@ -698,4 +631,181 @@ function pickTitle(ini: Initiative, locale: string): string {
   if (locale === 'es' && ini.title_es) return ini.title_es;
   if (locale === 'en' && ini.title_en) return ini.title_en;
   return ini.title_ca ?? ini.title_original;
+}
+
+type InitiativeTranslator = Awaited<ReturnType<typeof getTranslations<'initiative_detail'>>>;
+type VotesTranslator = Awaited<ReturnType<typeof getTranslations<'votes'>>>;
+
+function VoteCardBig({
+  vote,
+  locale,
+  t,
+  tVotes,
+}: {
+  vote: InitiativeVoteSummary;
+  locale: string;
+  t: InitiativeTranslator;
+  tVotes: VotesTranslator;
+}) {
+  return (
+    <Link
+      href={`/votes/${vote.id}` as Route}
+      className="initiative-vote-card"
+      style={{
+        display: 'block',
+        padding: '16px 18px',
+        borderRadius: 12,
+        border: '1px solid var(--rule-strong)',
+        background: 'var(--paper-2)',
+        color: 'inherit',
+        textDecoration: 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <ResultPill result={vote.result} label={tVotes(`result.${vote.result}`)} />
+        <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 'auto' }}>
+          {new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })}
+        </span>
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: 0,
+          marginBottom: 10,
+        }}
+      >
+        {[
+          { label: tVotes('ayes'), n: vote.ayes, color: 'var(--aye)' },
+          { label: tVotes('noes'), n: vote.noes, color: 'var(--no)' },
+          { label: tVotes('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
+        ].map((c, i) => (
+          <div
+            key={c.label}
+            style={{
+              borderLeft: i > 0 ? '1px solid var(--rule)' : 'none',
+              paddingLeft: i > 0 ? 10 : 0,
+              minWidth: 0,
+            }}
+          >
+            <div className="eyebrow">{c.label}</div>
+            <div
+              className="tabular"
+              style={{ fontSize: 24, fontWeight: 600, color: c.color, letterSpacing: '-0.02em' }}
+            >
+              {c.n}
+            </div>
+          </div>
+        ))}
+      </div>
+      <StackedBar
+        d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
+        height={10}
+      />
+      <span
+        style={{
+          marginTop: 10,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          fontSize: 12,
+          fontWeight: 600,
+          color: 'var(--ink-2)',
+        }}
+      >
+        {t('view_vote_detail')}
+        <ArrowRight size={12} aria-hidden="true" />
+      </span>
+    </Link>
+  );
+}
+
+function VoteCardCompact({
+  vote,
+  index,
+  total,
+  locale,
+  t,
+  tVotes,
+}: {
+  vote: InitiativeVoteSummary;
+  index: number;
+  total: number;
+  locale: string;
+  t: InitiativeTranslator;
+  tVotes: VotesTranslator;
+}) {
+  return (
+    <Link
+      href={`/votes/${vote.id}` as Route}
+      className="initiative-vote-card"
+      style={{
+        display: 'block',
+        padding: '12px 14px',
+        borderRadius: 10,
+        border: '1px solid var(--rule-strong)',
+        background: 'var(--paper-2)',
+        color: 'inherit',
+        textDecoration: 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <span
+          className="eyebrow"
+          style={{
+            fontSize: 10,
+            color: 'var(--ink-3)',
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+          }}
+        >
+          {t('vote_box_part_label', { index, total })}
+        </span>
+        <ResultPill result={vote.result} label={tVotes(`result.${vote.result}`)} />
+        <span
+          className="tabular"
+          style={{ fontSize: 11, color: 'var(--ink-3)', marginLeft: 'auto' }}
+        >
+          {new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })}
+        </span>
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: 0,
+          marginBottom: 8,
+        }}
+      >
+        {[
+          { label: tVotes('ayes'), n: vote.ayes, color: 'var(--aye)' },
+          { label: tVotes('noes'), n: vote.noes, color: 'var(--no)' },
+          { label: tVotes('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
+        ].map((c, i) => (
+          <div
+            key={c.label}
+            style={{
+              borderLeft: i > 0 ? '1px solid var(--rule)' : 'none',
+              paddingLeft: i > 0 ? 10 : 0,
+              minWidth: 0,
+            }}
+          >
+            <div className="eyebrow" style={{ fontSize: 10 }}>
+              {c.label}
+            </div>
+            <div
+              className="tabular"
+              style={{ fontSize: 18, fontWeight: 600, color: c.color, letterSpacing: '-0.02em' }}
+            >
+              {c.n}
+            </div>
+          </div>
+        ))}
+      </div>
+      <StackedBar
+        d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
+        height={8}
+      />
+    </Link>
+  );
 }

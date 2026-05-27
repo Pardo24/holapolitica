@@ -72,11 +72,11 @@ export default async function NotificationsPage() {
         </p>
       </PageHeader>
 
-      <NewsletterPreferencesManager topics={topics} />
-
       {ENABLE_BROWSER_PUSH && (
         <NotificationsManager topics={topics} groups={groups} />
       )}
+
+      <NewsletterPreferencesManager topics={topics} />
 
       <section style={{ marginTop: 32, fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.55 }}>
         <h2 style={{ fontSize: 13, color: 'var(--ink)', margin: '0 0 6px' }}>
