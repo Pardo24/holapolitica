@@ -45,7 +45,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
 } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Bell, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 import {
@@ -55,6 +55,7 @@ import {
   type Topic,
   type TopicKind,
 } from '@/lib/api';
+import { groupTopicsByCategory, categoryLabel } from '@/lib/topic_categories';
 
 type Phase =
   | 'init'
@@ -500,11 +501,17 @@ function SubscribedView({
   onStop,
 }: SubscribedViewProps) {
   const t = useTranslations('notifications');
+  const locale = useLocale();
   const [showAll, setShowAll] = useState(false);
   const themes = useMemo(() => topics.filter((tp) => tp.kind === 'theme'), [topics]);
-  // sdgs split removed: the Agenda 2030 taxonomy is disabled for the
-  // launch (no classified initiatives use it yet). When re-enabling,
-  // restore: const sdgs = useMemo(() => topics.filter((tp) => tp.kind === 'sdg'), [topics]);
+  // Macro-category grouping for the "show all" picker — six umbrellas
+  // ("Drets i justícia", "Economia i treball", …) so the panel isn't a
+  // single wall of 17 checkboxes. Topics outside any category fall into
+  // a final "Altres" bucket so we never silently lose a slug.
+  const themesByCategory = useMemo(
+    () => groupTopicsByCategory(themes),
+    [themes],
+  );
   const selectedTopics = useMemo(
     () =>
       // Preserve the canonical topic order from the server (matches the
@@ -689,26 +696,30 @@ function SubscribedView({
               marginTop: 14,
               paddingTop: 12,
               borderTop: '1px solid var(--rule)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
             }}
           >
-            <TopicSectionAccordion
-              title={t('section_themes')}
-              topics={themes}
-              selected={selected}
-              busy={busy || !masterOn}
-              defaultOpen
-              onToggle={onToggle}
-              onSelectAll={onSelectAll}
-              onClearGroup={onClearGroup}
-              selectAllLabel={t('select_all')}
-              clearLabel={t('clear_section')}
-            />
-            {/* SDG section disabled for the public launch — no
-                initiative is classified against the Agenda 2030
-                taxonomy yet, so the section would show empty
-                checkboxes and no meaningful notification could fire
-                from them. Restore once the classifier ships SDG
-                coverage. */}
+            {themesByCategory.map(({ category, topics: catTopics }, idx) => (
+              <TopicSectionAccordion
+                key={category ? category.slug : 'altres'}
+                title={category ? categoryLabel(category, locale) : t('section_other')}
+                topics={catTopics}
+                selected={selected}
+                busy={busy || !masterOn}
+                // Open the first category by default so the user can
+                // start picking without an extra tap; the rest stay
+                // collapsed so a 17-topic list doesn't unfurl all at
+                // once on mount.
+                defaultOpen={idx === 0}
+                onToggle={onToggle}
+                onSelectAll={onSelectAll}
+                onClearGroup={onClearGroup}
+                selectAllLabel={t('select_all')}
+                clearLabel={t('clear_section')}
+              />
+            ))}
           </div>
         )}
       </section>

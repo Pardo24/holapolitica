@@ -1,21 +1,24 @@
 /**
- * Macro-category grouping for the newsletter topic picker.
+ * Macro-category grouping for the newsletter / push topic picker.
  *
- * Maps the 34 fine-grained topic slugs (17 editorial themes + 17 SDGs)
- * into 6 broad umbrellas. The picker presents these as collapsible
- * sections — a user can pick individual themes inside a category or
- * subscribe to the whole category at once.
+ * Maps the editorial theme topic slugs into 6 broad umbrellas. The
+ * picker presents these as collapsible sections — a user can pick
+ * individual themes inside a category or subscribe to the whole
+ * category at once.
  *
  * Slugs referenced here must match the canonical taxonomy served by
- * ``api.topics.list()``. Topics that don't appear in any category are
- * still selectable via the underlying topic list — but they won't show
- * up under any umbrella. Keep this file in sync with the backend
- * taxonomy if new topics are added.
+ * ``api.topics.list({ kind: 'theme' })``. Topics that don't appear in
+ * any category fall into the "Altres" bucket the consumer composes
+ * on the fly so the picker never silently drops a theme.
  *
- * Source of truth for slugs: backend ``classify/topics.py`` (themes)
- * and ``classify/sdgs.py`` (SDG labels). Hardcoded here to avoid a
- * round trip and to make the grouping editorial (the umbrellas are a
- * UX choice, not a taxonomy fact).
+ * The SDG (Agenda 2030) slugs that used to live here are gone for the
+ * launch — the taxonomy is disabled site-wide while no initiative is
+ * classified against it. Restore them from git history once the
+ * classifier ships SDG coverage.
+ *
+ * Source of truth for theme slugs: backend ``classify/topics.py``.
+ * Hardcoded here on purpose: the umbrellas are a UX grouping, not a
+ * taxonomy fact, and shouldn't change by round-trip.
  */
 
 export interface TopicCategory {
@@ -24,11 +27,7 @@ export interface TopicCategory {
   label_ca: string;
   label_es: string;
   label_en: string;
-  /**
-   * Full list of fine-grained topic slugs that belong to this umbrella.
-   * Order matters — themes first, SDGs last, so the chips read most
-   * recognisable label → most abstract.
-   */
+  /** Full list of theme topic slugs that belong to this umbrella. */
   topic_slugs: string[];
 }
 
@@ -38,15 +37,7 @@ export const TOPIC_CATEGORIES: TopicCategory[] = [
     label_ca: 'Drets i justícia',
     label_es: 'Derechos y justicia',
     label_en: 'Rights & justice',
-    topic_slugs: [
-      'drets-civils',
-      'dones-igualtat',
-      'justicia',
-      'immigracio',
-      'sdg-05',
-      'sdg-10',
-      'sdg-16',
-    ],
+    topic_slugs: ['drets-civils', 'dones-igualtat', 'justicia', 'immigracio'],
   },
   {
     slug: 'economia-treball',
@@ -59,8 +50,6 @@ export const TOPIC_CATEGORIES: TopicCategory[] = [
       'drets-laborals',
       'industria',
       'comerc',
-      'sdg-08',
-      'sdg-09',
     ],
   },
   {
@@ -68,39 +57,28 @@ export const TOPIC_CATEGORIES: TopicCategory[] = [
     label_ca: 'Medi ambient i clima',
     label_es: 'Medio ambiente y clima',
     label_en: 'Environment & climate',
-    topic_slugs: [
-      'medi-ambient',
-      'energia',
-      'transport-mobilitat',
-      'sdg-06',
-      'sdg-07',
-      'sdg-11',
-      'sdg-12',
-      'sdg-13',
-      'sdg-14',
-      'sdg-15',
-    ],
+    topic_slugs: ['medi-ambient', 'energia', 'transport-mobilitat'],
   },
   {
     slug: 'salut-benestar',
     label_ca: 'Salut i benestar',
     label_es: 'Salud y bienestar',
     label_en: 'Health & wellbeing',
-    topic_slugs: ['salut', 'drogues', 'sdg-03'],
+    topic_slugs: ['salut', 'drogues'],
   },
   {
     slug: 'educacio-cultura',
     label_ca: 'Educació i cultura',
     label_es: 'Educación y cultura',
     label_en: 'Education & culture',
-    topic_slugs: ['educacio', 'cultura', 'sdg-04'],
+    topic_slugs: ['educacio', 'cultura'],
   },
   {
     slug: 'territori-estat',
     label_ca: 'Territori i Estat',
     label_es: 'Territorio y Estado',
     label_en: 'Territory & state',
-    topic_slugs: ['territoris', 'administracions', 'exterior', 'defensa', 'sdg-17'],
+    topic_slugs: ['territoris', 'administracions', 'exterior', 'defensa'],
   },
 ];
 
@@ -114,4 +92,32 @@ export function categoryLabel(cat: TopicCategory, locale: string): string {
   if (key === 'es') return cat.label_es;
   if (key === 'en') return cat.label_en;
   return cat.label_ca;
+}
+
+/**
+ * Group a flat list of theme topics by macro-category. Topics that
+ * aren't listed in any category land in the final ``other`` bucket so
+ * the picker never silently loses a theme. Used by the newsletter /
+ * push topic picker on /notifications.
+ */
+export function groupTopicsByCategory<T extends { slug: string }>(
+  topics: T[],
+): { category: TopicCategory | null; topics: T[] }[] {
+  const bySlug = new Map(topics.map((tp) => [tp.slug, tp] as const));
+  const used = new Set<string>();
+  const out: { category: TopicCategory | null; topics: T[] }[] = [];
+  for (const category of TOPIC_CATEGORIES) {
+    const bucket: T[] = [];
+    for (const slug of category.topic_slugs) {
+      const tp = bySlug.get(slug);
+      if (tp) {
+        bucket.push(tp);
+        used.add(slug);
+      }
+    }
+    if (bucket.length > 0) out.push({ category, topics: bucket });
+  }
+  const leftover = topics.filter((tp) => !used.has(tp.slug));
+  if (leftover.length > 0) out.push({ category: null, topics: leftover });
+  return out;
 }
