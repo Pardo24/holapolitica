@@ -22,6 +22,7 @@ import type { CSSProperties, ReactNode } from 'react';
 export function PageHeader({
   title,
   subtitle,
+  icon,
   cta,
   children,
   className,
@@ -31,6 +32,8 @@ export function PageHeader({
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
+  /** Optional Lucide icon rendered before the H1 — small, accent-tinted. */
+  icon?: ReactNode;
   cta?: ReactNode;
   children?: ReactNode;
   className?: string;
@@ -59,8 +62,30 @@ export function PageHeader({
           flexWrap: 'wrap',
         }}
       >
-        <h1 className={headingClassName} style={{ margin: 0, minWidth: 0 }}>
-          {title}
+        <h1
+          className={headingClassName}
+          style={{ margin: 0, minWidth: 0, display: 'inline-flex', alignItems: 'baseline', gap: 12 }}
+        >
+          {icon && (
+            <span
+              aria-hidden="true"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: 'none',
+                color: 'var(--accent)',
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: 'color-mix(in oklch, var(--accent) 12%, var(--paper))',
+                transform: 'translateY(4px)',
+              }}
+            >
+              {icon}
+            </span>
+          )}
+          <span style={{ minWidth: 0 }}>{title}</span>
         </h1>
         {(subtitle || cta) && (
           <div

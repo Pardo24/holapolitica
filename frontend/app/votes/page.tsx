@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight, Route as RouteIcon } from 'lucide-react';
+import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
@@ -47,6 +47,7 @@ export default async function VotesPage({
     <div>
       <PageHeader
         title={t('title')}
+        icon={<CheckSquare size={20} strokeWidth={1.8} aria-hidden="true" />}
         cta={
           <Link
             href={'/recorregut' as Route}

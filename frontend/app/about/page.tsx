@@ -1,4 +1,5 @@
 import { getTranslations, getMessages } from 'next-intl/server';
+import { Info } from 'lucide-react';
 
 import { LifecycleDiagram } from '@/components/LifecycleDiagram';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
@@ -30,6 +31,7 @@ export default async function AboutPage() {
       <PageHeader
         title={t('title')}
         subtitle={t('page_eyebrow')}
+        icon={<Info size={20} strokeWidth={1.8} aria-hidden="true" />}
         style={{ paddingBottom: 24 }}
       />
 

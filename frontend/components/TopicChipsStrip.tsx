@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import type { Topic, TopicGlobalStat } from '@/lib/api';
@@ -42,6 +42,11 @@ export function TopicChipsStrip({
 }) {
   const router = useRouter();
   const sp = useSearchParams();
+  // startTransition lets React skip the /votes loading.tsx skeleton on
+  // chip toggle — the existing list stays visible until the new SSR
+  // pass resolves, so a topic tap feels like a re-filter instead of a
+  // page reload.
+  const [, startTransition] = useTransition();
   const countBySlug = useMemo(
     () => new Map(counts.map((c) => [c.topic_slug, c.initiatives_total] as const)),
     [counts],
@@ -101,7 +106,9 @@ export function TopicChipsStrip({
       else next.set('topic_slug', updated.join(','));
       next.delete('page');
       const qs = next.toString();
-      router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+      startTransition(() => {
+        router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+      });
     },
     [activeSlugs, sp, router],
   );
@@ -111,7 +118,9 @@ export function TopicChipsStrip({
     next.delete('topic_slug');
     next.delete('page');
     const qs = next.toString();
-    router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+    startTransition(() => {
+      router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+    });
   }, [sp, router]);
 
   if (ordered.length === 0) return null;

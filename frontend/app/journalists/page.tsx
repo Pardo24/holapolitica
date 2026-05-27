@@ -1,6 +1,6 @@
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Newspaper } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api } from '@/lib/api';
@@ -51,8 +51,33 @@ export default async function JournalistsPage() {
       <div className="eyebrow" style={{ marginBottom: 8 }}>
         {t('eyebrow')}
       </div>
-      <h1 className="h-headline" style={{ margin: '6px 0 14px' }}>
-        {t('h1')}
+      <h1
+        className="h-headline"
+        style={{
+          margin: '6px 0 14px',
+          display: 'inline-flex',
+          alignItems: 'baseline',
+          gap: 12,
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            background: 'color-mix(in oklch, var(--accent) 12%, var(--paper))',
+            color: 'var(--accent)',
+            flex: 'none',
+            transform: 'translateY(4px)',
+          }}
+        >
+          <Newspaper size={20} strokeWidth={1.8} aria-hidden="true" />
+        </span>
+        <span>{t('h1')}</span>
       </h1>
       <p style={{ fontSize: 16, color: 'var(--ink-2)', lineHeight: 1.6, margin: '0 0 22px' }}>
         {t.rich('intro', {

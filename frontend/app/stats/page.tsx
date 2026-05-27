@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { X } from 'lucide-react';
+import { BarChart3, X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
@@ -240,8 +240,14 @@ export default async function StatsPage({
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-            <h1 className="h-headline" style={{ margin: 0 }}>
-              {t('title')}
+            <h1
+              className="h-headline"
+              style={{ margin: 0, display: 'inline-flex', alignItems: 'baseline', gap: 12 }}
+            >
+              <span aria-hidden="true" className="page-header-icon-tile">
+                <BarChart3 size={20} strokeWidth={1.8} aria-hidden="true" />
+              </span>
+              <span>{t('title')}</span>
             </h1>
             <span
               className="eyebrow"

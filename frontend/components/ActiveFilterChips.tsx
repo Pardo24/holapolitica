@@ -16,7 +16,7 @@
  */
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useTransition } from 'react';
 import { X } from 'lucide-react';
 
 export interface ActiveFilter {
@@ -39,6 +39,9 @@ export function ActiveFilterChips({
 }) {
   const router = useRouter();
   const sp = useSearchParams();
+  // Same trick as the topic strip + filter card: wrap router pushes in
+  // startTransition so /votes/loading.tsx doesn't flash on each removal.
+  const [, startTransition] = useTransition();
 
   const removeOne = useCallback(
     (paramKey: string, pairParamKey?: string) => {
@@ -47,7 +50,9 @@ export function ActiveFilterChips({
       if (pairParamKey) next.delete(pairParamKey);
       next.delete('page');
       const qs = next.toString();
-      router.push(qs ? `/votes?${qs}` : '/votes');
+      startTransition(() => {
+        router.push(qs ? `/votes?${qs}` : '/votes');
+      });
     },
     [router, sp],
   );
@@ -58,7 +63,9 @@ export function ActiveFilterChips({
     const tab = sp.get('tab');
     if (tab) next.set('tab', tab);
     const qs = next.toString();
-    router.push(qs ? `/votes?${qs}` : '/votes');
+    startTransition(() => {
+      router.push(qs ? `/votes?${qs}` : '/votes');
+    });
   }, [router, sp]);
 
   if (filters.length === 0) return null;

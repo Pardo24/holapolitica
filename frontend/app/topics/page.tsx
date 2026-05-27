@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Bell } from 'lucide-react';
+import { ArrowRight, Bell, Layers } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
 import { PageHeader } from '@/components/PageHeader';
@@ -22,6 +22,7 @@ export default async function TopicsPage() {
       <PageHeader
         title={t('title')}
         subtitle="Taxonomia · classificació automàtica"
+        icon={<Layers size={20} strokeWidth={1.8} aria-hidden="true" />}
         bordered
       >
         <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, maxWidth: 760 }}>

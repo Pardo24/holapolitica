@@ -1444,6 +1444,23 @@ body.hp-filter-pending .mobile-votes-list::after {
    status]), so the grid no longer needs a separate slot for it. The wider
    date column on desktop comes from the inline ``110px`` template set on
    the row at the sm: breakpoint via the component itself. */
+/* Shared inline icon tile used at the left of page headlines that bypass
+   the PageHeader component (currently /journalists and /joc — both
+   compose their own H1 with an eyebrow above). Same chrome as the tile
+   PageHeader renders so the rhythm is identical across surfaces. */
+.page-header-icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--accent) 12%, var(--paper));
+  color: var(--accent);
+  flex: none;
+  transform: translateY(4px);
+}
+
 @media (min-width: 640px) {
   .initiative-row { grid-template-columns: 110px 1fr !important; }
 

@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { Building2 } from 'lucide-react';
 
 import { GroupListPanel } from '@/components/GroupListPanel';
 import { PageHeader } from '@/components/PageHeader';
@@ -14,6 +15,7 @@ export default async function GroupsPage() {
       <PageHeader
         title={t('title')}
         subtitle={t('subtitle', { count: groups.length, members: totalMembers })}
+        icon={<Building2 size={20} strokeWidth={1.8} aria-hidden="true" />}
         bordered
       />
       <GroupListPanel />

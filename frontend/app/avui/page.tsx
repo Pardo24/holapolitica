@@ -1,6 +1,7 @@
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { CalendarDays } from 'lucide-react';
 
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { SessionSheet } from '@/components/SessionSheet';
@@ -63,8 +64,14 @@ export default async function AvuiPage() {
   if (dates.length === 0) {
     return (
       <article style={{ padding: '32px 0' }}>
-        <h1 className="h-headline" style={{ margin: '0 0 12px' }}>
-          {t('title')}
+        <h1
+          className="h-headline"
+          style={{ margin: '0 0 12px', display: 'inline-flex', alignItems: 'baseline', gap: 12 }}
+        >
+          <span aria-hidden="true" className="page-header-icon-tile">
+            <CalendarDays size={20} strokeWidth={1.8} aria-hidden="true" />
+          </span>
+          <span>{t('title')}</span>
         </h1>
         <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>{t('lead_empty')}</p>
       </article>

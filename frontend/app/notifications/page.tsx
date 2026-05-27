@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { Bell } from 'lucide-react';
 
 import { NewsletterPreferencesManager } from '@/components/NewsletterPreferencesManager';
 import { NotificationsManager } from '@/components/NotificationsManager';
@@ -64,6 +65,7 @@ export default async function NotificationsPage() {
       <PageHeader
         title={t('title')}
         subtitle={t('eyebrow')}
+        icon={<Bell size={20} strokeWidth={1.8} aria-hidden="true" />}
         bordered
         style={{ paddingTop: 0 }}
       >

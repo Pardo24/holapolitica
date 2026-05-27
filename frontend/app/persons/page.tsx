@@ -1,5 +1,6 @@
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Users } from 'lucide-react';
 
 import { DeputiesList } from '@/components/DeputiesList';
 import { GroupListPanel } from '@/components/GroupListPanel';
@@ -25,7 +26,11 @@ export default async function PersonsPage({
 
   return (
     <div>
-      <PageHeader title={tNav('persons')} subtitle={t('hub_eyebrow')} />
+      <PageHeader
+        title={tNav('persons')}
+        subtitle={t('hub_eyebrow')}
+        icon={<Users size={20} strokeWidth={1.8} aria-hidden="true" />}
+      />
 
       <HubTabs
         ariaLabel="Vistes de representants"

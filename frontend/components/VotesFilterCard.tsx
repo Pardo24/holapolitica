@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 
@@ -78,6 +78,11 @@ export function VotesFilterCard({
 }: Props) {
   const router = useRouter();
   const sp = useSearchParams();
+  // Wrap every router.replace in startTransition so React skips the
+  // loading.tsx skeleton and keeps the current list visible until the
+  // new SSR pass resolves. Without this, every chip/combobox tap
+  // flashes the gray skeleton and reads as a full page refresh.
+  const [, startTransition] = useTransition();
   // q is the only field that doesn't apply immediately; we debounce
   // it 400 ms after the last keystroke so typing doesn't push the
   // router on every character. The rest fire on selection.
@@ -87,7 +92,9 @@ export function VotesFilterCard({
     (next: URLSearchParams) => {
       next.delete('page');
       const qs = next.toString();
-      router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+      startTransition(() => {
+        router.replace(qs ? `/votes?${qs}` : '/votes', { scroll: false });
+      });
     },
     [router],
   );
