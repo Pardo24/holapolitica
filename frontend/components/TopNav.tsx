@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Bell } from 'lucide-react';
+import { BarChart3, Bell, CheckSquare, Newspaper, Users } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -33,21 +33,33 @@ export async function TopNav() {
   // recurring lookups, so the top nav doesn't need to carry them.
   // Topics and Groups remain reachable via tabs inside /votes and
   // /persons.
-  const primary: { href: Route; label: string }[] = [
-    { href: '/votes', label: t('votes') },
-    { href: '/persons', label: t('persons') },
+  // Every entry carries a small Lucide icon — they're sober, geometric
+  // and scannable, so the strip reads at a glance without losing the
+  // serif/grayscale aesthetic. Stroke 1.8 + size 14 keeps them lighter
+  // than the wordmark so the label still leads.
+  const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
+    {
+      href: '/votes',
+      label: t('votes'),
+      icon: <CheckSquare size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
+    {
+      href: '/persons',
+      label: t('persons'),
+      icon: <Users size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
   ];
-  // `icon` is optional per-entry. Only /notifications carries one
-  // today (Lucide Bell) — the bell is more recognisable than the
-  // "Notificacions" / "Notificaciones" / "Notifications" wordmark and
-  // shortens the strip without losing the semantic anchor.
-  const secondary: {
-    href: Route;
-    label: string;
-    icon?: React.ReactNode;
-  }[] = [
-    { href: '/stats', label: t('stats') },
-    { href: '/journalists' as Route, label: t('journalists') },
+  const secondary: { href: Route; label: string; icon: React.ReactNode }[] = [
+    {
+      href: '/stats',
+      label: t('stats'),
+      icon: <BarChart3 size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
+    {
+      href: '/journalists' as Route,
+      label: t('journalists'),
+      icon: <Newspaper size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
     {
       href: '/notifications',
       label: t('notifications'),
@@ -72,7 +84,7 @@ export async function TopNav() {
       <ul className="nav-links" role="list">
         {primary.map((it) => (
           <li key={it.href}>
-            <NavLink href={it.href} label={it.label} />
+            <NavLink href={it.href} label={it.label} icon={it.icon} />
           </li>
         ))}
         <li className="nav-divider" aria-hidden="true" />

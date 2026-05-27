@@ -77,10 +77,13 @@ export function CompactVoteRow({
     <li>
       <Link
         href={`/votes/${v.id}`}
-        // Intentionally no .initiative-row class — that selector ships
-        // a desktop override forcing a 2-col grid for the topics/[slug]
-        // InitiativeRow, and our row needs a 3rd `auto` column on the
-        // right for the result badge. All visual styling sits inline.
+        // Mobile: 2-col grid (title | right-stack with date+result). The
+        // desktop-only date column on the left is display:none on phones
+        // — gives the title the full row width while keeping the date
+        // visible top-right alongside the result indicator below it.
+        // Desktop (sm:): switches to a 3-col grid via the
+        // ``compact-vote-row`` rule in globals.css.
+        className="compact-vote-row"
         style={{
           textDecoration: 'none',
           color: 'inherit',
@@ -88,12 +91,12 @@ export function CompactVoteRow({
           padding: '14px 0',
           display: 'grid',
           gap: 12,
-          gridTemplateColumns: 'minmax(56px, max-content) minmax(0, 1fr) auto',
+          gridTemplateColumns: 'minmax(0, 1fr) auto',
           alignItems: 'baseline',
         }}
       >
         <span
-          className="tabular"
+          className="hidden sm:inline tabular"
           style={{
             fontSize: 12,
             color: 'var(--ink-3)',
@@ -101,8 +104,7 @@ export function CompactVoteRow({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <span className="sm:hidden">XV · {shortDate}</span>
-          <span className="hidden sm:inline">{longDate}</span>
+          {longDate}
         </span>
         <div style={{ minWidth: 0 }}>
           <div
@@ -208,33 +210,32 @@ export function CompactVoteRow({
           style={{
             flex: 'none',
             display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            justifyContent: 'flex-start',
+            gap: 6,
+            textAlign: 'right',
           }}
         >
-          {/* Disc on mobile, labelled pill on desktop. Same semantics
-              (color encodes outcome), different visual weight. */}
+          {/* Mobile-only date (top of the right stack). Desktop's date
+              lives in its own left column instead. */}
           <span
-            className="sm:hidden inline-block align-middle"
-            role="img"
-            aria-label={labels.result}
-            title={labels.result}
+            className="sm:hidden tabular"
             style={{
-              width: 12,
-              height: 12,
-              borderRadius: 999,
-              background:
-                v.result === 'tie' ? 'transparent' : resultColor(v.result),
-              border:
-                v.result === 'tie'
-                  ? `2px solid ${resultColor(v.result)}`
-                  : '0',
-              boxSizing: 'border-box',
+              fontSize: 11,
+              color: 'var(--ink-3)',
+              whiteSpace: 'nowrap',
+              fontVariantNumeric: 'tabular-nums',
             }}
-          />
+          >
+            XV · {shortDate}
+          </span>
+          {/* Result indicator: small pill (mobile) → labelled pill (desktop).
+              Same color semantics on both sizes; mobile shows the short
+              result label so the user doesn't have to decode a dot. */}
           <span
-            className={`badge badge-${v.result === 'approved' ? 'aye' : v.result === 'rejected' ? 'no' : 'tie'} hidden sm:inline-flex`}
-            style={{ fontWeight: 600 }}
+            className={`badge badge-${v.result === 'approved' ? 'aye' : v.result === 'rejected' ? 'no' : 'tie'}`}
+            style={{ fontWeight: 600, fontSize: 11 }}
           >
             {labels.result}
           </span>

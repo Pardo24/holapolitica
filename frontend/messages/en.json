@@ -186,7 +186,7 @@
     "avui": "Plenary chronicle",
     "votes": "Votes",
     "persons": "Representatives",
-    "stats": "Stats",
+    "stats": "Data",
     "about": "About",
     "newsletter": "Newsletter",
     "notifications": "Notifications",
@@ -448,7 +448,7 @@
     "mobile_tile_votes": "Laws",
     "mobile_tile_persons": "Deputies",
     "mobile_tile_topics": "Topics",
-    "mobile_tile_stats": "Stats",
+    "mobile_tile_stats": "Data",
     "mobile_section_highlights": "Highlights",
     "mobile_section_upcoming": "Upcoming sessions",
     "mobile_section_latest": "Latest laws",
@@ -681,7 +681,7 @@
     "hub_subscribe_cta": "Enable notifications"
   },
   "stats": {
-    "title": "Statistics",
+    "title": "Data",
     "eyebrow": "Atlas · descriptive aggregates · no one-sided metric",
     "intro": "Counts of initiatives and votes recorded in the 15th legislature. Topic classification is automatic (neutral LLM), every figure shows the raw N. Historical coverage still under construction.",
     "global_view": "Global view",

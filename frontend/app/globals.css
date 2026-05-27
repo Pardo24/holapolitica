@@ -1446,6 +1446,15 @@ body.hp-filter-pending .mobile-votes-list::after {
    the row at the sm: breakpoint via the component itself. */
 @media (min-width: 640px) {
   .initiative-row { grid-template-columns: 110px 1fr !important; }
+
+  /* CompactVoteRow desktop: switch from the mobile 2-col grid
+     (subject | right-stack) to the canonical 3-col layout
+     (date | subject | result). The right-stack collapses to a
+     single result pill on desktop — the mobile-only date span
+     inside it is hidden via `sm:hidden`. */
+  .compact-vote-row {
+    grid-template-columns: minmax(56px, max-content) minmax(0, 1fr) auto !important;
+  }
 }
 
 @media (max-width: 480px) {

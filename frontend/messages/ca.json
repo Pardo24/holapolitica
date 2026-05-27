@@ -186,7 +186,7 @@
     "avui": "Crònica del ple",
     "votes": "Votacions",
     "persons": "Representants",
-    "stats": "Estadístiques",
+    "stats": "Dades",
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificacions",
@@ -448,7 +448,7 @@
     "mobile_tile_votes": "Lleis",
     "mobile_tile_persons": "Diputats",
     "mobile_tile_topics": "Temes",
-    "mobile_tile_stats": "Estadístiques",
+    "mobile_tile_stats": "Dades",
     "mobile_section_highlights": "Destacats",
     "mobile_section_upcoming": "Pròximes sessions",
     "mobile_section_latest": "Darreres lleis",
@@ -681,7 +681,7 @@
     "hub_subscribe_cta": "Activa les notificacions"
   },
   "stats": {
-    "title": "Estadístiques",
+    "title": "Dades",
     "eyebrow": "Atles · agregats descriptius · cap mètrica unilateral",
     "intro": "Recompte d'iniciatives i votacions registrades en la XV legislatura. La classificació temàtica és automàtica (LLM neutre), cada xifra mostra la N bruta. Cobertura històrica encara en construcció.",
     "global_view": "Visió global",

@@ -1191,12 +1191,17 @@ function InitiativeRow({
           padding: '14px 0',
           display: 'grid',
           gap: 14,
-          gridTemplateColumns: 'minmax(56px, max-content) minmax(0, 1fr)',
+          // Mobile default: 2 cols [subject | right-stack(date+status)].
+          // Desktop swaps to [date | subject] via the `.initiative-row`
+          // override in globals.css — the left date span unhides via
+          // `hidden sm:inline-block` and the right stack hides via
+          // `sm:hidden`.
+          gridTemplateColumns: 'minmax(0, 1fr) auto',
           alignItems: 'baseline',
         }}
       >
         <span
-          className="tabular"
+          className="hidden sm:inline-block tabular"
           style={{
             fontSize: 12,
             color: 'var(--ink-3)',
@@ -1204,12 +1209,7 @@ function InitiativeRow({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {/* Mobile compresses legislatura + date into a single inline
-              string ("XV · 19 nov") so the title is the first thing the
-              row shows on a phone. Desktop keeps the longer date in its
-              own column. */}
-          <span className="sm:hidden">XV · {shortDate}</span>
-          <span className="hidden sm:inline">{longDate}</span>
+          {longDate}
         </span>
         <div style={{ minWidth: 0 }}>
           <div
@@ -1227,12 +1227,11 @@ function InitiativeRow({
               <AnnotatedText text={initiative.title_original} />
             </SummaryHover>
           </div>
-          {/* Single attribution line — ``[proposer-badges] · type · status``.
-              Lives BELOW the title at every viewport size; the previous
-              setup had this row in two places (desktop above, mobile below)
-              which read as duplicated metadata. The desktop status badge
-              column has been merged into this line so the row reads as one
-              factual record per initiative. */}
+          {/* Meta line — ``[proposer-badges] · type · status``. Status is
+              hidden on mobile (it lives in the right-stack instead) and
+              shown on desktop. The desktop status badge column was merged
+              into this line previously; mobile pulls it back out so the
+              title gets the full row width. */}
           <div
             className="initiative-row__meta"
             style={{
@@ -1261,8 +1260,13 @@ function InitiativeRow({
             <span>
               <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
             </span>
-            <span aria-hidden="true">·</span>
-            <span style={{ color: statusColor, fontWeight: 600 }}>
+            <span aria-hidden="true" className="hidden sm:inline">
+              ·
+            </span>
+            <span
+              className="hidden sm:inline"
+              style={{ color: statusColor, fontWeight: 600 }}
+            >
               {statusLabel}
             </span>
           </div>
@@ -1271,6 +1275,44 @@ function InitiativeRow({
             style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, display: 'inline-block' }}
           >
             {initiative.official_id}
+          </span>
+        </div>
+        {/* Mobile-only right stack: date on top, status pill below. On
+            desktop this column collapses (via `sm:hidden`) and the date +
+            status revert to their original places. */}
+        <div
+          className="sm:hidden"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 6,
+            textAlign: 'right',
+            flex: 'none',
+          }}
+        >
+          <span
+            className="tabular"
+            style={{
+              fontSize: 11,
+              color: 'var(--ink-3)',
+              whiteSpace: 'nowrap',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            XV · {shortDate}
+          </span>
+          <span
+            className="badge"
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: statusColor,
+              borderColor: 'color-mix(in oklch, currentColor 35%, var(--paper))',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {statusLabel}
           </span>
         </div>
       </a>

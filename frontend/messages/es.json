@@ -186,7 +186,7 @@
     "avui": "Crónica del pleno",
     "votes": "Votaciones",
     "persons": "Representantes",
-    "stats": "Estadísticas",
+    "stats": "Datos",
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificaciones",
@@ -448,7 +448,7 @@
     "mobile_tile_votes": "Leyes",
     "mobile_tile_persons": "Diputados",
     "mobile_tile_topics": "Temas",
-    "mobile_tile_stats": "Estadísticas",
+    "mobile_tile_stats": "Datos",
     "mobile_section_highlights": "Destacados",
     "mobile_section_upcoming": "Próximas sesiones",
     "mobile_section_latest": "Últimas leyes",
@@ -681,7 +681,7 @@
     "hub_subscribe_cta": "Activa las notificaciones"
   },
   "stats": {
-    "title": "Estadísticas",
+    "title": "Datos",
     "eyebrow": "Atlas · agregados descriptivos · ninguna métrica unilateral",
     "intro": "Recuento de iniciativas y votaciones registradas en la XV legislatura. La clasificación temática es automática (LLM neutro), cada cifra muestra la N bruta. La cobertura histórica todavía está en construcción.",
     "global_view": "Visión global",
