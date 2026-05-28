@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowUpRight, Newspaper } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { ResizingIframe } from '@/components/ResizingIframe';
 import { api } from '@/lib/api';
 
 export const revalidate = 600;
@@ -386,15 +387,12 @@ async function EmbedExample({
   const t = await getTranslations('journalists');
   const snippetSummary = t('snippet_summary');
   return (
-    <div
-      style={{
-        margin: '14px 0 22px',
-        padding: 14,
-        border: '1px solid var(--rule)',
-        borderRadius: 12,
-        background: 'var(--paper-2)',
-      }}
-    >
+    // No wrapping card: the widget supplies its own .embed-card chrome,
+    // so an outer bordered box would double-frame it ("pocket"). Title +
+    // description sit as plain page text; the preview iframe is
+    // borderless and auto-sizes to content so nothing is clipped or left
+    // hanging below.
+    <div style={{ margin: '20px 0 30px' }}>
       <div
         style={{
           fontWeight: 600,
@@ -405,23 +403,11 @@ async function EmbedExample({
       >
         {title}
       </div>
-      <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--ink-3)' }}>
+      <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--ink-3)' }}>
         {description}
       </p>
-      <iframe
-        src={src}
-        title={title}
-        width="100%"
-        height={height}
-        loading="lazy"
-        style={{
-          border: '1px solid var(--rule)',
-          borderRadius: 8,
-          background: 'var(--paper)',
-          display: 'block',
-        }}
-      />
-      <details style={{ marginTop: 10 }}>
+      <ResizingIframe src={src} title={title} fallbackHeight={height} />
+      <details style={{ marginTop: 12 }}>
         <summary
           style={{
             cursor: 'pointer',
@@ -468,6 +454,11 @@ const listStyle: React.CSSProperties = {
 
 const inlineCode: React.CSSProperties = {
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  // Disable ligatures: code must show literal characters. Cascadia Code
+  // (the Windows ui-monospace) and JetBrains Mono fuse </ and /> into
+  // glyphs that read as "weird symbols" in an <iframe> snippet.
+  fontVariantLigatures: 'none',
+  fontFeatureSettings: '"liga" 0, "calt" 0',
   fontSize: '0.92em',
   background: 'var(--paper-2)',
   padding: '1px 5px',
@@ -484,5 +475,8 @@ const preStyle: React.CSSProperties = {
   overflowX: 'auto',
   lineHeight: 1.5,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  // See inlineCode — never ligate code snippets.
+  fontVariantLigatures: 'none',
+  fontFeatureSettings: '"liga" 0, "calt" 0',
   margin: '8px 0 0',
 };

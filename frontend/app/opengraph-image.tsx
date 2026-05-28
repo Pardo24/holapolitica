@@ -110,7 +110,7 @@ export default async function HomeOg() {
           }}
         >
           <span>{t('home_footer')}</span>
-          <span style={{ fontWeight: 600 }}>monitor-parlamentari ↗</span>
+          <span style={{ fontWeight: 600 }}>holapolitica.org ↗</span>
         </div>
       </div>
     ),

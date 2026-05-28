@@ -221,6 +221,111 @@
     "no_summary_yet": "No plain-language summary yet. One will be generated soon.",
     "related_title": "Other similar laws"
   },
+  "law_journey": {
+    "eyebrow": "Trajectory",
+    "steps_count": "{done} of {total} stages",
+    "aria": "Path of the {type}",
+    "type": {
+      "proyecto_ley": "Government Bill",
+      "proposicion_ley": "Private Member's Bill",
+      "proposicion_no_ley": "Non-legislative motion (PNL)",
+      "mocion": "Motion",
+      "real_decreto_ley": "Royal Decree-Law",
+      "interpelacion": "Interpellation",
+      "other": "Other"
+    },
+    "status": {
+      "submitted": "Filed",
+      "in_debate": "In progress",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn",
+      "expired": "Lapsed"
+    },
+    "label": {
+      "proyecto_ley": {
+        "presentation": "Filing",
+        "bocg": "BOCG",
+        "committee": "Committee",
+        "floor": "Floor vote",
+        "senate": "Senate",
+        "boe": "BOE"
+      },
+      "proposicion_ley": {
+        "presentation": "Filing",
+        "taking": "Admission vote",
+        "committee": "Committee",
+        "floor": "Floor vote",
+        "senate": "Senate",
+        "boe": "BOE"
+      },
+      "proposicion_no_ley": {
+        "presentation": "Filing",
+        "amendments": "Amendments",
+        "debate": "Debate",
+        "vote": "Vote"
+      },
+      "mocion": {
+        "interpellation": "Interpellation",
+        "motion": "Motion",
+        "debate": "Debate",
+        "vote": "Vote"
+      },
+      "real_decreto_ley": {
+        "rdl": "RDL in BOE",
+        "debate": "Floor debate",
+        "vote": "Ratification"
+      },
+      "interpelacion": {
+        "presentation": "Filing",
+        "debate": "Floor debate"
+      },
+      "other": {
+        "presentation": "Filing",
+        "debate": "Processing",
+        "vote": "Resolution"
+      }
+    },
+    "hint": {
+      "proyecto_ley": {
+        "presentation": "Government decision",
+        "bocg": "Publication",
+        "committee": "Report and opinion",
+        "floor": "Vote on the whole text",
+        "senate": "Amendments or veto",
+        "boe": "Royal assent"
+      },
+      "proposicion_ley": {
+        "presentation": "A group files the text",
+        "taking": "Preliminary floor vote",
+        "committee": "Report and opinion",
+        "floor": "Vote on the whole text",
+        "senate": "Amendments or veto",
+        "boe": "Royal assent"
+      },
+      "proposicion_no_ley": {
+        "presentation": "A group files the text",
+        "amendments": "Amendment window",
+        "debate": "Floor or committee",
+        "vote": "Political mandate"
+      },
+      "mocion": {
+        "interpellation": "Question time",
+        "motion": "Follow-up",
+        "debate": "Floor",
+        "vote": "Political mandate"
+      },
+      "real_decreto_ley": {
+        "rdl": "Government approval",
+        "debate": "30 days max",
+        "vote": "Validation or repeal"
+      },
+      "interpelacion": {
+        "presentation": "Written question",
+        "debate": "Government reply"
+      }
+    }
+  },
   "notifications": {
     "eyebrow": "Weekly newsletter",
     "title": "Newsletter, topics you follow",
@@ -1295,6 +1400,8 @@
     "home_title_line_1": "What Congress votes.",
     "home_title_line_2": "Classified by topic.",
     "home_footer": "For every vote: who proposes it, how each group voted.",
+    "topic_count_label": "initiatives",
+    "topic_footer": "Congress initiatives classified by topic, in the open.",
     "stats_eyebrow": "Statistics · 15th legislature",
     "stats_headline": "What Congress votes, classified by topic.",
     "stats_subhead": "Open data from the Spanish Congress: every plenary vote, who proposes it, how each group voted. All open.",

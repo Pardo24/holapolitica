@@ -221,6 +221,111 @@
     "no_summary_yet": "Aún no hay un resumen en lenguaje claro. Se generará próximamente.",
     "related_title": "Otras leyes similares"
   },
+  "law_journey": {
+    "eyebrow": "Trayectoria",
+    "steps_count": "{done} de {total} etapas",
+    "aria": "Recorrido de la {type}",
+    "type": {
+      "proyecto_ley": "Proyecto de Ley",
+      "proposicion_ley": "Proposición de Ley",
+      "proposicion_no_ley": "Proposición no de Ley",
+      "mocion": "Moción",
+      "real_decreto_ley": "Real Decreto-Ley",
+      "interpelacion": "Interpelación",
+      "other": "Otros"
+    },
+    "status": {
+      "submitted": "Presentada",
+      "in_debate": "En trámite",
+      "approved": "Aprobada",
+      "rejected": "Rechazada",
+      "withdrawn": "Retirada",
+      "expired": "Caducada"
+    },
+    "label": {
+      "proyecto_ley": {
+        "presentation": "Presentación",
+        "bocg": "BOCG",
+        "committee": "Comisión",
+        "floor": "Pleno del Congreso",
+        "senate": "Senado",
+        "boe": "BOE"
+      },
+      "proposicion_ley": {
+        "presentation": "Presentación",
+        "taking": "Toma en consideración",
+        "committee": "Comisión",
+        "floor": "Pleno del Congreso",
+        "senate": "Senado",
+        "boe": "BOE"
+      },
+      "proposicion_no_ley": {
+        "presentation": "Presentación",
+        "amendments": "Enmiendas",
+        "debate": "Debate",
+        "vote": "Votación"
+      },
+      "mocion": {
+        "interpellation": "Interpelación",
+        "motion": "Moción",
+        "debate": "Debate",
+        "vote": "Votación"
+      },
+      "real_decreto_ley": {
+        "rdl": "RDL en el BOE",
+        "debate": "Debate en el Pleno",
+        "vote": "Convalidación"
+      },
+      "interpelacion": {
+        "presentation": "Presentación",
+        "debate": "Debate en el Pleno"
+      },
+      "other": {
+        "presentation": "Presentación",
+        "debate": "Tramitación",
+        "vote": "Resolución"
+      }
+    },
+    "hint": {
+      "proyecto_ley": {
+        "presentation": "Acuerdo del Gobierno",
+        "bocg": "Publicación",
+        "committee": "Ponencia y dictamen",
+        "floor": "Votación de conjunto",
+        "senate": "Enmiendas o veto",
+        "boe": "Sanción real"
+      },
+      "proposicion_ley": {
+        "presentation": "Un grupo registra el texto",
+        "taking": "Voto previo del Pleno",
+        "committee": "Ponencia y dictamen",
+        "floor": "Votación de conjunto",
+        "senate": "Enmiendas o veto",
+        "boe": "Sanción real"
+      },
+      "proposicion_no_ley": {
+        "presentation": "Un grupo registra el texto",
+        "amendments": "Plazo para enmendar",
+        "debate": "Pleno o Comisión",
+        "vote": "Mandato político"
+      },
+      "mocion": {
+        "interpellation": "Sesión de control",
+        "motion": "Consecuencia",
+        "debate": "Pleno",
+        "vote": "Mandato político"
+      },
+      "real_decreto_ley": {
+        "rdl": "Aprobación del Gobierno",
+        "debate": "30 días máximo",
+        "vote": "Validación o derogación"
+      },
+      "interpelacion": {
+        "presentation": "Pregunta escrita",
+        "debate": "Respuesta del Gobierno"
+      }
+    }
+  },
   "notifications": {
     "eyebrow": "Newsletter semanal",
     "title": "Newsletter, temas que sigues",
@@ -1295,6 +1400,8 @@
     "home_title_line_1": "Qué vota el Congreso.",
     "home_title_line_2": "Clasificado por tema.",
     "home_footer": "Por cada votación: quién la propone, cómo vota cada grupo.",
+    "topic_count_label": "iniciativas",
+    "topic_footer": "Iniciativas del Congreso clasificadas por tema, en abierto.",
     "stats_eyebrow": "Estadísticas · XV legislatura",
     "stats_headline": "Qué vota el Congreso, clasificado por tema.",
     "stats_subhead": "Open data del Congreso de los Diputados: cada voto del pleno, quién lo propone, cómo vota cada grupo. Todo en abierto.",

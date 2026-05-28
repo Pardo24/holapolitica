@@ -221,6 +221,111 @@
     "no_summary_yet": "Encara no hi ha un resum en llenguatge planer. Es generarà properament.",
     "related_title": "Altres lleis similars"
   },
+  "law_journey": {
+    "eyebrow": "Trajectòria",
+    "steps_count": "{done} de {total} etapes",
+    "aria": "Recorregut de la {type}",
+    "type": {
+      "proyecto_ley": "Projecte de Llei",
+      "proposicion_ley": "Proposició de Llei",
+      "proposicion_no_ley": "Proposició no de Llei",
+      "mocion": "Moció",
+      "real_decreto_ley": "Reial Decret-Llei",
+      "interpelacion": "Interpel·lació",
+      "other": "Altres"
+    },
+    "status": {
+      "submitted": "Presentada",
+      "in_debate": "En tràmit",
+      "approved": "Aprovada",
+      "rejected": "Rebutjada",
+      "withdrawn": "Retirada",
+      "expired": "Caducada"
+    },
+    "label": {
+      "proyecto_ley": {
+        "presentation": "Presentació",
+        "bocg": "BOCG",
+        "committee": "Comissió",
+        "floor": "Ple del Congrés",
+        "senate": "Senat",
+        "boe": "BOE"
+      },
+      "proposicion_ley": {
+        "presentation": "Presentació",
+        "taking": "Presa en consideració",
+        "committee": "Comissió",
+        "floor": "Ple del Congrés",
+        "senate": "Senat",
+        "boe": "BOE"
+      },
+      "proposicion_no_ley": {
+        "presentation": "Presentació",
+        "amendments": "Esmenes",
+        "debate": "Debat",
+        "vote": "Votació"
+      },
+      "mocion": {
+        "interpellation": "Interpel·lació",
+        "motion": "Moció",
+        "debate": "Debat",
+        "vote": "Votació"
+      },
+      "real_decreto_ley": {
+        "rdl": "RDL al BOE",
+        "debate": "Debat al Ple",
+        "vote": "Convalidació"
+      },
+      "interpelacion": {
+        "presentation": "Presentació",
+        "debate": "Debat al Ple"
+      },
+      "other": {
+        "presentation": "Presentació",
+        "debate": "Tramitació",
+        "vote": "Resolució"
+      }
+    },
+    "hint": {
+      "proyecto_ley": {
+        "presentation": "Acord del Govern",
+        "bocg": "Publicació",
+        "committee": "Ponència i dictamen",
+        "floor": "Votació de conjunt",
+        "senate": "Esmenes o veto",
+        "boe": "Sanció reial"
+      },
+      "proposicion_ley": {
+        "presentation": "Un grup registra el text",
+        "taking": "Vot previ del Ple",
+        "committee": "Ponència i dictamen",
+        "floor": "Votació de conjunt",
+        "senate": "Esmenes o veto",
+        "boe": "Sanció reial"
+      },
+      "proposicion_no_ley": {
+        "presentation": "Un grup registra el text",
+        "amendments": "Termini per esmenar",
+        "debate": "Ple o Comissió",
+        "vote": "Mandat polític"
+      },
+      "mocion": {
+        "interpellation": "Sessió de control",
+        "motion": "Conseqüència",
+        "debate": "Ple",
+        "vote": "Mandat polític"
+      },
+      "real_decreto_ley": {
+        "rdl": "Aprovació del Govern",
+        "debate": "30 dies màxim",
+        "vote": "Validació o derogació"
+      },
+      "interpelacion": {
+        "presentation": "Pregunta escrita",
+        "debate": "Resposta del Govern"
+      }
+    }
+  },
   "notifications": {
     "eyebrow": "Newsletter setmanal",
     "title": "Newsletter, temes que segueixes",
@@ -1294,6 +1399,8 @@
     "home_title_line_1": "Què vota el Congrés.",
     "home_title_line_2": "Classificat per tema.",
     "home_footer": "Per cada votació: qui la proposa, com vota cada grup.",
+    "topic_count_label": "iniciatives",
+    "topic_footer": "Iniciatives del Congrés classificades per tema, en obert.",
     "stats_eyebrow": "Estadístiques · XV legislatura",
     "stats_headline": "Què vota el Congrés, classificat per tema.",
     "stats_subhead": "Open data del Congrés dels Diputats: cada vot del ple, qui ho proposa, com vota cada grup. Tot en obert.",

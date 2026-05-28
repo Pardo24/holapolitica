@@ -241,7 +241,14 @@ a { color: inherit; }
 .eyebrow.warm::before { background: var(--accent-warm); }
 .eyebrow.muted { color: var(--ink-3); }
 .eyebrow.muted::before { background: var(--ink-3); }
-.mono { font-family: var(--font-mono); }
+.mono {
+  font-family: var(--font-mono);
+  /* Code / IDs / expedientes must show literal characters. The mono
+     stack includes ligature fonts (JetBrains Mono; Cascadia Code via
+     ui-monospace on Windows) that fuse </, />, =>, != into glyphs. */
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
 .serif { font-family: var(--font-serif); }
 .tabular { font-variant-numeric: tabular-nums; }
 .rule-line { border: 0; border-top: 1px solid var(--rule); }

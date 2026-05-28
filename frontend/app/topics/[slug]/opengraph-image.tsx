@@ -115,51 +115,77 @@ export default async function TopicOg({
             flex: 1,
             display: 'flex',
             alignItems: 'center',
-            gap: 40,
+            gap: 44,
             paddingTop: 30,
             paddingBottom: 30,
           }}
         >
+          {/* Accent tile carries real information: the SDG number for an
+              SDG topic, otherwise the count of classified initiatives —
+              never a placeholder dot. The "·" fallback only appears if
+              the count is genuinely zero. */}
           <div
             style={{
-              width: 160,
-              height: 160,
-              borderRadius: 24,
+              width: 200,
+              height: 200,
+              borderRadius: 28,
               background: accent,
               color: '#fff',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 80,
-              fontWeight: 800,
-              letterSpacing: '-0.04em',
               flex: 'none',
               fontFamily: 'sans-serif',
+              padding: '0 12px',
             }}
           >
-            {sdgNumber || '·'}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
             <span
               style={{
-                fontSize: 56,
+                fontSize: isSdg ? 88 : 96,
+                fontWeight: 800,
+                letterSpacing: '-0.04em',
+                lineHeight: 1,
+              }}
+            >
+              {isSdg ? sdgNumber || '·' : initiativeCount}
+            </span>
+            {!isSdg && (
+              <span
+                style={{
+                  fontSize: 17,
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  opacity: 0.85,
+                  marginTop: 8,
+                }}
+              >
+                {t('topic_count_label')}
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+            <span
+              style={{
+                fontSize: 60,
                 fontWeight: 600,
                 color: '#1a2138',
                 letterSpacing: '-0.015em',
                 fontFamily: 'serif',
-                lineHeight: 1.1,
+                lineHeight: 1.05,
               }}
             >
               {topic.name_ca}
             </span>
             <span
               style={{
-                fontSize: 20,
+                fontSize: 22,
                 color: '#3f4c66',
-                lineHeight: 1.3,
+                lineHeight: 1.35,
               }}
             >
-              {topic.description_ca?.slice(0, 140) ?? ''}
+              {topic.description_ca?.slice(0, 150) ?? ''}
             </span>
           </div>
         </div>
@@ -167,46 +193,17 @@ export default async function TopicOg({
         <div
           style={{
             display: 'flex',
-            alignItems: 'flex-end',
+            alignItems: 'center',
             justifyContent: 'space-between',
             gap: 30,
             paddingTop: 18,
             borderTop: '1px solid #d2cdbc',
+            fontSize: 16,
+            color: '#3f4c66',
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span
-              style={{
-                fontSize: 12,
-                color: '#3f4c66',
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Iniciatives classificades
-            </span>
-            <span
-              style={{
-                fontSize: 60,
-                fontWeight: 700,
-                color: '#1a2138',
-                letterSpacing: '-0.02em',
-                fontFamily: 'monospace',
-              }}
-            >
-              {initiativeCount}
-            </span>
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: '#3f4c66',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-            }}
-          >
-            holapolitica.org
-          </div>
+          <span>{t('topic_footer')}</span>
+          <span style={{ fontWeight: 600 }}>holapolitica.org ↗</span>
         </div>
       </div>
     ),

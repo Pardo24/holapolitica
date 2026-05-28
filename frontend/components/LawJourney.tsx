@@ -1,72 +1,73 @@
+import { getTranslations } from 'next-intl/server';
+
 import type { InitiativeType, InitiativeStatus, VoteResult } from '@/lib/api';
 
 /**
- * Dark trajectory banner that sits at the very top of a law-detail
- * page. Each parliamentary procedure (Proyecto de Ley, Proposición,
- * PNL, Moción, RDL, etc.) has its own canonical sequence — pulled
- * from the Reglament del Congrés — and the banner highlights the
- * step the initiative is currently at, based on its ``status``.
+ * Dark trajectory banner that sits at the top of a law-detail page.
+ * Each parliamentary procedure (Proyecto de Ley, Proposición, PNL,
+ * Moció, RDL, etc.) has its own canonical sequence — pulled from the
+ * Reglament del Congrés — and the banner highlights the step the
+ * initiative is currently at, based on its ``status``.
  *
- * Style: full-bleed ink background with paper labels, inspired by the
- * V3 "dossier" mockup Daniel approved. Sits above the headline so a
- * reader sees at a glance "this is a PNL, currently at the vote
- * step", before reading any of the editorial content.
+ * All labels are localised via the ``law_journey`` namespace. Step
+ * labels/hints are keyed by ``label.<type>.<stepKey>`` /
+ * ``hint.<type>.<stepKey>`` so each procedure can carry its own
+ * procedural wording in CA/ES/EN.
  *
  * Neutrality (CLAUDE.md "mirall, no megàfon"): step labels are
- * procedural language from the Reglament; nothing editorial. The
- * dot colour shifts to green/red only on the terminal step when the
- * initiative was Approved/Rejected, mirroring the same convention
- * already in use elsewhere on the site.
+ * procedural language from the Reglament; nothing editorial. The dot
+ * colour shifts to green/red only on the terminal step when the
+ * initiative was Approved/Rejected.
  */
 
 interface JourneyStep {
   key: string;
-  label: string;
-  hint?: string;
+  /** Whether a ``hint.<type>.<key>`` translation exists for this step. */
+  hint: boolean;
 }
 
 const STEPS: Record<InitiativeType, JourneyStep[]> = {
   proyecto_ley: [
-    { key: 'presentation', label: 'Presentació', hint: 'Acord del Govern' },
-    { key: 'bocg', label: 'BOCG', hint: 'Publicació' },
-    { key: 'committee', label: 'Comissió', hint: 'Ponència i dictamen' },
-    { key: 'floor', label: 'Ple del Congrés', hint: 'Votació de conjunt' },
-    { key: 'senate', label: 'Senat', hint: 'Esmenes o veto' },
-    { key: 'boe', label: 'BOE', hint: 'Sanció reial' },
+    { key: 'presentation', hint: true },
+    { key: 'bocg', hint: true },
+    { key: 'committee', hint: true },
+    { key: 'floor', hint: true },
+    { key: 'senate', hint: true },
+    { key: 'boe', hint: true },
   ],
   proposicion_ley: [
-    { key: 'presentation', label: 'Presentació', hint: 'Un grup registra el text' },
-    { key: 'taking', label: 'Presa en consideració', hint: 'Vot previ del Ple' },
-    { key: 'committee', label: 'Comissió', hint: 'Ponència i dictamen' },
-    { key: 'floor', label: 'Ple del Congrés', hint: 'Votació de conjunt' },
-    { key: 'senate', label: 'Senat', hint: 'Esmenes o veto' },
-    { key: 'boe', label: 'BOE', hint: 'Sanció reial' },
+    { key: 'presentation', hint: true },
+    { key: 'taking', hint: true },
+    { key: 'committee', hint: true },
+    { key: 'floor', hint: true },
+    { key: 'senate', hint: true },
+    { key: 'boe', hint: true },
   ],
   proposicion_no_ley: [
-    { key: 'presentation', label: 'Presentació', hint: 'Un grup registra el text' },
-    { key: 'amendments', label: 'Esmenes', hint: 'Termini per esmenar' },
-    { key: 'debate', label: 'Debat', hint: 'Ple o Comissió' },
-    { key: 'vote', label: 'Votació', hint: 'Mandat polític' },
+    { key: 'presentation', hint: true },
+    { key: 'amendments', hint: true },
+    { key: 'debate', hint: true },
+    { key: 'vote', hint: true },
   ],
   mocion: [
-    { key: 'interpellation', label: 'Interpel·lació', hint: 'Sessió de control' },
-    { key: 'motion', label: 'Moció', hint: 'Conseqüència' },
-    { key: 'debate', label: 'Debat', hint: 'Ple' },
-    { key: 'vote', label: 'Votació', hint: 'Mandat polític' },
+    { key: 'interpellation', hint: true },
+    { key: 'motion', hint: true },
+    { key: 'debate', hint: true },
+    { key: 'vote', hint: true },
   ],
   real_decreto_ley: [
-    { key: 'rdl', label: 'RDL al BOE', hint: "Aprovació del Govern" },
-    { key: 'debate', label: 'Debat al Ple', hint: '30 dies màxim' },
-    { key: 'vote', label: 'Convalidació', hint: 'Validació o derogació' },
+    { key: 'rdl', hint: true },
+    { key: 'debate', hint: true },
+    { key: 'vote', hint: true },
   ],
   interpelacion: [
-    { key: 'presentation', label: 'Presentació', hint: 'Pregunta escrita' },
-    { key: 'debate', label: 'Debat al Ple', hint: 'Resposta del Govern' },
+    { key: 'presentation', hint: true },
+    { key: 'debate', hint: true },
   ],
   other: [
-    { key: 'presentation', label: 'Presentació' },
-    { key: 'debate', label: 'Tramitació' },
-    { key: 'vote', label: 'Resolució' },
+    { key: 'presentation', hint: false },
+    { key: 'debate', hint: false },
+    { key: 'vote', hint: false },
   ],
 };
 
@@ -107,26 +108,7 @@ function deriveActiveIndex(
   return 0;
 }
 
-const TYPE_LABEL: Record<InitiativeType, string> = {
-  proyecto_ley: 'Projecte de Llei',
-  proposicion_ley: 'Proposició de Llei',
-  proposicion_no_ley: 'Proposició no de Llei',
-  mocion: 'Moció',
-  real_decreto_ley: 'Reial Decret-Llei',
-  interpelacion: 'Interpel·lació',
-  other: 'Altres',
-};
-
-const STATUS_LABEL: Record<InitiativeStatus, string> = {
-  submitted: 'Presentada',
-  in_debate: 'En tràmit',
-  approved: 'Aprovada',
-  rejected: 'Rebutjada',
-  withdrawn: 'Retirada',
-  expired: 'Caducada',
-};
-
-export function LawJourney({
+export async function LawJourney({
   type,
   status,
   hasBoe = false,
@@ -141,6 +123,7 @@ export function LawJourney({
    *  vote-detail page — sharpens the colour of the terminal step. */
   voteResult?: VoteResult | null;
 }) {
+  const t = await getTranslations('law_journey');
   const steps = STEPS[type] ?? STEPS.other;
   const activeIndex = deriveActiveIndex(type, status, hasBoe, voteResult);
   const accent =
@@ -149,32 +132,28 @@ export function LawJourney({
       : voteResult === 'rejected' || status === 'rejected'
         ? 'var(--no)'
         : 'var(--paper)';
-  const statusLabel = status ? STATUS_LABEL[status] : null;
+  const typeLabel = t(`type.${type}`);
+  const statusLabel = status ? t(`status.${status}`) : null;
   const doneCount = activeIndex + 1;
 
   return (
     <section
-      aria-label={`Recorregut de la ${TYPE_LABEL[type]}`}
+      aria-label={t('aria', { type: typeLabel })}
       className="law-journey"
       style={{
         background: 'var(--ink)',
         color: 'var(--paper)',
         padding: '16px 24px',
-        // Full-bleed: extend past the page container's horizontal
-        // padding so the dark strip touches the viewport edges. Works
-        // because the parent ``.page`` container is centred with auto
-        // margins and a non-fixed max-width.
-        marginLeft: 'calc(50% - 50vw)',
-        marginRight: 'calc(50% - 50vw)',
-        marginTop: 0,
+        // Contained, rounded banner that respects the page column — no
+        // longer full-bleed to the viewport edges (Daniel: "que en la
+        // web no arribi fins a les voreres").
+        borderRadius: 14,
+        marginTop: 8,
         marginBottom: 18,
-        borderBottom: '1px solid var(--ink-2)',
       }}
     >
       <div
         style={{
-          maxWidth: 1280,
-          marginInline: 'auto',
           display: 'grid',
           gridTemplateColumns: '200px 1fr',
           gap: 24,
@@ -193,7 +172,7 @@ export function LawJourney({
               marginBottom: 4,
             }}
           >
-            Trajectòria
+            {t('eyebrow')}
           </div>
           <div
             style={{
@@ -203,7 +182,7 @@ export function LawJourney({
               letterSpacing: '-0.005em',
             }}
           >
-            {TYPE_LABEL[type]}
+            {typeLabel}
           </div>
           <div
             style={{
@@ -217,7 +196,7 @@ export function LawJourney({
             }}
           >
             <span className="tabular">
-              {doneCount} de {steps.length} etapes
+              {t('steps_count', { done: doneCount, total: steps.length })}
             </span>
             {statusLabel && (
               <span
@@ -269,6 +248,8 @@ export function LawJourney({
             const dotBorder = isPast || isActive
               ? accent
               : 'color-mix(in oklch, var(--paper) 35%, transparent)';
+            const label = t(`label.${type}.${step.key}`);
+            const hint = step.hint ? t(`hint.${type}.${step.key}`) : null;
             return (
               <li
                 key={step.key}
@@ -330,9 +311,9 @@ export function LawJourney({
                     width: '100%',
                   }}
                 >
-                  {step.label}
+                  {label}
                 </div>
-                {step.hint && (
+                {hint && (
                   <div
                     style={{
                       fontSize: 10,
@@ -345,7 +326,7 @@ export function LawJourney({
                       width: '100%',
                     }}
                   >
-                    {step.hint}
+                    {hint}
                   </div>
                 )}
               </li>

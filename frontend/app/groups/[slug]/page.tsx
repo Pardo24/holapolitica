@@ -389,101 +389,73 @@ function CompositionSection({
     unknown: labels.age_unknown,
   };
   return (
-    <>
-      {/* Parity — own section so the gender breakdown reads as a
-          distinct concern, not just one column of a triptych.
-          Daniel: "ho separem en dos widgets". */}
-      <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">{labels.gender}</h2>
-        <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
-          {labels.intro}
-        </p>
-        <div
-          style={{
-            marginTop: 14,
-            maxWidth: 520,
-          }}
-        >
-          <CompositionCard title={labels.gender}>
-            <GenderDonut
-              distribution={composition.gender_distribution}
-              genderLabels={genderLabels}
-              ariaBuilder={labels.gender_distribution_aria}
-            />
-          </CompositionCard>
-        </div>
-      </section>
+    // One cohesive section, no boxed cards. Parity reads as a single
+    // stacked bar; age + parties as horizontal proportion bars. The
+    // previous donut + stubby vertical bars in bordered "cards" read
+    // as cramped widgets pasted onto the page — this flows with it.
+    <section style={{ paddingTop: 28 }}>
+      <h2 className="h-title">{labels.title}</h2>
+      <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
+        {labels.intro}
+      </p>
 
-      {/* Age + parties — second widget. Sits side-by-side so a
-          reader can scan age distribution next to the constituent-
-          party breakdown that often explains it (an old core party
-          + a younger satellite). Age-PER-party (broken down inside
-          each constituent) is a richer view but needs a backend
-          field we don't expose yet; for now the two stay adjacent. */}
-      <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">{labels.age}</h2>
-        <div
-          className="composition-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 18,
-            marginTop: 14,
-          }}
-        >
-          <CompositionCard title={labels.age}>
-            <AgeBars
-              buckets={composition.age_buckets}
-              accent={groupColor}
-              ageLabels={ageLabels}
-              ariaBuilder={labels.age_bucket_aria}
-            />
-          </CompositionCard>
-          <CompositionCard title={labels.parties}>
-            <PartyList
-              parties={composition.member_parties}
-              membersTotal={composition.members_total}
-              emptyBuilder={labels.no_party_data}
-            />
-          </CompositionCard>
+      {/* Parity — a single horizontal stacked bar + inline legend. */}
+      <div style={{ marginTop: 22, maxWidth: 620 }}>
+        <div className="eyebrow" style={{ marginBottom: 10 }}>
+          {labels.gender}
         </div>
-        <style>{`
-          @media (max-width: 860px) {
-            .composition-grid { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
-      </section>
-    </>
-  );
-}
-
-function CompositionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        border: '1px solid var(--rule)',
-        background: 'var(--paper)',
-        padding: 16,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 220,
-      }}
-    >
-      <div className="eyebrow" style={{ marginBottom: 12 }}>
-        {title}
+        <GenderBar
+          distribution={composition.gender_distribution}
+          genderLabels={genderLabels}
+          ariaBuilder={labels.gender_distribution_aria}
+        />
       </div>
-      <div style={{ flex: 1 }}>{children}</div>
-    </div>
+
+      {/* Age + parties — horizontal bars, side-by-side on desktop so a
+          reader can scan age distribution next to the constituent-party
+          breakdown that often explains it. No card chrome. */}
+      <div
+        className="composition-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 40,
+          marginTop: 28,
+        }}
+      >
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>
+            {labels.age}
+          </div>
+          <AgeBars
+            buckets={composition.age_buckets}
+            accent={groupColor}
+            ageLabels={ageLabels}
+            ariaBuilder={labels.age_bucket_aria}
+          />
+        </div>
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>
+            {labels.parties}
+          </div>
+          <PartyList
+            parties={composition.member_parties}
+            membersTotal={composition.members_total}
+            accent={groupColor}
+            emptyBuilder={labels.no_party_data}
+          />
+        </div>
+      </div>
+      <style>{`
+        @media (max-width: 760px) {
+          .composition-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+        }
+      `}</style>
+    </section>
   );
 }
 
-function GenderDonut({
+function GenderBar({
   distribution,
   genderLabels,
   ariaBuilder,
@@ -492,81 +464,80 @@ function GenderDonut({
   genderLabels: Record<string, string>;
   ariaBuilder: (summary: string) => string;
 }) {
-  // Render order = canonical visual order; legend always shows the four
-  // buckets including ``unknown`` so callers can't fix asymmetries by
-  // hiding a category. Sums of zero are valid — donut degrades to a
-  // single grey ring in that case.
+  // Legend always lists the four buckets including ``unknown`` so an
+  // asymmetry can't be hidden by dropping a category (CLAUDE.md symmetry
+  // rule). A zero-total degrades to an empty grey track.
   const keys: Array<'F' | 'M' | 'X' | 'unknown'> = ['F', 'M', 'X', 'unknown'];
   const total = keys.reduce((acc, k) => acc + distribution[k], 0);
-  // Use a fixed virtual circumference; segment lengths are proportional.
-  const R = 40;
-  const C = 2 * Math.PI * R;
-  let offset = 0;
-
   return (
-    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-      <svg
-        width={120}
-        height={120}
-        viewBox="0 0 120 120"
+    <div>
+      <div
         role="img"
         aria-label={ariaBuilder(
           keys.map((k) => `${genderLabels[k]} ${distribution[k]}`).join(', '),
         )}
+        style={{
+          display: 'flex',
+          height: 16,
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: 'var(--paper-2)',
+        }}
       >
-        <circle cx="60" cy="60" r={R} fill="none" stroke="#e5e7eb" strokeWidth="16" />
         {total > 0 &&
           keys.map((k) => {
             const v = distribution[k];
             if (v === 0) return null;
-            const segLen = (v / total) * C;
-            const node = (
-              <circle
+            return (
+              <div
                 key={k}
-                cx="60"
-                cy="60"
-                r={R}
-                fill="none"
-                stroke={GENDER_COLORS[k]}
-                strokeWidth="16"
-                strokeDasharray={`${segLen} ${C - segLen}`}
-                strokeDashoffset={-offset}
-                transform="rotate(-90 60 60)"
+                style={{
+                  width: `${(v / total) * 100}%`,
+                  background: GENDER_COLORS[k],
+                  opacity: k === 'unknown' ? 0.55 : 1,
+                }}
               />
             );
-            offset += segLen;
-            return node;
           })}
-      </svg>
+      </div>
       <ul
         style={{
           listStyle: 'none',
-          margin: 0,
+          margin: '12px 0 0',
           padding: 0,
           fontSize: 12,
           display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
+          flexWrap: 'wrap',
+          gap: '6px 18px',
         }}
       >
-        {keys.map((k) => (
-          <li key={k} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span
-              aria-hidden="true"
-              style={{
-                width: 10,
-                height: 10,
-                background: GENDER_COLORS[k],
-                display: 'inline-block',
-                borderRadius: 2,
-              }}
-            />
-            <span style={{ color: 'var(--ink-2)' }}>{genderLabels[k]}</span>
-            <span className="tabular" style={{ marginLeft: 'auto', color: 'var(--ink)' }}>
-              {distribution[k]}
-            </span>
-          </li>
-        ))}
+        {keys.map((k) => {
+          const v = distribution[k];
+          const pct = total > 0 ? Math.round((v / total) * 100) : 0;
+          return (
+            <li key={k} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 9,
+                  height: 9,
+                  background: GENDER_COLORS[k],
+                  opacity: k === 'unknown' ? 0.55 : 1,
+                  display: 'inline-block',
+                  borderRadius: 2,
+                  flex: 'none',
+                }}
+              />
+              <span style={{ color: 'var(--ink-2)' }}>{genderLabels[k]}</span>
+              <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+                {v}
+              </span>
+              <span className="tabular" style={{ color: 'var(--ink-3)' }}>
+                · {pct}%
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -583,87 +554,73 @@ function AgeBars({
   ageLabels: Record<string, string>;
   ariaBuilder: (label: string, value: number) => string;
 }) {
+  // Horizontal proportion bars (one row per bucket). Reads far better
+  // than the old vertical stubs: labels are legible, zero-buckets are
+  // visible as an empty track rather than a 2px sliver.
   const max = Math.max(1, ...AGE_BUCKET_ORDER.map((k) => buckets[k]));
   const fill = accent ?? 'var(--ink-2)';
-
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${AGE_BUCKET_ORDER.length}, 1fr)`,
-        gap: 8,
-        alignItems: 'end',
-        height: 140,
-      }}
-    >
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {AGE_BUCKET_ORDER.map((k) => {
         const value = buckets[k];
-        const heightPct = (value / max) * 100;
+        const pct = (value / max) * 100;
         return (
-          <div
+          <li
             key={k}
             style={{
-              display: 'flex',
-              flexDirection: 'column',
+              display: 'grid',
+              gridTemplateColumns: '58px minmax(0, 1fr) 28px',
+              gap: 10,
               alignItems: 'center',
-              justifyContent: 'flex-end',
-              height: '100%',
-              gap: 4,
             }}
           >
-            <span
-              className="tabular"
-              style={{ fontSize: 11, color: 'var(--ink-2)' }}
-              aria-hidden={value === 0 ? 'true' : undefined}
-            >
-              {value}
+            <span style={{ fontSize: 11, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>
+              {ageLabels[k] ?? k}
             </span>
             <div
               role="img"
               aria-label={ariaBuilder(ageLabels[k] ?? k, value)}
-              style={{
-                width: '100%',
-                background: value === 0 ? '#e5e7eb' : fill,
-                opacity: k === 'unknown' ? 0.55 : 1,
-                height: `${Math.max(2, heightPct)}%`,
-                minHeight: 2,
-                borderRadius: 2,
-              }}
-            />
-            <span
-              style={{
-                fontSize: 10,
-                color: 'var(--ink-3)',
-                textAlign: 'center',
-                whiteSpace: 'nowrap',
-              }}
+              style={{ height: 10, borderRadius: 5, background: 'var(--paper-2)', overflow: 'hidden' }}
             >
-              {ageLabels[k] ?? k}
+              <div
+                style={{
+                  width: `${pct}%`,
+                  height: '100%',
+                  background: fill,
+                  opacity: k === 'unknown' ? 0.5 : 1,
+                  borderRadius: 5,
+                  minWidth: value > 0 ? 4 : 0,
+                }}
+              />
+            </div>
+            <span
+              className="tabular"
+              style={{ fontSize: 12, color: 'var(--ink-2)', textAlign: 'right' }}
+            >
+              {value}
             </span>
-          </div>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 
 function PartyList({
   parties,
   membersTotal,
+  accent,
   emptyBuilder,
 }: {
   parties: GroupComposition['member_parties'];
   membersTotal: number;
+  accent: string | null;
   emptyBuilder: (count: number) => string;
 }) {
-  // Surface the "no party data" row explicitly when the group has
-  // members but the electoral-list field is null/empty for some of
-  // them — never hide it. Sum of party counts can exceed members_total
-  // (coalition members count in every constituent party), so the
-  // unknown count is derived from "members with no party rows at all",
-  // not from membersTotal − sum(parties). We can't compute that here
-  // (we'd need the raw rows), so we only show "Sense dada" when zero
-  // parties were resolved.
+  // Same horizontal-bar language as AgeBars so the two columns read as
+  // one visual family. Sum of party counts can exceed members_total
+  // (coalition members count in every constituent party), so we scale
+  // bars to the max single-party count, not the total.
   if (parties.length === 0) {
     return (
       <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
@@ -671,21 +628,48 @@ function PartyList({
       </p>
     );
   }
+  const max = Math.max(1, ...parties.map((p) => p.count));
+  const fill = accent ?? 'var(--ink-2)';
   return (
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0, fontSize: 13 }}>
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {parties.map((p) => (
         <li
           key={p.name}
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) auto',
-            padding: '6px 0',
-            borderBottom: '1px solid var(--rule)',
+            gridTemplateColumns: 'minmax(0, 1fr) 28px',
             gap: 10,
+            alignItems: 'center',
           }}
         >
-          <span style={{ color: 'var(--ink)', minWidth: 0, overflowWrap: 'anywhere' }}>{p.name}</span>
-          <span className="tabular" style={{ color: 'var(--ink-2)' }}>
+          <div style={{ minWidth: 0 }}>
+            <span
+              style={{
+                fontSize: 12.5,
+                color: 'var(--ink)',
+                display: 'block',
+                overflowWrap: 'anywhere',
+                marginBottom: 4,
+              }}
+            >
+              {p.name}
+            </span>
+            <div style={{ height: 8, borderRadius: 4, background: 'var(--paper-2)', overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${(p.count / max) * 100}%`,
+                  height: '100%',
+                  background: fill,
+                  borderRadius: 4,
+                  minWidth: 4,
+                }}
+              />
+            </div>
+          </div>
+          <span
+            className="tabular"
+            style={{ fontSize: 12, color: 'var(--ink-2)', textAlign: 'right', alignSelf: 'start' }}
+          >
             {p.count}
           </span>
         </li>
