@@ -754,6 +754,7 @@ async def generate_all_plain_summaries(lang: str = "ca") -> dict[str, int | str]
                     lang=lang,
                     error=str(e),
                 )
+            await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
         return {
             "lang": lang,
             "seen": len(ids),
@@ -825,6 +826,7 @@ async def translate_initiative_summaries_ca_from_es() -> dict[str, int | str]:
             except Exception as e:
                 errors += 1
                 log.warning("translate_summary.error", initiative_id=iid, target="ca", error=str(e))
+            await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
         log.info(
             "bootstrap.translate_summary.done",
             target="ca",
@@ -847,6 +849,11 @@ async def translate_initiative_summaries_ca_from_es() -> dict[str, int | str]:
 # and the model would just hallucinate. 60 chars matches what we see in
 # the few well-formed orphan-vote descriptions today.
 _VOTE_DESCRIPTION_MIN_LEN = 60
+
+# Inter-call pacing for the summary/translate batches — ~1 req/s keeps us
+# under Mistral's free-tier budget so a full run doesn't get throttled
+# into a retry-storm. Matches the classifier's own pacing.
+_LLM_INTER_CALL_DELAY_S = 1.0
 
 
 async def generate_vote_plain_summaries(lang: str = "ca") -> dict[str, int | str]:
@@ -923,6 +930,7 @@ async def generate_vote_plain_summaries(lang: str = "ca") -> dict[str, int | str
                     lang=lang,
                     error=str(e),
                 )
+            await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
         log.info(
             "vote_plain_summary.done",
             lang=lang,
@@ -996,6 +1004,7 @@ async def translate_vote_summaries_ca_from_es() -> dict[str, int | str]:
             except Exception as e:
                 errors += 1
                 log.warning("vote_translate_summary.error", vote_id=vid, target="ca", error=str(e))
+            await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
         log.info(
             "vote_translate_summary.done",
             target="ca",
