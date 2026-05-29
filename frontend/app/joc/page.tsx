@@ -131,7 +131,7 @@ export default async function JocPage() {
 
   if (vote == null) {
     return (
-      <article style={{ maxWidth: 680, paddingTop: 24, paddingBottom: 48 }}>
+      <article style={{ maxWidth: 680, marginInline: 'auto', paddingTop: 24, paddingBottom: 48 }}>
         <div className="eyebrow" style={{ marginBottom: 8 }}>
           {t('eyebrow')}
         </div>
@@ -215,7 +215,7 @@ export default async function JocPage() {
   }
 
   return (
-    <article style={{ maxWidth: 680, paddingTop: 24, paddingBottom: 48 }}>
+    <article style={{ maxWidth: 680, marginInline: 'auto', paddingTop: 24, paddingBottom: 48 }}>
       <div className="eyebrow" style={{ marginBottom: 8 }}>
         {t('eyebrow')}
       </div>

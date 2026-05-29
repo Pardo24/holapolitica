@@ -1517,6 +1517,10 @@ body.hp-filter-pending .mobile-votes-list::after {
      line (proposer · type chip) never wraps it onto a new line. */
   .initiative-row { grid-template-columns: 110px minmax(0, 1fr) auto !important; }
 
+  /* Quiz proposer options: two balanced columns on desktop instead of a
+     tall single stack (the card was only laid out for mobile). */
+  .quiz-options--grid { grid-template-columns: 1fr 1fr; }
+
   /* CompactVoteRow desktop: switch from the mobile 2-col grid
      (subject | right-stack) to the canonical 3-col layout
      (date | subject | result). The right-stack collapses to a

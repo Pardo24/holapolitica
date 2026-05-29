@@ -149,6 +149,7 @@ export function QuizCard({
           highlighted in green/red after reveal so the reader sees
           their own answer too. */}
       <ul
+        className={question.kind === 'proposer' ? 'quiz-options quiz-options--grid' : 'quiz-options'}
         style={{
           listStyle: 'none',
           margin: 0,
