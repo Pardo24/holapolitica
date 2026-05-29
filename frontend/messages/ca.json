@@ -67,7 +67,10 @@
     "row_votes": "{count} votacions",
     "row_low_n": "Mostra reduïda",
     "show_matrix": "Veure la matriu completa",
-    "hide_matrix": "Amagar la matriu completa"
+    "hide_matrix": "Amagar la matriu completa",
+    "extremes_most": "Més coincidència",
+    "extremes_least": "Menys coincidència",
+    "extremes_intro": "Les parelles de grups que voten més igual i les que voten més diferent. Tria un grup a dalt per veure totes les seves coincidències."
   },
   "session_sheet": {
     "eyebrow": "Sessió plenària · núm. {sessionNumber}",

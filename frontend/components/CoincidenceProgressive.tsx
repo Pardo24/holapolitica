@@ -31,10 +31,12 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { GroupBadge } from '@/components/GroupBadge';
+import { ScrollCarousel } from '@/components/ScrollCarousel';
 import type { CoincidenceCell, ParliamentaryGroupSummary } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
 const MIN_N = 3;
+const EXTREMES_N = 3;
 
 export function CoincidenceProgressive({
   groups,
@@ -103,53 +105,81 @@ export function CoincidenceProgressive({
       });
   }, [focusedGroup, map, ordered]);
 
+  // Default view (no group focused): the pairs that vote most alike and
+  // most differently. Symmetric — we always show BOTH extremes, never
+  // just "the most aligned" — so it can't read as taking a side.
+  const extremes = useMemo(() => {
+    const pairs: {
+      a: ParliamentaryGroupSummary;
+      b: ParliamentaryGroupSummary;
+      pct: number;
+      votes: number;
+    }[] = [];
+    for (let i = 0; i < ordered.length; i++) {
+      for (let j = i + 1; j < ordered.length; j++) {
+        const a = ordered[i]!;
+        const b = ordered[j]!;
+        const cell = map.get(`${a.slug}|${b.slug}`);
+        if (cell && cell.coincidence != null && cell.votes_compared >= MIN_N) {
+          pairs.push({
+            a,
+            b,
+            pct: Math.round((cell.coincidence as number) * 100),
+            votes: cell.votes_compared,
+          });
+        }
+      }
+    }
+    pairs.sort((x, y) => y.pct - x.pct);
+    const top = pairs.slice(0, EXTREMES_N);
+    const bottom = pairs.slice(-EXTREMES_N).reverse();
+    return { top, bottom, hasData: pairs.length > 0 };
+  }, [ordered, map]);
+
   return (
     <div>
-      {/* Chip row — choose a group to focus. Horizontal scroll snap
-          so long lists fling on mobile. */}
-      <div
-        className="coincidence-chips"
-        role="navigation"
-        aria-label={t('chips_aria')}
-        style={{
-          display: 'flex',
-          gap: 8,
-          overflowX: 'auto',
-          scrollSnapType: 'x proximity',
-          padding: '4px 2px 12px',
-        }}
+      {/* Chip row — choose a group to focus. ◂▸ buttons + hidden
+          scrollbar via ScrollCarousel. */}
+      <ScrollCarousel
+        ariaLabel={t('chips_aria')}
+        gap={8}
+        prevLabel={t('chips_aria')}
+        nextLabel={t('chips_aria')}
       >
-        <button
-          type="button"
-          onClick={() => setFocused(null)}
-          aria-pressed={focused === null}
-          style={chipStyle(focused === null, 'var(--ink-3)')}
-        >
-          {t('all_groups')}
-        </button>
+        <li style={{ flex: 'none', scrollSnapAlign: 'start' }}>
+          <button
+            type="button"
+            onClick={() => setFocused(null)}
+            aria-pressed={focused === null}
+            style={chipStyle(focused === null, 'var(--ink-3)')}
+          >
+            {t('all_groups')}
+          </button>
+        </li>
         {ordered.map((g) => {
           const isActive = focused === g.slug;
           return (
-            <button
-              key={g.slug}
-              type="button"
-              onClick={() => setFocused(g.slug)}
-              aria-pressed={isActive}
-              style={chipStyle(isActive, g.color_hex ?? 'var(--ink-3)')}
-            >
-              <GroupBadge
-                slug={g.slug}
-                color={g.color_hex}
-                size="xs"
-                link={false}
-              />
-              <span style={{ whiteSpace: 'nowrap' }}>
-                {displayGroupShort(g.name_short)}
-              </span>
-            </button>
+            <li key={g.slug} style={{ flex: 'none', scrollSnapAlign: 'start' }}>
+              <button
+                type="button"
+                onClick={() => setFocused(g.slug)}
+                aria-pressed={isActive}
+                style={chipStyle(isActive, g.color_hex ?? 'var(--ink-3)')}
+              >
+                <GroupBadge
+                  slug={g.slug}
+                  color={g.color_hex}
+                  size="xs"
+                  link={false}
+                />
+                <span style={{ whiteSpace: 'nowrap' }}>
+                  {displayGroupShort(g.name_short)}
+                </span>
+              </button>
+            </li>
           );
         })}
-      </div>
+      </ScrollCarousel>
 
       {/* Focused row view OR prompt. */}
       {focusedGroup ? (
@@ -157,7 +187,7 @@ export function CoincidenceProgressive({
           aria-label={t('focused_aria', {
             group: displayGroupShort(focusedGroup.name_short),
           })}
-          style={{ paddingTop: 4, paddingBottom: 6 }}
+          style={{ paddingTop: 4, paddingBottom: 6, maxWidth: 640 }}
         >
           <p
             style={{
@@ -280,6 +310,96 @@ export function CoincidenceProgressive({
               </li>
             ))}
           </ul>
+        </section>
+      ) : extremes.hasData ? (
+        <section style={{ paddingTop: 4, paddingBottom: 6, maxWidth: 640 }}>
+          <p
+            style={{
+              margin: '0 0 16px',
+              fontSize: 13,
+              color: 'var(--ink-3)',
+              lineHeight: 1.5,
+            }}
+          >
+            {t('extremes_intro')}
+          </p>
+          {(['top', 'bottom'] as const).map((kind) => {
+            const rows = kind === 'top' ? extremes.top : extremes.bottom;
+            if (rows.length === 0) return null;
+            return (
+              <div key={kind} style={{ marginBottom: 18 }}>
+                <div
+                  className="eyebrow"
+                  style={{ marginBottom: 8, fontSize: 10, color: 'var(--ink-3)' }}
+                >
+                  {kind === 'top' ? t('extremes_most') : t('extremes_least')}
+                </div>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {rows.map(({ a, b, pct, votes }) => (
+                    <li
+                      key={`${a.slug}|${b.slug}`}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'minmax(0, 1fr) auto',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '9px 0',
+                        borderBottom: '1px solid var(--rule)',
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            marginBottom: 6,
+                            fontSize: 12.5,
+                            fontWeight: 600,
+                            color: 'var(--ink)',
+                            minWidth: 0,
+                          }}
+                        >
+                          <GroupBadge slug={a.slug} color={a.color_hex} size="xs" link={false} />
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {displayGroupShort(a.name_short)}
+                          </span>
+                          <span aria-hidden="true" style={{ color: 'var(--ink-3)', flex: 'none' }}>↔</span>
+                          <GroupBadge slug={b.slug} color={b.color_hex} size="xs" link={false} />
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {displayGroupShort(b.name_short)}
+                          </span>
+                        </div>
+                        <div
+                          aria-hidden="true"
+                          style={{
+                            display: 'flex',
+                            height: 8,
+                            borderRadius: 999,
+                            overflow: 'hidden',
+                            background: 'var(--paper-3)',
+                          }}
+                        >
+                          <span style={{ width: `${pct}%`, background: barColor(pct, a.color_hex) }} />
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right', minWidth: 56 }}>
+                        <div
+                          className="tabular"
+                          style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', lineHeight: 1 }}
+                        >
+                          {pct}%
+                        </div>
+                        <div className="tabular" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>
+                          {t('row_votes', { count: votes })}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </section>
       ) : (
         <p

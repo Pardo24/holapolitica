@@ -67,7 +67,10 @@
     "row_votes": "{count} votes",
     "row_low_n": "Limited sample",
     "show_matrix": "Show the full matrix",
-    "hide_matrix": "Hide the full matrix"
+    "hide_matrix": "Hide the full matrix",
+    "extremes_most": "Most coincidence",
+    "extremes_least": "Least coincidence",
+    "extremes_intro": "The group pairs that vote most alike and most differently. Pick a group above to see all its coincidences."
   },
   "session_sheet": {
     "eyebrow": "Plenary session · no. {sessionNumber}",

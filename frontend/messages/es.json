@@ -67,7 +67,10 @@
     "row_votes": "{count} votaciones",
     "row_low_n": "Muestra reducida",
     "show_matrix": "Ver la matriz completa",
-    "hide_matrix": "Ocultar la matriz completa"
+    "hide_matrix": "Ocultar la matriz completa",
+    "extremes_most": "Más coincidencia",
+    "extremes_least": "Menos coincidencia",
+    "extremes_intro": "Las parejas de grupos que votan más igual y las que votan más distinto. Elige un grupo arriba para ver todas sus coincidencias."
   },
   "session_sheet": {
     "eyebrow": "Sesión plenaria · núm. {sessionNumber}",
