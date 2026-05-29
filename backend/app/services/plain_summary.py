@@ -167,7 +167,11 @@ _BANNED_TERMS = (
     "innecesari",  # innecesaria/o
     "innecessari",
     "perjudic",  # perjudicial, perjudica
-    "beneficios",  # beneficiosa
+    # Only the evaluative ADJECTIVE ("es beneficioso/beneficiosa") — NOT the
+    # neutral noun "beneficios" (benefits), which is factual and was wrongly
+    # rejecting valid summaries like "derechos y beneficios de las familias".
+    "beneficioso",
+    "beneficiosa",
     # Action-framing words used to editorialise
     "lluita",  # "una lluita per..."
     "amenaç",  # "una amenaça per..."
