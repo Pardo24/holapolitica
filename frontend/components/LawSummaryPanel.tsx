@@ -2,18 +2,20 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Minus, Plus, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 /**
- * Click-to-expand plain-language explanation for a law row. Replaces the
- * old hover tooltip (which felt out of place and clipped inside the
- * line-clamped title). Renders a quiet toggle button; clicking it opens
- * a curated panel inline at the bottom of the row, in the same visual
- * language as the detail page (serif body, "Explicació resumida"
- * heading, AI-generated badge, source caveat).
+ * Inline "explain this law" affordance for a law row. Renders a small
+ * round icon button that sits inline at the end of the row's meta line
+ * (like the old mobile "i"), and — when tapped — drops the plain-language
+ * explanation full-width directly beneath, in the same card language as
+ * the detail page (serif body, AI-generated badge, source caveat).
  *
- * Lives OUTSIDE the row's <Link> so there's no nested-interactive markup
- * and the toggle never triggers navigation.
+ * Lives INSIDE the row link, so the trigger is a `<span role="button">`
+ * (not a `<button>`, which is invalid inside an `<a>`) and both the
+ * trigger and the panel stop click propagation so the row never
+ * navigates when you interact with them. The panel uses flex-basis:100%
+ * so it wraps onto its own line below the inline chips.
  */
 export function LawSummaryPanel({
   summary,
@@ -26,84 +28,106 @@ export function LawSummaryPanel({
   const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
+  const toggle = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen((o) => !o);
+  };
+
+  const label = t('plain_summary_title');
+
   return (
-    <div>
-      {/* Toggle sits at the bottom-right of the row, aligned to the same
-          right edge as the result badge. */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-          className="law-summary-toggle"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '4px 10px 4px 8px',
-            borderRadius: 999,
-            border: '1px solid var(--rule-strong)',
-            background: open ? 'var(--paper-2)' : 'transparent',
-            color: 'var(--ink-2)',
-            fontSize: 12,
-            fontWeight: 600,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-            lineHeight: 1.3,
-          }}
-        >
-          {open ? (
-            <Minus size={13} strokeWidth={2} aria-hidden="true" />
-          ) : (
-            <Plus size={13} strokeWidth={2} aria-hidden="true" />
-          )}
-          {t('plain_summary_title')}
-        </button>
-      </div>
+    <>
+      <span
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={label}
+        title={label}
+        onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') toggle(e);
+        }}
+        className="law-summary-toggle"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 20,
+          height: 20,
+          borderRadius: 999,
+          border: '1px solid var(--rule-strong)',
+          background: open ? 'var(--accent)' : 'transparent',
+          color: open ? 'var(--paper)' : 'var(--accent)',
+          cursor: 'pointer',
+          flex: 'none',
+          pointerEvents: 'auto',
+        }}
+      >
+        <Sparkles size={11} strokeWidth={2} aria-hidden="true" />
+      </span>
 
       {open && (
         <div
           role="region"
+          onClick={(e) => e.stopPropagation()}
           style={{
+            flexBasis: '100%',
             marginTop: 8,
-            padding: '10px 12px',
-            borderRadius: 10,
+            padding: '14px 16px',
+            borderRadius: 12,
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
             borderLeft: '3px solid var(--accent)',
+            cursor: 'auto',
           }}
         >
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '2px 8px',
+              borderRadius: 999,
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              color: 'var(--accent)',
+              background: 'color-mix(in oklch, var(--accent) 12%, var(--paper))',
+              border: '1px solid color-mix(in oklch, var(--accent) 25%, var(--paper))',
+              marginBottom: 10,
+            }}
+          >
+            <Sparkles size={11} strokeWidth={2} aria-hidden="true" />
+            {t('plain_summary_ai_badge')}
+          </div>
           <p
             className="serif"
             style={{
-              fontSize: 14,
-              lineHeight: 1.5,
+              fontSize: 15,
+              lineHeight: 1.55,
               color: 'var(--ink)',
               margin: 0,
               whiteSpace: 'pre-line',
-              textWrap: 'pretty',
             }}
           >
             {summary}
           </p>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              marginTop: 8,
-              fontSize: 10.5,
-              color: 'var(--ink-3)',
-            }}
-          >
-            <Sparkles size={11} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--accent)', flex: 'none' }} />
-            <span>
-              {t('plain_summary_ai_badge')}
-              {provider ? ` · ${tc('plain_summary_caveat', { provider })}` : ''}
-            </span>
-          </div>
+          {provider && (
+            <p
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-3)',
+                margin: '8px 0 0',
+                fontStyle: 'italic',
+              }}
+            >
+              {tc('plain_summary_caveat', { provider })}
+            </p>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }

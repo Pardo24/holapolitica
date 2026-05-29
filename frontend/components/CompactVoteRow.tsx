@@ -201,6 +201,11 @@ export function CompactVoteRow({
                 </span>
               </>
             )}
+            {/* Inline "explain" icon at the end of the meta line; the
+                panel drops full-width beneath (flex-basis:100%). */}
+            {plainSummary && (
+              <LawSummaryPanel summary={plainSummary} provider={v.plain_summary_provider} />
+            )}
           </div>
         </div>
         <span
@@ -239,15 +244,6 @@ export function CompactVoteRow({
           </span>
         </span>
       </Link>
-      {/* Click-to-expand plain-language explanation, OUTSIDE the row link
-          so the toggle never navigates. Sits tight under the row content;
-          the li's paddingBottom gives every row (summary or not) the same
-          bottom margin. */}
-      {plainSummary && (
-        <div style={{ marginTop: 8 }}>
-          <LawSummaryPanel summary={plainSummary} provider={v.plain_summary_provider} />
-        </div>
-      )}
     </li>
   );
 }

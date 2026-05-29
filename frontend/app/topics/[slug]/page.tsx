@@ -1249,6 +1249,10 @@ function InitiativeRow({
               </>
             )}
             <LawTypeChip type={initiative.type} />
+            {/* Inline "explain" icon; panel drops full-width beneath. */}
+            {plainSummary && (
+              <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
+            )}
           </div>
           <span
             className="mono"
@@ -1296,11 +1300,6 @@ function InitiativeRow({
           </span>
         </div>
       </a>
-      {plainSummary && (
-        <div style={{ marginTop: 8 }}>
-          <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
-        </div>
-      )}
     </li>
   );
 }
