@@ -247,13 +247,23 @@ export default async function JocPage() {
       </h1>
       <p
         style={{
-          margin: '0 0 6px',
+          margin: '0 0 4px',
           fontSize: 17,
           fontWeight: 600,
           color: 'var(--ink)',
         }}
       >
         {t('tagline')}
+      </p>
+      <p
+        style={{
+          margin: '0 0 12px',
+          fontSize: 14,
+          fontWeight: 600,
+          color: 'var(--accent)',
+        }}
+      >
+        {t('challenge')}
       </p>
       <p
         style={{

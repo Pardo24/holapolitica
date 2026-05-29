@@ -7,8 +7,6 @@ import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
 import { TopicChipsStrip } from '@/components/TopicChipsStrip';
-import { VotesCalendarStripController } from '@/components/VotesCalendarStripController';
-import type { CalendarDay } from '@/components/VotesCalendarStrip';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VotesFilterCard } from '@/components/VotesFilterCard';
 import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
@@ -104,12 +102,11 @@ async function VotesListTab({ params }: { params: SearchParams }) {
   let topics: Awaited<ReturnType<typeof api.topics.list>> = [];
   let groups: Awaited<ReturnType<typeof api.groups.list>> = [];
   let upcomingSessions: ScheduledSession[] = [];
-  let calendarSourceVotes: Awaited<ReturnType<typeof api.votes.list>> | null = null;
   let topicCounts: Awaited<ReturnType<typeof api.stats.topicsGlobal>> = [];
   let error: string | null = null;
 
   try {
-    [data, topics, groups, upcomingSessions, calendarSourceVotes, topicCounts] = await Promise.all([
+    [data, topics, groups, upcomingSessions, topicCounts] = await Promise.all([
       api.votes.list({
         topic_slug: params.topic_slug,
         proposing_group_slug: params.proposing_group_slug,
@@ -129,17 +126,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         .sessions({ legislature_id: 1, upcoming_only: true })
         .then((rows) => rows.slice(0, 4))
         .catch(() => [] as ScheduledSession[]),
-      // Calendar source: most recent 100 votes (backend max page_size)
-      // irrespective of filters, aggregated by date below. We deliberately
-      // ignore the current filter set here so the strip always shows the
-      // same chronological landmarks — tapping a date stacks with the
-      // other filters via the URL, never replaces them.
-      // ``.catch`` is critical: if THIS call fails the whole Promise.all
-      // would reject and the page would render the error block instead
-      // of the list. The strip just hides itself when empty.
-      api.votes
-        .list({ legislature_id: 1, page: 1, page_size: 100 })
-        .catch(() => null),
       // Per-topic initiative counts feed the mobile topic carousel
       // (every topic visible, deterministic order — never editorial).
       api.stats.topicsGlobal().catch(() => []),
@@ -148,14 +134,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
     error = e instanceof Error ? e.message : 'unknown error';
   }
 
-  // Build the calendar strip data: aggregate vote_records by date,
-  // splice upcoming sessions to the right end so the user can see the
-  // next plenary without leaving the page. Sorted ascending so the strip
-  // reads left-to-right as time flows.
-  const calendarDays = buildCalendarDays(
-    calendarSourceVotes?.items ?? [],
-    upcomingSessions,
-  );
   const activeDate =
     params.date_from && params.date_from === params.date_to
       ? params.date_from
@@ -200,21 +178,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           )}
         </div>
       </div>
-
-      {/* Calendar strip — past vote-days + upcoming plenaries in one
-          chronological scrollable row. Mobile-first: lets a phone user
-          jump to a date without typing. Stacks with the rest of the
-          filters so it composes cleanly. */}
-      {calendarDays.length > 0 && (
-        <div style={{ paddingTop: 8 }}>
-          <VotesCalendarStripController
-            days={calendarDays}
-            activeDate={activeDate}
-            allLabel={t('calendar_all_label')}
-            countSuffix={t('calendar_count_suffix')}
-          />
-        </div>
-      )}
 
       {/* Horizontal chip strip of every theme topic — same component
           on desktop and mobile. Each chip is a scroll-snap target so
@@ -483,41 +446,3 @@ function Pagination({
   );
 }
 
-/**
- * Build the calendar strip dataset: past vote-days aggregated from
- * the most recent N votes + upcoming plenary sessions to the right.
- *
- * Ascending chronological order so the strip reads as a time-axis.
- * We cap at 30 past + 7 future entries to keep the rendered row light
- * — anything older lives behind the explicit text filters below.
- *
- * Neutrality (CLAUDE.md "regla de simetria"): every distinct date that
- * had ≥1 vote shows up; we never hide low-count days because they're
- * "boring".
- */
-function buildCalendarDays(
-  recentVotes: ReadonlyArray<{ voted_at: string }>,
-  upcomingSessions: ReadonlyArray<ScheduledSession>,
-): CalendarDay[] {
-  const today = new Date();
-  const todayKey = today.toISOString().slice(0, 10);
-
-  const counts = new Map<string, number>();
-  for (const v of recentVotes) {
-    const day = v.voted_at.slice(0, 10);
-    counts.set(day, (counts.get(day) ?? 0) + 1);
-  }
-  const past = [...counts.entries()]
-    .map(([date, count]) => ({ date, count, isFuture: date > todayKey }))
-    .filter((d) => !d.isFuture)
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-30);
-
-  const future = upcomingSessions
-    .map((s) => s.date.slice(0, 10))
-    .filter((d) => d >= todayKey)
-    .map((date) => ({ date, count: 0, isFuture: true }))
-    .slice(0, 7);
-
-  return [...past, ...future];
-}

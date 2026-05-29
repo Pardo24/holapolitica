@@ -940,6 +940,7 @@
     "eyebrow": "Joc cívic",
     "h1": "Joc cívic",
     "tagline": "Aprèn endevinant les votacions",
+    "challenge": "Coneixes el Congrés? Posa't a prova.",
     "lede": "Mira el resum d'una llei i intenta endevinar quin grup l'ha proposada o quin va ser el resultat. Sense valoracions, només fets — i un enllaç a la fitxa completa al final.",
     "empty": "Encara no hi ha prou votacions amb resum per a generar una pregunta. Torna en uns minuts.",
     "question_proposer": "Quin grup ha proposat aquesta llei?",

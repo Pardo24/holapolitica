@@ -940,6 +940,7 @@
     "eyebrow": "Civic quiz",
     "h1": "Civic quiz",
     "tagline": "Learn by guessing the votes",
+    "challenge": "How well do you know Congress? Test yourself.",
     "lede": "Read the summary of a law and try to guess which group tabled it or how it ended. No opinions, just facts — and a link to the full record at the end.",
     "empty": "Not enough votes with a summary yet to build a question. Come back in a few minutes.",
     "question_proposer": "Which group tabled this law?",

@@ -940,6 +940,7 @@
     "eyebrow": "Juego cívico",
     "h1": "Juego cívico",
     "tagline": "Aprende adivinando las votaciones",
+    "challenge": "¿Conoces el Congreso? Ponte a prueba.",
     "lede": "Mira el resumen de una ley e intenta adivinar qué grupo la ha propuesto o cuál fue el resultado. Sin valoraciones, solo hechos — y un enlace a la ficha completa al final.",
     "empty": "Aún no hay suficientes votaciones con resumen para generar una pregunta. Vuelve en unos minutos.",
     "question_proposer": "¿Qué grupo ha propuesto esta ley?",
