@@ -992,7 +992,7 @@
     "live_example_body": "La portada <link>/avui</link> és una composició automàtica d'aquests mateixos widgets. Cada 30 minuts es regenera amb les dades més recents.",
     "live_example_cta": "Anar a /avui →",
     "widgets_section_title": "Widgets per a articles",
-    "widgets_intro": "Cada widget és un <code>&lt;iframe&gt;</code> de menys d'un segon de càrrega, sense cookies de tercers, amb enllaç a la font original. Copia el fragment i enganxa'l al CMS. Cinc widgets, ordenats per utilitat editorial.",
+    "widgets_intro": "Cada widget és un <code>iframe</code> de menys d'un segon de càrrega, sense cookies de tercers, amb enllaç a la font original. Copia el fragment i enganxa'l al CMS. Cinc widgets, ordenats per utilitat editorial.",
     "widget_dossier_title": "Fitxa completa d'una llei (dossier)",
     "widget_dossier_desc": "Un sol iframe amb tot el que un article sobre una llei sol voler al costat: el títol, el resum en llenguatge planer, els temes classificats, el resultat de la votació final i els enllaços a BOE + data d'entrada en vigor. Pensat per a la peça monogràfica sobre UNA llei.",
     "widget_explorer_title": "Explorador filtrat (la URL és l'estat)",

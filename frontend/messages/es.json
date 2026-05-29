@@ -992,7 +992,7 @@
     "live_example_body": "La portada <link>/avui</link> es una composición automática de estos mismos widgets. Cada 30 minutos se regenera con los datos más recientes.",
     "live_example_cta": "Ir a /avui →",
     "widgets_section_title": "Widgets para artículos",
-    "widgets_intro": "Cada widget es un <code>&lt;iframe&gt;</code> de menos de un segundo de carga, sin cookies de terceros, con enlace a la fuente original. Copia el fragmento y pégalo en el CMS. Cinco widgets, ordenados por utilidad editorial.",
+    "widgets_intro": "Cada widget es un <code>iframe</code> de menos de un segundo de carga, sin cookies de terceros, con enlace a la fuente original. Copia el fragmento y pégalo en el CMS. Cinco widgets, ordenados por utilidad editorial.",
     "widget_dossier_title": "Ficha completa de una ley (dossier)",
     "widget_dossier_desc": "Un solo iframe con todo lo que un artículo sobre una ley suele querer al lado: el título, el resumen en lenguaje claro, los temas clasificados, el resultado de la votación final y los enlaces al BOE + fecha de entrada en vigor. Pensado para la pieza monográfica sobre UNA ley.",
     "widget_explorer_title": "Explorador filtrado (la URL es el estado)",

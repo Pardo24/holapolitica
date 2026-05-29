@@ -992,7 +992,7 @@
     "live_example_body": "The <link>/avui</link> front page is an automatic composition of these same widgets. It regenerates every 30 minutes with the latest data.",
     "live_example_cta": "Go to /avui →",
     "widgets_section_title": "Widgets for articles",
-    "widgets_intro": "Every widget is an <code>&lt;iframe&gt;</code> that loads in under a second, no third-party cookies, with a link back to the source. Copy the snippet, paste in your CMS. Five widgets, ordered by editorial usefulness.",
+    "widgets_intro": "Every widget is an <code>iframe</code> that loads in under a second, no third-party cookies, with a link back to the source. Copy the snippet, paste in your CMS. Five widgets, ordered by editorial usefulness.",
     "widget_dossier_title": "Full dossier of a law",
     "widget_dossier_desc": "One iframe with everything an article about a single law usually wants on the side: title, plain-language summary, classified topics, final-vote result and BOE link + entry-into-force date. Built for the monograph piece on ONE law.",
     "widget_explorer_title": "Filtered explorer (URL is the state)",

@@ -157,7 +157,11 @@ export default async function JournalistsPage() {
       <Section title={t('widgets_section_title')}>
         <p>
           {t.rich('widgets_intro', {
-            code: (chunks) => <code style={inlineCode}>{chunks}</code>,
+            // The message wraps just the word "iframe"; we add the angle
+            // brackets here so next-intl doesn't try to parse <iframe> as a
+            // rich-text tag. &lt;/&gt; are decoded by JSX at build time, so
+            // the rendered text is the literal "<iframe>".
+            code: (chunks) => <code style={inlineCode}>&lt;{chunks}&gt;</code>,
           })}
         </p>
 
