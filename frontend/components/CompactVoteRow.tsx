@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
+import { LawTypeChip } from '@/components/LawTypeChip';
 import { SummaryHover } from '@/components/SummaryHover';
 import type { Vote, VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
@@ -133,6 +134,11 @@ export function CompactVoteRow({
               minWidth: 0,
             }}
           >
+            {v.initiative_type && (
+              <span style={{ pointerEvents: 'auto' }}>
+                <LawTypeChip type={v.initiative_type} />
+              </span>
+            )}
             {(v.proposed_by_government && !v.proposing_group_short) ||
             v.proposing_group_short ? (
               <span style={{ pointerEvents: 'auto' }}>

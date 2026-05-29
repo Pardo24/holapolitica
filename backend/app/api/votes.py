@@ -196,13 +196,36 @@ async def list_votes(
     # the single-vote endpoint that exposes the same field.
     init_ids = [v.initiative_id for v in items if v.initiative_id is not None]
     topics_by_initiative = await _load_topics_by_initiative(db, init_ids)
+    types_by_initiative = await _load_types_by_initiative(db, init_ids)
 
     return {
         "total": total,
         "page": page,
         "page_size": page_size,
-        "items": [_serialize_vote(v, groups, topics_by_initiative) for v in items],
+        "items": [
+            _serialize_vote(v, groups, topics_by_initiative, types_by_initiative)
+            for v in items
+        ],
     }
+
+
+async def _load_types_by_initiative(
+    db: AsyncSession, initiative_ids: list[int]
+) -> dict[int, InitiativeType]:
+    """Bulk-load the procedural ``type`` of a list of initiatives.
+
+    Returns ``{initiative_id: InitiativeType}`` (initiatives not found are
+    simply absent). One indexed query regardless of input size; powers
+    ``VoteRead.initiative_type`` on the list endpoint without N+1.
+    """
+    if not initiative_ids:
+        return {}
+    rows = (
+        await db.execute(
+            select(Initiative.id, Initiative.type).where(Initiative.id.in_(initiative_ids))
+        )
+    ).all()
+    return {iid: typ for iid, typ in rows}
 
 
 async def _load_topics_by_initiative(
@@ -438,17 +461,31 @@ async def get_vote(vote_id: int, db: AsyncSession = Depends(get_session)) -> Vot
     topics_by_initiative = await _load_topics_by_initiative(
         db, [vote.initiative_id] if vote.initiative_id is not None else []
     )
-    return _serialize_vote(vote, groups, topics_by_initiative)
+    # The initiative is selectinloaded above, so read its type directly
+    # rather than issuing a second query.
+    types_by_initiative: dict[int, InitiativeType] = (
+        {vote.initiative_id: vote.initiative.type}
+        if vote.initiative_id is not None and vote.initiative is not None
+        else {}
+    )
+    return _serialize_vote(vote, groups, topics_by_initiative, types_by_initiative)
 
 
 def _serialize_vote(
     vote: Vote,
     groups: list[ParliamentaryGroup],
     topics_by_initiative: dict[int, list[Topic]] | None = None,
+    types_by_initiative: dict[int, InitiativeType] | None = None,
 ) -> VoteRead:
     """Build a ``VoteRead`` and enrich it with proposing group + plain summary."""
     base = VoteRead.model_validate(vote)
     update: dict[str, object] = {}
+    if (
+        types_by_initiative is not None
+        and vote.initiative_id is not None
+        and vote.initiative_id in types_by_initiative
+    ):
+        update["initiative_type"] = types_by_initiative[vote.initiative_id]
     proposer = resolve_proposing_group(vote.description, groups)
     if proposer is not None:
         update["proposing_group_slug"] = proposer.slug

@@ -5,8 +5,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Bell, ExternalLink, Newspaper } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
-import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
+import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
 import { ResultPill } from '@/components/ResultPill';
 import { SummaryHover } from '@/components/SummaryHover';
@@ -22,7 +22,7 @@ import {
   type TopicNewsItem,
   type Vote,
 } from '@/lib/api';
-import { glossaryShort, pickPlainSummary, typeLabelCa } from '@/lib/glossary';
+import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort, parseProposer, type ParsedProposer } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -1173,7 +1173,6 @@ function InitiativeRow({
   const longDate = submittedDate
     ? submittedDate.toLocaleDateString(locale, { dateStyle: 'medium' })
     : '—';
-  const typeLabel = typeLabelCa(initiative.type);
   const plainSummary = pickPlainSummary(initiative, locale);
   const statusKey = STATUS_KEY[initiative.status];
   const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
@@ -1257,9 +1256,7 @@ function InitiativeRow({
                 <span aria-hidden="true">·</span>
               </>
             )}
-            <span>
-              <GlossaryTerm term={typeLabel}>{typeLabel}</GlossaryTerm>
-            </span>
+            <LawTypeChip type={initiative.type} />
             <span aria-hidden="true" className="hidden sm:inline">
               ·
             </span>

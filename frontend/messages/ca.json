@@ -326,6 +326,19 @@
       }
     }
   },
+  "law_type": {
+    "binding": "Crea llei",
+    "non_binding": "No crea llei",
+    "desc": {
+      "proyecto_ley": "Llei proposada pel Govern. Si s'aprova, esdevé llei vigent.",
+      "proposicion_ley": "Llei proposada per un grup parlamentari. Si s'aprova, esdevé llei vigent.",
+      "proposicion_no_ley": "Proposta no vinculant: demana al Govern fer alguna cosa, però no canvia la llei. És la votació més freqüent al ple.",
+      "real_decreto_ley": "Norma amb força de llei dictada pel Govern per urgència. El Congrés l'ha de convalidar o derogar en 30 dies.",
+      "mocion": "Després d'una interpel·lació al Govern, un grup demana una posició concreta. No canvia la llei.",
+      "interpelacion": "Pregunta urgent del Congrés al Govern sobre una qüestió política. No canvia la llei.",
+      "other": "Altre tipus d'iniciativa parlamentària."
+    }
+  },
   "notifications": {
     "eyebrow": "Newsletter setmanal",
     "title": "Newsletter, temes que segueixes",
@@ -631,7 +644,8 @@
     "proposed_by_government": "Govern",
     "totals_label": "Totals · {total} diputats",
     "majority_caveat": "Per ser aprovada calia majoria simple ({needed} vots). Resultat: {ayes} a favor, {noes} en contra. Marge: {margin}.",
-    "plain_summary_title": "Explicació en llenguatge planer",
+    "plain_summary_title": "Explicació resumida",
+    "plain_summary_ai_badge": "Generat amb IA",
     "plain_summary_disclaimer": "Resum descriptiu generat automàticament a partir del text de l'expedient. No expressa cap valoració.",
     "object_text_title": "Exposició de motius",
     "object_text_expand": "Llegir el text complet",

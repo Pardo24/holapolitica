@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
 import type { InitiativeType, InitiativeStatus, VoteResult } from '@/lib/api';
+import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 
 /**
  * Dark trajectory banner that sits at the top of a law-detail page.
@@ -124,7 +125,16 @@ export async function LawJourney({
   voteResult?: VoteResult | null;
 }) {
   const t = await getTranslations('law_journey');
+  const tType = await getTranslations('law_type');
   const steps = STEPS[type] ?? STEPS.other;
+  const binding = LAW_TYPE_BINDING[type];
+  const bindingTag =
+    binding === true
+      ? tType('binding')
+      : binding === false
+        ? tType('non_binding')
+        : null;
+  const typeDesc = tType(`desc.${type}`);
   const activeIndex = deriveActiveIndex(type, status, hasBoe, voteResult);
   const accent =
     voteResult === 'approved' || status === 'approved'
@@ -180,15 +190,36 @@ export async function LawJourney({
               fontWeight: 600,
               color: 'var(--paper)',
               letterSpacing: '-0.005em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: 'wrap',
             }}
           >
             {typeLabel}
+            {bindingTag && (
+              <span
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  padding: '2px 7px',
+                  borderRadius: 999,
+                  color: 'var(--paper)',
+                  background: `color-mix(in oklch, ${binding ? 'var(--aye)' : 'var(--abst)'} 45%, transparent)`,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {bindingTag}
+              </span>
+            )}
           </div>
           <div
             style={{
               fontSize: 11,
               color: 'color-mix(in oklch, var(--paper) 60%, transparent)',
-              marginTop: 4,
+              marginTop: 6,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
@@ -333,6 +364,21 @@ export async function LawJourney({
             );
           })}
         </ol>
+      </div>
+      {/* Full-width plain one-liner explaining what this procedure is —
+          the piece that fixes "I thought everything was laws". */}
+      <div
+        style={{
+          marginTop: 14,
+          paddingTop: 12,
+          borderTop: '1px solid color-mix(in oklch, var(--paper) 16%, transparent)',
+          fontSize: 12,
+          lineHeight: 1.45,
+          color: 'color-mix(in oklch, var(--paper) 72%, transparent)',
+          maxWidth: 860,
+        }}
+      >
+        {typeDesc}
       </div>
       <style>{`
         @media (max-width: 720px) {

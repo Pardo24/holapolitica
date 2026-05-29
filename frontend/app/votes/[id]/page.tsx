@@ -29,6 +29,7 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ExternalLink, FileText } from 'lucide-react';
 
+import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { Hemicycle } from '@/components/Hemicycle';
@@ -461,7 +462,9 @@ export default async function VoteDetailPage({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           {summary && (
             <section>
-              <SectionTitle>{t('plain_summary_title')}</SectionTitle>
+              <SectionTitle right={<AiBadge label={t('plain_summary_ai_badge')} />}>
+                {t('plain_summary_title')}
+              </SectionTitle>
               <p
                 className="serif"
                 style={{

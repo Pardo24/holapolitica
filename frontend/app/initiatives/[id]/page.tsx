@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, ExternalLink, FileText, Route as RouteIcon } from 'lucide-react';
 
+import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
 import { LawJourney } from '@/components/LawJourney';
@@ -291,8 +292,17 @@ export default async function InitiativeDetailPage({
         <div>
           {summary ? (
             <>
-              <div className="eyebrow" style={{ marginBottom: 8 }}>
-                {tVotes('plain_summary_title')}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginBottom: 8,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span className="eyebrow">{tVotes('plain_summary_title')}</span>
+                <AiBadge label={tVotes('plain_summary_ai_badge')} />
               </div>
               <p
                 className="serif"

@@ -326,6 +326,19 @@
       }
     }
   },
+  "law_type": {
+    "binding": "Creates law",
+    "non_binding": "Doesn't create law",
+    "desc": {
+      "proyecto_ley": "A bill proposed by the Government. If passed, it becomes binding law.",
+      "proposicion_ley": "A bill proposed by a parliamentary group. If passed, it becomes binding law.",
+      "proposicion_no_ley": "A non-binding proposal: it urges the Government to act but does not change the law. The most frequent floor vote.",
+      "real_decreto_ley": "A decree with force of law issued by the Government under urgency. Congress must ratify or repeal it within 30 days.",
+      "mocion": "After an interpellation to the Government, a group asks for a specific stance. Does not change the law.",
+      "interpelacion": "An urgent question from Congress to the Government on a political matter. Does not change the law.",
+      "other": "Another type of parliamentary initiative."
+    }
+  },
   "notifications": {
     "eyebrow": "Weekly newsletter",
     "title": "Newsletter, topics you follow",
@@ -631,7 +644,8 @@
     "proposed_by_government": "Government",
     "totals_label": "Totals · {total} representatives",
     "majority_caveat": "Simple majority required ({needed} votes). Outcome: {ayes} for, {noes} against. Margin: {margin}.",
-    "plain_summary_title": "Plain-language explanation",
+    "plain_summary_title": "Summary",
+    "plain_summary_ai_badge": "AI-generated",
     "plain_summary_disclaimer": "Descriptive summary auto-generated from the file text. Expresses no judgment.",
     "object_text_title": "Preamble (Exposición de motivos)",
     "object_text_expand": "Read the full text",

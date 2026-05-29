@@ -289,6 +289,11 @@ class VoteRead(BaseModel):
     id: int
     session_id: int
     initiative_id: int | None = None
+    # Procedural type of the linked initiative (proyecto_ley,
+    # proposicion_no_ley, mocion, …). Lets the frontend show a type chip
+    # on vote rows so a reader can tell a binding bill from a non-binding
+    # motion at a glance. NULL when the vote has no linked initiative.
+    initiative_type: InitiativeType | None = None
     sequence_in_session: int | None = None
     title: str
     description: str | None = None

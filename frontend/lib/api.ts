@@ -214,6 +214,9 @@ export interface Vote {
   id: number;
   session_id: number;
   initiative_id: number | null;
+  /** Procedural type of the linked initiative, when one exists. Lets
+   *  list rows show a type chip (bill vs non-binding motion). */
+  initiative_type?: InitiativeType | null;
   sequence_in_session: number | null;
   title: string;
   description: string | null;

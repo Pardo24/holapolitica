@@ -326,6 +326,19 @@
       }
     }
   },
+  "law_type": {
+    "binding": "Crea ley",
+    "non_binding": "No crea ley",
+    "desc": {
+      "proyecto_ley": "Ley propuesta por el Gobierno. Si se aprueba, se convierte en ley vigente.",
+      "proposicion_ley": "Ley propuesta por un grupo parlamentario. Si se aprueba, se convierte en ley vigente.",
+      "proposicion_no_ley": "Propuesta no vinculante: pide al Gobierno que haga algo, pero no cambia la ley. Es la votación más frecuente del pleno.",
+      "real_decreto_ley": "Norma con fuerza de ley dictada por el Gobierno por urgencia. El Congreso debe convalidarla o derogarla en 30 días.",
+      "mocion": "Tras una interpelación al Gobierno, un grupo pide una posición concreta. No cambia la ley.",
+      "interpelacion": "Pregunta urgente del Congreso al Gobierno sobre una cuestión política. No cambia la ley.",
+      "other": "Otro tipo de iniciativa parlamentaria."
+    }
+  },
   "notifications": {
     "eyebrow": "Newsletter semanal",
     "title": "Newsletter, temas que sigues",
@@ -631,7 +644,8 @@
     "proposed_by_government": "Gobierno",
     "totals_label": "Totales · {total} diputados",
     "majority_caveat": "Para ser aprobada se requería mayoría simple ({needed} votos). Resultado: {ayes} a favor, {noes} en contra. Margen: {margin}.",
-    "plain_summary_title": "Explicación en lenguaje llano",
+    "plain_summary_title": "Explicación resumida",
+    "plain_summary_ai_badge": "Generado con IA",
     "plain_summary_disclaimer": "Resumen descriptivo generado automáticamente a partir del texto del expediente. No expresa ninguna valoración.",
     "object_text_title": "Exposición de motivos",
     "object_text_expand": "Leer el texto completo",

@@ -830,6 +830,12 @@ body.hp-filter-pending .mobile-votes-list::after {
   color: inherit;
   white-space: nowrap;
 }
+/* When the tooltip trigger IS a self-contained chip (law-type chip),
+   drop the dotted underline — the pill border is already the
+   affordance; a dotted line under a rounded chip looks broken. */
+.term-tooltip__anchor:has(> .law-type-chip) {
+  border-bottom: none;
+}
 .term-tooltip__anchor:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
