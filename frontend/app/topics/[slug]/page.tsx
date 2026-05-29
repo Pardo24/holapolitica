@@ -536,7 +536,7 @@ export default async function TopicDetailPage({
       {/* Initiatives — unified section with a subset segmented control and
           a group-proposer filter. Replaces the two static lists. */}
       <section style={{ paddingTop: 32 }}>
-        <div className="eyebrow" style={{ marginBottom: 18 }}>
+        <div className="eyebrow" style={{ marginBottom: 24 }}>
           {t('initiatives_section_title')}
         </div>
 
@@ -579,11 +579,11 @@ export default async function TopicDetailPage({
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 8,
-                  padding: '8px 14px',
+                  gap: 6,
+                  padding: '5px 11px',
                   borderRadius: 999,
                   textDecoration: 'none',
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: isActive ? 600 : 500,
                   background: isActive ? 'var(--ink)' : 'transparent',
                   color: isActive ? 'var(--paper)' : 'var(--ink-2)',
@@ -594,7 +594,7 @@ export default async function TopicDetailPage({
                 <span
                   className="tabular"
                   style={{
-                    fontSize: 11,
+                    fontSize: 10,
                     opacity: isActive ? 0.85 : 0.6,
                     fontVariantNumeric: 'tabular-nums',
                   }}
@@ -1249,15 +1249,6 @@ function InitiativeRow({
               </>
             )}
             <LawTypeChip type={initiative.type} />
-            <span aria-hidden="true" className="hidden sm:inline">
-              ·
-            </span>
-            <span
-              className="hidden sm:inline"
-              style={{ color: statusColor, fontWeight: 600 }}
-            >
-              {statusLabel}
-            </span>
           </div>
           <span
             className="mono"
@@ -1266,11 +1257,11 @@ function InitiativeRow({
             {initiative.official_id}
           </span>
         </div>
-        {/* Mobile-only right stack: date on top, status pill below. On
-            desktop this column collapses (via `sm:hidden`) and the date +
-            status revert to their original places. */}
+        {/* Right column — status badge (its own cell so it never wraps
+            the meta line). On mobile it also carries the compressed date
+            on top; on desktop the date lives in the left column, so that
+            part is hidden. */}
         <div
-          className="sm:hidden"
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -1281,7 +1272,7 @@ function InitiativeRow({
           }}
         >
           <span
-            className="tabular"
+            className="tabular sm:hidden"
             style={{
               fontSize: 11,
               color: 'var(--ink-3)',

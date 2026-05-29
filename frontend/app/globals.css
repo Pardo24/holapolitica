@@ -1513,7 +1513,9 @@ body.hp-filter-pending .mobile-votes-list::after {
 }
 
 @media (min-width: 640px) {
-  .initiative-row { grid-template-columns: 110px 1fr !important; }
+  /* date | content | status — status gets its own cell so the meta
+     line (proposer · type chip) never wraps it onto a new line. */
+  .initiative-row { grid-template-columns: 110px minmax(0, 1fr) auto !important; }
 
   /* CompactVoteRow desktop: switch from the mobile 2-col grid
      (subject | right-stack) to the canonical 3-col layout

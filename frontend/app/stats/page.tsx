@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, X } from 'lucide-react';
+import { ArrowRight, BarChart3, X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
@@ -9,6 +9,8 @@ import { CoincidenceProgressive } from '@/components/CoincidenceProgressive';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
+import { LawSummaryPanel } from '@/components/LawSummaryPanel';
+import { LawTypeChip } from '@/components/LawTypeChip';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
 import { StatsPie, type StatsPieLabels } from '@/components/StatsPie';
 import { SummaryHover } from '@/components/SummaryHover';
@@ -22,6 +24,7 @@ import {
   type GroupProposalCount,
   type GroupSummaryRow,
   type InitiativeMini,
+  type InitiativeType,
   type ParliamentaryGroupSummary,
   type ProposerCount,
   type StatsSummary,
@@ -407,6 +410,53 @@ export default async function StatsPage({
               />
             </CoincidenceProgressive>
           </Section>
+
+          {/* End-of-overview CTA into the filtered analysis. */}
+          <section
+            style={{
+              marginTop: 40,
+              padding: '20px 22px',
+              borderRadius: 14,
+              background: 'var(--paper-2)',
+              border: '1px solid var(--rule-strong)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 18,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div
+                className="serif"
+                style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.01em' }}
+              >
+                {t('more_data_title')}
+              </div>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--ink-3)', maxWidth: 560, lineHeight: 1.5 }}>
+                {t('more_data_body')}
+              </p>
+            </div>
+            <Link
+              href={'/stats?tab=filtered' as Route}
+              style={{
+                flex: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 18px',
+                borderRadius: 999,
+                background: 'var(--ink)',
+                color: 'var(--paper)',
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              {t('more_data_cta')}
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </section>
         </>
       )}
 
@@ -478,6 +528,7 @@ export default async function StatsPage({
                   allTopics,
                   allGroups,
                   t,
+                  locale,
                 })}
                 chipRemoveTitle={t('chip_remove_title')}
               >
@@ -570,7 +621,6 @@ export default async function StatsPage({
                   items={cross.joint_initiatives}
                   locale={locale}
                   statusLabels={statusSingularLabels(t)}
-                  typeLabels={typeLabels(t)}
                   emptyLabel={t('empty_no_initiative')}
                 />
               </Section>
@@ -589,6 +639,7 @@ export default async function StatsPage({
                   allTopics,
                   allGroups,
                   t,
+                  locale,
                 })}
                 chipRemoveTitle={t('chip_remove_title')}
               >
@@ -658,6 +709,7 @@ export default async function StatsPage({
                     allTopics,
                     allGroups,
                     t,
+                    locale,
                   })}
                   chipRemoveTitle={t('chip_remove_title')}
                 >
@@ -793,19 +845,6 @@ function statusSingularLabels(t: StatsT): Record<string, string> {
     submitted: t('status_singular_submitted'),
     withdrawn: t('status_singular_withdrawn'),
     expired: t('status_singular_expired'),
-  };
-}
-
-function typeLabels(t: StatsT): Record<string, string> {
-  return {
-    proyecto_ley: t('type_proyecto_ley'),
-    proposicion_ley: t('type_proposicion_ley'),
-    proposicion_no_ley: t('type_proposicion_no_ley'),
-    real_decreto_ley: t('type_real_decreto_ley'),
-    reforma_estatuto: t('type_reforma_estatuto'),
-    mocion: t('type_mocion'),
-    interpelacion: t('type_interpelacion'),
-    other: t('type_other'),
   };
 }
 
@@ -1233,18 +1272,20 @@ function renderChips({
   allTopics,
   allGroups,
   t,
+  locale,
 }: {
   topic: string | null;
   group: string | null;
-  allTopics: { slug: string; name_ca: string }[];
+  allTopics: Topic[];
   allGroups: ParliamentaryGroupSummary[];
   t: StatsT;
+  locale: string;
 }): ChipDescriptor[] {
   const chips: ChipDescriptor[] = [];
   if (topic) {
     const tt = allTopics.find((x) => x.slug === topic);
     chips.push({
-      label: t('chip_topic', { name: tt?.name_ca ?? topic }),
+      label: t('chip_topic', { name: tt ? pickTopicName(tt, locale) : topic }),
       href: group
         ? `/stats?tab=filtered&group=${encodeURIComponent(group)}`
         : '/stats?tab=filtered',
@@ -2478,13 +2519,11 @@ function JointInitiativeList({
   items,
   locale,
   statusLabels,
-  typeLabels: typeLabelsMap,
   emptyLabel,
 }: {
   items: InitiativeMini[];
   locale: string;
   statusLabels: Record<string, string>;
-  typeLabels: Record<string, string>;
   emptyLabel: string;
 }) {
   if (items.length === 0) {
@@ -2497,73 +2536,61 @@ function JointInitiativeList({
           label: statusLabels[ini.status] ?? ini.status,
           color: STATUS_BADGE_COLOR[ini.status] ?? 'var(--ink-3)',
         };
-        const type = typeLabelsMap[ini.type] ?? ini.type;
         const plainSummary = pickPlainSummary(ini, locale);
         return (
           <li
             key={ini.id}
-            style={{
-              padding: '10px 0',
-              borderBottom: '1px solid var(--rule)',
-              fontSize: 13,
-              display: 'grid',
-              gridTemplateColumns: '90px 100px 1fr auto',
-              gap: 10,
-              alignItems: 'baseline',
-            }}
-            className="joint-row"
+            style={{ padding: '10px 0 12px', borderBottom: '1px solid var(--rule)' }}
           >
-            <span
-              className="tabular"
+            <div
+              className="joint-row"
               style={{
-                fontSize: 11,
-                color: 'var(--ink-3)',
-                whiteSpace: 'nowrap',
+                fontSize: 13,
+                display: 'grid',
+                gridTemplateColumns: '84px auto minmax(0, 1fr) auto',
+                gap: 10,
+                alignItems: 'baseline',
               }}
             >
-              {ini.submitted_at ?? '—'}
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                color: 'var(--ink-2)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-              title={type}
-            >
-              <GlossaryTerm term={type}>{type}</GlossaryTerm>
-            </span>
-            <span style={{ minWidth: 0 }}>
-              <SummaryHover
-                summary={plainSummary}
-                provider={ini.plain_summary_provider}
-                visibleText={ini.title_ca ?? ini.title_original}
+              <span
+                className="tabular"
+                style={{ fontSize: 11, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}
               >
+                {ini.submitted_at ?? '—'}
+              </span>
+              <span style={{ alignSelf: 'center' }}>
+                <LawTypeChip type={ini.type as InitiativeType} />
+              </span>
+              <span style={{ minWidth: 0 }}>
                 <Link
                   href={`/initiatives/${ini.id}` as Route}
                   style={{ color: 'var(--ink)', textDecoration: 'none' }}
                 >
                   <AnnotatedText text={ini.title_ca ?? ini.title_original} />
                 </Link>
-              </SummaryHover>
-              <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>
-                {ini.official_id}
+                <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>
+                  {ini.official_id}
+                </div>
+              </span>
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: '2px 6px',
+                  borderRadius: 999,
+                  background: badge.color,
+                  color: 'white',
+                  whiteSpace: 'nowrap',
+                  alignSelf: 'center',
+                }}
+              >
+                {badge.label}
+              </span>
+            </div>
+            {plainSummary && (
+              <div style={{ marginTop: 8 }}>
+                <LawSummaryPanel summary={plainSummary} provider={ini.plain_summary_provider} />
               </div>
-            </span>
-            <span
-              style={{
-                fontSize: 10,
-                padding: '2px 6px',
-                borderRadius: 999,
-                background: badge.color,
-                color: 'white',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {badge.label}
-            </span>
+            )}
           </li>
         );
       })}

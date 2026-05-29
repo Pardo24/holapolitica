@@ -929,7 +929,10 @@
     "pie_mode_topic_acceptance": "Aceptación por tema",
     "pie_mode_status": "Resultados globales",
     "pie_mode_aria": "Modalidad de visualización de la distribución",
-    "pie_explain_hint": "De qué trata este tema"
+    "pie_explain_hint": "De qué trata este tema",
+    "more_data_title": "¿Quieres más datos?",
+    "more_data_body": "En el análisis filtrado puedes cruzar un tema con un grupo parlamentario y ver aprobaciones, coincidencias y actividad.",
+    "more_data_cta": "Ir al análisis filtrado"
   },
   "quiz": {
     "meta_title": "Juego cívico · Hola Política",
