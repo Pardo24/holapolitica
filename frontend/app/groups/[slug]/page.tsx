@@ -393,73 +393,55 @@ function CompositionSection({
   // implied. Only show it when there's genuinely more than one.
   const hasMultipleParties = composition.member_parties.length > 1;
   return (
-    <>
-      {/* Parity — own section so the gender breakdown reads as a
-          distinct concern, not just one column of a triptych.
-          Daniel: "ho separem en dos widgets". */}
-      <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">{labels.gender}</h2>
-        <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
-          {labels.intro}
-        </p>
-        <div
-          style={{
-            marginTop: 14,
-            maxWidth: 520,
-          }}
-        >
-          <CompositionCard title={labels.gender}>
-            <GenderDonut
-              distribution={composition.gender_distribution}
-              genderLabels={genderLabels}
-              ariaBuilder={labels.gender_distribution_aria}
+    // One titled group — gender + age sit side by side; the constituent
+    // parties (only when there's more than one) go full-width below.
+    <section style={{ paddingTop: 28 }}>
+      <h2 className="h-title">{labels.title}</h2>
+      <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
+        {labels.intro}
+      </p>
+      <div
+        className="composition-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 18,
+          marginTop: 14,
+        }}
+      >
+        <CompositionCard title={labels.gender}>
+          <GenderDonut
+            distribution={composition.gender_distribution}
+            genderLabels={genderLabels}
+            ariaBuilder={labels.gender_distribution_aria}
+          />
+        </CompositionCard>
+        <CompositionCard title={labels.age}>
+          <AgeBars
+            buckets={composition.age_buckets}
+            accent={groupColor}
+            ageLabels={ageLabels}
+            ariaBuilder={labels.age_bucket_aria}
+          />
+        </CompositionCard>
+      </div>
+      {hasMultipleParties && (
+        <div style={{ marginTop: 18 }}>
+          <CompositionCard title={labels.parties}>
+            <PartyList
+              parties={composition.member_parties}
+              membersTotal={composition.members_total}
+              emptyBuilder={labels.no_party_data}
             />
           </CompositionCard>
         </div>
-      </section>
-
-      {/* Age + parties — second widget. Sits side-by-side so a
-          reader can scan age distribution next to the constituent-
-          party breakdown that often explains it (an old core party
-          + a younger satellite). Age-PER-party (broken down inside
-          each constituent) is a richer view but needs a backend
-          field we don't expose yet; for now the two stay adjacent. */}
-      <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">{labels.age}</h2>
-        <div
-          className="composition-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: hasMultipleParties ? '1fr 1fr' : '1fr',
-            gap: 18,
-            marginTop: 14,
-          }}
-        >
-          <CompositionCard title={labels.age}>
-            <AgeBars
-              buckets={composition.age_buckets}
-              accent={groupColor}
-              ageLabels={ageLabels}
-              ariaBuilder={labels.age_bucket_aria}
-            />
-          </CompositionCard>
-          {hasMultipleParties && (
-            <CompositionCard title={labels.parties}>
-              <PartyList
-                parties={composition.member_parties}
-                membersTotal={composition.members_total}
-                emptyBuilder={labels.no_party_data}
-              />
-            </CompositionCard>
-          )}
-        </div>
-        <style>{`
-          @media (max-width: 860px) {
-            .composition-grid { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
-      </section>
-    </>
+      )}
+      <style>{`
+        @media (max-width: 860px) {
+          .composition-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </section>
   );
 }
 
