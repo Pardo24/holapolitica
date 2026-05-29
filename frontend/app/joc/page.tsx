@@ -38,7 +38,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const ELIGIBLE_PAGE_SIZE = 80;
+const ELIGIBLE_PAGE_SIZE = 100;
+// How many pages of recent votes to pool. A single page often yields a
+// tiny eligible set (most recent votes are orphan PNLs without a summary
+// yet), which made the random pick land on the same law over and over.
+const ELIGIBLE_PAGES = 3;
 
 type QuizQuestion =
   | {
@@ -68,8 +72,18 @@ function pickEligibleVote(items: Vote[], locale: string): Vote | null {
     const hasProposer = !!v.proposing_group_short || v.proposed_by_government;
     return hasSummary && hasProposer;
   });
-  if (eligible.length === 0) return null;
-  return eligible[Math.floor(Math.random() * eligible.length)] ?? null;
+  // Dedupe by initiative so a law voted in several parts (multiple votes,
+  // same summary) can't crowd the pool and keep resurfacing. Orphan votes
+  // (no initiative) each keep their own slot.
+  const seen = new Set<number>();
+  const deduped = eligible.filter((v) => {
+    if (v.initiative_id == null) return true;
+    if (seen.has(v.initiative_id)) return false;
+    seen.add(v.initiative_id);
+    return true;
+  });
+  if (deduped.length === 0) return null;
+  return deduped[Math.floor(Math.random() * deduped.length)] ?? null;
 }
 
 /**
@@ -123,10 +137,12 @@ export default async function JocPage() {
   // Fetch a wide-enough page so the random pick has variety even
   // when many recent votes are procedural (no summary, no proposer).
   // Filtered down server-side; the client never sees the bigger pool.
-  const page = await api.votes
-    .list({ page: 1, page_size: ELIGIBLE_PAGE_SIZE })
-    .catch(() => null);
-  const items = page?.items ?? [];
+  const pages = await Promise.all(
+    Array.from({ length: ELIGIBLE_PAGES }, (_, i) =>
+      api.votes.list({ page: i + 1, page_size: ELIGIBLE_PAGE_SIZE }).catch(() => null),
+    ),
+  );
+  const items = pages.flatMap((pg) => pg?.items ?? []);
   const vote = pickEligibleVote(items, locale);
 
   if (vote == null) {
