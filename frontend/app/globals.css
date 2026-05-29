@@ -241,6 +241,44 @@ a { color: inherit; }
 .eyebrow.warm::before { background: var(--accent-warm); }
 .eyebrow.muted { color: var(--ink-3); }
 .eyebrow.muted::before { background: var(--ink-3); }
+/* Hide the horizontal scrollbar on scroll containers that have their own
+   ◂ ▸ affordances (carousels, the topic filter strip). Content still
+   scrolls (wheel, trackpad, drag, buttons) — only the bar is hidden. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Floating circular prev/next button for ScrollCarousel. */
+.scroll-carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px -3px rgba(15, 23, 42, 0.25);
+}
+.scroll-carousel-btn:hover {
+  background: var(--paper-2);
+  border-color: var(--ink-2);
+}
+.scroll-carousel-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .mono {
   font-family: var(--font-mono);
   /* Code / IDs / expedientes must show literal characters. The mono

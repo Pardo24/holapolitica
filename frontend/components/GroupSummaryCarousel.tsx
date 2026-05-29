@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
+import { ScrollCarousel } from '@/components/ScrollCarousel';
 import { Tooltip } from '@/components/Tooltip';
 import type { GroupSummaryRow } from '@/lib/api';
 import { glossaryShort } from '@/lib/glossary';
@@ -55,46 +56,22 @@ export async function GroupSummaryCarousel({
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <ul
-        role="list"
-        aria-label={t('aria_label')}
-        style={{
-          listStyle: 'none',
-          margin: 0,
-          padding: '4px 2px 12px',
-          display: 'flex',
-          gap: 12,
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'thin',
-        }}
-      >
-        {ordered.map((row) => (
-          <GroupSummaryCard
-            key={row.group_slug}
-            row={row}
-            highlighted={row.group_slug === highlightSlug}
-            labels={cardLabels}
-          />
-        ))}
-      </ul>
-      {/* Edge fades — decorative scrollability hint, pointer-events:none. */}
-      <span aria-hidden="true" style={{ ...edgeFade, left: 0, background: 'linear-gradient(to right, var(--paper) 0%, transparent 100%)' }} />
-      <span aria-hidden="true" style={{ ...edgeFade, right: 0, background: 'linear-gradient(to left, var(--paper) 0%, transparent 100%)' }} />
-    </div>
+    <ScrollCarousel
+      ariaLabel={t('aria_label')}
+      prevLabel={t('aria_label')}
+      nextLabel={t('aria_label')}
+    >
+      {ordered.map((row) => (
+        <GroupSummaryCard
+          key={row.group_slug}
+          row={row}
+          highlighted={row.group_slug === highlightSlug}
+          labels={cardLabels}
+        />
+      ))}
+    </ScrollCarousel>
   );
 }
-
-const edgeFade: React.CSSProperties = {
-  position: 'absolute',
-  top: 0,
-  bottom: 12,
-  width: 24,
-  pointerEvents: 'none',
-};
 
 function GroupSummaryCard({
   row,

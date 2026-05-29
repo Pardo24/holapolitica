@@ -151,7 +151,7 @@ export function TopicChipsStrip({
         ref={stripRef}
         role="navigation"
         aria-label="Filtrar per tema"
-        className="topic-chips-strip"
+        className="topic-chips-strip no-scrollbar"
         style={{
           display: 'flex',
           gap: 8,

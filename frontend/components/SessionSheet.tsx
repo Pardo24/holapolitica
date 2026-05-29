@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
+import { ResizingIframe } from '@/components/ResizingIframe';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
@@ -381,17 +382,13 @@ export async function SessionSheet({
           >
             {t('featured_dossier_caption')}
           </p>
-          <iframe
+          {/* Auto-height: the widget reports its own height (EmbedAutoHeight),
+              so the wrapper matches the embed instead of a fixed 480px box.
+              Borderless — the embed-card inside supplies its own chrome. */}
+          <ResizingIframe
             src={`/embed/initiatives/${featuredInitiativeVote.initiative_id}`}
             title={t('featured_dossier_iframe_title')}
-            width="100%"
-            height={480}
-            loading="lazy"
-            style={{
-              border: '1px solid var(--rule)',
-              background: 'var(--paper)',
-              display: 'block',
-            }}
+            fallbackHeight={480}
           />
         </section>
       )}

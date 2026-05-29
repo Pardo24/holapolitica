@@ -225,7 +225,7 @@ export default async function StatsPage({
     cross.joint_initiatives_total === 0;
 
   return (
-    <div>
+    <div style={{ maxWidth: 1060, marginInline: 'auto' }}>
       <header
         style={{
           paddingTop: 28,
