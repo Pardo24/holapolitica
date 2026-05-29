@@ -27,35 +27,39 @@ export function LawSummaryPanel({
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={{ marginTop: 8 }}>
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className="law-summary-toggle"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '4px 10px 4px 8px',
-          borderRadius: 999,
-          border: '1px solid var(--rule-strong)',
-          background: open ? 'var(--paper-2)' : 'transparent',
-          color: 'var(--ink-2)',
-          fontSize: 12,
-          fontWeight: 600,
-          fontFamily: 'inherit',
-          cursor: 'pointer',
-          lineHeight: 1.3,
-        }}
-      >
-        {open ? (
-          <Minus size={13} strokeWidth={2} aria-hidden="true" />
-        ) : (
-          <Plus size={13} strokeWidth={2} aria-hidden="true" />
-        )}
-        {t('plain_summary_title')}
-      </button>
+    <div>
+      {/* Toggle sits at the bottom-right of the row, aligned to the same
+          right edge as the result badge. */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+          className="law-summary-toggle"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 10px 4px 8px',
+            borderRadius: 999,
+            border: '1px solid var(--rule-strong)',
+            background: open ? 'var(--paper-2)' : 'transparent',
+            color: 'var(--ink-2)',
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            lineHeight: 1.3,
+          }}
+        >
+          {open ? (
+            <Minus size={13} strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <Plus size={13} strokeWidth={2} aria-hidden="true" />
+          )}
+          {t('plain_summary_title')}
+        </button>
+      </div>
 
       {open && (
         <div

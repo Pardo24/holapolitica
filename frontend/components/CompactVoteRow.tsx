@@ -88,7 +88,7 @@ export function CompactVoteRow({
         style={{
           textDecoration: 'none',
           color: 'inherit',
-          padding: '14px 0 12px',
+          padding: '14px 0 0',
           display: 'grid',
           gap: 12,
           gridTemplateColumns: 'minmax(0, 1fr) auto',
@@ -240,10 +240,11 @@ export function CompactVoteRow({
         </span>
       </Link>
       {/* Click-to-expand plain-language explanation, OUTSIDE the row link
-          so the toggle never navigates. Shown only when an LLM summary
-          exists. */}
+          so the toggle never navigates. Button sits bottom-right, aligned
+          to the result-badge edge. Spacing is relative (rem): ~30px above
+          to separate it from the law, ~40px below to give the row air. */}
       {plainSummary && (
-        <div style={{ padding: '0 0 12px' }}>
+        <div style={{ paddingTop: '1.875rem', paddingBottom: '2.5rem' }}>
           <LawSummaryPanel summary={plainSummary} provider={v.plain_summary_provider} />
         </div>
       )}

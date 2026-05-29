@@ -1186,7 +1186,7 @@ function InitiativeRow({
         style={{
           textDecoration: 'none',
           color: 'inherit',
-          padding: '14px 0 12px',
+          padding: '14px 0 0',
           display: 'grid',
           gap: 14,
           // Mobile default: 2 cols [subject | right-stack(date+status)].
@@ -1306,7 +1306,7 @@ function InitiativeRow({
         </div>
       </a>
       {plainSummary && (
-        <div style={{ padding: '0 0 12px' }}>
+        <div style={{ paddingTop: '1.875rem', paddingBottom: '2.5rem' }}>
           <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
         </div>
       )}
