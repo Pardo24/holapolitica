@@ -354,6 +354,33 @@ a { color: inherit; }
 }
 
 /* nav — same treatment across pages */
+/* Notifications bell — rings (wobbles) on hover/focus. transform-origin
+   at the top so it swings from the clapper like a real bell. Honors
+   prefers-reduced-motion (the @media below disables the animation). */
+.nav-bell svg {
+  transition: transform 0.18s ease, color 0.18s ease;
+  transform-origin: 50% 3px;
+}
+.nav-bell:hover svg,
+.nav-bell:focus-visible svg {
+  animation: bell-ring 0.7s ease;
+}
+@keyframes bell-ring {
+  0% { transform: rotate(0); }
+  15% { transform: rotate(13deg); }
+  30% { transform: rotate(-11deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  75% { transform: rotate(3deg); }
+  100% { transform: rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-bell:hover svg,
+  .nav-bell:focus-visible svg {
+    animation: none;
+  }
+}
+
 .topnav {
   display: flex;
   align-items: center;

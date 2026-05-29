@@ -109,6 +109,7 @@ export async function TopNav() {
           label={t('notifications')}
           icon={<Bell size={17} aria-hidden="true" strokeWidth={1.8} />}
           iconOnly
+          className="nav-bell"
         />
         <div className="lang" aria-label="Language">
         {locales.map((l, i) => {

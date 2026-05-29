@@ -22,6 +22,7 @@ export function NavLink({
   label,
   icon,
   iconOnly = false,
+  className,
 }: {
   href: Route;
   label: string;
@@ -29,13 +30,15 @@ export function NavLink({
   /** Render the icon alone (no text). Label is kept as aria-label/title
    *  for accessibility + hover. Used for the notifications bell. */
   iconOnly?: boolean;
+  /** Extra class merged with the active-state class. */
+  className?: string;
 }) {
   const pathname = usePathname() ?? '';
   const active = pathname === href || pathname.startsWith(`${href}/`);
   return (
     <Link
       href={href}
-      className={active ? 'active' : ''}
+      className={[active ? 'active' : '', className].filter(Boolean).join(' ')}
       aria-current={active ? 'page' : undefined}
       aria-label={iconOnly ? label : undefined}
       title={iconOnly ? label : undefined}
