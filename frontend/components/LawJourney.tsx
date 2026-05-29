@@ -154,10 +154,9 @@ export async function LawJourney({
         background: 'var(--ink)',
         color: 'var(--paper)',
         padding: '16px 24px',
-        // Contained, rounded banner that respects the page column — no
-        // longer full-bleed to the viewport edges (Daniel: "que en la
-        // web no arribi fins a les voreres").
-        borderRadius: 14,
+        // Square corners (no rounding). Contained within the page column
+        // on desktop; on mobile it goes full-bleed edge-to-edge (see the
+        // .law-journey rule in globals.css).
         marginTop: 8,
         marginBottom: 18,
       }}
@@ -384,6 +383,10 @@ export async function LawJourney({
         @media (max-width: 720px) {
           .law-journey {
             padding: 14px 16px !important;
+            /* Full-bleed edge-to-edge on mobile — escape the page's
+               horizontal padding so the dark strip touches both sides. */
+            margin-left: calc(50% - 50vw) !important;
+            margin-right: calc(50% - 50vw) !important;
           }
           .law-journey-inner {
             grid-template-columns: 1fr !important;
