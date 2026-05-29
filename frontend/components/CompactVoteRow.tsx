@@ -2,8 +2,8 @@ import Link from 'next/link';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
+import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
-import { SummaryHover } from '@/components/SummaryHover';
 import type { Vote, VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
@@ -75,7 +75,7 @@ export function CompactVoteRow({
   const plainSummary = pickPlainSummary(v, locale);
   const topics = v.topics ?? [];
   return (
-    <li>
+    <li style={{ borderBottom: '1px solid var(--rule)' }}>
       <Link
         href={`/votes/${v.id}`}
         // Mobile: 2-col grid (title | right-stack with date+result). The
@@ -88,8 +88,7 @@ export function CompactVoteRow({
         style={{
           textDecoration: 'none',
           color: 'inherit',
-          borderBottom: '1px solid var(--rule)',
-          padding: '14px 0',
+          padding: '14px 0 12px',
           display: 'grid',
           gap: 12,
           gridTemplateColumns: 'minmax(0, 1fr) auto',
@@ -112,14 +111,7 @@ export function CompactVoteRow({
             className="line-clamp-2 sm:line-clamp-3"
             style={{ fontSize: 14, lineHeight: 1.4, color: 'var(--ink)' }}
           >
-            <SummaryHover
-              summary={plainSummary}
-              fallback={v.description ?? undefined}
-              provider={v.plain_summary_provider}
-              visibleText={subject}
-            >
-              <AnnotatedText text={subject} />
-            </SummaryHover>
+            <AnnotatedText text={subject} />
           </div>
           <div
             style={{
@@ -247,6 +239,14 @@ export function CompactVoteRow({
           </span>
         </span>
       </Link>
+      {/* Click-to-expand plain-language explanation, OUTSIDE the row link
+          so the toggle never navigates. Shown only when an LLM summary
+          exists. */}
+      {plainSummary && (
+        <div style={{ padding: '0 0 12px' }}>
+          <LawSummaryPanel summary={plainSummary} provider={v.plain_summary_provider} />
+        </div>
+      )}
     </li>
   );
 }

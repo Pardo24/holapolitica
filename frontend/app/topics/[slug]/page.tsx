@@ -6,10 +6,10 @@ import { ArrowRight, Bell, ExternalLink, Newspaper } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
+import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
 import { ResultPill } from '@/components/ResultPill';
-import { SummaryHover } from '@/components/SummaryHover';
 import { TopicGroupFilter } from '@/components/TopicGroupFilter';
 import { Tooltip } from '@/components/Tooltip';
 import {
@@ -1179,15 +1179,14 @@ function InitiativeRow({
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
   const linkHref = `/initiatives/${initiative.id}`;
   return (
-    <li>
+    <li style={{ borderBottom: '1px solid var(--rule)' }}>
       <a
         href={linkHref}
         className="initiative-row"
         style={{
           textDecoration: 'none',
           color: 'inherit',
-          borderBottom: '1px solid var(--rule)',
-          padding: '14px 0',
+          padding: '14px 0 12px',
           display: 'grid',
           gap: 14,
           // Mobile default: 2 cols [subject | right-stack(date+status)].
@@ -1215,16 +1214,9 @@ function InitiativeRow({
             className="line-clamp-2 sm:line-clamp-3"
             style={{ fontSize: 14, lineHeight: 1.4, color: 'var(--ink)' }}
           >
-            <SummaryHover
-              summary={plainSummary}
-              fallback={initiative.summary ?? undefined}
-              provider={initiative.plain_summary_provider}
-              visibleText={initiative.title_original}
-            >
-              {/* Wrap Senate / lectura única / convalidación in tooltips
-                  inline so users get the definition where the jargon sits. */}
-              <AnnotatedText text={initiative.title_original} />
-            </SummaryHover>
+            {/* Wrap Senate / lectura única / convalidación in tooltips
+                inline so users get the definition where the jargon sits. */}
+            <AnnotatedText text={initiative.title_original} />
           </div>
           {/* Meta line — ``[proposer-badges] · type · status``. Status is
               hidden on mobile (it lives in the right-stack instead) and
@@ -1313,6 +1305,11 @@ function InitiativeRow({
           </span>
         </div>
       </a>
+      {plainSummary && (
+        <div style={{ padding: '0 0 12px' }}>
+          <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
+        </div>
+      )}
     </li>
   );
 }
