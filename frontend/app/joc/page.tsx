@@ -148,18 +148,16 @@ export default async function JocPage() {
   if (vote == null) {
     return (
       <article style={{ maxWidth: 680, marginInline: 'auto', paddingTop: 24, paddingBottom: 48 }}>
-        <div className="eyebrow" style={{ marginBottom: 8 }}>
-          {t('eyebrow')}
-        </div>
         <h1
           className="h-headline"
-          style={{ margin: '6px 0 14px', display: 'inline-flex', alignItems: 'baseline', gap: 12 }}
+          style={{ margin: '0 0 8px', display: 'inline-flex', alignItems: 'baseline', gap: 12 }}
         >
           <span aria-hidden="true" className="page-header-icon-tile">
             <Puzzle size={20} strokeWidth={1.8} aria-hidden="true" />
           </span>
           <span>{t('h1')}</span>
         </h1>
+        <p style={{ color: 'var(--ink-2)', fontSize: 16, margin: '0 0 14px' }}>{t('tagline')}</p>
         <p style={{ color: 'var(--ink-3)', fontSize: 14 }}>{t('empty')}</p>
       </article>
     );
@@ -232,14 +230,11 @@ export default async function JocPage() {
 
   return (
     <article style={{ maxWidth: 680, marginInline: 'auto', paddingTop: 24, paddingBottom: 48 }}>
-      <div className="eyebrow" style={{ marginBottom: 8 }}>
-        {t('eyebrow')}
-      </div>
       <h1
         className="h-headline"
         style={{
-          margin: '6px 0 8px',
-          fontSize: 'clamp(24px, 3vw, 32px)',
+          margin: '0 0 8px',
+          fontSize: 'clamp(28px, 3.4vw, 38px)',
           display: 'inline-flex',
           alignItems: 'baseline',
           gap: 12,
@@ -250,6 +245,16 @@ export default async function JocPage() {
         </span>
         <span>{t('h1')}</span>
       </h1>
+      <p
+        style={{
+          margin: '0 0 6px',
+          fontSize: 17,
+          fontWeight: 600,
+          color: 'var(--ink)',
+        }}
+      >
+        {t('tagline')}
+      </p>
       <p
         style={{
           margin: '0 0 22px',
