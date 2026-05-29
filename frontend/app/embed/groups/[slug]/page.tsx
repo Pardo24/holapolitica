@@ -88,23 +88,12 @@ export default async function EmbedGroupPage({
     (acc, b) => acc + (composition.age_buckets[b.key] ?? 0),
     0,
   );
-  // Pre-compute per-bucket shares so the histogram bars and the
-  // legislature-reference markers sit on a single scale (proportion
-  // of the GROUP, vs proportion of the CHAMBER). The visual ceiling
-  // is the largest group-share across buckets, so the tallest bar
-  // fills the column. The reference marker may sit anywhere from 0
-  // to slightly above 100% of that ceiling (when the chamber's
-  // share exceeds the group's tallest bucket); clamp to 100%.
-  const groupShares = buckets.map((b) =>
-    ageTotal > 0 ? (composition.age_buckets[b.key] ?? 0) / ageTotal : 0,
+  // Largest single age bucket — horizontal bars scale to it so the most
+  // populous band fills the row.
+  const maxAgeCount = Math.max(
+    1,
+    ...buckets.map((b) => composition.age_buckets[b.key] ?? 0),
   );
-  const maxGroupShare = Math.max(0.001, ...groupShares);
-  const refAgeTotal = reference
-    ? buckets.reduce(
-        (acc, b) => acc + (reference.age_buckets[b.key] ?? 0),
-        0,
-      )
-    : 0;
 
   return (
     <article className="embed-card" lang={locale}>
@@ -312,129 +301,79 @@ export default async function EmbedGroupPage({
           >
             {t('age_label')}
           </div>
-          <div
+          {/* Horizontal proportion bars — one row per age band. Cleaner
+              and more legible at embed scale than vertical columns, and
+              without the chamber-reference hairline that read as a stray
+              line across each bar. */}
+          <ul
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(5, 1fr)',
-              gap: 8,
-              alignItems: 'end',
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
             }}
           >
-            {buckets.map((b, idx) => {
+            {buckets.map((b) => {
               const n = composition.age_buckets[b.key] ?? 0;
-              const share = groupShares[idx] ?? 0;
-              // Visual height: group's share of total scaled to the
-              // tallest bucket. 8% min floor so a 1-deputy bucket
-              // doesn't render as an invisible sliver.
-              const heightPct =
-                n === 0 ? 0 : Math.max(8, (share / maxGroupShare) * 100);
-              const refN =
-                reference && refAgeTotal > 0
-                  ? reference.age_buckets[b.key] ?? 0
-                  : 0;
-              const refShare = refAgeTotal > 0 ? refN / refAgeTotal : 0;
-              // Clamp the reference line at 100% so a chamber-wide
-              // share that exceeds the group's tallest bucket still
-              // pins to the top of the column rather than overflowing.
-              const refHeightPct = Math.min(
-                100,
-                (refShare / maxGroupShare) * 100,
-              );
+              const pct = (n / maxAgeCount) * 100;
               return (
-                <div key={b.key} style={{ textAlign: 'center', minWidth: 0 }}>
-                  <div
-                    style={{
-                      position: 'relative',
-                      height: 42,
-                      display: 'flex',
-                      alignItems: 'flex-end',
-                      justifyContent: 'center',
-                      marginBottom: 4,
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: '70%',
-                        height: `${heightPct}%`,
-                        background: n > 0 ? color : 'var(--rule)',
-                        display: 'block',
-                      }}
-                    />
-                    {/* Legislature-wide reference line — a 2px
-                        horizontal hairline at the chamber's share
-                        for this bucket. Lets the reader compare
-                        "this group's share vs the chamber's share"
-                        at a glance, without us claiming anything
-                        about over/under-representation. */}
-                    {reference && refN > 0 && (
-                      <span
-                        aria-hidden="true"
-                        title={`Mitjana cambra: ${refN} (${Math.round(refShare * 100)}%)`}
-                        style={{
-                          position: 'absolute',
-                          left: '12%',
-                          right: '12%',
-                          bottom: `${refHeightPct}%`,
-                          height: 2,
-                          background: 'var(--ink)',
-                          borderRadius: 1,
-                          opacity: 0.85,
-                          transform: 'translateY(50%)',
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div
-                    className="tabular"
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: 'var(--ink)',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {n}
-                  </div>
-                  <div
+                <li
+                  key={b.key}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '44px 1fr 20px',
+                    gap: 8,
+                    alignItems: 'center',
+                  }}
+                >
+                  <span
                     style={{
                       fontSize: 9,
                       color: 'var(--ink-3)',
-                      marginTop: 2,
                       letterSpacing: '0.04em',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {b.label}
-                  </div>
-                </div>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      display: 'block',
+                      height: 8,
+                      borderRadius: 4,
+                      background: 'var(--rule)',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: 'block',
+                        width: `${pct}%`,
+                        height: '100%',
+                        background: color,
+                        borderRadius: 4,
+                        minWidth: n > 0 ? 3 : 0,
+                      }}
+                    />
+                  </span>
+                  <span
+                    className="tabular"
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                      textAlign: 'right',
+                    }}
+                  >
+                    {n}
+                  </span>
+                </li>
               );
             })}
-          </div>
-          {reference != null && (
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 9,
-                color: 'var(--ink-3)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                letterSpacing: '0.04em',
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  display: 'inline-block',
-                  width: 12,
-                  height: 2,
-                  background: 'var(--ink)',
-                  borderRadius: 1,
-                }}
-              />
-              {t('age_reference_caption')}
-            </div>
-          )}
+          </ul>
         </section>
       )}
 
