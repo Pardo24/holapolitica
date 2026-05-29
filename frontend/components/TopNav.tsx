@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, CheckSquare, Newspaper, Users } from 'lucide-react';
+import { BarChart3, Bell, CheckSquare, Layers, Newspaper, Users } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -47,6 +47,11 @@ export async function TopNav() {
       href: '/persons',
       label: t('persons'),
       icon: <Users size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
+    {
+      href: '/topics',
+      label: t('topics'),
+      icon: <Layers size={14} aria-hidden="true" strokeWidth={1.8} />,
     },
   ];
   const secondary: { href: Route; label: string; icon: React.ReactNode }[] = [
