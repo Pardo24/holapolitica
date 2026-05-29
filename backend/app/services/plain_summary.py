@@ -111,6 +111,45 @@ _PROMPTS_BY_LANG: dict[str, str] = {"ca": _PROMPT_CA, "es": _PROMPT_ES}
 SYSTEM_PROMPT = _PROMPT_CA
 
 
+# Translation prompts. We generate the summary ONCE in the source language
+# (Spanish — the language of the Congreso source documents) and translate
+# the short result into the other UI language. Translating the 2-3 sentence
+# summary reads a tiny input instead of re-reading the full bill text, which
+# roughly halves the expensive input-token cost and keeps CA/ES consistent.
+# The translation must stay strictly literal so it can't smuggle editorial
+# framing past the neutrality guard that already vetted the source summary.
+_TRANSLATE_PROMPT_CA = """\
+Ets un traductor professional. Tradueix al CATALÀ el resum següent, que \
+explica en llenguatge planer què fa una iniciativa parlamentària.
+
+REGLES:
+- Traducció LITERAL i fidel: mateix contingut, longitud semblant.
+- No afegeixis ni treguis informació. No reescriguis ni interpretis.
+- No introdueixis cap valoració que no sigui a l'original.
+- Conserva els noms de lleis i institucions de manera natural en català.
+
+Retorna NOMÉS la traducció al català, sense pròleg, cometes ni disclaimer.
+"""
+
+_TRANSLATE_PROMPT_ES = """\
+Eres un traductor profesional. Traduce al CASTELLANO el resumen siguiente, \
+que explica en lenguaje llano qué hace una iniciativa parlamentaria.
+
+REGLAS:
+- Traducción LITERAL y fiel: mismo contenido, longitud parecida.
+- No añadas ni quites información. No reescribas ni interpretes.
+- No introduzcas ninguna valoración que no esté en el original.
+- Conserva los nombres de leyes e instituciones de forma natural.
+
+Devuelve SÓLO la traducción al castellano, sin prólogo, comillas ni disclaimer.
+"""
+
+_TRANSLATE_PROMPTS_BY_LANG: dict[str, str] = {
+    "ca": _TRANSLATE_PROMPT_CA,
+    "es": _TRANSLATE_PROMPT_ES,
+}
+
+
 # Banned terms (lowercased, ASCII-folded) that signal editorial drift.
 # Curated to catch the strongest editorial framings without rejecting
 # neutral uses ("Defensa Nacional", "memòria històrica", "judici just").
@@ -202,6 +241,49 @@ async def generate_plain_summary(
         assert_neutral_summary(cleaned)
     except ValueError as e:
         log.warning("plain_summary.editorial_reject", reason=str(e), raw=raw[:200])
+        return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
+
+    return PlainSummaryResult(text=cleaned, provider=provider_name, raw=raw)
+
+
+async def translate_summary(
+    *,
+    text: str,
+    target_lang: str,
+    settings: Settings | None = None,
+) -> PlainSummaryResult:
+    """Translate an existing plain-language summary into ``target_lang``.
+
+    Cheap counterpart to :func:`generate_plain_summary`: instead of
+    re-reading the full bill text, it translates the short summary we
+    already produced in the source language. The neutrality guard runs
+    again on the output as defence-in-depth — a faithful translation of
+    a clean summary can't introduce banned terms, but we verify anyway.
+
+    Returns ``text=None`` when the model declines or the output trips the
+    neutrality filter, so the caller persists ``NULL`` and retries later.
+    """
+    s = settings or get_settings()
+    prompt = _TRANSLATE_PROMPTS_BY_LANG.get(target_lang)
+    if prompt is None:
+        raise ValueError(f"Unsupported target lang for translation: {target_lang!r}")
+
+    raw = await _call_llm_for_text(s, system=prompt, user=text)
+    provider_name = _provider_name(s)
+
+    cleaned = raw.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`").strip()
+        if "\n" in cleaned:
+            cleaned = cleaned.split("\n", 1)[1].strip()
+
+    if not cleaned or cleaned.upper().startswith(INSUFFICIENT):
+        return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
+
+    try:
+        assert_neutral_summary(cleaned)
+    except ValueError as e:
+        log.warning("plain_summary.translate_editorial_reject", reason=str(e), raw=raw[:200])
         return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
 
     return PlainSummaryResult(text=cleaned, provider=provider_name, raw=raw)

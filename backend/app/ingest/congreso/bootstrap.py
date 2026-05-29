@@ -768,6 +768,80 @@ async def generate_all_plain_summaries_es() -> dict[str, int | str]:
     return await generate_all_plain_summaries(lang="es")
 
 
+async def translate_initiative_summaries_ca_from_es() -> dict[str, int | str]:
+    """Fill the Catalan summary by translating the Spanish one.
+
+    The cheap half of the summarise-once-then-translate pipeline: instead
+    of re-reading the full bill text to produce a Catalan summary, we
+    translate the short Spanish summary we already generated. Run AFTER
+    ``plain_summaries_es``.
+
+    Targets initiatives where ``plain_summary_es IS NOT NULL`` and
+    ``plain_summary_ca IS NULL``. Idempotent and per-row guarded, so a
+    transient failure just leaves that row for the next run.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative
+    from app.services.plain_summary import translate_summary
+
+    async with AsyncSessionLocal() as session:
+        ids = list(
+            (
+                await session.execute(
+                    _select(Initiative.id).where(
+                        Initiative.plain_summary_es.is_not(None),
+                        Initiative.plain_summary_ca.is_(None),
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        log.info("bootstrap.translate_summary.starting", target="ca", count=len(ids))
+
+        ok = insufficient = errors = 0
+        for iid in ids:
+            try:
+                async with AsyncSessionLocal() as inner:
+                    row = (
+                        await inner.execute(_select(Initiative).where(Initiative.id == iid))
+                    ).scalar_one()
+                    source = row.plain_summary_es
+                    if not source:
+                        continue
+                    result = await translate_summary(text=source, target_lang="ca")
+                    row.plain_summary_ca = result.text
+                    if result.text or row.plain_summary_provider is None:
+                        row.plain_summary_provider = result.provider
+                        row.plain_summary_generated_at = datetime.now(UTC)
+                    await inner.commit()
+                    if result.text:
+                        ok += 1
+                    else:
+                        insufficient += 1
+            except Exception as e:
+                errors += 1
+                log.warning("translate_summary.error", initiative_id=iid, target="ca", error=str(e))
+        log.info(
+            "bootstrap.translate_summary.done",
+            target="ca",
+            seen=len(ids),
+            translated=ok,
+            insufficient=insufficient,
+            errors=errors,
+        )
+        return {
+            "target": "ca",
+            "seen": len(ids),
+            "translated": ok,
+            "insufficient": insufficient,
+            "errors": errors,
+        }
+
+
 # Minimum description length we'll feed to the LLM. Below this floor the
 # text is almost certainly a procedural label ("Proposiciones no de Ley.")
 # and the model would just hallucinate. 60 chars matches what we see in
@@ -869,6 +943,74 @@ async def generate_vote_plain_summaries(lang: str = "ca") -> dict[str, int | str
 async def generate_vote_plain_summaries_es() -> dict[str, int | str]:
     """Bootstrap-friendly alias for the Spanish run on votes."""
     return await generate_vote_plain_summaries(lang="es")
+
+
+async def translate_vote_summaries_ca_from_es() -> dict[str, int | str]:
+    """Fill the Catalan vote summary by translating the Spanish one.
+
+    Vote-side counterpart to
+    :func:`translate_initiative_summaries_ca_from_es`. Run AFTER
+    ``vote_plain_summaries_es``. Targets votes where
+    ``plain_summary_es IS NOT NULL`` and ``plain_summary_ca IS NULL``.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.models import Vote
+    from app.services.plain_summary import translate_summary
+
+    async with AsyncSessionLocal() as session:
+        ids = list(
+            (
+                await session.execute(
+                    _select(Vote.id).where(
+                        Vote.plain_summary_es.is_not(None),
+                        Vote.plain_summary_ca.is_(None),
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        log.info("vote_translate_summary.starting", target="ca", count=len(ids))
+
+        ok = insufficient = errors = 0
+        for vid in ids:
+            try:
+                async with AsyncSessionLocal() as inner:
+                    row = (await inner.execute(_select(Vote).where(Vote.id == vid))).scalar_one()
+                    source = row.plain_summary_es
+                    if not source:
+                        continue
+                    result = await translate_summary(text=source, target_lang="ca")
+                    row.plain_summary_ca = result.text
+                    if result.text or row.plain_summary_provider is None:
+                        row.plain_summary_provider = result.provider
+                        row.plain_summary_generated_at = datetime.now(UTC)
+                    await inner.commit()
+                    if result.text:
+                        ok += 1
+                    else:
+                        insufficient += 1
+            except Exception as e:
+                errors += 1
+                log.warning("vote_translate_summary.error", vote_id=vid, target="ca", error=str(e))
+        log.info(
+            "vote_translate_summary.done",
+            target="ca",
+            seen=len(ids),
+            translated=ok,
+            insufficient=insufficient,
+            errors=errors,
+        )
+        return {
+            "target": "ca",
+            "seen": len(ids),
+            "translated": ok,
+            "insufficient": insufficient,
+            "errors": errors,
+        }
 
 
 async def import_upcoming_agenda() -> AgendaImportStats:
@@ -1041,10 +1183,21 @@ _STEPS = {
     "initiative_objects_smoke": import_initiative_objects_smoke,
     "classify": classify_all_initiatives,
     "classify_initiatives_by_sdg": classify_initiatives_by_sdg,
-    "plain_summaries": generate_all_plain_summaries,
+    # Summaries follow a summarise-once-then-translate pipeline to save
+    # tokens on the (free-plan) LLM: generate the Spanish summary from the
+    # source text, then translate the short result into Catalan. Run order:
+    #   plain_summaries_es  →  plain_summaries_ca
+    #   vote_plain_summaries_es  →  vote_plain_summaries_ca
     "plain_summaries_es": generate_all_plain_summaries_es,
-    "vote_plain_summaries": generate_vote_plain_summaries,
+    "plain_summaries_ca": translate_initiative_summaries_ca_from_es,
     "vote_plain_summaries_es": generate_vote_plain_summaries_es,
+    "vote_plain_summaries_ca": translate_vote_summaries_ca_from_es,
+    # Legacy step names: the bare names now point at the cheap Catalan
+    # translation pass (was: re-summarise from source). The original
+    # from-source Catalan summariser is still reachable as a function for
+    # tests; the CLI nudges everyone onto the translate path.
+    "plain_summaries": translate_initiative_summaries_ca_from_es,
+    "vote_plain_summaries": translate_vote_summaries_ca_from_es,
     "upcoming_agenda": import_upcoming_agenda,
     # Newsletter manual triggers — defaults to a dry run that creates a
     # draft campaign in Listmonk. Use ``send_weekly_digest_now_send``
