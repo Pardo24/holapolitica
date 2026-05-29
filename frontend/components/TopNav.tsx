@@ -65,11 +65,6 @@ export async function TopNav() {
       label: t('journalists'),
       icon: <Newspaper size={14} aria-hidden="true" strokeWidth={1.8} />,
     },
-    {
-      href: '/notifications',
-      label: t('notifications'),
-      icon: <Bell size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
   ];
 
   return (
@@ -106,7 +101,16 @@ export async function TopNav() {
           the user lands on the same page in the chosen language. This
           keeps the switcher working without any client JS — Server
           Components re-render and `getLocale()` reads the new cookie. */}
-      <div className="lang" aria-label="Language">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {/* Notifications bell — icon only, pushed to the far right next
+            to the language switcher. */}
+        <NavLink
+          href="/notifications"
+          label={t('notifications')}
+          icon={<Bell size={17} aria-hidden="true" strokeWidth={1.8} />}
+          iconOnly
+        />
+        <div className="lang" aria-label="Language">
         {locales.map((l, i) => {
           const isActive = l === locale;
           return (
@@ -150,6 +154,7 @@ export async function TopNav() {
             </span>
           );
         })}
+        </div>
       </div>
     </nav>
   );

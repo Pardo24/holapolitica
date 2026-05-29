@@ -21,10 +21,14 @@ export function NavLink({
   href,
   label,
   icon,
+  iconOnly = false,
 }: {
   href: Route;
   label: string;
   icon?: React.ReactNode;
+  /** Render the icon alone (no text). Label is kept as aria-label/title
+   *  for accessibility + hover. Used for the notifications bell. */
+  iconOnly?: boolean;
 }) {
   const pathname = usePathname() ?? '';
   const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -33,18 +37,20 @@ export function NavLink({
       href={href}
       className={active ? 'active' : ''}
       aria-current={active ? 'page' : undefined}
+      aria-label={iconOnly ? label : undefined}
+      title={iconOnly ? label : undefined}
       style={
         icon
           ? {
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6,
+              gap: iconOnly ? 0 : 6,
             }
           : undefined
       }
     >
       {icon}
-      <span>{label}</span>
+      {!iconOnly && <span>{label}</span>}
     </Link>
   );
 }
