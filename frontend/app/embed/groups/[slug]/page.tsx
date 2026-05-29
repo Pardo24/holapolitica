@@ -88,12 +88,12 @@ export default async function EmbedGroupPage({
     (acc, b) => acc + (composition.age_buckets[b.key] ?? 0),
     0,
   );
-  // Largest single age bucket — horizontal bars scale to it so the most
-  // populous band fills the row.
-  const maxAgeCount = Math.max(
-    1,
-    ...buckets.map((b) => composition.age_buckets[b.key] ?? 0),
-  );
+  // Age donut geometry. Segments are proportions of the age total; the
+  // sequential opacity ramp (young → old) reads as ordinal, not a value
+  // judgment. Sized small to fit the embed card.
+  const AGE_R = 30;
+  const AGE_C = 2 * Math.PI * AGE_R;
+  const AGE_OPACITY = [0.32, 0.5, 0.66, 0.82, 1] as const;
 
   return (
     <article className="embed-card" lang={locale}>
@@ -301,79 +301,97 @@ export default async function EmbedGroupPage({
           >
             {t('age_label')}
           </div>
-          {/* Horizontal proportion bars — one row per age band. Cleaner
-              and more legible at embed scale than vertical columns, and
-              without the chamber-reference hairline that read as a stray
-              line across each bar. */}
-          <ul
-            style={{
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 6,
-            }}
-          >
-            {buckets.map((b) => {
-              const n = composition.age_buckets[b.key] ?? 0;
-              const pct = (n / maxAgeCount) * 100;
-              return (
-                <li
-                  key={b.key}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '44px 1fr 20px',
-                    gap: 8,
-                    alignItems: 'center',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 9,
-                      color: 'var(--ink-3)',
-                      letterSpacing: '0.04em',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {b.label}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      display: 'block',
-                      height: 8,
-                      borderRadius: 4,
-                      background: 'var(--rule)',
-                      overflow: 'hidden',
-                    }}
+          {/* Donut + legend — reads as one compact shape, legible at
+              embed scale where 5-6 thin bars got cramped. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <svg
+              width={84}
+              height={84}
+              viewBox="0 0 84 84"
+              role="img"
+              aria-label={buckets
+                .map((b) => `${b.label}: ${composition.age_buckets[b.key] ?? 0}`)
+                .join(', ')}
+              style={{ flex: 'none' }}
+            >
+              <circle
+                cx="42"
+                cy="42"
+                r={AGE_R}
+                fill="none"
+                stroke="var(--rule)"
+                strokeWidth="13"
+              />
+              {(() => {
+                let offset = 0;
+                return buckets.map((b, i) => {
+                  const n = composition.age_buckets[b.key] ?? 0;
+                  if (n === 0) return null;
+                  const seg = (n / ageTotal) * AGE_C;
+                  const node = (
+                    <circle
+                      key={b.key}
+                      cx="42"
+                      cy="42"
+                      r={AGE_R}
+                      fill="none"
+                      stroke={color}
+                      strokeOpacity={AGE_OPACITY[i] ?? 1}
+                      strokeWidth="13"
+                      strokeDasharray={`${seg} ${AGE_C - seg}`}
+                      strokeDashoffset={-offset}
+                      transform="rotate(-90 42 42)"
+                    />
+                  );
+                  offset += seg;
+                  return node;
+                });
+              })()}
+            </svg>
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+                minWidth: 0,
+                flex: 1,
+              }}
+            >
+              {buckets.map((b, i) => {
+                const n = composition.age_buckets[b.key] ?? 0;
+                return (
+                  <li
+                    key={b.key}
+                    style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10 }}
                   >
                     <span
+                      aria-hidden="true"
                       style={{
-                        display: 'block',
-                        width: `${pct}%`,
-                        height: '100%',
+                        width: 9,
+                        height: 9,
+                        borderRadius: 2,
                         background: color,
-                        borderRadius: 4,
-                        minWidth: n > 0 ? 3 : 0,
+                        opacity: AGE_OPACITY[i] ?? 1,
+                        flex: 'none',
                       }}
                     />
-                  </span>
-                  <span
-                    className="tabular"
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: 'var(--ink)',
-                      textAlign: 'right',
-                    }}
-                  >
-                    {n}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+                    <span style={{ color: 'var(--ink-3)', letterSpacing: '0.02em' }}>
+                      {b.label}
+                    </span>
+                    <span
+                      className="tabular"
+                      style={{ marginLeft: 'auto', color: 'var(--ink)', fontWeight: 600 }}
+                    >
+                      {n}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </section>
       )}
 
