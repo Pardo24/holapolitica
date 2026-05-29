@@ -1179,7 +1179,7 @@ function InitiativeRow({
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
   const linkHref = `/initiatives/${initiative.id}`;
   return (
-    <li style={{ borderBottom: '1px solid var(--rule)' }}>
+    <li style={{ borderBottom: '1px solid var(--rule)', paddingBottom: 14 }}>
       <a
         href={linkHref}
         className="initiative-row"
@@ -1306,7 +1306,7 @@ function InitiativeRow({
         </div>
       </a>
       {plainSummary && (
-        <div style={{ paddingTop: '1.875rem', paddingBottom: '2.5rem' }}>
+        <div style={{ marginTop: 8 }}>
           <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
         </div>
       )}

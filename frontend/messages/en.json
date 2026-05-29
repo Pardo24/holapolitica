@@ -925,7 +925,8 @@
     "pie_mode_group": "Proposals by group",
     "pie_mode_topic_acceptance": "Acceptance by topic",
     "pie_mode_status": "Global outcomes",
-    "pie_mode_aria": "Distribution display mode"
+    "pie_mode_aria": "Distribution display mode",
+    "pie_explain_hint": "What this topic covers"
   },
   "quiz": {
     "meta_title": "Civic quiz · Hola Política",

@@ -75,7 +75,7 @@ export function CompactVoteRow({
   const plainSummary = pickPlainSummary(v, locale);
   const topics = v.topics ?? [];
   return (
-    <li style={{ borderBottom: '1px solid var(--rule)' }}>
+    <li style={{ borderBottom: '1px solid var(--rule)', paddingBottom: 14 }}>
       <Link
         href={`/votes/${v.id}`}
         // Mobile: 2-col grid (title | right-stack with date+result). The
@@ -240,11 +240,11 @@ export function CompactVoteRow({
         </span>
       </Link>
       {/* Click-to-expand plain-language explanation, OUTSIDE the row link
-          so the toggle never navigates. Button sits bottom-right, aligned
-          to the result-badge edge. Spacing is relative (rem): ~30px above
-          to separate it from the law, ~40px below to give the row air. */}
+          so the toggle never navigates. Sits tight under the row content;
+          the li's paddingBottom gives every row (summary or not) the same
+          bottom margin. */}
       {plainSummary && (
-        <div style={{ paddingTop: '1.875rem', paddingBottom: '2.5rem' }}>
+        <div style={{ marginTop: 8 }}>
           <LawSummaryPanel summary={plainSummary} provider={v.plain_summary_provider} />
         </div>
       )}

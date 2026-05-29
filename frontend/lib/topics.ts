@@ -44,6 +44,16 @@ export function pickTopicName(
   return topic.name_ca;
 }
 
+/** Locale-aware topic description, falling back through CA. */
+export function pickTopicDescription(
+  topic: Pick<Topic, 'description_ca' | 'description_es' | 'description_en'>,
+  locale: LocaleLike,
+): string | null {
+  if (locale === 'es') return topic.description_es ?? topic.description_ca ?? null;
+  if (locale === 'en') return topic.description_en ?? topic.description_ca ?? null;
+  return topic.description_ca ?? null;
+}
+
 /**
  * Resolve a topic's localised name when we only carry the slug + the
  * Catalan-bundled fallback string from a metrics response.

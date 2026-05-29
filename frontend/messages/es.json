@@ -925,7 +925,8 @@
     "pie_mode_group": "Propuestas por grupo",
     "pie_mode_topic_acceptance": "Aceptación por tema",
     "pie_mode_status": "Resultados globales",
-    "pie_mode_aria": "Modalidad de visualización de la distribución"
+    "pie_mode_aria": "Modalidad de visualización de la distribución",
+    "pie_explain_hint": "De qué trata este tema"
   },
   "quiz": {
     "meta_title": "Juego cívico · Hola Política",

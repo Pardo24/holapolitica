@@ -65,58 +65,43 @@ export function LawSummaryPanel({
         <div
           role="region"
           style={{
-            marginTop: 10,
-            padding: '14px 16px',
-            borderRadius: 12,
+            marginTop: 8,
+            padding: '10px 12px',
+            borderRadius: 10,
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
             borderLeft: '3px solid var(--accent)',
           }}
         >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '2px 8px',
-              borderRadius: 999,
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              color: 'var(--accent)',
-              background: 'color-mix(in oklch, var(--accent) 12%, var(--paper))',
-              border: '1px solid color-mix(in oklch, var(--accent) 25%, var(--paper))',
-              marginBottom: 10,
-            }}
-          >
-            <Sparkles size={11} strokeWidth={2} aria-hidden="true" />
-            {t('plain_summary_ai_badge')}
-          </div>
           <p
             className="serif"
             style={{
-              fontSize: 15,
-              lineHeight: 1.55,
+              fontSize: 14,
+              lineHeight: 1.5,
               color: 'var(--ink)',
               margin: 0,
               whiteSpace: 'pre-line',
+              textWrap: 'pretty',
             }}
           >
             {summary}
           </p>
-          {provider && (
-            <p
-              style={{
-                fontSize: 11,
-                color: 'var(--ink-3)',
-                margin: '8px 0 0',
-                fontStyle: 'italic',
-              }}
-            >
-              {tc('plain_summary_caveat', { provider })}
-            </p>
-          )}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 8,
+              fontSize: 10.5,
+              color: 'var(--ink-3)',
+            }}
+          >
+            <Sparkles size={11} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--accent)', flex: 'none' }} />
+            <span>
+              {t('plain_summary_ai_badge')}
+              {provider ? ` · ${tc('plain_summary_caveat', { provider })}` : ''}
+            </span>
+          </div>
         </div>
       )}
     </div>

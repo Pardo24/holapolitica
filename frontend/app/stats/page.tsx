@@ -35,7 +35,7 @@ import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
-import { pickTopicName, resolveTopicName } from '@/lib/topics';
+import { pickTopicDescription, pickTopicName, resolveTopicName } from '@/lib/topics';
 
 // Status color mapping retained because individual sections / fallback
 // labels still reference it; PLURAL_KEY / TYPE_KEY tables were used only
@@ -224,6 +224,15 @@ export default async function StatsPage({
     !!cross &&
     cross.joint_initiatives_total === 0;
 
+  // slug → plain-language topic description for the pie's click-to-explain
+  // panel. Built from the full topic list (which carries descriptions);
+  // the pie itself only receives the lighter TopicGlobalStat rows.
+  const topicDescriptions: Record<string, string> = {};
+  for (const tp of allTopics) {
+    const d = pickTopicDescription(tp, locale);
+    if (d) topicDescriptions[tp.slug] = d;
+  }
+
   return (
     <div style={{ maxWidth: 1060, marginInline: 'auto' }}>
       <header
@@ -361,6 +370,8 @@ export default async function StatsPage({
                 proposingGroups={proposingGroups}
                 topics={topics}
                 labels={statsPieLabels(t)}
+                topicDescriptions={topicDescriptions}
+                explainHint={t('pie_explain_hint')}
               />
             </div>
           </Section>

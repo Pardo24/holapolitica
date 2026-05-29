@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Layers, Users, CheckCircle2, Scale } from 'lucide-react';
+import { Layers, Users, CheckCircle2, Scale, X } from 'lucide-react';
 
 import type {
   GroupProposalCount,
@@ -87,6 +87,11 @@ export interface StatsPieProps {
   proposingGroups: GroupProposalCount[];
   topics: TopicGlobalStat[];
   labels: StatsPieLabels;
+  /** slug → plain-language topic description, for the click-to-explain
+   *  panel. Only present for topic slices; groups/status have none. */
+  topicDescriptions?: Record<string, string>;
+  /** Caption shown above the description panel (e.g. "What it covers"). */
+  explainHint?: string;
 }
 
 export function StatsPie({
@@ -94,11 +99,27 @@ export function StatsPie({
   proposingGroups,
   topics,
   labels,
+  topicDescriptions = {},
+  explainHint,
 }: StatsPieProps) {
   const [mode, setMode] = useState<Mode>('topic');
+  // The clicked slice/legend item — drives the topic explanation panel.
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   const slices = buildSlices(mode, { byStatus, proposingGroups, topics, labels });
   const total = slices.reduce((a, s) => a + s.count, 0);
+
+  const changeMode = (m: Mode) => {
+    setMode(m);
+    setSelectedKey(null);
+  };
+  const toggleSelect = (key: string) =>
+    setSelectedKey((prev) => (prev === key ? null : key));
+
+  const selectedSlice = selectedKey
+    ? slices.find((s) => s.key === selectedKey) ?? null
+    : null;
+  const selectedDesc = selectedKey ? topicDescriptions[selectedKey] ?? null : null;
 
   return (
     <div
@@ -111,14 +132,129 @@ export function StatsPie({
       className="stats-pie-wrap"
     >
       <div style={{ minWidth: 0 }}>
-        <PieSvg slices={slices} total={total} emptyLabel={labels.emptyMode} />
-        <PieLegend slices={slices} total={total} unit={labels.initiativesUnit} />
+        <PieSvg
+          slices={slices}
+          total={total}
+          emptyLabel={labels.emptyMode}
+          selectedKey={selectedKey}
+          onSelect={toggleSelect}
+        />
+        {selectedSlice && selectedDesc && (
+          <TopicExplain
+            slice={selectedSlice}
+            total={total}
+            description={selectedDesc}
+            unit={labels.initiativesUnit}
+            hint={explainHint}
+            onClose={() => setSelectedKey(null)}
+          />
+        )}
+        <PieLegend
+          slices={slices}
+          total={total}
+          unit={labels.initiativesUnit}
+          selectedKey={selectedKey}
+          onSelect={toggleSelect}
+        />
       </div>
       <ModeRadio
         mode={mode}
-        onChange={setMode}
+        onChange={changeMode}
         labels={labels}
       />
+    </div>
+  );
+}
+
+// ─── Topic explanation panel (click-to-explain) ──────────────────────────────
+
+function TopicExplain({
+  slice,
+  total,
+  description,
+  unit,
+  hint,
+  onClose,
+}: {
+  slice: Slice;
+  total: number;
+  description: string;
+  unit: string;
+  hint?: string;
+  onClose: () => void;
+}) {
+  const pct = total > 0 ? Math.round((slice.count / total) * 100) : 0;
+  return (
+    <div
+      role="region"
+      style={{
+        marginTop: 14,
+        padding: '14px 16px',
+        borderRadius: 12,
+        background: 'var(--paper-2)',
+        border: '1px solid var(--rule)',
+        borderLeft: `3px solid ${slice.color}`,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+        <span
+          aria-hidden="true"
+          style={{
+            width: 11,
+            height: 11,
+            borderRadius: 3,
+            background: slice.color,
+            flex: 'none',
+            transform: 'translateY(1px)',
+          }}
+        />
+        <strong style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 700 }}>
+          {slice.label}
+        </strong>
+        <span className="tabular" style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--ink-3)' }}>
+          {slice.count} {unit} · {pct}%
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Tancar"
+          style={{
+            border: 0,
+            background: 'transparent',
+            color: 'var(--ink-3)',
+            cursor: 'pointer',
+            padding: 2,
+            lineHeight: 1,
+            display: 'inline-flex',
+          }}
+        >
+          <X size={14} aria-hidden="true" />
+        </button>
+      </div>
+      {hint && (
+        <div
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            color: 'var(--ink-3)',
+            fontWeight: 600,
+            margin: '10px 0 4px',
+          }}
+        >
+          {hint}
+        </div>
+      )}
+      <p
+        style={{
+          margin: hint ? 0 : '8px 0 0',
+          fontSize: 13.5,
+          lineHeight: 1.5,
+          color: 'var(--ink-2)',
+        }}
+      >
+        {description}
+      </p>
     </div>
   );
 }
@@ -206,10 +342,14 @@ function PieSvg({
   slices,
   total,
   emptyLabel,
+  selectedKey,
+  onSelect,
 }: {
   slices: Slice[];
   total: number;
   emptyLabel: string;
+  selectedKey: string | null;
+  onSelect: (key: string) => void;
 }) {
   // Hooks must sit above any conditional return per the rules of hooks.
   const [hoverKey, setHoverKey] = useState<string | null>(null);
@@ -239,7 +379,10 @@ function PieSvg({
   const cx = size / 2;
   const cy = size / 2;
   const r = size / 2 - 4;
-  const active = hoverKey ? slices.find((s) => s.key === hoverKey) ?? null : null;
+  // Hover wins for the transient tooltip; a clicked (selected) slice keeps
+  // the bump + tooltip when the pointer leaves.
+  const activeKey = hoverKey ?? selectedKey;
+  const active = activeKey ? slices.find((s) => s.key === activeKey) ?? null : null;
   const activePct = active ? Math.round((active.count / total) * 100) : 0;
   let acc = 0;
 
@@ -267,8 +410,8 @@ function PieSvg({
             const y1 = cy - Math.cos(a1) * r;
             const large = a1 - a0 > Math.PI ? 1 : 0;
             const d = `M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z`;
-            const isActive = hoverKey === s.key;
-            const isOther = hoverKey !== null && !isActive;
+            const isActive = activeKey === s.key;
+            const isOther = activeKey !== null && !isActive;
             // Push the active slice outward slightly so the user feels
             // they've selected it. ``preserveAspectRatio`` is fine — the
             // SVG container has ``overflow: visible`` to allow the bump.
@@ -295,7 +438,16 @@ function PieSvg({
                 onMouseEnter={() => setHoverKey(s.key)}
                 onFocus={() => setHoverKey(s.key)}
                 onBlur={() => setHoverKey(null)}
+                onClick={() => onSelect(s.key)}
+                role="button"
                 tabIndex={0}
+                aria-pressed={selectedKey === s.key}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect(s.key);
+                  }
+                }}
                 aria-label={`${s.label}: ${s.count} (${Math.round(
                   (s.count / total) * 100,
                 )}%)`}
@@ -371,10 +523,14 @@ function PieLegend({
   slices,
   total,
   unit,
+  selectedKey,
+  onSelect,
 }: {
   slices: Slice[];
   total: number;
   unit: string;
+  selectedKey: string | null;
+  onSelect: (key: string) => void;
 }) {
   if (slices.length === 0) return null;
   return (
@@ -385,58 +541,72 @@ function PieLegend({
         padding: 0,
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-        gap: '6px 14px',
+        gap: '2px 8px',
       }}
     >
       {slices.map((s) => {
         const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
+        const isSelected = selectedKey === s.key;
         return (
-          <li
-            key={s.key}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 12,
-              color: 'var(--ink-2)',
-              minWidth: 0,
-            }}
-          >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 2,
-                background: s.color,
-                flex: 'none',
-              }}
-            />
-            <span
-              style={{
-                flex: 1,
-                minWidth: 0,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
+          <li key={s.key} style={{ minWidth: 0 }}>
+            <button
+              type="button"
+              onClick={() => onSelect(s.key)}
+              aria-pressed={isSelected}
               title={`${s.label} · ${s.count} ${unit} (${pct}%)`}
-            >
-              {s.label}
-            </span>
-            <span
-              className="tabular"
               style={{
-                fontWeight: 600,
-                color: 'var(--ink)',
-                fontVariantNumeric: 'tabular-nums',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                fontSize: 12,
+                color: 'var(--ink-2)',
+                minWidth: 0,
+                padding: '4px 6px',
+                border: '1px solid',
+                borderColor: isSelected ? 'var(--rule-strong)' : 'transparent',
+                borderRadius: 6,
+                background: isSelected ? 'var(--paper-2)' : 'transparent',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                textAlign: 'left',
               }}
             >
-              {s.count}
-              <span style={{ color: 'var(--ink-3)', marginLeft: 4 }}>
-                {pct}%
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 2,
+                  background: s.color,
+                  flex: 'none',
+                }}
+              />
+              <span
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {s.label}
               </span>
-            </span>
+              <span
+                className="tabular"
+                style={{
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {s.count}
+                <span style={{ color: 'var(--ink-3)', marginLeft: 4 }}>
+                  {pct}%
+                </span>
+              </span>
+            </button>
           </li>
         );
       })}
