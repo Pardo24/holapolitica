@@ -2,7 +2,7 @@ import { cookies, headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
 
 export const locales = ['ca', 'es', 'en'] as const;
-export const defaultLocale = 'ca' as const;
+export const defaultLocale = 'es' as const;
 
 export type Locale = (typeof locales)[number];
 
@@ -18,7 +18,7 @@ export default getRequestConfig(async () => {
   //      already resolved from cookie or Accept-Language.
   //   2. `NEXT_LOCALE` cookie — fallback when this function runs outside
   //      a middleware-wrapped request (tests, scripts, edge cases).
-  //   3. ``defaultLocale`` (Catalan) — last resort for bookmarks/crawlers.
+  //   3. ``defaultLocale`` (Spanish) — last resort for bookmarks/crawlers.
   const h = await headers();
   const fromHeader = h.get('x-locale');
   const store = await cookies();
