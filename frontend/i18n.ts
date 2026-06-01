@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
 
 export const locales = ['ca', 'es', 'en'] as const;
@@ -13,14 +13,22 @@ function isKnownLocale(value: string | null | undefined): value is Locale {
 }
 
 export default getRequestConfig(async () => {
-  // Cookie-based locale negotiation. The /api/locale route handler sets
-  // `NEXT_LOCALE` from the language switcher in the top nav; we read it
-  // back here on every server render. Falls back to the default locale
-  // (Catalan) when no cookie is present or the value is unknown — that
-  // way bookmarks and crawlers see a stable default.
+  // Locale negotiation precedence:
+  //   1. `x-locale` header set by middleware.ts — the canonical signal,
+  //      already resolved from cookie or Accept-Language.
+  //   2. `NEXT_LOCALE` cookie — fallback when this function runs outside
+  //      a middleware-wrapped request (tests, scripts, edge cases).
+  //   3. ``defaultLocale`` (Catalan) — last resort for bookmarks/crawlers.
+  const h = await headers();
+  const fromHeader = h.get('x-locale');
   const store = await cookies();
   const fromCookie = store.get(COOKIE_NAME)?.value;
-  const locale: Locale = isKnownLocale(fromCookie) ? fromCookie : defaultLocale;
+
+  const locale: Locale = isKnownLocale(fromHeader)
+    ? fromHeader
+    : isKnownLocale(fromCookie)
+      ? fromCookie
+      : defaultLocale;
 
   return {
     locale,
