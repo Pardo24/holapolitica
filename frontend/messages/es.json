@@ -187,6 +187,7 @@
   },
   "nav": {
     "avui": "Crónica del pleno",
+    "lleis": "Leyes",
     "votes": "Votaciones",
     "persons": "Representantes",
     "topics": "Temas",
@@ -196,6 +197,20 @@
     "notifications": "Notificaciones",
     "journalists": "Prensa",
     "joc": "Juego"
+  },
+  "lleis": {
+    "title": "Leyes",
+    "subtitle": "Las votaciones que de verdad crean ley: proyectos y proposiciones de ley y reales decretos ley. El resto (mociones, proposiciones no de ley) son posicionamientos, accesibles aparte.",
+    "lens_aria": "Filtrar por tipo",
+    "lens_laws": "Leyes",
+    "lens_positions": "Posicionamientos",
+    "lens_all": "Todo",
+    "status_all": "Cualquier estado",
+    "results_count": "{count} iniciativas",
+    "empty": "No hay ninguna iniciativa con estos filtros.",
+    "pagination_label": "Página {page} de {last}",
+    "prev": "Anterior",
+    "next": "Siguiente"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",

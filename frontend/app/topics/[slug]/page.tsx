@@ -4,11 +4,7 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Bell, ExternalLink, Newspaper } from 'lucide-react';
 
-import { GroupBadge } from '@/components/GroupBadge';
-import { LawRow } from '@/components/LawRow';
-import { LawSummaryPanel } from '@/components/LawSummaryPanel';
-import { LawTypeChip } from '@/components/LawTypeChip';
-import { ProposerEllipsis } from '@/components/ProposerEllipsis';
+import { InitiativeRow } from '@/components/InitiativeRow';
 import { ResultPill } from '@/components/ResultPill';
 import { TopicGroupFilter } from '@/components/TopicGroupFilter';
 import { Tooltip } from '@/components/Tooltip';
@@ -22,8 +18,8 @@ import {
   type TopicNewsItem,
   type Vote,
 } from '@/lib/api';
-import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
-import { displayGroupShort, parseProposer, type ParsedProposer } from '@/lib/groups';
+import { glossaryShort } from '@/lib/glossary';
+import { parseProposer, type ParsedProposer } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
 interface Params {
@@ -60,24 +56,6 @@ function normalizeForSearch(value: string): string {
     .trim();
 }
 
-const STATUS_KEY: Record<string, string> = {
-  approved: 'status_singular_approved',
-  rejected: 'status_singular_rejected',
-  in_debate: 'status_singular_in_debate',
-  submitted: 'status_singular_submitted',
-  withdrawn: 'status_singular_withdrawn',
-  expired: 'status_singular_expired',
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  approved: 'var(--aye)',
-  rejected: 'var(--no)',
-  in_debate: 'var(--accent)',
-  submitted: 'var(--accent)',
-  withdrawn: 'var(--nv)',
-  expired: 'var(--nv)',
-};
-
 const PENDING_STATUSES = new Set(['submitted', 'in_debate']);
 const VOTED_STATUSES = new Set(['approved', 'rejected']);
 const OTHER_STATUSES = new Set(['withdrawn', 'expired']);
@@ -94,7 +72,6 @@ export default async function TopicDetailPage({
   const { slug } = await params;
   const sp = await searchParams;
   const t = await getTranslations('topic');
-  const tStats = await getTranslations('stats');
   const locale = await getLocale();
 
   // URL-bound UI state. Each defaults to a safe value so a bare URL still
@@ -667,9 +644,6 @@ export default async function TopicDetailPage({
                 initiative={i}
                 parsed={parsedByInitiative.get(i.id) ?? { isGovernment: false, groups: [], raw: (i.submitted_by ?? '').trim() }}
                 locale={locale}
-                tStats={tStats}
-                governmentLabel={t('proposer_government_label')}
-                moreGroupsLabel={(n: number) => t('proposer_more_groups', { count: n })}
               />
             ))}
             {activeList.length > 30 && (
@@ -1137,222 +1111,5 @@ function NewsRow({
         />
       </a>
     </li>
-  );
-}
-
-function InitiativeRow({
-  initiative,
-  parsed,
-  locale,
-  tStats,
-  governmentLabel,
-  moreGroupsLabel,
-}: {
-  initiative: Initiative;
-  parsed: ParsedProposer;
-  locale: string;
-  tStats: Awaited<ReturnType<typeof getTranslations<'stats'>>>;
-  governmentLabel: string;
-  moreGroupsLabel: (n: number) => string;
-}) {
-  const submittedDate = initiative.submitted_at
-    ? new Date(initiative.submitted_at)
-    : null;
-  const isCurrentYear = submittedDate
-    ? submittedDate.getFullYear() === new Date().getFullYear()
-    : false;
-  const shortDate = submittedDate
-    ? submittedDate
-        .toLocaleDateString(locale, {
-          day: 'numeric',
-          month: 'short',
-          ...(isCurrentYear ? {} : { year: '2-digit' }),
-        })
-        .replace(/\.$/, '')
-    : '—';
-  const longDate = submittedDate
-    ? submittedDate.toLocaleDateString(locale, { dateStyle: 'medium' })
-    : '—';
-  const plainSummary = pickPlainSummary(initiative, locale);
-  const statusKey = STATUS_KEY[initiative.status];
-  const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
-  const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
-
-  // Meta line — ``type · [proposer-badges] · official_id``. Type chip
-  // comes first (same order as vote rows) so the "creates law / non-
-  // binding" signal reads at a glance; the official id sits inline at the
-  // end like the vote row's expediente.
-  const meta = (
-    <>
-      <LawTypeChip type={initiative.type} />
-      {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
-        <>
-          <span aria-hidden="true">·</span>
-          <ProposerBadges
-            parsed={parsed}
-            governmentLabel={governmentLabel}
-            moreGroupsLabel={moreGroupsLabel}
-            rawFallback={initiative.submitted_by ?? ''}
-          />
-        </>
-      )}
-      <span aria-hidden="true">·</span>
-      <span
-        className="mono"
-        style={{ fontSize: 10, color: 'var(--ink-3)', wordBreak: 'break-all' }}
-      >
-        {initiative.official_id}
-      </span>
-      {/* Inline "explain" icon; panel drops full-width beneath. */}
-      {plainSummary && (
-        <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
-      )}
-    </>
-  );
-
-  return (
-    <LawRow
-      href={`/initiatives/${initiative.id}` as Route}
-      dateLong={longDate}
-      dateShort={shortDate}
-      title={initiative.title_original}
-      meta={meta}
-      outcomeAriaLabel={statusLabel}
-      outcome={
-        // Outlined badge tinted by status: this is a lifecycle STATE, not a
-        // decision — distinct from the filled result pill on vote rows.
-        <span
-          className="badge"
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: statusColor,
-            borderColor: 'color-mix(in oklch, currentColor 35%, var(--paper))',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {statusLabel}
-        </span>
-      }
-    />
-  );
-}
-
-const MAX_BADGES = 3;
-
-/**
- * Render the proposer of an initiative as one or more :file:`GroupBadge`s
- * plus the group's short name (no "GP " prefix). Government-sponsored
- * initiatives render as a neutral grey disc labelled "Govern" / "Gobierno"
- * / "Government" depending on the active locale.
- *
- * When the parser couldn't resolve any known group (rare — usually
- * truly-novel free-text), we fall back to the raw string passed through
- * :file:`ProposerEllipsis` so we never silently drop a non-empty value.
- */
-function ProposerBadges({
-  parsed,
-  governmentLabel,
-  moreGroupsLabel,
-  rawFallback,
-}: {
-  parsed: ParsedProposer;
-  governmentLabel: string;
-  moreGroupsLabel: (n: number) => string;
-  rawFallback: string;
-}) {
-  if (parsed.isGovernment) {
-    return (
-      <span
-        className="badge"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          fontWeight: 600,
-          color: 'var(--ink-2)',
-          background: 'var(--paper-2)',
-          borderColor: 'var(--rule-strong)',
-        }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            display: 'inline-block',
-            width: 12,
-            height: 12,
-            borderRadius: '50%',
-            background: '#9ca3af',
-          }}
-        />
-        {governmentLabel}
-      </span>
-    );
-  }
-
-  if (parsed.groups.length === 0) {
-    // Unknown / unparseable. Surface the raw text rather than nothing.
-    if (rawFallback.trim() === '') return null;
-    return <ProposerEllipsis text={rawFallback} />;
-  }
-
-  const visible = parsed.groups.slice(0, MAX_BADGES);
-  const overflow = parsed.groups.length - visible.length;
-
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        flexWrap: 'wrap',
-        minWidth: 0,
-      }}
-    >
-      {visible.map((g, i) => (
-        <span
-          key={g.slug}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            minWidth: 0,
-          }}
-        >
-          <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} />
-          {/* Only show the readable name for the first 1-2 badges to keep
-              co-signed proposals visually compact. The badge's letters
-              already convey identity for the rest. */}
-          {i < 2 && (
-            <span
-              style={{
-                fontSize: 11,
-                color: 'var(--ink-2)',
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: 110,
-              }}
-            >
-              {displayGroupShort(g.name_short)}
-            </span>
-          )}
-        </span>
-      ))}
-      {overflow > 0 && (
-        <span
-          className="badge"
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            background: 'var(--paper-2)',
-          }}
-        >
-          {moreGroupsLabel(overflow)}
-        </span>
-      )}
-    </span>
   );
 }
