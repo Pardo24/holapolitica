@@ -34,6 +34,7 @@ import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { Hemicycle } from '@/components/Hemicycle';
 import { LawJourney } from '@/components/LawJourney';
+import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
 import { StackedBar } from '@/components/StackedBar';
@@ -352,6 +353,14 @@ export default async function VoteDetailPage({
             color: 'var(--ink-2)',
           }}
         >
+          {/* Type chip first — same binding (creates-law / non-binding) signal
+              as the list rows, so the detail speaks the same language. */}
+          {vote.initiative_type && (
+            <>
+              <LawTypeChip type={vote.initiative_type} size="md" />
+              <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--ink-3)', opacity: 0.6, display: 'inline-block' }} />
+            </>
+          )}
           {/* Result + margin */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <ResultPill result={vote.result} label={t(`result.${vote.result}`)} />
