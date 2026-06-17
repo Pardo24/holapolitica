@@ -23,6 +23,10 @@ dependencies = [
     "python-multipart>=0.0.9",
     "pypdf>=5.0.0",
     "pywebpush>=2.0.0",
+    # Native push (APNs/FCM) for the Capacitor app. Imported lazily by
+    # app.services.native_push only when FCM_SERVICE_ACCOUNT_JSON is set, so
+    # it's dormant until push is activated.
+    "firebase-admin>=6.5.0",
     "aiosmtplib>=3.0.0",
     # Rate limiter for the public POST endpoints. We previously had NO
     # abuse control on /newsletter, /alerts, /push/subscribe — anyone
@@ -89,7 +93,7 @@ exclude = [
 
 # Third-party libraries without type stubs.
 [[tool.mypy.overrides]]
-module = ["pywebpush", "py_vapid"]
+module = ["pywebpush", "py_vapid", "firebase_admin", "firebase_admin.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

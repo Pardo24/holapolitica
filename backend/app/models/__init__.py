@@ -691,6 +691,29 @@ class PushGroupInterest(Base, TimestampMixin):
     )
 
 
+class DeviceToken(Base, TimestampMixin):
+    """A native push registration (APNs/FCM device token) for the Capacitor app.
+
+    Parallel to the Web Push :class:`PushSubscription`: a WKWebView / Android
+    WebView can't use the Web Push API, so the native wrapper registers for
+    native push and posts its device token here. Interests are kept inline as
+    JSON slug lists (the app posts the full set whenever they change) so this
+    is a single additive table — the fan-out unions topic OR group, same rule
+    as the web channel. ``platform`` is a plain string ('ios'/'android'/'web')
+    rather than a DB enum to keep the migration dialect-agnostic.
+    """
+
+    __tablename__ = "device_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(Text, nullable=False, unique=True, index=True)
+    platform: Mapped[str] = mapped_column(String(16), nullable=False)
+    topic_slugs: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    group_slugs: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failed_send_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
 # ---------------------------------------------------------------------------
 # Scheduled (upcoming) sessions and agenda items
 # ---------------------------------------------------------------------------
