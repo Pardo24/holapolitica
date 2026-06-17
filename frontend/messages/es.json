@@ -645,7 +645,8 @@
       "all_topics": "Todos los temas",
       "all_groups": "Todos los grupos proponentes",
       "all_results": "Cualquier resultado",
-      "apply": "Filtrar"
+      "apply": "Filtrar",
+      "more": "Más filtros"
     },
     "result": {
       "approved": "Aprobada",

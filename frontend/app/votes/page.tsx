@@ -228,6 +228,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           result_tie: t('result.tie'),
           clear_all: t('filters_clear_all'),
           remove_label: 'Treu',
+          more_filters: t('filters.more'),
         }}
       />
 
