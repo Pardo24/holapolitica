@@ -7,6 +7,7 @@ import { GroupBadge } from '@/components/GroupBadge';
 import { ResizingIframe } from '@/components/ResizingIframe';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
+import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
@@ -219,6 +220,50 @@ export async function SessionSheet({
           </div>
         </div>
       </header>
+
+      {/* Outcome bar — a single slim stacked bar giving the day's shape at
+          a glance (approved / rejected / tied) before the prose lede spells
+          it out. Visual, not a dashboard grid: it complements the editorial
+          copy rather than replacing it. */}
+      {ordered.length > 0 && (
+        <div style={{ margin: '0 0 24px', maxWidth: 720 }}>
+          <div
+            style={{
+              display: 'flex',
+              height: 10,
+              borderRadius: 999,
+              overflow: 'hidden',
+              background: 'var(--rule)',
+            }}
+          >
+            {counts.approved > 0 && (
+              <div style={{ width: `${(counts.approved / ordered.length) * 100}%`, background: 'var(--aye)' }} />
+            )}
+            {counts.rejected > 0 && (
+              <div style={{ width: `${(counts.rejected / ordered.length) * 100}%`, background: 'var(--no)' }} />
+            )}
+            {counts.tie > 0 && (
+              <div style={{ width: `${(counts.tie / ordered.length) * 100}%`, background: 'var(--abst)' }} />
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 18, marginTop: 9, fontSize: 12.5, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
+            <span>
+              <strong className="tabular" style={{ color: 'var(--aye)', fontWeight: 700 }}>{counts.approved}</strong>{' '}
+              {t('result_approved')}
+            </span>
+            <span>
+              <strong className="tabular" style={{ color: 'var(--no)', fontWeight: 700 }}>{counts.rejected}</strong>{' '}
+              {t('result_rejected')}
+            </span>
+            {counts.tie > 0 && (
+              <span>
+                <strong className="tabular" style={{ color: 'var(--abst)', fontWeight: 700 }}>{counts.tie}</strong>{' '}
+                {t('result_tie')}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Lede — newspaper-style prose summary. The day's counts live
           inside a single serif paragraph so the page reads as
@@ -488,7 +533,9 @@ export async function SessionSheet({
                     <div
                       style={{
                         position: 'relative',
-                        height: 12,
+                        height: 18,
+                        borderRadius: 4,
+                        overflow: 'hidden',
                         background: 'var(--rule)',
                       }}
                     >
@@ -1034,33 +1081,7 @@ function VoteRow({
                 </span>
               )}
               {topics.map((tp) => (
-                <span
-                  key={tp.slug}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    padding: '3px 10px',
-                    borderRadius: 999,
-                    background: `color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 10%, var(--paper))`,
-                    border: `1px solid color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 28%, var(--paper))`,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 2,
-                      background: tp.color_hex ?? 'var(--ink-3)',
-                    }}
-                  />
-                  {pickTopicName(tp, locale)}
-                </span>
+                <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
             </div>
           )}
