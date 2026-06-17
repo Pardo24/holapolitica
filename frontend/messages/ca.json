@@ -645,7 +645,8 @@
       "all_topics": "Tots els temes",
       "all_groups": "Tots els grups proposants",
       "all_results": "Qualsevol resultat",
-      "apply": "Filtra"
+      "apply": "Filtra",
+      "more": "Més filtres"
     },
     "result": {
       "approved": "Aprovada",

@@ -645,7 +645,8 @@
       "all_topics": "All topics",
       "all_groups": "All proposing groups",
       "all_results": "Any result",
-      "apply": "Filter"
+      "apply": "Filter",
+      "more": "More filters"
     },
     "result": {
       "approved": "Approved",
