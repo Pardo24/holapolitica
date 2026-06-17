@@ -484,6 +484,14 @@ export interface TopicVoteStat {
   cast: number;
 }
 
+/** Per-topic count of distinct initiatives a group has PROPOSED. */
+export interface ProposesByTopicStat {
+  topic_slug: string;
+  topic_name_ca: string;
+  topic_color_hex: string | null;
+  count: number;
+}
+
 export interface TopicGlobalStat {
   topic_slug: string;
   topic_name_ca: string;
@@ -829,6 +837,10 @@ export const api = {
       request<GroupMemberRow[]>(`/groups/${slug}/members`, { revalidate: AGG_REVALIDATE }),
     topicStats: (slug: string) =>
       request<TopicVoteStat[]>(`/groups/${slug}/topic-stats`, { revalidate: AGG_REVALIDATE }),
+    proposesByTopic: (slug: string) =>
+      request<ProposesByTopicStat[]>(`/groups/${slug}/proposes-by-topic`, {
+        revalidate: AGG_REVALIDATE,
+      }),
     composition: (slug: string) =>
       request<GroupComposition>(`/groups/${slug}/composition`, { revalidate: AGG_REVALIDATE }),
   },
