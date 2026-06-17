@@ -210,7 +210,12 @@
     "empty": "No hi ha cap iniciativa amb aquests filtres.",
     "pagination_label": "Pàgina {page} de {last}",
     "prev": "Anterior",
-    "next": "Següent"
+    "next": "Següent",
+    "search_placeholder": "Cerca al títol o expedient",
+    "topic_label": "Tema",
+    "topic_placeholder": "Tots els temes",
+    "clear_all": "Neteja",
+    "remove_label": "Treu"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",

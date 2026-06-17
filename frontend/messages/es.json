@@ -210,7 +210,12 @@
     "empty": "No hay ninguna iniciativa con estos filtros.",
     "pagination_label": "Página {page} de {last}",
     "prev": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "search_placeholder": "Buscar por título o expediente",
+    "topic_label": "Tema",
+    "topic_placeholder": "Todos los temas",
+    "clear_all": "Limpiar",
+    "remove_label": "Quita"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",

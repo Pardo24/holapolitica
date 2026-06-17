@@ -210,7 +210,12 @@
     "empty": "No initiatives match these filters.",
     "pagination_label": "Page {page} of {last}",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "search_placeholder": "Search by title or file number",
+    "topic_label": "Topic",
+    "topic_placeholder": "All topics",
+    "clear_all": "Clear",
+    "remove_label": "Remove"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",
