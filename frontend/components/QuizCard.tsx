@@ -5,6 +5,9 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { ArrowRight, Check, RefreshCw, X } from 'lucide-react';
 
+import type { ReactNode } from 'react';
+
+import { GroupBadge } from '@/components/GroupBadge';
 import { ResultPill } from '@/components/ResultPill';
 import type { Vote } from '@/lib/api';
 
@@ -30,7 +33,7 @@ export type QuizQuestion =
       /** Display text for the law title — already sanitized by the server. */
       subject: string;
       summary: string;
-      options: { id: string; label: string; color: string | null }[];
+      options: { id: string; label: string; color: string | null; slug: string | null }[];
       correctId: string;
     }
   | {
@@ -164,25 +167,24 @@ export function QuizCard({
                 key={opt.id}
                 id={opt.id}
                 label={opt.label}
-                color={opt.color}
-                picked={picked === opt.id}
-                isCorrect={opt.id === correctId}
-                revealed={revealed}
-                disabled={revealed}
-                onPick={setPicked}
-              />
-            ))
-          : resultOptions.map((opt) => (
-              <OptionButton
-                key={opt.id}
-                id={opt.id}
-                label={opt.label}
-                color={
-                  opt.id === 'approved'
-                    ? 'var(--aye)'
-                    : opt.id === 'rejected'
-                      ? 'var(--no)'
-                      : 'var(--abst)'
+                leading={
+                  opt.slug ? (
+                    <GroupBadge slug={opt.slug} color={opt.color} size="sm" link={false} />
+                  ) : (
+                    // Government / unparseable: a neutral disc the same size
+                    // as a group badge so the row heights stay even.
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 999,
+                        background: '#9ca3af',
+                        flex: 'none',
+                        display: 'inline-block',
+                      }}
+                    />
+                  )
                 }
                 picked={picked === opt.id}
                 isCorrect={opt.id === correctId}
@@ -190,7 +192,41 @@ export function QuizCard({
                 disabled={revealed}
                 onPick={setPicked}
               />
-            ))}
+            ))
+          : resultOptions.map((opt) => {
+              const c =
+                opt.id === 'approved'
+                  ? 'var(--aye)'
+                  : opt.id === 'rejected'
+                    ? 'var(--no)'
+                    : 'var(--abst)';
+              return (
+                <OptionButton
+                  key={opt.id}
+                  id={opt.id}
+                  label={opt.label}
+                  leading={
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: 999,
+                        background: `color-mix(in oklch, ${c} 20%, var(--paper))`,
+                        border: `2px solid ${c}`,
+                        flex: 'none',
+                        display: 'inline-block',
+                      }}
+                    />
+                  }
+                  picked={picked === opt.id}
+                  isCorrect={opt.id === correctId}
+                  revealed={revealed}
+                  disabled={revealed}
+                  onPick={setPicked}
+                />
+              );
+            })}
       </ul>
 
       {/* Action row — submit before reveal, then split into the
@@ -228,7 +264,7 @@ export function QuizCard({
 function OptionButton({
   id,
   label,
-  color,
+  leading,
   picked,
   isCorrect,
   revealed,
@@ -237,7 +273,7 @@ function OptionButton({
 }: {
   id: string;
   label: string;
-  color: string | null;
+  leading: ReactNode;
   picked: boolean;
   isCorrect: boolean;
   revealed: boolean;
@@ -277,43 +313,35 @@ function OptionButton({
     <li>
       <button
         type="button"
+        className="quiz-option"
         disabled={disabled}
         onClick={() => onPick(id)}
         aria-pressed={picked}
         style={{
           width: '100%',
           textAlign: 'left',
-          padding: '11px 14px',
+          padding: '13px 16px',
           background: bg,
-          border: `1px solid ${borderColor}`,
+          border: `1.5px solid ${borderColor}`,
+          borderRadius: 14,
           color: 'var(--ink)',
-          fontSize: 14,
-          fontWeight: 500,
+          fontSize: 15,
+          fontWeight: 600,
           cursor: disabled ? 'default' : 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
+          gap: 12,
           opacity: revealState === 'dimmed' ? 0.55 : 1,
+          transition: 'border-color 120ms ease, background-color 120ms ease',
         }}
       >
-        {color && (
-          <span
-            aria-hidden="true"
-            style={{
-              width: 9,
-              height: 9,
-              borderRadius: 2,
-              background: color,
-              flex: 'none',
-            }}
-          />
-        )}
+        {leading}
         <span style={{ flex: 1 }}>{label}</span>
         {revealState === 'correct' && (
-          <Check size={16} aria-hidden="true" color="var(--aye)" />
+          <Check size={18} aria-hidden="true" color="var(--aye)" />
         )}
         {revealState === 'wrong' && (
-          <X size={16} aria-hidden="true" color="var(--no)" />
+          <X size={18} aria-hidden="true" color="var(--no)" />
         )}
       </button>
     </li>
