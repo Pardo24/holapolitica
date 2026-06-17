@@ -19,9 +19,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.metrics import (
     ProposesByTopicRow,
+    StanceExampleRow,
     TopicVoteStatRow,
     compute_proposes_by_topic_for_group,
     compute_topic_stats_for_group,
+    example_votes_by_group_stance,
 )
 from app.models import (
     GroupMembership,
@@ -342,6 +344,36 @@ async def get_group_proposes_by_topic(
         f"stats:group:{slug}:proposes-by-topic",
         3600,
         lambda: compute_proposes_by_topic_for_group(session, group_id=group_id),
+    )
+
+
+@router.get("/{slug}/stance-examples", response_model=list[StanceExampleRow])
+async def get_group_stance_examples(
+    slug: str,
+    topic: str = Query(..., description="Topic slug to scope the examples to."),
+    stance: str = Query("aye", pattern="^(aye|no)$", description="'aye' or 'no'."),
+    session: AsyncSession = Depends(get_session),
+) -> list[StanceExampleRow]:
+    """A few example votes on ``topic`` where the group's majority sided with
+    ``stance``. Feeds the example links in the thematic-profile widgets."""
+    group = (
+        await session.execute(
+            select(ParliamentaryGroup)
+            .where(ParliamentaryGroup.slug == slug)
+            .order_by(ParliamentaryGroup.legislature_id.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    group_id = group.id
+    return await cached(
+        f"stats:group:{slug}:stance:{stance}:{topic}",
+        3600,
+        lambda: example_votes_by_group_stance(
+            session, group_id=group_id, topic_slug=topic, stance=stance
+        ),
     )
 
 

@@ -33,7 +33,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import cast
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -796,6 +796,62 @@ async def compute_proposes_by_topic_for_group(
             count=int(count),
         )
         for slug, name_ca, color_hex, count in rows
+    ]
+
+
+@dataclass(frozen=True, slots=True)
+class StanceExampleRow:
+    """One example vote where a group's majority sided with a given stance."""
+
+    vote_id: int
+    title: str
+    voted_at: date
+    result: str
+
+
+async def example_votes_by_group_stance(
+    session: AsyncSession,
+    *,
+    group_id: int,
+    topic_slug: str,
+    stance: str,
+    limit: int = 3,
+) -> list[StanceExampleRow]:
+    """A few recent votes on ``topic_slug`` where the group's majority sided
+    with ``stance`` (``'aye'`` or ``'no'``).
+
+    The group's position on a vote is the plurality of its members' recorded
+    choices; we keep votes where ayes outnumber noes (``'aye'``) or vice
+    versa (``'no'``). Most-recent first. Powers the example links in the
+    group's thematic-profile widgets — factual, and computed identically for
+    every group.
+    """
+    aye = func.sum(case((VoteRecord.choice == VoteChoice.AYE, 1), else_=0))
+    no = func.sum(case((VoteRecord.choice == VoteChoice.NO, 1), else_=0))
+    stmt = (
+        select(Vote.id, Vote.title, Vote.description, Vote.voted_at, Vote.result)
+        .select_from(Vote)
+        .join(Initiative, Initiative.id == Vote.initiative_id)
+        .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
+        .join(Topic, and_(Topic.id == InitiativeTopic.topic_id, Topic.slug == topic_slug))
+        .join(
+            VoteRecord,
+            and_(VoteRecord.vote_id == Vote.id, VoteRecord.group_id_at_time == group_id),
+        )
+        .group_by(Vote.id, Vote.title, Vote.description, Vote.voted_at, Vote.result)
+        .having(aye > no if stance == "aye" else no > aye)
+        .order_by(Vote.voted_at.desc())
+        .limit(limit)
+    )
+    rows = (await session.execute(stmt)).all()
+    return [
+        StanceExampleRow(
+            vote_id=vote_id,
+            title=(description or title or "").strip(),
+            voted_at=voted_at,
+            result=str(result),
+        )
+        for vote_id, title, description, voted_at, result in rows
     ]
 
 

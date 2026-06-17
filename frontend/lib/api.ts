@@ -492,6 +492,14 @@ export interface ProposesByTopicStat {
   count: number;
 }
 
+/** One example vote where a group's majority sided with a given stance. */
+export interface GroupStanceExample {
+  vote_id: number;
+  title: string;
+  voted_at: string;
+  result: VoteResult;
+}
+
 export interface TopicGlobalStat {
   topic_slug: string;
   topic_name_ca: string;
@@ -841,6 +849,11 @@ export const api = {
       request<ProposesByTopicStat[]>(`/groups/${slug}/proposes-by-topic`, {
         revalidate: AGG_REVALIDATE,
       }),
+    stanceExamples: (slug: string, topic: string, stance: 'aye' | 'no') =>
+      request<GroupStanceExample[]>(
+        `/groups/${slug}/stance-examples?topic=${encodeURIComponent(topic)}&stance=${stance}`,
+        { revalidate: AGG_REVALIDATE },
+      ),
     composition: (slug: string) =>
       request<GroupComposition>(`/groups/${slug}/composition`, { revalidate: AGG_REVALIDATE }),
   },

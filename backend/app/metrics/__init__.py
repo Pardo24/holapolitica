@@ -21,6 +21,7 @@ from app.metrics.calc import (
     GroupSummaryRow,
     PersonKPIs,
     ProposesByTopicRow,
+    StanceExampleRow,
     TopicGlobalRow,
     TopicVoteStatRow,
     compute_deputy_attendance,
@@ -33,6 +34,7 @@ from app.metrics.calc import (
     compute_topic_global_stats,
     compute_topic_stats_for_group,
     compute_topic_stats_for_person,
+    example_votes_by_group_stance,
 )
 
 __all__ = [
@@ -43,6 +45,7 @@ __all__ = [
     "GroupSummaryRow",
     "PersonKPIs",
     "ProposesByTopicRow",
+    "StanceExampleRow",
     "TopicGlobalRow",
     "TopicVoteStatRow",
     "compute_deputy_attendance",
@@ -55,4 +58,5 @@ __all__ = [
     "compute_topic_global_stats",
     "compute_topic_stats_for_group",
     "compute_topic_stats_for_person",
+    "example_votes_by_group_stance",
 ]
