@@ -61,7 +61,7 @@ export default async function GroupDetailPage({
         // "law" reads identically here as everywhere else. Resilient: an
         // empty list just hides the section's rows behind the empty-state.
         api.votes
-          .list({ proposing_group_slug: slug, legislature_id: 1, page_size: 6 })
+          .list({ proposing_group_slug: slug, legislature_id: 1, page_size: 24 })
           .then((r) => r.items)
           .catch(() => [] as Vote[]),
         api.groups.proposesByTopic(slug).catch(() => [] as ProposesByTopicStat[]),
@@ -69,6 +69,21 @@ export default async function GroupDetailPage({
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
+  }
+
+  // One row per initiative: a bill/motion generates many distinct votes
+  // (amendments, sub-votes) that share an expediente, so the raw vote list
+  // reads as duplicates. Collapse to the first (most recent) per expediente.
+  {
+    const seenExpedientes = new Set<string>();
+    proposedVotes = proposedVotes
+      .filter((v) => {
+        const key = v.expediente_raw ?? `vote-${v.id}`;
+        if (seenExpedientes.has(key)) return false;
+        seenExpedientes.add(key);
+        return true;
+      })
+      .slice(0, 6);
   }
 
   const info = groupInfo(group.slug);

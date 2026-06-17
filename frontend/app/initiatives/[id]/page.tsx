@@ -9,6 +9,7 @@ import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
 import { LawJourney } from '@/components/LawJourney';
+import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import {
@@ -19,7 +20,7 @@ import {
   type ParliamentaryGroupSummary,
 } from '@/lib/api';
 import { parseProposer, displayGroupShort } from '@/lib/groups';
-import { typeLabelCa, pickPlainSummary } from '@/lib/glossary';
+import { pickPlainSummary } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
 import { topicIcon } from '@/lib/topic_icons';
 
@@ -121,7 +122,6 @@ export default async function InitiativeDetailPage({
   const submittedDate = initiative.submitted_at
     ? new Date(initiative.submitted_at).toLocaleDateString(locale, { dateStyle: 'long' })
     : null;
-  const typeLabel = typeLabelCa(initiative.type);
   const statusLabel = resolveStatusLabel(initiative.status);
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
   const parsedProposer = parseProposer(initiative.submitted_by, groups);
@@ -175,12 +175,7 @@ export default async function InitiativeDetailPage({
               flex: 'none',
             }}
           >
-            <span
-              className="eyebrow"
-              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
-            >
-              {typeLabel}
-            </span>
+            <LawTypeChip type={initiative.type} size="md" />
             <span
               className="mono"
               style={{ fontSize: 11, color: 'var(--ink-3)' }}
