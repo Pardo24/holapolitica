@@ -12,6 +12,7 @@ import {
   ApiError,
   type GroupComposition,
   type GroupMemberRow,
+  type GroupStanceExample,
   type ParliamentaryGroupSummary,
   type ProposesByTopicStat,
   type Topic,
@@ -94,29 +95,40 @@ export default async function GroupDetailPage({
   const topNo =
     [...voteThemeStats].sort((a, b) => b.noes / b.cast - a.noes / a.cast)[0] ?? null;
 
-  // A few example proposals on the group's top proposing topic, rendered
-  // with the same CompactVoteRow as everywhere else. Sequential (depends on
-  // topPropose); cheap (page_size 3) and resilient.
-  const proposeExamples: Vote[] = topPropose
-    ? await api.votes
-        .list({
-          proposing_group_slug: slug,
-          topic_slug: topPropose.topic_slug,
-          legislature_id: 1,
-          page_size: 3,
-        })
-        .then((r) => r.items)
-        .catch(() => [] as Vote[])
-    : [];
+  // Example votes for each profile widget, fetched in parallel and resilient.
+  // "Proposes": votes the group put forward on that topic. "Votes Yes /
+  // Rejects": votes where the group's majority sided aye / no on that topic.
+  const [proposeRaw, yesRaw, noRaw] = await Promise.all([
+    topPropose
+      ? api.votes
+          .list({
+            proposing_group_slug: slug,
+            topic_slug: topPropose.topic_slug,
+            legislature_id: 1,
+            page_size: 3,
+          })
+          .then((r) => r.items)
+          .catch(() => [] as Vote[])
+      : Promise.resolve([] as Vote[]),
+    topYes
+      ? api.groups
+          .stanceExamples(group.slug, topYes.topic_slug, 'aye')
+          .catch(() => [] as GroupStanceExample[])
+      : Promise.resolve([] as GroupStanceExample[]),
+    topNo
+      ? api.groups
+          .stanceExamples(group.slug, topNo.topic_slug, 'no')
+          .catch(() => [] as GroupStanceExample[])
+      : Promise.resolve([] as GroupStanceExample[]),
+  ]);
+  const proposeExamples = proposeRaw.map((v) => ({
+    id: v.id,
+    title: v.description?.trim() || v.title,
+  }));
+  const yesExamples = yesRaw.map((e) => ({ id: e.vote_id, title: e.title }));
+  const noExamples = noRaw.map((e) => ({ id: e.vote_id, title: e.title }));
 
   const hasProfile = topPropose !== null || topYes !== null || topNo !== null;
-  const voteLabels = {
-    ayes: tVotes('ayes'),
-    noes: tVotes('noes'),
-    abstentions: tVotes('abstentions'),
-    proposed_by: tVotes('proposed_by'),
-    proposed_by_government: tVotes('proposed_by_government'),
-  };
 
   return (
     <article>
@@ -349,6 +361,7 @@ export default async function GroupDetailPage({
                 topicName={localizedTopicName(topPropose.topic_slug, topPropose.topic_name_ca)}
                 color={topPropose.topic_color_hex}
                 stat={t('profile_proposes_count', { count: topPropose.count })}
+                examples={proposeExamples}
                 href={
                   `/votes?proposing_group_slug=${group.slug}&topic_slug=${topPropose.topic_slug}` as Route
                 }
@@ -362,6 +375,7 @@ export default async function GroupDetailPage({
                 color={topYes.topic_color_hex}
                 stat={t('profile_pct_aye', { pct: Math.round((topYes.ayes / topYes.cast) * 100) })}
                 statColor="var(--aye)"
+                examples={yesExamples}
                 href={`/topics/${topYes.topic_slug}` as Route}
                 linkLabel={t('profile_view_topic')}
               />
@@ -373,31 +387,12 @@ export default async function GroupDetailPage({
                 color={topNo.topic_color_hex}
                 stat={t('profile_pct_no', { pct: Math.round((topNo.noes / topNo.cast) * 100) })}
                 statColor="var(--no)"
+                examples={noExamples}
                 href={`/topics/${topNo.topic_slug}` as Route}
                 linkLabel={t('profile_view_topic')}
               />
             )}
           </div>
-
-          {topPropose && proposeExamples.length > 0 && (
-            <div style={{ marginTop: 18 }}>
-              <div className="eyebrow" style={{ marginBottom: 6 }}>
-                {t('profile_examples_title', {
-                  topic: localizedTopicName(topPropose.topic_slug, topPropose.topic_name_ca),
-                })}
-              </div>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {proposeExamples.map((v) => (
-                  <CompactVoteRow
-                    key={v.id}
-                    v={v}
-                    locale={locale}
-                    labels={{ ...voteLabels, result: tVotes(`result.${v.result}` as 'result.approved') }}
-                  />
-                ))}
-              </ul>
-            </div>
-          )}
           <style>{`
             @media (max-width: 860px) {
               .profile-grid { grid-template-columns: 1fr !important; }
@@ -540,6 +535,7 @@ function ProfileStatCard({
   color,
   stat,
   statColor,
+  examples,
   href,
   linkLabel,
 }: {
@@ -548,12 +544,15 @@ function ProfileStatCard({
   color: string | null;
   stat: string;
   statColor?: string;
+  examples?: { id: number; title: string }[];
   href: Route;
   linkLabel: string;
 }) {
+  // A plain <div> (not a Link) because the card holds its own example
+  // links — nesting anchors would be invalid. The topic + stat are static;
+  // the examples and the bottom CTA are the links.
   return (
-    <Link
-      href={href}
+    <div
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -561,8 +560,6 @@ function ProfileStatCard({
         border: '1px solid var(--rule)',
         background: 'var(--paper)',
         padding: 16,
-        textDecoration: 'none',
-        color: 'inherit',
         minHeight: 132,
       }}
     >
@@ -572,39 +569,59 @@ function ProfileStatCard({
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         <span
           aria-hidden="true"
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: 999,
-            background: color ?? 'var(--ink-3)',
-            flex: 'none',
-          }}
+          style={{ width: 10, height: 10, borderRadius: 999, background: color ?? 'var(--ink-3)', flex: 'none' }}
         />
         <span
           className="serif"
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: 'var(--ink)',
-            lineHeight: 1.15,
-            overflowWrap: 'anywhere',
-          }}
+          style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.15, overflowWrap: 'anywhere' }}
         >
           {topicName}
         </span>
       </div>
       <div
         className="tabular"
-        style={{ fontSize: 13, fontWeight: 600, color: statColor ?? 'var(--ink-2)', marginTop: 'auto' }}
+        style={{ fontSize: 13, fontWeight: 600, color: statColor ?? 'var(--ink-2)' }}
       >
         {stat}
       </div>
-      <span
-        style={{ fontSize: 12, color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      {examples && examples.length > 0 && (
+        <ul style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {examples.slice(0, 2).map((ex) => (
+            <li key={ex.id} style={{ minWidth: 0 }}>
+              <Link
+                href={`/votes/${ex.id}` as Route}
+                style={{
+                  fontSize: 12,
+                  color: 'var(--ink-2)',
+                  textDecoration: 'none',
+                  lineHeight: 1.35,
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                {ex.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link
+        href={href}
+        style={{
+          fontSize: 12,
+          color: 'var(--accent)',
+          textDecoration: 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          marginTop: 'auto',
+        }}
       >
         {linkLabel} <ArrowRight size={13} aria-hidden="true" />
-      </span>
-    </Link>
+      </Link>
+    </div>
   );
 }
 
