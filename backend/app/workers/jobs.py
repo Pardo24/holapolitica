@@ -20,6 +20,7 @@ from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.db.session import AsyncSessionLocal
 from app.ingest.congreso.bootstrap import (
+    backfill_vote_initiative_links,
     import_active_deputies,
     import_initiatives,
     import_latest_session_votes,
@@ -175,6 +176,16 @@ def ingest_latest_votes() -> int | None:
     async def _run() -> int | None:
         stats = await import_latest_session_votes()
         if stats is not None:
+            # Link the freshly-imported votes to their initiatives BEFORE the
+            # push fan-out: the fan-out only targets votes already linked to a
+            # classified initiative, so without this step a brand-new vote
+            # (initiative_id still NULL at this instant) would never notify —
+            # the daily ingest_pnl link pass runs too late for that. Idempotent
+            # and cheap (only unlinked votes).
+            try:
+                await backfill_vote_initiative_links()
+            except Exception as exc:  # pragma: no cover — defensive
+                log.warning("link_votes.after_ingest.failed", error=str(exc))
             try:
                 _enqueue_push_fanout_for_recent_votes()
             except Exception as exc:  # pragma: no cover — defensive
