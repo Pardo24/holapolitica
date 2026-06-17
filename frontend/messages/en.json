@@ -215,7 +215,15 @@
     "topic_label": "Topic",
     "topic_placeholder": "All topics",
     "clear_all": "Clear",
-    "remove_label": "Remove"
+    "remove_label": "Remove",
+    "group_label": "Proposing group",
+    "group_placeholder": "All groups",
+    "group_government": "Government",
+    "more_filters": "More filters",
+    "nonlaw_eyebrow": "And the rest of the votes?",
+    "nonlaw_title": "Votes that don't create law",
+    "nonlaw_body": "Most plenary votes don't create law: they're non-binding proposals, motions and interpellations. They don't change the law, but they show where groups stand and what they want to push. Useful for understanding how they think.",
+    "nonlaw_cta": "See all votes"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",

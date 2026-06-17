@@ -793,6 +793,7 @@ export const api = {
         initiative_type?: InitiativeType;
         status?: InitiativeStatus;
         topic_slug?: string;
+        proposing_group_slug?: string;
         q?: string;
         page?: number;
         page_size?: number;

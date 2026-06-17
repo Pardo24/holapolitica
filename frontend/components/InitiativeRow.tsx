@@ -7,9 +7,11 @@ import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
 import { ResultPill } from '@/components/ResultPill';
+import { TopicChip } from '@/components/TopicChip';
 import type { Initiative, VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort, type ParsedProposer } from '@/lib/groups';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * One row for an INITIATIVE in a list (topic hub, the /lleis laws view).
@@ -105,6 +107,14 @@ export async function InitiativeRow({
             moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
             rawFallback={initiative.submitted_by ?? ''}
           />
+        </>
+      )}
+      {(initiative.topics ?? []).length > 0 && (
+        <>
+          <span aria-hidden="true">·</span>
+          {(initiative.topics ?? []).slice(0, 2).map((tp) => (
+            <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+          ))}
         </>
       )}
       <span aria-hidden="true">·</span>
