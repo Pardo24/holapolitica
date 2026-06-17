@@ -12,7 +12,7 @@ router's responsibility narrow.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, desc, func, select
+from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
@@ -21,6 +21,7 @@ from app.models import (
     InitiativeStatus,
     InitiativeTopic,
     InitiativeType,
+    ParliamentaryGroup,
     Topic,
     Vote,
 )
@@ -72,6 +73,14 @@ async def list_initiatives(
     topic_slug: str | None = Query(
         None, description="Topic slug, or a comma-separated list evaluated as OR."
     ),
+    proposing_group_slug: str | None = Query(
+        None,
+        description=(
+            "Filter by the parliamentary group that proposed the initiative "
+            "(resolved via its linked votes). Single slug or comma-separated "
+            "list; the synthetic slug 'govern' matches Government-proposed."
+        ),
+    ),
     q: str | None = Query(None, description="Search in the initiative title."),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -116,6 +125,30 @@ async def list_initiatives(
         ).join(Topic, Topic.id == InitiativeTopic.topic_id)
         conditions.append(Topic.slug.in_(topic_slugs))
 
+    # Proposing-group filter. Initiatives carry no resolved proposer FK
+    # (only free-text submitted_by), so we resolve it through their linked
+    # votes' proposing_group_id — matching how /votes attributes a proposer.
+    # Expressed as an IN-subquery (not a JOIN) so it can't duplicate rows
+    # and break pagination.
+    group_slugs = _split_csv(proposing_group_slug)
+    if group_slugs:
+        wants_government = "govern" in group_slugs
+        real_group_slugs = [s for s in group_slugs if s != "govern"]
+        clauses = []
+        if wants_government:
+            clauses.append(Vote.proposed_by_government.is_(True))
+        if real_group_slugs:
+            gid_subq = select(ParliamentaryGroup.id).where(
+                ParliamentaryGroup.slug.in_(real_group_slugs)
+            )
+            clauses.append(Vote.proposing_group_id.in_(gid_subq))
+        if clauses:
+            vote_clause = clauses[0] if len(clauses) == 1 else or_(*clauses)
+            vote_subq = select(Vote.initiative_id).where(
+                and_(Vote.initiative_id.is_not(None), vote_clause)
+            )
+            conditions.append(Initiative.id.in_(vote_subq))
+
     if conditions:
         base_stmt = base_stmt.where(and_(*conditions))
         count_stmt = count_stmt.where(and_(*conditions))
@@ -128,9 +161,9 @@ async def list_initiatives(
     )
     items = list((await session.execute(stmt)).scalars().unique().all())
 
-    latest_result_by_initiative = await _load_latest_vote_result(
-        session, [i.id for i in items]
-    )
+    item_ids = [i.id for i in items]
+    latest_result_by_initiative = await _load_latest_vote_result(session, item_ids)
+    topics_by_initiative = await _load_topics_by_initiative(session, item_ids)
 
     return {
         "total": total,
@@ -140,10 +173,37 @@ async def list_initiatives(
             {
                 **InitiativeRead.model_validate(i).model_dump(mode="json"),
                 "latest_vote_result": latest_result_by_initiative.get(i.id),
+                "topics": [
+                    InitiativeTopicSlug.model_validate(tp).model_dump(mode="json")
+                    for tp in topics_by_initiative.get(i.id, [])
+                ],
             }
             for i in items
         ],
     }
+
+
+async def _load_topics_by_initiative(
+    session: AsyncSession, initiative_ids: list[int]
+) -> dict[int, list[Topic]]:
+    """Bulk-load topic rows per initiative id (empty list when unclassified).
+
+    One indexed query; mirrors the loader on the votes list so list rows can
+    show topic chips without an N+1.
+    """
+    if not initiative_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(InitiativeTopic.initiative_id, Topic)
+            .join(Topic, Topic.id == InitiativeTopic.topic_id)
+            .where(InitiativeTopic.initiative_id.in_(initiative_ids))
+        )
+    ).all()
+    by_id: dict[int, list[Topic]] = {iid: [] for iid in initiative_ids}
+    for initiative_id, topic in rows:
+        by_id.setdefault(initiative_id, []).append(topic)
+    return by_id
 
 
 async def _load_latest_vote_result(
