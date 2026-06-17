@@ -187,6 +187,7 @@
   },
   "nav": {
     "avui": "Plenary chronicle",
+    "lleis": "Laws",
     "votes": "Votes",
     "persons": "Representatives",
     "topics": "Topics",
@@ -196,6 +197,20 @@
     "notifications": "Notifications",
     "journalists": "Press",
     "joc": "Quiz"
+  },
+  "lleis": {
+    "title": "Laws",
+    "subtitle": "The votes that actually create law: government and private bills and royal decree-laws. The rest (motions, non-binding proposals) are positions, available separately.",
+    "lens_aria": "Filter by type",
+    "lens_laws": "Laws",
+    "lens_positions": "Positions",
+    "lens_all": "All",
+    "status_all": "Any status",
+    "results_count": "{count} initiatives",
+    "empty": "No initiatives match these filters.",
+    "pagination_label": "Page {page} of {last}",
+    "prev": "Previous",
+    "next": "Next"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",

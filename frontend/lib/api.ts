@@ -651,6 +651,16 @@ export interface Initiative {
   topics?: InitiativeTopicSlug[];
 }
 
+/**
+ * One initiative as returned by the `/initiatives` list (the laws lens).
+ * Extends {@link Initiative} with the result of its most recent linked
+ * vote, so a row can show a credible outcome even when the imported
+ * `status` is unreliable (e.g. Reial Decret Llei, always "submitted").
+ */
+export interface InitiativeListItem extends Initiative {
+  latest_vote_result: VoteResult | null;
+}
+
 export type ScheduledSessionStatus =
   | 'scheduled'
   | 'modified'
@@ -758,6 +768,27 @@ export const api = {
     get: (id: number) => request<Initiative>(`/initiatives/${id}`),
     related: (id: number, limit = 6) =>
       request<Initiative[]>(`/initiatives/${id}/related?limit=${limit}`),
+    list: (
+      params: {
+        legislature_id?: number;
+        chamber_id?: number;
+        /** True → only law-creating types; false → only positions; omit → all. */
+        creates_law?: boolean;
+        initiative_type?: InitiativeType;
+        status?: InitiativeStatus;
+        topic_slug?: string;
+        q?: string;
+        page?: number;
+        page_size?: number;
+      } = {},
+    ) => {
+      const qs = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== '') qs.set(k, String(v));
+      });
+      const suffix = qs.toString() ? `?${qs.toString()}` : '';
+      return request<Paginated<InitiativeListItem>>(`/initiatives${suffix}`);
+    },
   },
   topics: {
     list: (params: { kind?: TopicKind } = {}) => {
