@@ -86,22 +86,29 @@ Totes les visualitzacions agregades respecten la regla de simetria
 
 ## 2. Pendents immediats (setmanes 1-4)
 
-Treball ja codificat o iniciat que cal tancar abans d'obrir nous fronts.
+> Actualitzat juny 2026. Aquesta iteració ha tancat la majoria dels
+> pendents codificats; el que queda obert es marca a sota.
 
 | Tasca                                              | Estat                              |
 |----------------------------------------------------|------------------------------------|
-| Backfill de l'enllaç Vot ↔ Iniciativa              | Codi desplegat; execució a producció pendent |
+| Backfill de l'enllaç Vot ↔ Iniciativa              | **Fet (juny 2026)** — executat a producció: 1.699/1.840 votacions enllaçades (92%) |
+| **Scraper PNL / Moció / RDL / Reforma (162/173/130/102)** | **Fet (juny 2026)** — raspats del cercador Liferay i a producció; tanca el principal forat de dades |
+| Scheduler de cron (ingesta automàtica)             | **Arreglat (juny 2026)** — els crons no s'executaven (faltava el daemon `rqscheduler`); ara desplegat i actiu |
+| Filtres avançats                                   | **Fet (juny 2026)** — toolbar net a `/votes` i `/lleis` (cerca + resultat/estat + tema + grup) |
+| Vista `/lleis` (les lleis com a superfície principal) | **Fet (juny 2026)** — llista d'iniciatives que creen llei amb desenllaç; les votacions no-llei s'expliquen i s'enllacen |
+| Perfil temàtic de partit (proposa/vota Sí/rebutja per tema) | **Fet (juny 2026)** — factual i simètric, amb exemples |
 | Extracció de `birth_year` per diputat              | Codi desplegat; execució a producció pendent |
 | Execució del job de classificació ODS/Agenda 2030  | Codi desplegat; execució a producció pendent |
-| **Scraper PNL / Moción (expedients 162 i 173)**    | Principal forat de dades; sense API oficial — caldrà scraping del cercador d'iniciatives |
-| Filtres avançats + barres en escala logarítmica    | En disseny                         |
-| Distribució de l'app mòbil (Capacitor → iOS + Android) | Apple Developer ($99/any) + Play Console ($25) pendents |
+| **Push natiu (Capacitor → iOS + Android)**         | Base construïda (taula `device_tokens`, endpoint de registre, sender FCM dorment). Bloquejat en: clau APNs d'Apple Developer ($99/any) + projecte Firebase + build nativa per activar |
+| Backfill històric (legislatures XIV→X)             | Codi de backfill llest; execució pendent |
 
-El scraper de PNL/Moción és la pendent més substantiva: les 12 votacions
-de la sessió 177 tenen expedient assignat però cap d'elles enllaça a una
-iniciativa avui perquè els seus tipus (162 = PNL, 173 = Moció) no es
-publiquen a l'opendata. És el coll d'ampolla per tancar el cicle
-"votació → iniciativa → text aprovat".
+El cicle "votació → iniciativa → text aprovat" ja està tancat per a la
+XV legislatura: el scraper de sèries (PNL/Moció/RDL/Reforma) i el backfill
+d'enllaços es van executar a producció el juny de 2026, així que el 92%
+de les votacions ja enllacen amb la seva iniciativa. La pendent més
+substantiva ara és **activar el push natiu** (només depèn de credencials
+externes d'Apple/Firebase) i el **backfill històric** d'altres
+legislatures.
 
 ---
 
@@ -270,8 +277,8 @@ Decisions estructurals que demanen criteri extern abans d'executar-les.
 ## Cronologia visual
 
 ```
-2026 Q2 ─ Avui: Congrés XV en producció, PNL pendent, Catalunya en preparació
-2026 Q3 ─ Scraper PNL + fase 1 Catalunya + ODS publicat
+2026 Q2 ─ Congrés XV complet en producció (PNL/Moció/RDL + enllaços fets); /lleis + perfils de partit; Catalunya en preparació
+2026 Q3 ─ Activació push natiu + fase 1 Catalunya + backfill històric
 2026 Q4 ─ Catalunya en producció + newsletter avançada
 2027 Q1 ─ Senat + Barcelona Plenari
 2027 Q2 ─ Mètriques cross-cambra + integració BOE
