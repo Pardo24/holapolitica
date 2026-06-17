@@ -71,6 +71,23 @@ services:
         condition: service_started
     command: ["python", "-m", "app.workers.runner"]
 
+  # rq-scheduler daemon. The worker above runs RQ's *built-in* scheduler
+  # (with_scheduler=True), which only fires enqueue_in/enqueue_at jobs — NOT
+  # the cron entries registered by app/workers/schedule.py, which use the
+  # separate rq-scheduler package and live in the rq:scheduler:scheduled_jobs
+  # zset. Without this dedicated daemon those crons never fire (ingest,
+  # classification and the newsletter all silently stall). One process is
+  # enough: rq-scheduler holds a Redis lock, so a second instance is a no-op.
+  rqscheduler:
+    image: holapolitica-backend:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: ["rqscheduler", "--url", "redis://redis:6379/0", "-i", "60"]
+
   listmonk-db:
     image: postgres:16-alpine
     restart: unless-stopped
