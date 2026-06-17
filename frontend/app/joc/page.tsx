@@ -51,7 +51,7 @@ type QuizQuestion =
       /** Display text for the law title — sanitized to remove proposer hints. */
       subject: string;
       summary: string;
-      options: { id: string; label: string; color: string | null }[];
+      options: { id: string; label: string; color: string | null; slug: string | null }[];
       correctId: string;
     }
   | {
@@ -189,30 +189,34 @@ export default async function JocPage() {
     // Distractor pool — every OTHER group + Govern, sampled
     // uniformly. We pick from the candidate set itself so we don't
     // need a separate /groups fetch; this also keeps distractors
-    // relevant (they're groups that have proposed recently).
-    const others = new Map<string, { id: string; label: string; color: string | null }>();
+    // relevant (they're groups that have proposed recently). The slug
+    // lets the option render the group's visual badge.
+    type Opt = { id: string; label: string; color: string | null; slug: string | null };
+    const others = new Map<string, Opt>();
     for (const v of items) {
       if (v.proposing_group_short && v.proposing_group_short !== correctLabel) {
         others.set(v.proposing_group_short, {
           id: v.proposing_group_short,
           label: v.proposing_group_short,
           color: v.proposing_group_color ?? null,
+          slug: v.proposing_group_slug ?? null,
         });
       }
       if (v.proposed_by_government && correctLabel !== govLabel) {
-        others.set(govLabel, {
-          id: govLabel,
-          label: govLabel,
-          color: null,
-        });
+        others.set(govLabel, { id: govLabel, label: govLabel, color: null, slug: null });
       }
     }
     const distractors = Array.from(others.values())
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
 
-    const options = [
-      { id: correctLabel, label: correctLabel, color: correctColor },
+    const options: Opt[] = [
+      {
+        id: correctLabel,
+        label: correctLabel,
+        color: correctColor,
+        slug: vote.proposing_group_slug ?? null,
+      },
       ...distractors,
     ].sort(() => Math.random() - 0.5);
 

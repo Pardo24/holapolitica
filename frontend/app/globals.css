@@ -1560,6 +1560,13 @@ body.hp-filter-pending .mobile-votes-list::after {
   .quiz-options--grid { grid-template-columns: 1fr 1fr; }
 }
 
+/* Quiz option hover: lift the border so the rounded cards feel tappable.
+   Skipped once answered (disabled) so the reveal colours stay put. */
+.quiz-option:not(:disabled):hover {
+  border-color: var(--ink-2) !important;
+  background: var(--paper-2);
+}
+
 @media (max-width: 480px) {
   .home-coverage {
     grid-template-columns: 1fr !important;
