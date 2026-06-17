@@ -18,7 +18,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.metrics import (
+    ProposesByTopicRow,
     TopicVoteStatRow,
+    compute_proposes_by_topic_for_group,
     compute_topic_stats_for_group,
 )
 from app.models import (
@@ -311,6 +313,35 @@ async def get_group_topic_stats(
         f"stats:group:{slug}:topic-stats",
         3600,
         lambda: compute_topic_stats_for_group(session, group_id=group_id),
+    )
+
+
+@router.get("/{slug}/proposes-by-topic", response_model=list[ProposesByTopicRow])
+async def get_group_proposes_by_topic(
+    slug: str, session: AsyncSession = Depends(get_session)
+) -> list[ProposesByTopicRow]:
+    """Per-topic count of distinct initiatives this group has proposed.
+
+    Feeds the group's "proposes most about" profile widget. Full list,
+    ordered by count desc — the frontend takes the head; the API does not
+    rank one group against another (symmetry rule).
+    """
+    group = (
+        await session.execute(
+            select(ParliamentaryGroup)
+            .where(ParliamentaryGroup.slug == slug)
+            .order_by(ParliamentaryGroup.legislature_id.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    group_id = group.id
+    return await cached(
+        f"stats:group:{slug}:proposes-by-topic",
+        3600,
+        lambda: compute_proposes_by_topic_for_group(session, group_id=group_id),
     )
 
 
