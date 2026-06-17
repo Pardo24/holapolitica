@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Bell, ExternalLink, Newspaper } from 'lucide-react';
 
-import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
+import { LawRow } from '@/components/LawRow';
 import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
@@ -1177,130 +1177,64 @@ function InitiativeRow({
   const statusKey = STATUS_KEY[initiative.status];
   const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
-  const linkHref = `/initiatives/${initiative.id}`;
-  return (
-    <li style={{ borderBottom: '1px solid var(--rule)', paddingBottom: 14 }}>
-      <a
-        href={linkHref}
-        className="initiative-row"
-        style={{
-          textDecoration: 'none',
-          color: 'inherit',
-          padding: '14px 0 0',
-          display: 'grid',
-          gap: 14,
-          // Mobile default: 2 cols [subject | right-stack(date+status)].
-          // Desktop swaps to [date | subject] via the `.initiative-row`
-          // override in globals.css — the left date span unhides via
-          // `hidden sm:inline-block` and the right stack hides via
-          // `sm:hidden`.
-          gridTemplateColumns: 'minmax(0, 1fr) auto',
-          alignItems: 'baseline',
-        }}
+
+  // Meta line — ``type · [proposer-badges] · official_id``. Type chip
+  // comes first (same order as vote rows) so the "creates law / non-
+  // binding" signal reads at a glance; the official id sits inline at the
+  // end like the vote row's expediente.
+  const meta = (
+    <>
+      <LawTypeChip type={initiative.type} />
+      {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
+        <>
+          <span aria-hidden="true">·</span>
+          <ProposerBadges
+            parsed={parsed}
+            governmentLabel={governmentLabel}
+            moreGroupsLabel={moreGroupsLabel}
+            rawFallback={initiative.submitted_by ?? ''}
+          />
+        </>
+      )}
+      <span aria-hidden="true">·</span>
+      <span
+        className="mono"
+        style={{ fontSize: 10, color: 'var(--ink-3)', wordBreak: 'break-all' }}
       >
+        {initiative.official_id}
+      </span>
+      {/* Inline "explain" icon; panel drops full-width beneath. */}
+      {plainSummary && (
+        <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
+      )}
+    </>
+  );
+
+  return (
+    <LawRow
+      href={`/initiatives/${initiative.id}` as Route}
+      dateLong={longDate}
+      dateShort={shortDate}
+      title={initiative.title_original}
+      meta={meta}
+      outcomeAriaLabel={statusLabel}
+      outcome={
+        // Outlined badge tinted by status: this is a lifecycle STATE, not a
+        // decision — distinct from the filled result pill on vote rows.
         <span
-          className="hidden sm:inline-block tabular"
+          className="badge"
           style={{
-            fontSize: 12,
-            color: 'var(--ink-3)',
+            fontSize: 10,
+            fontWeight: 600,
+            color: statusColor,
+            borderColor: 'color-mix(in oklch, currentColor 35%, var(--paper))',
             whiteSpace: 'nowrap',
-            fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {longDate}
+          {statusLabel}
         </span>
-        <div style={{ minWidth: 0 }}>
-          <div
-            className="line-clamp-2 sm:line-clamp-3"
-            style={{ fontSize: 14, lineHeight: 1.4, color: 'var(--ink)' }}
-          >
-            {/* Wrap Senate / lectura única / convalidación in tooltips
-                inline so users get the definition where the jargon sits. */}
-            <AnnotatedText text={initiative.title_original} />
-          </div>
-          {/* Meta line — ``[proposer-badges] · type · status``. Status is
-              hidden on mobile (it lives in the right-stack instead) and
-              shown on desktop. The desktop status badge column was merged
-              into this line previously; mobile pulls it back out so the
-              title gets the full row width. */}
-          <div
-            className="initiative-row__meta"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              flexWrap: 'wrap',
-              marginTop: 6,
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              lineHeight: 1.3,
-              minWidth: 0,
-            }}
-          >
-            {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
-              <>
-                <ProposerBadges
-                  parsed={parsed}
-                  governmentLabel={governmentLabel}
-                  moreGroupsLabel={moreGroupsLabel}
-                  rawFallback={initiative.submitted_by ?? ''}
-                />
-                <span aria-hidden="true">·</span>
-              </>
-            )}
-            <LawTypeChip type={initiative.type} />
-            {/* Inline "explain" icon; panel drops full-width beneath. */}
-            {plainSummary && (
-              <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
-            )}
-          </div>
-          <span
-            className="mono"
-            style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, display: 'inline-block' }}
-          >
-            {initiative.official_id}
-          </span>
-        </div>
-        {/* Right column — status badge (its own cell so it never wraps
-            the meta line). On mobile it also carries the compressed date
-            on top; on desktop the date lives in the left column, so that
-            part is hidden. */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: 6,
-            textAlign: 'right',
-            flex: 'none',
-          }}
-        >
-          <span
-            className="tabular sm:hidden"
-            style={{
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              whiteSpace: 'nowrap',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            XV · {shortDate}
-          </span>
-          <span
-            className="badge"
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: statusColor,
-              borderColor: 'color-mix(in oklch, currentColor 35%, var(--paper))',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {statusLabel}
-          </span>
-        </div>
-      </a>
-    </li>
+      }
+    />
   );
 }
 

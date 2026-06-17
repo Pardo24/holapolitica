@@ -1,8 +1,10 @@
+import type { Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { ArrowUpRight } from 'lucide-react';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 
+import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { GroupCompositionFilter } from '@/components/GroupCompositionFilter';
 import { TopicBars } from '@/components/TopicBars';
 import {
@@ -13,6 +15,7 @@ import {
   type ParliamentaryGroupSummary,
   type Topic,
   type TopicVoteStat,
+  type Vote,
 } from '@/lib/api';
 import { displayGroupFullName, groupAbbreviation, groupInfo } from '@/lib/groups';
 
@@ -27,25 +30,37 @@ export default async function GroupDetailPage({
 }) {
   const { slug } = await params;
   const t = await getTranslations('group');
+  const tVotes = await getTranslations('votes');
+  const locale = await getLocale();
 
   let group: ParliamentaryGroupSummary;
   let members: GroupMemberRow[] = [];
   let topicStats: TopicVoteStat[] = [];
   let composition: GroupComposition | null = null;
   let allTopics: Topic[] = [];
+  let proposedVotes: Vote[] = [];
   try {
-    [group, members, topicStats, composition, allTopics] = await Promise.all([
-      api.groups.get(slug),
-      api.groups.members(slug),
-      api.groups.topicStats(slug),
-      // Composition is non-essential — if it fails (e.g. older backend
-      // without the endpoint), the page still renders the rest.
-      api.groups.composition(slug).catch(() => null),
-      // Used by TopicBars to localise per-topic names (the underlying
-      // TopicVoteStat only ships topic_name_ca to keep the matrix
-      // payload small).
-      api.topics.list().catch(() => [] as Topic[]),
-    ]);
+    [group, members, topicStats, composition, allTopics, proposedVotes] =
+      await Promise.all([
+        api.groups.get(slug),
+        api.groups.members(slug),
+        api.groups.topicStats(slug),
+        // Composition is non-essential — if it fails (e.g. older backend
+        // without the endpoint), the page still renders the rest.
+        api.groups.composition(slug).catch(() => null),
+        // Used by TopicBars to localise per-topic names (the underlying
+        // TopicVoteStat only ships topic_name_ca to keep the matrix
+        // payload small).
+        api.topics.list().catch(() => [] as Topic[]),
+        // Recent votes where this group is the recorded proposer. Rendered
+        // with the same LawRow-backed CompactVoteRow as the votes list, so a
+        // "law" reads identically here as everywhere else. Resilient: an
+        // empty list just hides the section's rows behind the empty-state.
+        api.votes
+          .list({ proposing_group_slug: slug, legislature_id: 1, page_size: 6 })
+          .then((r) => r.items)
+          .catch(() => [] as Vote[]),
+      ]);
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
@@ -246,6 +261,57 @@ export default async function GroupDetailPage({
           groupSlug={group.slug}
           allTopics={allTopics}
         />
+      </section>
+
+      {/* Initiatives put forward by this group — the "in every place a law
+          appears" surface. Uses the shared CompactVoteRow/LawRow so a law
+          reads identically here, on /votes, on the home strip and on a
+          topic hub. Factual only: proposer + type + result, no framing. */}
+      <section style={{ paddingTop: 28 }}>
+        <h2 className="h-title">{t('proposed_section_title')}</h2>
+        <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
+          {t('proposed_section_subtitle')}
+        </p>
+        {proposedVotes.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('proposed_empty')}</p>
+        ) : (
+          <>
+            <ul
+              className="votes-list"
+              style={{ listStyle: 'none', margin: 0, padding: '8px 0 0', display: 'grid', gap: 0 }}
+            >
+              {proposedVotes.map((vote) => (
+                <CompactVoteRow
+                  key={vote.id}
+                  v={vote}
+                  locale={locale}
+                  labels={{
+                    ayes: tVotes('ayes'),
+                    noes: tVotes('noes'),
+                    abstentions: tVotes('abstentions'),
+                    proposed_by: tVotes('proposed_by'),
+                    proposed_by_government: tVotes('proposed_by_government'),
+                    result: tVotes(`result.${vote.result}` as 'result.approved'),
+                  }}
+                />
+              ))}
+            </ul>
+            <Link
+              href={`/votes?proposing_group_slug=${slug}` as Route}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                marginTop: 14,
+                fontSize: 13,
+                color: 'var(--accent)',
+                textDecoration: 'none',
+              }}
+            >
+              {t('proposed_view_all')} <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </>
+        )}
       </section>
 
       {members.length === 0 ? (

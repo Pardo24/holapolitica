@@ -263,12 +263,12 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         </div>
       )}
 
-      {/* Single responsive list — CompactVoteRow uses the same flat
-          ``.initiative-row`` shape at every viewport (no separate
-          mobile/desktop variants). The previous design rendered two
-          parallel <ul>'s gated by `sm:hidden` / `hidden sm:block`,
-          which left both in the HTML and read as a duplicated
-          "filtered list". One list, one source of truth. */}
+      {/* Single responsive list — CompactVoteRow delegates to the shared
+          ``.law-row`` shell (LawRow), the same flat shape at every
+          viewport (no separate mobile/desktop variants). The previous
+          design rendered two parallel <ul>'s gated by `sm:hidden` /
+          `hidden sm:block`, which left both in the HTML and read as a
+          duplicated "filtered list". One list, one source of truth. */}
       {data && data.items.length > 0 && (
         <ul
           className="votes-list"
