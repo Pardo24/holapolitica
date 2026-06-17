@@ -1,10 +1,10 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight, Scale } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, MessagesSquare, Scale } from 'lucide-react';
 
 import { InitiativeRow } from '@/components/InitiativeRow';
-import { LawsFilterBar, type LawsLens } from '@/components/LawsFilterBar';
+import { LawsFilterBar } from '@/components/LawsFilterBar';
 import { PageHeader } from '@/components/PageHeader';
 import {
   api,
@@ -16,19 +16,19 @@ import {
 import { parseProposer } from '@/lib/groups';
 
 /**
- * The laws lens. Most plenary votes are non-binding positions (PNL,
- * Moció); the ones that actually change the law are few and are what
- * matters most to citizens. This page leads with those, lets the reader
- * narrow by outcome and topic, and keeps positions one tap away.
+ * The laws view — the primary surface. Lists the initiatives that actually
+ * become law (Projecte/Proposició de Llei, Reial Decret Llei) with their
+ * outcome, filterable by status, topic and proposing group. The many
+ * non-binding votes (positions) are not mixed in here; they live on /votes,
+ * reached via the explained link at the foot of the page.
  *
- * Strictly factual: type, proposer, outcome. No editorial framing — the
- * prioritisation is by procedural type, never by political side.
+ * Strictly factual; the prioritisation is by procedural type, never by side.
  */
 
 interface SearchParams {
-  lens?: string;
   status?: string;
   topic_slug?: string;
+  proposing_group_slug?: string;
   q?: string;
   page?: string;
 }
@@ -51,22 +51,21 @@ export default async function LleisPage({
   const tStats = await getTranslations('stats');
   const locale = await getLocale();
 
-  const lens: LawsLens =
-    sp.lens === 'posicionaments' ? 'posicionaments' : sp.lens === 'tot' ? 'tot' : 'lleis';
   const statusFilter = STATUS_FILTERS.includes(sp.status as InitiativeStatus)
     ? (sp.status as InitiativeStatus)
     : undefined;
   const topicSlugs = splitCsv(sp.topic_slug);
+  const groupSlugs = splitCsv(sp.proposing_group_slug);
   const query = (sp.q ?? '').trim();
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
-  const createsLaw = lens === 'lleis' ? true : lens === 'posicionaments' ? false : undefined;
 
   const [data, groups, topics] = await Promise.all([
     api.initiatives.list({
       legislature_id: 1,
-      creates_law: createsLaw,
+      creates_law: true,
       status: statusFilter,
       topic_slug: topicSlugs.length ? topicSlugs.join(',') : undefined,
+      proposing_group_slug: groupSlugs.length ? groupSlugs.join(',') : undefined,
       q: query || undefined,
       page,
       page_size: PAGE_SIZE,
@@ -77,12 +76,11 @@ export default async function LleisPage({
 
   const lastPage = Math.max(1, Math.ceil(data.total / PAGE_SIZE));
 
-  // Pagination hrefs preserve every active filter and only change page.
   const buildPageHref = (p: number): Route => {
     const qs = new URLSearchParams();
-    if (lens !== 'lleis') qs.set('lens', lens);
     if (statusFilter) qs.set('status', statusFilter);
     if (topicSlugs.length) qs.set('topic_slug', topicSlugs.join(','));
+    if (groupSlugs.length) qs.set('proposing_group_slug', groupSlugs.join(','));
     if (query) qs.set('q', query);
     if (p !== 1) qs.set('page', String(p));
     const s = qs.toString();
@@ -91,10 +89,7 @@ export default async function LleisPage({
 
   return (
     <div>
-      <PageHeader
-        title={t('title')}
-        icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}
-      >
+      <PageHeader title={t('title')} icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.4, maxWidth: 760 }}>
           {t('subtitle')}
         </p>
@@ -102,24 +97,24 @@ export default async function LleisPage({
 
       <LawsFilterBar
         topics={topics}
+        groups={groups}
         initialQ={query}
-        initialLens={lens}
         initialStatus={statusFilter ?? ''}
         initialTopicSlugs={topicSlugs}
+        initialGroupSlugs={groupSlugs}
         locale={locale}
         labels={{
           search_placeholder: t('search_placeholder'),
-          lens_aria: t('lens_aria'),
-          lens_laws: t('lens_laws'),
-          lens_positions: t('lens_positions'),
-          lens_all: t('lens_all'),
           status_all: t('status_all'),
           status_approved: tStats('status_singular_approved'),
           status_rejected: tStats('status_singular_rejected'),
           status_in_debate: tStats('status_singular_in_debate'),
           topic_label: t('topic_label'),
           topic_placeholder: t('topic_placeholder'),
-          topic_clear: t('topic_placeholder'),
+          group_label: t('group_label'),
+          group_placeholder: t('group_placeholder'),
+          group_government: t('group_government'),
+          more_filters: t('more_filters'),
           clear_all: t('clear_all'),
           remove_label: t('remove_label'),
         }}
@@ -172,6 +167,69 @@ export default async function LleisPage({
           </div>
         </div>
       )}
+
+      {/* The rest: votes that don't create law. Explained, then linked out —
+          laws stay the focus here; positions live on /votes. */}
+      <section
+        style={{
+          marginTop: 32,
+          padding: '20px 22px',
+          borderRadius: 16,
+          background: 'var(--paper-2)',
+          border: '1px solid var(--rule-strong)',
+          display: 'grid',
+          gridTemplateColumns: 'auto minmax(0, 1fr) auto',
+          gap: 18,
+          alignItems: 'center',
+        }}
+        className="lleis-nonlaw-cta"
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 46,
+            height: 46,
+            borderRadius: 13,
+            background: 'var(--paper)',
+            border: '1px solid var(--rule)',
+            color: 'var(--ink-2)',
+            flex: 'none',
+          }}
+        >
+          <MessagesSquare size={22} strokeWidth={1.7} aria-hidden="true" />
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>
+            {t('nonlaw_eyebrow')}
+          </div>
+          <h2 className="serif" style={{ margin: 0, fontSize: 'clamp(16px, 2vw, 19px)', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.2 }}>
+            {t('nonlaw_title')}
+          </h2>
+          <p style={{ margin: '5px 0 0', fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: 620 }}>
+            {t('nonlaw_body')}
+          </p>
+        </div>
+        <Link
+          href={'/votes' as Route}
+          className="btn-ink"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 'none', whiteSpace: 'nowrap' }}
+        >
+          {t('nonlaw_cta')} <ArrowRight size={14} aria-hidden="true" />
+        </Link>
+      </section>
+
+      <style>{`
+        @media (max-width: 720px) {
+          .lleis-nonlaw-cta {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 12px !important;
+          }
+          .lleis-nonlaw-cta > a { justify-content: center; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -215,7 +215,15 @@
     "topic_label": "Tema",
     "topic_placeholder": "Todos los temas",
     "clear_all": "Limpiar",
-    "remove_label": "Quita"
+    "remove_label": "Quita",
+    "group_label": "Grupo proponente",
+    "group_placeholder": "Todos los grupos",
+    "group_government": "Gobierno",
+    "more_filters": "Más filtros",
+    "nonlaw_eyebrow": "¿Y el resto de votaciones?",
+    "nonlaw_title": "Votaciones que no crean ley",
+    "nonlaw_body": "La mayoría de votaciones del pleno no crean ley: son proposiciones no de ley, mociones e interpelaciones. No cambian la ley, pero muestran la posición de los grupos y lo que quieren impulsar. Útiles para entender cómo piensan.",
+    "nonlaw_cta": "Ver todas las votaciones"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",

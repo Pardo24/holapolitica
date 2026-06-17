@@ -215,7 +215,15 @@
     "topic_label": "Tema",
     "topic_placeholder": "Tots els temes",
     "clear_all": "Neteja",
-    "remove_label": "Treu"
+    "remove_label": "Treu",
+    "group_label": "Grup proposant",
+    "group_placeholder": "Tots els grups",
+    "group_government": "Govern",
+    "more_filters": "Més filtres",
+    "nonlaw_eyebrow": "I la resta de votacions?",
+    "nonlaw_title": "Votacions que no creen llei",
+    "nonlaw_body": "La majoria de votacions del ple no creen llei: són proposicions no de llei, mocions i interpel·lacions. No canvien la llei, però mostren la posició dels grups i el que volen impulsar. Útils per entendre com pensen.",
+    "nonlaw_cta": "Veure totes les votacions"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",
