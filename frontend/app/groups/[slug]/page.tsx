@@ -13,11 +13,13 @@ import {
   type GroupComposition,
   type GroupMemberRow,
   type ParliamentaryGroupSummary,
+  type ProposesByTopicStat,
   type Topic,
   type TopicVoteStat,
   type Vote,
 } from '@/lib/api';
 import { displayGroupFullName, groupAbbreviation, groupInfo } from '@/lib/groups';
+import { pickTopicName } from '@/lib/topics';
 
 interface Params {
   slug: string;
@@ -39,8 +41,9 @@ export default async function GroupDetailPage({
   let composition: GroupComposition | null = null;
   let allTopics: Topic[] = [];
   let proposedVotes: Vote[] = [];
+  let proposesByTopic: ProposesByTopicStat[] = [];
   try {
-    [group, members, topicStats, composition, allTopics, proposedVotes] =
+    [group, members, topicStats, composition, allTopics, proposedVotes, proposesByTopic] =
       await Promise.all([
         api.groups.get(slug),
         api.groups.members(slug),
@@ -60,6 +63,7 @@ export default async function GroupDetailPage({
           .list({ proposing_group_slug: slug, legislature_id: 1, page_size: 6 })
           .then((r) => r.items)
           .catch(() => [] as Vote[]),
+        api.groups.proposesByTopic(slug).catch(() => [] as ProposesByTopicStat[]),
       ]);
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
@@ -68,6 +72,51 @@ export default async function GroupDetailPage({
 
   const info = groupInfo(group.slug);
   const fullName = displayGroupFullName(group.slug, group.name_long);
+
+  // ---- Thematic profile (factual + symmetric) ---------------------------
+  // Restrict every "top topic" to the editorial 'theme' taxonomy so the
+  // three widgets speak one language (topic-stats and proposes-by-topic both
+  // mix theme + SDG rows). Require a minimum sample for the vote tops so a
+  // single all-aye topic with n=2 doesn't surface as "where it votes Yes
+  // most". Same computation for every group — the API ranks no one.
+  const themeSlugs = new Set(allTopics.filter((tp) => tp.kind === 'theme').map((tp) => tp.slug));
+  const localizedTopicName = (topicSlug: string, fallbackCa: string): string => {
+    const tp = allTopics.find((x) => x.slug === topicSlug);
+    return tp ? pickTopicName(tp, locale) : fallbackCa;
+  };
+  const MIN_CAST_FOR_TOP = 10;
+  const topPropose = proposesByTopic.find((r) => themeSlugs.has(r.topic_slug)) ?? null;
+  const voteThemeStats = topicStats.filter(
+    (r) => themeSlugs.has(r.topic_slug) && r.cast >= MIN_CAST_FOR_TOP,
+  );
+  const topYes =
+    [...voteThemeStats].sort((a, b) => b.ayes / b.cast - a.ayes / a.cast)[0] ?? null;
+  const topNo =
+    [...voteThemeStats].sort((a, b) => b.noes / b.cast - a.noes / a.cast)[0] ?? null;
+
+  // A few example proposals on the group's top proposing topic, rendered
+  // with the same CompactVoteRow as everywhere else. Sequential (depends on
+  // topPropose); cheap (page_size 3) and resilient.
+  const proposeExamples: Vote[] = topPropose
+    ? await api.votes
+        .list({
+          proposing_group_slug: slug,
+          topic_slug: topPropose.topic_slug,
+          legislature_id: 1,
+          page_size: 3,
+        })
+        .then((r) => r.items)
+        .catch(() => [] as Vote[])
+    : [];
+
+  const hasProfile = topPropose !== null || topYes !== null || topNo !== null;
+  const voteLabels = {
+    ayes: tVotes('ayes'),
+    noes: tVotes('noes'),
+    abstentions: tVotes('abstentions'),
+    proposed_by: tVotes('proposed_by'),
+    proposed_by_government: tVotes('proposed_by_government'),
+  };
 
   return (
     <article>
@@ -249,6 +298,114 @@ export default async function GroupDetailPage({
         />
       )}
 
+      {/* Thematic profile — factual, symmetric: where the group proposes
+          most, votes Yes most and rejects most. Same three lenses for every
+          group; "rejects most" always sits next to "votes Yes most". */}
+      {hasProfile && (
+        <section style={{ paddingTop: 28 }}>
+          <h2 className="h-title">{t('profile_title')}</h2>
+          <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
+            {t('profile_intro')}
+          </p>
+          {(topYes || topPropose) && (
+            <p
+              style={{
+                fontSize: 14,
+                color: 'var(--ink-2)',
+                lineHeight: 1.5,
+                maxWidth: 720,
+                margin: '6px 0 0',
+              }}
+            >
+              {topYes &&
+                topNo &&
+                t('profile_summary_votes', {
+                  yes: localizedTopicName(topYes.topic_slug, topYes.topic_name_ca),
+                  no: localizedTopicName(topNo.topic_slug, topNo.topic_name_ca),
+                })}
+              {topPropose && (
+                <>
+                  {' '}
+                  {t('profile_summary_proposes', {
+                    topic: localizedTopicName(topPropose.topic_slug, topPropose.topic_name_ca),
+                  })}
+                </>
+              )}
+            </p>
+          )}
+
+          <div
+            className="profile-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+              gap: 14,
+              marginTop: 16,
+            }}
+          >
+            {topPropose && (
+              <ProfileStatCard
+                label={t('profile_proposes_label')}
+                topicName={localizedTopicName(topPropose.topic_slug, topPropose.topic_name_ca)}
+                color={topPropose.topic_color_hex}
+                stat={t('profile_proposes_count', { count: topPropose.count })}
+                href={
+                  `/votes?proposing_group_slug=${group.slug}&topic_slug=${topPropose.topic_slug}` as Route
+                }
+                linkLabel={t('profile_see_proposals')}
+              />
+            )}
+            {topYes && (
+              <ProfileStatCard
+                label={t('profile_votes_yes_label')}
+                topicName={localizedTopicName(topYes.topic_slug, topYes.topic_name_ca)}
+                color={topYes.topic_color_hex}
+                stat={t('profile_pct_aye', { pct: Math.round((topYes.ayes / topYes.cast) * 100) })}
+                statColor="var(--aye)"
+                href={`/topics/${topYes.topic_slug}` as Route}
+                linkLabel={t('profile_view_topic')}
+              />
+            )}
+            {topNo && (
+              <ProfileStatCard
+                label={t('profile_votes_no_label')}
+                topicName={localizedTopicName(topNo.topic_slug, topNo.topic_name_ca)}
+                color={topNo.topic_color_hex}
+                stat={t('profile_pct_no', { pct: Math.round((topNo.noes / topNo.cast) * 100) })}
+                statColor="var(--no)"
+                href={`/topics/${topNo.topic_slug}` as Route}
+                linkLabel={t('profile_view_topic')}
+              />
+            )}
+          </div>
+
+          {topPropose && proposeExamples.length > 0 && (
+            <div style={{ marginTop: 18 }}>
+              <div className="eyebrow" style={{ marginBottom: 6 }}>
+                {t('profile_examples_title', {
+                  topic: localizedTopicName(topPropose.topic_slug, topPropose.topic_name_ca),
+                })}
+              </div>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {proposeExamples.map((v) => (
+                  <CompactVoteRow
+                    key={v.id}
+                    v={v}
+                    locale={locale}
+                    labels={{ ...voteLabels, result: tVotes(`result.${v.result}` as 'result.approved') }}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+          <style>{`
+            @media (max-width: 860px) {
+              .profile-grid { grid-template-columns: 1fr !important; }
+            }
+          `}</style>
+        </section>
+      )}
+
       {/* Topic-stats */}
       <section style={{ paddingTop: 28 }}>
         <h2 className="h-title">{t('vote_by_topic_title')}</h2>
@@ -368,6 +525,86 @@ function FactRow({
       </span>
       <span style={{ color: 'var(--ink-2)', minWidth: 0, overflowWrap: 'anywhere' }}>{children}</span>
     </div>
+  );
+}
+
+/**
+ * One compact stat card in the thematic profile: an eyebrow label, the
+ * topic (colour dot + name), a single factual figure, and a link to the
+ * relevant filtered view. Kept visually uniform across the three lenses
+ * (proposes / votes Yes / rejects) so none reads as more prominent.
+ */
+function ProfileStatCard({
+  label,
+  topicName,
+  color,
+  stat,
+  statColor,
+  href,
+  linkLabel,
+}: {
+  label: string;
+  topicName: string;
+  color: string | null;
+  stat: string;
+  statColor?: string;
+  href: Route;
+  linkLabel: string;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        border: '1px solid var(--rule)',
+        background: 'var(--paper)',
+        padding: 16,
+        textDecoration: 'none',
+        color: 'inherit',
+        minHeight: 132,
+      }}
+    >
+      <div className="eyebrow" style={{ fontSize: 10 }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <span
+          aria-hidden="true"
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 999,
+            background: color ?? 'var(--ink-3)',
+            flex: 'none',
+          }}
+        />
+        <span
+          className="serif"
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            color: 'var(--ink)',
+            lineHeight: 1.15,
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {topicName}
+        </span>
+      </div>
+      <div
+        className="tabular"
+        style={{ fontSize: 13, fontWeight: 600, color: statColor ?? 'var(--ink-2)', marginTop: 'auto' }}
+      >
+        {stat}
+      </div>
+      <span
+        style={{ fontSize: 12, color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      >
+        {linkLabel} <ArrowRight size={13} aria-hidden="true" />
+      </span>
+    </Link>
   );
 }
 

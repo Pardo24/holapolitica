@@ -753,6 +753,53 @@ def _aggregate_topic_rows(
 
 
 @dataclass(frozen=True, slots=True)
+class ProposesByTopicRow:
+    """How many distinct initiatives a group has PROPOSED, per topic."""
+
+    topic_slug: str
+    topic_name_ca: str
+    topic_color_hex: str | None
+    count: int
+
+
+async def compute_proposes_by_topic_for_group(
+    session: AsyncSession, *, group_id: int
+) -> list[ProposesByTopicRow]:
+    """Per-topic count of distinct initiatives this group has PROPOSED.
+
+    Attribution is via ``Vote.proposing_group_id`` (the resolved proposer of
+    the vote), joined through the linked initiative to its topics. Counts
+    DISTINCT initiatives so a bill that triggered many amendment votes is
+    counted once. Ordered by count desc.
+
+    Symmetric by construction (CLAUDE.md "regla de simetria"): the identical
+    computation runs for every group and the full per-topic list is returned;
+    the API never ranks one group against another.
+    """
+    proposed = func.count(func.distinct(Vote.initiative_id))
+    stmt = (
+        select(Topic.slug, Topic.name_ca, Topic.color_hex, proposed)
+        .select_from(Vote)
+        .join(Initiative, Initiative.id == Vote.initiative_id)
+        .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
+        .join(Topic, Topic.id == InitiativeTopic.topic_id)
+        .where(Vote.proposing_group_id == group_id)
+        .group_by(Topic.slug, Topic.name_ca, Topic.color_hex)
+        .order_by(proposed.desc())
+    )
+    rows = (await session.execute(stmt)).all()
+    return [
+        ProposesByTopicRow(
+            topic_slug=slug,
+            topic_name_ca=name_ca,
+            topic_color_hex=color_hex,
+            count=int(count),
+        )
+        for slug, name_ca, color_hex, count in rows
+    ]
+
+
+@dataclass(frozen=True, slots=True)
 class PersonKPIs:
     """At-a-glance numbers for a deputy's voting record.
 
