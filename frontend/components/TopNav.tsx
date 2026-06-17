@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, CheckSquare, Layers, Newspaper, Scale, Users } from 'lucide-react';
+import { BarChart3, Bell, Layers, Newspaper, Scale, Users } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -42,11 +42,6 @@ export async function TopNav() {
       href: '/lleis' as Route,
       label: t('lleis'),
       icon: <Scale size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
-    {
-      href: '/votes',
-      label: t('votes'),
-      icon: <CheckSquare size={14} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/persons',

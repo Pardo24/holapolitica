@@ -8,8 +8,8 @@ import {
   Gamepad2,
   Layers,
   Mail,
+  Scale,
   Users,
-  Vote as VoteIcon,
 } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
@@ -949,8 +949,8 @@ function MobileDashboard({
         }}
       >
         <DashboardTile
-          href="/votes"
-          icon={<VoteIcon size={26} strokeWidth={1.75} aria-hidden="true" />}
+          href={'/lleis' as Route}
+          icon={<Scale size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tileVotes}
           tint="indigo"
         />
