@@ -525,6 +525,24 @@ export interface InitiativeTypeCount {
   count: number;
 }
 
+/** Per-legislature comparative KPIs from `/stats/legislatures`, most recent
+ *  first. `approval_rate` is approved / votes_total (0 when no votes). */
+export interface LegislatureStat {
+  number: string;
+  name_ca: string;
+  name_es: string;
+  start_date: string;
+  end_date: string | null;
+  status: string;
+  sessions: number;
+  votes_total: number;
+  approved: number;
+  rejected: number;
+  tie: number;
+  assent: number;
+  approval_rate: number;
+}
+
 export interface InitiativeStatusCount {
   status: string;
   count: number;
@@ -869,6 +887,8 @@ export const api = {
       request<InitiativeStatusCount[]>('/stats/initiatives/by-status', { revalidate: AGG_REVALIDATE }),
     votesByResult: () =>
       request<VoteResultCount[]>('/stats/votes/by-result', { revalidate: AGG_REVALIDATE }),
+    legislatures: () =>
+      request<LegislatureStat[]>('/stats/legislatures', { revalidate: AGG_REVALIDATE }),
     votesByProposingGroup: () =>
       request<GroupProposalCount[]>('/stats/votes/by-proposing-group', { revalidate: AGG_REVALIDATE }),
     topicsGlobal: () =>
