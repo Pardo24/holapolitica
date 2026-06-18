@@ -694,6 +694,8 @@
     "proposed_by_government": "Government",
     "totals_label": "Totals · {total} representatives",
     "majority_caveat": "Simple majority required ({needed} votes). Outcome: {ayes} for, {noes} against. Margin: {margin}.",
+    "assent_title": "Approved by assent",
+    "assent_body": "The chamber approved this item by assent, with no recorded vote. There was no opposition, so no per-deputy vote was tallied and there is no count of ayes, noes or abstentions.",
     "plain_summary_title": "Summary",
     "plain_summary_ai_badge": "AI-generated",
     "plain_summary_disclaimer": "Descriptive summary auto-generated from the file text. Expresses no judgment.",

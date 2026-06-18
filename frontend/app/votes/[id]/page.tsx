@@ -79,7 +79,9 @@ export async function generateMetadata({
       year: 'numeric',
     });
     const result = RESULT_CA[v.result] ?? v.result;
-    const description = `Votació al Congrés (${dateStr}): ${result}. ${v.ayes} Sí · ${v.noes} No · ${v.abstentions} Abst.`;
+    const description = v.approved_by_assent
+      ? `Votació al Congrés (${dateStr}): aprovat per assentiment, sense votació nominal.`
+      : `Votació al Congrés (${dateStr}): ${result}. ${v.ayes} Sí · ${v.noes} No · ${v.abstentions} Abst.`;
     return {
       title: subjectShort,
       description,
@@ -514,6 +516,33 @@ export default async function VoteDetailPage({
               padding: 22,
             }}
           >
+            {vote.approved_by_assent ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    margin: 0,
+                    letterSpacing: '-0.012em',
+                  }}
+                >
+                  {t('assent_title')}
+                </h3>
+                <p
+                  style={{
+                    fontSize: 13.5,
+                    lineHeight: 1.6,
+                    color: 'var(--ink-2)',
+                    margin: 0,
+                  }}
+                >
+                  {t('assent_body')}
+                </p>
+              </div>
+            ) : (
+              <>
             <div
               style={{
                 display: 'flex',
@@ -666,9 +695,12 @@ export default async function VoteDetailPage({
                 </div>
               </div>
             )}
+              </>
+            )}
           </section>
         </div>
 
+        {!vote.approved_by_assent && (
         <div>
           <section>
             <SectionTitle dek={t('cohesion_help')}>{t('cohesion_title')}</SectionTitle>
@@ -713,6 +745,7 @@ export default async function VoteDetailPage({
             />
           )}
         </div>
+        )}
       </section>
 
       {/* Footer: initiative / BOE / documents */}
