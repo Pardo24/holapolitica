@@ -31,6 +31,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.rate_limit import limiter
 from app.db.session import get_session
+from app.services.native_push import (
+    delete_device_token,
+    register_device_token,
+)
 from app.services.push import (
     delete_subscription,
     update_interests,
@@ -94,6 +98,26 @@ class SubscriptionResponse(BaseModel):
 class StatusResponse(BaseModel):
     status: str
     detail: str | None = None
+
+
+class DeviceRegisterRequest(BaseModel):
+    """Native (APNs/FCM) device-token registration from the Capacitor app."""
+
+    token: str = Field(..., min_length=1)
+    platform: str = Field("web", pattern="^(ios|android|web)$")
+    topic_slugs: list[str] = Field(default_factory=list)
+    group_slugs: list[str] = Field(default_factory=list)
+
+
+class DeviceResponse(BaseModel):
+    token: str
+    platform: str
+    topic_slugs: list[str]
+    group_slugs: list[str]
+
+
+class DeviceUnregisterRequest(BaseModel):
+    token: str = Field(..., min_length=1)
 
 
 # ---------------------------------------------------------------------------
@@ -195,3 +219,45 @@ async def unsubscribe(
         # Idempotency: a client retrying after a timeout shouldn't 404.
         return StatusResponse(status="not_found", detail="No subscription was registered.")
     return StatusResponse(status="unsubscribed")
+
+
+# ---------------------------------------------------------------------------
+# Native push (APNs/FCM) — the Capacitor app registers its device token here.
+# Parallel to the Web Push endpoints above; the actual FCM delivery is
+# dormant until FCM_SERVICE_ACCOUNT_JSON is configured (see services.native_push).
+# ---------------------------------------------------------------------------
+
+
+@router.post("/devices", response_model=DeviceResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")
+async def register_device(
+    request: Request,
+    payload: DeviceRegisterRequest,
+    session: AsyncSession = Depends(get_session),
+) -> DeviceResponse:
+    device = await register_device_token(
+        session,
+        token=payload.token,
+        platform=payload.platform,
+        topic_slugs=payload.topic_slugs,
+        group_slugs=payload.group_slugs,
+    )
+    return DeviceResponse(
+        token=device.token,
+        platform=device.platform,
+        topic_slugs=list(device.topic_slugs),
+        group_slugs=list(device.group_slugs),
+    )
+
+
+@router.post("/devices/unregister", response_model=StatusResponse)
+@limiter.limit("20/minute")
+async def unregister_device(
+    request: Request,
+    payload: DeviceUnregisterRequest,
+    session: AsyncSession = Depends(get_session),
+) -> StatusResponse:
+    deleted = await delete_device_token(session, token=payload.token)
+    if not deleted:
+        return StatusResponse(status="not_found", detail="No device token was registered.")
+    return StatusResponse(status="unregistered")

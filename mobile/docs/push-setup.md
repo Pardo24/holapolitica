@@ -72,29 +72,60 @@ in June 2024 — use the service-account JSON via the v1 HTTP API instead.
 
 ## 4. Wiring inside the app
 
-The Capacitor plugin gives us tokens in JavaScript:
+The **backend side is already built** (dormant until FCM creds exist):
+
+- `device_tokens` table + `DeviceToken` model (migration `0026_device_tokens`).
+- `POST /push/devices` — idempotent upsert of `{ token, platform, topic_slugs, group_slugs }`.
+- `POST /push/devices/unregister` — `{ token }`.
+- `app.services.native_push.fan_out_native_for_vote(...)` — FCM delivery,
+  a no-op (`skipped='fcm_not_configured'`) until `FCM_SERVICE_ACCOUNT_JSON`
+  is set.
+
+Two activation steps remain on the backend:
+
+1. Set `FCM_SERVICE_ACCOUNT_JSON` (the service-account JSON from step 3).
+2. Call `fan_out_native_for_vote` alongside the web fan-out in
+   `app/workers/jobs.py` (the per-vote push path) so new votes notify
+   native devices too.
+
+Frontend: the WebView **runs the deployed Next.js app**, so register from
+`frontend/` in a `lib/native/push.ts` module guarded by
+`Capacitor.isNativePlatform()` (requires `npm i @capacitor/core
+@capacitor/push-notifications` in `frontend/`):
 
 ```ts
+import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 
-await PushNotifications.requestPermissions();
-await PushNotifications.register();
+const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
-PushNotifications.addListener('registration', (token) => {
-  // token.value is the APNs token on iOS or the FCM token on Android.
-  // Post to the backend so it can target this device.
-  fetch('/api/push/register', { method: 'POST', body: JSON.stringify(token) });
-});
+export async function registerNativePush(topicSlugs: string[], groupSlugs: string[]) {
+  if (!Capacitor.isNativePlatform()) return; // browsers keep using Web Push
+  const perm = await PushNotifications.requestPermissions();
+  if (perm.receive !== 'granted') return;
+  await PushNotifications.register();
+  PushNotifications.addListener('registration', async (token) => {
+    await fetch(`${API}/push/devices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // token.value is the APNs token (iOS) or FCM token (Android).
+      body: JSON.stringify({
+        token: token.value,
+        platform: Capacitor.getPlatform(), // 'ios' | 'android' | 'web'
+        topic_slugs: topicSlugs,
+        group_slugs: groupSlugs,
+      }),
+    });
+  });
+}
 ```
 
-Because the WebView **runs the deployed Next.js app**, this snippet lives
-in `frontend/` (probably in a `lib/native/push.ts` module guarded by
-`Capacitor.isNativePlatform()`). The wrapper does not run this code itself.
+Mount it from the notifications UI so the interests the user already picks
+for Web Push are reused for native. Testing still needs a real device (see §5).
 
-> **Out of scope for the wrapper:** the actual backend endpoint that
-> stores tokens, the topic / segmentation strategy, and the editorial
-> review of every push payload (notifications must remain factual — see
-> CLAUDE.md "mirall, no megàfon" principle).
+> **Editorial guardrail:** native payloads must stay factual — the sender
+> sends only the vote title + a link, no framing (CLAUDE.md "mirall, no
+> megàfon").
 
 ## 5. Testing
 
