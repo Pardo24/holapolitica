@@ -41,6 +41,13 @@ Ingesta forward-only programada amb RQ Scheduler: vots cada 4 h,
 diputats i iniciatives diàries, agenda diària amb reforç els dilluns,
 newsletter setmanal.
 
+> **Actualització juny 2026 — cobertura històrica.** A més de la XV, ara
+> hi ha les legislatures **X-XIV (2011-2026)** carregades a producció:
+> ~14.400 votacions en total i ~4,97M registres individuals de vot. Això
+> obre la porta a mètriques comparatives entre legislatures. La dada ja és
+> consultable per l'API; falta el selector de legislatura al frontend per
+> fer-la navegable.
+
 ### Capa intel·ligent
 
 - **Classificador temàtic LLM** amb Mistral (preferent europeu) i
@@ -100,7 +107,9 @@ Totes les visualitzacions agregades respecten la regla de simetria
 | Extracció de `birth_year` per diputat              | Codi desplegat; execució a producció pendent |
 | Execució del job de classificació ODS/Agenda 2030  | Codi desplegat; execució a producció pendent |
 | **Push natiu (Capacitor → iOS + Android)**         | Base construïda (taula `device_tokens`, endpoint de registre, sender FCM dorment). Bloquejat en: clau APNs d'Apple Developer ($99/any) + projecte Firebase + build nativa per activar |
-| Backfill històric (legislatures XIV→X)             | Codi de backfill llest; execució pendent |
+| Backfill històric (legislatures XIV→X)             | **Fet (juny 2026)** — executat a producció: ~12.500 votacions noves i ~4,3M registres individuals (X-XV ara cobertes, 2011-2026). Va requerir un importador de diputats històrics, ampliar `parliamentary_groups.slug` i gestionar les votacions per assentiment. 28 sessions amb 404 a la font (gaps documentats) |
+| Exposar dades històriques a la UI (selector de legislatura) | Pendent — les dades X-XIV ja són a la BD i servibles per l'API (`?legislature_id=`), però el frontend encara no té cap selector per navegar-les |
+| Classificació ODS/Agenda 2030 a producció          | Pendent d'execució — 0/1.483 iniciatives classificades; el classificador Mistral està configurat però el job (LLM, ~30 min) encara no s'ha llançat |
 
 El cicle "votació → iniciativa → text aprovat" ja està tancat per a la
 XV legislatura: el scraper de sèries (PNL/Moció/RDL/Reforma) i el backfill
@@ -278,7 +287,7 @@ Decisions estructurals que demanen criteri extern abans d'executar-les.
 
 ```
 2026 Q2 ─ Congrés XV complet en producció (PNL/Moció/RDL + enllaços fets); /lleis + perfils de partit; Catalunya en preparació
-2026 Q3 ─ Activació push natiu + fase 1 Catalunya + backfill històric
+2026 Q3 ─ Backfill històric X-XV FET; pendent: selector de legislatura UI + activació push natiu + fase 1 Catalunya
 2026 Q4 ─ Catalunya en producció + newsletter avançada
 2027 Q1 ─ Senat + Barcelona Plenari
 2027 Q2 ─ Mètriques cross-cambra + integració BOE
