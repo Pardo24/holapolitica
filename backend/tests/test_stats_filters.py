@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import (
 from app.api.stats import (
     _compute_cross_topic_group,
     _compute_group_activity,
+    _compute_legislature_stats,
     _compute_topic_proposers,
 )
 from app.db.base import Base
@@ -37,6 +38,11 @@ from app.models import (
     LegislatureStatus,
     ParliamentaryGroup,
     Topic,
+    Vote,
+    VoteResult,
+)
+from app.models import (
+    Session as SessionModel,
 )
 
 
@@ -465,3 +471,106 @@ async def test_cross_topic_group_unknown_group_returns_empty_joint(
     assert any(
         r.slug == "gp-socialista" and r.count == 1 for r in out.initiatives_on_topic_by_group
     )
+
+
+# ---------------------------------------------------------------------------
+# cross-legislature stats
+# ---------------------------------------------------------------------------
+
+
+async def _seed_vote(
+    session: AsyncSession,
+    *,
+    sess: SessionModel,
+    seq: int,
+    result: VoteResult,
+    approved_by_assent: bool = False,
+) -> None:
+    session.add(
+        Vote(
+            session_id=sess.id,
+            sequence_in_session=seq,
+            title=f"Vote {seq}",
+            voted_at=datetime(2024, 1, 1, 12, 0, tzinfo=UTC),
+            result=result,
+            approved_by_assent=approved_by_assent,
+        )
+    )
+    await session.flush()
+
+
+async def test_legislature_stats_aggregates_and_ordering(db_session: AsyncSession) -> None:
+    leg_xv, _psoe, _pp, _h, _l = await _seed_scaffold(db_session)
+    chamber_id = cast(int, leg_xv.chamber_id)
+    # A second, older, concluded legislature.
+    leg_xiv = Legislature(
+        chamber_id=chamber_id,
+        number="XIV",
+        name_ca="XIV",
+        name_es="XIV",
+        name_en="XIV",
+        start_date=date(2019, 12, 3),
+        end_date=date(2023, 8, 16),
+        status=LegislatureStatus.CONCLUDED,
+    )
+    db_session.add(leg_xiv)
+    await db_session.flush()
+
+    s_xv = SessionModel(
+        chamber_id=chamber_id,
+        legislature_id=leg_xv.id,
+        date=date(2024, 1, 1),
+        type="plenary",
+        title="S1",
+    )
+    s_xiv = SessionModel(
+        chamber_id=chamber_id,
+        legislature_id=leg_xiv.id,
+        date=date(2020, 1, 1),
+        type="plenary",
+        title="S2",
+    )
+    db_session.add_all([s_xv, s_xiv])
+    await db_session.flush()
+
+    # XV: 2 approved, 1 rejected.
+    await _seed_vote(db_session, sess=s_xv, seq=1, result=VoteResult.APPROVED)
+    await _seed_vote(db_session, sess=s_xv, seq=2, result=VoteResult.APPROVED)
+    await _seed_vote(db_session, sess=s_xv, seq=3, result=VoteResult.REJECTED)
+    # XIV: 1 approved by assent (counts as approved), 1 rejected.
+    await _seed_vote(
+        db_session, sess=s_xiv, seq=1, result=VoteResult.APPROVED, approved_by_assent=True
+    )
+    await _seed_vote(db_session, sess=s_xiv, seq=2, result=VoteResult.REJECTED)
+    await db_session.commit()
+
+    rows = await _compute_legislature_stats(db_session)
+
+    # Most recent first.
+    assert [r.number for r in rows] == ["XV", "XIV"]
+
+    xv = rows[0]
+    assert xv.votes_total == 3
+    assert xv.approved == 2
+    assert xv.rejected == 1
+    assert xv.assent == 0
+    assert xv.sessions == 1
+    assert abs(xv.approval_rate - 2 / 3) < 1e-9
+
+    xiv = rows[1]
+    assert xiv.votes_total == 2
+    assert xiv.approved == 1
+    assert xiv.assent == 1
+    assert xiv.status == LegislatureStatus.CONCLUDED
+    assert abs(xiv.approval_rate - 0.5) < 1e-9
+
+
+async def test_legislature_stats_handles_legislature_with_no_votes(
+    db_session: AsyncSession,
+) -> None:
+    await _seed_scaffold(db_session)
+    await db_session.commit()
+    rows = await _compute_legislature_stats(db_session)
+    assert len(rows) == 1
+    assert rows[0].votes_total == 0
+    assert rows[0].approval_rate == 0.0

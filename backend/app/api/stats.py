@@ -21,9 +21,11 @@ the most recent ingest run.
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import desc, func, select
+from sqlalchemy import Integer, cast, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -36,10 +38,15 @@ from app.models import (
     InitiativeStatus,
     InitiativeTopic,
     InitiativeType,
+    Legislature,
+    LegislatureStatus,
     ParliamentaryGroup,
     Topic,
     Vote,
     VoteResult,
+)
+from app.models import (
+    Session as SessionModel,
 )
 from app.services.cache import cached
 
@@ -86,6 +93,29 @@ class GlobalSummary(BaseModel):
     initiatives_total: int
     votes_total: int
     initiatives_classified: int
+
+
+class LegislatureStat(BaseModel):
+    """Per-legislature comparative KPIs for the cross-legislature view.
+
+    One row per legislature (X-XV today). Only outcome-level aggregates that
+    are cheap to compute over the full vote universe; per-deputy cohesion is a
+    heavier, separate computation. ``approval_rate`` is approved / votes_total
+    (0 when a legislature has no recorded votes, e.g. a dissolved term)."""
+
+    number: str
+    name_ca: str
+    name_es: str
+    start_date: date
+    end_date: date | None
+    status: LegislatureStatus
+    sessions: int
+    votes_total: int
+    approved: int
+    rejected: int
+    tie: int
+    assent: int
+    approval_rate: float
 
 
 class InitiativeMini(BaseModel):
@@ -257,6 +287,89 @@ async def votes_by_result(
         return [VoteResultCount(result=r, count=c) for r, c in rows]
 
     return await cached("stats:votes:by-result", _CACHE_TTL, factory)
+
+
+async def _compute_legislature_stats(session: AsyncSession) -> list[LegislatureStat]:
+    """Per-legislature comparative KPIs, most recent first.
+
+    Symmetric by construction — every legislature's full aggregates, never a
+    partisan slice (CLAUDE.md "regla de simetria")."""
+    legs = (
+        (await session.execute(select(Legislature).order_by(Legislature.start_date.desc())))
+        .scalars()
+        .all()
+    )
+
+    # Votes grouped by (legislature, result) + per-legislature assent tally,
+    # in one pass over votes joined to their session.
+    vote_rows = (
+        await session.execute(
+            select(
+                SessionModel.legislature_id,
+                Vote.result,
+                func.count(Vote.id),
+                func.sum(cast(Vote.approved_by_assent, Integer)),
+            )
+            .join(SessionModel, Vote.session_id == SessionModel.id)
+            .group_by(SessionModel.legislature_id, Vote.result)
+        )
+    ).all()
+    session_rows = (
+        await session.execute(
+            select(SessionModel.legislature_id, func.count(SessionModel.id)).group_by(
+                SessionModel.legislature_id
+            )
+        )
+    ).all()
+
+    sessions_by_leg = {leg_id: n for leg_id, n in session_rows}
+    # leg_id -> {"approved": n, "rejected": n, "tie": n, "assent": n}
+    agg: dict[int, dict[str, int]] = {}
+    for leg_id, result, count, assent in vote_rows:
+        bucket = agg.setdefault(leg_id, {"approved": 0, "rejected": 0, "tie": 0, "assent": 0})
+        # result comes back as the raw string ("approved") from the grouped
+        # query, not the VoteResult enum.
+        key = result.value if hasattr(result, "value") else str(result)
+        bucket[key] = bucket.get(key, 0) + count
+        bucket["assent"] += int(assent or 0)
+
+    out: list[LegislatureStat] = []
+    for leg in legs:
+        b = agg.get(leg.id, {"approved": 0, "rejected": 0, "tie": 0, "assent": 0})
+        votes_total = b["approved"] + b["rejected"] + b["tie"]
+        out.append(
+            LegislatureStat(
+                number=leg.number,
+                name_ca=leg.name_ca,
+                name_es=leg.name_es,
+                start_date=leg.start_date,
+                end_date=leg.end_date,
+                status=leg.status,
+                sessions=sessions_by_leg.get(leg.id, 0),
+                votes_total=votes_total,
+                approved=b["approved"],
+                rejected=b["rejected"],
+                tie=b["tie"],
+                assent=b["assent"],
+                approval_rate=(b["approved"] / votes_total) if votes_total else 0.0,
+            )
+        )
+    return out
+
+
+@router.get("/legislatures", response_model=list[LegislatureStat])
+async def stats_legislatures(
+    session: AsyncSession = Depends(get_session),
+) -> list[LegislatureStat]:
+    """Comparative KPIs per legislature, most recent first.
+
+    Powers the cross-legislature comparison view unlocked by the historical
+    backfill (X-XV)."""
+
+    async def factory() -> list[LegislatureStat]:
+        return await _compute_legislature_stats(session)
+
+    return await cached("stats:legislatures", _CACHE_TTL, factory)
 
 
 @router.get("/votes/by-proposing-group", response_model=list[GroupProposalCount])
