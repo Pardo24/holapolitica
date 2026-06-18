@@ -97,6 +97,64 @@ async def import_active_deputies() -> ImportStats:
         return await importer.import_payload(payload)
 
 
+async def import_legislature_deputies(roman: str, number: int) -> ImportStats:
+    """Import the deputy roster of a concluded legislature (XIV…X).
+
+    Uses the per-legislature snapshot dataset (``odsDiputados{NN}``) rather than
+    the live active-deputies file, creating Person / Mandate / GroupMembership
+    rows for a past legislature — without which a vote backfill can't attribute
+    its ``vote_records`` to deputies or groups. ``number`` follows the Congreso
+    convention (14 = XIV). Idempotent: ``DeputyImporter`` upserts. The legislature
+    spec comes from ``_HISTORICAL_LEGISLATURES``.
+    """
+    spec = _HISTORICAL_LEGISLATURES.get(roman)
+    if spec is None:
+        raise ValueError(f"Unknown legislature {roman!r}. Add it to _HISTORICAL_LEGISLATURES.")
+    async with AsyncSessionLocal() as session:
+        chamber = await _get_congreso_chamber(session)
+        leg = await _ensure_legislature(
+            session,
+            chamber,
+            number=roman,
+            name_ca=str(spec["name_ca"]),
+            name_es=str(spec["name_es"]),
+            name_en=str(spec["name_en"]),
+            start_iso=str(spec["start"]),
+            end_iso=str(spec["end"]) if spec["end"] else None,
+            status="concluded",
+        )
+        log.info("bootstrap.legislature_deputies.starting", legislature=roman, number=number)
+        async with CongresoClient() as client:
+            payload = await client.fetch_legislature_deputies(number)
+        importer = DeputyImporter(session, chamber, leg)
+        return await importer.import_payload(payload)
+
+
+async def import_deputies_xiv() -> ImportStats:
+    """Import the XIV-legislature deputy roster (Dec 2019 – Aug 2023)."""
+    return await import_legislature_deputies("XIV", 14)
+
+
+async def import_deputies_xiii() -> ImportStats:
+    """Import the XIII-legislature deputy roster (May 2019 – Sept 2019)."""
+    return await import_legislature_deputies("XIII", 13)
+
+
+async def import_deputies_xii() -> ImportStats:
+    """Import the XII-legislature deputy roster (Jul 2016 – Mar 2019)."""
+    return await import_legislature_deputies("XII", 12)
+
+
+async def import_deputies_xi() -> ImportStats:
+    """Import the XI-legislature deputy roster (Jan 2016 – May 2016)."""
+    return await import_legislature_deputies("XI", 11)
+
+
+async def import_deputies_x() -> ImportStats:
+    """Import the X-legislature deputy roster (Dec 2011 – Jan 2016)."""
+    return await import_legislature_deputies("X", 10)
+
+
 async def import_latest_session_votes() -> VoteImportStats | None:
     """Fetch and upsert the latest session's votes.
 
@@ -1164,6 +1222,11 @@ async def _reset_boe_step() -> dict[str, int]:
 
 _STEPS = {
     "deputies": import_active_deputies,
+    "deputies_xiv": import_deputies_xiv,
+    "deputies_xiii": import_deputies_xiii,
+    "deputies_xii": import_deputies_xii,
+    "deputies_xi": import_deputies_xi,
+    "deputies_x": import_deputies_x,
     "initiatives": import_initiatives,
     "enrich_wikidata": _enrich_wikidata_step,
     "enrich_boe": _enrich_boe_step,
