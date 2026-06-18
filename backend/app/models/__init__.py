@@ -261,8 +261,10 @@ class ParliamentaryGroup(Base, TimestampMixin):
     legislature_id: Mapped[int] = mapped_column(
         ForeignKey("legislatures.id"), nullable=False, index=True
     )
-    slug: Mapped[str] = mapped_column(String(50), nullable=False)
-    name_short: Mapped[str] = mapped_column(String(50), nullable=False)
+    # 120, not 50: historical coalition groups have long names/slugs, e.g.
+    # "GP Confederal de Unidas Podemos-En Comú Podem-Galicia en Común".
+    slug: Mapped[str] = mapped_column(String(120), nullable=False)
+    name_short: Mapped[str] = mapped_column(String(120), nullable=False)
     name_long: Mapped[str] = mapped_column(String(255), nullable=False)
     color_hex: Mapped[str | None] = mapped_column(String(7))  # e.g. '#FF0000'
     # Optional URL to an official party / group logo. The Congreso
