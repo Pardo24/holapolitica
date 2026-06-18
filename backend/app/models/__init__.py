@@ -502,9 +502,7 @@ class Vote(Base, TimestampMixin):
     # (acclamation) with no roll-call and no numeric tally. ayes/noes/
     # abstentions/absent are all 0 and there are no VoteRecord rows. The UI
     # must render these as "approved by assent", not as a 0-0-0 count.
-    approved_by_assent: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    approved_by_assent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     # Plain-language summaries owned by the *vote* row. Populated only for
     # votes without a linked Initiative (PNL, mociones, reform debates,
     # ad-hoc procedural votes). When NULL and ``initiative_id`` is set, the

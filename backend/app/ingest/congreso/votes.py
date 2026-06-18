@@ -404,9 +404,11 @@ class VoteImporter:
                 abstentions=parsed.abstentions,
                 # Assent votes carry no presence count, so leave absent at 0
                 # rather than inferring the whole chamber was missing.
-                absent=0
-                if parsed.approved_by_assent
-                else max(0, _SEATS_PER_LEGISLATURE - parsed.presentes),
+                absent=(
+                    0
+                    if parsed.approved_by_assent
+                    else max(0, _SEATS_PER_LEGISLATURE - parsed.presentes)
+                ),
                 approved_by_assent=parsed.approved_by_assent,
                 expediente_raw=expediente_raw,
                 graphic_url=graphic_url,

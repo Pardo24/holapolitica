@@ -141,7 +141,9 @@ async def fan_out_native_for_vote(
         log.error("native_push.fcm.sdk_missing")
         return NativeFanOutResult(skipped="sdk_missing")
 
-    if not firebase_admin._apps:  # noqa: SLF001 — documented init guard
+    # firebase_admin._apps is the SDK's documented way to check whether the
+    # default app is already initialised (it has no public accessor).
+    if not firebase_admin._apps:
         firebase_admin.initialize_app(credentials.Certificate(creds))
 
     body = (vote.description or vote.title or "").strip()[:140]
