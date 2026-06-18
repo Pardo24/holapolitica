@@ -117,10 +117,21 @@ class ParsedVote:
     abstentions: int
     no_votes: int  # "No vota" — present but didn't cast (or absent; the XML doesn't distinguish)
     records: list[ParsedVoteRecord]
+    # True for "votación por asentimiento": the chamber approved the item by
+    # assent (acclamation), so the XML carries an <Asentimiento> marker and
+    # NO numeric tally or per-deputy roll-call. All counts are 0 and
+    # ``records`` is empty; the outcome is APPROVED by definition (had anyone
+    # objected, the Mesa would have ordered a counted vote instead).
+    approved_by_assent: bool = False
 
     @property
     def result(self) -> VoteResult:
-        """Approved if Sí strictly beats No, rejected if No strictly beats Sí, else tie."""
+        """Approved if Sí strictly beats No, rejected if No strictly beats Sí, else tie.
+
+        Assent votes have no tally, so they short-circuit to APPROVED.
+        """
+        if self.approved_by_assent:
+            return VoteResult.APPROVED
         if self.ayes > self.noes:
             return VoteResult.APPROVED
         if self.noes > self.ayes:
@@ -147,8 +158,33 @@ def parse_vote_xml(payload: bytes) -> ParsedVote:
     info = root.find("Informacion")
     totals = root.find("Totales")
     items = root.find("Votaciones")
-    if info is None or totals is None or items is None:
-        raise VoteParseError("Vote XML missing Informacion/Totales/Votaciones")
+    if info is None or totals is None:
+        raise VoteParseError("Vote XML missing Informacion/Totales")
+
+    # Votación por asentimiento: <Totales> carries <Asentimiento> instead of a
+    # numeric tally, and there is no per-deputy roll-call. Detect it by the
+    # absence of <Presentes> (the first numeric field) so a missing-field error
+    # isn't raised for a perfectly valid assent vote — these recur across every
+    # legislature, especially in pre-2020 sessions.
+    is_assent = totals.find("Presentes") is None and totals.find("Asentimiento") is not None
+    if is_assent:
+        return ParsedVote(
+            session_number=_int(info, "Sesion"),
+            vote_number=_int(info, "NumeroVotacion"),
+            voted_on=parse_dmy_date(_text(info, "Fecha", required=True)),
+            title=_text(info, "Titulo", required=True).strip(),
+            expediente_text=(_text(info, "TextoExpediente") or "").strip() or None,
+            presentes=0,
+            ayes=0,
+            noes=0,
+            abstentions=0,
+            no_votes=0,
+            records=[],
+            approved_by_assent=True,
+        )
+
+    if items is None:
+        raise VoteParseError("Vote XML missing Votaciones")
 
     return ParsedVote(
         session_number=_int(info, "Sesion"),
@@ -366,7 +402,12 @@ class VoteImporter:
                 ayes=parsed.ayes,
                 noes=parsed.noes,
                 abstentions=parsed.abstentions,
-                absent=max(0, _SEATS_PER_LEGISLATURE - parsed.presentes),
+                # Assent votes carry no presence count, so leave absent at 0
+                # rather than inferring the whole chamber was missing.
+                absent=0
+                if parsed.approved_by_assent
+                else max(0, _SEATS_PER_LEGISLATURE - parsed.presentes),
+                approved_by_assent=parsed.approved_by_assent,
                 expediente_raw=expediente_raw,
                 graphic_url=graphic_url,
                 proposing_group_id=proposing_group_id,
@@ -383,7 +424,12 @@ class VoteImporter:
             vote.ayes = parsed.ayes
             vote.noes = parsed.noes
             vote.abstentions = parsed.abstentions
-            vote.absent = max(0, _SEATS_PER_LEGISLATURE - parsed.presentes)
+            vote.absent = (
+                0
+                if parsed.approved_by_assent
+                else max(0, _SEATS_PER_LEGISLATURE - parsed.presentes)
+            )
+            vote.approved_by_assent = parsed.approved_by_assent
             vote.expediente_raw = expediente_raw
             if initiative_id is not None:
                 vote.initiative_id = initiative_id

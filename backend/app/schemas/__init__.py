@@ -250,6 +250,7 @@ class InitiativeVoteSummary(BaseModel):
     noes: int
     abstentions: int
     absent: int
+    approved_by_assent: bool = False
 
 
 class InitiativeTopicSlug(BaseModel):
@@ -315,6 +316,9 @@ class VoteRead(BaseModel):
     proposing_group_short: str | None = None
     proposing_group_color: str | None = None
     proposed_by_government: bool = False
+    # True when approved by assent (acclamation): no roll-call, no tally.
+    # The frontend renders a dedicated label instead of a 0-0-0 count.
+    approved_by_assent: bool = False
     # Plain-language summary, pulled from the linked Initiative when one
     # exists, per locale. NULL when the vote isn't initiative-linked yet,
     # or when the generator declined / hasn't run for that locale.

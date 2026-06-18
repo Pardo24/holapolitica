@@ -233,6 +233,9 @@ export interface Vote {
   proposing_group_short: string | null;
   proposing_group_color: string | null;
   proposed_by_government: boolean;
+  /** Approved by assent (acclamation): no roll-call, no tally. Counts are
+   *  all 0 — render a dedicated label instead of a 0-0-0 breakdown. */
+  approved_by_assent?: boolean;
   plain_summary_ca: string | null;
   plain_summary_es: string | null;
   plain_summary_provider: string | null;

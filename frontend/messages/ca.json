@@ -694,6 +694,8 @@
     "proposed_by_government": "Govern",
     "totals_label": "Totals · {total} diputats",
     "majority_caveat": "Per ser aprovada calia majoria simple ({needed} vots). Resultat: {ayes} a favor, {noes} en contra. Marge: {margin}.",
+    "assent_title": "Aprovat per assentiment",
+    "assent_body": "La cambra va aprovar aquest punt per assentiment, sense votació nominal. No hi va haver oposició, així que no es va comptar el vot de cada diputat ni hi ha recompte de Sí, No o abstencions.",
     "plain_summary_title": "Explicació resumida",
     "plain_summary_ai_badge": "Generat amb IA",
     "plain_summary_disclaimer": "Resum descriptiu generat automàticament a partir del text de l'expedient. No expressa cap valoració.",
