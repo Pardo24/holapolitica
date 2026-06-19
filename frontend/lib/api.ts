@@ -528,6 +528,7 @@ export interface InitiativeTypeCount {
 /** Per-legislature comparative KPIs from `/stats/legislatures`, most recent
  *  first. `approval_rate` is approved / votes_total (0 when no votes). */
 export interface LegislatureStat {
+  id: number;
   number: string;
   name_ca: string;
   name_es: string;

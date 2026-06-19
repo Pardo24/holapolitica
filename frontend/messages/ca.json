@@ -192,6 +192,7 @@
     "persons": "Representants",
     "topics": "Temes",
     "stats": "Dades",
+    "legislatures": "Legislatures",
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificacions",
@@ -629,6 +630,19 @@
     "surface_joc_title": "Joc cívic",
     "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
     "surface_joc_cta": "Posa't a prova"
+  },
+  "legislatures": {
+    "title": "Les legislatures",
+    "subtitle": "Compara l'activitat de cada legislatura del Congrés (2011-2026): volum de votacions, taxa d'aprovació i aprovacions per assentiment.",
+    "legislature_n": "{number} legislatura",
+    "status_active": "Actual",
+    "status_concluded": "Conclosa",
+    "status_dissolved": "Dissolta",
+    "th_sessions": "Sessions",
+    "th_votes": "Votacions",
+    "th_approval": "Taxa d'aprovació",
+    "th_assent": "Per assentiment",
+    "footnote": "La taxa d'aprovació és el percentatge de votacions aprovades sobre el total amb resultat. Les dades històriques (X-XIV) provenen del backfill del portal de dades obertes del Congrés."
   },
   "votes": {
     "title": "Votacions",
