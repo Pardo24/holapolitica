@@ -7,9 +7,10 @@ import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
 import { TopicChipsStrip } from '@/components/TopicChipsStrip';
+import { LegislatureSelector } from '@/components/LegislatureSelector';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VotesFilterCard } from '@/components/VotesFilterCard';
-import { api, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
+import { api, type Legislature, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
 
 interface SearchParams {
   /**
@@ -30,6 +31,8 @@ interface SearchParams {
   /** YYYY-MM-DD — both set together when the calendar strip cell is tapped. */
   date_from?: string;
   date_to?: string;
+  /** Legislature id to browse (historical). Absent = current (active). */
+  legislature?: string;
 }
 
 export default async function VotesPage({
@@ -103,11 +106,27 @@ async function VotesListTab({ params }: { params: SearchParams }) {
   let groups: Awaited<ReturnType<typeof api.groups.list>> = [];
   let upcomingSessions: ScheduledSession[] = [];
   let topicCounts: Awaited<ReturnType<typeof api.stats.topicsGlobal>> = [];
+  let legislatures: Legislature[] = [];
   let error: string | null = null;
+
+  // Resolve which legislature to browse. The list is fetched first so we can
+  // map the ?legislature=<id> param to the active default and scope every
+  // other query to it. Falls back to "all current" if the list endpoint fails.
+  legislatures = await api.legislatures
+    .list()
+    .then((rows) => rows.slice().sort((a, b) => b.start_date.localeCompare(a.start_date)))
+    .catch(() => [] as Legislature[]);
+  const activeLeg = legislatures.find((l) => l.status === 'active') ?? legislatures[0] ?? null;
+  const requestedId = params.legislature ? Number(params.legislature) : null;
+  const selectedLeg =
+    (requestedId != null && legislatures.find((l) => l.id === requestedId)) || activeLeg;
+  const selectedLegId = selectedLeg?.id;
+  const isHistorical = !!selectedLeg && !!activeLeg && selectedLeg.id !== activeLeg.id;
 
   try {
     [data, topics, groups, upcomingSessions, topicCounts] = await Promise.all([
       api.votes.list({
+        legislature_id: selectedLegId,
         topic_slug: params.topic_slug,
         proposing_group_slug: params.proposing_group_slug,
         result: params.result,
@@ -118,7 +137,9 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         page_size: 20,
       }),
       api.topics.list().catch(() => [] as Awaited<ReturnType<typeof api.topics.list>>),
-      api.groups.list().catch(() => [] as Awaited<ReturnType<typeof api.groups.list>>),
+      api.groups
+        .list(selectedLegId)
+        .catch(() => [] as Awaited<ReturnType<typeof api.groups.list>>),
       // Compact agenda banner above the list — same upcoming data as the
       // home page, but `mode="compact"` hides it entirely when empty so
       // the table is not preceded by a stale "no data" block.
@@ -162,10 +183,21 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
+          justifyContent: legislatures.length > 1 ? 'space-between' : 'flex-end',
+          gap: 12,
+          flexWrap: 'wrap',
           paddingTop: 14,
         }}
       >
+        {legislatures.length > 1 && selectedLegId != null && (
+          <LegislatureSelector
+            legislatures={legislatures}
+            activeId={activeLeg?.id ?? null}
+            selectedId={selectedLegId}
+            label={t('legislature_label')}
+            currentSuffix={t('legislature_current')}
+          />
+        )}
         <div className="tabular" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
           <span style={{ color: 'var(--ink)', fontWeight: 600 }}>
             {data ? data.total.toLocaleString(locale) : '—'}
@@ -178,6 +210,27 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           )}
         </div>
       </div>
+
+      {isHistorical && selectedLeg && (
+        <p
+          style={{
+            margin: '10px 0 0',
+            padding: '8px 12px',
+            borderRadius: 8,
+            background: 'var(--paper-2)',
+            border: '1px solid var(--rule)',
+            fontSize: 12.5,
+            color: 'var(--ink-2)',
+            lineHeight: 1.5,
+          }}
+        >
+          {t('legislature_historical_note', {
+            number: selectedLeg.number,
+            start: new Date(selectedLeg.start_date).getFullYear(),
+            end: selectedLeg.end_date ? new Date(selectedLeg.end_date).getFullYear() : '',
+          })}
+        </p>
+      )}
 
       {/* Horizontal chip strip of every theme topic — same component
           on desktop and mobile. Each chip is a scroll-snap target so

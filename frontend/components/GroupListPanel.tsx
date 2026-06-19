@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { GroupBadge } from '@/components/GroupBadge';
@@ -21,9 +22,9 @@ import { displayGroupFullName } from '@/lib/groups';
  * intrinsic content width, which made parties with long names or 3-digit
  * counts grow disproportionately — visually privileging them.
  */
-export async function GroupListPanel() {
+export async function GroupListPanel({ legislatureId }: { legislatureId?: number } = {}) {
   const t = await getTranslations('groups');
-  const groups = await api.groups.list();
+  const groups = await api.groups.list(legislatureId);
   const sorted = [...groups].sort(
     (a, b) => b.members_active - a.members_active,
   );
@@ -49,6 +50,7 @@ export async function GroupListPanel() {
           key={g.id}
           group={g}
           membersLabel={t('members_label', { count: g.members_active })}
+          legislatureId={legislatureId}
         />
       ))}
       <style>{`
@@ -75,14 +77,23 @@ export async function GroupListPanel() {
 function GroupCard({
   group,
   membersLabel,
+  legislatureId,
 }: {
   group: ParliamentaryGroupSummary;
   membersLabel: string;
+  legislatureId?: number;
 }) {
+  // Carry the legislature so a historical card links to that era's group,
+  // not the most-recent one the bare slug would resolve to.
+  const href = (
+    legislatureId
+      ? `/groups/${group.slug}?legislature_id=${legislatureId}`
+      : `/groups/${group.slug}`
+  ) as Route;
   return (
     <li style={{ display: 'flex' }}>
       <Link
-        href={`/groups/${group.slug}`}
+        href={href}
         style={{
           // Fill the whole grid cell so every card is the same size,
           // even when the name wraps to 2 lines or the count is shorter.
