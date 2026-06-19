@@ -211,7 +211,7 @@
     "pagination_label": "Page {page} of {last}",
     "prev": "Previous",
     "next": "Next",
-    "search_placeholder": "Search by title or file number",
+    "search_placeholder": "Search the law's text (title, summary, content)",
     "topic_label": "Topic",
     "topic_placeholder": "All topics",
     "clear_all": "Clear",

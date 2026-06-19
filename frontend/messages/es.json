@@ -211,7 +211,7 @@
     "pagination_label": "Página {page} de {last}",
     "prev": "Anterior",
     "next": "Siguiente",
-    "search_placeholder": "Buscar por título o expediente",
+    "search_placeholder": "Busca en el texto de la ley (título, resumen, contenido)",
     "topic_label": "Tema",
     "topic_placeholder": "Todos los temas",
     "clear_all": "Limpiar",
