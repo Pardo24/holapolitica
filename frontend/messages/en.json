@@ -187,6 +187,7 @@
   },
   "nav": {
     "avui": "Plenary chronicle",
+    "joc": "Game",
     "lleis": "Laws",
     "votes": "Votes",
     "persons": "Representatives",
@@ -631,6 +632,24 @@
     "surface_joc_title": "Civic game",
     "surface_joc_body": "Guess who proposed a vote or how it ended. A light way to learn how Congress votes.",
     "surface_joc_cta": "Test yourself"
+  },
+  "game": {
+    "meta_title": "The game · Hola Política",
+    "meta_description": "Test what you know about Spanish politics with real data from the Congreso.",
+    "title": "The game",
+    "subtitle": "A trivia game built from real Congreso data. Guess and learn what was voted, who proposes it and how the parties vote.",
+    "progress": "{n}/{total}",
+    "category_partits": "Parties",
+    "category_lleis": "Laws",
+    "category_temes": "Topics",
+    "explore": "Explore the real vote",
+    "next": "Next",
+    "finish": "See result",
+    "score_title": "Score",
+    "score_line": "You got {score} of {total} right",
+    "play_again": "Play again",
+    "loading": "Loading…",
+    "unavailable": "There isn't enough data to play right now."
   },
   "align": {
     "title": "How do they represent you?",

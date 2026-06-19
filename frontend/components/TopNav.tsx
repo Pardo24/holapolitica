@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, Landmark, Layers, Newspaper, Scale, Users } from 'lucide-react';
+import { BarChart3, Bell, Gamepad2, Landmark, Layers, Newspaper, Scale, Users } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -38,6 +38,11 @@ export async function TopNav() {
   // serif/grayscale aesthetic. Stroke 1.8 + size 14 keeps them lighter
   // than the wordmark so the label still leads.
   const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
+    {
+      href: '/joc' as Route,
+      label: t('joc'),
+      icon: <Gamepad2 size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
     {
       href: '/lleis' as Route,
       label: t('lleis'),
