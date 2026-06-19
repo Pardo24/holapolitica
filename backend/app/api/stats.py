@@ -103,6 +103,7 @@ class LegislatureStat(BaseModel):
     heavier, separate computation. ``approval_rate`` is approved / votes_total
     (0 when a legislature has no recorded votes, e.g. a dissolved term)."""
 
+    id: int
     number: str
     name_ca: str
     name_es: str
@@ -339,6 +340,7 @@ async def _compute_legislature_stats(session: AsyncSession) -> list[LegislatureS
         votes_total = b["approved"] + b["rejected"] + b["tie"]
         out.append(
             LegislatureStat(
+                id=leg.id,
                 number=leg.number,
                 name_ca=leg.name_ca,
                 name_es=leg.name_es,

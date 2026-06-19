@@ -192,6 +192,7 @@
     "persons": "Representantes",
     "topics": "Temas",
     "stats": "Datos",
+    "legislatures": "Legislaturas",
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificaciones",
@@ -629,6 +630,19 @@
     "surface_joc_title": "Juego cívico",
     "surface_joc_body": "Adivina quién propuso una votación o cómo salió. Una forma ligera de aprender cómo vota el Congreso.",
     "surface_joc_cta": "Ponte a prueba"
+  },
+  "legislatures": {
+    "title": "Las legislaturas",
+    "subtitle": "Compara la actividad de cada legislatura del Congreso (2011-2026): volumen de votaciones, tasa de aprobación y aprobaciones por asentimiento.",
+    "legislature_n": "{number} legislatura",
+    "status_active": "Actual",
+    "status_concluded": "Concluida",
+    "status_dissolved": "Disuelta",
+    "th_sessions": "Sesiones",
+    "th_votes": "Votaciones",
+    "th_approval": "Tasa de aprobación",
+    "th_assent": "Por asentimiento",
+    "footnote": "La tasa de aprobación es el porcentaje de votaciones aprobadas sobre el total con resultado. Los datos históricos (X-XIV) provienen del backfill del portal de datos abiertos del Congreso."
   },
   "votes": {
     "title": "Votaciones",
