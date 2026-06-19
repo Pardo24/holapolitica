@@ -527,6 +527,30 @@ export interface InitiativeTypeCount {
 
 /** Per-legislature comparative KPIs from `/stats/legislatures`, most recent
  *  first. `approval_rate` is approved / votes_total (0 when no votes). */
+/** One group's majority stance on a vote, for the alignment questionnaire. */
+export interface AlignGroupPosition {
+  slug: string;
+  name_short: string;
+  color_hex: string | null;
+  choice: 'aye' | 'no' | 'abstention';
+}
+
+export interface AlignTopic {
+  slug: string;
+  name_ca: string;
+  color_hex?: string | null;
+}
+
+/** A vote presented in "Com et representen?" with each group's real stance. */
+export interface AlignQuestion {
+  vote_id: number;
+  title: string;
+  plain_summary_ca: string | null;
+  plain_summary_es: string | null;
+  topics: AlignTopic[];
+  group_positions: AlignGroupPosition[];
+}
+
 export interface LegislatureStat {
   id: number;
   number: string;
@@ -763,6 +787,15 @@ export const api = {
   chambers: {
     list: () => request<Chamber[]>('/chambers'),
     get: (slug: string) => request<Chamber>(`/chambers/${slug}`),
+  },
+  align: {
+    questions: (n = 8, legislatureId?: number) => {
+      const qs = new URLSearchParams({ n: String(n) });
+      if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
+      return request<AlignQuestion[]>(`/align/questions?${qs.toString()}`, {
+        revalidate: AGG_REVALIDATE,
+      });
+    },
   },
   legislatures: {
     list: (chamberId?: number) =>

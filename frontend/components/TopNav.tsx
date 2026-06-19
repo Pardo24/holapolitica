@@ -56,6 +56,11 @@ export async function TopNav() {
   ];
   const secondary: { href: Route; label: string; icon: React.ReactNode }[] = [
     {
+      href: '/com-et-representen' as Route,
+      label: t('align'),
+      icon: <Scale size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
+    {
       href: '/stats',
       label: t('stats'),
       icon: <BarChart3 size={14} aria-hidden="true" strokeWidth={1.8} />,

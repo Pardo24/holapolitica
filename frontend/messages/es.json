@@ -193,6 +193,7 @@
     "topics": "Temas",
     "stats": "Datos",
     "legislatures": "Legislaturas",
+    "align": "¿Te representan?",
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificaciones",
@@ -630,6 +631,25 @@
     "surface_joc_title": "Juego cívico",
     "surface_joc_body": "Adivina quién propuso una votación o cómo salió. Una forma ligera de aprender cómo vota el Congreso.",
     "surface_joc_cta": "Ponte a prueba"
+  },
+  "align": {
+    "title": "¿Cómo te representan?",
+    "subtitle": "Responde a votaciones reales del Congreso y descubre con qué grupos coincides más. El criterio lo pones tú: esto no es una recomendación.",
+    "unavailable": "Ahora mismo no hay suficientes votaciones para generar el cuestionario.",
+    "progress": "Pregunta {n} de {total}",
+    "stance_aye": "Sí",
+    "stance_no": "No",
+    "stance_abstention": "Abstención",
+    "skip": "Saltar",
+    "back": "Atrás",
+    "results_title": "Con quién coincides",
+    "results_intro": "Basado en las {answered} votaciones que has respondido: porcentaje de veces que cada grupo votó como tú.",
+    "coincidence_unit": "coincidencia",
+    "votes_compared": "{n} votaciones comparadas",
+    "neutrality_note": "Esta es tu coincidencia con el voto real de cada grupo en estas votaciones concretas. No es una recomendación de voto ni una valoración de los grupos.",
+    "restart": "Volver a empezar",
+    "none_answered": "No has respondido ninguna votación. Vuelve a empezar y elige una postura para ver los resultados.",
+    "view_vote": "Ver la votación original"
   },
   "legislatures": {
     "title": "Las legislaturas",
