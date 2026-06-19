@@ -733,6 +733,7 @@
     "legislature_label": "Legislatura",
     "legislature_current": "actual",
     "legislature_historical_note": "Estás consultando la {number} legislatura ({start}-{end}), ya concluida. Los datos son históricos.",
+    "law_only_label": "Solo leyes",
     "plain_summary_title": "Explicación resumida",
     "plain_summary_ai_badge": "Generado con IA",
     "plain_summary_disclaimer": "Resumen descriptivo generado automáticamente a partir del texto del expediente. No expresa ninguna valoración.",

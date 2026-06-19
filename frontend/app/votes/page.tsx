@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, SearchX } from 'lucide-react';
+import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, Scale, SearchX } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
@@ -33,6 +33,8 @@ interface SearchParams {
   date_to?: string;
   /** Legislature id to browse (historical). Absent = current (active). */
   legislature?: string;
+  /** '1' → keep only law-creating votes (Proyecto/Proposición/RDL de Ley). */
+  law?: string;
 }
 
 export default async function VotesPage({
@@ -130,6 +132,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         topic_slug: params.topic_slug,
         proposing_group_slug: params.proposing_group_slug,
         result: params.result,
+        law_only: params.law === '1',
         q: params.q,
         date_from: params.date_from,
         date_to: params.date_to,
@@ -177,27 +180,64 @@ async function VotesListTab({ params }: { params: SearchParams }) {
     ? Math.max(1, Math.ceil(data.total / data.page_size))
     : 1;
 
+  // "Només lleis" context toggle — a URL flag preserved across the other
+  // filters (like the legislature selector). Especially useful on a historical
+  // legislature, where it's the way to see that era's laws (the votes have no
+  // linked Initiative, so the lens reads the expediente prefix server-side).
+  const lawOnly = params.law === '1';
+  const lawHref = (() => {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) {
+      if (v && k !== 'page' && k !== 'law') qs.set(k, String(v));
+    }
+    if (!lawOnly) qs.set('law', '1');
+    const s = qs.toString();
+    return (s ? `/votes?${s}` : '/votes') as Route;
+  })();
+
   return (
     <div>
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: legislatures.length > 1 ? 'space-between' : 'flex-end',
+          justifyContent: 'space-between',
           gap: 12,
           flexWrap: 'wrap',
           paddingTop: 14,
         }}
       >
-        {legislatures.length > 1 && selectedLegId != null && (
-          <LegislatureSelector
-            legislatures={legislatures}
-            activeId={activeLeg?.id ?? null}
-            selectedId={selectedLegId}
-            label={t('legislature_label')}
-            currentSuffix={t('legislature_current')}
-          />
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {legislatures.length > 1 && selectedLegId != null && (
+            <LegislatureSelector
+              legislatures={legislatures}
+              activeId={activeLeg?.id ?? null}
+              selectedId={selectedLegId}
+              label={t('legislature_label')}
+              currentSuffix={t('legislature_current')}
+            />
+          )}
+          <Link
+            href={lawHref}
+            aria-pressed={lawOnly}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 12px',
+              borderRadius: 999,
+              border: `1px solid ${lawOnly ? 'var(--ink)' : 'var(--rule-strong)'}`,
+              background: lawOnly ? 'var(--ink)' : 'var(--paper-2)',
+              color: lawOnly ? 'var(--paper)' : 'var(--ink-2)',
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <Scale size={14} aria-hidden="true" strokeWidth={1.8} />
+            {t('law_only_label')}
+          </Link>
+        </div>
         <div className="tabular" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
           <span style={{ color: 'var(--ink)', fontWeight: 600 }}>
             {data ? data.total.toLocaleString(locale) : '—'}

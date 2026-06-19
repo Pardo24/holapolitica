@@ -733,6 +733,7 @@
     "legislature_label": "Legislature",
     "legislature_current": "current",
     "legislature_historical_note": "You're viewing the {number} legislature ({start}-{end}), now concluded. This data is historical.",
+    "law_only_label": "Laws only",
     "plain_summary_title": "Summary",
     "plain_summary_ai_badge": "AI-generated",
     "plain_summary_disclaimer": "Descriptive summary auto-generated from the file text. Expresses no judgment.",

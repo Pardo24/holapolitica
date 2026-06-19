@@ -733,6 +733,7 @@
     "legislature_label": "Legislatura",
     "legislature_current": "actual",
     "legislature_historical_note": "Estàs consultant la {number} legislatura ({start}-{end}), ja conclosa. Les dades són històriques.",
+    "law_only_label": "Només lleis",
     "plain_summary_title": "Explicació resumida",
     "plain_summary_ai_badge": "Generat amb IA",
     "plain_summary_disclaimer": "Resum descriptiu generat automàticament a partir del text de l'expedient. No expressa cap valoració.",
