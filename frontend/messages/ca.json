@@ -193,6 +193,7 @@
     "topics": "Temes",
     "stats": "Dades",
     "legislatures": "Legislatures",
+    "align": "Et representen?",
     "about": "Sobre",
     "newsletter": "Newsletter",
     "notifications": "Notificacions",
@@ -630,6 +631,25 @@
     "surface_joc_title": "Joc cívic",
     "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
     "surface_joc_cta": "Posa't a prova"
+  },
+  "align": {
+    "title": "Com et representen?",
+    "subtitle": "Respon a votacions reals del Congrés i descobreix amb quins grups coincideixes més. El criteri el poses tu: això no és cap recomanació.",
+    "unavailable": "Ara mateix no hi ha prou votacions per generar el qüestionari.",
+    "progress": "Pregunta {n} de {total}",
+    "stance_aye": "Sí",
+    "stance_no": "No",
+    "stance_abstention": "Abstenció",
+    "skip": "Salta",
+    "back": "Enrere",
+    "results_title": "Amb qui coincideixes",
+    "results_intro": "Basat en les {answered} votacions que has respost: percentatge de cops que cada grup va votar com tu.",
+    "coincidence_unit": "coincidència",
+    "votes_compared": "{n} votacions comparades",
+    "neutrality_note": "Aquesta és la teva coincidència amb el vot real de cada grup en aquestes votacions concretes. No és una recomanació de vot ni una valoració dels grups.",
+    "restart": "Torna a començar",
+    "none_answered": "No has respost cap votació. Torna a començar i tria una postura per veure els resultats.",
+    "view_vote": "Veure la votació original"
   },
   "legislatures": {
     "title": "Les legislatures",

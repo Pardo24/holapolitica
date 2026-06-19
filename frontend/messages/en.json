@@ -193,6 +193,7 @@
     "topics": "Topics",
     "stats": "Data",
     "legislatures": "Legislatures",
+    "align": "Represent you?",
     "about": "About",
     "newsletter": "Newsletter",
     "notifications": "Notifications",
@@ -630,6 +631,25 @@
     "surface_joc_title": "Civic game",
     "surface_joc_body": "Guess who proposed a vote or how it ended. A light way to learn how Congress votes.",
     "surface_joc_cta": "Test yourself"
+  },
+  "align": {
+    "title": "How do they represent you?",
+    "subtitle": "Answer real Congreso votes and find out which groups you coincide with most. The criterion is yours: this is not a recommendation.",
+    "unavailable": "There aren't enough votes to build the questionnaire right now.",
+    "progress": "Question {n} of {total}",
+    "stance_aye": "Yes",
+    "stance_no": "No",
+    "stance_abstention": "Abstain",
+    "skip": "Skip",
+    "back": "Back",
+    "results_title": "Who you coincide with",
+    "results_intro": "Based on the {answered} votes you answered: the share of times each group voted the same way you did.",
+    "coincidence_unit": "coincidence",
+    "votes_compared": "{n} votes compared",
+    "neutrality_note": "This is your coincidence with each group's real vote on these specific votes. It is not a voting recommendation or an assessment of the groups.",
+    "restart": "Start over",
+    "none_answered": "You didn't answer any vote. Start over and pick a stance to see the results.",
+    "view_vote": "View the original vote"
   },
   "legislatures": {
     "title": "The legislatures",

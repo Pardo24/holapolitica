@@ -18,6 +18,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from app import __version__
 from app.api import (
     agenda,
+    align,
     chambers,
     dump,
     groups,
@@ -206,6 +207,7 @@ app.include_router(stats.router)
 app.include_router(subscriptions.router)
 app.include_router(newsletter_preview.router)
 app.include_router(agenda.router)
+app.include_router(align.router)
 app.include_router(push.router)
 app.include_router(dump.router)
 
