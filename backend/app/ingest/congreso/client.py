@@ -38,8 +38,10 @@ deliberately thin and does not parse vote payloads.
 from __future__ import annotations
 
 import re
+import zipfile
 from dataclasses import dataclass
 from datetime import date
+from io import BytesIO
 from typing import Literal
 from urllib.parse import urljoin
 
@@ -47,7 +49,7 @@ import httpx
 from tenacity import (
     AsyncRetrying,
     RetryError,
-    retry_if_exception_type,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
@@ -86,6 +88,20 @@ _INITIATIVE_PREFIXES: dict[InitiativeDataset, str] = {
 
 class CongresoOpenDataError(RuntimeError):
     """Raised when the open data portal does not expose an expected resource."""
+
+
+def _is_retryable_http_error(exc: BaseException) -> bool:
+    """Retry transport/timeout errors and 5xx; never retry 4xx.
+
+    A 4xx (notably the 404 the portal returns for the missing aggregate
+    session ZIPs — see :meth:`CongresoClient.fetch_session_zip_for_date`) is
+    not transient: retrying it three times only adds latency before the same
+    failure. We still retry connection/read timeouts and 5xx, which can be
+    transient.
+    """
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code >= 500
+    return isinstance(exc, httpx.HTTPError)
 
 
 class CongresoClient:
@@ -130,7 +146,7 @@ class CongresoClient:
             async for attempt in AsyncRetrying(
                 stop=stop_after_attempt(3),
                 wait=wait_exponential(multiplier=1, min=2, max=20),
-                retry=retry_if_exception_type((httpx.HTTPError,)),
+                retry=retry_if_exception(_is_retryable_http_error),
                 reraise=True,
             ):
                 with attempt:
@@ -336,6 +352,18 @@ class CongresoClient:
         already pulled ``diasVotaciones`` for the legislature can trust that
         every date in that array yields a non-``None`` bundle.
 
+        Missing-aggregate-ZIP fallback
+        ------------------------------
+        For some historical sessions the portlet renders an aggregate
+        ``VOT_<ts>.zip`` URL that 404s: the portal's 2020 republish job
+        regenerated the per-vote XML/JSON/PNG/PDF files but never (re)built
+        the bundle ZIP. When the ZIP 404s we reconstruct an equivalent
+        in-memory ZIP from the per-vote XML links on the same page (see
+        :meth:`_synthesize_session_zip`) — the importer only reads the ``*.xml``
+        entries, so the synthesized bundle is byte-for-byte sufficient. If the
+        page also exposes no per-vote XML, the session is genuinely
+        unrecoverable upstream and the original 404 propagates.
+
         Args:
             legislature_roman: ``"X"`` .. ``"XV"``. The portlet only
                 accepts Roman numerals here; numeric values silently fall
@@ -358,7 +386,23 @@ class CongresoClient:
                 legislature=legislature_roman,
             )
             return None
-        zip_bytes = await self.fetch_bytes(ref.zip_url)
+        try:
+            zip_bytes = await self.fetch_bytes(ref.zip_url)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code != 404:
+                raise
+            zip_bytes = await self._synthesize_session_zip(html)
+            if zip_bytes is None:
+                # No aggregate ZIP and no per-vote XML to rebuild it from:
+                # genuinely unavailable upstream. Re-raise so the caller
+                # records it as a tracked failure rather than a silent skip.
+                raise
+            log.info(
+                "congreso.session.zip_404_recovered",
+                legislature=legislature_roman,
+                date=target_date.isoformat(),
+                missing_zip_url=ref.zip_url,
+            )
         expedientes = parse_vote_expedientes(html)
         graphics = parse_vote_graphic_urls(html, base_url=self.base_url)
         return SessionZipBundle(
@@ -367,6 +411,29 @@ class CongresoClient:
             expedientes_by_vote=expedientes,
             graphic_urls_by_vote=graphics,
         )
+
+    async def _synthesize_session_zip(self, html: str) -> bytes | None:
+        """Rebuild a per-session ZIP from the per-vote XML links in ``html``.
+
+        Fallback for historical sessions whose aggregate ``VOT_<ts>.zip`` 404s
+        (see :meth:`fetch_session_zip_for_date`). We fetch each
+        ``/VotacionNNN/VOT_<ts>.xml`` referenced on the listing page and pack
+        them into an in-memory ZIP. The importer's ``parse_session_zip`` keys
+        only on the ``.xml`` suffix and reads the vote number from inside each
+        document, so the entry names here are cosmetic.
+
+        Returns ``None`` if the page exposes no per-vote XML at all — i.e. the
+        session is genuinely unavailable upstream, not merely missing its
+        bundle.
+        """
+        xml_urls = parse_vote_xml_urls(html, base_url=self.base_url)
+        if not xml_urls:
+            return None
+        buf = BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            for vote_number, url in sorted(xml_urls.items()):
+                zf.writestr(f"votacion{vote_number:03d}.xml", await self.fetch_bytes(url))
+        return buf.getvalue()
 
     # ------------------------------------------------------------------
     # Datasets — upcoming agenda (orden del día)
@@ -487,6 +554,35 @@ def parse_vote_graphic_urls(html: str, *, base_url: str = "") -> dict[int, str]:
     base = base_url.rstrip("/")
     mapping: dict[int, str] = {}
     for match in _GRAPHIC_RE.finditer(html):
+        n = int(match.group("num"))
+        href = match.group("href")
+        if href.startswith(("http://", "https://")):
+            absolute = href
+        elif base:
+            absolute = f"{base}/{href.lstrip('/')}"
+        else:
+            absolute = href
+        mapping.setdefault(n, absolute)
+    return mapping
+
+
+_VOTE_XML_RE = re.compile(
+    r'href=["\'](?P<href>[^"\']*?/Votacion(?P<num>\d+)/VOT_\d+\.xml)["\']',
+    re.IGNORECASE,
+)
+
+
+def parse_vote_xml_urls(html: str, *, base_url: str = "") -> dict[int, str]:
+    """Extract ``{vote_number: xml_absolute_url}`` from the votes listing HTML.
+
+    The listing links each vote's per-deputy roll-call XML as
+    ``<a href=".../VotacionNNN/VOT_<ts>.xml">``. We absolutize the href
+    against ``base_url``. Used by :meth:`CongresoClient._synthesize_session_zip`
+    to rebuild a session bundle when the aggregate ZIP 404s.
+    """
+    base = base_url.rstrip("/")
+    mapping: dict[int, str] = {}
+    for match in _VOTE_XML_RE.finditer(html):
         n = int(match.group("num"))
         href = match.group("href")
         if href.startswith(("http://", "https://")):
