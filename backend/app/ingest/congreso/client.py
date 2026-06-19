@@ -391,12 +391,15 @@ class CongresoClient:
         except httpx.HTTPStatusError as e:
             if e.response.status_code != 404:
                 raise
-            zip_bytes = await self._synthesize_session_zip(html)
-            if zip_bytes is None:
+            # Intermediate var so ``zip_bytes`` stays typed ``bytes`` (not
+            # ``bytes | None``) after the None-check narrows it.
+            synthesized = await self._synthesize_session_zip(html)
+            if synthesized is None:
                 # No aggregate ZIP and no per-vote XML to rebuild it from:
                 # genuinely unavailable upstream. Re-raise so the caller
                 # records it as a tracked failure rather than a silent skip.
                 raise
+            zip_bytes = synthesized
             log.info(
                 "congreso.session.zip_404_recovered",
                 legislature=legislature_roman,
