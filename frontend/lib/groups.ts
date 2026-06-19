@@ -33,6 +33,19 @@ const GROUP_FULL_NAME: Record<string, string> = {
   'gp-republicano': 'Esquerra Republicana de Catalunya (ERC)',
   'gp-vasco-eaj-pnv': 'Eusko Alderdi Jeltzalea — Partido Nacionalista Vasco (EAJ-PNV)',
   'gp-mixto': 'Grupo Mixto',
+  // Historical groups (legislatures X-XIV), surfaced by the 2011-2026 backfill.
+  'gp-ciudadanos': 'Ciudadanos (Cs)',
+  'gp-de-union-progreso-y-democracia': 'Unión Progreso y Democracia (UPyD)',
+  'gp-confederal-de-unidas-podemos-en-comu-podem-galicia-en-comun':
+    'Unidas Podemos-En Comú Podem-Galicia en Común',
+  'gp-confederal-de-unidos-podemos-en-comu-podem-en-marea':
+    'Unidos Podemos-En Comú Podem-En Marea',
+  'gp-podemos-en-comu-podem-en-marea': 'Podemos-En Comú Podem-En Marea',
+  'gp-de-iu-icv-euia-cha-la-izquierda-plural': 'La Izquierda Plural (IU-ICV-EUiA-CHA)',
+  'gp-catalan-de-convergencia-i-d-unio': 'Convergència i Unió (CiU)',
+  'gp-catalan-democracia-i-llibertat': 'Democràcia i Llibertat (DiL)',
+  'gp-de-esquerra-republicana': 'Esquerra Republicana de Catalunya (ERC)',
+  'gp-plural': 'Grupo Plural',
 };
 
 export function displayGroupFullName(slug: string, fallbackNameLong: string): string {
@@ -134,6 +147,17 @@ const GROUP_ABBREVIATION: Record<string, string> = {
   'gp-republicano': 'ERC',
   'gp-vasco-eaj-pnv': 'PNV',
   'gp-mixto': 'Mx',
+  // Historical groups (legislatures X-XIV), surfaced by the 2011-2026 backfill.
+  'gp-ciudadanos': 'Cs',
+  'gp-de-union-progreso-y-democracia': 'UPyD',
+  'gp-confederal-de-unidas-podemos-en-comu-podem-galicia-en-comun': 'UP',
+  'gp-confederal-de-unidos-podemos-en-comu-podem-en-marea': 'UP',
+  'gp-podemos-en-comu-podem-en-marea': 'Podem',
+  'gp-de-iu-icv-euia-cha-la-izquierda-plural': 'IU',
+  'gp-catalan-de-convergencia-i-d-unio': 'CiU',
+  'gp-catalan-democracia-i-llibertat': 'DiL',
+  'gp-de-esquerra-republicana': 'ERC',
+  'gp-plural': 'Plural',
 };
 
 export function groupAbbreviation(slug: string | null | undefined): string {
