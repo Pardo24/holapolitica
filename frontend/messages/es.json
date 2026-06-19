@@ -187,6 +187,7 @@
   },
   "nav": {
     "avui": "Crónica del pleno",
+    "joc": "Juego",
     "lleis": "Leyes",
     "votes": "Votaciones",
     "persons": "Representantes",
@@ -631,6 +632,24 @@
     "surface_joc_title": "Juego cívico",
     "surface_joc_body": "Adivina quién propuso una votación o cómo salió. Una forma ligera de aprender cómo vota el Congreso.",
     "surface_joc_cta": "Ponte a prueba"
+  },
+  "game": {
+    "meta_title": "El juego · Hola Política",
+    "meta_description": "Pon a prueba lo que sabes de la política española con datos reales del Congreso.",
+    "title": "El juego",
+    "subtitle": "Un trivial con datos reales del Congreso. Acierta y aprende qué se ha votado, quién lo propone y cómo votan los partidos.",
+    "progress": "{n}/{total}",
+    "category_partits": "Partidos",
+    "category_lleis": "Leyes",
+    "category_temes": "Temas",
+    "explore": "Explora la votación real",
+    "next": "Siguiente",
+    "finish": "Ver resultado",
+    "score_title": "Puntuación",
+    "score_line": "Has acertado {score} de {total}",
+    "play_again": "Volver a jugar",
+    "loading": "Cargando…",
+    "unavailable": "Ahora mismo no hay suficientes datos para jugar."
   },
   "align": {
     "title": "¿Cómo te representan?",

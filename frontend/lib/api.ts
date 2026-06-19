@@ -527,6 +527,24 @@ export interface InitiativeTypeCount {
 
 /** Per-legislature comparative KPIs from `/stats/legislatures`, most recent
  *  first. `approval_rate` is approved / votes_total (0 when no votes). */
+/** A trivia game option + question, from GET /game/questions. */
+export interface GameOption {
+  text: string;
+  correct: boolean;
+}
+
+export interface GameQuestion {
+  id: string;
+  category: 'partits' | 'lleis' | 'temes';
+  kind: string;
+  prompt: string;
+  subject: string | null;
+  options: GameOption[];
+  explanation: string | null;
+  source_kind: string;
+  source_id: number;
+}
+
 /** One group's majority stance on a vote, for the alignment questionnaire. */
 export interface AlignGroupPosition {
   slug: string;
@@ -787,6 +805,14 @@ export const api = {
   chambers: {
     list: () => request<Chamber[]>('/chambers'),
     get: (slug: string) => request<Chamber>(`/chambers/${slug}`),
+  },
+  game: {
+    questions: (n = 7, legislatureId?: number) => {
+      const qs = new URLSearchParams({ n: String(n) });
+      if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
+      // No revalidate: each round should be a fresh draw.
+      return request<GameQuestion[]>(`/game/questions?${qs.toString()}`, { revalidate: 0 });
+    },
   },
   align: {
     questions: (n = 8, legislatureId?: number) => {

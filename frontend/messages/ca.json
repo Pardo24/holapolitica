@@ -187,6 +187,7 @@
   },
   "nav": {
     "avui": "Crònica del ple",
+    "joc": "Joc",
     "lleis": "Lleis",
     "votes": "Votacions",
     "persons": "Representants",
@@ -631,6 +632,24 @@
     "surface_joc_title": "Joc cívic",
     "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
     "surface_joc_cta": "Posa't a prova"
+  },
+  "game": {
+    "meta_title": "El joc · Hola Política",
+    "meta_description": "Posa a prova el que saps de la política espanyola amb dades reals del Congrés.",
+    "title": "El joc",
+    "subtitle": "Un trivial amb dades reals del Congrés. Encerta i aprèn què s'ha votat, qui ho proposa i com voten els partits.",
+    "progress": "{n}/{total}",
+    "category_partits": "Partits",
+    "category_lleis": "Lleis",
+    "category_temes": "Temes",
+    "explore": "Explora la votació real",
+    "next": "Següent",
+    "finish": "Veure resultat",
+    "score_title": "Puntuació",
+    "score_line": "Has encertat {score} de {total}",
+    "play_again": "Torna a jugar",
+    "loading": "Carregant…",
+    "unavailable": "Ara mateix no hi ha prou dades per jugar."
   },
   "align": {
     "title": "Com et representen?",
