@@ -28,6 +28,7 @@ from app.metrics import (
 from app.models import (
     GroupMembership,
     Legislature,
+    LegislatureStatus,
     Mandate,
     ParliamentaryGroup,
     Person,
@@ -154,11 +155,30 @@ def _split_parties(raw: str | None) -> list[str]:
 @router.get("", response_model=list[ParliamentaryGroupSummary])
 async def list_groups(
     legislature_id: int | None = Query(
-        None, description="Restrict to one legislature; defaults to all"
+        None,
+        description=(
+            "Restrict to one legislature. When omitted, defaults to the "
+            "current (active) legislature — pass all_legislatures=true to span "
+            "every legislature instead."
+        ),
+    ),
+    all_legislatures: bool = Query(
+        False,
+        description=(
+            "Return groups from every legislature (X-XV). Ignored when "
+            "legislature_id is given. Off by default so the historical backfill "
+            "doesn't flood 'current parliament' surfaces with defunct groups."
+        ),
     ),
     session: AsyncSession = Depends(get_session),
 ) -> list[ParliamentaryGroupSummary]:
-    """List parliamentary groups with current member counts."""
+    """List parliamentary groups with current member counts.
+
+    Default scope is the *current* parliament: with the historical backfill in
+    place, an unfiltered query would return ~50 groups spanning 2011-2026,
+    which is wrong for the homepage and the group filter dropdowns. Callers that
+    genuinely want the full history pass ``all_legislatures=true`` (or a
+    specific ``legislature_id``)."""
     stmt = (
         select(
             ParliamentaryGroup,
@@ -174,6 +194,26 @@ async def list_groups(
     )
     if legislature_id is not None:
         stmt = stmt.where(ParliamentaryGroup.legislature_id == legislature_id)
+    elif not all_legislatures:
+        # Default: scope to the current (most recent active) legislature.
+        active_leg_id = (
+            await session.execute(
+                select(Legislature.id)
+                .where(Legislature.status == LegislatureStatus.ACTIVE)
+                .order_by(Legislature.start_date.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        if active_leg_id is None:
+            # No active legislature flagged — fall back to the most recent one
+            # by start date so we never silently return the full history.
+            active_leg_id = (
+                await session.execute(
+                    select(Legislature.id).order_by(Legislature.start_date.desc()).limit(1)
+                )
+            ).scalar_one_or_none()
+        if active_leg_id is not None:
+            stmt = stmt.where(ParliamentaryGroup.legislature_id == active_leg_id)
 
     rows = (await session.execute(stmt)).all()
     return [
