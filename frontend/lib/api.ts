@@ -1079,6 +1079,7 @@ export const api = {
       topic_slug?: string;
       proposing_group_slug?: string;
       result?: VoteResult;
+      law_only?: boolean;
       date_from?: string;
       date_to?: string;
       q?: string;
@@ -1087,7 +1088,8 @@ export const api = {
     } = {}) => {
       const qs = new URLSearchParams();
       Object.entries(params).forEach(([k, v]) => {
-        if (v !== undefined && v !== '') qs.set(k, String(v));
+        // Skip false booleans so the URL stays clean (law_only defaults false).
+        if (v !== undefined && v !== '' && v !== false) qs.set(k, String(v));
       });
       const suffix = qs.toString() ? `?${qs.toString()}` : '';
       return request<Paginated<Vote>>(`/votes${suffix}`);

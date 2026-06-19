@@ -80,6 +80,16 @@ async def list_votes(
         ),
     ),
     result: VoteResult | None = Query(None, description="Filter by vote result"),
+    law_only: bool = Query(
+        False,
+        description=(
+            "Keep only law-creating votes — those whose expediente is a "
+            "Proyecto de Ley (121), Proposición de Ley (122) or Real "
+            "Decreto-ley (130). Works for historical legislatures too, where "
+            "votes have no linked Initiative: the lens reads the expediente "
+            "prefix, not initiative_type."
+        ),
+    ),
     date_from: date | None = Query(None, description="Earliest vote date (inclusive)"),
     date_to: date | None = Query(None, description="Latest vote date (inclusive)"),
     q: str | None = Query(None, description="Search in vote title or description"),
@@ -118,6 +128,18 @@ async def list_votes(
 
     if result is not None:
         conditions.append(Vote.result == result)
+
+    if law_only:
+        # Law-creating expediente series: 121 Proyecto de Ley, 122 Proposición
+        # de Ley, 130 Real Decreto-ley. Prefix match on the raw expediente so
+        # it works on historical votes with no linked Initiative.
+        conditions.append(
+            or_(
+                Vote.expediente_raw.like("121/%"),
+                Vote.expediente_raw.like("122/%"),
+                Vote.expediente_raw.like("130/%"),
+            )
+        )
 
     if date_from is not None:
         conditions.append(Vote.voted_at >= date_from)
