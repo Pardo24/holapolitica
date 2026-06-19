@@ -81,7 +81,16 @@ async def list_initiatives(
             "list; the synthetic slug 'govern' matches Government-proposed."
         ),
     ),
-    q: str | None = Query(None, description="Search in the initiative title."),
+    q: str | None = Query(
+        None,
+        description=(
+            "Full-text search across the initiative's title, summary, "
+            "preamble/object text and plain-language summaries (Postgres "
+            "'spanish' config, ranked by relevance; supports multi-word and "
+            '"quoted phrases"). Falls back to a title substring match off '
+            "Postgres."
+        ),
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
@@ -112,8 +121,31 @@ async def list_initiatives(
         conditions.append(Initiative.type == initiative_type)
     if status_filter is not None:
         conditions.append(Initiative.status == status_filter)
+    # Full-text search. On Postgres we run the 'spanish' FTS config over the
+    # title + summary + preamble (object_text) + plain-language summaries and
+    # rank by relevance — so "lleis sobre X" surfaces a bill even when X only
+    # appears in the body, with stemming and multi-word / "quoted phrase"
+    # support. SQLite (tests) has no tsvector, so it falls back to a title
+    # substring match. At ~1.5k initiatives the per-row to_tsvector is
+    # instantaneous; a GIN index can be added later if the table grows.
+    dialect_name = getattr(getattr(session.bind, "dialect", None), "name", "postgresql")
+    fts_rank = None
     if q:
-        conditions.append(Initiative.title_original.ilike(f"%{q}%"))
+        if dialect_name == "postgresql":
+            search_doc = func.concat_ws(
+                " ",
+                Initiative.title_original,
+                Initiative.summary,
+                Initiative.object_text,
+                Initiative.plain_summary_es,
+                Initiative.plain_summary_ca,
+            )
+            tsv = func.to_tsvector("spanish", search_doc)
+            tsq = func.websearch_to_tsquery("spanish", q)
+            conditions.append(tsv.op("@@")(tsq))
+            fts_rank = func.ts_rank(tsv, tsq)
+        else:
+            conditions.append(Initiative.title_original.ilike(f"%{q}%"))
 
     topic_slugs = _split_csv(topic_slug)
     if topic_slugs:
@@ -154,11 +186,14 @@ async def list_initiatives(
         count_stmt = count_stmt.where(and_(*conditions))
 
     total = (await session.execute(count_stmt)).scalar_one()
-    stmt = (
-        base_stmt.order_by(Initiative.submitted_at.desc().nullslast(), Initiative.id.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
+    # When searching, order by relevance first; otherwise most-recent first.
+    recency = (Initiative.submitted_at.desc().nullslast(), Initiative.id.desc())
+    base_ordered = (
+        base_stmt.order_by(fts_rank.desc(), *recency)
+        if fts_rank is not None
+        else base_stmt.order_by(*recency)
     )
+    stmt = base_ordered.offset((page - 1) * page_size).limit(page_size)
     items = list((await session.execute(stmt)).scalars().unique().all())
 
     item_ids = [i.id for i in items]

@@ -211,7 +211,7 @@
     "pagination_label": "Pàgina {page} de {last}",
     "prev": "Anterior",
     "next": "Següent",
-    "search_placeholder": "Cerca al títol o expedient",
+    "search_placeholder": "Cerca al text de la llei (títol, resum, contingut)",
     "topic_label": "Tema",
     "topic_placeholder": "Tots els temes",
     "clear_all": "Neteja",
