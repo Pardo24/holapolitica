@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
+import { FocalHub } from '@/components/FocalHub';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { OnboardingModal } from '@/components/OnboardingModal';
@@ -111,6 +112,11 @@ export default async function HomePage() {
           device (localStorage flag, see OnboardingModal); skipped
           on every subsequent visit. */}
       <OnboardingModal />
+
+      {/* Visual front door — the focal experiences as big cards, above the
+          data, on every breakpoint. Game-first. */}
+      <FocalHub />
+
       {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
           native-app-style entry point: brand strip, search, 2×2 tile grid,
           and three compact content sections that reuse the same fetched
