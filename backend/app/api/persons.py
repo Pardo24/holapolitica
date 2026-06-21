@@ -24,8 +24,15 @@ from app.models import (
     Person,
 )
 from app.schemas import MandateWithPerson, PersonRead
+from app.services.cache import cached
 
 router = APIRouter(prefix="/persons", tags=["persons"])
+
+# "El teu diputat" aggregates are heavy (a pass over the legislature's records)
+# but stable between ingests, so we cache them under the "metrics:" namespace —
+# the ingest workers' invalidate("metrics:") then refreshes them when new votes
+# land. The TTL is a safety net.
+_DEPUTY_CACHE_TTL = 86400
 
 
 @router.get("", response_model=dict)
@@ -153,62 +160,68 @@ async def deputies_by_constituency(
     if leg_id is None:
         return []
 
-    person_rows = (
-        await session.execute(
-            select(
-                Person.id,
-                Person.full_name,
-                Person.photo_url,
-                Mandate.constituency,
-                ParliamentaryGroup.slug,
-                ParliamentaryGroup.name_short,
-                ParliamentaryGroup.color_hex,
+    async def factory() -> list[DeputyCard]:
+        person_rows = (
+            await session.execute(
+                select(
+                    Person.id,
+                    Person.full_name,
+                    Person.photo_url,
+                    Mandate.constituency,
+                    ParliamentaryGroup.slug,
+                    ParliamentaryGroup.name_short,
+                    ParliamentaryGroup.color_hex,
+                )
+                .join(Mandate, Mandate.person_id == Person.id)
+                .outerjoin(
+                    GroupMembership,
+                    (GroupMembership.mandate_id == Mandate.id)
+                    & (GroupMembership.end_date.is_(None)),
+                )
+                .outerjoin(ParliamentaryGroup, ParliamentaryGroup.id == GroupMembership.group_id)
+                .where(Mandate.legislature_id == leg_id)
+                .where(Mandate.constituency == constituency)
             )
-            .join(Mandate, Mandate.person_id == Person.id)
-            .outerjoin(
-                GroupMembership,
-                (GroupMembership.mandate_id == Mandate.id) & (GroupMembership.end_date.is_(None)),
-            )
-            .outerjoin(ParliamentaryGroup, ParliamentaryGroup.id == GroupMembership.group_id)
-            .where(Mandate.legislature_id == leg_id)
-            .where(Mandate.constituency == constituency)
-        )
-    ).all()
-    if not person_rows:
-        return []
+        ).all()
+        if not person_rows:
+            return []
 
-    attendance = {
-        r.person_id: r for r in await compute_deputy_attendance(session, legislature_id=leg_id)
-    }
-    dissidence = {
-        r.person_id: r for r in await compute_deputy_dissidence(session, legislature_id=leg_id)
-    }
+        attendance = {
+            r.person_id: r for r in await compute_deputy_attendance(session, legislature_id=leg_id)
+        }
+        dissidence = {
+            r.person_id: r for r in await compute_deputy_dissidence(session, legislature_id=leg_id)
+        }
 
-    cards: list[DeputyCard] = []
-    seen: set[int] = set()
-    for pid, full_name, photo, const, slug, short, color in person_rows:
-        if pid in seen:
-            continue
-        seen.add(pid)
-        att = attendance.get(pid)
-        dis = dissidence.get(pid)
-        cards.append(
-            DeputyCard(
-                person_id=pid,
-                full_name=full_name,
-                photo_url=photo,
-                constituency=const,
-                group_slug=slug,
-                group_short=short,
-                group_color=color,
-                attendance_pct=att.attendance if att else None,
-                dissidence_pct=dis.dissidence if dis else None,
-                votes_cast=att.votes_attended if att else 0,
+        cards: list[DeputyCard] = []
+        seen: set[int] = set()
+        for pid, full_name, photo, const, slug, short, color in person_rows:
+            if pid in seen:
+                continue
+            seen.add(pid)
+            att = attendance.get(pid)
+            dis = dissidence.get(pid)
+            cards.append(
+                DeputyCard(
+                    person_id=pid,
+                    full_name=full_name,
+                    photo_url=photo,
+                    constituency=const,
+                    group_slug=slug,
+                    group_short=short,
+                    group_color=color,
+                    attendance_pct=att.attendance if att else None,
+                    dissidence_pct=dis.dissidence if dis else None,
+                    votes_cast=att.votes_attended if att else 0,
+                )
             )
-        )
-    # Group-mates together, then most-present first within a group.
-    cards.sort(key=lambda c: (c.group_short or "zz", -(c.attendance_pct or 0)))
-    return cards
+        # Group-mates together, then most-present first within a group.
+        cards.sort(key=lambda c: (c.group_short or "zz", -(c.attendance_pct or 0)))
+        return cards
+
+    return await cached(
+        f"metrics:persons:by-constituency:{leg_id}:{constituency}", _DEPUTY_CACHE_TTL, factory
+    )
 
 
 @router.get("/{person_id}", response_model=PersonRead)
