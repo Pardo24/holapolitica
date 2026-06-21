@@ -683,6 +683,16 @@
     "none_answered": "No has respost cap votació. Torna a començar i tria una postura per veure els resultats.",
     "view_vote": "Veure la votació original"
   },
+  "hub": {
+    "joc_title": "El joc",
+    "joc_sub": "Posa't a prova amb votacions reals",
+    "align_title": "Què votaries tu?",
+    "align_sub": "Descobreix amb quins partits coincideixes",
+    "deputy_title": "El teu diputat",
+    "deputy_sub": "Qui et representa, de debò",
+    "map_title": "El Mapa",
+    "map_sub": "On són els partits, segons com voten"
+  },
   "map": {
     "title": "El Mapa",
     "subtitle": "On són realment els partits, segons com voten. Els que voten igual queden a prop.",

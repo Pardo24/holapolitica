@@ -683,6 +683,16 @@
     "none_answered": "You didn't answer any vote. Start over and pick a stance to see the results.",
     "view_vote": "View the original vote"
   },
+  "hub": {
+    "joc_title": "The game",
+    "joc_sub": "Test yourself with real votes",
+    "align_title": "How would you vote?",
+    "align_sub": "Find out which parties you match",
+    "deputy_title": "Your deputy",
+    "deputy_sub": "Who really represents you",
+    "map_title": "The Map",
+    "map_sub": "Where the parties are, by how they vote"
+  },
   "map": {
     "title": "The Map",
     "subtitle": "Where the parties really are, by how they vote. Those that vote alike sit close.",

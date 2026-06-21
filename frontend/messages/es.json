@@ -683,6 +683,16 @@
     "none_answered": "No has respondido ninguna votación. Vuelve a empezar y elige una postura para ver los resultados.",
     "view_vote": "Ver la votación original"
   },
+  "hub": {
+    "joc_title": "El juego",
+    "joc_sub": "Ponte a prueba con votaciones reales",
+    "align_title": "¿Qué votarías tú?",
+    "align_sub": "Descubre con qué partidos coincides",
+    "deputy_title": "Tu diputado",
+    "deputy_sub": "Quién te representa, de verdad",
+    "map_title": "El Mapa",
+    "map_sub": "Dónde están los partidos, según cómo votan"
+  },
   "map": {
     "title": "El Mapa",
     "subtitle": "Dónde están realmente los partidos, según cómo votan. Los que votan igual quedan cerca.",
