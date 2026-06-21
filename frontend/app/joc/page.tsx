@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Gamepad2 } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
@@ -30,6 +30,7 @@ export default async function JocPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations('game');
+  const locale = await getLocale();
   const { repte, n } = await searchParams;
 
   // A seed makes the round reproducible so it can be shared; if a friend opened
@@ -42,7 +43,7 @@ export default async function JocPage({
 
   let questions: GameQuestion[] = [];
   try {
-    questions = await api.game.questions(count, seed);
+    questions = await api.game.questions(count, seed, undefined, locale);
   } catch {
     questions = [];
   }

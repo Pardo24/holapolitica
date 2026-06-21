@@ -187,7 +187,7 @@
   },
   "nav": {
     "avui": "Crònica del ple",
-    "joc": "Joc",
+    "joc": "Trivia",
     "lleis": "Lleis",
     "votes": "Votacions",
     "persons": "Representants",
@@ -629,7 +629,7 @@
     "surface_cronica_title": "Crònica del darrer ple",
     "surface_cronica_body": "Resum periodístic de la sessió més recent: què s'ha votat, com ha votat cada grup, els marges més ajustats.",
     "surface_cronica_cta": "Llegeix la crònica",
-    "surface_joc_title": "Joc cívic",
+    "surface_joc_title": "Trivia",
     "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
     "surface_joc_cta": "Posa't a prova"
   },
@@ -647,9 +647,9 @@
     "geolocate_error": "No hem pogut detectar la teva província. Tria-la a mà."
   },
   "game": {
-    "meta_title": "El joc · Hola Política",
+    "meta_title": "Trivia · Hola Política",
     "meta_description": "Posa a prova el que saps de la política espanyola amb dades reals del Congrés.",
-    "title": "El joc",
+    "title": "Trivia",
     "subtitle": "Un trivial amb dades reals del Congrés. Encerta i aprèn què s'ha votat, qui ho proposa i com voten els partits.",
     "progress": "{n}/{total}",
     "category_partits": "Partits",
@@ -687,7 +687,7 @@
     "view_vote": "Veure la votació original"
   },
   "hub": {
-    "joc_title": "El joc",
+    "joc_title": "Trivia",
     "joc_sub": "Posa't a prova amb votacions reals",
     "align_title": "Què votaries tu?",
     "align_sub": "Descobreix amb quins partits coincideixes",

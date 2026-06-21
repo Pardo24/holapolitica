@@ -187,7 +187,7 @@
   },
   "nav": {
     "avui": "Crónica del pleno",
-    "joc": "Juego",
+    "joc": "Trivia",
     "lleis": "Leyes",
     "votes": "Votaciones",
     "persons": "Representantes",
@@ -629,7 +629,7 @@
     "surface_cronica_title": "Crónica del último pleno",
     "surface_cronica_body": "Resumen periodístico de la sesión más reciente: qué se ha votado, cómo ha votado cada grupo, los márgenes más ajustados.",
     "surface_cronica_cta": "Lee la crónica",
-    "surface_joc_title": "Juego cívico",
+    "surface_joc_title": "Trivia",
     "surface_joc_body": "Adivina quién propuso una votación o cómo salió. Una forma ligera de aprender cómo vota el Congreso.",
     "surface_joc_cta": "Ponte a prueba"
   },
@@ -647,9 +647,9 @@
     "geolocate_error": "No hemos podido detectar tu provincia. Elígela a mano."
   },
   "game": {
-    "meta_title": "El juego · Hola Política",
+    "meta_title": "Trivia · Hola Política",
     "meta_description": "Pon a prueba lo que sabes de la política española con datos reales del Congreso.",
-    "title": "El juego",
+    "title": "Trivia",
     "subtitle": "Un trivial con datos reales del Congreso. Acierta y aprende qué se ha votado, quién lo propone y cómo votan los partidos.",
     "progress": "{n}/{total}",
     "category_partits": "Partidos",
@@ -687,7 +687,7 @@
     "view_vote": "Ver la votación original"
   },
   "hub": {
-    "joc_title": "El juego",
+    "joc_title": "Trivia",
     "joc_sub": "Ponte a prueba con votaciones reales",
     "align_title": "¿Qué votarías tú?",
     "align_sub": "Descubre con qué partidos coincides",

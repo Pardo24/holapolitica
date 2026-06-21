@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import random
 from collections import Counter, defaultdict
-from typing import NamedTuple
+from typing import NamedTuple, TypedDict
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -45,6 +45,62 @@ _STANCE_LABEL_CA = {
     VoteChoice.NO: "en contra",
     VoteChoice.ABSTENTION: "es va abstenir",
 }
+_STANCE_LABEL_ES = {
+    VoteChoice.AYE: "votó a favor",
+    VoteChoice.NO: "votó en contra",
+    VoteChoice.ABSTENTION: "se abstuvo",
+}
+
+
+class _GameStrings(TypedDict):
+    outcome_prompt: str
+    opt_approved: str
+    opt_rejected: str
+    outcome_reveal: str
+    party_tf_prompt: str
+    party_tf_reveal: str
+    proposer_prompt: str
+    opt_yes: str
+    opt_no: str
+    stance: dict[VoteChoice, str]
+
+
+# All player-facing question strings, per supported language. Questions are
+# generated server-side, so they must be localised HERE — the frontend only
+# localises the chrome. Catalan and Castilian are the supported game
+# languages; any other UI locale falls back to Catalan.
+_GAME_TEXT: dict[str, _GameStrings] = {
+    "ca": {
+        "outcome_prompt": "El Congrés la va aprovar?",
+        "opt_approved": "Sí, aprovada",
+        "opt_rejected": "No, rebutjada",
+        "outcome_reveal": "{ayes} vots a favor i {noes} en contra.",
+        "party_tf_prompt": "{g} hi va votar a favor?",
+        "party_tf_reveal": "{g} {stance}.",
+        "proposer_prompt": "Quin grup la va proposar?",
+        "opt_yes": "Sí",
+        "opt_no": "No",
+        "stance": _STANCE_LABEL_CA,
+    },
+    "es": {
+        "outcome_prompt": "¿El Congreso la aprobó?",
+        "opt_approved": "Sí, aprobada",
+        "opt_rejected": "No, rechazada",
+        "outcome_reveal": "{ayes} votos a favor y {noes} en contra.",
+        "party_tf_prompt": "¿{g} votó a favor?",
+        "party_tf_reveal": "{g} {stance}.",
+        "proposer_prompt": "¿Qué grupo la propuso?",
+        "opt_yes": "Sí",
+        "opt_no": "No",
+        "stance": _STANCE_LABEL_ES,
+    },
+}
+
+
+def _game_lang(lang: str | None) -> str:
+    """Normalise a UI locale to a supported game language ('ca' or 'es')."""
+    return "es" if (lang or "").lower().startswith("es") else "ca"
+
 
 # Groups (by name_short) that are NOT a coherent party and so have no
 # meaningful "how did the group vote": the Grupo Mixto is a procedural
@@ -97,7 +153,8 @@ class _RichVote(NamedTuple):
     group_short: str | None
     group_slug: str | None
     group_color: str | None
-    topic_name: str | None
+    topic_ca: str | None
+    topic_es: str | None
 
 
 def _display_group(name_short: str) -> str:
@@ -113,12 +170,16 @@ async def game_questions(
     seed: int | None = Query(
         None, description="Fix the question set so a shared challenge is reproducible."
     ),
+    lang: str = Query("ca", description="UI locale; questions render in 'ca' or 'es'."),
     session: AsyncSession = Depends(get_session),
 ) -> list[GameQuestion]:
     """Return ``n`` shuffled, explanation-led trivia questions.
 
     With ``seed`` the selection is deterministic, so a challenge link drops a
     friend onto the exact same round to compare scores."""
+    lang_key = _game_lang(lang)
+    txt = _GAME_TEXT[lang_key]
+    stance_label = txt["stance"]
     leg_id = legislature_id
     if leg_id is None:
         leg_id = (
@@ -137,7 +198,11 @@ async def game_questions(
     # summary as the card's lead text, so a procedural orphan vote (no summary)
     # never shows up.
     topic_sq = (
-        select(InitiativeTopic.initiative_id, Topic.name_ca.label("tname"))
+        select(
+            InitiativeTopic.initiative_id,
+            Topic.name_ca.label("tname"),
+            Topic.name_es.label("tname_es"),
+        )
         .join(Topic, Topic.id == InitiativeTopic.topic_id)
         .subquery()
     )
@@ -154,6 +219,7 @@ async def game_questions(
                 ParliamentaryGroup.slug,
                 ParliamentaryGroup.color_hex,
                 topic_sq.c.tname,
+                topic_sq.c.tname_es,
             )
             .join(SessionRow, SessionRow.id == Vote.session_id)
             .join(Initiative, Initiative.id == Vote.initiative_id)
@@ -174,10 +240,12 @@ async def game_questions(
     ).all()
 
     by_vote: dict[int, _RichVote] = {}
-    for vid, sca, ses, result, ayes, noes, gshort, gslug, gcolor, tname in pool_rows:
+    for vid, sca, ses, result, ayes, noes, gshort, gslug, gcolor, tname, tname_es in pool_rows:
         if vid in by_vote:
             continue
-        summary = (sca or ses or "").strip()
+        # Lead with the summary in the player's language, falling back to the
+        # other one so a card is never dropped just for a missing translation.
+        summary = (((ses or sca) if lang_key == "es" else (sca or ses)) or "").strip()
         if len(summary) < 30:  # too short to be a good card
             continue
         by_vote[vid] = _RichVote(
@@ -189,7 +257,8 @@ async def game_questions(
             group_short=gshort,
             group_slug=gslug,
             group_color=gcolor,
-            topic_name=tname,
+            topic_ca=tname,
+            topic_es=tname_es,
         )
     pool = list(by_vote.values())
     if not pool:
@@ -250,13 +319,13 @@ async def game_questions(
         q_party_color: str | None = None
 
         if kind == "outcome":
-            prompt = "El Congrés la va aprovar?"
+            prompt = txt["outcome_prompt"]
             opts = [
-                GameOption(text="Sí, aprovada", correct=v.result == "approved"),
-                GameOption(text="No, rebutjada", correct=v.result == "rejected"),
+                GameOption(text=txt["opt_approved"], correct=v.result == "approved"),
+                GameOption(text=txt["opt_rejected"], correct=v.result == "rejected"),
             ]
             rng.shuffle(opts)
-            reveal = f"{v.ayes} vots a favor i {v.noes} en contra."
+            reveal = txt["outcome_reveal"].format(ayes=v.ayes, noes=v.noes)
             category = "lleis"
         elif kind == "party_tf" and votable:
             g = rng.choice(votable)
@@ -265,13 +334,13 @@ async def game_questions(
             gd = meta.display if meta else _display_group(g)
             if meta:
                 q_party_slug, q_party_color = meta.slug, meta.color
-            prompt = f"{gd} hi va votar a favor?"
+            prompt = txt["party_tf_prompt"].format(g=gd)
             voted_aye = stance == VoteChoice.AYE
             opts = [
-                GameOption(text="Sí", correct=voted_aye),
-                GameOption(text="No", correct=not voted_aye),
+                GameOption(text=txt["opt_yes"], correct=voted_aye),
+                GameOption(text=txt["opt_no"], correct=not voted_aye),
             ]
-            reveal = f"{gd} {_STANCE_LABEL_CA[stance]}."
+            reveal = txt["party_tf_reveal"].format(g=gd, stance=stance_label[stance])
             category = "partits"
         elif kind == "proposer" and v.group_short:
             correct_meta = meta_by_short.get(v.group_short)
@@ -293,7 +362,7 @@ async def game_questions(
                 for m in others[:3]
             ]
             rng.shuffle(opts)
-            prompt = "Quin grup la va proposar?"
+            prompt = txt["proposer_prompt"]
             reveal = None
             category = "partits"
         else:
@@ -305,7 +374,7 @@ async def game_questions(
                 category=category,
                 kind=kind,
                 law_summary=v.summary,
-                topic=v.topic_name,
+                topic=(v.topic_es if lang_key == "es" else v.topic_ca),
                 prompt=prompt,
                 options=opts,
                 party_slug=q_party_slug,
