@@ -17,6 +17,7 @@ import {
   type Topic,
   type TopicVoteStat,
 } from '@/lib/api';
+import { formatDMY } from '@/lib/dates';
 import { displayGroupShort } from '@/lib/groups';
 
 interface Params {
@@ -462,10 +463,8 @@ export default async function PersonDetailPage({
                   locale={locale}
                   labels={{
                     dates: t('mandate_dates', {
-                      from: new Date(m.start_date).toLocaleDateString(locale),
-                      to: m.end_date
-                        ? new Date(m.end_date).toLocaleDateString(locale)
-                        : t('mandate_current'),
+                      from: formatDMY(m.start_date),
+                      to: m.end_date ? formatDMY(m.end_date) : t('mandate_current'),
                     }),
                     constituency: t('constituency'),
                     list: t('list'),
@@ -503,10 +502,8 @@ export default async function PersonDetailPage({
                       locale={locale}
                       labels={{
                         dates: t('mandate_dates', {
-                          from: new Date(m.start_date).toLocaleDateString(locale),
-                          to: m.end_date
-                            ? new Date(m.end_date).toLocaleDateString(locale)
-                            : t('mandate_current'),
+                          from: formatDMY(m.start_date),
+                          to: m.end_date ? formatDMY(m.end_date) : t('mandate_current'),
                         }),
                         constituency: t('constituency'),
                         list: t('list'),
