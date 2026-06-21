@@ -46,6 +46,12 @@ _STANCE_LABEL_CA = {
     VoteChoice.ABSTENTION: "es va abstenir",
 }
 
+# Groups (by name_short) that are NOT a coherent party and so have no
+# meaningful "how did the group vote": the Grupo Mixto is a procedural
+# catch-all of unrelated small parties (BNG, CCa, UPN…) that often split, so a
+# "majority stance" for it is misleading. Excluded from the party-vote question.
+_NON_PARTY_GROUPS = {"GP Mixto"}
+
 
 class GameOption(BaseModel):
     text: str
@@ -200,9 +206,12 @@ async def game_questions(
             break
 
         # Weight toward the fun, reasonable kinds; proposer is the rare hard one.
-        eligible: list[str] = ["outcome"]
         majorities = majority_by_vote.get(v.vote_id, {})
-        if majorities:
+        # Only coherent parties can be asked "did X vote in favour?" — drop the
+        # Grupo Mixto and friends (see _NON_PARTY_GROUPS).
+        votable = [g for g in majorities if g not in _NON_PARTY_GROUPS]
+        eligible: list[str] = ["outcome"]
+        if votable:
             eligible += ["party_tf", "party_tf"]  # double-weight: the fun one
         if v.group_short:
             eligible.append("proposer")
@@ -217,8 +226,8 @@ async def game_questions(
             rng.shuffle(opts)
             reveal = f"{v.ayes} vots a favor i {v.noes} en contra."
             category = "lleis"
-        elif kind == "party_tf" and majorities:
-            g = rng.choice(list(majorities.keys()))
+        elif kind == "party_tf" and votable:
+            g = rng.choice(votable)
             stance = majorities[g]
             gd = _display_group(g)
             prompt = f"{gd} hi va votar a favor?"
