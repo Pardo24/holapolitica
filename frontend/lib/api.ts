@@ -551,6 +551,9 @@ export interface DeputyCard {
 export interface GameOption {
   text: string;
   correct: boolean;
+  /** When the option is a party: its identity for the coloured-disc badge. */
+  party_slug: string | null;
+  party_color: string | null;
 }
 
 export interface GameQuestion {
@@ -563,6 +566,9 @@ export interface GameQuestion {
   topic: string | null;
   prompt: string;
   options: GameOption[];
+  /** The party the question is about (party_tf), for a badge in the prompt. */
+  party_slug: string | null;
+  party_color: string | null;
   /** One extra fact revealed after answering (e.g. the tally). */
   reveal: string | null;
   source_kind: string;
@@ -831,10 +837,11 @@ export const api = {
     get: (slug: string) => request<Chamber>(`/chambers/${slug}`),
   },
   game: {
-    questions: (n = 7, legislatureId?: number) => {
+    questions: (n = 7, seed?: number, legislatureId?: number) => {
       const qs = new URLSearchParams({ n: String(n) });
+      if (seed != null) qs.set('seed', String(seed));
       if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
-      // No revalidate: each round should be a fresh draw.
+      // No revalidate: each round should be a fresh draw (unless seeded).
       return request<GameQuestion[]>(`/game/questions?${qs.toString()}`, { revalidate: 0 });
     },
   },

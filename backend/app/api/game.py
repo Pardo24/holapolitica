@@ -56,6 +56,10 @@ _NON_PARTY_GROUPS = {"GP Mixto"}
 class GameOption(BaseModel):
     text: str
     correct: bool
+    # When the option IS a party, its identity so the UI can show the coloured
+    # disc + abbreviation (our neutral stand-in for an official logo).
+    party_slug: str | None = None
+    party_color: str | None = None
 
 
 class GameQuestion(BaseModel):
@@ -68,10 +72,20 @@ class GameQuestion(BaseModel):
     topic: str | None = None
     prompt: str
     options: list[GameOption]
+    # The party the question is ABOUT (party_tf), so the UI can show its badge
+    # in the prompt.
+    party_slug: str | None = None
+    party_color: str | None = None
     # One extra fact revealed after answering, to teach (e.g. the tally).
     reveal: str | None = None
     source_kind: str = "vote"
     source_id: int
+
+
+class _GroupMeta(NamedTuple):
+    slug: str
+    display: str
+    color: str | None
 
 
 class _RichVote(NamedTuple):
@@ -81,6 +95,8 @@ class _RichVote(NamedTuple):
     ayes: int
     noes: int
     group_short: str | None
+    group_slug: str | None
+    group_color: str | None
     topic_name: str | None
 
 
@@ -94,9 +110,15 @@ def _display_group(name_short: str) -> str:
 async def game_questions(
     n: int = Query(7, ge=3, le=20),
     legislature_id: int | None = Query(None),
+    seed: int | None = Query(
+        None, description="Fix the question set so a shared challenge is reproducible."
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> list[GameQuestion]:
-    """Return ``n`` shuffled, explanation-led trivia questions."""
+    """Return ``n`` shuffled, explanation-led trivia questions.
+
+    With ``seed`` the selection is deterministic, so a challenge link drops a
+    friend onto the exact same round to compare scores."""
     leg_id = legislature_id
     if leg_id is None:
         leg_id = (
@@ -129,6 +151,8 @@ async def game_questions(
                 Vote.ayes,
                 Vote.noes,
                 ParliamentaryGroup.name_short,
+                ParliamentaryGroup.slug,
+                ParliamentaryGroup.color_hex,
                 topic_sq.c.tname,
             )
             .join(SessionRow, SessionRow.id == Vote.session_id)
@@ -150,7 +174,7 @@ async def game_questions(
     ).all()
 
     by_vote: dict[int, _RichVote] = {}
-    for vid, sca, ses, result, ayes, noes, gshort, tname in pool_rows:
+    for vid, sca, ses, result, ayes, noes, gshort, gslug, gcolor, tname in pool_rows:
         if vid in by_vote:
             continue
         summary = (sca or ses or "").strip()
@@ -163,22 +187,27 @@ async def game_questions(
             ayes=ayes or 0,
             noes=noes or 0,
             group_short=gshort,
+            group_slug=gslug,
+            group_color=gcolor,
             topic_name=tname,
         )
     pool = list(by_vote.values())
     if not pool:
         return []
 
-    all_groups = [
-        _display_group(g)
-        for (g,) in (
-            await session.execute(
-                select(ParliamentaryGroup.name_short).where(
-                    ParliamentaryGroup.legislature_id == leg_id
-                )
-            )
-        ).all()
-    ]
+    # Group catalogue with identity, for badges + plausible proposer distractors.
+    meta_by_short: dict[str, _GroupMeta] = {}
+    for short, slug, color in (
+        await session.execute(
+            select(
+                ParliamentaryGroup.name_short,
+                ParliamentaryGroup.slug,
+                ParliamentaryGroup.color_hex,
+            ).where(ParliamentaryGroup.legislature_id == leg_id)
+        )
+    ).all():
+        meta_by_short[short] = _GroupMeta(slug=slug, display=_display_group(short), color=color)
+    distractor_metas = list(meta_by_short.values())
 
     # Per-(vote, group) majority stance for the True/False generator.
     majority_by_vote: dict[int, dict[str, VoteChoice]] = defaultdict(dict)
@@ -197,7 +226,7 @@ async def game_questions(
         if count > 0:
             majority_by_vote[vote_id][gshort] = stance
 
-    rng = random.Random()
+    rng = random.Random(seed)
     rng.shuffle(pool)
     questions: list[GameQuestion] = []
 
@@ -217,6 +246,9 @@ async def game_questions(
             eligible.append("proposer")
         kind = rng.choice(eligible)
 
+        q_party_slug: str | None = None
+        q_party_color: str | None = None
+
         if kind == "outcome":
             prompt = "El Congrés la va aprovar?"
             opts = [
@@ -229,7 +261,10 @@ async def game_questions(
         elif kind == "party_tf" and votable:
             g = rng.choice(votable)
             stance = majorities[g]
-            gd = _display_group(g)
+            meta = meta_by_short.get(g)
+            gd = meta.display if meta else _display_group(g)
+            if meta:
+                q_party_slug, q_party_color = meta.slug, meta.color
             prompt = f"{gd} hi va votar a favor?"
             voted_aye = stance == VoteChoice.AYE
             opts = [
@@ -239,11 +274,23 @@ async def game_questions(
             reveal = f"{gd} {_STANCE_LABEL_CA[stance]}."
             category = "partits"
         elif kind == "proposer" and v.group_short:
-            correct = _display_group(v.group_short)
-            others = [x for x in all_groups if x and x != correct]
+            correct_meta = meta_by_short.get(v.group_short)
+            correct_display = (
+                correct_meta.display if correct_meta else _display_group(v.group_short)
+            )
+            correct_slug = correct_meta.slug if correct_meta else None
+            others = [m for m in distractor_metas if m.slug != correct_slug]
             rng.shuffle(others)
-            opts = [GameOption(text=correct, correct=True)] + [
-                GameOption(text=o, correct=False) for o in others[:3]
+            opts = [
+                GameOption(
+                    text=correct_display,
+                    correct=True,
+                    party_slug=correct_slug,
+                    party_color=v.group_color,
+                )
+            ] + [
+                GameOption(text=m.display, correct=False, party_slug=m.slug, party_color=m.color)
+                for m in others[:3]
             ]
             rng.shuffle(opts)
             prompt = "Quin grup la va proposar?"
@@ -261,6 +308,8 @@ async def game_questions(
                 topic=v.topic_name,
                 prompt=prompt,
                 options=opts,
+                party_slug=q_party_slug,
+                party_color=q_party_color,
                 reveal=reveal,
                 source_id=v.vote_id,
             )

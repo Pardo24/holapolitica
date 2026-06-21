@@ -8,11 +8,9 @@ import { api, type GameQuestion } from '@/lib/api';
 
 /**
  * "Hola Política, el joc" — the game-first front door. A trivia round built
- * from real votes (who proposed / how a group voted / what was decided / which
- * topic), each question followed by a plain-language explanation of the law.
- * The data sits behind the questions, surfaced contextually — not as lists.
- *
- * Neutral by construction: questions are factual recall served by /game.
+ * from real votes, each question followed by a plain-language explanation, with
+ * a Trivial-Pursuit "quesito" that fills per correct answer. ?repte=<seed>
+ * drops a challenged friend onto the exact same round to compare scores.
  */
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +19,30 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('meta_title'), description: t('meta_description') };
 }
 
-export default async function JocPage() {
+interface SearchParams {
+  repte?: string;
+  n?: string;
+}
+
+export default async function JocPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const t = await getTranslations('game');
+  const { repte, n } = await searchParams;
+
+  // A seed makes the round reproducible so it can be shared; if a friend opened
+  // a ?repte link we reuse that exact seed, otherwise we mint a fresh one.
+  const seed =
+    repte && /^\d+$/.test(repte)
+      ? Number(repte)
+      : Math.floor(Math.random() * 1_000_000_000);
+  const count = n && /^\d+$/.test(n) ? Math.min(20, Math.max(3, Number(n))) : 7;
 
   let questions: GameQuestion[] = [];
   try {
-    questions = await api.game.questions(7);
+    questions = await api.game.questions(count, seed);
   } catch {
     questions = [];
   }
@@ -42,6 +58,7 @@ export default async function JocPage() {
       <div style={{ paddingTop: 22 }}>
         <TriviaGame
           initialQuestions={questions}
+          seed={seed}
           labels={{
             progress: t('progress'),
             category_partits: t('category_partits'),
@@ -55,6 +72,9 @@ export default async function JocPage() {
             play_again: t('play_again'),
             loading: t('loading'),
             unavailable: t('unavailable'),
+            challenge: t('challenge'),
+            challenge_copied: t('challenge_copied'),
+            challenge_text: t('challenge_text'),
           }}
         />
       </div>

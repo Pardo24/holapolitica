@@ -659,7 +659,10 @@
     "score_line": "You got {score} of {total} right",
     "play_again": "Play again",
     "loading": "Loading…",
-    "unavailable": "There isn't enough data to play right now."
+    "unavailable": "There isn't enough data to play right now.",
+    "challenge": "Challenge a friend",
+    "challenge_copied": "Link copied!",
+    "challenge_text": "I got {score}/{total} on Hola Política. Can you beat me?"
   },
   "align": {
     "title": "How do they represent you?",
