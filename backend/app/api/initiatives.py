@@ -70,6 +70,16 @@ async def list_initiatives(
     status_filter: InitiativeStatus | None = Query(
         None, alias="status", description="Filter by lifecycle status."
     ),
+    result: str | None = Query(
+        None,
+        description=(
+            "Filter by the OUTCOME of the latest linked vote — what the row "
+            "actually shows: 'approved', 'rejected', or 'pending' (no decisive "
+            "vote yet). Use this, not 'status', for the laws view: the portal's "
+            "imported lifecycle status is unreliable (an approved law often "
+            "still reads as 'in_debate')."
+        ),
+    ),
     topic_slug: str | None = Query(
         None, description="Topic slug, or a comma-separated list evaluated as OR."
     ),
@@ -121,6 +131,36 @@ async def list_initiatives(
         conditions.append(Initiative.type == initiative_type)
     if status_filter is not None:
         conditions.append(Initiative.status == status_filter)
+    # Outcome filter — by the LATEST linked vote's result, which is what the
+    # row displays. Filtering on Initiative.status here would be wrong: an
+    # approved law often still carries status='in_debate' from the portal, so
+    # the "approved" chip would return nothing while "in debate" returns rows
+    # that visibly show "Approved". We rank each initiative's votes by date and
+    # match the most recent one (a bill voted in parts is judged by its final
+    # vote); "pending" means no decisive vote has happened yet.
+    if result in ("approved", "rejected", "pending"):
+        latest_sq = (
+            select(
+                Vote.initiative_id.label("iid"),
+                Vote.result.label("res"),
+                func.row_number()
+                .over(
+                    partition_by=Vote.initiative_id,
+                    order_by=Vote.voted_at.desc(),
+                )
+                .label("rn"),
+            )
+            .where(Vote.initiative_id.is_not(None))
+            .subquery()
+        )
+        if result == "pending":
+            conditions.append(Initiative.id.not_in(select(latest_sq.c.iid)))
+        else:
+            conditions.append(
+                Initiative.id.in_(
+                    select(latest_sq.c.iid).where(latest_sq.c.rn == 1, latest_sq.c.res == result)
+                )
+            )
     # Full-text search. On Postgres we run the 'spanish' FTS config over the
     # title + summary + preamble (object_text) + plain-language summaries and
     # rank by relevance — so "lleis sobre X" surfaces a bill even when X only

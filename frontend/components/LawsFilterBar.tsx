@@ -45,20 +45,20 @@ interface Props {
   topics: Topic[];
   groups: ParliamentaryGroupSummary[];
   initialQ: string;
-  initialStatus: string;
+  initialResult: string;
   initialTopicSlugs: string[];
   initialGroupSlugs: string[];
   locale: string;
   labels: LawsFilterLabels;
 }
 
-const STATUS_OPTIONS = ['approved', 'rejected', 'in_debate'] as const;
+const STATUS_OPTIONS = ['approved', 'rejected', 'pending'] as const;
 
 export function LawsFilterBar({
   topics,
   groups,
   initialQ,
-  initialStatus,
+  initialResult,
   initialTopicSlugs,
   initialGroupSlugs,
   locale,
@@ -112,7 +112,7 @@ export function LawsFilterBar({
     [sp, pushUrl],
   );
 
-  const setStatus = (status: string | null) => setParam('status', status);
+  const setStatus = (value: string | null) => setParam('result', value);
 
   const updateMulti = (key: string, current: string[], slug: string, add: boolean) => {
     if (!slug) return;
@@ -130,7 +130,7 @@ export function LawsFilterBar({
 
   const clearAll = () => {
     const next = new URLSearchParams(sp.toString());
-    ['q', 'status', 'topic_slug', 'proposing_group_slug', 'page'].forEach((k) => next.delete(k));
+    ['q', 'result', 'topic_slug', 'proposing_group_slug', 'page'].forEach((k) => next.delete(k));
     pushUrl(next);
   };
 
@@ -139,14 +139,14 @@ export function LawsFilterBar({
 
   const totalActive =
     (qDraft.trim() ? 1 : 0) +
-    (initialStatus ? 1 : 0) +
+    (initialResult ? 1 : 0) +
     initialTopicSlugs.length +
     initialGroupSlugs.length;
 
   const statusLabel: Record<string, string> = {
     approved: labels.status_approved,
     rejected: labels.status_rejected,
-    in_debate: labels.status_in_debate,
+    pending: labels.status_in_debate,
   };
 
   return (
@@ -195,11 +195,11 @@ export function LawsFilterBar({
       {/* Primary: status chips + More-filters disclosure + clear. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <StatusChip active={!initialStatus} onClick={() => setStatus(null)}>
+          <StatusChip active={!initialResult} onClick={() => setStatus(null)}>
             {labels.status_all}
           </StatusChip>
           {STATUS_OPTIONS.map((s) => (
-            <StatusChip key={s} active={initialStatus === s} onClick={() => setStatus(s)}>
+            <StatusChip key={s} active={initialResult === s} onClick={() => setStatus(s)}>
               {statusLabel[s]}
             </StatusChip>
           ))}

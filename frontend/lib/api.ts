@@ -910,6 +910,9 @@ export const api = {
         creates_law?: boolean;
         initiative_type?: InitiativeType;
         status?: InitiativeStatus;
+        /** Outcome of the latest linked vote — what the row shows. Use this
+         *  (not status) for the laws view; status is an unreliable lifecycle. */
+        result?: 'approved' | 'rejected' | 'pending';
         topic_slug?: string;
         proposing_group_slug?: string;
         q?: string;
