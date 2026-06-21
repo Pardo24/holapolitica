@@ -13,7 +13,7 @@ import {
 } from '@/lib/api';
 import { displayGroupShort, groupAbbreviation } from '@/lib/groups';
 import { layoutFromSimilarity } from '@/lib/mds';
-import { CHES_SCORES } from '@/lib/ches';
+import { chesScore } from '@/lib/ches';
 
 export const revalidate = 300;
 
@@ -119,9 +119,10 @@ export default async function MapaPage({
     const maxX = W - margin;
     const minY = margin;
     const maxY = H - margin;
+    const legYear = selectedLeg ? new Date(selectedLeg.start_date).getFullYear() : 2024;
     nodes = groups
       .map((g) => {
-        const s = CHES_SCORES[g.slug];
+        const s = chesScore(g.slug, legYear);
         if (!s) return null;
         return {
           slug: g.slug,
