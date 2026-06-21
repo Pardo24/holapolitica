@@ -659,7 +659,10 @@
     "score_line": "Has encertat {score} de {total}",
     "play_again": "Torna a jugar",
     "loading": "Carregant…",
-    "unavailable": "Ara mateix no hi ha prou dades per jugar."
+    "unavailable": "Ara mateix no hi ha prou dades per jugar.",
+    "challenge": "Repta un amic",
+    "challenge_copied": "Enllaç copiat!",
+    "challenge_text": "He encertat {score}/{total} a Hola Política. Em superes?"
   },
   "align": {
     "title": "Com et representen?",

@@ -659,7 +659,10 @@
     "score_line": "Has acertado {score} de {total}",
     "play_again": "Volver a jugar",
     "loading": "Cargando…",
-    "unavailable": "Ahora mismo no hay suficientes datos para jugar."
+    "unavailable": "Ahora mismo no hay suficientes datos para jugar.",
+    "challenge": "Reta a un amigo",
+    "challenge_copied": "¡Enlace copiado!",
+    "challenge_text": "He acertado {score}/{total} en Hola Política. ¿Me superas?"
   },
   "align": {
     "title": "¿Cómo te representan?",
