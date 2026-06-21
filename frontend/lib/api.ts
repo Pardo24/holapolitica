@@ -837,10 +837,13 @@ export const api = {
     get: (slug: string) => request<Chamber>(`/chambers/${slug}`),
   },
   game: {
-    questions: (n = 7, seed?: number, legislatureId?: number) => {
+    questions: (n = 7, seed?: number, legislatureId?: number, lang?: string) => {
       const qs = new URLSearchParams({ n: String(n) });
       if (seed != null) qs.set('seed', String(seed));
       if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
+      // Questions are generated server-side, so the locale must travel with
+      // the request for the prompts/reveals to come back in the right language.
+      if (lang) qs.set('lang', lang);
       // No revalidate: each round should be a fresh draw (unless seeded).
       return request<GameQuestion[]>(`/game/questions?${qs.toString()}`, { revalidate: 0 });
     },
