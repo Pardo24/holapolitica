@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, Gamepad2, Landmark, Layers, MapPin, Newspaper, Scale, Users } from 'lucide-react';
+import { BarChart3, Bell, Gamepad2, MapPin, Scale } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -37,53 +37,30 @@ export async function TopNav() {
   // and scannable, so the strip reads at a glance without losing the
   // serif/grayscale aesthetic. Stroke 1.8 + size 14 keeps them lighter
   // than the wordmark so the label still leads.
+  // A deliberately small, visual nav — the four things we want people to do.
+  // Everything else (Temes, Legislatures, Premsa, Persones, "Com et
+  // representen?") stays reachable from within the pages and the footer, off
+  // the top bar.
   const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
     {
       href: '/joc' as Route,
       label: t('joc'),
-      icon: <Gamepad2 size={14} aria-hidden="true" strokeWidth={1.8} />,
+      icon: <Gamepad2 size={17} aria-hidden="true" strokeWidth={1.8} />,
+    },
+    {
+      href: '/el-teu-diputat' as Route,
+      label: t('deputy'),
+      icon: <MapPin size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/lleis' as Route,
       label: t('lleis'),
-      icon: <Scale size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
-    {
-      href: '/persons',
-      label: t('persons'),
-      icon: <Users size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
-    {
-      href: '/topics',
-      label: t('topics'),
-      icon: <Layers size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
-  ];
-  const secondary: { href: Route; label: string; icon: React.ReactNode }[] = [
-    {
-      href: '/el-teu-diputat' as Route,
-      label: t('deputy'),
-      icon: <MapPin size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
-    {
-      href: '/com-et-representen' as Route,
-      label: t('align'),
-      icon: <Scale size={14} aria-hidden="true" strokeWidth={1.8} />,
+      icon: <Scale size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/stats',
       label: t('stats'),
-      icon: <BarChart3 size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
-    {
-      href: '/legislatures' as Route,
-      label: t('legislatures'),
-      icon: <Landmark size={14} aria-hidden="true" strokeWidth={1.8} />,
-    },
-    {
-      href: '/journalists' as Route,
-      label: t('journalists'),
-      icon: <Newspaper size={14} aria-hidden="true" strokeWidth={1.8} />,
+      icon: <BarChart3 size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
   ];
 
@@ -103,12 +80,6 @@ export async function TopNav() {
       </Link>
       <ul className="nav-links" role="list">
         {primary.map((it) => (
-          <li key={it.href}>
-            <NavLink href={it.href} label={it.label} icon={it.icon} />
-          </li>
-        ))}
-        <li className="nav-divider" aria-hidden="true" />
-        {secondary.map((it) => (
           <li key={it.href}>
             <NavLink href={it.href} label={it.label} icon={it.icon} />
           </li>
