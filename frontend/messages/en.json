@@ -683,6 +683,13 @@
     "none_answered": "You didn't answer any vote. Start over and pick a stance to see the results.",
     "view_vote": "View the original vote"
   },
+  "map": {
+    "title": "The Map",
+    "subtitle": "Where the parties really are, by how they vote. Those that vote alike sit close.",
+    "unavailable": "There isn't enough voting data yet to draw this legislature's map.",
+    "note": "Positions come from comparing how each group votes: the more alike their votes, the closer they sit. It's not a left-right axis or a recommendation.",
+    "size_note": "Circle size is proportional to seats."
+  },
   "legislatures": {
     "title": "The legislatures",
     "subtitle": "Compare each Congreso legislature (2011-2026): vote volume, approval rate and approvals by assent.",
