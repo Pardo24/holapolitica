@@ -701,7 +701,15 @@
     "subtitle": "On són realment els partits, segons com voten. Els que voten igual queden a prop.",
     "unavailable": "Encara no hi ha prou dades de votació per dibuixar el mapa d'aquesta legislatura.",
     "note": "La posició surt de comparar com vota cada grup: com més semblants són els seus vots, més a prop queden. No és un eix esquerra-dreta ni cap recomanació.",
-    "size_note": "La mida del cercle és proporcional als escons."
+    "size_note": "La mida del cercle és proporcional als escons.",
+    "view_votes": "Com voten",
+    "view_axes": "Esquerra-dreta",
+    "axis_left": "Esquerra",
+    "axis_right": "Dreta",
+    "axis_top": "Progressista",
+    "axis_bottom": "Conservador",
+    "axes_note": "Aquesta vista situa cada partit segons enquestes d'experts, no segons els seus vots. L'eix horitzontal és esquerra-dreta en economia; el vertical, progressista-conservador en temes socials. Els grups amb diversos partits (Mixt, Plural) no s'hi col·loquen.",
+    "axes_source": "Font: Chapel Hill Expert Survey (CHES), valors aproximats."
   },
   "legislatures": {
     "title": "Les legislatures",
