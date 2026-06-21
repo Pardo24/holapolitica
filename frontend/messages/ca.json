@@ -683,6 +683,13 @@
     "none_answered": "No has respost cap votació. Torna a començar i tria una postura per veure els resultats.",
     "view_vote": "Veure la votació original"
   },
+  "map": {
+    "title": "El Mapa",
+    "subtitle": "On són realment els partits, segons com voten. Els que voten igual queden a prop.",
+    "unavailable": "Encara no hi ha prou dades de votació per dibuixar el mapa d'aquesta legislatura.",
+    "note": "La posició surt de comparar com vota cada grup: com més semblants són els seus vots, més a prop queden. No és un eix esquerra-dreta ni cap recomanació.",
+    "size_note": "La mida del cercle és proporcional als escons."
+  },
   "legislatures": {
     "title": "Les legislatures",
     "subtitle": "Compara l'activitat de cada legislatura del Congrés (2011-2026): volum de votacions, taxa d'aprovació i aprovacions per assentiment.",
