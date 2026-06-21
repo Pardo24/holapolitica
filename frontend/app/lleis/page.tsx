@@ -9,7 +9,6 @@ import { PageHeader } from '@/components/PageHeader';
 import {
   api,
   type InitiativeListItem,
-  type InitiativeStatus,
   type ParliamentaryGroupSummary,
   type Topic,
 } from '@/lib/api';
@@ -26,7 +25,7 @@ import { parseProposer } from '@/lib/groups';
  */
 
 interface SearchParams {
-  status?: string;
+  result?: string;
   topic_slug?: string;
   proposing_group_slug?: string;
   q?: string;
@@ -34,7 +33,10 @@ interface SearchParams {
 }
 
 const PAGE_SIZE = 30;
-const STATUS_FILTERS: InitiativeStatus[] = ['approved', 'rejected', 'in_debate'];
+// The chips filter by the latest VOTE outcome (what the row shows), not the
+// portal's unreliable Initiative.status. "pending" = no decisive vote yet.
+const RESULT_FILTERS = ['approved', 'rejected', 'pending'] as const;
+type ResultFilter = (typeof RESULT_FILTERS)[number];
 
 function splitCsv(value: string | undefined): string[] {
   if (!value) return [];
@@ -51,8 +53,8 @@ export default async function LleisPage({
   const tStats = await getTranslations('stats');
   const locale = await getLocale();
 
-  const statusFilter = STATUS_FILTERS.includes(sp.status as InitiativeStatus)
-    ? (sp.status as InitiativeStatus)
+  const resultFilter = RESULT_FILTERS.includes(sp.result as ResultFilter)
+    ? (sp.result as ResultFilter)
     : undefined;
   const topicSlugs = splitCsv(sp.topic_slug);
   const groupSlugs = splitCsv(sp.proposing_group_slug);
@@ -63,7 +65,7 @@ export default async function LleisPage({
     api.initiatives.list({
       legislature_id: 1,
       creates_law: true,
-      status: statusFilter,
+      result: resultFilter,
       topic_slug: topicSlugs.length ? topicSlugs.join(',') : undefined,
       proposing_group_slug: groupSlugs.length ? groupSlugs.join(',') : undefined,
       q: query || undefined,
@@ -78,7 +80,7 @@ export default async function LleisPage({
 
   const buildPageHref = (p: number): Route => {
     const qs = new URLSearchParams();
-    if (statusFilter) qs.set('status', statusFilter);
+    if (resultFilter) qs.set('result', resultFilter);
     if (topicSlugs.length) qs.set('topic_slug', topicSlugs.join(','));
     if (groupSlugs.length) qs.set('proposing_group_slug', groupSlugs.join(','));
     if (query) qs.set('q', query);
@@ -99,7 +101,7 @@ export default async function LleisPage({
         topics={topics}
         groups={groups}
         initialQ={query}
-        initialStatus={statusFilter ?? ''}
+        initialResult={resultFilter ?? ''}
         initialTopicSlugs={topicSlugs}
         initialGroupSlugs={groupSlugs}
         locale={locale}
