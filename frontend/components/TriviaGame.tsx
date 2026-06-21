@@ -147,15 +147,31 @@ export function TriviaGame({
         <div style={{ width: `${(idx / total) * 100}%`, height: '100%', background: CATEGORY_COLOR[q.category] ?? 'var(--ink)' }} />
       </div>
 
-      {/* Prompt + subject */}
-      <h2 className="serif" style={{ fontSize: 20, fontWeight: 600, margin: '0 0 6px', lineHeight: 1.3, color: 'var(--ink)' }}>
+      {/* The law explained in plain language — the lead. Shown in full so it
+          never reads as cut off; this is what the player reasons from. */}
+      <div
+        style={{
+          padding: '14px 16px',
+          borderRadius: 12,
+          background: 'var(--paper-2)',
+          border: '1px solid var(--rule)',
+          marginBottom: 16,
+        }}
+      >
+        {q.topic && (
+          <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 6 }}>
+            {q.topic}
+          </div>
+        )}
+        <p style={{ fontSize: 15, color: 'var(--ink)', lineHeight: 1.6, margin: 0 }}>
+          {q.law_summary}
+        </p>
+      </div>
+
+      {/* The question */}
+      <h2 className="serif" style={{ fontSize: 19, fontWeight: 600, margin: '0 0 14px', lineHeight: 1.3, color: 'var(--ink)' }}>
         {q.prompt}
       </h2>
-      {q.subject && (
-        <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 16px', lineHeight: 1.5 }}>
-          {q.subject}
-        </p>
-      )}
 
       {/* Options */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -195,7 +211,7 @@ export function TriviaGame({
         })}
       </div>
 
-      {/* Explanation + explore, after answering */}
+      {/* Reveal (extra fact) + explore, after answering */}
       {answered && (
         <div
           style={{
@@ -206,14 +222,14 @@ export function TriviaGame({
             border: '1px solid var(--rule)',
           }}
         >
-          {q.explanation && (
+          {q.reveal && (
             <p style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.55, margin: 0 }}>
-              {q.explanation}
+              {q.reveal}
             </p>
           )}
           <Link
             href={`/votes/${q.source_id}` as Route}
-            style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600 }}
+            style={{ display: 'inline-block', marginTop: q.reveal ? 8 : 0, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600 }}
           >
             {labels.explore} →
           </Link>

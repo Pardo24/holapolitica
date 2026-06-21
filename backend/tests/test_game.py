@@ -170,10 +170,10 @@ async def test_game_questions_are_well_formed(db_session: AsyncSession) -> None:
         # Exactly one correct option — the core invariant of a fair quiz.
         assert sum(1 for o in q.options if o.correct) == 1
         assert 2 <= len(q.options) <= 4
-        # Every question references a real vote and carries an explanation
-        # (we only draw from summarised initiatives).
+        # Every card leads with the law explained in plain language and points
+        # back at the real vote.
         assert q.source_kind == "vote"
-        assert q.explanation
+        assert q.law_summary
         assert q.category in {"partits", "lleis", "temes"}
 
 

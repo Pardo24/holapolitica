@@ -1,6 +1,7 @@
 """API endpoints for persons and their mandates."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -9,10 +10,19 @@ from app.db import get_session
 from app.metrics import (
     PersonKPIs,
     TopicVoteStatRow,
+    compute_deputy_attendance,
+    compute_deputy_dissidence,
     compute_person_kpis,
     compute_topic_stats_for_person,
 )
-from app.models import GroupMembership, Mandate, ParliamentaryGroup, Person
+from app.models import (
+    GroupMembership,
+    Legislature,
+    LegislatureStatus,
+    Mandate,
+    ParliamentaryGroup,
+    Person,
+)
 from app.schemas import MandateWithPerson, PersonRead
 
 router = APIRouter(prefix="/persons", tags=["persons"])
@@ -71,6 +81,134 @@ async def list_persons(
         "page_size": page_size,
         "items": [_serialize_person(p, enrichment) for p in persons],
     }
+
+
+async def _resolve_legislature_id(session: AsyncSession, legislature_id: int | None) -> int | None:
+    if legislature_id is not None:
+        return legislature_id
+    return (
+        await session.execute(
+            select(Legislature.id)
+            .where(Legislature.status == LegislatureStatus.ACTIVE)
+            .order_by(Legislature.start_date.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+
+
+class ConstituencyRow(BaseModel):
+    name: str
+    deputies: int
+
+
+@router.get("/constituencies", response_model=list[ConstituencyRow])
+async def list_constituencies(
+    legislature_id: int | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+) -> list[ConstituencyRow]:
+    """Distinct constituencies (provinces) with their deputy count, for the
+    "El teu diputat" picker. Defaults to the current legislature."""
+    leg_id = await _resolve_legislature_id(session, legislature_id)
+    if leg_id is None:
+        return []
+    rows = (
+        await session.execute(
+            select(Mandate.constituency, func.count(func.distinct(Mandate.person_id)))
+            .where(Mandate.legislature_id == leg_id)
+            .where(Mandate.constituency.is_not(None))
+            .group_by(Mandate.constituency)
+            .order_by(Mandate.constituency.asc())
+        )
+    ).all()
+    return [ConstituencyRow(name=c, deputies=n) for c, n in rows]
+
+
+class DeputyCard(BaseModel):
+    """One representative of a constituency, with the at-a-glance numbers the
+    "El teu diputat" cards show: attendance and how often they break with their
+    own group (independence)."""
+
+    person_id: int
+    full_name: str
+    photo_url: str | None = None
+    constituency: str | None = None
+    group_slug: str | None = None
+    group_short: str | None = None
+    group_color: str | None = None
+    attendance_pct: float | None = None  # 0..1
+    dissidence_pct: float | None = None  # 0..1
+    votes_cast: int = 0
+
+
+@router.get("/by-constituency", response_model=list[DeputyCard])
+async def deputies_by_constituency(
+    constituency: str = Query(..., description="Province name, e.g. 'Barcelona'."),
+    legislature_id: int | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+) -> list[DeputyCard]:
+    """The deputies who represent a constituency, each with attendance + a
+    party-independence score. Reuses the bulk attendance/dissidence metrics
+    (two passes over the legislature's records) and filters to the province."""
+    leg_id = await _resolve_legislature_id(session, legislature_id)
+    if leg_id is None:
+        return []
+
+    person_rows = (
+        await session.execute(
+            select(
+                Person.id,
+                Person.full_name,
+                Person.photo_url,
+                Mandate.constituency,
+                ParliamentaryGroup.slug,
+                ParliamentaryGroup.name_short,
+                ParliamentaryGroup.color_hex,
+            )
+            .join(Mandate, Mandate.person_id == Person.id)
+            .outerjoin(
+                GroupMembership,
+                (GroupMembership.mandate_id == Mandate.id) & (GroupMembership.end_date.is_(None)),
+            )
+            .outerjoin(ParliamentaryGroup, ParliamentaryGroup.id == GroupMembership.group_id)
+            .where(Mandate.legislature_id == leg_id)
+            .where(Mandate.constituency == constituency)
+        )
+    ).all()
+    if not person_rows:
+        return []
+
+    attendance = {
+        r.person_id: r for r in await compute_deputy_attendance(session, legislature_id=leg_id)
+    }
+    dissidence = {
+        r.person_id: r for r in await compute_deputy_dissidence(session, legislature_id=leg_id)
+    }
+
+    cards: list[DeputyCard] = []
+    seen: set[int] = set()
+    for pid, full_name, photo, const, slug, short, color in person_rows:
+        if pid in seen:
+            continue
+        seen.add(pid)
+        att = attendance.get(pid)
+        dis = dissidence.get(pid)
+        cards.append(
+            DeputyCard(
+                person_id=pid,
+                full_name=full_name,
+                photo_url=photo,
+                constituency=const,
+                group_slug=slug,
+                group_short=short,
+                group_color=color,
+                attendance_pct=att.attendance if att else None,
+                dissidence_pct=dis.dissidence if dis else None,
+                votes_cast=att.votes_attended if att else 0,
+            )
+        )
+    # Group-mates together, then most-present first within a group.
+    cards.sort(key=lambda c: (c.group_short or "zz", -(c.attendance_pct or 0)))
+    return cards
 
 
 @router.get("/{person_id}", response_model=PersonRead)
