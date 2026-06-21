@@ -178,12 +178,10 @@ async def deputies_by_constituency(
         return []
 
     attendance = {
-        r.person_id: r
-        for r in await compute_deputy_attendance(session, legislature_id=leg_id)
+        r.person_id: r for r in await compute_deputy_attendance(session, legislature_id=leg_id)
     }
     dissidence = {
-        r.person_id: r
-        for r in await compute_deputy_dissidence(session, legislature_id=leg_id)
+        r.person_id: r for r in await compute_deputy_dissidence(session, legislature_id=leg_id)
     }
 
     cards: list[DeputyCard] = []
