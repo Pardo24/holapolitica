@@ -98,8 +98,13 @@ _GAME_TEXT: dict[str, _GameStrings] = {
 
 
 def _game_lang(lang: str | None) -> str:
-    """Normalise a UI locale to a supported game language ('ca' or 'es')."""
-    return "es" if (lang or "").lower().startswith("es") else "ca"
+    """Normalise a UI locale to a supported game language ('ca' or 'es').
+
+    Defensive against a non-str default: unit tests call ``game_questions``
+    directly, so an unsupplied ``lang`` arrives as the FastAPI ``Query``
+    sentinel rather than a string. Anything that isn't a real locale string
+    falls back to Catalan."""
+    return "es" if isinstance(lang, str) and lang.lower().startswith("es") else "ca"
 
 
 # Groups (by name_short) that are NOT a coherent party and so have no
