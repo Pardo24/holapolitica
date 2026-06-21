@@ -300,7 +300,9 @@ async def game_questions(
         if count > 0:
             majority_by_vote[vote_id][gshort] = stance
 
-    rng = random.Random(seed)
+    # ``isinstance`` guard mirrors ``_game_lang``: a direct call (unit tests)
+    # leaves ``seed`` as the FastAPI Query sentinel, which random.Random rejects.
+    rng = random.Random(seed if isinstance(seed, int) else None)
     rng.shuffle(pool)
     questions: list[GameQuestion] = []
 
