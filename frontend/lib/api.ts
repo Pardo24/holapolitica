@@ -527,6 +527,26 @@ export interface InitiativeTypeCount {
 
 /** Per-legislature comparative KPIs from `/stats/legislatures`, most recent
  *  first. `approval_rate` is approved / votes_total (0 when no votes). */
+/** A constituency (province) + its deputy count, for "El teu diputat". */
+export interface ConstituencyRow {
+  name: string;
+  deputies: number;
+}
+
+/** One representative of a constituency, with attendance + independence. */
+export interface DeputyCard {
+  person_id: number;
+  full_name: string;
+  photo_url: string | null;
+  constituency: string | null;
+  group_slug: string | null;
+  group_short: string | null;
+  group_color: string | null;
+  attendance_pct: number | null;
+  dissidence_pct: number | null;
+  votes_cast: number;
+}
+
 /** A trivia game option + question, from GET /game/questions. */
 export interface GameOption {
   text: string;
@@ -537,10 +557,14 @@ export interface GameQuestion {
   id: string;
   category: 'partits' | 'lleis' | 'temes';
   kind: string;
+  /** The law explained in plain language — shown FIRST, the card's lead. */
+  law_summary: string;
+  /** Short theme tag, e.g. "Habitatge". */
+  topic: string | null;
   prompt: string;
-  subject: string | null;
   options: GameOption[];
-  explanation: string | null;
+  /** One extra fact revealed after answering (e.g. the tally). */
+  reveal: string | null;
   source_kind: string;
   source_id: number;
 }
@@ -860,6 +884,19 @@ export const api = {
       request<TopicVoteStat[]>(`/persons/${id}/topic-stats`, { revalidate: AGG_REVALIDATE }),
     kpis: (id: number) =>
       request<PersonKPIs>(`/persons/${id}/kpis`, { revalidate: AGG_REVALIDATE }),
+    constituencies: (legislatureId?: number) => {
+      const qs = legislatureId != null ? `?legislature_id=${legislatureId}` : '';
+      return request<ConstituencyRow[]>(`/persons/constituencies${qs}`, {
+        revalidate: AGG_REVALIDATE,
+      });
+    },
+    byConstituency: (constituency: string, legislatureId?: number) => {
+      const qs = new URLSearchParams({ constituency });
+      if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
+      return request<DeputyCard[]>(`/persons/by-constituency?${qs.toString()}`, {
+        revalidate: AGG_REVALIDATE,
+      });
+    },
   },
   initiatives: {
     get: (id: number) => request<Initiative>(`/initiatives/${id}`),

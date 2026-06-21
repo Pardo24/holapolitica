@@ -199,7 +199,7 @@
     "newsletter": "Newsletter",
     "notifications": "Notificacions",
     "journalists": "Premsa",
-    "joc": "Joc"
+    "deputy": "El teu diputat"
   },
   "lleis": {
     "title": "Lleis",
@@ -632,6 +632,16 @@
     "surface_joc_title": "Joc cívic",
     "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
     "surface_joc_cta": "Posa't a prova"
+  },
+  "deputy": {
+    "title": "El teu diputat",
+    "subtitle": "Tria la teva província i mira qui et representa: si assisteix, si es desmarca del seu partit i el seu historial.",
+    "picker_label": "La teva circumscripció:",
+    "picker_placeholder": "Tria una província…",
+    "pick_prompt": "Tria la teva província per veure els teus diputats.",
+    "attendance": "Assistència",
+    "independence": "Es desmarca del partit",
+    "empty": "No hi ha diputats per a aquesta província."
   },
   "game": {
     "meta_title": "El joc · Hola Política",

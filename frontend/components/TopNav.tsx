@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, Gamepad2, Landmark, Layers, Newspaper, Scale, Users } from 'lucide-react';
+import { BarChart3, Bell, Gamepad2, Landmark, Layers, MapPin, Newspaper, Scale, Users } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -60,6 +60,11 @@ export async function TopNav() {
     },
   ];
   const secondary: { href: Route; label: string; icon: React.ReactNode }[] = [
+    {
+      href: '/el-teu-diputat' as Route,
+      label: t('deputy'),
+      icon: <MapPin size={14} aria-hidden="true" strokeWidth={1.8} />,
+    },
     {
       href: '/com-et-representen' as Route,
       label: t('align'),

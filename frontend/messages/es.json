@@ -199,7 +199,7 @@
     "newsletter": "Newsletter",
     "notifications": "Notificaciones",
     "journalists": "Prensa",
-    "joc": "Juego"
+    "deputy": "Tu diputado"
   },
   "lleis": {
     "title": "Leyes",
@@ -632,6 +632,16 @@
     "surface_joc_title": "Juego cívico",
     "surface_joc_body": "Adivina quién propuso una votación o cómo salió. Una forma ligera de aprender cómo vota el Congreso.",
     "surface_joc_cta": "Ponte a prueba"
+  },
+  "deputy": {
+    "title": "Tu diputado",
+    "subtitle": "Elige tu provincia y mira quién te representa: si asiste, si se desmarca de su partido y su historial.",
+    "picker_label": "Tu circunscripción:",
+    "picker_placeholder": "Elige una provincia…",
+    "pick_prompt": "Elige tu provincia para ver a tus diputados.",
+    "attendance": "Asistencia",
+    "independence": "Se desmarca del partido",
+    "empty": "No hay diputados para esta provincia."
   },
   "game": {
     "meta_title": "El juego · Hola Política",
