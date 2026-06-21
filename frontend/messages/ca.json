@@ -709,7 +709,7 @@
     "axis_top": "Progressista",
     "axis_bottom": "Conservador",
     "axes_note": "Aquesta vista situa cada partit segons enquestes d'experts, no segons els seus vots. L'eix horitzontal és esquerra-dreta en economia; el vertical, progressista-conservador en temes socials. Els grups amb diversos partits (Mixt, Plural) no s'hi col·loquen.",
-    "axes_source": "Font: Chapel Hill Expert Survey (CHES), valors aproximats."
+    "axes_source": "Font: Chapel Hill Expert Survey (CHES), onada més propera a cada legislatura."
   },
   "legislatures": {
     "title": "Les legislatures",

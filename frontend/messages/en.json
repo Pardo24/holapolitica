@@ -709,7 +709,7 @@
     "axis_top": "Progressive",
     "axis_bottom": "Conservative",
     "axes_note": "This view places each party from expert surveys, not from its votes. The horizontal axis is economic left-right; the vertical, progressive-conservative on social issues. Groups holding several parties (Mixto, Plural) aren't placed.",
-    "axes_source": "Source: Chapel Hill Expert Survey (CHES), approximate values."
+    "axes_source": "Source: Chapel Hill Expert Survey (CHES), wave closest to each legislature."
   },
   "legislatures": {
     "title": "The legislatures",

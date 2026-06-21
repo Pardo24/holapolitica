@@ -709,7 +709,7 @@
     "axis_top": "Progresista",
     "axis_bottom": "Conservador",
     "axes_note": "Esta vista sitúa a cada partido según encuestas de expertos, no según sus votos. El eje horizontal es izquierda-derecha en economía; el vertical, progresista-conservador en temas sociales. Los grupos con varios partidos (Mixto, Plural) no se colocan.",
-    "axes_source": "Fuente: Chapel Hill Expert Survey (CHES), valores aproximados."
+    "axes_source": "Fuente: Chapel Hill Expert Survey (CHES), oleada más cercana a cada legislatura."
   },
   "legislatures": {
     "title": "Las legislaturas",
