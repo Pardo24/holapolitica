@@ -21,41 +21,46 @@ export async function FocalHub() {
   }[] = [
     {
       href: '/joc' as Route,
-      icon: <Gamepad2 size={24} strokeWidth={1.8} aria-hidden="true" />,
+      icon: <Gamepad2 size={19} strokeWidth={1.8} aria-hidden="true" />,
       title: t('joc_title'),
       sub: t('joc_sub'),
       color: '#7F77DD',
     },
     {
       href: '/com-et-representen' as Route,
-      icon: <Scale size={24} strokeWidth={1.8} aria-hidden="true" />,
+      icon: <Scale size={19} strokeWidth={1.8} aria-hidden="true" />,
       title: t('align_title'),
       sub: t('align_sub'),
       color: '#1D9E75',
     },
     {
       href: '/el-teu-diputat' as Route,
-      icon: <MapPin size={24} strokeWidth={1.8} aria-hidden="true" />,
+      icon: <MapPin size={19} strokeWidth={1.8} aria-hidden="true" />,
       title: t('deputy_title'),
       sub: t('deputy_sub'),
       color: '#EF9F27',
     },
     {
       href: '/mapa' as Route,
-      icon: <MapIcon size={24} strokeWidth={1.8} aria-hidden="true" />,
+      icon: <MapIcon size={19} strokeWidth={1.8} aria-hidden="true" />,
       title: t('map_title'),
       sub: t('map_sub'),
       color: '#378ADD',
     },
   ];
 
+  // Desktop-only (`hidden sm:block`): on mobile these surfaces live in the
+  // dashboard tile grid instead, so the hub here would duplicate them. The
+  // styling is deliberately quiet — a compact row of links with a small
+  // colored glyph, not big marketing cards — so it reads as a calm menu
+  // above the editorial home, not a landing page.
   return (
-    <section style={{ paddingTop: 20, paddingBottom: 8 }}>
+    <section className="hidden sm:block" style={{ paddingTop: 16, paddingBottom: 4 }}>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 12,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 10,
         }}
       >
         {cards.map((c) => (
@@ -64,12 +69,13 @@ export async function FocalHub() {
             href={c.href}
             className="focal-card"
             style={{
-              display: 'block',
-              padding: '18px 18px 16px',
-              borderRadius: 14,
-              background: 'var(--paper-2)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '11px 14px',
+              borderRadius: 10,
+              background: 'var(--paper)',
               border: '1px solid var(--rule)',
-              borderTop: `3px solid ${c.color}`,
               textDecoration: 'none',
               color: 'inherit',
             }}
@@ -80,26 +86,48 @@ export async function FocalHub() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: `color-mix(in srgb, ${c.color} 16%, var(--paper))`,
+                width: 30,
+                height: 30,
+                borderRadius: 8,
+                background: `color-mix(in srgb, ${c.color} 12%, var(--paper))`,
                 color: c.color,
-                marginBottom: 12,
+                flex: 'none',
               }}
             >
               {c.icon}
             </span>
-            <div className="serif" style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>
-              {c.title}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 3, lineHeight: 1.45 }}>
-              {c.sub}
-            </div>
+            <span style={{ minWidth: 0 }}>
+              <span
+                className="serif"
+                style={{
+                  display: 'block',
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  lineHeight: 1.2,
+                }}
+              >
+                {c.title}
+              </span>
+              <span
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  color: 'var(--ink-3)',
+                  marginTop: 1,
+                  lineHeight: 1.35,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {c.sub}
+              </span>
+            </span>
           </Link>
         ))}
       </div>
-      <style>{`.focal-card:hover, .focal-card:focus-visible { border-color: var(--rule-strong); outline: none; }`}</style>
+      <style>{`.focal-card:hover, .focal-card:focus-visible { border-color: var(--rule-strong); background: var(--paper-2); outline: none; }`}</style>
     </section>
   );
 }

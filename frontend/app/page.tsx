@@ -8,6 +8,8 @@ import {
   Gamepad2,
   Layers,
   Mail,
+  Map as MapIcon,
+  MapPin,
   Scale,
   Users,
 } from 'lucide-react';
@@ -50,6 +52,7 @@ export default async function HomePage() {
   const t = await getTranslations('home');
   const tSite = await getTranslations('site');
   const tVotes = await getTranslations('votes');
+  const tHub = await getTranslations('hub');
   const locale = await getLocale();
 
   let summary: Awaited<ReturnType<typeof api.stats.summary>> | null = null;
@@ -138,6 +141,10 @@ export default async function HomePage() {
           lastUpdate: t('mobile_last_update'),
           sessionBannerEyebrow: t('mobile_session_banner_eyebrow'),
           sessionBannerCta: t('mobile_session_banner_cta'),
+          tileJoc: tHub('joc_title'),
+          tileAlign: tHub('align_title'),
+          tileDeputy: tHub('deputy_title'),
+          tileMap: tHub('map_title'),
           tileVotes: t('mobile_tile_votes'),
           tilePersons: t('mobile_tile_persons'),
           tileTopics: t('mobile_tile_topics'),
@@ -731,6 +738,10 @@ interface MobileDashboardLabels {
   lastUpdate: string;
   sessionBannerEyebrow: string;
   sessionBannerCta: string;
+  tileJoc: string;
+  tileAlign: string;
+  tileDeputy: string;
+  tileMap: string;
   tileVotes: string;
   tilePersons: string;
   tileTopics: string;
@@ -942,43 +953,77 @@ function MobileDashboard({
         </Link>
       )}
 
-      {/* 2×2 tile grid. Uses minmax(0, 1fr) so long labels can't push the
-          row beyond the viewport. Each tile is a ~120px-tall touch target
-          (well above the 44×44 minimum). */}
+      {/* Primary focal grid (2×2) — the experiences we want people to do,
+          game-first. Mirrors the desktop FocalHub (which is hidden on
+          mobile), so these newer surfaces stay reachable here as the main
+          navigation. minmax(0, 1fr) so long labels can't blow out the row. */}
       <nav
         aria-label={labels.brand}
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
           gap: 10,
-          marginBottom: 22,
+          marginBottom: 12,
         }}
       >
         <DashboardTile
-          href={'/lleis' as Route}
-          icon={<Scale size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileVotes}
-          tint="indigo"
+          href={'/joc' as Route}
+          icon={<Gamepad2 size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileJoc}
+          tint="violet"
         />
         <DashboardTile
-          href="/persons"
-          icon={<Users size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tilePersons}
+          href={'/com-et-representen' as Route}
+          icon={<Scale size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileAlign}
           tint="teal"
         />
         <DashboardTile
-          href="/topics"
-          icon={<Layers size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileTopics}
+          href={'/el-teu-diputat' as Route}
+          icon={<MapPin size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileDeputy}
           tint="amber"
         />
         <DashboardTile
-          href="/stats"
-          icon={<BarChart3 size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileStats}
-          tint="violet"
+          href={'/mapa' as Route}
+          icon={<MapIcon size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileMap}
+          tint="indigo"
         />
       </nav>
+
+      {/* Secondary lookups — compact chips so the data surfaces (votes,
+          deputies, topics, stats) stay one tap away without competing
+          with the focal grid above. */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 8,
+          marginBottom: 22,
+        }}
+      >
+        <DashboardChip
+          href={'/lleis' as Route}
+          icon={<Scale size={15} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileVotes}
+        />
+        <DashboardChip
+          href="/persons"
+          icon={<Users size={15} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tilePersons}
+        />
+        <DashboardChip
+          href="/topics"
+          icon={<Layers size={15} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileTopics}
+        />
+        <DashboardChip
+          href="/stats"
+          icon={<BarChart3 size={15} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileStats}
+        />
+      </div>
 
       {/* Highlights carousel — same component as desktop. The component
           owns its own width via 100% layout, so we just wrap it in a
@@ -1191,9 +1236,12 @@ function DashboardTile({
           fontWeight: 700,
           letterSpacing: '-0.005em',
           lineHeight: 1.2,
+          // Allow up to two lines so longer focal labels ("Què votaries
+          // tu?", "El teu diputat") render in full instead of truncating.
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: 2,
           overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
           maxWidth: '100%',
         }}
       >
@@ -1215,6 +1263,56 @@ function DashboardTile({
         .mobile-dashboard-tile:active span:not(.mobile-dashboard-tile__icon) {
           color: inherit;
         }
+      `}</style>
+    </Link>
+  );
+}
+
+function DashboardChip({
+  href,
+  icon,
+  label,
+}: {
+  href: React.ComponentProps<typeof Link>['href'];
+  icon: React.ReactNode;
+  label: string;
+}) {
+  // Compact secondary nav: a small bordered pill with a quiet icon. Sized
+  // to clear the 44px touch floor via padding. Grows to fill the row with
+  // flex so 2–4 chips wrap tidily.
+  return (
+    <Link
+      href={href}
+      className="mobile-dashboard-chip"
+      style={{
+        flex: '1 1 auto',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 7,
+        minHeight: 44,
+        padding: '0 14px',
+        borderRadius: 999,
+        border: '1px solid var(--rule)',
+        background: 'var(--paper-2)',
+        color: 'var(--ink-2)',
+        textDecoration: 'none',
+        fontSize: 13,
+        fontWeight: 600,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span aria-hidden="true" style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
+        {icon}
+      </span>
+      {label}
+      <style>{`
+        .mobile-dashboard-chip:active {
+          background: var(--ink);
+          color: var(--paper);
+          border-color: var(--ink);
+        }
+        .mobile-dashboard-chip:active span { color: var(--paper); }
       `}</style>
     </Link>
   );
