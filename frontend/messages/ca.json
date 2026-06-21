@@ -641,7 +641,10 @@
     "pick_prompt": "Tria la teva província per veure els teus diputats.",
     "attendance": "Assistència",
     "independence": "Es desmarca del partit",
-    "empty": "No hi ha diputats per a aquesta província."
+    "empty": "No hi ha diputats per a aquesta província.",
+    "geolocate": "Usa la meva ubicació",
+    "detecting": "Localitzant…",
+    "geolocate_error": "No hem pogut detectar la teva província. Tria-la a mà."
   },
   "game": {
     "meta_title": "El joc · Hola Política",

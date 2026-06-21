@@ -641,7 +641,10 @@
     "pick_prompt": "Elige tu provincia para ver a tus diputados.",
     "attendance": "Asistencia",
     "independence": "Se desmarca del partido",
-    "empty": "No hay diputados para esta provincia."
+    "empty": "No hay diputados para esta provincia.",
+    "geolocate": "Usa mi ubicación",
+    "detecting": "Localizando…",
+    "geolocate_error": "No hemos podido detectar tu provincia. Elígela a mano."
   },
   "game": {
     "meta_title": "El juego · Hola Política",
