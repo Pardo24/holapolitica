@@ -53,6 +53,9 @@ export default async function ElTeuDiputatPage({
           selected={selected}
           label={t('picker_label')}
           placeholder={t('picker_placeholder')}
+          geolocateLabel={t('geolocate')}
+          detectingLabel={t('detecting')}
+          geolocateError={t('geolocate_error')}
         />
       </div>
 

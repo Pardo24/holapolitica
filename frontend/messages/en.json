@@ -641,7 +641,10 @@
     "pick_prompt": "Pick your province to see your deputies.",
     "attendance": "Attendance",
     "independence": "Breaks with the party",
-    "empty": "No deputies for this province."
+    "empty": "No deputies for this province.",
+    "geolocate": "Use my location",
+    "detecting": "Locating…",
+    "geolocate_error": "Couldn't detect your province. Pick it manually."
   },
   "game": {
     "meta_title": "The game · Hola Política",
