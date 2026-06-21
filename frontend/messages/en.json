@@ -701,7 +701,15 @@
     "subtitle": "Where the parties really are, by how they vote. Those that vote alike sit close.",
     "unavailable": "There isn't enough voting data yet to draw this legislature's map.",
     "note": "Positions come from comparing how each group votes: the more alike their votes, the closer they sit. It's not a left-right axis or a recommendation.",
-    "size_note": "Circle size is proportional to seats."
+    "size_note": "Circle size is proportional to seats.",
+    "view_votes": "How they vote",
+    "view_axes": "Left-right",
+    "axis_left": "Left",
+    "axis_right": "Right",
+    "axis_top": "Progressive",
+    "axis_bottom": "Conservative",
+    "axes_note": "This view places each party from expert surveys, not from its votes. The horizontal axis is economic left-right; the vertical, progressive-conservative on social issues. Groups holding several parties (Mixto, Plural) aren't placed.",
+    "axes_source": "Source: Chapel Hill Expert Survey (CHES), approximate values."
   },
   "legislatures": {
     "title": "The legislatures",
