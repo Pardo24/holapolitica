@@ -665,7 +665,21 @@
     "unavailable": "Ara mateix no hi ha prou dades per jugar.",
     "challenge": "Repta un amic",
     "challenge_copied": "Enllaç copiat!",
-    "challenge_text": "He encertat {score}/{total} a Hola Política. Em superes?"
+    "challenge_text": "He aconseguit {score}/{total} quesitos a Hola Política. Em superes?",
+    "spin_cta": "Gira la ruleta",
+    "continue": "Continua",
+    "time_up": "Temps!",
+    "correct": "Correcte!",
+    "wrong": "No hi és",
+    "quesitos_count": "{n}/{total} quesitos",
+    "turn_won_title": "Has completat la roda!",
+    "turn_over_title": "Fi del torn",
+    "duel_intro": "El teu rival ha aconseguit {q} quesitos. Iguala'l o supera'l!",
+    "duel_you": "Tu",
+    "duel_rival": "Rival",
+    "duel_win": "Has guanyat!",
+    "duel_lose": "Ha guanyat el rival",
+    "duel_tie": "Empat"
   },
   "align": {
     "title": "Com et representen?",

@@ -60,6 +60,7 @@ class _GameStrings(TypedDict):
     party_tf_prompt: str
     party_tf_reveal: str
     proposer_prompt: str
+    topic_prompt: str
     opt_yes: str
     opt_no: str
     stance: dict[VoteChoice, str]
@@ -78,6 +79,7 @@ _GAME_TEXT: dict[str, _GameStrings] = {
         "party_tf_prompt": "{g} hi va votar a favor?",
         "party_tf_reveal": "{g} {stance}.",
         "proposer_prompt": "Quin grup la va proposar?",
+        "topic_prompt": "A quin tema pertany aquesta llei?",
         "opt_yes": "Sí",
         "opt_no": "No",
         "stance": _STANCE_LABEL_CA,
@@ -90,6 +92,7 @@ _GAME_TEXT: dict[str, _GameStrings] = {
         "party_tf_prompt": "¿{g} votó a favor?",
         "party_tf_reveal": "{g} {stance}.",
         "proposer_prompt": "¿Qué grupo la propuso?",
+        "topic_prompt": "¿A qué tema pertenece esta ley?",
         "opt_yes": "Sí",
         "opt_no": "No",
         "stance": _STANCE_LABEL_ES,
@@ -176,6 +179,9 @@ async def game_questions(
         None, description="Fix the question set so a shared challenge is reproducible."
     ),
     lang: str = Query("ca", description="UI locale; questions render in 'ca' or 'es'."),
+    category: str | None = Query(
+        None, description="Restrict to one category: 'lleis', 'partits' or 'temes'."
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> list[GameQuestion]:
     """Return ``n`` shuffled, explanation-led trivia questions.
@@ -185,6 +191,7 @@ async def game_questions(
     lang_key = _game_lang(lang)
     txt = _GAME_TEXT[lang_key]
     stance_label = txt["stance"]
+    cat_filter = category if category in {"lleis", "partits", "temes"} else None
     leg_id = legislature_id
     if leg_id is None:
         leg_id = (
@@ -283,6 +290,13 @@ async def game_questions(
         meta_by_short[short] = _GroupMeta(slug=slug, display=_display_group(short), color=color)
     distractor_metas = list(meta_by_short.values())
 
+    # Topic catalogue (localised) for the "which theme?" question's distractors.
+    all_topics = [
+        (tca if lang_key == "ca" else tes)
+        for tca, tes in (await session.execute(select(Topic.name_ca, Topic.name_es))).all()
+    ]
+    topic_pool = sorted({t for t in all_topics if t})
+
     # Per-(vote, group) majority stance for the True/False generator.
     majority_by_vote: dict[int, dict[str, VoteChoice]] = defaultdict(dict)
     rec_rows = (
@@ -310,16 +324,32 @@ async def game_questions(
         if len(questions) >= n:
             break
 
-        # Weight toward the fun, reasonable kinds; proposer is the rare hard one.
         majorities = majority_by_vote.get(v.vote_id, {})
         # Only coherent parties can be asked "did X vote in favour?" — drop the
         # Grupo Mixto and friends (see _NON_PARTY_GROUPS).
         votable = [g for g in majorities if g not in _NON_PARTY_GROUPS]
-        eligible: list[str] = ["outcome"]
-        if votable:
-            eligible += ["party_tf", "party_tf"]  # double-weight: the fun one
-        if v.group_short:
-            eligible.append("proposer")
+        # "temes" needs the law's own topic plus ≥3 distractors to choose from.
+        can_topic = bool(v.topic_es if lang_key == "es" else v.topic_ca) and len(topic_pool) >= 4
+
+        # Kinds eligible for THIS vote, then narrowed to the requested category
+        # (the duel asks per category via the roulette). Default = mixed, with
+        # the fun party question double-weighted, matching the solo game.
+        if cat_filter == "lleis":
+            eligible = ["outcome"]
+        elif cat_filter == "partits":
+            eligible = (["party_tf"] if votable else []) + (["proposer"] if v.group_short else [])
+        elif cat_filter == "temes":
+            eligible = ["temes"] if can_topic else []
+        else:
+            eligible = ["outcome"]
+            if can_topic:
+                eligible.append("temes")
+            if votable:
+                eligible += ["party_tf", "party_tf"]  # double-weight: the fun one
+            if v.group_short:
+                eligible.append("proposer")
+        if not eligible:
+            continue
         kind = rng.choice(eligible)
 
         q_party_slug: str | None = None
@@ -372,6 +402,17 @@ async def game_questions(
             prompt = txt["proposer_prompt"]
             reveal = None
             category = "partits"
+        elif kind == "temes" and can_topic:
+            correct_topic = (v.topic_es if lang_key == "es" else v.topic_ca) or ""
+            others = [t for t in topic_pool if t != correct_topic]
+            rng.shuffle(others)
+            opts = [GameOption(text=correct_topic, correct=True)] + [
+                GameOption(text=t, correct=False) for t in others[:3]
+            ]
+            rng.shuffle(opts)
+            prompt = txt["topic_prompt"]
+            reveal = None
+            category = "temes"
         else:
             continue
 
@@ -381,7 +422,11 @@ async def game_questions(
                 category=category,
                 kind=kind,
                 law_summary=v.summary,
-                topic=(v.topic_es if lang_key == "es" else v.topic_ca),
+                # Don't surface the topic tag on a "which theme?" card — it
+                # would give the answer away. Shown for the other kinds.
+                topic=(
+                    None if kind == "temes" else (v.topic_es if lang_key == "es" else v.topic_ca)
+                ),
                 prompt=prompt,
                 options=opts,
                 party_slug=q_party_slug,
