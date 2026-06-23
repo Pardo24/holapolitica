@@ -665,7 +665,21 @@
     "unavailable": "Ahora mismo no hay suficientes datos para jugar.",
     "challenge": "Reta a un amigo",
     "challenge_copied": "¡Enlace copiado!",
-    "challenge_text": "He acertado {score}/{total} en Hola Política. ¿Me superas?"
+    "challenge_text": "He conseguido {score}/{total} quesitos en Hola Política. ¿Me superas?",
+    "spin_cta": "Gira la ruleta",
+    "continue": "Continúa",
+    "time_up": "¡Tiempo!",
+    "correct": "¡Correcto!",
+    "wrong": "No es",
+    "quesitos_count": "{n}/{total} quesitos",
+    "turn_won_title": "¡Has completado la rueda!",
+    "turn_over_title": "Fin del turno",
+    "duel_intro": "Tu rival consiguió {q} quesitos. ¡Iguálalo o supéralo!",
+    "duel_you": "Tú",
+    "duel_rival": "Rival",
+    "duel_win": "¡Has ganado!",
+    "duel_lose": "Ha ganado el rival",
+    "duel_tie": "Empate"
   },
   "align": {
     "title": "¿Cómo te representan?",

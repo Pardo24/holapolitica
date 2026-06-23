@@ -665,7 +665,21 @@
     "unavailable": "There isn't enough data to play right now.",
     "challenge": "Challenge a friend",
     "challenge_copied": "Link copied!",
-    "challenge_text": "I got {score}/{total} on Hola Política. Can you beat me?"
+    "challenge_text": "I collected {score}/{total} wedges on Hola Política. Can you beat me?",
+    "spin_cta": "Spin the wheel",
+    "continue": "Continue",
+    "time_up": "Time's up!",
+    "correct": "Correct!",
+    "wrong": "Not quite",
+    "quesitos_count": "{n}/{total} wedges",
+    "turn_won_title": "You completed the wheel!",
+    "turn_over_title": "Turn over",
+    "duel_intro": "Your rival collected {q} wedges. Match or beat them!",
+    "duel_you": "You",
+    "duel_rival": "Rival",
+    "duel_win": "You won!",
+    "duel_lose": "Your rival won",
+    "duel_tie": "Tie"
   },
   "align": {
     "title": "How do they represent you?",

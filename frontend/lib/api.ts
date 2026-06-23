@@ -837,13 +837,22 @@ export const api = {
     get: (slug: string) => request<Chamber>(`/chambers/${slug}`),
   },
   game: {
-    questions: (n = 7, seed?: number, legislatureId?: number, lang?: string) => {
+    questions: (
+      n = 7,
+      seed?: number,
+      legislatureId?: number,
+      lang?: string,
+      category?: string,
+    ) => {
       const qs = new URLSearchParams({ n: String(n) });
       if (seed != null) qs.set('seed', String(seed));
       if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
       // Questions are generated server-side, so the locale must travel with
       // the request for the prompts/reveals to come back in the right language.
       if (lang) qs.set('lang', lang);
+      // The duel fetches one pool per category so the roulette always has a
+      // question of the colour it lands on.
+      if (category) qs.set('category', category);
       // No revalidate: each round should be a fresh draw (unless seeded).
       return request<GameQuestion[]>(`/game/questions?${qs.toString()}`, { revalidate: 0 });
     },
