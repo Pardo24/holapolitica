@@ -3,53 +3,63 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
+import { Clock, Crown, Globe, Scale, Scissors, SkipForward, ToggleLeft, Users } from 'lucide-react';
 
-import { api, type GameQuestion } from '@/lib/api';
 import { groupAbbreviation } from '@/lib/groups';
+import type { Cat, DuelQuestion } from '@/lib/triviaBank';
 
 /**
- * "Trivia" — an async 1v1 duel built from real votes. On your turn you spin a
- * roulette for a category (Lleis / Partits / Temes), answer a timed question,
- * and a correct answer wins that category's quesito. You have 3 lives: three
- * misses (wrong or time-out) end your turn. Collect all the quesitos or outscore
- * your rival. A seeded share link drops a friend onto the same pools so the duel
- * is fair; their result rides along in the URL so the winner is shown.
+ * "Trivia" — an async 1v1 duel, Preguntados-style. On your turn you spin a
+ * roulette for a category (Lleis / Partits / Veritat o Fals / Món) or the
+ * golden Corona slot; answer a timed question, and a correct answer wins that
+ * category's quesito. Three lives (a miss = wrong or time-out) end the turn,
+ * or you win by collecting every quesito. Comodins (50/50, skip, +time) help.
+ * A seeded share link drops a friend onto the same pools; their result rides in
+ * the URL so the winner is shown.
  *
- * Neutral by construction: questions are factual recall served by the backend.
+ * Neutral by construction: vote questions are factual recall of the public
+ * record; the general-knowledge bank is curated verifiable civic facts.
  */
-type Cat = 'lleis' | 'partits' | 'temes';
-const CAT_ORDER: Cat[] = ['lleis', 'partits', 'temes'];
 const CAT_COLOR: Record<Cat, string> = {
   lleis: '#1D9E75',
   partits: '#7F77DD',
-  temes: '#EF9F27',
+  vf: '#378ADD',
+  mon: '#EF9F27',
 };
+const CORONA_COLOR = '#E0B341';
 const LIVES = 3;
 const SECONDS = 20;
+const ADD_TIME = 10;
 
-type Phase = 'spin' | 'question' | 'feedback' | 'over';
+type WheelSlot = Cat | 'corona';
+type Phase = 'spin' | 'question' | 'feedback' | 'corona-claim' | 'over';
 
 export interface TriviaLabels {
   category_partits: string;
   category_lleis: string;
-  category_temes: string;
+  category_vf: string;
+  category_mon: string;
+  corona: string;
   explore: string;
-  loading: string;
   unavailable: string;
   challenge: string;
   challenge_copied: string;
-  challenge_text: string; // uses {score} {total}
+  challenge_text: string; // {score} {total}
   play_again: string;
-  // Duel chrome
   spin_cta: string;
   continue: string;
   time_up: string;
   correct: string;
   wrong: string;
-  quesitos_count: string; // "{n}/{total}"
+  quesitos_count: string; // {n} {total}
   turn_won_title: string;
   turn_over_title: string;
-  duel_intro: string; // uses {q} — rival's quesitos
+  corona_win: string; // shown when a corona answer is correct
+  corona_pick: string; // "choose a quesito"
+  fifty: string;
+  skip: string;
+  add_time: string;
+  duel_intro: string; // {q}
   duel_you: string;
   duel_rival: string;
   duel_win: string;
@@ -62,9 +72,17 @@ export interface RivalResult {
   used: number;
 }
 
+const CAT_ICON: Record<WheelSlot, typeof Scale> = {
+  lleis: Scale,
+  partits: Users,
+  vf: ToggleLeft,
+  mon: Globe,
+  corona: Crown,
+};
+
 const TRIVIA_CSS = `
 .trivia-card { animation: trivia-in 320ms ease both; }
-.trivia-opt { transition: border-color 180ms ease, background-color 180ms ease, transform 120ms ease; }
+.trivia-opt { transition: border-color 180ms ease, background-color 180ms ease, transform 120ms ease, opacity 180ms ease; }
 .trivia-opt:not(:disabled):hover { transform: translateY(-1px); }
 .trivia-opt:not(:disabled):active { transform: translateY(0); }
 .trivia-opt--correct { animation: trivia-pop 460ms ease; }
@@ -76,6 +94,8 @@ const TRIVIA_CSS = `
 .trivia-score { display: inline-block; animation: trivia-score-pop 520ms cubic-bezier(.2,.8,.2,1) both; }
 .trivia-quesito-fill { animation: trivia-pop 520ms ease; }
 .trivia-life-lost { animation: trivia-shake 420ms ease; }
+.trivia-comodin { transition: transform 120ms ease, opacity 150ms ease; }
+.trivia-comodin:not(:disabled):active { transform: scale(.94); }
 @keyframes trivia-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes trivia-up { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @keyframes trivia-pop { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
@@ -85,7 +105,7 @@ const TRIVIA_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .trivia-card, .trivia-opt--correct, .trivia-opt--wrong, .trivia-reveal, .trivia-next,
   .trivia-result, .trivia-score, .trivia-quesito-fill, .trivia-life-lost { animation: none !important; }
-  .trivia-opt, .trivia-wheel-spin { transition: none !important; }
+  .trivia-opt, .trivia-wheel-spin, .trivia-comodin { transition: none !important; }
 }
 `;
 
@@ -95,20 +115,20 @@ export function TriviaGame({
   rival,
   labels,
 }: {
-  pools: Record<Cat, GameQuestion[]>;
+  pools: Record<Cat, DuelQuestion[]>;
   seed: number;
   rival: RivalResult | null;
   labels: TriviaLabels;
 }) {
-  // Categories that actually have questions this round (temes can be empty if
-  // the legislature has too few classified topics) — the wheel is built from
-  // these, so the quesito target is 2 or 3.
-  const allCats = useMemo(() => CAT_ORDER.filter((c) => (pools[c]?.length ?? 0) > 0), [pools]);
+  const allCats = useMemo(() => {
+    const order: Cat[] = ['lleis', 'partits', 'vf', 'mon'];
+    return order.filter((c) => (pools[c]?.length ?? 0) > 0);
+  }, [pools]);
   const target = allCats.length;
 
   const [phase, setPhase] = useState<Phase>('spin');
-  const [cat, setCat] = useState<Cat | null>(null);
-  const [q, setQ] = useState<GameQuestion | null>(null);
+  const [slot, setSlot] = useState<WheelSlot | null>(null);
+  const [q, setQ] = useState<DuelQuestion | null>(null);
   const [collected, setCollected] = useState<Cat[]>([]);
   const [lives, setLives] = useState(LIVES);
   const [selected, setSelected] = useState<number | null>(null);
@@ -118,19 +138,33 @@ export function TriviaGame({
   const [spinning, setSpinning] = useState(false);
   const [copied, setCopied] = useState(false);
   const [lostLife, setLostLife] = useState(false);
+  const [hidden, setHidden] = useState<number[]>([]);
+  const [comodins, setComodins] = useState({ fifty: true, skip: true, addTime: true });
 
-  const cursors = useRef<Record<Cat, number>>({ lleis: 0, partits: 0, temes: 0 });
-  const pendingCat = useRef<Cat | null>(null);
+  const cursors = useRef<Record<Cat, number>>({ lleis: 0, partits: 0, vf: 0, mon: 0 });
+  const pendingSlot = useRef<WheelSlot | null>(null);
 
-  const remaining = useMemo(
-    () => allCats.filter((c) => !collected.includes(c)),
-    [allCats, collected],
+  const remaining = useMemo(() => allCats.filter((c) => !collected.includes(c)), [allCats, collected]);
+  // Wheel: the still-missing categories plus the golden Corona while any remain.
+  const wheelSlots = useMemo<WheelSlot[]>(
+    () => (remaining.length > 0 ? [...remaining, 'corona'] : []),
+    [remaining],
   );
 
-  const catLabel = (c: Cat): string =>
-    c === 'partits' ? labels.category_partits : c === 'temes' ? labels.category_temes : labels.category_lleis;
+  const catLabel = (c: WheelSlot): string =>
+    c === 'corona'
+      ? labels.corona
+      : c === 'partits'
+        ? labels.category_partits
+        : c === 'vf'
+          ? labels.category_vf
+          : c === 'mon'
+            ? labels.category_mon
+            : labels.category_lleis;
 
-  function nextQuestion(c: Cat): GameQuestion | null {
+  const slotColor = (s: WheelSlot): string => (s === 'corona' ? CORONA_COLOR : CAT_COLOR[s]);
+
+  function nextQuestion(c: Cat): DuelQuestion | null {
     const list = pools[c];
     if (!list || list.length === 0) return null;
     const i = cursors.current[c];
@@ -139,16 +173,10 @@ export function TriviaGame({
   }
 
   function spin() {
-    if (spinning) return;
-    if (remaining.length === 0) {
-      setPhase('over');
-      return;
-    }
-    const j = Math.floor(Math.random() * remaining.length);
-    const landed = remaining[j]!;
-    pendingCat.current = landed;
-    // Land the chosen sector under the top pointer, plus a few full turns.
-    const sector = 360 / remaining.length;
+    if (spinning || wheelSlots.length === 0) return;
+    const j = Math.floor(Math.random() * wheelSlots.length);
+    pendingSlot.current = wheelSlots[j]!;
+    const sector = 360 / wheelSlots.length;
     const need = (360 - (j * sector + sector / 2) + 360) % 360;
     const current = ((wheelAngle % 360) + 360) % 360;
     const delta = (need - current + 360) % 360;
@@ -159,31 +187,37 @@ export function TriviaGame({
   function onWheelStopped() {
     if (!spinning) return;
     setSpinning(false);
-    const c = pendingCat.current;
-    if (!c) return;
-    setCat(c);
-    setQ(nextQuestion(c));
+    const s = pendingSlot.current;
+    if (!s) return;
+    // Corona draws a general-knowledge question; winning lets you claim any
+    // missing quesito. Otherwise the landed category serves its own question.
+    const drawFrom: Cat = s === 'corona' ? (pools.mon.length > 0 ? 'mon' : remaining[0]!) : s;
+    setSlot(s);
+    setQ(nextQuestion(drawFrom));
     setSelected(null);
+    setHidden([]);
     setTimeLeft(SECONDS);
     setPhase('question');
   }
 
   function answer(i: number) {
-    if (phase !== 'question' || !q || !cat) return;
+    if (phase !== 'question' || !q || !slot) return;
     const correct = i >= 0 && !!q.options[i]?.correct;
     setSelected(i);
     setUsed((u) => u + 1);
     if (correct) {
-      setCollected((prev) => (prev.includes(cat) ? prev : [...prev, cat]));
+      if (slot === 'corona') {
+        // Claim happens in the corona-claim step.
+      } else {
+        setCollected((prev) => (prev.includes(slot) ? prev : [...prev, slot]));
+      }
     } else {
       setLives((l) => l - 1);
       setLostLife(true);
     }
-    setPhase('feedback');
+    setPhase(correct && slot === 'corona' ? 'corona-claim' : 'feedback');
   }
 
-  // Per-question countdown. A tick re-runs the effect; at zero we auto-answer
-  // as a miss. answerRef avoids stale closures without churning deps.
   const answerRef = useRef(answer);
   answerRef.current = answer;
   useEffect(() => {
@@ -196,34 +230,54 @@ export function TriviaGame({
     return () => clearTimeout(id);
   }, [phase, timeLeft]);
 
+  function claimCorona(c: Cat) {
+    setCollected((prev) => (prev.includes(c) ? prev : [...prev, c]));
+    setPhase('feedback');
+  }
+
   function proceed() {
     setLostLife(false);
-    if (lives <= 0) {
-      setPhase('over');
-    } else if (collected.length >= target) {
+    if (lives <= 0 || collected.length >= target) {
       setPhase('over');
     } else {
       setPhase('spin');
     }
   }
 
+  function useFifty() {
+    if (!comodins.fifty || phase !== 'question' || !q || q.options.length < 4) return;
+    const wrong = q.options.map((o, i) => (!o.correct ? i : -1)).filter((i) => i >= 0);
+    // Hide two wrong options.
+    const toHide = wrong.slice(0, 2);
+    setHidden(toHide);
+    setComodins((c) => ({ ...c, fifty: false }));
+  }
+  function useSkip() {
+    if (!comodins.skip || phase !== 'question') return;
+    setComodins((c) => ({ ...c, skip: false }));
+    setSelected(null);
+    setHidden([]);
+    setPhase('spin');
+  }
+  function useAddTime() {
+    if (!comodins.addTime || phase !== 'question') return;
+    setTimeLeft((t) => t + ADD_TIME);
+    setComodins((c) => ({ ...c, addTime: false }));
+  }
+
   function reset() {
-    cursors.current = { lleis: 0, partits: 0, temes: 0 };
+    cursors.current = { lleis: 0, partits: 0, vf: 0, mon: 0 };
     setCollected([]);
     setLives(LIVES);
     setSelected(null);
     setUsed(0);
-    setCat(null);
+    setSlot(null);
     setQ(null);
     setCopied(false);
     setLostLife(false);
+    setHidden([]);
+    setComodins({ fifty: true, skip: true, addTime: true });
     setPhase('spin');
-  }
-
-  async function playAgain() {
-    reset();
-    void seed; // a fresh round reuses the same fetched pools; reshuffle order
-    cursors.current = { lleis: 0, partits: 0, temes: 0 };
   }
 
   async function challenge() {
@@ -232,9 +286,8 @@ export function TriviaGame({
       .replace('{score}', String(collected.length))
       .replace('{total}', String(target))} ${url}`;
     try {
-      if (navigator.share) {
-        await navigator.share({ text });
-      } else {
+      if (navigator.share) await navigator.share({ text });
+      else {
         await navigator.clipboard.writeText(text);
         setCopied(true);
       }
@@ -247,21 +300,15 @@ export function TriviaGame({
     return <p style={{ color: 'var(--ink-3)', fontSize: 14 }}>{labels.unavailable}</p>;
   }
 
-  // ─── Result / duel outcome ─────────────────────────────────────────────────
+  // ─── Result ────────────────────────────────────────────────────────────────
   if (phase === 'over') {
     const wonAll = collected.length >= target;
     let duel: 'win' | 'lose' | 'tie' | null = null;
     if (rival) {
-      if (
-        collected.length > rival.quesitos ||
-        (collected.length === rival.quesitos && used < rival.used)
-      ) {
+      if (collected.length > rival.quesitos || (collected.length === rival.quesitos && used < rival.used))
         duel = 'win';
-      } else if (collected.length === rival.quesitos && used === rival.used) {
-        duel = 'tie';
-      } else {
-        duel = 'lose';
-      }
+      else if (collected.length === rival.quesitos && used === rival.used) duel = 'tie';
+      else duel = 'lose';
     }
     return (
       <div style={{ textAlign: 'center', padding: '8px 0' }}>
@@ -280,15 +327,7 @@ export function TriviaGame({
         </div>
 
         {rival && duel && (
-          <div
-            style={{
-              marginTop: 18,
-              display: 'flex',
-              gap: 10,
-              justifyContent: 'center',
-              alignItems: 'stretch',
-            }}
-          >
+          <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center' }}>
             <DuelSide label={labels.duel_you} q={collected.length} total={target} highlight={duel === 'win'} />
             <DuelSide label={labels.duel_rival} q={rival.quesitos} total={target} highlight={duel === 'lose'} />
           </div>
@@ -312,7 +351,7 @@ export function TriviaGame({
           </button>
           <button
             type="button"
-            onClick={playAgain}
+            onClick={reset}
             style={{
               padding: '10px 18px',
               borderRadius: 999,
@@ -335,7 +374,7 @@ export function TriviaGame({
     <div>
       <style>{TRIVIA_CSS}</style>
 
-      {/* Status bar: collected quesitos + lives */}
+      {/* Status: quesitos + lives */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <CategoryQuesito collected={collected} cats={allCats} size={40} />
@@ -350,7 +389,6 @@ export function TriviaGame({
         </div>
       </div>
 
-      {/* Rival challenge banner */}
       {rival && (
         <div
           style={{
@@ -368,35 +406,38 @@ export function TriviaGame({
         </div>
       )}
 
-      {/* Roulette */}
       {phase === 'spin' && (
         <div className="trivia-card" style={{ textAlign: 'center', padding: '8px 0' }}>
-          <Roulette cats={remaining} angle={wheelAngle} catLabel={catLabel} onStopped={onWheelStopped} />
-          <button
-            type="button"
-            onClick={spin}
-            disabled={spinning}
-            className="btn-ink"
-            style={{ marginTop: 18, minWidth: 180 }}
-          >
+          <Roulette slots={wheelSlots} angle={wheelAngle} slotColor={slotColor} onStopped={onWheelStopped} />
+          <button type="button" onClick={spin} disabled={spinning} className="btn-ink" style={{ marginTop: 18, minWidth: 180 }}>
             {labels.spin_cta}
           </button>
         </div>
       )}
 
-      {/* Question + feedback */}
-      {(phase === 'question' || phase === 'feedback') && q && cat && (
+      {(phase === 'question' || phase === 'feedback' || phase === 'corona-claim') && q && slot && (
         <QuestionCard
           q={q}
-          cat={cat}
-          catColor={CAT_COLOR[cat]}
-          catLabel={catLabel(cat)}
+          slot={slot}
+          color={slotColor(slot)}
+          chip={catLabel(slot)}
+          Icon={CAT_ICON[slot]}
           phase={phase}
           selected={selected}
+          hidden={hidden}
           timeLeft={timeLeft}
+          comodins={comodins}
           labels={labels}
+          missing={remaining}
+          catLabel={catLabel}
+          slotColor={slotColor}
+          CatIcon={CAT_ICON}
           onPick={answer}
           onProceed={proceed}
+          onFifty={useFifty}
+          onSkip={useSkip}
+          onAddTime={useAddTime}
+          onClaim={claimCorona}
         />
       )}
     </div>
@@ -405,93 +446,116 @@ export function TriviaGame({
 
 function QuestionCard({
   q,
-  cat,
-  catColor,
-  catLabel,
+  slot,
+  color,
+  chip,
+  Icon,
   phase,
   selected,
+  hidden,
   timeLeft,
+  comodins,
   labels,
+  missing,
+  catLabel,
+  slotColor,
+  CatIcon,
   onPick,
   onProceed,
+  onFifty,
+  onSkip,
+  onAddTime,
+  onClaim,
 }: {
-  q: GameQuestion;
-  cat: Cat;
-  catColor: string;
-  catLabel: string;
+  q: DuelQuestion;
+  slot: WheelSlot;
+  color: string;
+  chip: string;
+  Icon: typeof Scale;
   phase: Phase;
   selected: number | null;
+  hidden: number[];
   timeLeft: number;
+  comodins: { fifty: boolean; skip: boolean; addTime: boolean };
   labels: TriviaLabels;
+  missing: Cat[];
+  catLabel: (s: WheelSlot) => string;
+  slotColor: (s: WheelSlot) => string;
+  CatIcon: Record<WheelSlot, typeof Scale>;
   onPick: (i: number) => void;
   onProceed: () => void;
+  onFifty: () => void;
+  onSkip: () => void;
+  onAddTime: () => void;
+  onClaim: (c: Cat) => void;
 }) {
-  const answered = phase === 'feedback';
+  const answered = phase === 'feedback' || phase === 'corona-claim';
   const timedOut = answered && selected === -1;
   const gotItRight = answered && selected !== null && selected >= 0 && !!q.options[selected]?.correct;
-  void cat;
+  const canFifty = comodins.fifty && q.options.length >= 4;
 
   return (
     <div className="trivia-card">
-      {/* Category chip + timer */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <span
           style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
             fontSize: 11,
             fontWeight: 500,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: 'var(--paper)',
-            background: catColor,
-            padding: '2px 9px',
+            color: '#fff',
+            background: color,
+            padding: '3px 10px',
             borderRadius: 999,
           }}
         >
-          {catLabel}
+          <Icon size={13} strokeWidth={2} aria-hidden="true" />
+          {chip}
         </span>
-        {!answered && (
-          <span
-            className="tabular"
-            style={{ fontSize: 13, fontWeight: 700, color: timeLeft <= 5 ? 'var(--no)' : 'var(--ink-3)' }}
-          >
+        {phase === 'question' && (
+          <span className="tabular" style={{ fontSize: 13, fontWeight: 700, color: timeLeft <= 5 ? 'var(--no)' : 'var(--ink-3)' }}>
             {timeLeft}s
           </span>
         )}
       </div>
-      {/* Timer bar */}
-      {!answered && (
+
+      {phase === 'question' && (
         <div style={{ height: 4, borderRadius: 999, background: 'var(--paper-3)', overflow: 'hidden', marginBottom: 14 }}>
           <div
             style={{
-              width: `${(timeLeft / SECONDS) * 100}%`,
+              width: `${Math.min(100, (timeLeft / SECONDS) * 100)}%`,
               height: '100%',
-              background: timeLeft <= 5 ? 'var(--no)' : catColor,
+              background: timeLeft <= 5 ? 'var(--no)' : color,
               transition: 'width 1s linear',
             }}
           />
         </div>
       )}
 
-      {/* The law in plain language */}
-      <div
-        style={{
-          padding: '14px 16px',
-          borderRadius: 12,
-          background: 'var(--paper-2)',
-          border: '1px solid var(--rule)',
-          borderLeft: `4px solid ${catColor}`,
-          marginBottom: 16,
-        }}
-      >
-        {q.topic && (
-          <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 6 }}>
-            {q.topic}
-          </div>
-        )}
-        <p style={{ fontSize: 15, color: 'var(--ink)', lineHeight: 1.6, margin: 0 }}>{q.law_summary}</p>
-      </div>
+      {/* Law context — only for vote-based cards. */}
+      {q.lawSummary && (
+        <div
+          style={{
+            padding: '14px 16px',
+            borderRadius: 12,
+            background: 'var(--paper-2)',
+            border: '1px solid var(--rule)',
+            borderLeft: `4px solid ${color}`,
+            marginBottom: 16,
+          }}
+        >
+          {q.topic && (
+            <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 6 }}>
+              {q.topic}
+            </div>
+          )}
+          <p style={{ fontSize: 15, color: 'var(--ink)', lineHeight: 1.6, margin: 0 }}>{q.lawSummary}</p>
+        </div>
+      )}
 
-      {/* Question */}
       <h2
         className="serif"
         style={{
@@ -506,13 +570,13 @@ function QuestionCard({
           flexWrap: 'wrap',
         }}
       >
-        {q.party_slug && <PartyBadge slug={q.party_slug} color={q.party_color} />}
+        {q.partySlug && <PartyBadge slug={q.partySlug} color={q.partyColor ?? null} />}
         {q.prompt}
       </h2>
 
-      {/* Options */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {q.options.map((o, i) => {
+          const isHidden = hidden.includes(i);
           let border = 'var(--rule-strong)';
           let bg = 'var(--paper)';
           let cls = 'trivia-opt';
@@ -532,7 +596,7 @@ function QuestionCard({
               key={i}
               type="button"
               onClick={() => onPick(i)}
-              disabled={answered}
+              disabled={answered || isHidden}
               className={cls}
               style={{
                 display: 'flex',
@@ -547,41 +611,84 @@ function QuestionCard({
                 fontSize: 15,
                 fontWeight: 500,
                 cursor: answered ? 'default' : 'pointer',
+                opacity: isHidden ? 0.35 : 1,
+                visibility: isHidden ? 'hidden' : 'visible',
               }}
             >
-              {o.party_slug && <PartyBadge slug={o.party_slug} color={o.party_color} />}
+              {o.partySlug && <PartyBadge slug={o.partySlug} color={o.partyColor ?? null} />}
               {o.text}
             </button>
           );
         })}
       </div>
 
-      {answered && (
+      {/* Comodins — only while answering */}
+      {phase === 'question' && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'center' }}>
+          <Comodin label={labels.fifty} icon={<Scissors size={15} aria-hidden="true" />} disabled={!canFifty} onClick={onFifty} />
+          <Comodin label={labels.add_time} icon={<Clock size={15} aria-hidden="true" />} disabled={!comodins.addTime} onClick={onAddTime} />
+          <Comodin label={labels.skip} icon={<SkipForward size={15} aria-hidden="true" />} disabled={!comodins.skip} onClick={onSkip} />
+        </div>
+      )}
+
+      {/* Corona claim: pick which quesito to take */}
+      {phase === 'corona-claim' && (
+        <div className="trivia-reveal" style={{ marginTop: 16 }}>
+          <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 8px', color: CORONA_COLOR }}>{labels.corona_win}</p>
+          <p style={{ fontSize: 13, color: 'var(--ink-2)', margin: '0 0 10px' }}>{labels.corona_pick}</p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {missing.map((c) => {
+              const Ic = CatIcon[c];
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => onClaim(c)}
+                  className="trivia-opt"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    border: `1.5px solid ${slotColor(c)}`,
+                    background: `color-mix(in srgb, ${slotColor(c)} 12%, var(--paper))`,
+                    color: 'var(--ink)',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Ic size={15} aria-hidden="true" style={{ color: slotColor(c) }} />
+                  {catLabel(c)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {phase === 'feedback' && (
         <div
           className="trivia-reveal"
           style={{ marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'var(--paper-2)', border: '1px solid var(--rule)' }}
         >
-          <p
-            style={{
-              fontSize: 13.5,
-              fontWeight: 700,
-              margin: '0 0 4px',
-              color: gotItRight ? 'var(--aye)' : 'var(--no)',
-            }}
-          >
+          <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 4px', color: gotItRight ? 'var(--aye)' : 'var(--no)' }}>
             {timedOut ? labels.time_up : gotItRight ? labels.correct : labels.wrong}
           </p>
           {q.reveal && <p style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.55, margin: 0 }}>{q.reveal}</p>}
-          <Link
-            href={`/votes/${q.source_id}` as Route}
-            style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600 }}
-          >
-            {labels.explore} →
-          </Link>
+          {q.sourceId != null && (
+            <Link
+              href={`/votes/${q.sourceId}` as Route}
+              style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600 }}
+            >
+              {labels.explore} →
+            </Link>
+          )}
         </div>
       )}
 
-      {answered && (
+      {phase === 'feedback' && (
         <button type="button" onClick={onProceed} className="btn-ink trivia-next" style={{ marginTop: 16, width: '100%' }}>
           {labels.continue}
         </button>
@@ -590,79 +697,88 @@ function QuestionCard({
   );
 }
 
-/** The spinning category wheel. Cosmetic spin (CSS rotate) that lands the chosen
- *  sector under the fixed top pointer; the parent decides the landed category. */
+function Comodin({ label, icon, disabled, onClick }: { label: string; icon: React.ReactNode; disabled: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="trivia-comodin"
+      title={label}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '7px 12px',
+        borderRadius: 999,
+        border: '1px solid var(--rule-strong)',
+        background: 'var(--paper-2)',
+        color: disabled ? 'var(--ink-3)' : 'var(--ink-2)',
+        fontSize: 12.5,
+        fontWeight: 600,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 function Roulette({
-  cats,
+  slots,
   angle,
-  catLabel,
+  slotColor,
   onStopped,
 }: {
-  cats: Cat[];
+  slots: WheelSlot[];
   angle: number;
-  catLabel: (c: Cat) => string;
+  slotColor: (s: WheelSlot) => string;
   onStopped: () => void;
 }) {
-  const size = 220;
+  const size = 230;
   const cx = size / 2;
   const cy = size / 2;
   const r = size / 2 - 6;
-  const n = Math.max(cats.length, 1);
+  const n = Math.max(slots.length, 1);
   const sector = 360 / n;
-  const toXY = (deg: number): [number, number] => {
+  const toXY = (deg: number, rr: number): [number, number] => {
     const a = ((deg - 90) * Math.PI) / 180;
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    return [cx + rr * Math.cos(a), cy + rr * Math.sin(a)];
   };
   const wedge = (i: number): string => {
-    const [x0, y0] = toXY(i * sector);
-    const [x1, y1] = toXY((i + 1) * sector);
+    const [x0, y0] = toXY(i * sector, r);
+    const [x1, y1] = toXY((i + 1) * sector, r);
     const large = sector > 180 ? 1 : 0;
     return `M ${cx} ${cy} L ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`;
-  };
-  const labelXY = (i: number): [number, number] => {
-    const mid = i * sector + sector / 2;
-    const a = ((mid - 90) * Math.PI) / 180;
-    const rr = r * 0.62;
-    return [cx + rr * Math.cos(a), cy + rr * Math.sin(a)];
   };
 
   return (
     <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label="Ruleta de categories">
-      {/* Fixed pointer at the top */}
-      <polygon points={`${cx - 9},2 ${cx + 9},2 ${cx},18`} fill="var(--ink)" />
-      <g
-        className="trivia-wheel-spin"
-        style={{ transform: `rotate(${angle}deg)` }}
-        onTransitionEnd={onStopped}
-      >
-        {cats.map((c, i) => (
-          <path key={c} d={wedge(i)} fill={CAT_COLOR[c]} fillOpacity={0.9} stroke="var(--paper)" strokeWidth="2" />
+      <polygon points={`${cx - 10},2 ${cx + 10},2 ${cx},20`} fill="var(--ink)" />
+      <g className="trivia-wheel-spin" style={{ transform: `rotate(${angle}deg)` }} onTransitionEnd={onStopped}>
+        {slots.map((s, i) => (
+          <path key={`${s}-${i}`} d={wedge(i)} fill={slotColor(s)} fillOpacity={s === 'corona' ? 1 : 0.92} stroke="var(--paper)" strokeWidth="2" />
         ))}
-        {cats.map((c, i) => {
-          const [lx, ly] = labelXY(i);
+        {slots.map((s, i) => {
+          const mid = i * sector + sector / 2;
+          const [ix, iy] = toXY(mid, r * 0.64);
+          const Ic = CAT_ICON[s];
           return (
-            <text
-              key={`${c}-l`}
-              x={lx}
-              y={ly}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="11"
-              fontWeight={700}
-              fill="#fff"
-              transform={`rotate(${i * sector + sector / 2} ${lx} ${ly})`}
-            >
-              {catLabel(c)}
-            </text>
+            <g key={`${s}-${i}-i`} transform={`rotate(${mid} ${ix} ${iy})`}>
+              <g transform={`translate(${ix - 11} ${iy - 11})`}>
+                <Ic width={22} height={22} color="#fff" strokeWidth={2} aria-hidden="true" />
+              </g>
+            </g>
           );
         })}
-        <circle cx={cx} cy={cy} r="14" fill="var(--paper)" stroke="var(--rule-strong)" strokeWidth="1.5" />
+        <circle cx={cx} cy={cy} r="15" fill="var(--paper)" stroke="var(--rule-strong)" strokeWidth="1.5" />
       </g>
     </svg>
   );
 }
 
-/** Neutral party mark — a coloured disc with the group's abbreviation. */
 function PartyBadge({ slug, color }: { slug: string; color: string | null }) {
   return (
     <span
@@ -701,8 +817,6 @@ function Heart({ filled }: { filled: boolean }) {
   );
 }
 
-/** The quesito wheel for the FIXED set of categories: one wedge per category,
- *  filled in its colour once collected. */
 function CategoryQuesito({ collected, cats, size }: { collected: Cat[]; cats: Cat[]; size: number }) {
   const cx = size / 2;
   const cy = size / 2;

@@ -5,12 +5,14 @@ import { Gamepad2 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { TriviaGame, type RivalResult } from '@/components/TriviaGame';
 import { api, type GameQuestion } from '@/lib/api';
+import { bankQuestions, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
 
 /**
  * "Trivia" — the game-first front door. An async 1v1 duel: spin a roulette for a
- * category, answer a timed question to win its quesito, with 3 lives per turn.
- * ?repte=<seed> drops a challenged friend onto the same question pools, and
- * ?rq/?ru carry the challenger's result so the duel winner is shown.
+ * category (or the golden Corona), answer a timed question to win its quesito,
+ * with 3 lives and comodins per turn. Vote categories (Lleis / Partits) come
+ * from real votes; the Veritat-o-fals and Món categories come from a curated
+ * neutral knowledge bank. ?repte=<seed> + ?rq/?ru carry a challenger's result.
  */
 export const dynamic = 'force-dynamic';
 
@@ -36,22 +38,26 @@ export default async function JocPage({
   const locale = await getLocale();
   const { repte, rq, ru } = await searchParams;
 
-  // A seed makes the round reproducible so the duel is fair: a challenged friend
-  // reuses the challenger's seed and faces the same question pools.
   const seed =
     repte && /^\d+$/.test(repte) ? Number(repte) : Math.floor(Math.random() * 1_000_000_000);
 
-  // The challenger's result rides in the URL (rq = quesitos, ru = questions used)
-  // so the rival's screen can show who won.
   const rival: RivalResult | null =
     rq && /^\d+$/.test(rq) ? { quesitos: Number(rq), used: ru && /^\d+$/.test(ru) ? Number(ru) : 0 } : null;
 
+  // Vote-based categories from the API; general-knowledge from the curated bank.
   const empty: GameQuestion[] = [];
-  const [lleis, partits, temes] = await Promise.all(
-    (['lleis', 'partits', 'temes'] as const).map((cat) =>
+  const [lleisApi, partitsApi] = await Promise.all(
+    (['lleis', 'partits'] as const).map((cat) =>
       api.game.questions(POOL_PER_CATEGORY, seed, undefined, locale, cat).catch(() => empty),
     ),
   );
+
+  const pools: Record<Cat, DuelQuestion[]> = {
+    lleis: (lleisApi ?? empty).map(fromGameQuestion),
+    partits: (partitsApi ?? empty).map(fromGameQuestion),
+    vf: bankQuestions(locale, 'vf', seed),
+    mon: bankQuestions(locale, 'mon', seed),
+  };
 
   return (
     <div style={{ maxWidth: 620, marginInline: 'auto' }}>
@@ -63,15 +69,16 @@ export default async function JocPage({
       />
       <div style={{ paddingTop: 22 }}>
         <TriviaGame
-          pools={{ lleis: lleis ?? empty, partits: partits ?? empty, temes: temes ?? empty }}
+          pools={pools}
           seed={seed}
           rival={rival}
           labels={{
             category_partits: t('category_partits'),
             category_lleis: t('category_lleis'),
-            category_temes: t('category_temes'),
+            category_vf: t('category_vf'),
+            category_mon: t('category_mon'),
+            corona: t('corona'),
             explore: t('explore'),
-            loading: t('loading'),
             unavailable: t('unavailable'),
             challenge: t('challenge'),
             challenge_copied: t('challenge_copied'),
@@ -85,6 +92,11 @@ export default async function JocPage({
             quesitos_count: t('quesitos_count'),
             turn_won_title: t('turn_won_title'),
             turn_over_title: t('turn_over_title'),
+            corona_win: t('corona_win'),
+            corona_pick: t('corona_pick'),
+            fifty: t('fifty'),
+            skip: t('skip'),
+            add_time: t('add_time'),
             duel_intro: t('duel_intro'),
             duel_you: t('duel_you'),
             duel_rival: t('duel_rival'),
