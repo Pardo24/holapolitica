@@ -19,6 +19,7 @@ import { FocalHub } from '@/components/FocalHub';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { OnboardingModal } from '@/components/OnboardingModal';
+import { TriviaHero } from '@/components/TriviaHero';
 import { ResultPill } from '@/components/ResultPill';
 import { SummaryHover } from '@/components/SummaryHover';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
@@ -53,6 +54,7 @@ export default async function HomePage() {
   const tSite = await getTranslations('site');
   const tVotes = await getTranslations('votes');
   const tHub = await getTranslations('hub');
+  const tGame = await getTranslations('game');
   const locale = await getLocale();
 
   let summary: Awaited<ReturnType<typeof api.stats.summary>> | null = null;
@@ -115,6 +117,20 @@ export default async function HomePage() {
           device (localStorage flag, see OnboardingModal); skipped
           on every subsequent visit. */}
       <OnboardingModal />
+
+      {/* Flagship banner — Trivia is the star of the site. Leads with the daily
+          challenge + streak/best, on every breakpoint, above everything. */}
+      <TriviaHero
+        labels={{
+          eyebrow: tGame('hero_eyebrow'),
+          title: tGame('title'),
+          sub: tGame('hero_sub'),
+          daily_cta: tGame('hero_daily'),
+          play_cta: tGame('hero_play'),
+          streak: tGame('streak_label'),
+          best: tGame('best_label'),
+        }}
+      />
 
       {/* Visual front door — the focal experiences as big cards, above the
           data, on every breakpoint. Game-first. */}

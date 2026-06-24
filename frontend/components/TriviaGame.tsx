@@ -3,10 +3,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Clock, Crown, Globe, Scale, Scissors, SkipForward, ToggleLeft, Users } from 'lucide-react';
+import {
+  Clock,
+  Crown,
+  Flame,
+  Globe,
+  Scale,
+  Scissors,
+  SkipForward,
+  Star,
+  Sword,
+  ToggleLeft,
+  Users,
+} from 'lucide-react';
 
 import { groupAbbreviation } from '@/lib/groups';
 import type { Cat, DuelQuestion } from '@/lib/triviaBank';
+import { recordResult, type TriviaStats } from '@/lib/triviaStats';
 
 /**
  * "Trivia" — an async 1v1 duel, Preguntados-style. On your turn you spin a
@@ -65,6 +78,9 @@ export interface TriviaLabels {
   duel_win: string;
   duel_lose: string;
   duel_tie: string;
+  daily_badge: string;
+  best_label: string; // {n}
+  streak_label: string; // {n}
 }
 
 export interface RivalResult {
@@ -113,11 +129,13 @@ export function TriviaGame({
   pools,
   seed,
   rival,
+  daily = false,
   labels,
 }: {
   pools: Record<Cat, DuelQuestion[]>;
   seed: number;
   rival: RivalResult | null;
+  daily?: boolean;
   labels: TriviaLabels;
 }) {
   const allCats = useMemo(() => {
@@ -140,6 +158,13 @@ export function TriviaGame({
   const [lostLife, setLostLife] = useState(false);
   const [hidden, setHidden] = useState<number[]>([]);
   const [comodins, setComodins] = useState({ fifty: true, skip: true, addTime: true });
+  const [stats, setStats] = useState<TriviaStats | null>(null);
+
+  // Persist the turn locally once it ends (best score, and the daily streak).
+  useEffect(() => {
+    if (phase === 'over') setStats(recordResult(collected.length, daily));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const cursors = useRef<Record<Cat, number>>({ lleis: 0, partits: 0, vf: 0, mon: 0 });
   const pendingSlot = useRef<WheelSlot | null>(null);
@@ -313,7 +338,26 @@ export function TriviaGame({
     return (
       <div style={{ textAlign: 'center', padding: '8px 0' }}>
         <style>{TRIVIA_CSS}</style>
-        <div className="trivia-result" style={{ display: 'inline-block' }}>
+        {daily && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              marginBottom: 12,
+              padding: '4px 12px',
+              borderRadius: 999,
+              background: 'color-mix(in srgb, var(--accent) 14%, var(--paper))',
+              color: 'var(--ink)',
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            <Sword size={14} strokeWidth={2} aria-hidden="true" />
+            {labels.daily_badge}
+          </div>
+        )}
+        <div className="trivia-result" style={{ display: 'block' }}>
           <CategoryQuesito collected={collected} cats={allCats} size={150} />
         </div>
         <div className="eyebrow" style={{ color: 'var(--ink-3)', marginTop: 16 }}>
@@ -325,6 +369,30 @@ export function TriviaGame({
         >
           {labels.quesitos_count.replace('{n}', String(collected.length)).replace('{total}', String(target))}
         </div>
+
+        {stats && (stats.best > 0 || stats.streak > 0) && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 16,
+              justifyContent: 'center',
+              marginTop: 8,
+              fontSize: 13,
+              color: 'var(--ink-3)',
+            }}
+          >
+            {daily && stats.streak > 0 && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Flame size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#EF9F27' }} />
+                {labels.streak_label.replace('{n}', String(stats.streak))}
+              </span>
+            )}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Star size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#E0B341' }} />
+              {labels.best_label.replace('{n}', String(stats.best))}
+            </span>
+          </div>
+        )}
 
         {rival && duel && (
           <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center' }}>
