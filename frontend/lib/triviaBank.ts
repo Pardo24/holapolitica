@@ -40,6 +40,12 @@ export interface DuelQuestion {
 type Lang = 'ca' | 'es';
 const lang2 = (lang: string): Lang => (lang.toLowerCase().startsWith('es') ? 'es' : 'ca');
 
+/** Deterministic seed for the day's challenge, so everyone who plays "el repte
+ *  del dia" on the same date faces the same round and can compare scores. */
+export function dailySeed(date: Date): number {
+  return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+}
+
 /** Map a vote-based API question into the unified duel shape. */
 export function fromGameQuestion(q: GameQuestion): DuelQuestion {
   return {
@@ -170,6 +176,55 @@ const VF: VFItem[] = [
     expCa: 'Cert: és una aliança politicomilitar de defensa col·lectiva.',
     expEs: 'Cierto: es una alianza político-militar de defensa colectiva.',
   },
+  {
+    ca: "El cap de l'Estat a Espanya és el president del Govern.",
+    es: 'El jefe del Estado en España es el presidente del Gobierno.',
+    a: false,
+    expCa: "Fals: el cap de l'Estat és el Rei; el president dirigeix el Govern.",
+    expEs: 'Falso: el jefe del Estado es el Rey; el presidente dirige el Gobierno.',
+  },
+  {
+    ca: 'A Espanya el vot és obligatori.',
+    es: 'En España el voto es obligatorio.',
+    a: false,
+    expCa: 'Fals: votar és un dret, no una obligació.',
+    expEs: 'Falso: votar es un derecho, no una obligación.',
+  },
+  {
+    ca: 'Per votar a les eleccions generals cal tenir 18 anys.',
+    es: 'Para votar en las elecciones generales hay que tener 18 años.',
+    a: true,
+    expCa: "Cert: l'edat mínima per votar és 18 anys.",
+    expEs: 'Cierto: la edad mínima para votar es 18 años.',
+  },
+  {
+    ca: 'La Comissió Europea és qui proposa la legislació de la Unió Europea.',
+    es: 'La Comisión Europea es quien propone la legislación de la Unión Europea.',
+    a: true,
+    expCa: 'Cert: la Comissió té la iniciativa legislativa a la UE.',
+    expEs: 'Cierto: la Comisión tiene la iniciativa legislativa en la UE.',
+  },
+  {
+    ca: 'Tots els estats de la Unió Europea tenen el mateix nombre d’eurodiputats.',
+    es: 'Todos los Estados de la Unión Europea tienen el mismo número de eurodiputados.',
+    a: false,
+    expCa: 'Fals: es reparteixen segons la població de cada estat.',
+    expEs: 'Falso: se reparten según la población de cada Estado.',
+  },
+  {
+    ca: 'El Banc Central Europeu fixa els tipus d’interès de la zona euro.',
+    es: 'El Banco Central Europeo fija los tipos de interés de la zona euro.',
+    a: true,
+    expCa: 'Cert: el BCE marca la política monetària de l’euro.',
+    expEs: 'Cierto: el BCE marca la política monetaria del euro.',
+  },
+  {
+    ca: 'El Tribunal Constitucional espanyol té dotze magistrats.',
+    es: 'El Tribunal Constitucional español tiene doce magistrados.',
+    a: true,
+    expCa: 'Cert: el componen dotze magistrats.',
+    expEs: 'Cierto: lo componen doce magistrados.',
+  },
 ];
 
 // ── Multiple-choice bank ("Món" / general knowledge) ────────────────────────
@@ -263,6 +318,54 @@ const MC: MCItem[] = [
     optsEs: ['4', '3', '5', '6'],
     expCa: 'Quatre anys com a màxim.',
     expEs: 'Cuatro años como máximo.',
+  },
+  {
+    ca: "Qui és el cap de l'Estat a Espanya?",
+    es: '¿Quién es el jefe del Estado en España?',
+    optsCa: ['El Rei', 'El president del Govern', 'La presidència del Congrés', 'El Tribunal Constitucional'],
+    optsEs: ['El Rey', 'El presidente del Gobierno', 'La presidencia del Congreso', 'El Tribunal Constitucional'],
+    expCa: "El Rei és el cap de l'Estat.",
+    expEs: 'El Rey es el jefe del Estado.',
+  },
+  {
+    ca: 'Quina edat mínima cal per votar a Espanya?',
+    es: '¿Qué edad mínima se necesita para votar en España?',
+    optsCa: ['18', '16', '20', '21'],
+    optsEs: ['18', '16', '20', '21'],
+    expCa: '18 anys.',
+    expEs: '18 años.',
+  },
+  {
+    ca: 'Quantes circumscripcions electorals té el Congrés dels Diputats?',
+    es: '¿Cuántas circunscripciones electorales tiene el Congreso de los Diputados?',
+    optsCa: ['52', '50', '47', '54'],
+    optsEs: ['52', '50', '47', '54'],
+    expCa: '52: les 50 províncies més Ceuta i Melilla.',
+    expEs: '52: las 50 provincias más Ceuta y Melilla.',
+  },
+  {
+    ca: "Quina institució de la UE representa els governs dels estats membres?",
+    es: '¿Qué institución de la UE representa a los gobiernos de los Estados miembros?',
+    optsCa: ['El Consell de la UE', 'La Comissió Europea', 'El Parlament Europeu', 'El Tribunal de Justícia'],
+    optsEs: ['El Consejo de la UE', 'La Comisión Europea', 'El Parlamento Europeo', 'El Tribunal de Justicia'],
+    expCa: 'El Consell de la UE reuneix els governs dels estats.',
+    expEs: 'El Consejo de la UE reúne a los gobiernos de los Estados.',
+  },
+  {
+    ca: 'On té la seu el Tribunal de Justícia de la Unió Europea?',
+    es: '¿Dónde tiene su sede el Tribunal de Justicia de la Unión Europea?',
+    optsCa: ['Luxemburg', 'Estrasburg', 'Brussel·les', 'La Haia'],
+    optsEs: ['Luxemburgo', 'Estrasburgo', 'Bruselas', 'La Haya'],
+    expCa: 'A Luxemburg.',
+    expEs: 'En Luxemburgo.',
+  },
+  {
+    ca: 'Quants magistrats té el Tribunal Constitucional espanyol?',
+    es: '¿Cuántos magistrados tiene el Tribunal Constitucional español?',
+    optsCa: ['12', '10', '9', '15'],
+    optsEs: ['12', '10', '9', '15'],
+    expCa: 'Dotze magistrats.',
+    expEs: 'Doce magistrados.',
   },
 ];
 

@@ -687,7 +687,14 @@
     "duel_rival": "Rival",
     "duel_win": "You won!",
     "duel_lose": "Your rival won",
-    "duel_tie": "Tie"
+    "duel_tie": "Tie",
+    "daily_badge": "Daily challenge",
+    "best_label": "Best: {n}",
+    "streak_label": "{n}-day streak",
+    "hero_eyebrow": "The Hola Política game",
+    "hero_sub": "Test yourself with real votes and political knowledge. Spin the wheel, answer right and win wedges. The daily challenge is the same for everyone: compete with anyone.",
+    "hero_daily": "Daily challenge",
+    "hero_play": "Free play"
   },
   "align": {
     "title": "How do they represent you?",

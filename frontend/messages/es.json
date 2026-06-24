@@ -687,7 +687,14 @@
     "duel_rival": "Rival",
     "duel_win": "¡Has ganado!",
     "duel_lose": "Ha ganado el rival",
-    "duel_tie": "Empate"
+    "duel_tie": "Empate",
+    "daily_badge": "Reto del día",
+    "best_label": "Mejor: {n}",
+    "streak_label": "{n} días de racha",
+    "hero_eyebrow": "El juego de Hola Política",
+    "hero_sub": "Ponte a prueba con votaciones reales y conocimiento político. Gira la ruleta, acierta y gana quesitos. El reto del día es igual para todos: compite con quien quieras.",
+    "hero_daily": "Reto del día",
+    "hero_play": "Juego libre"
   },
   "align": {
     "title": "¿Cómo te representan?",

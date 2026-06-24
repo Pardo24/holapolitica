@@ -687,7 +687,14 @@
     "duel_rival": "Rival",
     "duel_win": "Has guanyat!",
     "duel_lose": "Ha guanyat el rival",
-    "duel_tie": "Empat"
+    "duel_tie": "Empat",
+    "daily_badge": "Repte del dia",
+    "best_label": "Millor: {n}",
+    "streak_label": "{n} dies de ratxa",
+    "hero_eyebrow": "El joc de Hola Política",
+    "hero_sub": "Posa't a prova amb votacions reals i coneixement polític. Gira la ruleta, encerta i guanya quesitos. El repte del dia és igual per a tothom: competeix amb qui vulguis.",
+    "hero_daily": "Repte del dia",
+    "hero_play": "Joc lliure"
   },
   "align": {
     "title": "Com et representen?",

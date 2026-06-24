@@ -5,7 +5,7 @@ import { Gamepad2 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { TriviaGame, type RivalResult } from '@/components/TriviaGame';
 import { api, type GameQuestion } from '@/lib/api';
-import { bankQuestions, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
+import { bankQuestions, dailySeed, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
 
 /**
  * "Trivia" — the game-first front door. An async 1v1 duel: spin a roulette for a
@@ -27,6 +27,7 @@ interface SearchParams {
   repte?: string;
   rq?: string;
   ru?: string;
+  dia?: string;
 }
 
 export default async function JocPage({
@@ -36,10 +37,16 @@ export default async function JocPage({
 }) {
   const t = await getTranslations('game');
   const locale = await getLocale();
-  const { repte, rq, ru } = await searchParams;
+  const { repte, rq, ru, dia } = await searchParams;
 
-  const seed =
-    repte && /^\d+$/.test(repte) ? Number(repte) : Math.floor(Math.random() * 1_000_000_000);
+  // "Repte del dia": a date-derived seed so everyone faces the same round today.
+  // An explicit ?repte (a friend's challenge) wins; then daily; else a fresh draw.
+  const daily = dia === '1' && !repte;
+  const seed = repte && /^\d+$/.test(repte)
+    ? Number(repte)
+    : daily
+      ? dailySeed(new Date())
+      : Math.floor(Math.random() * 1_000_000_000);
 
   const rival: RivalResult | null =
     rq && /^\d+$/.test(rq) ? { quesitos: Number(rq), used: ru && /^\d+$/.test(ru) ? Number(ru) : 0 } : null;
@@ -72,6 +79,7 @@ export default async function JocPage({
           pools={pools}
           seed={seed}
           rival={rival}
+          daily={daily}
           labels={{
             category_partits: t('category_partits'),
             category_lleis: t('category_lleis'),
@@ -103,6 +111,9 @@ export default async function JocPage({
             duel_win: t('duel_win'),
             duel_lose: t('duel_lose'),
             duel_tie: t('duel_tie'),
+            daily_badge: t('daily_badge'),
+            best_label: t('best_label'),
+            streak_label: t('streak_label'),
           }}
         />
       </div>
