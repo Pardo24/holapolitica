@@ -764,7 +764,7 @@
   },
   "map": {
     "title": "El Mapa",
-    "subtitle": "Dónde están realmente los partidos, según cómo votan. Los que votan igual quedan cerca.",
+    "subtitle": "Dónde se sitúa cada partido en el eje izquierda-derecha (economía) y en el eje social, según la encuesta de expertos CHES.",
     "unavailable": "Todavía no hay suficientes datos de votación para dibujar el mapa de esta legislatura.",
     "note": "La posición sale de comparar cómo vota cada grupo: cuanto más parecidos son sus votos, más cerca quedan. No es un eje izquierda-derecha ni una recomendación.",
     "size_note": "El tamaño del círculo es proporcional a los escaños.",
@@ -776,7 +776,9 @@
     "axis_top": "Progresista",
     "axis_bottom": "Conservador",
     "axes_note": "Esta vista sitúa a cada partido según encuestas de expertos, no según sus votos. El eje horizontal es izquierda-derecha en economía; el vertical, progresista-conservador en temas sociales. Los grupos con varios partidos (Mixto, Plural) no se colocan.",
-    "axes_source": "Fuente: Chapel Hill Expert Survey (CHES), oleada más cercana a cada legislatura."
+    "axes_source": "Fuente: Chapel Hill Expert Survey (CHES) — Jolly et al. (2022), Electoral Studies. Se usa la oleada más cercana a cada legislatura. Datos:",
+    "axes_dataset_trend": "fichero de tendencia 1999-2019",
+    "axes_dataset_2024": "oleada 2024"
   },
   "legislatures": {
     "title": "Las legislaturas",
