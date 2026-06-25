@@ -824,7 +824,6 @@ function Roulette({
 
   return (
     <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label="Ruleta de categories">
-      <polygon points={`${cx - 10},2 ${cx + 10},2 ${cx},20`} fill="var(--ink)" />
       <g className="trivia-wheel-spin" style={{ transform: `rotate(${angle}deg)` }} onTransitionEnd={onStopped}>
         {slots.map((s, i) => (
           <path key={`${s}-${i}`} d={wedge(i)} fill={slotColor(s)} fillOpacity={s === 'corona' ? 1 : 0.92} stroke="var(--paper)" strokeWidth="2" />
@@ -843,6 +842,16 @@ function Roulette({
         })}
         <circle cx={cx} cy={cy} r="15" fill="var(--paper)" stroke="var(--rule-strong)" strokeWidth="1.5" />
       </g>
+      {/* Selector pointer — drawn AFTER the wheel so it's never covered by it.
+          A bold marker at 12 o'clock with a paper outline so it reads against
+          any sector colour, its tip biting into the rim to mark the pick. */}
+      <polygon
+        points={`${cx - 14},1 ${cx + 14},1 ${cx},30`}
+        fill="var(--ink)"
+        stroke="var(--paper)"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
