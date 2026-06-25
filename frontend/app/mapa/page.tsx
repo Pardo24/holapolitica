@@ -291,7 +291,9 @@ export default async function MapaPage({
                 </g>
               )}
               {nodes.map((n) => (
-                <g key={n.slug}>
+                <g key={n.slug} className="map-node">
+                  {/* Native tooltip / touch fallback. */}
+                  <title>{displayGroupShort(n.nameShort)}</title>
                   <circle cx={n.cx} cy={n.cy} r={n.r} fill={n.color} fillOpacity={0.82} />
                   <text
                     x={n.cx}
@@ -303,18 +305,32 @@ export default async function MapaPage({
                   >
                     {groupAbbreviation(n.slug)}
                   </text>
+                  {/* Full name — hidden until you hover the disc, so close discs
+                      don't overlap their labels. The white halo (paint-order
+                      stroke) keeps it legible over neighbouring discs. */}
                   <text
+                    className="map-label"
                     x={n.cx}
-                    y={n.cy - n.r - 5}
+                    y={n.cy - n.r - 6}
                     textAnchor="middle"
-                    fontSize={11.5}
-                    fontWeight={600}
+                    fontSize={12}
+                    fontWeight={700}
                     fill="var(--ink)"
+                    stroke="var(--paper)"
+                    strokeWidth={3.5}
+                    paintOrder="stroke"
+                    strokeLinejoin="round"
                   >
                     {displayGroupShort(n.nameShort)}
                   </text>
                 </g>
               ))}
+              <style>{`
+                .map-node { cursor: default; }
+                .map-label { opacity: 0; transition: opacity 120ms ease; pointer-events: none; }
+                .map-node:hover .map-label { opacity: 1; }
+                .map-node:hover circle { fill-opacity: 1; }
+              `}</style>
             </svg>
           </div>
           <p
@@ -327,6 +343,9 @@ export default async function MapaPage({
             }}
           >
             {view === 'eixos' ? t('axes_note') : t('note')}
+          </p>
+          <p style={{ fontSize: 11.5, color: 'var(--ink-3)', marginTop: 4, fontStyle: 'italic' }}>
+            {t('hover_hint')}
           </p>
           <p style={{ fontSize: 11.5, color: 'var(--ink-3)', marginTop: 4 }}>
             {view === 'eixos' ? (
