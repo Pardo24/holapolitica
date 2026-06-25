@@ -37,6 +37,10 @@ export function TriviaHero({ labels }: { labels: TriviaHeroLabels }) {
 
   return (
     <section
+      // Desktop-only: on mobile the dashboard already leads with the Trivia
+      // tile, and this large banner crowded the phone home. A phone-friendly
+      // daily entry will arrive with "la pregunta del dia".
+      className="hidden sm:block"
       style={{
         marginTop: 16,
         borderRadius: 18,
@@ -45,6 +49,7 @@ export function TriviaHero({ labels }: { labels: TriviaHeroLabels }) {
         padding: '22px 22px 20px',
         position: 'relative',
         overflow: 'hidden',
+        boxSizing: 'border-box',
       }}
     >
       {/* Decorative quesito-wheel glow, top-right */}
