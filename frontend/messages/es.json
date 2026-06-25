@@ -188,6 +188,7 @@
   "nav": {
     "avui": "Crónica del pleno",
     "joc": "Trivia",
+    "jocs": "Juegos",
     "lleis": "Leyes",
     "votes": "Votaciones",
     "persons": "Representantes",
@@ -691,6 +692,17 @@
     "daily_badge": "Reto del día",
     "best_label": "Mejor: {n}",
     "streak_label": "{n} días de racha",
+    "start_solo_title": "Juega solo",
+    "start_solo_sub": "Una partida rápida para ti",
+    "start_solo_cta": "Juega",
+    "start_invite_title": "Invita a amigos",
+    "start_invite_sub": "Jugad la misma ronda y comparad",
+    "start_invite_cta": "Crea el enlace",
+    "start_invite_hint": "Comparte este enlace. Quien lo abra jugará exactamente la misma ronda.",
+    "start_copy": "Copia",
+    "start_copied": "¡Copiado!",
+    "start_share": "Comparte",
+    "start_begin": "Empieza",
     "hero_eyebrow": "El juego de Hola Política",
     "hero_sub": "Ponte a prueba con votaciones reales y conocimiento político. Gira la ruleta, acierta y gana quesitos. El reto del día es igual para todos: compite con quien quieras.",
     "hero_daily": "Reto del día",
@@ -714,6 +726,11 @@
     "answered_today_short": "Ya has respondido hoy. ¡Vuelve mañana!",
     "page_title": "La pregunta del día",
     "page_subtitle": "Una pregunta nueva cada día, igual para todos. Responde, descubre cuánta gente acierta y aprende con la explicación."
+  },
+  "jocs": {
+    "title": "Juegos",
+    "subtitle": "Ponte a prueba y descubre el Congreso jugando.",
+    "daily_sub": "Una pregunta nueva cada día, igual para todos"
   },
   "align": {
     "title": "¿Cómo te representan?",

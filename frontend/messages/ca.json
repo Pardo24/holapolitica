@@ -188,6 +188,7 @@
   "nav": {
     "avui": "Crònica del ple",
     "joc": "Trivia",
+    "jocs": "Jocs",
     "lleis": "Lleis",
     "votes": "Votacions",
     "persons": "Representants",
@@ -691,6 +692,17 @@
     "daily_badge": "Repte del dia",
     "best_label": "Millor: {n}",
     "streak_label": "{n} dies de ratxa",
+    "start_solo_title": "Juga sol",
+    "start_solo_sub": "Una partida ràpida per a tu",
+    "start_solo_cta": "Juga",
+    "start_invite_title": "Convida amics",
+    "start_invite_sub": "Jugueu la mateixa ronda i compareu",
+    "start_invite_cta": "Crea l'enllaç",
+    "start_invite_hint": "Comparteix aquest enllaç. Qui l'obri jugarà exactament la mateixa ronda.",
+    "start_copy": "Copia",
+    "start_copied": "Copiat!",
+    "start_share": "Comparteix",
+    "start_begin": "Comença",
     "hero_eyebrow": "El joc de Hola Política",
     "hero_sub": "Posa't a prova amb votacions reals i coneixement polític. Gira la ruleta, encerta i guanya quesitos. El repte del dia és igual per a tothom: competeix amb qui vulguis.",
     "hero_daily": "Repte del dia",
@@ -714,6 +726,11 @@
     "answered_today_short": "Ja has respost avui. Torna demà!",
     "page_title": "La pregunta del dia",
     "page_subtitle": "Una pregunta nova cada dia, igual per a tothom. Respon, descobreix quanta gent l'encerta i aprèn amb l'explicació."
+  },
+  "jocs": {
+    "title": "Jocs",
+    "subtitle": "Posa't a prova i descobreix el Congrés jugant.",
+    "daily_sub": "Una pregunta nova cada dia, igual per a tothom"
   },
   "align": {
     "title": "Com et representen?",

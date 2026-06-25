@@ -980,7 +980,7 @@ function MobileDashboard({
         }}
       >
         <DashboardTile
-          href={'/joc' as Route}
+          href={'/jocs' as Route}
           icon={<Gamepad2 size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tileJoc}
           tint="violet"

@@ -4,15 +4,19 @@ import { Gamepad2 } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TriviaGame, type RivalResult } from '@/components/TriviaGame';
+import { TriviaStart } from '@/components/TriviaStart';
 import { api, type GameQuestion } from '@/lib/api';
-import { bankQuestions, dailySeed, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
+import { bankQuestions, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
 
 /**
- * "Trivia" — the game-first front door. An async 1v1 duel: spin a roulette for a
- * category (or the golden Corona), answer a timed question to win its quesito,
- * with 3 lives and comodins per turn. Vote categories (Lleis / Partits) come
- * from real votes; the Veritat-o-fals and Món categories come from a curated
- * neutral knowledge bank. ?repte=<seed> + ?rq/?ru carry a challenger's result.
+ * "Trivia" — an async 1v1 duel: spin a roulette for a category (or the golden
+ * Corona), answer a timed question to win its quesito, with 3 lives + comodins.
+ * Vote categories (Lleis / Partits) come from real votes; Veritat-o-fals and Món
+ * from a curated neutral bank.
+ *
+ * With no params the page shows a start screen (play solo / invite friends).
+ * ?solo=1 plays a fresh solo round; ?repte=<seed> drops you (or an invited
+ * friend) onto the same round; ?rq/?ru carry a challenger's result to compare.
  */
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +31,7 @@ interface SearchParams {
   repte?: string;
   rq?: string;
   ru?: string;
-  dia?: string;
+  solo?: string;
 }
 
 export default async function JocPage({
@@ -37,16 +41,47 @@ export default async function JocPage({
 }) {
   const t = await getTranslations('game');
   const locale = await getLocale();
-  const { repte, rq, ru, dia } = await searchParams;
+  const { repte, rq, ru, solo } = await searchParams;
 
-  // "Repte del dia": a date-derived seed so everyone faces the same round today.
-  // An explicit ?repte (a friend's challenge) wins; then daily; else a fresh draw.
-  const daily = dia === '1' && !repte;
-  const seed = repte && /^\d+$/.test(repte)
-    ? Number(repte)
-    : daily
-      ? dailySeed(new Date())
-      : Math.floor(Math.random() * 1_000_000_000);
+  const hasRepte = Boolean(repte && /^\d+$/.test(repte));
+  // Show the start screen unless we're entering an actual round (solo or a seed).
+  const showStart = !hasRepte && solo !== '1';
+
+  const header = (
+    <PageHeader
+      title={t('title')}
+      subtitle={t('subtitle')}
+      icon={<Gamepad2 size={20} strokeWidth={1.8} aria-hidden="true" />}
+      bordered
+    />
+  );
+
+  if (showStart) {
+    return (
+      <div style={{ maxWidth: 620, marginInline: 'auto' }}>
+        {header}
+        <div style={{ paddingTop: 22 }}>
+          <TriviaStart
+            labels={{
+              solo_title: t('start_solo_title'),
+              solo_sub: t('start_solo_sub'),
+              solo_cta: t('start_solo_cta'),
+              invite_title: t('start_invite_title'),
+              invite_sub: t('start_invite_sub'),
+              invite_cta: t('start_invite_cta'),
+              invite_hint: t('start_invite_hint'),
+              copy: t('start_copy'),
+              copied: t('start_copied'),
+              share: t('start_share'),
+              start: t('start_begin'),
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const seed = hasRepte ? Number(repte) : Math.floor(Math.random() * 1_000_000_000);
 
   const rival: RivalResult | null =
     rq && /^\d+$/.test(rq) ? { quesitos: Number(rq), used: ru && /^\d+$/.test(ru) ? Number(ru) : 0 } : null;
@@ -68,18 +103,12 @@ export default async function JocPage({
 
   return (
     <div style={{ maxWidth: 620, marginInline: 'auto' }}>
-      <PageHeader
-        title={t('title')}
-        subtitle={t('subtitle')}
-        icon={<Gamepad2 size={20} strokeWidth={1.8} aria-hidden="true" />}
-        bordered
-      />
+      {header}
       <div style={{ paddingTop: 22 }}>
         <TriviaGame
           pools={pools}
           seed={seed}
           rival={rival}
-          daily={daily}
           labels={{
             category_partits: t('category_partits'),
             category_lleis: t('category_lleis'),
