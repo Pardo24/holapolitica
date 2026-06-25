@@ -261,16 +261,56 @@ async def initiatives_by_status(
     session: AsyncSession = Depends(get_session),
 ) -> list[InitiativeStatusCount]:
     async def factory() -> list[InitiativeStatusCount]:
-        rows = (
+        # ``Initiative.status`` from the portal is unreliable — it leaves most
+        # decided initiatives at "submitted"/"in_debate". Derive the real
+        # outcome from the LATEST linked vote (same approach as /lleis); only
+        # fall back to the stored status for initiatives never voted.
+        latest_sq = (
+            select(
+                Vote.initiative_id.label("iid"),
+                Vote.result.label("res"),
+                func.row_number()
+                .over(partition_by=Vote.initiative_id, order_by=Vote.voted_at.desc())
+                .label("rn"),
+            )
+            .where(Vote.initiative_id.is_not(None))
+            .subquery()
+        )
+        voted = (
             await session.execute(
-                select(Initiative.status, func.count(Initiative.id))
-                .group_by(Initiative.status)
-                .order_by(func.count(Initiative.id).desc())
+                select(latest_sq.c.res, func.count())
+                .where(latest_sq.c.rn == 1)
+                .group_by(latest_sq.c.res)
             )
         ).all()
-        return [InitiativeStatusCount(status=s, count=c) for s, c in rows]
+        voted_ids = select(Vote.initiative_id).where(Vote.initiative_id.is_not(None))
+        novote = (
+            await session.execute(
+                select(Initiative.status, func.count(Initiative.id))
+                .where(Initiative.id.not_in(voted_ids))
+                .group_by(Initiative.status)
+            )
+        ).all()
 
-    return await cached("stats:initiatives:by-status", _CACHE_TTL, factory)
+        counts: dict[InitiativeStatus, int] = {}
+        for res, c in voted:
+            rv = res.value if hasattr(res, "value") else str(res)
+            if rv == "approved":
+                key = InitiativeStatus.APPROVED
+            elif rv in ("rejected", "tie"):
+                # A tie fails to pass, so it counts as rejected.
+                key = InitiativeStatus.REJECTED
+            else:
+                continue
+            counts[key] = counts.get(key, 0) + c
+        for st, c in novote:
+            counts[st] = counts.get(st, 0) + c
+
+        out = [InitiativeStatusCount(status=k, count=v) for k, v in counts.items()]
+        out.sort(key=lambda x: x.count, reverse=True)
+        return out
+
+    return await cached("stats:initiatives:by-status-v2", _CACHE_TTL, factory)
 
 
 @router.get("/votes/by-result", response_model=list[VoteResultCount])
