@@ -696,6 +696,21 @@
     "hero_daily": "Reto del día",
     "hero_play": "Juego libre"
   },
+  "daily": {
+    "eyebrow": "La pregunta del día",
+    "correct": "¡Correcto!",
+    "wrong": "No es",
+    "pct_correct": "{pct}% lo ha acertado",
+    "answered_today": "Ya has respondido hoy. Vuelve mañana para una pregunta nueva.",
+    "explore": "Explora la votación real",
+    "play_cta": "Juega a la Trivia",
+    "share": "Comparte",
+    "share_copied": "¡Enlace copiado!",
+    "share_text": "Hoy he jugado la pregunta del día en Hola Política. ¿Cuántas aciertas tú?",
+    "streak": "{n} días de racha",
+    "loading": "Cargando la pregunta del día...",
+    "unavailable": "Hoy todavía no hay pregunta. Vuelve más tarde."
+  },
   "align": {
     "title": "¿Cómo te representan?",
     "subtitle": "Responde a votaciones reales del Congreso y descubre con qué grupos coincides más. El criterio lo pones tú: esto no es una recomendación.",

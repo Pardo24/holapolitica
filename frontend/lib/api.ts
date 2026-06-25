@@ -575,6 +575,25 @@ export interface GameQuestion {
   source_id: number;
 }
 
+/** "La pregunta del dia" — the public part (no answer / explanation). */
+export interface DailyQuestion {
+  key: string;
+  kind: 'vote' | 'civic';
+  prompt: string;
+  options: { text: string }[];
+  context: string | null;
+  source_id: number | null;
+}
+
+/** The result after answering the daily question, with the community tally. */
+export interface DailyAnswer {
+  correct_index: number;
+  explanation: string;
+  source_id: number | null;
+  counts: number[];
+  total: number;
+}
+
 /** One group's majority stance on a vote, for the alignment questionnaire. */
 export interface AlignGroupPosition {
   slug: string;
@@ -856,6 +875,18 @@ export const api = {
       // No revalidate: each round should be a fresh draw (unless seeded).
       return request<GameQuestion[]>(`/game/questions?${qs.toString()}`, { revalidate: 0 });
     },
+  },
+  dailyQuestion: {
+    get: (lang?: string) =>
+      request<DailyQuestion | null>(`/daily-question${lang ? `?lang=${lang}` : ''}`, {
+        revalidate: 0,
+      }),
+    answer: (key: string, option: number, lang?: string) =>
+      request<DailyAnswer>(`/daily-question/answer${lang ? `?lang=${lang}` : ''}`, {
+        method: 'POST',
+        body: JSON.stringify({ key, option }),
+        revalidate: 0,
+      }),
   },
   align: {
     questions: (n = 8, legislatureId?: number) => {
