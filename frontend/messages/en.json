@@ -768,6 +768,7 @@
     "unavailable": "There isn't enough voting data yet to draw this legislature's map.",
     "note": "Positions come from comparing how each group votes: the more alike their votes, the closer they sit. It's not a left-right axis or a recommendation.",
     "size_note": "Circle size is proportional to seats.",
+    "hover_hint": "Hover over a party to see its name.",
     "view_votes": "How they vote",
     "view_axes": "Left-right",
     "axis_left": "Left",

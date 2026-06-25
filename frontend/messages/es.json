@@ -768,6 +768,7 @@
     "unavailable": "Todavía no hay suficientes datos de votación para dibujar el mapa de esta legislatura.",
     "note": "La posición sale de comparar cómo vota cada grupo: cuanto más parecidos son sus votos, más cerca quedan. No es un eje izquierda-derecha ni una recomendación.",
     "size_note": "El tamaño del círculo es proporcional a los escaños.",
+    "hover_hint": "Pasa el ratón por encima de un partido para ver su nombre.",
     "view_votes": "Cómo votan",
     "view_axes": "Izquierda-derecha",
     "axis_left": "Izquierda",
