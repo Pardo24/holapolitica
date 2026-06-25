@@ -20,6 +20,7 @@ import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { DailyTeaser } from '@/components/DailyTeaser';
+import { DailyNotification } from '@/components/DailyNotification';
 import { ResultPill } from '@/components/ResultPill';
 import { SummaryHover } from '@/components/SummaryHover';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
@@ -118,16 +119,28 @@ export default async function HomePage() {
           on every subsequent visit. */}
       <OnboardingModal />
 
-      {/* Flagship entry — a compact, clickable card that leads to "la pregunta
-          del dia" on its own page. The question stays closed until you open it. */}
-      <DailyTeaser
-        labels={{
-          eyebrow: tDaily('eyebrow'),
-          invite: tDaily('teaser_invite'),
-          answered_today_short: tDaily('answered_today_short'),
-          streak: tDaily('streak'),
-        }}
-      />
+      {/* Flagship entry for "la pregunta del dia". Desktop: a compact inline
+          card. Mobile: a floating notification that overlays (so it never
+          pushes the layout around) and is dismissible. */}
+      <div className="hidden sm:block">
+        <DailyTeaser
+          labels={{
+            eyebrow: tDaily('eyebrow'),
+            invite: tDaily('teaser_invite'),
+            answered_today_short: tDaily('answered_today_short'),
+            streak: tDaily('streak'),
+          }}
+        />
+      </div>
+      <div className="sm:hidden">
+        <DailyNotification
+          labels={{
+            eyebrow: tDaily('eyebrow'),
+            invite: tDaily('teaser_invite'),
+            dismiss: tDaily('dismiss'),
+          }}
+        />
+      </div>
 
       {/* Visual front door — the focal experiences as big cards, above the
           data, on every breakpoint. Game-first. */}
