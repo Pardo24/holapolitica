@@ -188,6 +188,7 @@
   "nav": {
     "avui": "Plenary chronicle",
     "joc": "Trivia",
+    "jocs": "Games",
     "lleis": "Laws",
     "votes": "Votes",
     "persons": "Representatives",
@@ -691,6 +692,17 @@
     "daily_badge": "Daily challenge",
     "best_label": "Best: {n}",
     "streak_label": "{n}-day streak",
+    "start_solo_title": "Play solo",
+    "start_solo_sub": "A quick round for you",
+    "start_solo_cta": "Play",
+    "start_invite_title": "Invite friends",
+    "start_invite_sub": "Play the same round and compare",
+    "start_invite_cta": "Create link",
+    "start_invite_hint": "Share this link. Whoever opens it plays the exact same round.",
+    "start_copy": "Copy",
+    "start_copied": "Copied!",
+    "start_share": "Share",
+    "start_begin": "Start",
     "hero_eyebrow": "The Hola Política game",
     "hero_sub": "Test yourself with real votes and political knowledge. Spin the wheel, answer right and win wedges. The daily challenge is the same for everyone: compete with anyone.",
     "hero_daily": "Daily challenge",
@@ -714,6 +726,11 @@
     "answered_today_short": "Answered today. Come back tomorrow!",
     "page_title": "Question of the day",
     "page_subtitle": "A new question every day, the same for everyone. Answer, see how many get it right, and learn from the explanation."
+  },
+  "jocs": {
+    "title": "Games",
+    "subtitle": "Test yourself and discover Congress by playing.",
+    "daily_sub": "A new question every day, the same for everyone"
   },
   "align": {
     "title": "How do they represent you?",

@@ -43,8 +43,8 @@ export async function TopNav() {
   // the top bar.
   const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
     {
-      href: '/joc' as Route,
-      label: t('joc'),
+      href: '/jocs' as Route,
+      label: t('jocs'),
       icon: <Gamepad2 size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {

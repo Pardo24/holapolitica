@@ -20,7 +20,7 @@ export async function FocalHub() {
     color: string;
   }[] = [
     {
-      href: '/joc' as Route,
+      href: '/jocs' as Route,
       icon: <Gamepad2 size={19} strokeWidth={1.8} aria-hidden="true" />,
       title: t('joc_title'),
       sub: t('joc_sub'),
