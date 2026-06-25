@@ -709,7 +709,11 @@
     "share_text": "Avui he jugat la pregunta del dia a Hola Política. Quants n'encertes tu?",
     "streak": "{n} dies de ratxa",
     "loading": "Carregant la pregunta del dia...",
-    "unavailable": "Avui encara no hi ha pregunta. Torna més tard."
+    "unavailable": "Avui encara no hi ha pregunta. Torna més tard.",
+    "teaser_invite": "Posa't a prova amb la pregunta d'avui",
+    "answered_today_short": "Ja has respost avui. Torna demà!",
+    "page_title": "La pregunta del dia",
+    "page_subtitle": "Una pregunta nova cada dia, igual per a tothom. Respon, descobreix quanta gent l'encerta i aprèn amb l'explicació."
   },
   "align": {
     "title": "Com et representen?",

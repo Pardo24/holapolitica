@@ -709,7 +709,11 @@
     "share_text": "Hoy he jugado la pregunta del día en Hola Política. ¿Cuántas aciertas tú?",
     "streak": "{n} días de racha",
     "loading": "Cargando la pregunta del día...",
-    "unavailable": "Hoy todavía no hay pregunta. Vuelve más tarde."
+    "unavailable": "Hoy todavía no hay pregunta. Vuelve más tarde.",
+    "teaser_invite": "Ponte a prueba con la pregunta de hoy",
+    "answered_today_short": "Ya has respondido hoy. ¡Vuelve mañana!",
+    "page_title": "La pregunta del día",
+    "page_subtitle": "Una pregunta nueva cada día, igual para todos. Responde, descubre cuánta gente acierta y aprende con la explicación."
   },
   "align": {
     "title": "¿Cómo te representan?",
