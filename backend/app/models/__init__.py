@@ -827,3 +827,23 @@ class ScheduledAgendaItem(Base, TimestampMixin):
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     session: Mapped[ScheduledSession] = relationship("ScheduledSession", back_populates="items")
+
+
+class DailyAnswerCount(Base, TimestampMixin):
+    """Aggregate tally of answers to a "pregunta del dia" option.
+
+    One row per (question_key, option_index); ``count`` is incremented each time
+    someone picks that option. No per-user storage and no PII — just counters,
+    so the daily question can show "X % got it right" without accounts. Keys are
+    stable per question (e.g. "vote:123" or "civic:4").
+    """
+
+    __tablename__ = "daily_answer_counts"
+    __table_args__ = (
+        UniqueConstraint("question_key", "option_index", name="uq_daily_answer_question_option"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    question_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    option_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

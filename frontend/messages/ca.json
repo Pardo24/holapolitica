@@ -696,6 +696,21 @@
     "hero_daily": "Repte del dia",
     "hero_play": "Joc lliure"
   },
+  "daily": {
+    "eyebrow": "La pregunta del dia",
+    "correct": "Correcte!",
+    "wrong": "No hi és",
+    "pct_correct": "{pct}% ho ha encertat",
+    "answered_today": "Ja has respost avui. Torna demà per a una pregunta nova.",
+    "explore": "Explora la votació real",
+    "play_cta": "Juga la Trivia",
+    "share": "Comparteix",
+    "share_copied": "Enllaç copiat!",
+    "share_text": "Avui he jugat la pregunta del dia a Hola Política. Quants n'encertes tu?",
+    "streak": "{n} dies de ratxa",
+    "loading": "Carregant la pregunta del dia...",
+    "unavailable": "Avui encara no hi ha pregunta. Torna més tard."
+  },
   "align": {
     "title": "Com et representen?",
     "subtitle": "Respon a votacions reals del Congrés i descobreix amb quins grups coincideixes més. El criteri el poses tu: això no és cap recomanació.",

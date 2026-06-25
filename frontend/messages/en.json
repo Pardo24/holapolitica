@@ -696,6 +696,21 @@
     "hero_daily": "Daily challenge",
     "hero_play": "Free play"
   },
+  "daily": {
+    "eyebrow": "Question of the day",
+    "correct": "Correct!",
+    "wrong": "Not quite",
+    "pct_correct": "{pct}% got it right",
+    "answered_today": "You've answered today. Come back tomorrow for a new question.",
+    "explore": "Explore the real vote",
+    "play_cta": "Play Trivia",
+    "share": "Share",
+    "share_copied": "Link copied!",
+    "share_text": "I played the question of the day on Hola Política today. How many can you get?",
+    "streak": "{n}-day streak",
+    "loading": "Loading the question of the day...",
+    "unavailable": "No question yet today. Check back later."
+  },
   "align": {
     "title": "How do they represent you?",
     "subtitle": "Answer real Congreso votes and find out which groups you coincide with most. The criterion is yours: this is not a recommendation.",

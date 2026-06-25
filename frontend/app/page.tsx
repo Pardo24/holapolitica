@@ -19,7 +19,7 @@ import { FocalHub } from '@/components/FocalHub';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { OnboardingModal } from '@/components/OnboardingModal';
-import { TriviaHero } from '@/components/TriviaHero';
+import { DailyQuestion } from '@/components/DailyQuestion';
 import { ResultPill } from '@/components/ResultPill';
 import { SummaryHover } from '@/components/SummaryHover';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
@@ -54,7 +54,7 @@ export default async function HomePage() {
   const tSite = await getTranslations('site');
   const tVotes = await getTranslations('votes');
   const tHub = await getTranslations('hub');
-  const tGame = await getTranslations('game');
+  const tDaily = await getTranslations('daily');
   const locale = await getLocale();
 
   let summary: Awaited<ReturnType<typeof api.stats.summary>> | null = null;
@@ -118,17 +118,24 @@ export default async function HomePage() {
           on every subsequent visit. */}
       <OnboardingModal />
 
-      {/* Flagship banner — Trivia is the star of the site. Leads with the daily
-          challenge + streak/best, on every breakpoint, above everything. */}
-      <TriviaHero
+      {/* Flagship — "la pregunta del dia", answerable right here, on every
+          breakpoint, above everything. The star of the site. */}
+      <DailyQuestion
+        locale={locale}
         labels={{
-          eyebrow: tGame('hero_eyebrow'),
-          title: tGame('title'),
-          sub: tGame('hero_sub'),
-          daily_cta: tGame('hero_daily'),
-          play_cta: tGame('hero_play'),
-          streak: tGame('streak_label'),
-          best: tGame('best_label'),
+          eyebrow: tDaily('eyebrow'),
+          correct: tDaily('correct'),
+          wrong: tDaily('wrong'),
+          pct_correct: tDaily('pct_correct'),
+          answered_today: tDaily('answered_today'),
+          explore: tDaily('explore'),
+          play_cta: tDaily('play_cta'),
+          share: tDaily('share'),
+          share_copied: tDaily('share_copied'),
+          share_text: tDaily('share_text'),
+          streak: tDaily('streak'),
+          loading: tDaily('loading'),
+          unavailable: tDaily('unavailable'),
         }}
       />
 

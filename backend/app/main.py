@@ -20,6 +20,7 @@ from app.api import (
     agenda,
     align,
     chambers,
+    daily_question,
     dump,
     game,
     groups,
@@ -210,6 +211,7 @@ app.include_router(newsletter_preview.router)
 app.include_router(agenda.router)
 app.include_router(align.router)
 app.include_router(game.router)
+app.include_router(daily_question.router)
 app.include_router(push.router)
 app.include_router(dump.router)
 

@@ -61,12 +61,43 @@ export function recordResult(quesitos: number, daily: boolean): TriviaStats {
   }
 
   const next: TriviaStats = { best, streak, lastDaily };
-  if (typeof window !== 'undefined') {
-    try {
-      window.localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {
-      /* storage disabled — keep the in-memory value */
-    }
-  }
+  persist(next);
   return next;
+}
+
+function persist(s: TriviaStats): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(s));
+  } catch {
+    /* storage disabled — keep the in-memory value */
+  }
+}
+
+/**
+ * Mark today's "pregunta del dia" as answered and advance the streak
+ * (consecutive days). Idempotent within a day. Returns the updated stats.
+ */
+export function recordDailyAnswered(): TriviaStats {
+  const prev = readStats();
+  const now = new Date();
+  const today = ymd(now);
+  const yesterday = ymd(new Date(now.getTime() - 86_400_000));
+  let streak = prev.streak;
+  if (prev.lastDaily === today) {
+    // already counted today
+  } else if (prev.lastDaily === yesterday) {
+    streak = prev.streak + 1;
+  } else {
+    streak = 1;
+  }
+  const next: TriviaStats = { best: prev.best, streak, lastDaily: today };
+  persist(next);
+  return next;
+}
+
+/** Whether today's daily question has already been answered on this device. */
+export function answeredDailyToday(): boolean {
+  const now = new Date();
+  return readStats().lastDaily === ymd(now);
 }
