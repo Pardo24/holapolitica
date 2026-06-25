@@ -19,7 +19,7 @@ import { FocalHub } from '@/components/FocalHub';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { OnboardingModal } from '@/components/OnboardingModal';
-import { DailyQuestion } from '@/components/DailyQuestion';
+import { DailyTeaser } from '@/components/DailyTeaser';
 import { ResultPill } from '@/components/ResultPill';
 import { SummaryHover } from '@/components/SummaryHover';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
@@ -118,24 +118,14 @@ export default async function HomePage() {
           on every subsequent visit. */}
       <OnboardingModal />
 
-      {/* Flagship — "la pregunta del dia", answerable right here, on every
-          breakpoint, above everything. The star of the site. */}
-      <DailyQuestion
-        locale={locale}
+      {/* Flagship entry — a compact, clickable card that leads to "la pregunta
+          del dia" on its own page. The question stays closed until you open it. */}
+      <DailyTeaser
         labels={{
           eyebrow: tDaily('eyebrow'),
-          correct: tDaily('correct'),
-          wrong: tDaily('wrong'),
-          pct_correct: tDaily('pct_correct'),
-          answered_today: tDaily('answered_today'),
-          explore: tDaily('explore'),
-          play_cta: tDaily('play_cta'),
-          share: tDaily('share'),
-          share_copied: tDaily('share_copied'),
-          share_text: tDaily('share_text'),
+          invite: tDaily('teaser_invite'),
+          answered_today_short: tDaily('answered_today_short'),
           streak: tDaily('streak'),
-          loading: tDaily('loading'),
-          unavailable: tDaily('unavailable'),
         }}
       />
 

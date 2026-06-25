@@ -709,7 +709,11 @@
     "share_text": "I played the question of the day on Hola Política today. How many can you get?",
     "streak": "{n}-day streak",
     "loading": "Loading the question of the day...",
-    "unavailable": "No question yet today. Check back later."
+    "unavailable": "No question yet today. Check back later.",
+    "teaser_invite": "Test yourself with today's question",
+    "answered_today_short": "Answered today. Come back tomorrow!",
+    "page_title": "Question of the day",
+    "page_subtitle": "A new question every day, the same for everyone. Answer, see how many get it right, and learn from the explanation."
   },
   "align": {
     "title": "How do they represent you?",
