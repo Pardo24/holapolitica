@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { MapPin, User } from 'lucide-react';
+import { ChevronRight, MapPin, User } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
 import { ConstituencySelect } from '@/components/ConstituencySelect';
+import { GroupBadge } from '@/components/GroupBadge';
 import { api, type ConstituencyRow, type DeputyCard } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -14,11 +15,18 @@ interface SearchParams {
   prov?: string;
 }
 
+interface PartyGroup {
+  slug: string;
+  short: string | null;
+  color: string | null;
+  deputies: DeputyCard[];
+}
+
 /**
- * "El teu diputat" — hyperlocal accountability. Pick your province and see the
- * people who represent you: how present they are, how often they break with
- * their own party, and a way into their full record. Reuses the existing
- * attendance / dissidence metrics, scoped to the constituency.
+ * "El teu diputat" — hyperlocal accountability. Pick your province and see who
+ * represents you, grouped by party so the makeup of your constituency reads at
+ * a glance: who they are, how present they are, and a way into their full
+ * record. Reuses the existing attendance metric, scoped to the constituency.
  */
 export default async function ElTeuDiputatPage({
   searchParams,
@@ -38,6 +46,17 @@ export default async function ElTeuDiputatPage({
     ? await api.persons.byConstituency(selected).catch(() => [] as DeputyCard[])
     : [];
 
+  // Group the deputies by their parliamentary group, largest first, so the
+  // constituency's makeup is the first thing you read.
+  const byGroup = new Map<string, PartyGroup>();
+  for (const d of deputies) {
+    const key = d.group_slug ?? '—';
+    const g = byGroup.get(key);
+    if (g) g.deputies.push(d);
+    else byGroup.set(key, { slug: d.group_slug ?? '', short: d.group_short, color: d.group_color, deputies: [d] });
+  }
+  const parties = [...byGroup.values()].sort((a, b) => b.deputies.length - a.deputies.length);
+
   return (
     <div>
       <PageHeader
@@ -47,7 +66,7 @@ export default async function ElTeuDiputatPage({
         bordered
       />
 
-      <div style={{ paddingTop: 18, marginBottom: 18 }}>
+      <div style={{ paddingTop: 18, marginBottom: selected ? 18 : 0 }}>
         <ConstituencySelect
           constituencies={constituencies}
           selected={selected}
@@ -60,22 +79,91 @@ export default async function ElTeuDiputatPage({
       </div>
 
       {!selected ? (
-        <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.6 }}>{t('pick_prompt')}</p>
+        <EmptyState title={t('empty_title')} body={t('pick_prompt')} />
       ) : deputies.length === 0 ? (
         <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>{t('empty')}</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {deputies.map((d) => (
-            <DeputyCardView key={d.person_id} d={d} locale={locale} labels={t} />
-          ))}
+        <div>
+          <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 18px', lineHeight: 1.5 }}>
+            {t('summary', { prov: selected, n: deputies.length, g: parties.length })}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {parties.map((p) => (
+              <section key={p.slug || 'none'}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  {p.slug ? <GroupBadge slug={p.slug} color={p.color} size="sm" link={false} /> : null}
+                  <span className="serif" style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>
+                    {p.short ? displayGroupShort(p.short) : '—'}
+                  </span>
+                  <span
+                    className="tabular"
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: 'var(--ink-3)',
+                      background: 'var(--paper-3)',
+                      borderRadius: 999,
+                      padding: '2px 9px',
+                    }}
+                  >
+                    {p.deputies.length}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(248px, 1fr))',
+                    gap: 10,
+                  }}
+                >
+                  {p.deputies.map((d) => (
+                    <DeputyCardView key={d.person_id} d={d} locale={locale} labels={t} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function pct(v: number | null): string {
-  return v == null ? '—' : `${Math.round(v * 100)}%`;
+function EmptyState({ title, body }: { title: string; body: string }) {
+  return (
+    <div
+      style={{
+        marginTop: 20,
+        padding: '28px 24px',
+        borderRadius: 16,
+        border: '1px dashed var(--rule-strong)',
+        background: 'var(--paper-2)',
+        textAlign: 'center',
+        maxWidth: 520,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 52,
+          height: 52,
+          borderRadius: 14,
+          background: 'color-mix(in srgb, var(--accent) 14%, var(--paper))',
+          color: 'var(--accent)',
+          marginBottom: 12,
+        }}
+      >
+        <MapPin size={26} strokeWidth={1.8} />
+      </span>
+      <div className="serif" style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>
+        {title}
+      </div>
+      <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.55, margin: 0 }}>{body}</p>
+    </div>
+  );
 }
 
 function DeputyCardView({
@@ -87,66 +175,68 @@ function DeputyCardView({
   locale: string;
   labels: Awaited<ReturnType<typeof getTranslations<'deputy'>>>;
 }) {
+  const attendance = d.attendance_pct == null ? null : Math.round(d.attendance_pct * 100);
   return (
     <Link
       href={`/persons/${d.person_id}` as Route}
+      className="deputy-card"
       style={{
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '11px 12px',
         background: 'var(--paper-2)',
         border: '1px solid var(--rule)',
         borderRadius: 12,
-        padding: '16px 18px',
         textDecoration: 'none',
         color: 'inherit',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+      <span
+        aria-hidden="true"
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: 999,
+          flex: 'none',
+          background: 'var(--paper-3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          boxShadow: `0 0 0 2px ${d.group_color ?? 'var(--rule-strong)'}`,
+        }}
+      >
+        {d.photo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={d.photo_url} alt="" width={46} height={46} style={{ objectFit: 'cover' }} />
+        ) : (
+          <User size={20} strokeWidth={1.8} color="var(--ink-3)" />
+        )}
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
         <span
-          aria-hidden="true"
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 999,
-            flex: 'none',
-            background: 'var(--paper-3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: 'block',
+            fontWeight: 600,
+            fontSize: 14.5,
+            color: 'var(--ink)',
+            lineHeight: 1.25,
             overflow: 'hidden',
-            borderTop: `3px solid ${d.group_color ?? 'var(--ink)'}`,
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
         >
-          {d.photo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={d.photo_url} alt="" width={44} height={44} style={{ objectFit: 'cover' }} />
-          ) : (
-            <User size={20} strokeWidth={1.8} color="var(--ink-3)" />
-          )}
+          {d.full_name}
         </span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: 'block', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>
-            {d.full_name}
-          </span>
-          <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-3)' }}>
-            {d.group_short ? displayGroupShort(d.group_short) : '—'}
-            {d.constituency ? ` · ${d.constituency}` : ''}
-          </span>
+        <span className="tabular" style={{ display: 'block', fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>
+          {attendance == null
+            ? labels('votes_cast', { n: d.votes_cast })
+            : `${labels('attendance')} ${attendance}% · ${labels('votes_cast', { n: d.votes_cast })}`}
         </span>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div style={{ background: 'var(--paper)', borderRadius: 8, padding: '10px 12px' }}>
-          <div style={{ fontSize: 12.5, color: 'var(--ink-3)' }}>{labels('attendance')}</div>
-          <div className="tabular" style={{ fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>
-            {pct(d.attendance_pct)}
-          </div>
-        </div>
-        <div style={{ background: 'var(--paper)', borderRadius: 8, padding: '10px 12px' }}>
-          <div style={{ fontSize: 12.5, color: 'var(--ink-3)' }}>{labels('independence')}</div>
-          <div className="tabular" style={{ fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>
-            {pct(d.dissidence_pct)}
-          </div>
-        </div>
-      </div>
+      </span>
+      <ChevronRight size={17} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--ink-3)', flex: 'none' }} />
+      <style>{`.deputy-card:hover, .deputy-card:focus-visible { border-color: var(--ink); outline: none; }`}</style>
     </Link>
   );
 }
