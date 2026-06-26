@@ -128,7 +128,8 @@ export default async function HomePage() {
             eyebrow: tDaily('eyebrow'),
             invite: tDaily('teaser_invite'),
             answered_today_short: tDaily('answered_today_short'),
-            streak: tDaily('streak'),
+            // raw: the {n} placeholder is interpolated client-side.
+            streak: tDaily.raw('streak'),
           }}
         />
       </div>
@@ -374,7 +375,7 @@ export default async function HomePage() {
               gap: 4,
             }}
           >
-            Veure totes les estadístiques <ArrowRight size={14} aria-hidden="true" />
+            {t('coverage_see_all')} <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </div>
         <div
@@ -591,7 +592,7 @@ export default async function HomePage() {
           collapse to a single column (media query below). */}
       <section
         className="home-newsletter-row"
-        aria-label={t('newsletter_section_aria') /* falls back to default text if missing */}
+        aria-label={t('newsletter_title')}
         style={{
           display: 'flex',
           alignItems: 'stretch',
