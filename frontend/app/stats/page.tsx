@@ -358,32 +358,9 @@ export default async function StatsPage({
 
       {activeTab === 'overview' && (
         <>
-          {/* Interactive pie — the central focus of the overview. The
-              previous version led with a "Destacats polítics" carousel
-              that felt editorial; the pie is purely descriptive and
-              now opens the page. Hidden on mobile (the
-              MobileStatsDashboard owns that view). */}
-          <Section
-            title={t('pie_title')}
-            subtitle={t('pie_subtitle')}
-          >
-            <div className="hidden sm:block">
-              <StatsPie
-                byStatus={byStatus}
-                proposingGroups={proposingGroups}
-                topics={topics}
-                labels={statsPieLabels(t)}
-                topicDescriptions={topicDescriptions}
-                explainHint={t('pie_explain_hint')}
-              />
-            </div>
-          </Section>
-
-          {/* Per-group summary cards take the spot the standalone
-              CohesionCarousel used to hold — they already include the
-              cohesion donut alongside attendance, member count and
-              the demographic strip (F/M, average age). One card per
-              group, all groups shown for symmetry. */}
+          {/* Per-party first: each group's cohesion + attendance. This is what
+              the page is about — parties, not headline totals. One card per
+              group, all shown for symmetry. */}
           {groupSummary.length > 0 && (
             <Section
               title={t('group_summary_title')}
@@ -393,6 +370,7 @@ export default async function StatsPage({
             </Section>
           )}
 
+          {/* The party comparator — who votes with whom. */}
           <Section
             title={
               <>
@@ -409,6 +387,23 @@ export default async function StatsPage({
                 highlightSlug={null}
               />
             </CoincidenceProgressive>
+          </Section>
+
+          {/* Global breakdown last — the headline totals matter less than the
+              per-party and per-topic views above. Interactive: switch between
+              status, proposing groups and topics. Desktop only (the mobile
+              dashboard owns that view). */}
+          <Section title={t('pie_title')} subtitle={t('pie_subtitle')}>
+            <div className="hidden sm:block">
+              <StatsPie
+                byStatus={byStatus}
+                proposingGroups={proposingGroups}
+                topics={topics}
+                labels={statsPieLabels(t)}
+                topicDescriptions={topicDescriptions}
+                explainHint={t('pie_explain_hint')}
+              />
+            </div>
           </Section>
 
           {/* End-of-overview CTA into the filtered analysis. */}
