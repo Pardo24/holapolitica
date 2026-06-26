@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
-import { FocalHub } from '@/components/FocalHub';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { OnboardingModal } from '@/components/OnboardingModal';
@@ -142,10 +141,6 @@ export default async function HomePage() {
           }}
         />
       </div>
-
-      {/* Visual front door — the focal experiences as big cards, above the
-          data, on every breakpoint. Game-first. */}
-      <FocalHub />
 
       {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
           native-app-style entry point: brand strip, search, 2×2 tile grid,
@@ -668,9 +663,9 @@ export default async function HomePage() {
       </section>
 
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
-          honest empty-state today. Appears above latest so it's the first
-          actionable item when the data lands. */}
-      <UpcomingAgenda sessions={upcomingSessions} mode="home" />
+          shown only when there's something scheduled, so an empty agenda
+          doesn't add a blank section to the home. */}
+      {upcomingSessions.length > 0 && <UpcomingAgenda sessions={upcomingSessions} mode="home" />}
 
       {/* Latest votes */}
       <section style={{ paddingTop: 32 }}>
