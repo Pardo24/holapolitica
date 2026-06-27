@@ -118,20 +118,10 @@ export default async function HomePage() {
           on every subsequent visit. */}
       <OnboardingModal />
 
-      {/* Flagship entry for "la pregunta del dia". Desktop: a compact inline
-          card. Mobile: a floating notification that overlays (so it never
-          pushes the layout around) and is dismissible. */}
-      <div className="hidden sm:block">
-        <DailyTeaser
-          labels={{
-            eyebrow: tDaily('eyebrow'),
-            invite: tDaily('teaser_invite'),
-            answered_today_short: tDaily('answered_today_short'),
-            // raw: the {n} placeholder is interpolated client-side.
-            streak: tDaily.raw('streak'),
-          }}
-        />
-      </div>
+      {/* Mobile: a floating, dismissible daily-question notification (overlays,
+          no layout shift). The desktop daily card now sits BELOW the hero, so
+          the serious value proposition — not a game — is the first thing a
+          first-time visitor or a journalist sees. */}
       <div className="sm:hidden">
         <DailyNotification
           labels={{
@@ -344,6 +334,20 @@ export default async function HomePage() {
         </aside>
         </div>
       </section>
+
+      {/* Daily question — a hook, placed AFTER the hero so the value
+          proposition leads and the page doesn't open on a game. */}
+      <div style={{ marginTop: 8 }}>
+        <DailyTeaser
+          labels={{
+            eyebrow: tDaily('eyebrow'),
+            invite: tDaily('teaser_invite'),
+            answered_today_short: tDaily('answered_today_short'),
+            // raw: the {n} placeholder is interpolated client-side.
+            streak: tDaily.raw('streak'),
+          }}
+        />
+      </div>
 
       {/* Coverage strip — clickable, leads to full /stats */}
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
