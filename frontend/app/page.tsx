@@ -221,6 +221,20 @@ export default async function HomePage() {
             >
               {t('lifecycle_link')}
             </Link>
+            {/* Press entry — surfaces the (otherwise footer-only) journalists
+                page from the hero, a credibility signal for newsrooms. */}
+            <Link
+              href={'/journalists' as Route}
+              style={{
+                fontSize: 13,
+                color: 'var(--ink-2)',
+                textDecoration: 'underline',
+                textDecorationColor: 'var(--rule-strong)',
+                textUnderlineOffset: 4,
+              }}
+            >
+              {t('journalists_link')}
+            </Link>
           </div>
           <div style={{ display: 'flex', gap: 24, marginTop: 32, fontSize: 12, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
             <span>{t('trust_no_trackers')}</span>
