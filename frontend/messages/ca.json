@@ -1590,7 +1590,9 @@
     "no_data": "Sense dades",
     "count_initiatives": "{n, plural, one {# iniciativa} other {# iniciatives}}",
     "count_ayes": "{n} a favor",
-    "count_noes": "{n} en contra"
+    "count_noes": "{n} en contra",
+    "share_ayes": "{pct}% a favor",
+    "share_noes": "{pct}% en contra"
   },
   "embed_topic": {
     "not_found": "Tema no trobat",

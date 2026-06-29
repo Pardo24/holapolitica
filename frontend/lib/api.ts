@@ -500,6 +500,23 @@ export interface GroupVoteStat {
   cast: number;
 }
 
+/** One fact of a group snapshot: a topic + the metric that selected it.
+ *  ``share`` is the Sí/No proportion for the stance facts, null for proposes. */
+export interface GroupSnapshotFact {
+  topic_slug: string;
+  topic_name_ca: string;
+  topic_color_hex: string | null;
+  value: number;
+  share: number | null;
+}
+
+/** The three at-a-glance facts of a parliamentary group. */
+export interface GroupSnapshot {
+  most_proposed: GroupSnapshotFact | null;
+  most_aye: GroupSnapshotFact | null;
+  most_no: GroupSnapshotFact | null;
+}
+
 /** Per-topic count of distinct initiatives a group has PROPOSED. */
 export interface ProposesByTopicStat {
   topic_slug: string;
@@ -1036,6 +1053,10 @@ export const api = {
       request<GroupMemberRow[]>(`/groups/${slug}/members`, { revalidate: AGG_REVALIDATE }),
     topicStats: (slug: string) =>
       request<TopicVoteStat[]>(`/groups/${slug}/topic-stats`, { revalidate: AGG_REVALIDATE }),
+    // Three at-a-glance facts (proposes / votes Sí / votes No most), aggregated
+    // across the group's whole history. Feeds the group snapshot embed.
+    snapshot: (slug: string) =>
+      request<GroupSnapshot>(`/groups/${slug}/snapshot`, { revalidate: AGG_REVALIDATE }),
     proposesByTopic: (slug: string) =>
       request<ProposesByTopicStat[]>(`/groups/${slug}/proposes-by-topic`, {
         revalidate: AGG_REVALIDATE,

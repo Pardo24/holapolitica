@@ -800,6 +800,121 @@ async def compute_proposes_by_topic_for_group(
 
 
 @dataclass(frozen=True, slots=True)
+class GroupSnapshotFact:
+    """One row of a group snapshot: a topic plus the metric that selected it.
+
+    ``value`` is a distinct-initiative count for the "proposes" fact, and a
+    vote-record count (ayes or noes) for the stance facts. ``share`` is the
+    Sí (or No) proportion that ranked the topic for the stance facts, and
+    ``None`` for the "proposes" fact.
+    """
+
+    topic_slug: str
+    topic_name_ca: str
+    topic_color_hex: str | None
+    value: int
+    share: float | None
+
+
+@dataclass(frozen=True, slots=True)
+class GroupSnapshotResult:
+    """The three facts of a parliamentary group's snapshot widget."""
+
+    most_proposed: GroupSnapshotFact | None
+    most_aye: GroupSnapshotFact | None
+    most_no: GroupSnapshotFact | None
+
+
+# A topic needs at least this many decided (Sí+No) vote-records before its
+# Sí/No share is trusted for the "votes in favour/against most" facts.
+# Without a floor a topic with a couple of votes could win on a 100% share.
+_SNAPSHOT_MIN_DECIDED = 30
+
+
+async def compute_group_snapshot(
+    session: AsyncSession, *, group_ids: list[int]
+) -> GroupSnapshotResult:
+    """Compute the three snapshot facts for a group across ``group_ids``.
+
+    Parliamentary groups are stored per-legislature (one row per
+    legislature/slug), so a party's full history spans several ids sharing
+    one slug. The snapshot aggregates over ALL of them: the per-legislature
+    split is a storage artifact, not a user-facing distinction, and scoping
+    to the latest id alone leaves the governing party's "most proposed"
+    empty (it tables bills as "Gobierno", not as the group).
+
+    - most_proposed: topic with the most DISTINCT initiatives proposed.
+    - most_aye / most_no: among topics with enough decided votes, the one
+      with the highest Sí share / No share. Picking by share (not raw
+      count) keeps the two facts distinct and meaningful — by raw count
+      both would be whichever topic simply has the most votes overall.
+    """
+    if not group_ids:
+        return GroupSnapshotResult(most_proposed=None, most_aye=None, most_no=None)
+
+    # --- most proposed -------------------------------------------------
+    proposed = func.count(func.distinct(Vote.initiative_id))
+    proposes_stmt = (
+        select(Topic.slug, Topic.name_ca, Topic.color_hex, proposed)
+        .select_from(Vote)
+        .join(Initiative, Initiative.id == Vote.initiative_id)
+        .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
+        .join(Topic, Topic.id == InitiativeTopic.topic_id)
+        .where(Vote.proposing_group_id.in_(group_ids))
+        .group_by(Topic.slug, Topic.name_ca, Topic.color_hex)
+        .order_by(proposed.desc())
+        .limit(1)
+    )
+    proposed_row = (await session.execute(proposes_stmt)).first()
+    most_proposed = (
+        GroupSnapshotFact(
+            topic_slug=proposed_row[0],
+            topic_name_ca=proposed_row[1],
+            topic_color_hex=proposed_row[2],
+            value=int(proposed_row[3]),
+            share=None,
+        )
+        if proposed_row is not None
+        else None
+    )
+
+    # --- stance facts (Sí share / No share) ----------------------------
+    stance_stmt = (
+        select(Topic.slug, Topic.name_ca, Topic.color_hex, VoteRecord.choice)
+        .select_from(VoteRecord)
+        .join(Vote, Vote.id == VoteRecord.vote_id)
+        .join(Initiative, Initiative.id == Vote.initiative_id)
+        .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
+        .join(Topic, Topic.id == InitiativeTopic.topic_id)
+        .where(VoteRecord.group_id_at_time.in_(group_ids))
+    )
+    rows = [tuple(r) for r in (await session.execute(stance_stmt)).all()]
+    per_topic = _aggregate_topic_rows(rows)
+
+    decided = [r for r in per_topic if (r.ayes + r.noes) >= _SNAPSHOT_MIN_DECIDED]
+    most_aye_row = max(decided, key=lambda r: r.ayes / (r.ayes + r.noes), default=None)
+    most_no_row = max(decided, key=lambda r: r.noes / (r.ayes + r.noes), default=None)
+
+    def _stance_fact(row: TopicVoteStatRow | None, *, aye: bool) -> GroupSnapshotFact | None:
+        if row is None:
+            return None
+        total = row.ayes + row.noes
+        return GroupSnapshotFact(
+            topic_slug=row.topic_slug,
+            topic_name_ca=row.topic_name_ca,
+            topic_color_hex=row.topic_color_hex,
+            value=row.ayes if aye else row.noes,
+            share=(row.ayes if aye else row.noes) / total if total else None,
+        )
+
+    return GroupSnapshotResult(
+        most_proposed=most_proposed,
+        most_aye=_stance_fact(most_aye_row, aye=True),
+        most_no=_stance_fact(most_no_row, aye=False),
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class GroupVoteStatRow:
     """One parliamentary group's Sí/No/Abst breakdown on a single topic."""
 

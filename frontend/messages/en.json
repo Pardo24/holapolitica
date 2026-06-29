@@ -1591,7 +1591,9 @@
     "no_data": "No data",
     "count_initiatives": "{n, plural, one {# initiative} other {# initiatives}}",
     "count_ayes": "{n} in favour",
-    "count_noes": "{n} against"
+    "count_noes": "{n} against",
+    "share_ayes": "{pct}% in favour",
+    "share_noes": "{pct}% against"
   },
   "embed_topic": {
     "not_found": "Topic not found",
