@@ -632,62 +632,111 @@ export async function SessionSheet({
               rejected: groupVotes.filter((v) => v.result === 'rejected').length,
               tie: groupVotes.filter((v) => v.result === 'tie').length,
             };
+            const decided = groupVotes.length || 1;
             return (
-              <section
+              <details
                 key={key}
-                style={{ marginBottom: 36 }}
-                aria-label={
-                  topic
-                    ? t('section_aria', { topic: pickTopicName(topic, locale) })
-                    : t('section_aria_unclassified')
-                }
+                className="session-topic-group"
+                style={{
+                  marginBottom: 0,
+                  borderBottom: '1px solid var(--rule)',
+                }}
               >
-                <header
+                <summary
+                  className="session-topic-summary"
+                  aria-label={
+                    topic
+                      ? t('section_aria', { topic: pickTopicName(topic, locale) })
+                      : t('section_aria_unclassified')
+                  }
                   style={{
                     display: 'flex',
-                    alignItems: 'baseline',
-                    justifyContent: 'space-between',
-                    gap: 12,
+                    alignItems: 'center',
+                    gap: 10,
                     flexWrap: 'wrap',
-                    paddingBottom: 6,
-                    marginBottom: 12,
-                    borderBottom: `1px solid ${
-                      topic?.color_hex ?? 'var(--ink)'
-                    }`,
+                    padding: '12px 2px',
+                    cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                    {topic?.color_hex && (
+                  <ChevronRight
+                    className="session-topic-chevron"
+                    size={14}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    style={{ flex: 'none', color: 'var(--ink-3)' }}
+                  />
+                  {topic?.color_hex && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: 2,
+                        background: topic.color_hex,
+                        display: 'inline-block',
+                        flex: 'none',
+                      }}
+                    />
+                  )}
+                  <h2
+                    className="serif"
+                    style={{
+                      margin: 0,
+                      fontSize: 'clamp(13px, 1.3vw, 15px)',
+                      fontWeight: 600,
+                      letterSpacing: '0.02em',
+                      color: 'var(--ink)',
+                      minWidth: 0,
+                    }}
+                  >
+                    {topic
+                      ? pickTopicName(topic, locale)
+                      : t('section_unclassified')}
+                  </h2>
+                  {/* Mini result bar — keeps the outcome legible while the
+                      group is collapsed, so the tree is scannable without
+                      expanding every topic. */}
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      display: 'flex',
+                      width: 64,
+                      height: 5,
+                      borderRadius: 999,
+                      overflow: 'hidden',
+                      background: 'var(--paper-3)',
+                      flex: 'none',
+                    }}
+                  >
+                    {sectionCounts.approved > 0 && (
                       <span
-                        aria-hidden="true"
                         style={{
-                          width: 9,
-                          height: 9,
-                          borderRadius: 2,
-                          background: topic.color_hex,
-                          display: 'inline-block',
+                          width: `${(sectionCounts.approved / decided) * 100}%`,
+                          background: 'var(--aye, #16A34A)',
                         }}
                       />
                     )}
-                    <h2
-                      className="serif"
-                      style={{
-                        margin: 0,
-                        fontSize: 'clamp(15px, 1.5vw, 17px)',
-                        fontWeight: 600,
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink)',
-                      }}
-                    >
-                      {topic
-                        ? pickTopicName(topic, locale)
-                        : t('section_unclassified')}
-                    </h2>
-                  </div>
+                    {sectionCounts.rejected > 0 && (
+                      <span
+                        style={{
+                          width: `${(sectionCounts.rejected / decided) * 100}%`,
+                          background: 'var(--no, #DC2626)',
+                        }}
+                      />
+                    )}
+                    {sectionCounts.tie > 0 && (
+                      <span
+                        style={{
+                          width: `${(sectionCounts.tie / decided) * 100}%`,
+                          background: 'var(--abst, #CA8A04)',
+                        }}
+                      />
+                    )}
+                  </span>
                   <div
                     className="tabular"
                     style={{
+                      marginLeft: 'auto',
                       fontSize: 12,
                       color: 'var(--ink-3)',
                       display: 'flex',
@@ -715,8 +764,8 @@ export async function SessionSheet({
                       </span>
                     )}
                   </div>
-                </header>
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                </summary>
+                <ul style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}>
                   {groupVotes.map((v, i) => {
                     const proposerGroup = v.proposing_group_slug
                       ? groupBySlug.get(v.proposing_group_slug) ?? null
@@ -740,7 +789,7 @@ export async function SessionSheet({
                     );
                   })}
                 </ul>
-              </section>
+              </details>
             );
           })}
         </>
@@ -778,6 +827,19 @@ export async function SessionSheet({
         </code>
       </section>
       <style>{`
+        /* Collapsible topic groups — native <details> so the tree works
+           without client JS. Strip the default disclosure marker (we draw
+           our own chevron) and rotate the chevron when the group is open. */
+        .session-topic-summary { list-style: none; }
+        .session-topic-summary::-webkit-details-marker { display: none; }
+        .session-topic-summary::marker { content: ''; }
+        .session-topic-chevron {
+          transition: transform 0.15s ease;
+        }
+        details[open] > .session-topic-summary .session-topic-chevron {
+          transform: rotate(90deg);
+        }
+        .session-topic-summary:hover h2 { color: var(--accent); }
         @media (max-width: 600px) {
           /* On narrow viewports the 28px sequence gutter + auto-width
              count panel were squeezing the title into 4-word lines.
@@ -937,7 +999,7 @@ function VoteRow({
   return (
     <li
       style={{
-        padding: '22px 0',
+        padding: '14px 0',
         borderBottom: '1px solid var(--rule)',
       }}
     >
@@ -995,10 +1057,10 @@ function VoteRow({
               className="serif"
               style={{
                 margin: 0,
-                fontSize: 'clamp(16px, 1.6vw, 18px)',
+                fontSize: 'clamp(14px, 1.4vw, 15px)',
                 fontWeight: 400,
                 color: 'var(--ink)',
-                lineHeight: 1.4,
+                lineHeight: 1.35,
                 letterSpacing: '-0.005em',
                 flex: '1 1 280px',
                 minWidth: 0,
