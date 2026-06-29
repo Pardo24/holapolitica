@@ -884,7 +884,8 @@
     "advanced_filters_summary": "Filtres avançats",
     "pagination_label": "Mostrant {from}–{to} de {total}",
     "pagination_prev_aria": "Pàgina anterior",
-    "pagination_next_aria": "Pàgina següent"
+    "pagination_next_aria": "Pàgina següent",
+    "show_original": "Text original"
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",

@@ -884,7 +884,8 @@
     "advanced_filters_summary": "Filtros avanzados",
     "pagination_label": "Mostrando {from}–{to} de {total}",
     "pagination_prev_aria": "Página anterior",
-    "pagination_next_aria": "Página siguiente"
+    "pagination_next_aria": "Página siguiente",
+    "show_original": "Texto original"
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",
