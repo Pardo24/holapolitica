@@ -800,6 +800,85 @@ async def compute_proposes_by_topic_for_group(
 
 
 @dataclass(frozen=True, slots=True)
+class GroupVoteStatRow:
+    """One parliamentary group's Sí/No/Abst breakdown on a single topic."""
+
+    group_slug: str
+    group_name_short: str
+    group_color_hex: str | None
+    ayes: int
+    noes: int
+    abstentions: int
+    no_vote: int
+    cast: int
+
+
+async def compute_group_stats_for_topic(
+    session: AsyncSession, *, topic_id: int
+) -> list[GroupVoteStatRow]:
+    """Per-group vote breakdown on one topic.
+
+    The inverse of :func:`compute_topic_stats_for_group`: for every
+    vote_record cast on an initiative tagged with ``topic_id``, bucket by
+    the group in force at the moment of the vote. Lets a newsroom ask "on
+    this topic, who votes in favour and who votes against" with one call.
+
+    Symmetric by construction (CLAUDE.md "regla de simetria"): every group
+    is computed identically and the full list is returned; the API never
+    ranks one group against another — the frontend sorts for display.
+    """
+    stmt = (
+        select(
+            ParliamentaryGroup.slug,
+            ParliamentaryGroup.name_short,
+            ParliamentaryGroup.color_hex,
+            VoteRecord.choice,
+        )
+        .select_from(VoteRecord)
+        .join(Vote, Vote.id == VoteRecord.vote_id)
+        .join(Initiative, Initiative.id == Vote.initiative_id)
+        .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
+        .join(
+            ParliamentaryGroup,
+            ParliamentaryGroup.id == VoteRecord.group_id_at_time,
+        )
+        .where(InitiativeTopic.topic_id == topic_id)
+    )
+    rows = (await session.execute(stmt)).all()
+
+    buckets: dict[str, dict[str, object]] = defaultdict(
+        lambda: {"name_short": "", "color_hex": None, "counts": Counter()}
+    )
+    for slug, name_short, color_hex, choice in rows:
+        b = buckets[slug]
+        b["name_short"] = name_short
+        b["color_hex"] = color_hex
+        cast(Counter[VoteChoice], b["counts"])[choice] += 1
+
+    out: list[GroupVoteStatRow] = []
+    for slug, b in buckets.items():
+        counts = cast(Counter[VoteChoice], b["counts"])
+        ayes = counts[VoteChoice.AYE]
+        noes = counts[VoteChoice.NO]
+        abst = counts[VoteChoice.ABSTENTION]
+        novote = counts[VoteChoice.NO_VOTE_RECORDED] + counts[VoteChoice.ABSENT]
+        out.append(
+            GroupVoteStatRow(
+                group_slug=slug,
+                group_name_short=cast(str, b["name_short"]),
+                group_color_hex=cast("str | None", b["color_hex"]),
+                ayes=ayes,
+                noes=noes,
+                abstentions=abst,
+                no_vote=novote,
+                cast=ayes + noes + abst,
+            )
+        )
+    out.sort(key=lambda r: -(r.cast + r.no_vote))
+    return out
+
+
+@dataclass(frozen=True, slots=True)
 class StanceExampleRow:
     """One example vote where a group's majority sided with a given stance."""
 

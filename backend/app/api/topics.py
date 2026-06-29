@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
+from app.metrics import GroupVoteStatRow, compute_group_stats_for_topic
 from app.models import Initiative, InitiativeTopic, Topic
 from app.schemas import InitiativeRead, TopicNewsRead, TopicRead
 from app.services.cache import cached
@@ -52,6 +53,30 @@ async def get_topic(slug: str, session: AsyncSession = Depends(get_session)) -> 
     if topic is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
     return topic
+
+
+@router.get("/{slug}/group-stats", response_model=list[GroupVoteStatRow])
+async def get_topic_group_stats(
+    slug: str, session: AsyncSession = Depends(get_session)
+) -> list[GroupVoteStatRow]:
+    """Per-group Sí/No/Abst breakdown of every vote cast on this topic.
+
+    The inverse of /groups/{slug}/topic-stats: feeds the "who votes in
+    favour and who votes against on this topic" widget. The full per-group
+    list is returned, ordered by total participation desc; the frontend
+    sorts by ayes / noes for display (symmetry rule — the API never ranks
+    one group against another).
+    """
+    topic = (await session.execute(select(Topic).where(Topic.slug == slug))).scalar_one_or_none()
+    if topic is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
+
+    topic_id = topic.id
+    return await cached(
+        f"stats:topic:{slug}:group-stats",
+        3600,
+        lambda: compute_group_stats_for_topic(session, topic_id=topic_id),
+    )
 
 
 @router.get("/{slug}/initiatives", response_model=list[InitiativeRead])
