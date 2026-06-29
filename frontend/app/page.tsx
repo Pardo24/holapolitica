@@ -435,23 +435,55 @@ export default async function HomePage() {
         />
       </div>
 
-      {/* Coverage strip — clickable, leads to full /stats */}
-      <section style={{ borderBottom: '1px solid var(--rule)' }}>
+      {/* Coverage strip — a single quiet line of provenance figures.
+          Demoted from the old four-KPI band (which dominated the fold
+          without giving a returning visitor anything actionable): the
+          same numbers now read as one inline sentence and the detail
+          lives a click away on /stats. */}
+      <section
+        style={{
+          borderBottom: '1px solid var(--rule)',
+          paddingTop: 12,
+          paddingBottom: 12,
+        }}
+      >
         <div
           style={{
             display: 'flex',
             alignItems: 'baseline',
-            justifyContent: 'space-between',
-            paddingTop: 18,
-            paddingBottom: 4,
-            gap: 12,
+            gap: 16,
             flexWrap: 'wrap',
+            fontSize: 12.5,
+            color: 'var(--ink-3)',
           }}
         >
-          <div className="eyebrow">{t('coverage_title')}</div>
+          <span className="eyebrow" style={{ margin: 0 }}>
+            {t('coverage_title')}
+          </span>
+          <span>
+            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+              350
+            </span>{' '}
+            {t('coverage_active_deputies').toLowerCase()}
+          </span>
+          <span style={{ color: 'var(--rule)' }}>·</span>
+          <span>
+            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+              {summary ? summary.votes_total.toLocaleString(locale) : '—'}
+            </span>{' '}
+            {t('coverage_votes_ingested').toLowerCase()}
+          </span>
+          <span style={{ color: 'var(--rule)' }}>·</span>
+          <span>
+            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+              {classifiedPct == null ? '—' : `${classifiedPct}%`}
+            </span>{' '}
+            {t('coverage_classified').toLowerCase()}
+          </span>
           <Link
             href="/stats"
             style={{
+              marginLeft: 'auto',
               fontSize: 12,
               color: 'var(--ink)',
               textDecoration: 'none',
@@ -460,41 +492,8 @@ export default async function HomePage() {
               gap: 4,
             }}
           >
-            {t('coverage_see_all')} <ArrowRight size={14} aria-hidden="true" />
+            {t('coverage_see_all')} <ArrowRight size={13} aria-hidden="true" />
           </Link>
-        </div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-          }}
-          className="home-coverage"
-        >
-          <div className="kpi">
-            <span className="label">{t('coverage_active_deputies')}</span>
-            <span className="value tabular">350</span>
-            <span className="sub">{t('coverage_active_deputies_sub')}</span>
-          </div>
-          <div className="kpi">
-            <span className="label">{t('coverage_votes_ingested')}</span>
-            <span className="value tabular">
-              {summary ? summary.votes_total.toLocaleString(locale) : '—'}
-            </span>
-            <span className="sub">{t('coverage_votes_ingested_sub')}</span>
-          </div>
-          <div className="kpi">
-            <span className="label">{t('coverage_classified')}</span>
-            <span className="value tabular">
-              {classifiedPct == null ? '—' : `${classifiedPct}`}
-              <span style={{ fontSize: 14, color: 'var(--ink-3)' }}> %</span>
-            </span>
-            <span className="sub">{t('coverage_classified_sub')}</span>
-          </div>
-          <div className="kpi">
-            <span className="label">{t('coverage_phase')}</span>
-            <span className="value">{t('coverage_phase_value')}</span>
-            <span className="sub">{t('coverage_phase_sub')}</span>
-          </div>
         </div>
       </section>
 
@@ -637,7 +636,6 @@ export default async function HomePage() {
       <style>{`
         @media (max-width: 860px) {
           .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; padding-top: 24px !important; padding-bottom: 24px !important; }
-          .home-coverage { grid-template-columns: repeat(2, 1fr) !important; }
           /* Surfaces row stacks under 860 so each card keeps a
              comfortable internal layout; on a narrow tablet two
              cards side-by-side were cramming the body copy. */
