@@ -861,6 +861,7 @@ async def compute_group_snapshot(
         .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
         .join(Topic, Topic.id == InitiativeTopic.topic_id)
         .where(Vote.proposing_group_id.in_(group_ids))
+        .where(Topic.kind == "theme")
         .group_by(Topic.slug, Topic.name_ca, Topic.color_hex)
         .order_by(proposed.desc())
         .limit(1)
@@ -887,6 +888,7 @@ async def compute_group_snapshot(
         .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
         .join(Topic, Topic.id == InitiativeTopic.topic_id)
         .where(VoteRecord.group_id_at_time.in_(group_ids))
+        .where(Topic.kind == "theme")
     )
     rows = [tuple(r) for r in (await session.execute(stance_stmt)).all()]
     per_topic = _aggregate_topic_rows(rows)
