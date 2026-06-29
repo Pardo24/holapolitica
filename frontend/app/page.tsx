@@ -49,6 +49,56 @@ function resultColor(result: VoteResult): string {
   }
 }
 
+// Outlined secondary button + quiet text link used in the hero action row.
+const heroOutlineBtn: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 7,
+  padding: '9px 16px',
+  borderRadius: 999,
+  border: '1px solid var(--rule-strong)',
+  background: 'var(--paper)',
+  color: 'var(--ink)',
+  fontSize: 14,
+  fontWeight: 600,
+  textDecoration: 'none',
+};
+const heroTextLink: React.CSSProperties = {
+  fontSize: 13,
+  color: 'var(--ink-2)',
+  textDecoration: 'underline',
+  textDecorationColor: 'var(--rule-strong)',
+  textUnderlineOffset: 4,
+};
+
+/** A colored result tile in the "this week" card. */
+function WeekStat({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div
+      style={{
+        background: `color-mix(in srgb, ${color} 12%, var(--paper))`,
+        borderRadius: 10,
+        padding: '9px 10px',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          color: 'var(--ink-3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          fontWeight: 700,
+        }}
+      >
+        {label}
+      </div>
+      <div className="tabular" style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1.1, marginTop: 2 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   const t = await getTranslations('home');
   const tSite = await getTranslations('site');
@@ -110,6 +160,14 @@ export default async function HomePage() {
     summary && summary.initiatives_total > 0
       ? Math.round((summary.initiatives_classified / summary.initiatives_total) * 100)
       : null;
+
+  // Split the hero title so the second line can be tinted with the accent.
+  const heroTitleLines = t('hero_title').split('\n');
+
+  // "Esta semana" stacked-bar proportions (approved vs rejected/tie).
+  const weekDecided = weekApproved + weekRejected + weekTied;
+  const weekApprovedPct = weekDecided > 0 ? Math.round((weekApproved / weekDecided) * 100) : 0;
+  const weekRejectedPct = weekDecided > 0 ? Math.round((weekRejected / weekDecided) * 100) : 0;
 
   return (
     <div>
@@ -188,11 +246,17 @@ export default async function HomePage() {
         className="home-hero"
       >
         <div>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>
+          <div className="eyebrow" style={{ marginBottom: 14, color: 'var(--accent)' }}>
             {t('eyebrow')}
           </div>
-          <h1 className="h-display" style={{ margin: '0 0 18px', whiteSpace: 'pre-line' }}>
-            {t('hero_title')}
+          <h1 className="h-display" style={{ margin: '0 0 18px' }}>
+            {heroTitleLines[0]}
+            {heroTitleLines.length > 1 && (
+              <>
+                <br />
+                <span style={{ color: 'var(--accent)' }}>{heroTitleLines.slice(1).join(' ')}</span>
+              </>
+            )}
           </h1>
           {/* Hero subtitle — desktop only. On ≤640px the eyebrow + display
               headline are already the highest-density framing the page
@@ -205,34 +269,29 @@ export default async function HomePage() {
           >
             {t('hero_subtitle')}
           </p>
+          {/* Primary actions, always above the fold: explore the data, jump to
+              the latest session, or play. Kept as real buttons so a first-time
+              visitor sees the two entries they reach for most. */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link href="/votes" className="btn-ink">
               {t('cta_explore')}
             </Link>
-            <Link
-              href={'/recorregut' as Route}
-              style={{
-                fontSize: 13,
-                color: 'var(--ink-2)',
-                textDecoration: 'underline',
-                textDecorationColor: 'var(--rule-strong)',
-                textUnderlineOffset: 4,
-              }}
-            >
+            <Link href={'/avui' as Route} style={heroOutlineBtn}>
+              <FileText size={15} strokeWidth={1.9} aria-hidden="true" />
+              {t('cta_latest')}
+            </Link>
+            <Link href={'/jocs' as Route} style={heroOutlineBtn}>
+              <Gamepad2 size={15} strokeWidth={1.9} aria-hidden="true" />
+              {t('cta_play')}
+            </Link>
+          </div>
+          <div style={{ display: 'flex', gap: 18, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Link href={'/recorregut' as Route} style={heroTextLink}>
               {t('lifecycle_link')}
             </Link>
             {/* Press entry — surfaces the (otherwise footer-only) journalists
                 page from the hero, a credibility signal for newsrooms. */}
-            <Link
-              href={'/journalists' as Route}
-              style={{
-                fontSize: 13,
-                color: 'var(--ink-2)',
-                textDecoration: 'underline',
-                textDecorationColor: 'var(--rule-strong)',
-                textUnderlineOffset: 4,
-              }}
-            >
+            <Link href={'/journalists' as Route} style={heroTextLink}>
               {t('journalists_link')}
             </Link>
           </div>
@@ -277,7 +336,7 @@ export default async function HomePage() {
             boxShadow: '0 1px 0 rgba(15,23,42,.03), 0 8px 24px -16px rgba(15,23,42,.12)',
           }}
         >
-          <div className="eyebrow">{t('week_eyebrow')}</div>
+          <div className="eyebrow" style={{ color: 'var(--accent)' }}>{t('week_eyebrow')}</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginTop: 8 }}>
             <div
               className="serif tabular"
@@ -301,33 +360,46 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Aggregate breakdown — symmetric */}
-          <div
+          {/* Stacked bar — a quick visual of the week's approved vs rejected. */}
+          {weekDecided > 0 && (
+            <div
+              role="img"
+              aria-label={`${weekApproved} ${tVotes('result.approved')}, ${weekRejected} ${tVotes('result.rejected')}`}
+              style={{
+                display: 'flex',
+                height: 8,
+                borderRadius: 999,
+                overflow: 'hidden',
+                background: 'var(--paper-3)',
+                marginTop: 18,
+              }}
+            >
+              {weekApproved > 0 && <span style={{ width: `${weekApprovedPct}%`, background: 'var(--aye)' }} />}
+              {weekRejected > 0 && <span style={{ width: `${weekRejectedPct}%`, background: 'var(--no)' }} />}
+            </div>
+          )}
+
+          {/* Colored breakdown tiles — give the week some life. */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
+            <WeekStat label={tVotes('result.approved')} value={weekApproved} color="var(--aye)" />
+            <WeekStat label={tVotes('result.rejected')} value={weekRejected} color="var(--no)" />
+            <WeekStat label={tVotes('result.tie')} value={weekTied} color="var(--abst)" />
+          </div>
+
+          <Link
+            href={'/avui' as Route}
             style={{
-              marginTop: 18,
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: 0,
-              borderTop: '1px solid var(--ink)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              marginTop: 14,
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--ink)',
             }}
           >
-            <div className="kpi" style={{ borderTop: 0, padding: '12px 0' }}>
-              <span className="label">{tVotes('result.approved')}</span>
-              <span className="value" style={{ color: 'var(--aye)' }}>
-                {weekApproved}
-              </span>
-            </div>
-            <div className="kpi" style={{ borderTop: 0, padding: '12px 0' }}>
-              <span className="label">{tVotes('result.rejected')}</span>
-              <span className="value" style={{ color: 'var(--no)' }}>
-                {weekRejected}
-              </span>
-            </div>
-            <div className="kpi" style={{ borderTop: 0, padding: '12px 0' }}>
-              <span className="label">{tVotes('result.tie')}</span>
-              <span className="value">{weekTied}</span>
-            </div>
-          </div>
+            {t('week_see_session')} <ArrowRight size={14} aria-hidden="true" />
+          </Link>
 
           {/* Week-caveat methodology note. On mobile we hide the full caveat
               body and keep just the "Mètodologia →" link so the panel
@@ -424,179 +496,6 @@ export default async function HomePage() {
             <span className="sub">{t('coverage_phase_sub')}</span>
           </div>
         </div>
-      </section>
-
-      {/* Home surfaces row — replaces the /avui + /joc entries that used
-          to live in the top nav. Two side-by-side cards: the journalistic
-          chronicle of the latest plenary (left, slightly more prominent
-          via the ink background) and the civic game (right, paper
-          background with a short explainer). Cards collapse to a single
-          column under the same 860px breakpoint as the hero. */}
-      <section
-        className="home-surfaces"
-        aria-label={t('surfaces_eyebrow')}
-        style={{
-          marginTop: 28,
-          display: 'grid',
-          gridTemplateColumns: '1.15fr 1fr',
-          gap: 14,
-        }}
-      >
-        <Link
-          href={'/avui' as Route}
-          className="home-surface-card home-surface-card--ink"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '56px minmax(0, 1fr)',
-            gap: 18,
-            alignItems: 'center',
-            padding: '22px 24px',
-            borderRadius: 16,
-            background: 'var(--ink)',
-            color: 'var(--paper)',
-            textDecoration: 'none',
-            border: '1px solid var(--ink)',
-            minHeight: 132,
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 56,
-              height: 56,
-              borderRadius: 14,
-              background: 'color-mix(in oklch, var(--paper) 14%, var(--ink))',
-              color: 'var(--paper)',
-              flex: 'none',
-            }}
-          >
-            <FileText size={26} strokeWidth={1.6} aria-hidden="true" />
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <div
-              className="eyebrow"
-              style={{
-                color: 'color-mix(in oklch, var(--paper) 70%, transparent)',
-                marginBottom: 4,
-              }}
-            >
-              {t('surfaces_eyebrow')}
-            </div>
-            <h2
-              className="serif"
-              style={{
-                margin: 0,
-                fontSize: 22,
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
-                lineHeight: 1.2,
-              }}
-            >
-              {t('surface_cronica_title')}
-            </h2>
-            <p
-              style={{
-                margin: '6px 0 10px',
-                fontSize: 13,
-                color: 'color-mix(in oklch, var(--paper) 80%, transparent)',
-                lineHeight: 1.45,
-                maxWidth: 480,
-              }}
-            >
-              {t('surface_cronica_body')}
-            </p>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              {t('surface_cronica_cta')} <ArrowRight size={14} aria-hidden="true" />
-            </span>
-          </div>
-        </Link>
-
-        <Link
-          href={'/joc' as Route}
-          className="home-surface-card"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '56px minmax(0, 1fr)',
-            gap: 18,
-            alignItems: 'center',
-            padding: '22px 24px',
-            borderRadius: 16,
-            background: 'var(--paper-2)',
-            color: 'var(--ink)',
-            textDecoration: 'none',
-            border: '1px solid var(--rule-strong)',
-            minHeight: 132,
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 56,
-              height: 56,
-              borderRadius: 14,
-              background: 'color-mix(in oklch, var(--accent) 18%, var(--paper))',
-              color: 'var(--accent)',
-              flex: 'none',
-            }}
-          >
-            <Gamepad2 size={26} strokeWidth={1.6} aria-hidden="true" />
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <div className="eyebrow" style={{ marginBottom: 4 }}>
-              {t('surfaces_eyebrow')}
-            </div>
-            <h2
-              className="serif"
-              style={{
-                margin: 0,
-                fontSize: 22,
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
-                lineHeight: 1.2,
-                color: 'var(--ink)',
-              }}
-            >
-              {t('surface_joc_title')}
-            </h2>
-            <p
-              style={{
-                margin: '6px 0 10px',
-                fontSize: 13,
-                color: 'var(--ink-2)',
-                lineHeight: 1.45,
-                maxWidth: 480,
-              }}
-            >
-              {t('surface_joc_body')}
-            </p>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                color: 'var(--ink)',
-              }}
-            >
-              {t('surface_joc_cta')} <ArrowRight size={14} aria-hidden="true" />
-            </span>
-          </div>
-        </Link>
       </section>
 
       {/* Newsletter signup — single card with title + caption above
