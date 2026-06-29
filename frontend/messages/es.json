@@ -1262,7 +1262,12 @@
     "license_code": "<strong>Código fuente</strong>: EUPL-1.2 — repositorio en <link>github.com/Pardo24/holapolitica</link>.",
     "license_widgets": "<strong>Widgets e imágenes OG</strong>: libres de uso editorial con la misma obligación de atribución.",
     "contact_eyebrow": "Contacto editorial",
-    "contact_body": "Si tu redacción quiere un corte específico (por ejemplo, todas las votaciones de un partido en un trimestre, o la actividad por circunscripción), escríbenos y lo preparamos."
+    "contact_body": "Si tu redacción quiere un corte específico (por ejemplo, todas las votaciones de un partido en un trimestre, o la actividad por circunscripción), escríbenos y lo preparamos.",
+    "picker_group_label": "Elige un grupo:",
+    "picker_topic_label": "Elige un tema:",
+    "widget_topic_parties_title": "Quién vota a favor y en contra de un tema",
+    "widget_topic_parties_desc": "Para una pieza centrada en un tema: cada grupo ordenado según su proporción de votos a favor y en contra. Elige el tema y copia el código.",
+    "iframe_title_topic_parties": "Votos por grupo en un tema - Hola Política"
   },
   "common": {
     "loading": "Cargando…",
@@ -1680,5 +1685,14 @@
     "person_kpi_dissidence": "Disidencia",
     "person_kpi_of_total": "de {total}",
     "person_kpi_times": "{count} veces"
+  },
+  "embed_topic_parties": {
+    "eyebrow": "Votos a favor y en contra por grupo",
+    "aye_label": "A favor",
+    "no_label": "En contra",
+    "see_detail": "Ver tema →",
+    "source_label": "Fuente:",
+    "not_found": "Tema no encontrado",
+    "no_data": "Aún no hay votos registrados en este tema."
   }
 }

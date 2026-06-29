@@ -4,7 +4,9 @@ import { ArrowUpRight, Newspaper } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { ResizingIframe } from '@/components/ResizingIframe';
+import { EmbedPicker, type EmbedPickerOption } from '@/components/EmbedPicker';
 import { api } from '@/lib/api';
+import { displayGroupShort } from '@/lib/groups';
 
 export const revalidate = 600;
 
@@ -31,8 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function JournalistsPage() {
   const t = await getTranslations('journalists');
-  // locale is reserved for future deep-links (e.g. /apidocs?lang=X).
-  await getLocale();
+  const locale = await getLocale();
   // Live preview ids — pick the most recent vote so the demo always
   // shows fresh content. Group + topic + initiative slugs/ids are
   // stable references we know exist in the XV legislature; hard-coded
@@ -46,6 +47,29 @@ export default async function JournalistsPage() {
     .catch(() => null);
   const sampleVoteId = latest?.items[0]?.id ?? 1;
   const sampleInitiativeId = 6;
+
+  // Options for the interactive pickers (group snapshot + topic→parties).
+  // Both degrade gracefully: an empty list just renders the picker with a
+  // single fallback option, so the preview never breaks the page.
+  const groups = await api.groups.list().catch(() => []);
+  const groupOptions: EmbedPickerOption[] = groups.map((g) => ({
+    value: g.slug,
+    label: displayGroupShort(g.name_short),
+  }));
+  const defaultGroup = groupOptions.some((o) => o.value === 'gp-socialista')
+    ? 'gp-socialista'
+    : (groupOptions[0]?.value ?? 'gp-socialista');
+
+  const topics = await api.topics.list({ kind: 'theme' }).catch(() => []);
+  const topicOptions: EmbedPickerOption[] = topics.map((tp) => ({
+    value: tp.slug,
+    label: locale === 'es' ? tp.name_es : locale === 'en' ? tp.name_en : tp.name_ca,
+  }));
+  const defaultTopic = topicOptions.some((o) => o.value === 'habitatge')
+    ? 'habitatge'
+    : (topicOptions[0]?.value ?? 'habitatge');
+
+  const embedOrigin = 'https://holapolitica.org';
 
   return (
     <article style={{ maxWidth: 880, paddingTop: 24, paddingBottom: 64 }}>
@@ -193,12 +217,32 @@ export default async function JournalistsPage() {
           snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
         />
 
-        <EmbedExample
+        <EmbedPicker
           title={t('widget_group_title')}
           description={t('widget_group_desc')}
-          src="/embed/groups/gp-socialista"
+          pickerLabel={t('picker_group_label')}
+          options={groupOptions}
+          defaultValue={defaultGroup}
+          srcPrefix="/embed/groups/"
+          srcSuffix=""
           height={320}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="320" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_group')}"\n></iframe>`}
+          iframeTitle={t('iframe_title_group')}
+          origin={embedOrigin}
+          snippetSummary={t('snippet_summary')}
+        />
+
+        <EmbedPicker
+          title={t('widget_topic_parties_title')}
+          description={t('widget_topic_parties_desc')}
+          pickerLabel={t('picker_topic_label')}
+          options={topicOptions}
+          defaultValue={defaultTopic}
+          srcPrefix="/embed/topics/"
+          srcSuffix="/parties"
+          height={420}
+          iframeTitle={t('iframe_title_topic_parties')}
+          origin={embedOrigin}
+          snippetSummary={t('snippet_summary')}
         />
 
         <EmbedExample

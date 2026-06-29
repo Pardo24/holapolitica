@@ -487,6 +487,19 @@ export interface TopicVoteStat {
   cast: number;
 }
 
+/** One group's Sí/No/Abst breakdown on a single topic (inverse of
+ *  TopicVoteStat — keyed by group, scoped to one topic). */
+export interface GroupVoteStat {
+  group_slug: string;
+  group_name_short: string;
+  group_color_hex: string | null;
+  ayes: number;
+  noes: number;
+  abstentions: number;
+  no_vote: number;
+  cast: number;
+}
+
 /** Per-topic count of distinct initiatives a group has PROPOSED. */
 export interface ProposesByTopicStat {
   topic_slug: string;
@@ -1004,6 +1017,12 @@ export const api = {
         // don't refetch on every render in the same window.
         { revalidate: 3600 },
       ),
+    // Per-group Sí/No breakdown on this topic — feeds the "who votes for /
+    // against on this topic" widget. Inverse of groups.topicStats.
+    groupStats: (slug: string) =>
+      request<GroupVoteStat[]>(`/topics/${slug}/group-stats`, {
+        revalidate: AGG_REVALIDATE,
+      }),
   },
   groups: {
     list: (legislatureId?: number) =>

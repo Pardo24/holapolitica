@@ -1262,7 +1262,12 @@
     "license_code": "<strong>Source code</strong>: EUPL-1.2 — repository at <link>github.com/Pardo24/holapolitica</link>.",
     "license_widgets": "<strong>Widgets and OG images</strong>: free for editorial use with the same attribution requirement.",
     "contact_eyebrow": "Editorial contact",
-    "contact_body": "If your newsroom wants a specific slice (e.g. all votes from a party in a quarter, or activity by constituency), email us and we'll prepare it."
+    "contact_body": "If your newsroom wants a specific slice (e.g. all votes from a party in a quarter, or activity by constituency), email us and we'll prepare it.",
+    "picker_group_label": "Pick a group:",
+    "picker_topic_label": "Pick a topic:",
+    "widget_topic_parties_title": "Who votes for and against a topic",
+    "widget_topic_parties_desc": "For a topic-focused piece: every group ranked by its share of votes in favour and against. Pick the topic and copy the code.",
+    "iframe_title_topic_parties": "Votes by group on a topic - Hola Política"
   },
   "common": {
     "loading": "Loading…",
@@ -1680,5 +1685,14 @@
     "person_kpi_dissidence": "Dissent",
     "person_kpi_of_total": "of {total}",
     "person_kpi_times": "{count} times"
+  },
+  "embed_topic_parties": {
+    "eyebrow": "Votes for and against by group",
+    "aye_label": "In favour",
+    "no_label": "Against",
+    "see_detail": "See topic →",
+    "source_label": "Source:",
+    "not_found": "Topic not found",
+    "no_data": "No votes recorded on this topic yet."
   }
 }
