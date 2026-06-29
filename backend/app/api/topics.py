@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.metrics import GroupVoteStatRow, compute_group_stats_for_topic
-from app.models import Initiative, InitiativeTopic, Topic
+from app.models import Initiative, InitiativeTopic, Legislature, Topic
 from app.schemas import InitiativeRead, TopicNewsRead, TopicRead
 from app.services.cache import cached
 from app.services.topic_news import fetch_topic_news
@@ -66,16 +66,29 @@ async def get_topic_group_stats(
     list is returned, ordered by total participation desc; the frontend
     sorts by ayes / noes for display (symmetry rule — the API never ranks
     one group against another).
+
+    Scoped to the CURRENT legislature: the widget asks "who's for and who's
+    against today", and a party's share averaged across legislatures (where
+    it has been both in government and in opposition) would misrepresent its
+    present stance and list groups that no longer sit.
     """
     topic = (await session.execute(select(Topic).where(Topic.slug == slug))).scalar_one_or_none()
     if topic is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
 
+    legislature_id = (
+        await session.execute(
+            select(Legislature.id).order_by(Legislature.start_date.desc()).limit(1)
+        )
+    ).scalar_one_or_none()
+
     topic_id = topic.id
     return await cached(
-        f"stats:topic:{slug}:group-stats",
+        f"stats:topic:{slug}:group-stats:leg:{legislature_id}",
         3600,
-        lambda: compute_group_stats_for_topic(session, topic_id=topic_id),
+        lambda: compute_group_stats_for_topic(
+            session, topic_id=topic_id, legislature_id=legislature_id
+        ),
     )
 
 

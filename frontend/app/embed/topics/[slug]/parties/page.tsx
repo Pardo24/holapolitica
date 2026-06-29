@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, type GroupVoteStat, type Topic } from '@/lib/api';
-import { displayGroupShort } from '@/lib/groups';
+import { groupAbbreviation } from '@/lib/groups';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -156,11 +156,12 @@ export default async function EmbedTopicPartiesPage({
                 style={{ display: 'flex', alignItems: 'center', gap: 10 }}
               >
                 <span
+                  title={row.group_name_short}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
-                    width: 96,
+                    width: 72,
                     flex: 'none',
                     minWidth: 0,
                   }}
@@ -185,7 +186,7 @@ export default async function EmbedTopicPartiesPage({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {displayGroupShort(row.group_name_short)}
+                    {groupAbbreviation(row.group_slug)}
                   </span>
                 </span>
                 <span
