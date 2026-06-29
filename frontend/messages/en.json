@@ -884,7 +884,8 @@
     "advanced_filters_summary": "Advanced filters",
     "pagination_label": "Showing {from}–{to} of {total}",
     "pagination_prev_aria": "Previous page",
-    "pagination_next_aria": "Next page"
+    "pagination_next_aria": "Next page",
+    "show_original": "Original text"
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",

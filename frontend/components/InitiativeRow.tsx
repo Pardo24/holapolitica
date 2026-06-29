@@ -2,8 +2,8 @@ import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { GroupBadge } from '@/components/GroupBadge';
+import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawRow } from '@/components/LawRow';
-import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProposerEllipsis } from '@/components/ProposerEllipsis';
 import { ResultPill } from '@/components/ResultPill';
@@ -87,6 +87,11 @@ export async function InitiativeRow({
     ? submittedDate.toLocaleDateString(locale, { dateStyle: 'medium' })
     : '—';
   const plainSummary = pickPlainSummary(initiative, locale);
+  // AI plain-language summary leads as the row headline; the raw official
+  // title (dense, procedural) moves behind an inline toggle in the meta
+  // line. When no summary exists yet we fall back to the original title so
+  // the row is never blank.
+  const headline = plainSummary ?? initiative.title_original;
 
   const statusKey = STATUS_KEY[initiative.status];
   const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
@@ -125,7 +130,10 @@ export async function InitiativeRow({
         {initiative.official_id}
       </span>
       {plainSummary && (
-        <LawSummaryPanel summary={plainSummary} provider={initiative.plain_summary_provider} />
+        <LawOriginalToggle
+          original={initiative.title_original}
+          provider={initiative.plain_summary_provider}
+        />
       )}
     </>
   );
@@ -157,7 +165,7 @@ export async function InitiativeRow({
       href={`/initiatives/${initiative.id}` as Route}
       dateLong={longDate}
       dateShort={shortDate}
-      title={initiative.title_original}
+      title={headline}
       meta={meta}
       outcomeAriaLabel={showVoteResult ? (latestVoteResult ?? undefined) : statusLabel}
       outcome={outcome}
