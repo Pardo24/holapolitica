@@ -197,8 +197,8 @@ export default async function JournalistsPage() {
           title={t('widget_group_title')}
           description={t('widget_group_desc')}
           src="/embed/groups/gp-socialista"
-          height={400}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="400" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_group')}"\n></iframe>`}
+          height={320}
+          snippet={`<iframe\n  src="https://holapolitica.org/embed/groups/gp-socialista"\n  width="100%" height="320" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_group')}"\n></iframe>`}
         />
 
         <EmbedExample

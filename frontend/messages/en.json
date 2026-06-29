@@ -1232,8 +1232,8 @@
     "widget_explorer_desc": "Three filters in the URL and you leave with the exact view you wanted: by topic, by result, by proposing group, by date window. Sharing the iframe with another journalist equals sharing the exact query — the URL is the query. Our World in Data pattern.",
     "widget_vote_title": "Single vote result · with per-group cohesion",
     "widget_vote_desc": "For one vote: totals (Aye · No · Abst. · Absent), stacked bar, who tabled it and — the journalistic value-add — the per-group cohesion strip for the 4 largest groups (how each voted as a bloc) + this-vote % vs legislature-average % per group.",
-    "widget_group_title": "Parliamentary group composition (parity + age)",
-    "widget_group_desc": "For a piece about a group: total seats, gender split as a stacked bar with the chamber average as a reference line, and an age-band histogram — also with chamber reference. Useful for contextualising demographic differences without claiming anything.",
+    "widget_group_title": "Snapshot of a parliamentary group",
+    "widget_group_desc": "For a piece about a group: the topic it proposes most, where it votes in favour most often and where it votes against most often, plus seat count. Three facts to place a group at a glance.",
     "widget_topic_title": "Topic snapshot",
     "widget_topic_desc": "For a topic-focused piece: how many initiatives have been filed, approved, rejected or are still in progress. Small, fast, complements a thematic article nicely.",
     "iframe_title_dossier": "Law at Congress — Hola Política",
@@ -1579,7 +1579,14 @@
     "age_reference_caption": "Line: age distribution across the whole chamber",
     "caveat": "Cohesion and attendance are averages across the votes in the current term with available data.",
     "see_detail": "See profile →",
-    "source_label": "Source:"
+    "source_label": "Source:",
+    "snapshot_proposes": "Topic it proposes most",
+    "snapshot_yes": "Votes in favour most on",
+    "snapshot_no": "Votes against most on",
+    "no_data": "No data",
+    "count_initiatives": "{n, plural, one {# initiative} other {# initiatives}}",
+    "count_ayes": "{n} in favour",
+    "count_noes": "{n} against"
   },
   "embed_topic": {
     "not_found": "Topic not found",

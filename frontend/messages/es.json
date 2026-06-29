@@ -1232,8 +1232,8 @@
     "widget_explorer_desc": "Tres filtros en la URL y sales con la vista que querías: por tema, por resultado, por grupo proponente, por ventana temporal. Compartir el iframe con otro periodista equivale a compartir la consulta exacta — la URL es la query. Patrón de Our World in Data.",
     "widget_vote_title": "Resultado de una votación · con cohesión por grupo",
     "widget_vote_desc": "Para una votación concreta: totales (Sí · No · Abst. · Ausentes), barra apilada, quién la propone y — la información periodística clave — la tira de cohesión para los 4 grupos mayoritarios (cómo votó cada grupo como bloque) + porcentaje vs media de la legislatura.",
-    "widget_group_title": "Composición de un grupo parlamentario (paridad + edad)",
-    "widget_group_desc": "Para una pieza sobre un grupo: total de escaños, reparto de género como barra apilada con la media de la cámara como línea de referencia, e histograma por franja de edad — también con línea de referencia legislativa. Útil para contextualizar diferencias demográficas sin afirmar nada.",
+    "widget_group_title": "Snapshot de un grupo parlamentario",
+    "widget_group_desc": "Para una pieza sobre un grupo: el tema que más propone, dónde vota a favor más a menudo y dónde vota en contra más a menudo, con el número de escaños. Tres hechos para situar a un grupo de un vistazo.",
     "widget_topic_title": "Snapshot por tema",
     "widget_topic_desc": "Para una pieza centrada en un tema: cuántas iniciativas se han presentado, aprobado, rechazado o están en trámite. Pequeño, rápido, complementa bien un artículo temático.",
     "iframe_title_dossier": "Ley en el Congreso — Hola Política",
@@ -1579,7 +1579,14 @@
     "age_reference_caption": "Línea: distribución por edad en la cámara entera",
     "caveat": "Cohesión y asistencia son medias sobre los votos de la legislatura con datos disponibles.",
     "see_detail": "Ver ficha →",
-    "source_label": "Fuente:"
+    "source_label": "Fuente:",
+    "snapshot_proposes": "El tema que más propone",
+    "snapshot_yes": "Donde vota a favor más a menudo",
+    "snapshot_no": "Donde vota en contra más a menudo",
+    "no_data": "Sin datos",
+    "count_initiatives": "{n, plural, one {# iniciativa} other {# iniciativas}}",
+    "count_ayes": "{n} a favor",
+    "count_noes": "{n} en contra"
   },
   "embed_topic": {
     "not_found": "Tema no encontrado",
