@@ -940,10 +940,13 @@ async def compute_group_stats_for_topic(
     the group in force at the moment of the vote. Lets a newsroom ask "on
     this topic, who votes in favour and who votes against" with one call.
 
-    ``legislature_id`` scopes the aggregation to a single legislature. The
-    "who's for / against" widget passes the current one so the result shows
-    today's groups and today's stance — a party's share averaged across 15
-    years of government/opposition flips would be misleading. Omit it to
+    ``legislature_id`` scopes the aggregation to a single legislature via the
+    voting group's legislature (groups are stored one row per legislature, so
+    ``ParliamentaryGroup.legislature_id`` cleanly identifies the term — unlike
+    ``Initiative.legislature_id``, which the historical backfill left lumped).
+    The "who's for / against" widget passes the current legislature so the
+    result shows today's groups and today's stance; a party's share averaged
+    across 15 years of government/opposition flips would mislead. Omit it to
     aggregate all-time.
 
     Symmetric by construction (CLAUDE.md "regla de simetria"): every group
@@ -968,7 +971,7 @@ async def compute_group_stats_for_topic(
         .where(InitiativeTopic.topic_id == topic_id)
     )
     if legislature_id is not None:
-        stmt = stmt.where(Initiative.legislature_id == legislature_id)
+        stmt = stmt.where(ParliamentaryGroup.legislature_id == legislature_id)
     rows = (await session.execute(stmt)).all()
 
     buckets: dict[str, dict[str, object]] = defaultdict(
