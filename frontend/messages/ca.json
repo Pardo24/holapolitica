@@ -1232,8 +1232,8 @@
     "widget_explorer_desc": "Tres filtres a la URL i sortiu amb la vista que volíeu: per tema, per resultat, per grup proposant, per finestra temporal. Compartir l'iframe amb un altre periodista equival a compartir la consulta exacta — la URL és la query. Patró d'Our World in Data.",
     "widget_vote_title": "Resultat d'una votació · amb cohesió per grup",
     "widget_vote_desc": "Per a una votació concreta: totals (Sí · No · Abst. · Absents), barra apilada, qui la proposa i — la dada periodística clau — la tira de cohesió per als 4 grups majoritaris (com va votar cada grup com a bloc) + percentatge vs mitjana de la legislatura.",
-    "widget_group_title": "Composició d'un grup parlamentari (paritat + edat)",
-    "widget_group_desc": "Per a una peça sobre un grup: total d'escons, repartiment de gènere com a barra apilada amb la mitjana de la cambra com a línia de referència, i histograma per franja d'edat — també amb línia de referència legislativa. Útil per a contextualitzar diferències demogràfiques sense afirmar res.",
+    "widget_group_title": "Snapshot d'un grup parlamentari",
+    "widget_group_desc": "Per a una peça sobre un grup: el tema que més proposa, on vota a favor més sovint i on vota en contra més sovint, amb el nombre d'escons. Tres fets per situar un grup d'un cop d'ull.",
     "widget_topic_title": "Snapshot per tema",
     "widget_topic_desc": "Per a una peça centrada en un tema: quantes iniciatives s'han presentat, aprovat, rebutjat o estan en tràmit. Petit, ràpid, complementa bé un article temàtic.",
     "iframe_title_dossier": "Llei al Congrés — Hola Política",
@@ -1578,7 +1578,14 @@
     "age_reference_caption": "Línia: distribució per edat a la cambra sencera",
     "caveat": "Cohesió i assistència són mitjanes sobre els vots de la legislatura amb dades disponibles.",
     "see_detail": "Veure fitxa →",
-    "source_label": "Font:"
+    "source_label": "Font:",
+    "snapshot_proposes": "El tema que més proposa",
+    "snapshot_yes": "On vota a favor més sovint",
+    "snapshot_no": "On vota en contra més sovint",
+    "no_data": "Sense dades",
+    "count_initiatives": "{n, plural, one {# iniciativa} other {# iniciatives}}",
+    "count_ayes": "{n} a favor",
+    "count_noes": "{n} en contra"
   },
   "embed_topic": {
     "not_found": "Tema no trobat",
