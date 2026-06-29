@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
-import { api, type Topic } from '@/lib/api';
+import { api, type GroupSnapshotFact, type Topic } from '@/lib/api';
 
 /**
  * Embed widget for a parliamentary group — a factual "snapshot".
@@ -53,14 +53,10 @@ export default async function EmbedGroupPage({
   const locale = await getLocale();
 
   let group;
-  let proposes;
-  let topicStats;
+  let snapshot;
   try {
     group = await api.groups.get(slug);
-    [proposes, topicStats] = await Promise.all([
-      api.groups.proposesByTopic(slug),
-      api.groups.topicStats(slug),
-    ]);
+    snapshot = await api.groups.snapshot(slug);
   } catch {
     return (
       <div
@@ -86,58 +82,34 @@ export default async function EmbedGroupPage({
 
   const color = group.color_hex ?? 'var(--ink)';
 
-  // The three facts. proposesByTopic comes sorted desc by count; for the
-  // vote stances we sort a copy by ayes / noes. Each can be absent (a
-  // group that has never proposed, or never voted on anything).
-  const mostProposed = proposes[0] ?? null;
-  const mostAye =
-    [...topicStats].filter((s) => s.ayes > 0).sort((a, b) => b.ayes - a.ayes)[0] ?? null;
-  const mostNo =
-    [...topicStats].filter((s) => s.noes > 0).sort((a, b) => b.noes - a.noes)[0] ?? null;
+  // The three snapshot facts, computed server-side across the group's whole
+  // history. Each can be absent (no proposals, or too few decided votes).
+  const factRow = (
+    key: string,
+    label: string,
+    fact: GroupSnapshotFact | null,
+    metric: (fact: GroupSnapshotFact) => string,
+  ) => ({
+    key,
+    label,
+    slug: fact?.topic_slug ?? null,
+    name: fact
+      ? localizedTopicName(fact.topic_slug, fact.topic_name_ca, topicsBySlug, locale)
+      : t('no_data'),
+    colorHex: fact?.topic_color_hex ?? null,
+    metric: fact ? metric(fact) : '',
+  });
 
-  const rows: {
-    key: string;
-    label: string;
-    slug: string | null;
-    name: string;
-    colorHex: string | null;
-    metric: string;
-  }[] = [
-    {
-      key: 'proposes',
-      label: t('snapshot_proposes'),
-      slug: mostProposed?.topic_slug ?? null,
-      name: mostProposed
-        ? localizedTopicName(
-            mostProposed.topic_slug,
-            mostProposed.topic_name_ca,
-            topicsBySlug,
-            locale,
-          )
-        : t('no_data'),
-      colorHex: mostProposed?.topic_color_hex ?? null,
-      metric: mostProposed ? t('count_initiatives', { n: mostProposed.count }) : '',
-    },
-    {
-      key: 'aye',
-      label: t('snapshot_yes'),
-      slug: mostAye?.topic_slug ?? null,
-      name: mostAye
-        ? localizedTopicName(mostAye.topic_slug, mostAye.topic_name_ca, topicsBySlug, locale)
-        : t('no_data'),
-      colorHex: mostAye?.topic_color_hex ?? null,
-      metric: mostAye ? t('count_ayes', { n: mostAye.ayes }) : '',
-    },
-    {
-      key: 'no',
-      label: t('snapshot_no'),
-      slug: mostNo?.topic_slug ?? null,
-      name: mostNo
-        ? localizedTopicName(mostNo.topic_slug, mostNo.topic_name_ca, topicsBySlug, locale)
-        : t('no_data'),
-      colorHex: mostNo?.topic_color_hex ?? null,
-      metric: mostNo ? t('count_noes', { n: mostNo.noes }) : '',
-    },
+  const rows = [
+    factRow('proposes', t('snapshot_proposes'), snapshot.most_proposed, (f) =>
+      t('count_initiatives', { n: f.value }),
+    ),
+    factRow('aye', t('snapshot_yes'), snapshot.most_aye, (f) =>
+      t('share_ayes', { pct: Math.round((f.share ?? 0) * 100) }),
+    ),
+    factRow('no', t('snapshot_no'), snapshot.most_no, (f) =>
+      t('share_noes', { pct: Math.round((f.share ?? 0) * 100) }),
+    ),
   ];
 
   return (

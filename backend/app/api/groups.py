@@ -18,9 +18,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.metrics import (
+    GroupSnapshotResult,
     ProposesByTopicRow,
     StanceExampleRow,
     TopicVoteStatRow,
+    compute_group_snapshot,
     compute_proposes_by_topic_for_group,
     compute_topic_stats_for_group,
     example_votes_by_group_stance,
@@ -355,6 +357,37 @@ async def get_group_topic_stats(
         f"stats:group:{slug}:topic-stats",
         3600,
         lambda: compute_topic_stats_for_group(session, group_id=group_id),
+    )
+
+
+@router.get("/{slug}/snapshot", response_model=GroupSnapshotResult)
+async def get_group_snapshot(
+    slug: str, session: AsyncSession = Depends(get_session)
+) -> GroupSnapshotResult:
+    """The three at-a-glance facts for a group: the topic it proposes most,
+    and the topics on which it votes Sí / No most often (by share).
+
+    Aggregated across EVERY legislature-instance of the slug. Groups are
+    stored one row per legislature; a party's full history is the union of
+    those ids. Scoping to the latest id alone would leave the governing
+    party's "most proposed" empty (it tables bills as "Gobierno").
+    """
+    group_ids = list(
+        (
+            await session.execute(
+                select(ParliamentaryGroup.id).where(ParliamentaryGroup.slug == slug)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if not group_ids:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    return await cached(
+        f"stats:group:{slug}:snapshot",
+        3600,
+        lambda: compute_group_snapshot(session, group_ids=group_ids),
     )
 
 
