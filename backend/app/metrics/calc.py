@@ -814,7 +814,7 @@ class GroupVoteStatRow:
 
 
 async def compute_group_stats_for_topic(
-    session: AsyncSession, *, topic_id: int
+    session: AsyncSession, *, topic_id: int, legislature_id: int | None = None
 ) -> list[GroupVoteStatRow]:
     """Per-group vote breakdown on one topic.
 
@@ -822,6 +822,12 @@ async def compute_group_stats_for_topic(
     vote_record cast on an initiative tagged with ``topic_id``, bucket by
     the group in force at the moment of the vote. Lets a newsroom ask "on
     this topic, who votes in favour and who votes against" with one call.
+
+    ``legislature_id`` scopes the aggregation to a single legislature. The
+    "who's for / against" widget passes the current one so the result shows
+    today's groups and today's stance — a party's share averaged across 15
+    years of government/opposition flips would be misleading. Omit it to
+    aggregate all-time.
 
     Symmetric by construction (CLAUDE.md "regla de simetria"): every group
     is computed identically and the full list is returned; the API never
@@ -844,6 +850,8 @@ async def compute_group_stats_for_topic(
         )
         .where(InitiativeTopic.topic_id == topic_id)
     )
+    if legislature_id is not None:
+        stmt = stmt.where(Initiative.legislature_id == legislature_id)
     rows = (await session.execute(stmt)).all()
 
     buckets: dict[str, dict[str, object]] = defaultdict(
