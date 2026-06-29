@@ -1262,7 +1262,12 @@
     "license_code": "<strong>Codi font</strong>: EUPL-1.2 — repositori a <link>github.com/Pardo24/holapolitica</link>.",
     "license_widgets": "<strong>Widgets i imatges OG</strong>: lliures d'ús editorial amb la mateixa obligació d'atribució.",
     "contact_eyebrow": "Contacte editorial",
-    "contact_body": "Si la teva redacció vol un tall específic (per exemple, totes les votacions d'un partit en un trimestre, o l'activitat per circumscripció), escriviu-nos i ho preparem."
+    "contact_body": "Si la teva redacció vol un tall específic (per exemple, totes les votacions d'un partit en un trimestre, o l'activitat per circumscripció), escriviu-nos i ho preparem.",
+    "picker_group_label": "Tria un grup:",
+    "picker_topic_label": "Tria un tema:",
+    "widget_topic_parties_title": "Qui vota a favor i en contra d'un tema",
+    "widget_topic_parties_desc": "Per a una peça centrada en un tema: cada grup ordenat segons la proporció de vots a favor i en contra. Tria el tema i copia el codi.",
+    "iframe_title_topic_parties": "Vots per grup en un tema - Hola Política"
   },
   "common": {
     "loading": "Carregant…",
@@ -1679,5 +1684,14 @@
     "person_kpi_dissidence": "Dissidència",
     "person_kpi_of_total": "de {total}",
     "person_kpi_times": "{count} cops"
+  },
+  "embed_topic_parties": {
+    "eyebrow": "Vots a favor i en contra per grup",
+    "aye_label": "A favor",
+    "no_label": "En contra",
+    "see_detail": "Veure tema →",
+    "source_label": "Font:",
+    "not_found": "Tema no trobat",
+    "no_data": "Encara no hi ha vots registrats en aquest tema."
   }
 }
