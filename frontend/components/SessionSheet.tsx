@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
+import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { ResizingIframe } from '@/components/ResizingIframe';
 import { ResultPill } from '@/components/ResultPill';
 import { SessionVoteFilter } from '@/components/SessionVoteFilter';
@@ -617,7 +618,7 @@ export async function SessionSheet({
                   </div>
                 </summary>
                 <ul style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}>
-                  {groupVotes.map((v, i) => {
+                  {groupVotes.map((v) => {
                     const proposerGroup = v.proposing_group_slug
                       ? groupBySlug.get(v.proposing_group_slug) ?? null
                       : null;
@@ -626,7 +627,6 @@ export async function SessionSheet({
                         key={v.id}
                         vote={v}
                         locale={locale}
-                        showSummary={i === 0 && groupVotes.length <= 3}
                         proposerLogoUrl={proposerGroup?.logo_url ?? null}
                         resultLabel={t(`result_${v.result}`)}
                         ayesLabel={t('ayes_short')}
@@ -770,7 +770,6 @@ function NavButton({
 function VoteRow({
   vote,
   locale,
-  showSummary,
   proposerLogoUrl,
   resultLabel,
   ayesLabel,
@@ -781,7 +780,6 @@ function VoteRow({
 }: {
   vote: Vote;
   locale: string;
-  showSummary: boolean;
   /**
    * Pre-resolved logo URL for the proposing parliamentary group, when
    * one is on file. Null for government-proposed votes, unknown
@@ -798,7 +796,11 @@ function VoteRow({
   marginLabel: (margin: number) => string;
 }) {
   const subject = vote.description?.trim() || vote.title;
-  const summary = showSummary ? pickPlainSummary(vote, locale) : null;
+  // AI plain-language summary leads as the row headline; the raw official
+  // title moves behind the inline "Text original" toggle. Falls back to the
+  // title when no summary has been generated yet, so the row is never blank.
+  const plainSummary = pickPlainSummary(vote, locale);
+  const headline = plainSummary ?? subject;
   const margin = Math.abs(vote.ayes - vote.noes);
   // Topic chips — every topic the vote inherits from its linked
   // initiative gets a chip on the row itself. Even though the
@@ -896,7 +898,7 @@ function VoteRow({
                 minWidth: 0,
               }}
             >
-              {subject}
+              {headline}
             </h3>
             <span style={{ flex: 'none' }}>
               <ResultPill result={vote.result} label={resultLabel} />
@@ -907,7 +909,7 @@ function VoteRow({
               row reads "the law, who tabled it, what theme(s) it
               touches" without breaking into multiple stacked rows. On
               narrow viewports the strip flex-wraps. */}
-          {(proposer || topics.length > 0) && (
+          {(proposer || topics.length > 0 || plainSummary) && (
             <div
               style={{
                 display: 'flex',
@@ -975,20 +977,13 @@ function VoteRow({
               {topics.map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
+              {plainSummary && (
+                <LawOriginalToggle
+                  original={subject}
+                  provider={vote.plain_summary_provider}
+                />
+              )}
             </div>
-          )}
-          {summary && (
-            <p
-              className="serif"
-              style={{
-                margin: '10px 0 0',
-                fontSize: 14,
-                color: 'var(--ink-2)',
-                lineHeight: 1.55,
-              }}
-            >
-              {summary}
-            </p>
           )}
         </div>
 
