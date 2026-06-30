@@ -1,8 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import { useTranslations } from 'next-intl';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Gamepad2,
+  MapPin,
+  X,
+} from 'lucide-react';
 
 /**
  * First-visit onboarding overlay.
@@ -33,6 +42,7 @@ export function OnboardingModal() {
   const [open, setOpen] = useState(false);
   const [slide, setSlide] = useState(0);
   const t = useTranslations('onboarding');
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -68,6 +78,33 @@ export function OnboardingModal() {
     }
     setOpen(false);
   }
+
+  // Dismiss (storing the seen-flag) AND navigate — so the tour ends with the
+  // reader landing INSIDE the app on a real surface, not on a blank home.
+  function go(href: Route) {
+    close();
+    router.push(href);
+  }
+
+  // The actions the final slide offers: read the latest plenary, find your
+  // own deputy, or play the daily question. Mirrors the home hero CTAs.
+  const actions: { href: Route; label: string; icon: React.ReactNode }[] = [
+    {
+      href: '/avui' as Route,
+      label: t('cta_session'),
+      icon: <FileText size={17} strokeWidth={1.9} aria-hidden="true" />,
+    },
+    {
+      href: '/el-teu-diputat' as Route,
+      label: t('cta_deputy'),
+      icon: <MapPin size={17} strokeWidth={1.9} aria-hidden="true" />,
+    },
+    {
+      href: '/pregunta-del-dia' as Route,
+      label: t('cta_play'),
+      icon: <Gamepad2 size={17} strokeWidth={1.9} aria-hidden="true" />,
+    },
+  ];
 
   if (!open) return null;
 
@@ -187,6 +224,57 @@ export function OnboardingModal() {
           {current.body}
         </p>
 
+        {/* Final slide: real entry points into the app. Each closes the tour
+            (storing the seen-flag) and navigates, so the reader ends up on a
+            live surface instead of a blank home. */}
+        {isLast && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div
+              className="eyebrow"
+              style={{
+                fontSize: 10,
+                color: 'var(--ink-3)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              {t('cta_prompt')}
+            </div>
+            {actions.map((a) => (
+              <button
+                key={a.href}
+                type="button"
+                onClick={() => go(a.href)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: '11px 14px',
+                  background: 'var(--paper)',
+                  border: '1px solid var(--rule-strong)',
+                  borderRadius: 10,
+                  cursor: 'pointer',
+                  color: 'var(--ink)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  textAlign: 'left',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{ display: 'inline-flex', color: 'var(--accent)', flex: 'none' }}
+                >
+                  {a.icon}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>{a.label}</span>
+                <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--ink-3)', flex: 'none' }} />
+              </button>
+            ))}
+          </div>
+        )}
+
         <div
           style={{
             display: 'flex',
@@ -229,7 +317,7 @@ export function OnboardingModal() {
                 {t('prev')}
               </button>
             )}
-            {!isLast ? (
+            {!isLast && (
               <button
                 type="button"
                 onClick={() => setSlide((s) => s + 1)}
@@ -238,35 +326,30 @@ export function OnboardingModal() {
                 {t('next')}
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
-            ) : (
-              <button type="button" onClick={close} style={btnPrimary}>
-                {t('done')}
-              </button>
             )}
           </div>
         </div>
-        {/* Skip link — small, low-pressure escape hatch for visitors
-            who don't want the tour at all. Same effect as the X. */}
-        {!isLast && (
-          <button
-            type="button"
-            onClick={close}
-            style={{
-              background: 'transparent',
-              border: 0,
-              padding: 0,
-              fontSize: 12,
-              color: 'var(--ink-3)',
-              textDecoration: 'underline',
-              textUnderlineOffset: 3,
-              cursor: 'pointer',
-              alignSelf: 'flex-start',
-              marginTop: -8,
-            }}
-          >
-            {t('skip')}
-          </button>
-        )}
+        {/* Low-pressure escape hatch. Before the last slide it skips the tour;
+            on the last slide it's "explore on my own" (the CTAs above are the
+            primary way out). Both just dismiss. */}
+        <button
+          type="button"
+          onClick={close}
+          style={{
+            background: 'transparent',
+            border: 0,
+            padding: 0,
+            fontSize: 12,
+            color: 'var(--ink-3)',
+            textDecoration: 'underline',
+            textUnderlineOffset: 3,
+            cursor: 'pointer',
+            alignSelf: 'flex-start',
+            marginTop: -8,
+          }}
+        >
+          {isLast ? t('explore_free') : t('skip')}
+        </button>
       </div>
     </div>
   );

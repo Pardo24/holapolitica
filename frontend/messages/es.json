@@ -1219,7 +1219,12 @@
     "slide2_abst": "Abst.",
     "slide3_eyebrow": "Sigue los temas que te importan",
     "slide3_title": "Suscríbete a temas y recibe avisos solo de los votos relevantes.",
-    "slide3_body": "Elige las áreas que sigues — vivienda, trabajo, justicia, sanidad… — y recibirás notificaciones o un correo semanal solo con las votaciones de esos temas. Sin seguimiento ni publicidad."
+    "slide3_body": "Elige las áreas que sigues — vivienda, trabajo, justicia, sanidad… — y recibirás notificaciones o un correo semanal solo con las votaciones de esos temas. Sin seguimiento ni publicidad.",
+    "cta_prompt": "¿Por dónde quieres empezar?",
+    "cta_session": "Ver el último pleno",
+    "cta_deputy": "Encuentra tu diputado",
+    "cta_play": "Juega la pregunta del día",
+    "explore_free": "Explorar por mi cuenta"
   },
   "journalists": {
     "meta_title": "Para periodistas · Hola Política",
