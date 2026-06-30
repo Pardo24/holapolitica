@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
@@ -618,7 +618,34 @@ export async function SessionSheet({
                   </div>
                 </summary>
                 <ul style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}>
-                  {groupVotes.map((v) => {
+                  {buildSessionEntries(groupVotes).map((entry) => {
+                    // A law that was voted several times in this session
+                    // (amendments, articles, the whole text) collapses into a
+                    // single entry — the law once, its votes nested below.
+                    if (entry.kind === 'law') {
+                      const lead = entry.votes[0]!;
+                      const proposerGroup = lead.proposing_group_slug
+                        ? groupBySlug.get(lead.proposing_group_slug) ?? null
+                        : null;
+                      return (
+                        <LawVoteGroup
+                          key={`law-${entry.initiativeId}`}
+                          votes={entry.votes}
+                          locale={locale}
+                          proposerLogoUrl={proposerGroup?.logo_url ?? null}
+                          ayesLabel={t('ayes_short')}
+                          noesLabel={t('noes_short')}
+                          proposedByGovernmentLabel={t('proposed_by_government')}
+                          votesCountLabel={(n) => t('law_votes_count', { count: n })}
+                          votesOnLawLabel={t('law_votes_label')}
+                          resultLabelFor={(r) => t(`result_${r}`)}
+                          marginLabel={(margin) =>
+                            margin === 0 ? t('margin_tie') : t('margin_short', { margin })
+                          }
+                        />
+                      );
+                    }
+                    const v = entry.vote;
                     const proposerGroup = v.proposing_group_slug
                       ? groupBySlug.get(v.proposing_group_slug) ?? null
                       : null;
@@ -764,6 +791,303 @@ function NavButton({
     >
       {icon}
     </Link>
+  );
+}
+
+// Group a topic's votes so a law that was voted several times in the same
+// session (amendments / articles / the whole text) appears ONCE. The
+// Congreso open-data labels every sub-vote with the law's title, so without
+// this they read as duplicate rows. Votes with no initiative, or an
+// initiative voted only once, stay as individual rows.
+type SessionEntry =
+  | { kind: 'single'; vote: Vote }
+  | { kind: 'law'; initiativeId: number; votes: Vote[] };
+
+function buildSessionEntries(votes: Vote[]): SessionEntry[] {
+  const counts = new Map<number, number>();
+  for (const v of votes) {
+    if (v.initiative_id != null) {
+      counts.set(v.initiative_id, (counts.get(v.initiative_id) ?? 0) + 1);
+    }
+  }
+  const entries: SessionEntry[] = [];
+  const lawIndex = new Map<number, number>();
+  for (const v of votes) {
+    const id = v.initiative_id;
+    if (id != null && (counts.get(id) ?? 0) >= 2) {
+      let idx = lawIndex.get(id);
+      if (idx == null) {
+        idx = entries.length;
+        entries.push({ kind: 'law', initiativeId: id, votes: [] });
+        lawIndex.set(id, idx);
+      }
+      (entries[idx] as Extract<SessionEntry, { kind: 'law' }>).votes.push(v);
+    } else {
+      entries.push({ kind: 'single', vote: v });
+    }
+  }
+  return entries;
+}
+
+/** A law voted several times in one session: rendered once (its AI summary
+ *  headline + proposer + Text-original toggle) with each of its votes nested
+ *  below as a compact, individually-clickable row. */
+function LawVoteGroup({
+  votes,
+  locale,
+  proposerLogoUrl,
+  ayesLabel,
+  noesLabel,
+  proposedByGovernmentLabel,
+  votesCountLabel,
+  votesOnLawLabel,
+  resultLabelFor,
+  marginLabel,
+}: {
+  votes: Vote[];
+  locale: string;
+  proposerLogoUrl: string | null;
+  ayesLabel: string;
+  noesLabel: string;
+  proposedByGovernmentLabel: string;
+  votesCountLabel: (n: number) => string;
+  votesOnLawLabel: string;
+  resultLabelFor: (r: Vote['result']) => string;
+  marginLabel: (margin: number) => string;
+}) {
+  const lead = votes[0]!;
+  const subject = lead.description?.trim() || lead.title;
+  const plainSummary = pickPlainSummary(lead, locale);
+  const headline = plainSummary ?? subject;
+  const topics: InitiativeTopicSlug[] = lead.topics ?? [];
+  const ordered = [...votes].sort(
+    (a, b) => (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
+  );
+  const proposer = lead.proposing_group_short
+    ? {
+        kind: 'group' as const,
+        short: lead.proposing_group_short,
+        slug: lead.proposing_group_slug,
+        color: lead.proposing_group_color ?? 'var(--ink-3)',
+        logoUrl: proposerLogoUrl,
+      }
+    : lead.proposed_by_government
+      ? {
+          kind: 'government' as const,
+          short: proposedByGovernmentLabel,
+          slug: null,
+          color: 'var(--ink)',
+          logoUrl: null,
+        }
+      : null;
+
+  return (
+    <li style={{ padding: '14px 0', borderBottom: '1px solid var(--rule)' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '28px minmax(0, 1fr)',
+          columnGap: 16,
+          rowGap: 6,
+          alignItems: 'start',
+        }}
+      >
+        {/* Gutter glyph signals "one law, several votes". */}
+        <span aria-hidden="true" style={{ paddingTop: 3, color: 'var(--ink-3)' }}>
+          <Layers size={14} strokeWidth={1.9} />
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+            {/* The law — links to its dossier. Sub-votes below are their own
+                links, so this is not a wrapping anchor (no nested <a>). */}
+            <Link
+              href={`/initiatives/${lead.initiative_id}` as Route}
+              className="serif"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(14px, 1.4vw, 15px)',
+                fontWeight: 400,
+                color: 'var(--ink)',
+                lineHeight: 1.35,
+                letterSpacing: '-0.005em',
+                flex: '1 1 280px',
+                minWidth: 0,
+                textDecoration: 'none',
+              }}
+            >
+              {headline}
+            </Link>
+            <span
+              className="tabular"
+              style={{
+                flex: 'none',
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--ink-2)',
+                background: 'var(--paper-3)',
+                borderRadius: 999,
+                padding: '2px 9px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {votesCountLabel(votes.length)}
+            </span>
+          </div>
+          {(proposer || topics.length > 0 || plainSummary) && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginTop: 8,
+                flexWrap: 'wrap',
+                minWidth: 0,
+              }}
+            >
+              {proposer && proposer.kind === 'group' && proposer.slug && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '2px 10px 2px 2px',
+                    borderRadius: 999,
+                    background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
+                    border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <GroupBadge
+                    slug={proposer.slug}
+                    color={proposer.color}
+                    size="xs"
+                    link={false}
+                    logoUrl={proposer.logoUrl}
+                  />
+                  {proposer.short}
+                </span>
+              )}
+              {proposer && proposer.kind === 'government' && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    background: 'var(--paper-2)',
+                    border: '1px solid var(--rule-strong)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{ width: 8, height: 8, borderRadius: 999, background: proposer.color }}
+                  />
+                  {proposer.short}
+                </span>
+              )}
+              {topics.map((tp) => (
+                <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+              ))}
+              {plainSummary && (
+                <LawOriginalToggle original={subject} provider={lead.plain_summary_provider} />
+              )}
+            </div>
+          )}
+          {/* The law's individual votes. */}
+          <div style={{ marginTop: 10 }}>
+            <div
+              className="eyebrow"
+              style={{ fontSize: 9, color: 'var(--ink-3)', marginBottom: 2 }}
+            >
+              {votesOnLawLabel}
+            </div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {ordered.map((v) => (
+                <SubVote
+                  key={v.id}
+                  vote={v}
+                  ayesLabel={ayesLabel}
+                  noesLabel={noesLabel}
+                  resultLabel={resultLabelFor(v.result)}
+                  marginLabel={marginLabel}
+                />
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+/** One vote inside a {@link LawVoteGroup}: sequence, result, tally — a
+ *  compact row linking to the full vote. Carries ``data-result`` so the
+ *  session result filter hides it like any other vote row. */
+function SubVote({
+  vote,
+  ayesLabel,
+  noesLabel,
+  resultLabel,
+  marginLabel,
+}: {
+  vote: Vote;
+  ayesLabel: string;
+  noesLabel: string;
+  resultLabel: string;
+  marginLabel: (margin: number) => string;
+}) {
+  const margin = Math.abs(vote.ayes - vote.noes);
+  return (
+    <li data-result={vote.result} style={{ borderTop: '1px solid var(--rule)' }}>
+      <Link
+        href={`/votes/${vote.id}` as Route}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '8px 0',
+          textDecoration: 'none',
+          color: 'inherit',
+          flexWrap: 'wrap',
+        }}
+      >
+        <span
+          className="tabular"
+          aria-hidden="true"
+          style={{
+            fontSize: 11,
+            color: 'var(--ink-3)',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            minWidth: 22,
+          }}
+        >
+          {vote.sequence_in_session != null
+            ? String(vote.sequence_in_session).padStart(2, '0')
+            : '—'}
+        </span>
+        <ResultPill result={vote.result} label={resultLabel} />
+        <span className="tabular" style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>
+          <strong style={{ color: 'var(--aye, #16A34A)' }}>{vote.ayes}</strong> {ayesLabel}
+          <span style={{ color: 'var(--ink-3)', margin: '0 6px' }}>·</span>
+          <strong style={{ color: 'var(--no, #DC2626)' }}>{vote.noes}</strong> {noesLabel}
+        </span>
+        <span
+          className="tabular"
+          style={{ fontSize: 11, color: 'var(--ink-3)', marginLeft: 'auto' }}
+        >
+          {marginLabel(margin)}
+        </span>
+      </Link>
+    </li>
   );
 }
 

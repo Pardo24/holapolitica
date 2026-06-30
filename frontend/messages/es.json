@@ -118,7 +118,9 @@
     "filter_eyebrow": "Filtrar por resultado",
     "filter_all": "Todas",
     "filter_approved": "Aprobadas",
-    "filter_rejected": "Rechazadas"
+    "filter_rejected": "Rechazadas",
+    "law_votes_count": "{count} votaciones",
+    "law_votes_label": "Votaciones sobre esta ley"
   },
   "avui_og": {
     "brand": "Hola Política",
