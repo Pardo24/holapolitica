@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Layers, Users, CheckCircle2, Scale, X } from 'lucide-react';
+import { Layers, CheckCircle2, Scale, X } from 'lucide-react';
 
 import type {
-  GroupProposalCount,
   InitiativeStatusCount,
   TopicGlobalStat,
 } from '@/lib/api';
@@ -34,7 +33,7 @@ import type {
  * props, so no extra round trips happen on mode change.
  */
 
-type Mode = 'topic' | 'group' | 'topic_acceptance' | 'status';
+type Mode = 'topic' | 'topic_acceptance' | 'status';
 
 interface Slice {
   key: string;
@@ -67,7 +66,6 @@ const FALLBACK_PALETTE = [
 export interface StatsPieLabels {
   title: string;
   modeTopic: string;
-  modeGroup: string;
   modeTopicAcceptance: string;
   modeStatus: string;
   modeAria: string;
@@ -84,7 +82,6 @@ export interface StatsPieLabels {
 
 export interface StatsPieProps {
   byStatus: InitiativeStatusCount[];
-  proposingGroups: GroupProposalCount[];
   topics: TopicGlobalStat[];
   labels: StatsPieLabels;
   /** slug → plain-language topic description, for the click-to-explain
@@ -96,7 +93,6 @@ export interface StatsPieProps {
 
 export function StatsPie({
   byStatus,
-  proposingGroups,
   topics,
   labels,
   topicDescriptions = {},
@@ -106,7 +102,7 @@ export function StatsPie({
   // The clicked slice/legend item — drives the topic explanation panel.
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
-  const slices = buildSlices(mode, { byStatus, proposingGroups, topics, labels });
+  const slices = buildSlices(mode, { byStatus, topics, labels });
   const total = slices.reduce((a, s) => a + s.count, 0);
 
   const changeMode = (m: Mode) => {
@@ -265,7 +261,6 @@ function buildSlices(
   mode: Mode,
   src: {
     byStatus: InitiativeStatusCount[];
-    proposingGroups: GroupProposalCount[];
     topics: TopicGlobalStat[];
     labels: StatsPieLabels;
   },
@@ -279,16 +274,6 @@ function buildSlices(
           label: t.topic_name_ca,
           count: t.initiatives_total,
           color: t.topic_color_hex ?? FALLBACK_PALETTE[i % FALLBACK_PALETTE.length]!,
-        }))
-        .sort((a, b) => b.count - a.count);
-    case 'group':
-      return src.proposingGroups
-        .filter((g) => g.count > 0)
-        .map((g, i) => ({
-          key: g.slug,
-          label: g.name_short,
-          count: g.count,
-          color: g.color_hex ?? FALLBACK_PALETTE[i % FALLBACK_PALETTE.length]!,
         }))
         .sort((a, b) => b.count - a.count);
     case 'topic_acceptance':
@@ -627,7 +612,6 @@ function ModeRadio({
 }) {
   const options: { key: Mode; label: string; Icon: typeof Layers }[] = [
     { key: 'topic', label: labels.modeTopic, Icon: Layers },
-    { key: 'group', label: labels.modeGroup, Icon: Users },
     { key: 'topic_acceptance', label: labels.modeTopicAcceptance, Icon: Scale },
     { key: 'status', label: labels.modeStatus, Icon: CheckCircle2 },
   ];

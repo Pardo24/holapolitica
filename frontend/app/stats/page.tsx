@@ -396,7 +396,6 @@ export default async function StatsPage({
             <div className="hidden sm:block">
               <StatsPie
                 byStatus={byStatus}
-                proposingGroups={proposingGroups}
                 topics={topics}
                 labels={statsPieLabels(t)}
                 topicDescriptions={topicDescriptions}
@@ -803,7 +802,6 @@ function statsPieLabels(t: StatsT): StatsPieLabels {
   return {
     title: t('pie_mode_legend'),
     modeTopic: t('pie_mode_topic'),
-    modeGroup: t('pie_mode_group'),
     modeTopicAcceptance: t('pie_mode_topic_acceptance'),
     modeStatus: t('pie_mode_status'),
     modeAria: t('pie_mode_aria'),
