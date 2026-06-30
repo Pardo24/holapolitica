@@ -114,7 +114,11 @@
     "section_approved": "{count} aprovades",
     "section_rejected": "{count} rebutjades",
     "section_tie": "{count, plural, =1 {# empat} other {# empats}}",
-    "proposed_by_government": "Govern"
+    "proposed_by_government": "Govern",
+    "filter_eyebrow": "Filtra per resultat",
+    "filter_all": "Totes",
+    "filter_approved": "Aprovades",
+    "filter_rejected": "Rebutjades"
   },
   "avui_og": {
     "brand": "Hola Política",
