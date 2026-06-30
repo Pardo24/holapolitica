@@ -25,7 +25,7 @@
  * on `/` keeps the home pristine.
  */
 
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Home } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
@@ -76,6 +76,18 @@ export function MobileBackBar() {
         <ChevronLeft size={20} strokeWidth={2.25} aria-hidden="true" />
         <span>{t('label')}</span>
       </Link>
+      {/* Home shortcut on the right — the mobile top nav is hidden, so
+          this is the one always-present way back to the start from any
+          deep sub-page (vs. "back" which only steps one screen). */}
+      <Link
+        href="/"
+        prefetch={false}
+        className="mobile-back-bar__home"
+        aria-label={t('aria_home')}
+        title={t('aria_home')}
+      >
+        <Home size={20} strokeWidth={2} aria-hidden="true" />
+      </Link>
       <style>{`
         .mobile-back-bar {
           display: none;
@@ -84,6 +96,7 @@ export function MobileBackBar() {
           .mobile-back-bar {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 30;
@@ -112,6 +125,21 @@ export function MobileBackBar() {
           transition: background-color .12s ease, color .12s ease;
         }
         .mobile-back-bar__btn:active {
+          background: var(--paper-2);
+          color: var(--ink);
+        }
+        .mobile-back-bar__home {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 40px;
+          min-height: 40px;
+          border-radius: 8px;
+          color: var(--ink-2);
+          text-decoration: none;
+          transition: background-color .12s ease, color .12s ease;
+        }
+        .mobile-back-bar__home:active {
           background: var(--paper-2);
           color: var(--ink);
         }

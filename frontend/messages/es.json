@@ -180,7 +180,8 @@
   },
   "mobile_back": {
     "aria_back": "Volver atrás",
-    "label": "Volver"
+    "label": "Volver",
+    "aria_home": "Inicio"
   },
   "share": {
     "copied": "Enlace copiado",

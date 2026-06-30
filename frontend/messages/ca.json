@@ -180,7 +180,8 @@
   },
   "mobile_back": {
     "aria_back": "Tornar enrere",
-    "label": "Tornar"
+    "label": "Tornar",
+    "aria_home": "Inici"
   },
   "share": {
     "copied": "Enllaç copiat",
