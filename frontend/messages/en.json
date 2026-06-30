@@ -180,7 +180,8 @@
   },
   "mobile_back": {
     "aria_back": "Go back",
-    "label": "Back"
+    "label": "Back",
+    "aria_home": "Home"
   },
   "share": {
     "copied": "Link copied",
