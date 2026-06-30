@@ -314,13 +314,31 @@ async def get_person_mandates(
 async def get_person_topic_stats(
     person_id: int, session: AsyncSession = Depends(get_session)
 ) -> list[TopicVoteStatRow]:
-    """Per-topic Sí/No/Abst breakdown for the deputy's full vote history."""
-    return await compute_topic_stats_for_person(session, person_id=person_id)
+    """Per-topic Sí/No/Abst breakdown for the deputy's full vote history.
+
+    Cached: a deputy's vote history only changes on ingest (~every 4h), but
+    this is a 5-table join over all their vote records, so recomputing it on
+    every profile view made "mi diputado" slow to open.
+    """
+    return await cached(
+        f"metrics:persons:{person_id}:topic-stats",
+        3600,
+        lambda: compute_topic_stats_for_person(session, person_id=person_id),
+    )
 
 
 @router.get("/{person_id}/kpis", response_model=PersonKPIs)
 async def get_person_kpis(
     person_id: int, session: AsyncSession = Depends(get_session)
 ) -> PersonKPIs:
-    """Three at-a-glance numbers: votes attended, attendance %, dissidence %."""
-    return await compute_person_kpis(session, person_id=person_id)
+    """Three at-a-glance numbers: votes attended, attendance %, dissidence %.
+
+    Cached: dissidence needs the group-majority for every vote the deputy
+    took part in, the heaviest query behind the deputy profile. Stable
+    between ingests, so a 1h cache makes repeat opens instant.
+    """
+    return await cached(
+        f"metrics:persons:{person_id}:kpis",
+        3600,
+        lambda: compute_person_kpis(session, person_id=person_id),
+    )
