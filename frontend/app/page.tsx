@@ -457,9 +457,6 @@ export default async function HomePage() {
             color: 'var(--ink-3)',
           }}
         >
-          <span className="eyebrow" style={{ margin: 0 }}>
-            {t('coverage_title')}
-          </span>
           <span>
             <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
               350
