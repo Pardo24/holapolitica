@@ -658,7 +658,10 @@
     "empty": "No deputies for this province.",
     "geolocate": "Use my location",
     "detecting": "Locating…",
-    "geolocate_error": "Couldn't detect your province. Pick it manually."
+    "geolocate_error": "Couldn't detect your province. Pick it manually.",
+    "hemicycle_title": "The chamber",
+    "hemicycle_hint": "Every seat is a deputy. Hover or tap to see who. Pick your province to light up yours.",
+    "hemicycle_hint_selected": "Highlighted: the deputies for {prov}. Hover or tap any seat to see who they are."
   },
   "game": {
     "meta_title": "Trivia · Hola Política",

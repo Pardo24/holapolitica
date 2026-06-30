@@ -6,7 +6,8 @@ import { ChevronRight, MapPin, User } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { ConstituencySelect } from '@/components/ConstituencySelect';
 import { GroupBadge } from '@/components/GroupBadge';
-import { api, type ConstituencyRow, type DeputyCard } from '@/lib/api';
+import { Hemicycle } from '@/components/Hemicycle';
+import { api, type ConstituencyRow, type DeputyCard, type HemicycleLayout } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
 export const revalidate = 300;
@@ -37,9 +38,13 @@ export default async function ElTeuDiputatPage({
   const locale = await getLocale();
   const { prov } = await searchParams;
 
-  const constituencies: ConstituencyRow[] = await api.persons
-    .constituencies()
-    .catch(() => [] as ConstituencyRow[]);
+  const [constituencies, hemicycle]: [ConstituencyRow[], HemicycleLayout | null] =
+    await Promise.all([
+      api.persons.constituencies().catch(() => [] as ConstituencyRow[]),
+      // Drives the chamber map at the top of the page. Graceful: an empty
+      // layout just renders nothing.
+      api.legislatures.hemicycle(1).catch(() => null),
+    ]);
   const selected = prov && constituencies.some((c) => c.name === prov) ? prov : null;
 
   const deputies: DeputyCard[] = selected
@@ -77,6 +82,21 @@ export default async function ElTeuDiputatPage({
           geolocateError={t('geolocate_error')}
         />
       </div>
+
+      {/* The chamber, on open. Every seat is a deputy you can hover/tap;
+          picking (or detecting) a province lights up just its seats so you
+          see where your representatives sit. */}
+      {hemicycle && hemicycle.seats.length > 0 && (
+        <section style={{ marginBottom: 24, maxWidth: 760 }}>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>
+            {t('hemicycle_title')}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '0 0 10px', lineHeight: 1.5 }}>
+            {selected ? t('hemicycle_hint_selected', { prov: selected }) : t('hemicycle_hint')}
+          </p>
+          <Hemicycle layout={hemicycle} highlightConstituency={selected} />
+        </section>
+      )}
 
       {!selected ? (
         <EmptyState title={t('empty_title')} body={t('pick_prompt')} />

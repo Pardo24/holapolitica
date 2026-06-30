@@ -658,7 +658,10 @@
     "empty": "No hi ha diputats per a aquesta província.",
     "geolocate": "Usa la meva ubicació",
     "detecting": "Localitzant…",
-    "geolocate_error": "No hem pogut detectar la teva província. Tria-la a mà."
+    "geolocate_error": "No hem pogut detectar la teva província. Tria-la a mà.",
+    "hemicycle_title": "La cambra",
+    "hemicycle_hint": "Cada seient és un diputat. Passa-hi per sobre o toca'l per veure qui és. Tria la teva província per il·luminar els teus.",
+    "hemicycle_hint_selected": "Il·luminats, els diputats de {prov}. Passa per sobre o toca qualsevol seient per veure qui és."
   },
   "game": {
     "meta_title": "Trivia · Hola Política",

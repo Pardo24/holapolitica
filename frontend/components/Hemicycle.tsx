@@ -230,6 +230,7 @@ function useIsTouch(): boolean {
 export function Hemicycle({
   layout,
   coloredBy = 'group',
+  highlightConstituency = null,
 }: {
   // Accepts both the legislature-wide layout (group colors) and the
   // per-vote layout (each seat carries a `vote_choice`). The two
@@ -247,6 +248,13 @@ export function Hemicycle({
    *   fall back to the group color, never crash.
    */
   coloredBy?: HemicycleColorMode;
+  /**
+   * When set, the seats whose `constituency` matches stay at full
+   * strength and every other seat dims back — so "El teu diputat" can
+   * light up just your province's deputies on the chamber map. Null
+   * (default) renders the whole chamber at full strength.
+   */
+  highlightConstituency?: string | null;
 }) {
   const t = useTranslations('hemicycle');
   const [selected, setSelected] = useState<SelectedSeat | null>(null);
@@ -326,6 +334,9 @@ export function Hemicycle({
               onTap={handleSeatTap}
               isTouch={isTouch}
               coloredBy={coloredBy}
+              dimmed={
+                !!highlightConstituency && seat.constituency !== highlightConstituency
+              }
             />
           ))}
         </svg>
@@ -371,6 +382,9 @@ interface SeatDotProps {
   onTap: (seat: PlacedSeat) => void;
   isTouch: boolean;
   coloredBy: HemicycleColorMode;
+  /** Faded back because a constituency highlight is active and this seat
+   *  isn't in it. */
+  dimmed?: boolean;
 }
 
 function SeatDot({
@@ -379,6 +393,7 @@ function SeatDot({
   onTap,
   isTouch,
   coloredBy,
+  dimmed = false,
 }: SeatDotProps) {
   // In `vote` mode the placed seat carries a `vote_choice`; fall back
   // to the group color when the field is missing (e.g. the parent
@@ -426,6 +441,8 @@ function SeatDot({
         fill={color}
         stroke={SEAT_STROKE}
         strokeWidth={SEAT_STROKE_W}
+        opacity={dimmed ? 0.16 : 1}
+        style={{ transition: 'opacity 0.2s ease' }}
         // Native title gives screen readers + tooltip-on-hover-pause
         // a fallback that works even when the React hover card is
         // suppressed (e.g. in a forced-colors / prefers-reduced-motion
