@@ -658,7 +658,10 @@
     "empty": "No hay diputados para esta provincia.",
     "geolocate": "Usa mi ubicación",
     "detecting": "Localizando…",
-    "geolocate_error": "No hemos podido detectar tu provincia. Elígela a mano."
+    "geolocate_error": "No hemos podido detectar tu provincia. Elígela a mano.",
+    "hemicycle_title": "El hemiciclo",
+    "hemicycle_hint": "Cada escaño es un diputado. Pasa por encima o tócalo para ver quién es. Elige tu provincia para iluminar los tuyos.",
+    "hemicycle_hint_selected": "Iluminados, los diputados de {prov}. Pasa por encima o toca cualquier escaño para ver quién es."
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
