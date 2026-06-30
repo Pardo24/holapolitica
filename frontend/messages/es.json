@@ -1399,7 +1399,7 @@
     "list_see_more": "Ver más · {count} restantes",
     "list_open_topic_page": "Abre la página del tema",
     "group_summary_eyebrow": "Cohesión y actividad por grupo",
-    "group_summary_info": "Una tarjeta por grupo: mujeres/hombres, edad media y, al pie, cohesión y votos emitidos. Desliza para verlos todos.",
+    "group_summary_info": "Una tarjeta por grupo: cohesión media, votos emitidos y número de miembros. Desliza para verlos todos.",
     "pair_eyebrow_suffix": "entre dos grupos",
     "pair_info": "Elige dos grupos parlamentarios y mira en qué % de votaciones han votado en el mismo sentido (Sí, No o Abstención). El orden de la pareja no afecta al resultado.",
     "pair_hint_pick": "Elige dos grupos parlamentarios diferentes para calcular la coincidencia.",
@@ -1431,7 +1431,11 @@
     "status_withdrawn": "Retiradas",
     "status_expired": "Caducadas",
     "status_other": "Otras",
-    "government_short": "Gobierno"
+    "government_short": "Gobierno",
+    "state_filter_by_group": "Filtrar por grupo",
+    "state_group_value": "Grupo",
+    "state_clear_group": "Quitar filtro de grupo",
+    "state_group_proposes": "Lo que más propone {group}"
   },
   "topic_bars": {
     "empty_default": "Aún no hay suficientes datos clasificados para mostrar esta vista.",
@@ -1501,7 +1505,9 @@
     "pair_pick_first_placeholder": "Elige el primer grupo…",
     "pair_pick_first_aria": "Elige el primer grupo",
     "pair_pick_second_placeholder": "Elige el segundo grupo…",
-    "pair_pick_second_aria": "Elige el segundo grupo"
+    "pair_pick_second_aria": "Elige el segundo grupo",
+    "group_placeholder": "Todos los grupos",
+    "group_aria": "Filtrar por grupo"
   },
   "lifecycle": {
     "eyebrow": "Recorrido de una ley",

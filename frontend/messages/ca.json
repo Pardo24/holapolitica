@@ -1398,7 +1398,7 @@
     "list_see_more": "Veure més · {count} restants",
     "list_open_topic_page": "Obre la pàgina del tema",
     "group_summary_eyebrow": "Cohesió i activitat per grup",
-    "group_summary_info": "Una targeta per grup: dones/homes, edat mitjana i, a peu, cohesió i vots emesos. Llisca per veure'ls tots.",
+    "group_summary_info": "Una targeta per grup: cohesió mitjana, vots emesos i nombre de membres. Llisca per veure'ls tots.",
     "pair_eyebrow_suffix": "entre dos grups",
     "pair_info": "Tria dos grups parlamentaris i mira en quin % de votacions han votat el mateix sentit (Sí, No o Abstenció). L'ordre de la parella no afecta el resultat.",
     "pair_hint_pick": "Tria dos grups parlamentaris diferents per calcular la coincidència.",
@@ -1430,7 +1430,11 @@
     "status_withdrawn": "Retirades",
     "status_expired": "Caducades",
     "status_other": "Altres",
-    "government_short": "Govern"
+    "government_short": "Govern",
+    "state_filter_by_group": "Filtra per grup",
+    "state_group_value": "Grup",
+    "state_clear_group": "Treure filtre de grup",
+    "state_group_proposes": "El que més proposa {group}"
   },
   "topic_bars": {
     "empty_default": "Encara no hi ha prou dades classificades per mostrar aquesta vista.",
@@ -1500,7 +1504,9 @@
     "pair_pick_first_placeholder": "Tria el primer grup…",
     "pair_pick_first_aria": "Tria el primer grup",
     "pair_pick_second_placeholder": "Tria el segon grup…",
-    "pair_pick_second_aria": "Tria el segon grup"
+    "pair_pick_second_aria": "Tria el segon grup",
+    "group_placeholder": "Tots els grups",
+    "group_aria": "Filtra per grup"
   },
   "lifecycle": {
     "eyebrow": "Recorregut d'una llei",

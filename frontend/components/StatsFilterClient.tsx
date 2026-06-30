@@ -21,6 +21,7 @@ import type { ParliamentaryGroupSummary, Topic } from '@/lib/api';
  */
 
 const TOPIC_PARAM = 'topic';
+const GROUP_PARAM = 'group';
 const PAIR_A_PARAM = 'pair_a';
 const PAIR_B_PARAM = 'pair_b';
 const ALL_SENTINEL = 'all';
@@ -79,6 +80,47 @@ export function StatsTopicFilter({
       clearLabel={clearLabel ?? t('topic_clear')}
       placeholder={placeholder ?? t('topic_placeholder')}
       ariaLabel={ariaLabel ?? t('topic_aria')}
+    />
+  );
+}
+
+/** Group picker for the mobile dashboard — updates ``?group=…`` in place,
+ *  mirroring {@link StatsTopicFilter}. Lets the phone user scope the
+ *  initiatives view to one parliamentary group. */
+export function StatsGroupFilter({
+  allGroups,
+  selectedGroup,
+  ariaLabel,
+  placeholder,
+  clearLabel,
+}: {
+  allGroups: ParliamentaryGroupSummary[];
+  selectedGroup: string;
+  ariaLabel?: string;
+  placeholder?: string;
+  clearLabel?: string;
+}) {
+  const t = useTranslations('stats_filter');
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const [, startTransition] = useTransition();
+
+  const handleChange = (slug: string) => {
+    const href = buildHref(pathname, params, { [GROUP_PARAM]: slug });
+    startTransition(() => router.replace(href, { scroll: false }));
+  };
+
+  return (
+    <GroupCombobox
+      name={GROUP_PARAM}
+      value={selectedGroup && selectedGroup !== ALL_SENTINEL ? selectedGroup : ''}
+      onChange={handleChange}
+      groups={allGroups}
+      emptyValue=""
+      clearLabel={clearLabel ?? t('group_clear')}
+      placeholder={placeholder ?? t('group_placeholder')}
+      ariaLabel={ariaLabel ?? t('group_aria')}
     />
   );
 }

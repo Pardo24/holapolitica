@@ -1399,7 +1399,7 @@
     "list_see_more": "See more · {count} remaining",
     "list_open_topic_page": "Open the topic page",
     "group_summary_eyebrow": "Cohesion and activity by group",
-    "group_summary_info": "One card per group: women/men, average age and, at the foot, cohesion and votes cast. Swipe to see them all.",
+    "group_summary_info": "One card per group: average cohesion, votes cast and member count. Swipe to see them all.",
     "pair_eyebrow_suffix": "between two groups",
     "pair_info": "Pick two parliamentary groups and see what % of votes they voted the same way on (Aye, No or Abstain). Pair order does not affect the result.",
     "pair_hint_pick": "Pick two different parliamentary groups to compute the coincidence.",
@@ -1431,7 +1431,11 @@
     "status_withdrawn": "Withdrawn",
     "status_expired": "Expired",
     "status_other": "Other",
-    "government_short": "Government"
+    "government_short": "Government",
+    "state_filter_by_group": "Filter by group",
+    "state_group_value": "Group",
+    "state_clear_group": "Clear group filter",
+    "state_group_proposes": "What {group} proposes most"
   },
   "topic_bars": {
     "empty_default": "Not enough classified data yet to show this view.",
@@ -1501,7 +1505,9 @@
     "pair_pick_first_placeholder": "Pick the first group…",
     "pair_pick_first_aria": "Pick the first group",
     "pair_pick_second_placeholder": "Pick the second group…",
-    "pair_pick_second_aria": "Pick the second group"
+    "pair_pick_second_aria": "Pick the second group",
+    "group_placeholder": "All groups",
+    "group_aria": "Filter by group"
   },
   "lifecycle": {
     "eyebrow": "A law's journey",
