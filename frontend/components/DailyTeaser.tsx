@@ -34,61 +34,47 @@ export function DailyTeaser({ labels }: { labels: DailyTeaserLabels }) {
       href={'/pregunta-del-dia' as Route}
       className="daily-teaser"
       style={{
-        marginTop: 16,
-        display: 'flex',
+        marginTop: 12,
+        display: 'inline-flex',
         alignItems: 'center',
-        gap: 14,
-        padding: '14px 16px',
-        borderRadius: 14,
-        border: '1px solid var(--rule-strong)',
-        background: 'var(--paper-2)',
+        gap: 9,
+        padding: '6px 12px',
+        borderRadius: 999,
+        border: '1px solid var(--rule)',
+        background: 'transparent',
         color: 'inherit',
         textDecoration: 'none',
       }}
     >
-      <span
+      <CalendarDays
+        size={15}
+        strokeWidth={1.9}
         aria-hidden="true"
+        style={{ color: 'var(--accent)', flex: 'none' }}
+      />
+      <span
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 42,
-          height: 42,
-          flex: 'none',
-          borderRadius: 12,
-          background: 'color-mix(in srgb, var(--accent) 15%, var(--paper))',
+          fontSize: 10,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
           color: 'var(--accent)',
         }}
       >
-        <CalendarDays size={22} strokeWidth={1.9} />
+        {labels.eyebrow}
       </span>
-      <span style={{ minWidth: 0, flex: 1 }}>
-        <span
-          style={{
-            display: 'block',
-            fontSize: 10,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            fontWeight: 700,
-            color: 'var(--accent)',
-            marginBottom: 2,
-          }}
-        >
-          {labels.eyebrow}
-        </span>
-        <span className="serif" style={{ display: 'block', fontSize: 16, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.25 }}>
-          {answered ? labels.answered_today_short : labels.invite}
-        </span>
+      <span style={{ fontSize: 13, color: 'var(--ink-2)', minWidth: 0 }}>
+        {answered ? labels.answered_today_short : labels.invite}
       </span>
       {streak > 0 && (
         <span
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', flex: 'none' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--ink-3)', flex: 'none' }}
         >
-          <Flame size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#EF9F27' }} />
+          <Flame size={13} strokeWidth={2} aria-hidden="true" style={{ color: '#EF9F27' }} />
           {labels.streak.replace('{n}', String(streak))}
         </span>
       )}
-      <ArrowRight size={18} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--ink-3)', flex: 'none' }} />
+      <ArrowRight size={14} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--ink-3)', flex: 'none' }} />
       <style>{`.daily-teaser:hover, .daily-teaser:focus-visible { border-color: var(--ink); outline: none; }`}</style>
     </Link>
   );
