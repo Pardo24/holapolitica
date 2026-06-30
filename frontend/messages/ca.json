@@ -1219,7 +1219,12 @@
     "slide2_abst": "Abst.",
     "slide3_eyebrow": "Segueix els temes que t'importen",
     "slide3_title": "Subscriu-te a temes i rep avisos només dels vots rellevants.",
-    "slide3_body": "Tria les àrees que segueixes — habitatge, treball, justícia, sanitat… — i rebràs notificacions o un correu setmanal només amb les votacions que toquen aquests temes. Sense seguiment ni publicitat."
+    "slide3_body": "Tria les àrees que segueixes — habitatge, treball, justícia, sanitat… — i rebràs notificacions o un correu setmanal només amb les votacions que toquen aquests temes. Sense seguiment ni publicitat.",
+    "cta_prompt": "Per on vols començar?",
+    "cta_session": "Veure l'últim ple",
+    "cta_deputy": "Troba el teu diputat",
+    "cta_play": "Juga la pregunta del dia",
+    "explore_free": "Explorar pel meu compte"
   },
   "journalists": {
     "meta_title": "Per a periodistes · Hola Política",

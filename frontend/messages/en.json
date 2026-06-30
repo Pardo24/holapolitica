@@ -1219,7 +1219,12 @@
     "slide2_abst": "Abst.",
     "slide3_eyebrow": "Follow the topics you care about",
     "slide3_title": "Subscribe to topics and get notified only when relevant votes happen.",
-    "slide3_body": "Pick the areas you follow — housing, labour, justice, health… — and get notifications or a weekly email with just the votes that touch those topics. No tracking, no ads."
+    "slide3_body": "Pick the areas you follow — housing, labour, justice, health… — and get notifications or a weekly email with just the votes that touch those topics. No tracking, no ads.",
+    "cta_prompt": "Where do you want to start?",
+    "cta_session": "See the latest session",
+    "cta_deputy": "Find your deputy",
+    "cta_play": "Play the daily question",
+    "explore_free": "Explore on my own"
   },
   "journalists": {
     "meta_title": "For journalists · Hola Política",
