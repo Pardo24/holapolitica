@@ -118,7 +118,9 @@
     "filter_eyebrow": "Filtra per resultat",
     "filter_all": "Totes",
     "filter_approved": "Aprovades",
-    "filter_rejected": "Rebutjades"
+    "filter_rejected": "Rebutjades",
+    "law_votes_count": "{count} votacions",
+    "law_votes_label": "Votacions sobre aquesta llei"
   },
   "avui_og": {
     "brand": "Hola Política",
