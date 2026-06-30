@@ -37,6 +37,7 @@ from app.models import (
 )
 from app.schemas import ParliamentaryGroupRead
 from app.services.cache import cached
+from app.services.groups import resolve_latest_group
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
@@ -294,14 +295,7 @@ async def get_group_members(
     family name. Returns ``[]`` if the group exists but has no current
     members (e.g. a group that disbanded mid-legislature).
     """
-    group = (
-        await session.execute(
-            select(ParliamentaryGroup)
-            .where(ParliamentaryGroup.slug == slug)
-            .order_by(ParliamentaryGroup.legislature_id.desc())
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    group = await resolve_latest_group(session, slug)
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
 
@@ -341,14 +335,7 @@ async def get_group_topic_stats(
     slug: str, session: AsyncSession = Depends(get_session)
 ) -> list[TopicVoteStatRow]:
     """Per-topic Sí/No/Abst breakdown of every vote_record cast under this group."""
-    group = (
-        await session.execute(
-            select(ParliamentaryGroup)
-            .where(ParliamentaryGroup.slug == slug)
-            .order_by(ParliamentaryGroup.legislature_id.desc())
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    group = await resolve_latest_group(session, slug)
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
 
@@ -401,14 +388,7 @@ async def get_group_proposes_by_topic(
     ordered by count desc — the frontend takes the head; the API does not
     rank one group against another (symmetry rule).
     """
-    group = (
-        await session.execute(
-            select(ParliamentaryGroup)
-            .where(ParliamentaryGroup.slug == slug)
-            .order_by(ParliamentaryGroup.legislature_id.desc())
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    group = await resolve_latest_group(session, slug)
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
 
@@ -429,14 +409,7 @@ async def get_group_stance_examples(
 ) -> list[StanceExampleRow]:
     """A few example votes on ``topic`` where the group's majority sided with
     ``stance``. Feeds the example links in the thematic-profile widgets."""
-    group = (
-        await session.execute(
-            select(ParliamentaryGroup)
-            .where(ParliamentaryGroup.slug == slug)
-            .order_by(ParliamentaryGroup.legislature_id.desc())
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    group = await resolve_latest_group(session, slug)
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
 
@@ -459,14 +432,7 @@ async def _compute_group_composition(
     out so :func:`get_group_composition` stays thin and so tests can call
     it directly without going through the FastAPI app + Redis fake.
     """
-    group = (
-        await session.execute(
-            select(ParliamentaryGroup)
-            .where(ParliamentaryGroup.slug == slug)
-            .order_by(ParliamentaryGroup.legislature_id.desc())
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    group = await resolve_latest_group(session, slug)
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
 
