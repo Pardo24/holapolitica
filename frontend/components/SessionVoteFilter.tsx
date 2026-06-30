@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Filter = 'all' | 'approved' | 'rejected';
 
@@ -26,6 +26,24 @@ export function SessionVoteFilter({
 }) {
   const [filter, setFilter] = useState<Filter>('all');
   const ref = useRef<HTMLDivElement>(null);
+
+  // Open + scroll to the topic group an in-page anchor points at (the lede's
+  // topic links use `#session-topic-<slug>`). Native <details> don't open on
+  // anchor navigation, so we do it here on mount and on every hash change.
+  useEffect(() => {
+    const openFromHash = () => {
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      if (!id.startsWith('session-topic-')) return;
+      const el = document.getElementById(id);
+      if (el instanceof HTMLDetailsElement) {
+        el.open = true;
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+    openFromHash();
+    window.addEventListener('hashchange', openFromHash);
+    return () => window.removeEventListener('hashchange', openFromHash);
+  }, []);
 
   const apply = (next: Filter) => {
     setFilter(next);

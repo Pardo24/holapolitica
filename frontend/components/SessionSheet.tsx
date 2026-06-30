@@ -369,16 +369,24 @@ export async function SessionSheet({
                 {topTopics.map((g, i) => (
                   <span key={g.key}>
                     {i > 0 ? ', ' : ''}
-                    <Link
-                      href={`/topics/${g.topic!.slug}` as Route}
+                    {/* In-page anchor to the topic's collapsible section
+                        below; a small client effect opens that <details>
+                        and scrolls to it. The underline takes the topic's
+                        own colour so the lede visually ties to the coloured
+                        sections. */}
+                    <a
+                      href={`#session-topic-${g.topic!.slug}`}
                       style={{
                         color: 'var(--ink)',
+                        fontWeight: 500,
                         textDecoration: 'underline',
+                        textDecorationColor: g.topic!.color_hex ?? 'var(--accent)',
+                        textDecorationThickness: 2,
                         textUnderlineOffset: 3,
                       }}
                     >
                       {pickTopicName(g.topic!, locale)}
-                    </Link>
+                    </a>
                     <span
                       className="tabular"
                       style={{ color: 'var(--ink-3)', marginLeft: 4 }}
@@ -475,10 +483,14 @@ export async function SessionSheet({
             return (
               <details
                 key={key}
+                id={`session-topic-${topic?.slug ?? 'unclassified'}`}
                 className="session-topic-group"
                 style={{
                   marginBottom: 0,
                   borderBottom: '1px solid var(--rule)',
+                  // Clear the sticky mobile back bar when an anchor from the
+                  // lede scrolls this group into view.
+                  scrollMarginTop: 64,
                 }}
               >
                 <summary
