@@ -114,7 +114,11 @@
     "section_approved": "{count} aprobadas",
     "section_rejected": "{count} rechazadas",
     "section_tie": "{count, plural, =1 {# empate} other {# empates}}",
-    "proposed_by_government": "Gobierno"
+    "proposed_by_government": "Gobierno",
+    "filter_eyebrow": "Filtrar por resultado",
+    "filter_all": "Todas",
+    "filter_approved": "Aprobadas",
+    "filter_rejected": "Rechazadas"
   },
   "avui_og": {
     "brand": "Hola Política",
