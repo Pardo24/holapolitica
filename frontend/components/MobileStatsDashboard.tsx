@@ -130,20 +130,29 @@ export async function MobileStatsDashboard({
 
   return (
     <div className="sm:hidden" style={{ paddingTop: 18 }}>
-      {/* Widget order — the topic-scoped widgets (state, stance, compact
-          list) now share a single bordered card so the user sees the
-          topic filter and everything it scopes as one visual unit:
-          1. Topic-scope card: initiatives state + topic filter +
+      {/* Widget order — the per-group cards lead (the page is about the
+          parties), then the topic-scoped widgets and the pair comparison:
+          1. GroupSummaryCarousel — per-group cohesion + votes emitted.
+          2. Topic-scope card: initiatives state + topic filter +
              top proposers, then (when a topic is picked) the "Suport
              vs rebuig per tema" stance columns, then the compact
              3-latest initiatives list with a link to the topic page.
-          2. PairCoincidence — between-group comparison.
-          3. GroupSummaryCarousel — per-group cohesion + votes emitted.
+          3. PairCoincidence — between-group comparison.
 
           Symmetry intact at every step (see PerTopicCoincidenceBody
           and PairCoincidenceWidget docs). */}
 
-      {/* ─── 1. Single bordered card grouping the topic-scoped widgets:
+      {/* ─── 1. Per-group summary cards (cohesion + attendance) ────── */}
+      {groupSummary.length > 0 && (
+        <DashSection
+          eyebrow={t('group_summary_eyebrow')}
+          info={t('group_summary_info')}
+        >
+          <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
+        </DashSection>
+      )}
+
+      {/* ─── 2. Single bordered card grouping the topic-scoped widgets:
               the global initiatives state + topic filter, the "Suport vs
               rebuig per tema" stance widget (only when a topic is picked)
               and the compact 3-latest initiatives list with a link to the
@@ -218,7 +227,7 @@ export async function MobileStatsDashboard({
         </Card>
       </DashSection>
 
-      {/* ─── 2. Coincidence — pair picker (fully client-side state) ── */}
+      {/* ─── 3. Coincidence — pair picker (fully client-side state) ── */}
       <DashSection
         eyebrow={<PairCoincidenceEyebrow suffix={t('pair_eyebrow_suffix')} />}
         info={t('pair_info')}
@@ -232,16 +241,6 @@ export async function MobileStatsDashboard({
           />
         </Card>
       </DashSection>
-
-      {/* ─── 4. Per-group summary cards (cohesion + attendance) ────── */}
-      {groupSummary.length > 0 && (
-        <DashSection
-          eyebrow={t('group_summary_eyebrow')}
-          info={t('group_summary_info')}
-        >
-          <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
-        </DashSection>
-      )}
 
       {/* The long expandable-list widget is intentionally removed:
           when a topic is selected the user already saw the 3 most-
@@ -472,10 +471,15 @@ function InitiativesStateBody({
   const proposers: { slug: string; name_short: string; color_hex: string | null; count: number }[] =
     (() => {
       if (cross) return cross.initiatives_on_topic_by_group.slice(0, 4);
-      if (hasTopic && topicProposers) return topicProposers.top_proposers.slice(0, 4);
+      // When a topic is selected, the proposers MUST be scoped to that topic.
+      // Previously, a topic with no per-topic proposer data fell through to the
+      // global list, so the same global "top proposer" (e.g. PP with its
+      // all-time count) showed up under every topic — reading as a stuck,
+      // wrong figure. Scope strictly: show topic proposers or nothing.
+      if (hasTopic) return (topicProposers?.top_proposers ?? []).slice(0, 4);
       // Suppress the unused-arg warning — groupActivity is reserved for future
-      // expansion where the group-only case shows top topics. Today we fall
-      // through to global proposingGroups.
+      // expansion where the group-only case shows top topics. The global
+      // (no-topic) view legitimately shows the global proposers list.
       void groupActivity;
       return proposingGroups.slice(0, 4);
     })();
