@@ -12,6 +12,7 @@ import {
   PairCoincidenceEyebrow,
 } from '@/components/PairCoincidenceClient';
 import {
+  StatsGroupFilter,
   StatsTopicFilter,
 } from '@/components/StatsFilterClient';
 import { SummaryHover } from '@/components/SummaryHover';
@@ -116,6 +117,13 @@ export async function MobileStatsDashboard({
     focusedTopic?.topic_name_ca ??
     allTopics.find((tt) => tt.slug === selectedTopic)?.name_ca ??
     selectedTopic;
+  const hasGroup = selectedGroup !== 'all' && selectedGroup !== '';
+  const focusedGroup = hasGroup
+    ? allGroups.find((g) => g.slug === selectedGroup) ?? null
+    : null;
+  const focusedGroupName = focusedGroup
+    ? displayGroupShort(focusedGroup.name_short)
+    : selectedGroup;
 
   const statusLabels: Record<string, string> = {
     approved: t('status_approved'),
@@ -164,6 +172,7 @@ export async function MobileStatsDashboard({
         <Card>
           <InitiativesStateBody
             allTopics={allTopics}
+            allGroups={allGroups}
             byStatus={byStatus}
             proposingGroups={proposingGroups}
             topicProposers={topicProposers}
@@ -171,6 +180,7 @@ export async function MobileStatsDashboard({
             cross={cross}
             focusedTopic={focusedTopic}
             focusedTopicName={focusedTopicName}
+            focusedGroupName={focusedGroupName}
             selectedTopic={selectedTopic}
             selectedGroup={selectedGroup}
             summary={summary}
@@ -182,9 +192,14 @@ export async function MobileStatsDashboard({
               filterByTopic: t('state_filter_by_topic'),
               topicValue: t('state_topic_value'),
               clearTopic: t('state_clear_topic'),
+              filterByGroup: t('state_filter_by_group'),
+              groupValue: t('state_group_value'),
+              clearGroup: t('state_clear_group'),
               topProposersPlenary: t('state_top_proposers_plenary'),
               topProposersTopic: (topic: string) =>
                 t('state_top_proposers_topic', { topic }),
+              groupProposes: (group: string) =>
+                t('state_group_proposes', { group }),
             }}
             statusLabels={statusLabels}
             governmentShort={governmentShort}
@@ -407,8 +422,12 @@ interface StateLabels {
   filterByTopic: string;
   topicValue: string;
   clearTopic: string;
+  filterByGroup: string;
+  groupValue: string;
+  clearGroup: string;
   topProposersPlenary: string;
   topProposersTopic: (topic: string) => string;
+  groupProposes: (group: string) => string;
 }
 
 /** Inline body of the "initiatives state" widget — renders the topic-scoped
@@ -418,6 +437,7 @@ interface StateLabels {
  *  bordered card so the user sees them as one topic-scoped group. */
 function InitiativesStateBody({
   allTopics,
+  allGroups,
   byStatus,
   proposingGroups,
   topicProposers,
@@ -425,6 +445,7 @@ function InitiativesStateBody({
   cross,
   focusedTopic,
   focusedTopicName,
+  focusedGroupName,
   selectedTopic,
   selectedGroup,
   summary,
@@ -434,6 +455,7 @@ function InitiativesStateBody({
   governmentShort,
 }: {
   allTopics: Topic[];
+  allGroups: ParliamentaryGroupSummary[];
   byStatus: InitiativeStatusCount[];
   proposingGroups: GroupProposalCount[];
   topicProposers: TopicProposers | null;
@@ -441,6 +463,7 @@ function InitiativesStateBody({
   cross: CrossTopicGroup | null;
   focusedTopic: TopicGlobalStat | null;
   focusedTopicName: string;
+  focusedGroupName: string;
   selectedTopic: string;
   selectedGroup: string;
   summary: StatsSummary;
@@ -450,6 +473,12 @@ function InitiativesStateBody({
   governmentShort: string;
 }) {
   const hasTopic = selectedTopic !== 'all';
+  const hasGroup = selectedGroup !== 'all' && selectedGroup !== '';
+  // Group-only view: show what the picked group proposes most, by topic.
+  // (When a topic is also picked, the cross-scoped proposers below take over.)
+  const groupTopics =
+    hasGroup && !hasTopic ? (groupActivity?.topic_distribution ?? []).slice(0, 6) : [];
+  const maxGroupTopicCount = Math.max(...groupTopics.map((tt) => tt.count), 1);
   const segments: StatusSegment[] = hasTopic
     ? focusedTopic
       ? buildStatusSegmentsFromTopic(focusedTopic, statusLabels)
@@ -477,10 +506,9 @@ function InitiativesStateBody({
       // all-time count) showed up under every topic — reading as a stuck,
       // wrong figure. Scope strictly: show topic proposers or nothing.
       if (hasTopic) return (topicProposers?.top_proposers ?? []).slice(0, 4);
-      // Suppress the unused-arg warning — groupActivity is reserved for future
-      // expansion where the group-only case shows top topics. The global
-      // (no-topic) view legitimately shows the global proposers list.
-      void groupActivity;
+      // Group-only: the global proposers list is irrelevant (we instead show
+      // the group's own top topics below), so suppress it here.
+      if (hasGroup) return [];
       return proposingGroups.slice(0, 4);
     })();
 
@@ -553,6 +581,52 @@ function InitiativesStateBody({
                 scroll={false}
                 aria-label={labels.clearTopic}
                 title={labels.clearTopic}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 36,
+                  height: 36,
+                  color: 'var(--ink-2)',
+                  background: 'var(--paper)',
+                  border: '1px solid var(--rule)',
+                  borderRadius: 999,
+                  flex: 'none',
+                  textDecoration: 'none',
+                }}
+              >
+                <X size={16} aria-hidden="true" />
+              </Link>
+            )}
+          </div>
+          {/* Group filter — same in-place ?group=… update as the topic
+              picker. Lets the phone user scope the view to one group. */}
+          <div
+            style={{
+              fontSize: 9,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-3)',
+              fontWeight: 600,
+              marginTop: 2,
+            }}
+          >
+            {hasGroup ? labels.groupValue : labels.filterByGroup}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <StatsGroupFilter allGroups={allGroups} selectedGroup={selectedGroup} />
+            </div>
+            {hasGroup && (
+              <Link
+                href={
+                  hasTopic
+                    ? (`/stats?topic=${encodeURIComponent(selectedTopic)}` as Route)
+                    : ('/stats' as Route)
+                }
+                scroll={false}
+                aria-label={labels.clearGroup}
+                title={labels.clearGroup}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -652,7 +726,117 @@ function InitiativesStateBody({
             </ul>
           </>
         )}
+
+        {/* Group-only scope: the picked group's top topics — "what it
+            proposes most". Replaces the (global) proposers list above. */}
+        {groupTopics.length > 0 && (
+          <>
+            <div
+              style={{
+                marginTop: 18,
+                paddingTop: 14,
+                borderTop: '1px solid var(--rule)',
+                fontSize: 9,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-3)',
+                fontWeight: 600,
+                marginBottom: 8,
+              }}
+            >
+              {labels.groupProposes(focusedGroupName)}
+            </div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {groupTopics.map((tt) => (
+                <li key={tt.topic_slug}>
+                  <GroupTopicRow
+                    name={tt.topic_name_ca}
+                    color={tt.topic_color_hex}
+                    count={tt.count}
+                    maxCount={maxGroupTopicCount}
+                    href={`/stats?tab=filtered&topic=${encodeURIComponent(tt.topic_slug)}&group=${encodeURIComponent(selectedGroup)}` as Route}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
     </>
+  );
+}
+
+/** One "what this group proposes" row: topic dot + name + bar + count.
+ *  Mirrors {@link ProposerRow} but for the group's topic distribution. */
+function GroupTopicRow({
+  name,
+  color,
+  count,
+  maxCount,
+  href,
+}: {
+  name: string;
+  color: string | null;
+  count: number;
+  maxCount: number;
+  href: Route;
+}) {
+  const widthPct = Math.max(2, (count / maxCount) * 100);
+  return (
+    <Link
+      href={href}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '12px 1fr 36px',
+        alignItems: 'center',
+        gap: 10,
+        padding: '6px 0',
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{ width: 10, height: 10, borderRadius: 2, background: color ?? 'var(--ink-3)' }}
+      />
+      <span style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            marginBottom: 3,
+          }}
+        >
+          {name}
+        </div>
+        <div style={{ height: 4, background: 'var(--paper-3)', borderRadius: 2, overflow: 'hidden' }}>
+          <span
+            style={{
+              display: 'block',
+              width: `${widthPct}%`,
+              height: '100%',
+              background: color ?? 'var(--ink-3)',
+              opacity: 0.95,
+            }}
+          />
+        </div>
+      </span>
+      <span
+        className="tabular"
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          textAlign: 'right',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {count}
+      </span>
+    </Link>
   );
 }
 
