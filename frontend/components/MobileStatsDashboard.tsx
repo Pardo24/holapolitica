@@ -21,7 +21,6 @@ import type {
   CoincidenceCell,
   CrossTopicGroup,
   GroupActivity,
-  GroupProposalCount,
   GroupSummaryRow,
   InitiativeMini,
   InitiativeStatusCount,
@@ -72,7 +71,6 @@ export async function MobileStatsDashboard({
   allGroups,
   topics,
   byStatus,
-  proposingGroups,
   topicProposers,
   groupActivity,
   cross,
@@ -90,7 +88,6 @@ export async function MobileStatsDashboard({
   allGroups: ParliamentaryGroupSummary[];
   topics: TopicGlobalStat[];
   byStatus: InitiativeStatusCount[];
-  proposingGroups: GroupProposalCount[];
   topicProposers: TopicProposers | null;
   groupActivity: GroupActivity | null;
   cross: CrossTopicGroup | null;
@@ -174,7 +171,6 @@ export async function MobileStatsDashboard({
             allTopics={allTopics}
             allGroups={allGroups}
             byStatus={byStatus}
-            proposingGroups={proposingGroups}
             topicProposers={topicProposers}
             groupActivity={groupActivity}
             cross={cross}
@@ -439,7 +435,6 @@ function InitiativesStateBody({
   allTopics,
   allGroups,
   byStatus,
-  proposingGroups,
   topicProposers,
   groupActivity,
   cross,
@@ -457,7 +452,6 @@ function InitiativesStateBody({
   allTopics: Topic[];
   allGroups: ParliamentaryGroupSummary[];
   byStatus: InitiativeStatusCount[];
-  proposingGroups: GroupProposalCount[];
   topicProposers: TopicProposers | null;
   groupActivity: GroupActivity | null;
   cross: CrossTopicGroup | null;
@@ -489,27 +483,17 @@ function InitiativesStateBody({
       ? focusedTopic.initiatives_total
       : segments.reduce((a, s) => a + s.count, 0) || summary.initiatives_total;
 
-  // Top proposing groups for the current scope. Always show top 3-4 regardless
-  // of color — symmetry rule: never single out a group, always show the same
-  // shape of list. The scope, from most to least specific:
-  //   1. both filters → cross.initiatives_on_topic_by_group
-  //   2. topic only   → topicProposers.top_proposers
-  //   3. group only   → fall back to global proposingGroups (less useful here
-  //                     because dashboard is keyed by topic, but harmless)
-  //   4. neither      → global proposingGroups
+  // Top proposing groups — ONLY shown when scoped to a topic. We
+  // deliberately do NOT show a global "top proposers" list: the
+  // proposing_group_id data is sparse and spans every legislature, so a
+  // global figure (e.g. "PP, 818") reads as a misleading, stuck number that
+  // undermines the page's credibility. When a topic is picked the count is
+  // scoped and meaningful; otherwise the list is empty.
   const proposers: { slug: string; name_short: string; color_hex: string | null; count: number }[] =
     (() => {
       if (cross) return cross.initiatives_on_topic_by_group.slice(0, 4);
-      // When a topic is selected, the proposers MUST be scoped to that topic.
-      // Previously, a topic with no per-topic proposer data fell through to the
-      // global list, so the same global "top proposer" (e.g. PP with its
-      // all-time count) showed up under every topic — reading as a stuck,
-      // wrong figure. Scope strictly: show topic proposers or nothing.
       if (hasTopic) return (topicProposers?.top_proposers ?? []).slice(0, 4);
-      // Group-only: the global proposers list is irrelevant (we instead show
-      // the group's own top topics below), so suppress it here.
-      if (hasGroup) return [];
-      return proposingGroups.slice(0, 4);
+      return [];
     })();
 
   const maxProposerCount = Math.max(...proposers.map((p) => p.count), 1);

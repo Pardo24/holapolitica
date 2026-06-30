@@ -325,7 +325,6 @@ export default async function StatsPage({
         allGroups={allGroups}
         topics={topics}
         byStatus={byStatus}
-        proposingGroups={proposingGroups}
         topicProposers={topicProposers}
         groupActivity={groupActivity}
         cross={cross}
