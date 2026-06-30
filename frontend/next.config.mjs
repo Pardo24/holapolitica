@@ -12,8 +12,14 @@ const COMMON_SECURITY_HEADERS = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   {
+    // geolocation=(self): the "El teu diputat" province picker offers a
+    // "use my location" button that maps GPS → province ENTIRELY on the
+    // device. The previous geolocation=() disabled the Web Geolocation API
+    // outright, so that button silently failed in browsers (it only worked
+    // in the native mobile wrapper, which bypasses this policy). (self)
+    // re-enables it for our own origin only. Camera/microphone stay off.
     key: 'Permissions-Policy',
-    value: 'geolocation=(), camera=(), microphone=(), browsing-topics=()',
+    value: 'geolocation=(self), camera=(), microphone=(), browsing-topics=()',
   },
 ];
 
