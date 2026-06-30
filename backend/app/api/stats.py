@@ -49,6 +49,7 @@ from app.models import (
     Session as SessionModel,
 )
 from app.services.cache import cached
+from app.services.groups import resolve_latest_group
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -498,13 +499,7 @@ async def _compute_group_activity(
     rather than 404 — the /stats filter UI sends slugs straight from the
     URL and a typo shouldn't crash the page.
     """
-    group_stmt = (
-        select(ParliamentaryGroup)
-        .where(ParliamentaryGroup.slug == slug)
-        .order_by(ParliamentaryGroup.legislature_id.desc())
-        .limit(1)
-    )
-    group = (await session.execute(group_stmt)).scalar_one_or_none()
+    group = await resolve_latest_group(session, slug)
     if group is None:
         return GroupActivity(recent_initiatives=[], topic_distribution=[])
 
@@ -762,14 +757,7 @@ async def _compute_cross_topic_group(
 
     # Resolve the focal group. Pick the most recent legislature row when
     # multiple exist for the same slug (matches `_compute_group_activity`).
-    focal_group = (
-        await session.execute(
-            select(ParliamentaryGroup)
-            .where(ParliamentaryGroup.slug == group_slug)
-            .order_by(ParliamentaryGroup.legislature_id.desc())
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    focal_group = await resolve_latest_group(session, group_slug)
 
     # ALL groups for the symmetry-rule bar chart. We always emit a row per
     # group (zero count if they haven't proposed anything on this topic).
