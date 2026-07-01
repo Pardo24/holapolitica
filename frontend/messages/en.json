@@ -911,7 +911,8 @@
     "pagination_label": "Showing {from}–{to} of {total}",
     "pagination_prev_aria": "Previous page",
     "pagination_next_aria": "Next page",
-    "show_original": "Original text"
+    "show_original": "Original text",
+    "group_stance_title": "How each group voted"
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",

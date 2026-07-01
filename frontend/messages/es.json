@@ -911,7 +911,8 @@
     "pagination_label": "Mostrando {from}–{to} de {total}",
     "pagination_prev_aria": "Página anterior",
     "pagination_next_aria": "Página siguiente",
-    "show_original": "Texto original"
+    "show_original": "Texto original",
+    "group_stance_title": "Cómo ha votado cada grupo"
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",
