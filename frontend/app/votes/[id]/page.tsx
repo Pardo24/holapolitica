@@ -27,7 +27,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ExternalLink, FileText } from 'lucide-react';
+import { ExternalLink, FileText, User } from 'lucide-react';
 
 import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
@@ -35,6 +35,7 @@ import { GroupChip } from '@/components/GroupChip';
 import { Hemicycle } from '@/components/Hemicycle';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
+import { PartyStanceRow, buildStanceByVote } from '@/components/PartyStanceRow';
 import { ResultPill } from '@/components/ResultPill';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
 import { StackedBar } from '@/components/StackedBar';
@@ -240,6 +241,23 @@ export default async function VoteDetailPage({
   const dissidents = await api.votes
     .dissidents(voteId)
     .catch(() => ({ blocks: [] as Awaited<ReturnType<typeof api.votes.dissidents>>['blocks'] }));
+  // GP Mixt is, by definition, a bag of unaligned deputies — "breaking with
+  // the group" there isn't meaningful, so we drop it from the dissidents.
+  const dissidentBlocks = dissidents.blocks.filter((b) => b.group_slug !== 'gp-mixto');
+
+  // Per-group stance on this vote (majority choice), for the ambient
+  // green/red party discs. Best-effort.
+  const tSession = await getTranslations('session_sheet');
+  const groupChoicesResp = await api.votes.groupChoices([voteId]).catch(() => null);
+  const voteStance = groupChoicesResp
+    ? buildStanceByVote(groupChoicesResp.groups).get(voteId) ?? []
+    : [];
+  const stanceLabels = {
+    aye: tSession('choice_aye'),
+    no: tSession('choice_no'),
+    abstention: tSession('choice_abstention'),
+    absent: tSession('choice_absent'),
+  };
 
   let initiative: Initiative | null = null;
   if (vote.initiative_id != null) {
@@ -700,6 +718,15 @@ export default async function VoteDetailPage({
           </section>
         </div>
 
+        {voteStance.length > 0 && !vote.approved_by_assent && (
+          <div style={{ marginTop: 4 }}>
+            <div className="eyebrow" style={{ marginBottom: 4 }}>
+              {t('group_stance_title')}
+            </div>
+            <PartyStanceRow parties={voteStance} labels={stanceLabels} />
+          </div>
+        )}
+
         {!vote.approved_by_assent && (
         <div>
           <section>
@@ -727,9 +754,9 @@ export default async function VoteDetailPage({
             </div>
           </section>
 
-          {dissidents.blocks.length > 0 && (
+          {dissidentBlocks.length > 0 && (
             <DissidentsSection
-              blocks={dissidents.blocks}
+              blocks={dissidentBlocks}
               title={t('dissidents_title')}
               help={t('dissidents_help')}
               majorityLabels={{
@@ -853,36 +880,71 @@ function DissidentsSection({
               }}
             >
               {block.dissidents.map((d) => (
-                <li
-                  key={d.person_id}
-                  style={{
-                    fontSize: 13,
-                    lineHeight: 1.5,
-                    color: 'var(--ink-2)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <li key={d.person_id}>
+                  {/* Face + name + the colour of the vote they actually cast,
+                      so a deputy breaking with their group is unmistakable. */}
                   <Link
                     href={`/persons/${d.person_id}`}
                     style={{
-                      color: 'var(--ink)',
-                      textDecoration: 'underline',
-                      textUnderlineOffset: 3,
-                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      textDecoration: 'none',
+                      color: 'inherit',
                     }}
                   >
-                    {d.full_name}
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 999,
+                        flex: 'none',
+                        overflow: 'hidden',
+                        background: 'var(--paper-3)',
+                        boxShadow: `0 0 0 2px ${choiceColor(d.vote_choice)}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {d.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={d.photo_url}
+                          alt=""
+                          width={30}
+                          height={30}
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <User size={15} strokeWidth={1.8} color="var(--ink-3)" />
+                      )}
+                    </span>
+                    <span style={{ minWidth: 0 }}>
+                      <span
+                        style={{
+                          display: 'block',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: 'var(--ink)',
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {d.full_name}
+                      </span>
+                      <span
+                        style={{
+                          display: 'block',
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          color: choiceColor(d.vote_choice),
+                        }}
+                      >
+                        {choiceLabelFor(d.vote_choice)}
+                      </span>
+                    </span>
                   </Link>
-                  <span
-                    style={{
-                      marginLeft: 6,
-                      fontSize: 11,
-                      color: choiceColor(d.vote_choice),
-                      fontWeight: 600,
-                    }}
-                  >
-                    {choiceLabelFor(d.vote_choice)}
-                  </span>
                 </li>
               ))}
             </ul>

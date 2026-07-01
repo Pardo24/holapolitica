@@ -911,7 +911,8 @@
     "pagination_label": "Mostrant {from}–{to} de {total}",
     "pagination_prev_aria": "Pàgina anterior",
     "pagination_next_aria": "Pàgina següent",
-    "show_original": "Text original"
+    "show_original": "Text original",
+    "group_stance_title": "Com ha votat cada grup"
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",
