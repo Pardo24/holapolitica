@@ -9,6 +9,7 @@ import { ResizingIframe } from '@/components/ResizingIframe';
 import { ResultPill } from '@/components/ResultPill';
 import { SessionVoteFilter } from '@/components/SessionVoteFilter';
 import { StackedBar } from '@/components/StackedBar';
+import { Tooltip } from '@/components/Tooltip';
 import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
@@ -638,6 +639,9 @@ export async function SessionSheet({
                           proposedByGovernmentLabel={t('proposed_by_government')}
                           votesCountLabel={(n) => t('law_votes_count', { count: n })}
                           votesOnLawLabel={t('law_votes_label')}
+                          finalResultLabel={t('law_final_result')}
+                          whyMultiple={t('law_why_multiple')}
+                          finalTagLabel={t('law_vote_final_tag')}
                           resultLabelFor={(r) => t(`result_${r}`)}
                           marginLabel={(margin) =>
                             margin === 0 ? t('margin_tie') : t('margin_short', { margin })
@@ -841,6 +845,9 @@ function LawVoteGroup({
   proposedByGovernmentLabel,
   votesCountLabel,
   votesOnLawLabel,
+  finalResultLabel,
+  whyMultiple,
+  finalTagLabel,
   resultLabelFor,
   marginLabel,
 }: {
@@ -852,6 +859,9 @@ function LawVoteGroup({
   proposedByGovernmentLabel: string;
   votesCountLabel: (n: number) => string;
   votesOnLawLabel: string;
+  finalResultLabel: string;
+  whyMultiple: string;
+  finalTagLabel: string;
   resultLabelFor: (r: Vote['result']) => string;
   marginLabel: (margin: number) => string;
 }) {
@@ -863,6 +873,9 @@ function LawVoteGroup({
   const ordered = [...votes].sort(
     (a, b) => (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
   );
+  // The law's fate is the result of its final (highest-sequence) vote —
+  // the whole-text / dictamen vote that comes after the amendments.
+  const finalVote = ordered[ordered.length - 1]!;
   const proposer = lead.proposing_group_short
     ? {
         kind: 'group' as const,
@@ -917,6 +930,12 @@ function LawVoteGroup({
             >
               {headline}
             </Link>
+            {/* The law's outcome — its final vote's result, shown prominently
+                so "did it pass?" is answered at a glance despite the many
+                votes. */}
+            <span style={{ flex: 'none' }} title={finalResultLabel}>
+              <ResultPill result={finalVote.result} label={resultLabelFor(finalVote.result)} />
+            </span>
             <span
               className="tabular"
               style={{
@@ -1005,9 +1024,40 @@ function LawVoteGroup({
           <div style={{ marginTop: 10 }}>
             <div
               className="eyebrow"
-              style={{ fontSize: 9, color: 'var(--ink-3)', marginBottom: 2 }}
+              style={{
+                fontSize: 9,
+                color: 'var(--ink-3)',
+                marginBottom: 2,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
             >
               {votesOnLawLabel}
+              {/* Educational note: why a law is voted several times. */}
+              <Tooltip
+                term={
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 13,
+                      height: 13,
+                      borderRadius: 999,
+                      border: '1px solid var(--rule-strong)',
+                      fontSize: 8,
+                      color: 'var(--ink-3)',
+                      fontStyle: 'italic',
+                      fontWeight: 700,
+                    }}
+                  >
+                    i
+                  </span>
+                }
+                explanation={whyMultiple}
+              />
             </div>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {ordered.map((v) => (
@@ -1018,6 +1068,8 @@ function LawVoteGroup({
                   noesLabel={noesLabel}
                   resultLabel={resultLabelFor(v.result)}
                   marginLabel={marginLabel}
+                  isFinal={v.id === finalVote.id}
+                  finalTagLabel={finalTagLabel}
                 />
               ))}
             </ul>
@@ -1037,12 +1089,16 @@ function SubVote({
   noesLabel,
   resultLabel,
   marginLabel,
+  isFinal = false,
+  finalTagLabel,
 }: {
   vote: Vote;
   ayesLabel: string;
   noesLabel: string;
   resultLabel: string;
   marginLabel: (margin: number) => string;
+  isFinal?: boolean;
+  finalTagLabel?: string;
 }) {
   const margin = Math.abs(vote.ayes - vote.noes);
   return (
@@ -1075,6 +1131,24 @@ function SubVote({
             : '—'}
         </span>
         <ResultPill result={vote.result} label={resultLabel} />
+        {isFinal && finalTagLabel && (
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-2)',
+              background: 'var(--paper-3)',
+              border: '1px solid var(--rule-strong)',
+              borderRadius: 999,
+              padding: '1px 7px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {finalTagLabel}
+          </span>
+        )}
         <span className="tabular" style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>
           <strong style={{ color: 'var(--aye, #16A34A)' }}>{vote.ayes}</strong> {ayesLabel}
           <span style={{ color: 'var(--ink-3)', margin: '0 6px' }}>·</span>

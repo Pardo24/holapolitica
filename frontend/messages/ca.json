@@ -120,7 +120,10 @@
     "filter_approved": "Aprovades",
     "filter_rejected": "Rebutjades",
     "law_votes_count": "{count} votacions",
-    "law_votes_label": "Votacions sobre aquesta llei"
+    "law_votes_label": "Votacions sobre aquesta llei",
+    "law_final_result": "Resultat final",
+    "law_why_multiple": "Una llei passa per diverses votacions (esmenes, articles i el conjunt del text). El resultat de dalt és el de la votació final, que decideix si s’aprova.",
+    "law_vote_final_tag": "final"
   },
   "avui_og": {
     "brand": "Hola Política",
