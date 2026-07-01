@@ -123,7 +123,15 @@
     "law_votes_label": "Votacions sobre aquesta llei",
     "law_final_result": "Resultat final",
     "law_why_multiple": "Una llei passa per diverses votacions (esmenes, articles i el conjunt del text). El resultat de dalt és el de la votació final, que decideix si s’aprova.",
-    "law_vote_final_tag": "final"
+    "law_vote_final_tag": "final",
+    "matrix_show": "Veure com vota cada grup",
+    "matrix_loading": "Carregant...",
+    "matrix_error": "Error, torna-ho a provar",
+    "matrix_title": "Com vota cada grup a cada votació",
+    "choice_aye": "A favor",
+    "choice_no": "En contra",
+    "choice_abstention": "Abstenció",
+    "choice_absent": "No vota"
   },
   "avui_og": {
     "brand": "Hola Política",

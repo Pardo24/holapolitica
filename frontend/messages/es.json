@@ -123,7 +123,15 @@
     "law_votes_label": "Votaciones sobre esta ley",
     "law_final_result": "Resultado final",
     "law_why_multiple": "Una ley pasa por varias votaciones (enmiendas, artículos y el conjunto del texto). El resultado de arriba es el de la votación final, que decide si se aprueba.",
-    "law_vote_final_tag": "final"
+    "law_vote_final_tag": "final",
+    "matrix_show": "Ver cómo vota cada grupo",
+    "matrix_loading": "Cargando...",
+    "matrix_error": "Error, reintentar",
+    "matrix_title": "Cómo vota cada grupo en cada votación",
+    "choice_aye": "A favor",
+    "choice_no": "En contra",
+    "choice_abstention": "Abstención",
+    "choice_absent": "No vota"
   },
   "avui_og": {
     "brand": "Hola Política",

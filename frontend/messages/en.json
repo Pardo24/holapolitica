@@ -123,7 +123,15 @@
     "law_votes_label": "Votes on this law",
     "law_final_result": "Final result",
     "law_why_multiple": "A law goes through several votes (amendments, articles and the whole text). The result shown above is the final vote, which decides whether it passes.",
-    "law_vote_final_tag": "final"
+    "law_vote_final_tag": "final",
+    "matrix_show": "See how each group voted",
+    "matrix_loading": "Loading...",
+    "matrix_error": "Error, retry",
+    "matrix_title": "How each group voted, vote by vote",
+    "choice_aye": "In favour",
+    "choice_no": "Against",
+    "choice_abstention": "Abstention",
+    "choice_absent": "Absent"
   },
   "avui_og": {
     "brand": "Hola Política",
