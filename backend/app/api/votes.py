@@ -451,6 +451,107 @@ async def _compute_dissidents(db: AsyncSession, vote_id: int) -> VoteDissidentsR
     return VoteDissidentsResponse(blocks=blocks)
 
 
+class GroupVoteChoiceRow(BaseModel):
+    """How one parliamentary group voted across a set of votes.
+
+    ``choices`` maps a ``vote_id`` (as a string, for JSON) to the group's
+    MAJORITY choice on that vote: ``aye`` / ``no`` / ``abstention`` /
+    ``absent`` (absent folds in ``no_vote_recorded``). A vote absent from the
+    map means the group has no records for it.
+    """
+
+    slug: str
+    name_short: str
+    color_hex: str | None
+    choices: dict[str, str]
+
+
+class GroupVoteMatrixResponse(BaseModel):
+    groups: list[GroupVoteChoiceRow]
+
+
+def _fold_choice(choice: str) -> str:
+    """Collapse the raw choice into the four the matrix renders."""
+    if choice in (VoteChoice.ABSENT.value, VoteChoice.NO_VOTE_RECORDED.value):
+        return VoteChoice.ABSENT.value
+    return choice
+
+
+@router.get("/group-choices", response_model=GroupVoteMatrixResponse)
+async def get_group_choices(
+    ids: str = Query(..., description="Comma-separated vote ids (max 50)."),
+    db: AsyncSession = Depends(get_session),
+) -> GroupVoteMatrixResponse:
+    """Per-group majority choice across a set of votes.
+
+    Feeds the "how each group voted across a law's votes" matrix in the
+    session sheet: pass the vote ids of one law's votes and get, per group,
+    its majority stance on each. Declared BEFORE ``/{vote_id}`` so the
+    literal path wins over the int path param.
+    """
+    vote_ids = [int(x) for x in ids.split(",") if x.strip().lstrip("-").isdigit()][:50]
+    if not vote_ids:
+        return GroupVoteMatrixResponse(groups=[])
+
+    async def factory() -> GroupVoteMatrixResponse:
+        rows = (
+            await db.execute(
+                select(
+                    VoteRecord.vote_id,
+                    ParliamentaryGroup.slug,
+                    ParliamentaryGroup.name_short,
+                    ParliamentaryGroup.color_hex,
+                    VoteRecord.choice,
+                    func.count().label("n"),
+                )
+                .join(
+                    ParliamentaryGroup,
+                    ParliamentaryGroup.id == VoteRecord.group_id_at_time,
+                )
+                .where(VoteRecord.vote_id.in_(vote_ids))
+                .group_by(
+                    VoteRecord.vote_id,
+                    ParliamentaryGroup.slug,
+                    ParliamentaryGroup.name_short,
+                    ParliamentaryGroup.color_hex,
+                    VoteRecord.choice,
+                )
+            )
+        ).all()
+
+        # (slug, vote_id) -> {folded_choice: count}; plus per-slug meta + size.
+        counts: dict[tuple[str, int], Counter[str]] = {}
+        meta: dict[str, tuple[str, str | None]] = {}
+        size: dict[str, int] = {}
+        for vote_id, slug, name_short, color_hex, choice, n in rows:
+            key = (slug, vote_id)
+            counts.setdefault(key, Counter())[_fold_choice(choice)] += n
+            meta[slug] = (name_short, color_hex)
+            size[slug] = size.get(slug, 0) + n
+
+        groups: list[GroupVoteChoiceRow] = []
+        for slug in sorted(meta, key=lambda s: (-size.get(s, 0), s)):
+            name_short, color_hex = meta[slug]
+            choice_map: dict[str, str] = {}
+            for vid in vote_ids:
+                c = counts.get((slug, vid))
+                if c:
+                    # Majority choice; ties break deterministically by name.
+                    choice_map[str(vid)] = max(c.items(), key=lambda kv: (kv[1], kv[0]))[0]
+            groups.append(
+                GroupVoteChoiceRow(
+                    slug=slug,
+                    name_short=name_short,
+                    color_hex=color_hex,
+                    choices=choice_map,
+                )
+            )
+        return GroupVoteMatrixResponse(groups=groups)
+
+    key = "votes:group-choices:v1:" + ",".join(str(v) for v in sorted(vote_ids))
+    return await cached(key, 3600, factory)
+
+
 @router.get("/{vote_id}/dissidents", response_model=VoteDissidentsResponse)
 async def get_vote_dissidents(
     vote_id: int, db: AsyncSession = Depends(get_session)
