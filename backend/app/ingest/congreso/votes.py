@@ -503,7 +503,7 @@ class VoteImporter:
     # ------------------------------------------------------------------
 
     async def _load_initiatives_indexed_by_official_id(self) -> dict[str, int]:
-        """Return ``{official_id_or_stem: initiative_id}`` for the chamber.
+        """Return ``{official_id_or_stem: initiative_id}`` for THIS legislature.
 
         The portal publishes initiative expedientes as 3-part strings with a
         trailing sub-index (``"121/000001/0000"``) while the votes listing
@@ -513,10 +513,17 @@ class VoteImporter:
         the canonical "no sub-index" form. Non-``0000`` sub-indices stay
         addressable only by the full 3-part string so we don't collapse
         distinct expedientes into the same key.
+
+        CRUCIAL: scope to ``self.legislature`` — the Congreso RESETS expediente
+        numbers every legislature, so e.g. ``130/000047`` names a different
+        Real Decreto-ley in 2013, 2018, 2021 and 2026. Indexing across all
+        legislatures collapsed them onto one initiative, so votes from every
+        term linked to the newest law with that number (a cross-term mix-up).
         """
         result = await self.session.execute(
             select(Initiative.official_id, Initiative.id).where(
-                Initiative.chamber_id == self.chamber.id
+                Initiative.chamber_id == self.chamber.id,
+                Initiative.legislature_id == self.legislature.id,
             )
         )
         index: dict[str, int] = {}
