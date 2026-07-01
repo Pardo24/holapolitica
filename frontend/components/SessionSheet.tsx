@@ -663,7 +663,7 @@ export async function SessionSheet({
                           noesLabel={t('noes_short')}
                           proposedByGovernmentLabel={t('proposed_by_government')}
                           votesCountLabel={(n) => t('law_votes_count', { count: n })}
-                          votesOnLawLabel={t('law_votes_label')}
+                          votesToggleLabel={(n) => t('law_votes_toggle', { count: n })}
                           finalResultLabel={t('law_final_result')}
                           whyMultiple={t('law_why_multiple')}
                           finalTagLabel={t('law_vote_final_tag')}
@@ -888,7 +888,7 @@ function LawVoteGroup({
   noesLabel,
   proposedByGovernmentLabel,
   votesCountLabel,
-  votesOnLawLabel,
+  votesToggleLabel,
   finalResultLabel,
   whyMultiple,
   finalTagLabel,
@@ -905,7 +905,7 @@ function LawVoteGroup({
   noesLabel: string;
   proposedByGovernmentLabel: string;
   votesCountLabel: (n: number) => string;
-  votesOnLawLabel: string;
+  votesToggleLabel: (n: number) => string;
   finalResultLabel: string;
   whyMultiple: string;
   finalTagLabel: string;
@@ -1076,57 +1076,62 @@ function LawVoteGroup({
           )}
           {/* The law's individual votes. */}
           <div style={{ marginTop: 10 }}>
-            <div
-              className="eyebrow"
-              style={{
-                fontSize: 9,
-                color: 'var(--ink-3)',
-                marginBottom: 2,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              {votesOnLawLabel}
-              {/* Educational note: why a law is voted several times. */}
-              <Tooltip
-                term={
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 13,
-                      height: 13,
-                      borderRadius: 999,
-                      border: '1px solid var(--rule-strong)',
-                      fontSize: 8,
-                      color: 'var(--ink-3)',
-                      fontStyle: 'italic',
-                      fontWeight: 700,
-                    }}
-                  >
-                    i
-                  </span>
-                }
-                explanation={whyMultiple}
-              />
-            </div>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-              {ordered.map((v) => (
-                <SubVote
-                  key={v.id}
-                  vote={v}
-                  ayesLabel={ayesLabel}
-                  noesLabel={noesLabel}
-                  resultLabel={resultLabelFor(v.result)}
-                  marginLabel={marginLabel}
-                  isFinal={v.id === finalVote.id}
-                  finalTagLabel={finalTagLabel}
+            {/* The individual votes are collapsed: the header already leads
+                with the final result + who voted, so the amendment / article
+                votes are here only if you want them. */}
+            <details>
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--ink-2)',
+                }}
+              >
+                {votesToggleLabel(votes.length)}
+                {/* Educational note: why a law is voted several times. */}
+                <Tooltip
+                  term={
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 13,
+                        height: 13,
+                        borderRadius: 999,
+                        border: '1px solid var(--rule-strong)',
+                        fontSize: 8,
+                        color: 'var(--ink-3)',
+                        fontStyle: 'italic',
+                        fontWeight: 700,
+                      }}
+                    >
+                      i
+                    </span>
+                  }
+                  explanation={whyMultiple}
                 />
-              ))}
-            </ul>
+              </summary>
+              <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>
+                {ordered.map((v) => (
+                  <SubVote
+                    key={v.id}
+                    vote={v}
+                    ayesLabel={ayesLabel}
+                    noesLabel={noesLabel}
+                    resultLabel={resultLabelFor(v.result)}
+                    marginLabel={marginLabel}
+                    isFinal={v.id === finalVote.id}
+                    finalTagLabel={finalTagLabel}
+                  />
+                ))}
+              </ul>
+            </details>
             {/* How each group voted across these votes (loads on demand). */}
             <GroupVoteMatrix
               votes={ordered.map((v) => ({ id: v.id, seq: v.sequence_in_session }))}

@@ -131,7 +131,8 @@
     "choice_aye": "A favor",
     "choice_no": "En contra",
     "choice_abstention": "Abstenció",
-    "choice_absent": "No vota"
+    "choice_absent": "No vota",
+    "law_votes_toggle": "Veure les {count} votacions"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -273,7 +274,9 @@
     "view_vote_detail": "Veure detall de la votació",
     "no_vote_yet": "Encara no s'ha votat. Quan es voti, apareixerà aquí.",
     "no_summary_yet": "Encara no hi ha un resum en llenguatge planer. Es generarà properament.",
-    "related_title": "Altres lleis similars"
+    "related_title": "Altres lleis similars",
+    "final_vote_label": "Votació final (decisiva)",
+    "other_votes_toggle": "Veure les altres {n} votacions (esmenes, articles...)"
   },
   "law_journey": {
     "eyebrow": "Trajectòria",

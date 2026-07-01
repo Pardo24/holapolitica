@@ -131,7 +131,8 @@
     "choice_aye": "A favor",
     "choice_no": "En contra",
     "choice_abstention": "Abstención",
-    "choice_absent": "No vota"
+    "choice_absent": "No vota",
+    "law_votes_toggle": "Ver las {count} votaciones"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -273,7 +274,9 @@
     "view_vote_detail": "Ver detalle de la votación",
     "no_vote_yet": "Aún no se ha votado. Cuando se vote, aparecerá aquí.",
     "no_summary_yet": "Aún no hay un resumen en lenguaje claro. Se generará próximamente.",
-    "related_title": "Otras leyes similares"
+    "related_title": "Otras leyes similares",
+    "final_vote_label": "Votación final (decisiva)",
+    "other_votes_toggle": "Ver las otras {n} votaciones (enmiendas, artículos...)"
   },
   "law_journey": {
     "eyebrow": "Trayectoria",
