@@ -131,7 +131,8 @@
     "choice_aye": "In favour",
     "choice_no": "Against",
     "choice_abstention": "Abstention",
-    "choice_absent": "Absent"
+    "choice_absent": "Absent",
+    "law_votes_toggle": "See the {count} votes"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -273,7 +274,9 @@
     "view_vote_detail": "See full vote breakdown",
     "no_vote_yet": "Not yet voted. The result will appear here once the chamber has decided.",
     "no_summary_yet": "No plain-language summary yet. One will be generated soon.",
-    "related_title": "Other similar laws"
+    "related_title": "Other similar laws",
+    "final_vote_label": "Final (decisive) vote",
+    "other_votes_toggle": "See the other {n} votes (amendments, articles...)"
   },
   "law_journey": {
     "eyebrow": "Trajectory",
