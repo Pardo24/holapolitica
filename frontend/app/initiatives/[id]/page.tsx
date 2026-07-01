@@ -8,8 +8,15 @@ import { ArrowRight, ExternalLink, FileText, Route as RouteIcon } from 'lucide-r
 import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
+import { GroupVoteMatrix } from '@/components/GroupVoteMatrix';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
+import {
+  PartyStanceRow,
+  buildStanceByVote,
+  type PartyStance,
+  type StanceLabels,
+} from '@/components/PartyStanceRow';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import {
@@ -127,6 +134,37 @@ export default async function InitiativeDetailPage({
   const parsedProposer = parseProposer(initiative.submitted_by, groups);
   const votes = initiative.votes ?? [];
   const primaryVote = votes[0] ?? null;
+  // Per-group stance on each of the law's votes ("who voted for / against"),
+  // in one cached call. Best-effort: on failure the cards render without it.
+  const tSession = await getTranslations('session_sheet');
+  const voteIds = votes.map((v) => v.id);
+  const groupChoices =
+    voteIds.length > 0 ? await api.votes.groupChoices(voteIds).catch(() => null) : null;
+  const stanceByVote: Map<number, PartyStance[]> = groupChoices
+    ? buildStanceByVote(groupChoices.groups)
+    : new Map();
+  const stanceLabels: StanceLabels = {
+    aye: tSession('choice_aye'),
+    no: tSession('choice_no'),
+    abstention: tSession('choice_abstention'),
+    absent: tSession('choice_absent'),
+  };
+  const matrixLabels = {
+    show: tSession('matrix_show'),
+    loading: tSession('matrix_loading'),
+    error: tSession('matrix_error'),
+    title: tSession('matrix_title'),
+    aye: tSession('choice_aye'),
+    no: tSession('choice_no'),
+    abstention: tSession('choice_abstention'),
+    absent: tSession('choice_absent'),
+  };
+  // The law's fate = the result of its final (latest) vote — the whole-text
+  // vote after the amendments.
+  const finalVote =
+    votes.length > 0
+      ? [...votes].sort((a, b) => a.voted_at.localeCompare(b.voted_at))[votes.length - 1]!
+      : null;
   const topics = initiative.topics ?? [];
 
   return (
@@ -490,6 +528,23 @@ export default async function InitiativeDetailPage({
               {t('vote_box_multipart_explainer')}
             </p>
           )}
+          {/* For a multi-vote law, lead with the outcome — its final vote's
+              result — so "did it pass?" is clear before the list of votes. */}
+          {votes.length > 1 && finalVote && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                margin: '0 0 12px',
+                fontSize: 12,
+                color: 'var(--ink-2)',
+              }}
+            >
+              <span style={{ fontWeight: 600 }}>{tSession('law_final_result')}:</span>
+              <ResultPill result={finalVote.result} label={tVotes(`result.${finalVote.result}`)} />
+            </div>
+          )}
           {primaryVote ? (
             votes.length === 1 ? (
               <VoteCardBig
@@ -497,22 +552,33 @@ export default async function InitiativeDetailPage({
                 locale={locale}
                 t={t}
                 tVotes={tVotes}
+                stance={stanceByVote.get(primaryVote.id)}
+                stanceLabels={stanceLabels}
               />
             ) : (
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {votes.map((v, i) => (
-                  <li key={v.id}>
-                    <VoteCardCompact
-                      vote={v}
-                      index={i + 1}
-                      total={votes.length}
-                      locale={locale}
-                      t={t}
-                      tVotes={tVotes}
-                    />
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {votes.map((v, i) => (
+                    <li key={v.id}>
+                      <VoteCardCompact
+                        vote={v}
+                        index={i + 1}
+                        total={votes.length}
+                        locale={locale}
+                        t={t}
+                        tVotes={tVotes}
+                        stance={stanceByVote.get(v.id)}
+                        stanceLabels={stanceLabels}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                {/* Who voted what across the law's votes (loads on demand). */}
+                <GroupVoteMatrix
+                  votes={votes.map((v) => ({ id: v.id, seq: null }))}
+                  labels={matrixLabels}
+                />
+              </>
             )
           ) : (
             <p
@@ -646,11 +712,15 @@ function VoteCardBig({
   locale,
   t,
   tVotes,
+  stance,
+  stanceLabels,
 }: {
   vote: InitiativeVoteSummary;
   locale: string;
   t: InitiativeTranslator;
   tVotes: VotesTranslator;
+  stance?: PartyStance[];
+  stanceLabels: StanceLabels;
 }) {
   return (
     <Link
@@ -707,6 +777,9 @@ function VoteCardBig({
         d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
         height={10}
       />
+      {stance && stance.length > 0 && (
+        <PartyStanceRow parties={stance} labels={stanceLabels} />
+      )}
       <span
         style={{
           marginTop: 10,
@@ -732,6 +805,8 @@ function VoteCardCompact({
   locale,
   t,
   tVotes,
+  stance,
+  stanceLabels,
 }: {
   vote: InitiativeVoteSummary;
   index: number;
@@ -739,6 +814,8 @@ function VoteCardCompact({
   locale: string;
   t: InitiativeTranslator;
   tVotes: VotesTranslator;
+  stance?: PartyStance[];
+  stanceLabels: StanceLabels;
 }) {
   return (
     <Link
@@ -811,6 +888,9 @@ function VoteCardCompact({
         d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
         height={8}
       />
+      {stance && stance.length > 0 && (
+        <PartyStanceRow parties={stance} labels={stanceLabels} />
+      )}
     </Link>
   );
 }
