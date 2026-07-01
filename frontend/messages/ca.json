@@ -655,7 +655,9 @@
     "surface_cronica_cta": "Llegeix la crònica",
     "surface_joc_title": "Trivia",
     "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
-    "surface_joc_cta": "Posa't a prova"
+    "surface_joc_cta": "Posa't a prova",
+    "latest_session_eyebrow": "El darrer ple, explicat",
+    "latest_session_explore": "Explora l'últim ple"
   },
   "deputy": {
     "title": "El teu diputat",

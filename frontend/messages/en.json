@@ -655,7 +655,9 @@
     "surface_cronica_cta": "Read the chronicle",
     "surface_joc_title": "Trivia",
     "surface_joc_body": "Guess who proposed a vote or how it ended. A light way to learn how Congress votes.",
-    "surface_joc_cta": "Test yourself"
+    "surface_joc_cta": "Test yourself",
+    "latest_session_eyebrow": "The latest session, explained",
+    "latest_session_explore": "Explore the latest session"
   },
   "deputy": {
     "title": "Your deputy",
