@@ -494,6 +494,78 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Latest-session banner — the big "explore the last plenary" entry
+          point, low on the page, styled like the mobile session card the
+          user liked. Full-width, dark, unmissable. */}
+      {latestVotes[0]?.voted_at && (
+        <section style={{ paddingTop: 32 }}>
+          <Link
+            href={'/avui' as Route}
+            className="home-session-banner"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 20,
+              padding: '24px 28px',
+              borderRadius: 18,
+              background: 'var(--ink)',
+              color: 'var(--paper)',
+              textDecoration: 'none',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: 'var(--paper-2)',
+                  marginBottom: 6,
+                }}
+              >
+                {t('latest_session_eyebrow')}
+              </div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: 'clamp(24px, 3vw, 34px)',
+                  fontWeight: 600,
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}
+              </div>
+            </div>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                flex: 'none',
+                padding: '11px 20px',
+                borderRadius: 999,
+                background: 'var(--paper)',
+                color: 'var(--ink)',
+                fontSize: 15,
+                fontWeight: 700,
+              }}
+            >
+              {t('latest_session_explore')}
+              <ArrowRight size={17} aria-hidden="true" />
+            </span>
+          </Link>
+          <style>{`.home-session-banner:hover, .home-session-banner:focus-visible { background: color-mix(in oklch, var(--ink) 90%, var(--accent)) !important; outline: none; }`}</style>
+        </section>
+      )}
+
       {/* Newsletter signup — single card with title + caption above
           the form, mail icon as a quiet accent on the left. On narrow
           viewports the icon column is hidden and the copy + form
@@ -580,78 +652,6 @@ export default async function HomePage() {
           doesn't add a blank section to the home. */}
       {upcomingSessions.length > 0 && <UpcomingAgenda sessions={upcomingSessions} mode="home" />}
 
-      {/* Latest-session banner — the big "explore the last plenary" entry
-          point, low on the page, styled like the mobile session card the
-          user liked. Full-width, dark, unmissable. */}
-      {latestVotes[0]?.voted_at && (
-        <section style={{ paddingTop: 32 }}>
-          <Link
-            href={'/avui' as Route}
-            className="home-session-banner"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 20,
-              padding: '24px 28px',
-              borderRadius: 18,
-              background: 'var(--ink)',
-              color: 'var(--paper)',
-              textDecoration: 'none',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  color: 'var(--paper-2)',
-                  marginBottom: 6,
-                }}
-              >
-                {t('latest_session_eyebrow')}
-              </div>
-              <div
-                className="serif"
-                style={{
-                  fontSize: 'clamp(24px, 3vw, 34px)',
-                  fontWeight: 600,
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })}
-              </div>
-            </div>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                flex: 'none',
-                padding: '11px 20px',
-                borderRadius: 999,
-                background: 'var(--paper)',
-                color: 'var(--ink)',
-                fontSize: 15,
-                fontWeight: 700,
-              }}
-            >
-              {t('latest_session_explore')}
-              <ArrowRight size={17} aria-hidden="true" />
-            </span>
-          </Link>
-          <style>{`.home-session-banner:hover, .home-session-banner:focus-visible { background: color-mix(in oklch, var(--ink) 90%, var(--accent)) !important; outline: none; }`}</style>
-        </section>
-      )}
-
       {/* Latest votes */}
       <section style={{ paddingTop: 32 }}>
         <div
@@ -720,7 +720,6 @@ export default async function HomePage() {
     </div>
   );
 }
-
 
 // ---------------------------------------------------------------------------
 // Mobile dashboard (≤640px)
