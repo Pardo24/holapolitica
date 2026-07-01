@@ -487,6 +487,17 @@ export interface TopicVoteStat {
   cast: number;
 }
 
+/** How one parliamentary group voted across a set of votes: ``choices``
+ *  maps a vote id (string) to the group's majority stance —
+ *  ``aye`` / ``no`` / ``abstention`` / ``absent``. Served by
+ *  ``GET /votes/group-choices``. */
+export interface GroupVoteChoiceRow {
+  slug: string;
+  name_short: string;
+  color_hex: string | null;
+  choices: Record<string, string>;
+}
+
 /** One group's Sí/No/Abst breakdown on a single topic (inverse of
  *  TopicVoteStat — keyed by group, scoped to one topic). */
 export interface GroupVoteStat {
@@ -1251,6 +1262,13 @@ export const api = {
       return request<Paginated<Vote>>(`/votes${suffix}`);
     },
     get: (id: number) => request<Vote>(`/votes/${id}`),
+    /** Per-group majority stance across the given vote ids. Feeds the
+     *  party-stance discs on the session sheet. */
+    groupChoices: (ids: number[]) =>
+      request<{ groups: GroupVoteChoiceRow[] }>(
+        `/votes/group-choices?ids=${ids.join(',')}`,
+        { revalidate: AGG_REVALIDATE },
+      ),
     dissidents: (id: number) =>
       request<VoteDissidents>(`/votes/${id}/dissidents`, {
         revalidate: AGG_REVALIDATE,
