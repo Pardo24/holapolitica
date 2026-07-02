@@ -94,7 +94,12 @@ async def import_active_deputies() -> ImportStats:
             payload = await client.fetch_active_deputies(fmt="json")
 
         importer = DeputyImporter(session, chamber, legislature)
-        return await importer.import_payload(payload)
+        # close_missing: the active roster is authoritative for who holds a
+        # seat TODAY, so a deputy absent from it has left the chamber and
+        # their open mandate must be closed (otherwise the hemicycle and
+        # every "350 diputats" count silently drifts upward substitution
+        # after substitution).
+        return await importer.import_payload(payload, close_missing=True)
 
 
 async def import_legislature_deputies(roman: str, number: int) -> ImportStats:

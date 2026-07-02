@@ -1588,7 +1588,8 @@
     "tap_for_info": "Tap a seat to see the deputy.",
     "view_profile": "View profile",
     "dismiss": "Dismiss",
-    "no_position_yet": "Seat positions not yet loaded, a provisional layout is shown. Every dot is clickable."
+    "no_position_yet": "Seat positions not yet loaded, a provisional layout is shown. Every dot is clickable.",
+    "pending_placement": "New seats pending placement on the floor plan:"
   },
   "embed_vote": {
     "not_found": "Vote not found",

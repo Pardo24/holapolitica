@@ -1588,7 +1588,8 @@
     "tap_for_info": "Toca un escaño para ver al diputado o diputada.",
     "view_profile": "Ver ficha",
     "dismiss": "Cerrar",
-    "no_position_yet": "Los asientos aún no se han cargado, se muestra una distribución provisional. Cada punto es pulsable."
+    "no_position_yet": "Los asientos aún no se han cargado, se muestra una distribución provisional. Cada punto es pulsable.",
+    "pending_placement": "Nuevos escaños pendientes de ubicar en el plano:"
   },
   "embed_vote": {
     "not_found": "Votación no encontrada",
