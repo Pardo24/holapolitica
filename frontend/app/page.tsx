@@ -211,9 +211,9 @@ export default async function HomePage() {
         style={{
           display: 'grid',
           gridTemplateColumns: '1.1fr 0.9fr',
-          gap: 48,
-          paddingTop: 28,
-          paddingBottom: 28,
+          gap: 40,
+          paddingTop: 18,
+          paddingBottom: 20,
           borderBottom: '1px solid var(--rule)',
         }}
         className="home-hero"
@@ -222,7 +222,7 @@ export default async function HomePage() {
           <div className="eyebrow" style={{ marginBottom: 14, color: 'var(--accent)' }}>
             {t('eyebrow')}
           </div>
-          <h1 className="h-display" style={{ margin: '0 0 18px' }}>
+          <h1 className="h-display" style={{ margin: '0 0 14px' }}>
             {heroTitleLines[0]}
             {heroTitleLines.length > 1 && (
               <>
@@ -238,7 +238,7 @@ export default async function HomePage() {
               know what to do. */}
           <p
             className="hidden sm:block"
-            style={{ fontSize: 17, color: 'var(--ink-2)', maxWidth: 560, margin: '0 0 28px', lineHeight: 1.5 }}
+            style={{ fontSize: 17, color: 'var(--ink-2)', maxWidth: 560, margin: '0 0 20px', lineHeight: 1.5 }}
           >
             {t('hero_subtitle')}
           </p>
@@ -268,7 +268,7 @@ export default async function HomePage() {
               {t('journalists_link')}
             </Link>
           </div>
-          <div style={{ display: 'flex', gap: 24, marginTop: 32, fontSize: 12, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 24, marginTop: 18, fontSize: 12, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
             <span>{t('trust_no_trackers')}</span>
             <span style={{ color: 'var(--rule)' }}>·</span>
             <span>{t('trust_licence')}</span>
@@ -471,7 +471,7 @@ export default async function HomePage() {
         style={{
           display: 'flex',
           alignItems: 'stretch',
-          marginTop: 28,
+          marginTop: 20,
           border: '1px solid var(--rule-strong)',
           borderRadius: 12,
           background: 'var(--paper-2)',
@@ -548,7 +548,7 @@ export default async function HomePage() {
       {upcomingSessions.length > 0 && <UpcomingAgenda sessions={upcomingSessions} mode="home" />}
 
       {/* Latest votes */}
-      <section style={{ paddingTop: 32 }}>
+      <section style={{ paddingTop: 24 }}>
         <div
           style={{
             display: 'flex',

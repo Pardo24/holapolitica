@@ -106,7 +106,6 @@ export function PartyStanceMini({
                 const common: React.CSSProperties = {
                   width: 16,
                   height: 16,
-                  borderRadius: 999,
                   display: 'inline-block',
                   flex: 'none',
                   marginLeft: i === 0 ? 0 : -4,
@@ -129,13 +128,20 @@ export function PartyStanceMini({
                       padding: 1.5,
                       boxSizing: 'border-box',
                       background: '#fff',
+                      // Rounded square, not a circle — wordmark logos
+                      // lose their sides inside a circular clip.
+                      borderRadius: 4,
                     }}
                   />
                 ) : (
                   <span
                     key={p.slug}
                     title={title}
-                    style={{ ...common, background: p.color_hex ?? 'var(--ink-3)' }}
+                    style={{
+                      ...common,
+                      borderRadius: 999,
+                      background: p.color_hex ?? 'var(--ink-3)',
+                    }}
                   />
                 );
               })}

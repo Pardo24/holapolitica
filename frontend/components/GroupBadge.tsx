@@ -69,14 +69,17 @@ export function GroupBadge({
       height={px}
       loading="lazy"
       decoding="async"
-      className="inline-block rounded-full border select-none"
+      className="inline-block border select-none"
       style={{
         width: px,
         height: px,
         objectFit: 'contain',
-        padding: Math.max(2, Math.round(px * 0.1)),
+        padding: Math.max(2, Math.round(px * 0.08)),
         boxSizing: 'border-box',
         background: '#fff',
+        // Rounded RECTANGLE, not a circle: several party logos are
+        // wide wordmarks and a circular clip shaves their sides off.
+        borderRadius: Math.max(4, Math.round(px * 0.22)),
         borderColor: 'rgba(0,0,0,.08)',
       }}
     />

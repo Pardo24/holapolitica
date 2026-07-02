@@ -378,22 +378,62 @@ export default async function VoteDetailPage({
           </span>
         </div>
 
-        {/* Headline */}
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-serif)',
-            fontSize: 'clamp(28px, 3.4vw, 40px)',
-            lineHeight: 1.1,
-            letterSpacing: '-0.018em',
-            fontWeight: 600,
-            maxWidth: 920,
-            marginBottom: 18,
-            textWrap: 'pretty',
-          }}
-        >
-          <AnnotatedText text={subject} />
-        </h1>
+        {/* Headline. When an AI plain-language summary exists it LEADS —
+            it's what a citizen actually reads — and the official legal
+            text drops below it, smaller and muted. Votes without a
+            summary keep the original subject as the headline. Sized
+            down from the previous clamp(28,3.4vw,40): many subjects run
+            3-4 lines and were eating half the viewport. */}
+        {summary ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <AiBadge label={t('plain_summary_ai_badge')} />
+            </div>
+            <h1
+              className="serif"
+              style={{
+                margin: '0 0 12px',
+                fontSize: 'clamp(19px, 2.2vw, 26px)',
+                lineHeight: 1.35,
+                letterSpacing: '-0.012em',
+                fontWeight: 500,
+                maxWidth: 860,
+                textWrap: 'pretty',
+                whiteSpace: 'pre-line',
+              }}
+            >
+              {summary}
+            </h1>
+            <p
+              style={{
+                margin: '0 0 16px',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: 'var(--ink-3)',
+                maxWidth: 860,
+                textWrap: 'pretty',
+              }}
+            >
+              <AnnotatedText text={subject} />
+            </p>
+          </>
+        ) : (
+          <h1
+            style={{
+              margin: 0,
+              fontFamily: 'var(--font-serif)',
+              fontSize: 'clamp(20px, 2.4vw, 28px)',
+              lineHeight: 1.25,
+              letterSpacing: '-0.014em',
+              fontWeight: 600,
+              maxWidth: 920,
+              marginBottom: 18,
+              textWrap: 'pretty',
+            }}
+          >
+            <AnnotatedText text={subject} />
+          </h1>
+        )}
 
         {/* Meta strip — dot-separated, low-chrome */}
         <div
@@ -533,41 +573,26 @@ export default async function VoteDetailPage({
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          {/* The AI summary now leads the page HEADER (with the original
+              legal text beneath it), so the old body section is gone —
+              only its honesty caveat remains, as a footnote right under
+              the header. */}
           {summary && (
-            <section>
-              <SectionTitle right={<AiBadge label={t('plain_summary_ai_badge')} />}>
-                {t('plain_summary_title')}
-              </SectionTitle>
-              <p
-                className="serif"
-                style={{
-                  fontSize: 18,
-                  lineHeight: 1.55,
-                  color: 'var(--ink)',
-                  margin: 0,
-                  fontWeight: 400,
-                  whiteSpace: 'pre-line',
-                  textWrap: 'pretty',
-                }}
-              >
-                {summary}
-              </p>
-              <p
-                style={{
-                  fontSize: 11,
-                  color: 'var(--ink-3)',
-                  marginTop: 6,
-                  fontStyle: 'italic',
-                }}
-              >
-                {t('plain_summary_disclaimer')}{' '}
-                <span>
-                  ({tCommon('plain_summary_caveat', {
-                    provider: vote.plain_summary_provider ?? 'IA',
-                  })})
-                </span>
-              </p>
-            </section>
+            <p
+              style={{
+                fontSize: 11,
+                color: 'var(--ink-3)',
+                margin: 0,
+                fontStyle: 'italic',
+              }}
+            >
+              {t('plain_summary_disclaimer')}{' '}
+              <span>
+                ({tCommon('plain_summary_caveat', {
+                  provider: vote.plain_summary_provider ?? 'IA',
+                })})
+              </span>
+            </p>
           )}
 
           {/* Recompte — KPI grid + StackedBar + caveat */}
@@ -626,21 +651,23 @@ export default async function VoteDetailPage({
                 {t('totals_label', { total: totalCast + vote.absent })}
               </h3>
             </div>
-            {/* Visual recount — half-donut (outer ring: result; inner
-                ring: each group's contribution in its own color) with
-                the four counts as a compact legend beside it. Replaces
-                the previous 4-number grid + StackedBar: same data, one
-                glance. */}
+            {/* Visual recount — donut and hemicycle SIDE BY SIDE (the
+                stacked layout left a column of white space next to each
+                chart). Left: half-donut + the four counts in a 2×2 grid.
+                Right: the per-vote hemicycle + its color legend. Stacks
+                back to one column under 700px. */}
             <div
-              className="vote-recount-flex"
+              className="vote-recount-grid"
               style={{
-                display: 'flex',
-                gap: 28,
+                display: 'grid',
+                gridTemplateColumns: voteHemicycleLayout
+                  ? 'repeat(2, minmax(0, 1fr))'
+                  : 'minmax(0, 1fr)',
+                gap: 24,
                 alignItems: 'center',
-                flexWrap: 'wrap',
               }}
             >
-              <div style={{ flex: '1 1 240px', minWidth: 220, maxWidth: 360 }}>
+              <div style={{ minWidth: 0, maxWidth: 380, marginInline: 'auto', width: '100%' }}>
                 <VoteDonut
                   totals={{
                     aye: vote.ayes,
@@ -668,70 +695,111 @@ export default async function VoteDetailPage({
                 >
                   {t('donut_caption')}
                 </p>
-              </div>
-              <div style={{ flex: '1 1 150px', display: 'grid', gap: 12 }}>
-                {[
-                  { label: t('ayes'), n: vote.ayes, color: 'var(--aye)' },
-                  { label: t('noes'), n: vote.noes, color: 'var(--no)' },
-                  { label: t('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
-                  { label: t('absent'), n: vote.absent, color: 'var(--nv)' },
-                ].map((c) => (
-                  <div
-                    key={c.label}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                    }}
-                  >
-                    <span
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                    gap: '10px 20px',
+                    marginTop: 14,
+                  }}
+                >
+                  {[
+                    { label: t('ayes'), n: vote.ayes, color: 'var(--aye)' },
+                    { label: t('noes'), n: vote.noes, color: 'var(--no)' },
+                    { label: t('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
+                    { label: t('absent'), n: vote.absent, color: 'var(--nv)' },
+                  ].map((c) => (
+                    <div
+                      key={c.label}
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 7,
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        color: 'var(--ink-2)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
+                        display: 'flex',
+                        alignItems: 'baseline',
+                        justifyContent: 'space-between',
+                        gap: 10,
+                        minWidth: 0,
                       }}
                     >
                       <span
-                        aria-hidden="true"
                         style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 999,
-                          background: c.color,
-                          flex: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          color: 'var(--ink-2)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
                         }}
-                      />
-                      {c.label}
-                    </span>
-                    <span
-                      className="tabular"
-                      style={{
-                        fontFamily: 'var(--font-serif)',
-                        fontSize: 'clamp(22px, 2.6vw, 30px)',
-                        fontWeight: 600,
-                        color: c.color,
-                        letterSpacing: '-0.02em',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {c.n}
-                    </span>
-                  </div>
-                ))}
+                      >
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 999,
+                            background: c.color,
+                            flex: 'none',
+                          }}
+                        />
+                        {c.label}
+                      </span>
+                      <span
+                        className="tabular"
+                        style={{
+                          fontFamily: 'var(--font-serif)',
+                          fontSize: 'clamp(20px, 2.2vw, 26px)',
+                          fontWeight: 600,
+                          color: c.color,
+                          letterSpacing: '-0.02em',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {c.n}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
+              {voteHemicycleLayout && (
+                <div style={{ minWidth: 0, maxWidth: 400, marginInline: 'auto', width: '100%' }}>
+                  <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
+                  {/* Compact legend — pairs each color used by the
+                      vote-mode hemicycle with its labelled count so a
+                      first-time reader can decode the dots without
+                      hovering. */}
+                  <div
+                    style={{
+                      marginTop: 8,
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      gap: 12,
+                      fontSize: 11,
+                      color: 'var(--ink-3)',
+                    }}
+                  >
+                    <LegendSwatch color="var(--aye)" label={t('ayes')} value={vote.ayes} />
+                    <LegendSwatch color="var(--no)" label={t('noes')} value={vote.noes} />
+                    <LegendSwatch
+                      color="var(--abst)"
+                      label={t('abstentions')}
+                      value={vote.abstentions}
+                    />
+                    <LegendSwatch
+                      color="var(--nv)"
+                      label={t('absent')}
+                      value={vote.absent}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <p
               style={{
                 fontSize: 12,
                 lineHeight: 1.55,
                 color: 'var(--ink-2)',
-                marginTop: 12,
+                marginTop: 14,
                 marginBottom: 0,
               }}
             >
@@ -742,59 +810,6 @@ export default async function VoteDetailPage({
                 margin: margin >= 0 ? `+${margin}` : String(margin),
               })}
             </p>
-
-            {voteHemicycleLayout && (
-              <div
-                style={{
-                  marginTop: 18,
-                  paddingTop: 18,
-                  borderTop: '1px solid var(--rule)',
-                }}
-              >
-                {/* Hemicycle is naturally responsive (SVG fills its
-                    container), but inside the Recompte card on a wide
-                    desktop it expands to ~480 px wide which dwarfs the
-                    surrounding KPIs and reads as "the chart is the
-                    page". Cap to 360 px and centre so the chart sits
-                    as a complement to the counts, not the headline. */}
-                <div
-                  style={{
-                    maxWidth: 360,
-                    marginInline: 'auto',
-                  }}
-                >
-                  <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
-                </div>
-                {/* Compact legend — pairs each color used by the
-                    vote-mode hemicycle with its labelled count so a
-                    first-time reader can decode the dots without
-                    hovering. Sentence-case, no eyebrow, in line with
-                    the rest of the redesign. */}
-                <div
-                  style={{
-                    marginTop: 10,
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 14,
-                    fontSize: 11,
-                    color: 'var(--ink-3)',
-                  }}
-                >
-                  <LegendSwatch color="var(--aye)" label={t('ayes')} value={vote.ayes} />
-                  <LegendSwatch color="var(--no)" label={t('noes')} value={vote.noes} />
-                  <LegendSwatch
-                    color="var(--abst)"
-                    label={t('abstentions')}
-                    value={vote.abstentions}
-                  />
-                  <LegendSwatch
-                    color="var(--nv)"
-                    label={t('absent')}
-                    value={vote.absent}
-                  />
-                </div>
-              </div>
-            )}
               </>
             )}
           </section>
@@ -830,8 +845,8 @@ export default async function VoteDetailPage({
         @media (max-width: 860px) {
           .vote-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
         }
-        @media (max-width: 520px) {
-          .vote-recount-flex { gap: 18px !important; }
+        @media (max-width: 700px) {
+          .vote-recount-grid { grid-template-columns: minmax(0, 1fr) !important; }
         }
       `}</style>
     </article>
