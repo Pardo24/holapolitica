@@ -915,7 +915,8 @@
     "pagination_prev_aria": "Previous page",
     "pagination_next_aria": "Next page",
     "show_original": "Original text",
-    "group_stance_title": "How each group voted"
+    "group_stance_title": "How each group voted",
+    "donut_caption": "Outer ring: the result. Inner ring: each parliamentary group's contribution."
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",

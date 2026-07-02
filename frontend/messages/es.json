@@ -915,7 +915,8 @@
     "pagination_prev_aria": "Página anterior",
     "pagination_next_aria": "Página siguiente",
     "show_original": "Texto original",
-    "group_stance_title": "Cómo ha votado cada grupo"
+    "group_stance_title": "Cómo ha votado cada grupo",
+    "donut_caption": "Anillo exterior: el resultado. Anillo interior: la aportación de cada grupo parlamentario."
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",
