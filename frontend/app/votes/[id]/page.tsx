@@ -35,7 +35,8 @@ import { GroupChip } from '@/components/GroupChip';
 import { Hemicycle } from '@/components/Hemicycle';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
-import { PartyStanceRow, buildStanceByVote } from '@/components/PartyStanceRow';
+import { buildStanceByVote } from '@/components/PartyStanceRow';
+import { GroupVoteBreakdown } from '@/components/GroupVoteBreakdown';
 import { ResultPill } from '@/components/ResultPill';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
 import { VoteDonut } from '@/components/VoteDonut';
@@ -478,6 +479,16 @@ export default async function VoteDetailPage({
         </div>
       </header>
 
+      {/* How each group voted — full-width, grouped by stance (A favor /
+          En contra / Abstenció / Absents) with each group as a badge +
+          name. The prominent "who backed and who opposed this" band. */}
+      {voteStance.length > 0 && !vote.approved_by_assent && (
+        <section style={{ paddingTop: 24 }}>
+          <div className="eyebrow" style={{ marginBottom: 14 }}>{t('group_stance_title')}</div>
+          <GroupVoteBreakdown parties={voteStance} labels={stanceLabels} badgeSize="md" />
+        </section>
+      )}
+
       {/* 2-col body: summary + totals (left) // cohesion + dissidents (right) */}
       <section
         className="vote-detail-grid"
@@ -755,15 +766,6 @@ export default async function VoteDetailPage({
             )}
           </section>
         </div>
-
-        {voteStance.length > 0 && !vote.approved_by_assent && (
-          <div style={{ marginTop: 4 }}>
-            <div className="eyebrow" style={{ marginBottom: 4 }}>
-              {t('group_stance_title')}
-            </div>
-            <PartyStanceRow parties={voteStance} labels={stanceLabels} />
-          </div>
-        )}
 
         {!vote.approved_by_assent && (
         <div>

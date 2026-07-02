@@ -94,7 +94,12 @@ export default async function ElTeuDiputatPage({
           <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '0 0 10px', lineHeight: 1.5 }}>
             {selected ? t('hemicycle_hint_selected', { prov: selected }) : t('hemicycle_hint')}
           </p>
-          <Hemicycle layout={hemicycle} highlightConstituency={selected} />
+          {/* Narrower, centred container with side padding: shrinks the
+              chart a touch on desktop and keeps the seats off the screen
+              edges on mobile (they otherwise span nearly the full width). */}
+          <div style={{ maxWidth: 600, margin: '0 auto', paddingInline: 'clamp(12px, 5vw, 28px)' }}>
+            <Hemicycle layout={hemicycle} highlightConstituency={selected} />
+          </div>
         </section>
       )}
 

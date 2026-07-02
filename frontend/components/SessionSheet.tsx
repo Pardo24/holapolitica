@@ -4,7 +4,6 @@ import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
-import { GroupVoteMatrix, type GroupVoteMatrixLabels } from '@/components/GroupVoteMatrix';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import {
   PartyStanceRow,
@@ -667,16 +666,6 @@ export async function SessionSheet({
                           finalResultLabel={t('law_final_result')}
                           whyMultiple={t('law_why_multiple')}
                           finalTagLabel={t('law_vote_final_tag')}
-                          matrixLabels={{
-                            show: t('matrix_show'),
-                            loading: t('matrix_loading'),
-                            error: t('matrix_error'),
-                            title: t('matrix_title'),
-                            aye: t('choice_aye'),
-                            no: t('choice_no'),
-                            abstention: t('choice_abstention'),
-                            absent: t('choice_absent'),
-                          }}
                           finalStance={stanceByVote.get(
                             [...entry.votes].sort(
                               (a, b) =>
@@ -892,7 +881,6 @@ function LawVoteGroup({
   finalResultLabel,
   whyMultiple,
   finalTagLabel,
-  matrixLabels,
   finalStance,
   stanceLabels,
   resultLabelFor,
@@ -909,7 +897,6 @@ function LawVoteGroup({
   finalResultLabel: string;
   whyMultiple: string;
   finalTagLabel: string;
-  matrixLabels: GroupVoteMatrixLabels;
   finalStance?: PartyStance[];
   stanceLabels: StanceLabels;
   resultLabelFor: (r: Vote['result']) => string;
@@ -1132,11 +1119,6 @@ function LawVoteGroup({
                 ))}
               </ul>
             </details>
-            {/* How each group voted across these votes (loads on demand). */}
-            <GroupVoteMatrix
-              votes={ordered.map((v) => ({ id: v.id, seq: v.sequence_in_session }))}
-              labels={matrixLabels}
-            />
           </div>
         </div>
       </div>
