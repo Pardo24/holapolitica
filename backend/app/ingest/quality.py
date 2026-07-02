@@ -135,8 +135,7 @@ async def _check_duplicate_votes(session: AsyncSession) -> CheckResult:
     """No two vote rows may share (session_id, sequence_in_session)."""
     dupes = (
         await session.execute(
-            select(func.count())
-            .select_from(
+            select(func.count()).select_from(
                 select(Vote.session_id, Vote.sequence_in_session)
                 .where(Vote.sequence_in_session.is_not(None))
                 .group_by(Vote.session_id, Vote.sequence_in_session)
@@ -157,8 +156,7 @@ async def _check_multiple_open_memberships(session: AsyncSession) -> CheckResult
     """A mandate can hold at most one open group membership."""
     count = (
         await session.execute(
-            select(func.count())
-            .select_from(
+            select(func.count()).select_from(
                 select(GroupMembership.mandate_id)
                 .where(GroupMembership.end_date.is_(None))
                 .group_by(GroupMembership.mandate_id)
