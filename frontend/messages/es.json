@@ -660,7 +660,10 @@
     "surface_joc_body": "Adivina quién propuso una votación o cómo salió. Una forma ligera de aprender cómo vota el Congreso.",
     "surface_joc_cta": "Ponte a prueba",
     "latest_session_eyebrow": "El último pleno, explicado",
-    "latest_session_explore": "Explora el último pleno"
+    "latest_session_explore": "Explora el último pleno",
+    "session_approved": "{n} aprobadas",
+    "session_rejected": "{n} rechazadas",
+    "session_votes": "{n} votaciones"
   },
   "deputy": {
     "title": "Tu diputado",
