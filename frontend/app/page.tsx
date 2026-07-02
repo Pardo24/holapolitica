@@ -5,15 +5,12 @@ import {
   ArrowRight,
   BarChart3,
   Code2,
-  FileText,
   Gamepad2,
   Layers,
   LockKeyhole,
-  Mail,
   Map as MapIcon,
   MapPin,
   Scale,
-  ScrollText,
   ShieldCheck,
   Users,
 } from 'lucide-react';
@@ -123,11 +120,6 @@ export default async function HomePage() {
     );
     highlights = buildHighlights(allGroups, new Map(topicStatsPerGroup));
   }
-
-  const classifiedPct =
-    summary && summary.initiatives_total > 0
-      ? Math.round((summary.initiatives_classified / summary.initiatives_total) * 100)
-      : null;
 
   // Latest plenary session outcome for the home "último pleno" card — the
   // full day's votes (not just the latest 5) so the aprovada/rebutjada split
@@ -252,23 +244,19 @@ export default async function HomePage() {
           >
             {t('hero_subtitle')}
           </p>
-          {/* Primary actions: explore the data, jump to the latest session,
-              or play — with the two quiet text links on the same visual
-              tier just beneath. */}
+          {/* Actions: ONE primary button + the play entry. "Última sesión"
+              was a third button duplicating the pleno card's CTA sitting
+              right next to it — gone. The quiet text links follow. */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link href="/votes" className="btn-ink">
               {t('cta_explore')}
-            </Link>
-            <Link href={'/avui' as Route} style={heroOutlineBtn}>
-              <FileText size={15} strokeWidth={1.9} aria-hidden="true" />
-              {t('cta_latest')}
             </Link>
             <Link href={'/jocs' as Route} style={heroOutlineBtn}>
               <Gamepad2 size={15} strokeWidth={1.9} aria-hidden="true" />
               {t('cta_play')}
             </Link>
           </div>
-          <div style={{ display: 'flex', gap: 22, marginTop: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link href={'/recorregut' as Route} style={heroTextLink}>
               {t('lifecycle_link')}
             </Link>
@@ -278,9 +266,10 @@ export default async function HomePage() {
               {t('journalists_link')}
             </Link>
           </div>
-          {/* Trust signals — icon chips under a hairline, pushed to the
-              bottom of the column so they read as the hero's quiet
-              foundation instead of a cramped fourth row of text. */}
+          {/* Trust signals — three icon chips pinned to the bottom of the
+              column. The licence chip ("EUPL-1.2 / CC-BY 4.0") is gone
+              from the fold: cryptic to a first-time visitor, and the
+              licences already live in the footer. */}
           <div
             style={{
               display: 'flex',
@@ -293,7 +282,6 @@ export default async function HomePage() {
           >
             {[
               { Icon: ShieldCheck, label: t('trust_no_trackers') },
-              { Icon: ScrollText, label: t('trust_licence') },
               { Icon: Code2, label: t('trust_api') },
               { Icon: LockKeyhole, label: t('trust_gdpr') },
             ].map(({ Icon, label }) => (
@@ -451,14 +439,18 @@ export default async function HomePage() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 14,
+          gap: 16,
           flexWrap: 'wrap',
           fontSize: 12.5,
           color: 'var(--ink-3)',
-          padding: '12px 0',
+          padding: '14px 0',
           borderBottom: '1px solid var(--rule)',
         }}
       >
+        {/* Two plain-language facts only. The "94% iniciativas
+            clasificadas" figure moved out of the fold: without context
+            it reads as unexplained jargon; /stats carries it with the
+            explanation next to it. */}
         <span>
           <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>350</span>{' '}
           {t('coverage_active_deputies').toLowerCase()}
@@ -469,13 +461,6 @@ export default async function HomePage() {
             {summary ? summary.votes_total.toLocaleString(locale) : '—'}
           </span>{' '}
           {t('coverage_votes_ingested').toLowerCase()}
-        </span>
-        <span style={{ color: 'var(--rule)' }}>·</span>
-        <span>
-          <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
-            {classifiedPct == null ? '—' : `${classifiedPct}%`}
-          </span>{' '}
-          {t('coverage_classified').toLowerCase()}
         </span>
         <Link
           href="/stats"
@@ -500,87 +485,6 @@ export default async function HomePage() {
             }}
           />
         </span>
-      </section>
-
-      {/* Newsletter signup — single card with title + caption above
-          the form, mail icon as a quiet accent on the left. On narrow
-          viewports the icon column is hidden and the copy + form
-          collapse to a single column (media query below). */}
-      <section
-        className="home-newsletter-row"
-        aria-label={t('newsletter_title')}
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          marginTop: 20,
-          border: '1px solid var(--rule-strong)',
-          borderRadius: 12,
-          background: 'var(--paper-2)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          className="home-newsletter-row__icon"
-          aria-hidden="true"
-          style={{
-            flex: '0 0 auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--accent)',
-            paddingLeft: 32,
-            paddingRight: 26,
-            borderRight: '1px solid var(--rule)',
-            background: 'var(--paper)',
-          }}
-        >
-          <Mail size={64} strokeWidth={1.3} aria-hidden="true" />
-        </div>
-        <div
-          className="home-newsletter-row__signup"
-          style={{
-            flex: '1 1 0',
-            minWidth: 0,
-            padding: '18px 22px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-          }}
-        >
-          <div>
-            <div
-              className="eyebrow"
-              style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 4 }}
-            >
-              Newsletter
-            </div>
-            <h2
-              className="serif"
-              style={{
-                margin: 0,
-                fontSize: 'clamp(18px, 2vw, 22px)',
-                fontWeight: 700,
-                letterSpacing: '-0.01em',
-                color: 'var(--ink)',
-                lineHeight: 1.2,
-              }}
-            >
-              {t('newsletter_title')}
-            </h2>
-            <p
-              style={{
-                margin: '4px 0 0',
-                fontSize: 13,
-                color: 'var(--ink-2)',
-                lineHeight: 1.55,
-                maxWidth: 540,
-              }}
-            >
-              {t('newsletter_caption')}
-            </p>
-          </div>
-          <NewsletterSignup variant="bare" />
-        </div>
       </section>
 
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
@@ -634,6 +538,46 @@ export default async function HomePage() {
         </ul>
       </section>
 
+      {/* Newsletter — at the very END of the page, quiet: a hairline-
+          topped section with title, one-line caption and the form. No
+          card, no giant icon; someone who scrolled the whole page is
+          the person the invitation is for. */}
+      <section
+        aria-label={t('newsletter_title')}
+        style={{
+          marginTop: 40,
+          paddingTop: 24,
+          paddingBottom: 8,
+          borderTop: '1px solid var(--rule)',
+          maxWidth: 560,
+        }}
+      >
+        <h2
+          className="serif"
+          style={{
+            margin: 0,
+            fontSize: 19,
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
+            color: 'var(--ink)',
+            lineHeight: 1.2,
+          }}
+        >
+          {t('newsletter_title')}
+        </h2>
+        <p
+          style={{
+            margin: '6px 0 14px',
+            fontSize: 13,
+            color: 'var(--ink-2)',
+            lineHeight: 1.55,
+          }}
+        >
+          {t('newsletter_caption')}
+        </p>
+        <NewsletterSignup variant="bare" />
+      </section>
+
       {/* Responsive helper — collapse hero / coverage on narrow screens.
           Note: between 640px (sm) and 860px the desktop block is shown but
           re-styled by these rules; below 640px the entire `sm:block` wrapper
@@ -645,11 +589,6 @@ export default async function HomePage() {
              comfortable internal layout; on a narrow tablet two
              cards side-by-side were cramming the body copy. */
           .home-surfaces { grid-template-columns: 1fr !important; }
-          /* Newsletter row collapses: signup goes full-width and the
-             decorative iconography is hidden to save vertical space on
-             phones (the desktop block is hidden below 640px anyway, but
-             between 640 and 860 we still trim the icon). */
-          .home-newsletter-row__icon { display: none !important; }
         }
       `}</style>
       </div>
