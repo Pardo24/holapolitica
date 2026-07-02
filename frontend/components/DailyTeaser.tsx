@@ -8,10 +8,14 @@ import { ArrowRight, CalendarDays, Flame } from 'lucide-react';
 import { answeredDailyToday, readStats } from '@/lib/triviaStats';
 
 /**
- * Homepage entry point for "la pregunta del dia": a compact, clickable card that
- * leads to the question's own page. It deliberately does NOT show the question
- * itself — the homepage stays clean and the question opens only when you choose
- * to play it. Shows your streak and whether you've already answered today.
+ * Homepage entry point for "la pregunta del dia": a slim, clickable
+ * pill that leads to the question's own page. It deliberately does NOT
+ * show the question itself — the homepage stays clean and the question
+ * opens only when you choose to play it. Shows your streak and whether
+ * you've already answered today.
+ *
+ * Sized as an inline pill (not a card) so it sits inside the home's
+ * meta strip without competing with the hero content.
  */
 export interface DailyTeaserLabels {
   eyebrow: string;
@@ -34,61 +38,71 @@ export function DailyTeaser({ labels }: { labels: DailyTeaserLabels }) {
       href={'/pregunta-del-dia' as Route}
       className="daily-teaser"
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        padding: '20px 22px',
-        borderRadius: 16,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 9,
+        padding: '7px 14px',
+        borderRadius: 999,
         border: '1px solid var(--rule-strong)',
         background: 'var(--paper-2)',
-        color: 'inherit',
+        color: 'var(--ink)',
         textDecoration: 'none',
+        fontSize: 13,
+        fontWeight: 600,
+        lineHeight: 1.2,
+        maxWidth: '100%',
       }}
     >
-      <div
+      <CalendarDays
+        size={15}
+        strokeWidth={2}
+        aria-hidden="true"
+        style={{ color: 'var(--accent)', flex: 'none' }}
+      />
+      <span
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 7,
-          marginBottom: 8,
           fontSize: 10,
-          letterSpacing: '0.12em',
+          letterSpacing: '0.1em',
           textTransform: 'uppercase',
           fontWeight: 700,
           color: 'var(--accent)',
+          whiteSpace: 'nowrap',
         }}
       >
-        <CalendarDays size={14} strokeWidth={2} aria-hidden="true" />
         {labels.eyebrow}
-      </div>
+      </span>
       <span
-        className="serif"
-        style={{ fontSize: 'clamp(16px, 1.8vw, 19px)', fontWeight: 600, lineHeight: 1.3, color: 'var(--ink)' }}
+        style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          minWidth: 0,
+        }}
       >
         {answered ? labels.answered_today_short : labels.invite}
       </span>
-      <div
-        style={{
-          marginTop: 'auto',
-          paddingTop: 14,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 10,
-        }}
-      >
-        {streak > 0 ? (
-          <span
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 600, color: 'var(--ink-3)' }}
-          >
-            <Flame size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#EF9F27' }} />
-            {labels.streak.replace('{n}', String(streak))}
-          </span>
-        ) : (
-          <span />
-        )}
-        <ArrowRight size={18} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--ink-2)', flex: 'none' }} />
-      </div>
+      {streak > 0 && (
+        <span
+          className="tabular"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 3,
+            fontSize: 12,
+            color: 'var(--ink-3)',
+            flex: 'none',
+          }}
+        >
+          <Flame size={13} strokeWidth={2} aria-hidden="true" style={{ color: '#EF9F27' }} />
+          {labels.streak.replace('{n}', String(streak))}
+        </span>
+      )}
+      <ArrowRight
+        size={14}
+        strokeWidth={2}
+        aria-hidden="true"
+        style={{ color: 'var(--ink-2)', flex: 'none' }}
+      />
       <style>{`.daily-teaser:hover, .daily-teaser:focus-visible { border-color: var(--ink); outline: none; }`}</style>
     </Link>
   );
