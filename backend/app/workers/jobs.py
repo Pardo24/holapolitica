@@ -192,6 +192,16 @@ def ingest_latest_votes() -> int | None:
                 log.warning("push.enqueue.failed", error=str(exc))
             # New votes change every aggregate on /stats — bust the cache.
             await _invalidate_aggregate_caches()
+        # Data-quality invariants — runs every tick (a handful of COUNT
+        # queries) so a broken invariant screams in the worker logs
+        # within 4 h of appearing, whichever ingest introduced it.
+        try:
+            from app.ingest.quality import run_data_quality_checks
+
+            async with AsyncSessionLocal() as session:
+                await run_data_quality_checks(session)
+        except Exception as exc:  # pragma: no cover — defensive
+            log.warning("data_quality.run_failed", error=str(exc))
         return stats.votes_seen if stats is not None else None
 
     return asyncio.run(_run())
