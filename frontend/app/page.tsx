@@ -4,13 +4,17 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
   BarChart3,
+  Code2,
   FileText,
   Gamepad2,
   Layers,
+  LockKeyhole,
   Mail,
   Map as MapIcon,
   MapPin,
   Scale,
+  ScrollText,
+  ShieldCheck,
   Users,
 } from 'lucide-react';
 
@@ -211,18 +215,18 @@ export default async function HomePage() {
         style={{
           display: 'grid',
           gridTemplateColumns: '1.1fr 0.9fr',
-          gap: 40,
-          paddingTop: 18,
-          paddingBottom: 20,
+          gap: 44,
+          paddingTop: 36,
+          paddingBottom: 32,
           borderBottom: '1px solid var(--rule)',
         }}
         className="home-hero"
       >
-        <div>
-          <div className="eyebrow" style={{ marginBottom: 14, color: 'var(--accent)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="eyebrow" style={{ marginBottom: 18, color: 'var(--accent)' }}>
             {t('eyebrow')}
           </div>
-          <h1 className="h-display" style={{ margin: '0 0 14px' }}>
+          <h1 className="h-display" style={{ margin: '0 0 20px' }}>
             {heroTitleLines[0]}
             {heroTitleLines.length > 1 && (
               <>
@@ -238,14 +242,20 @@ export default async function HomePage() {
               know what to do. */}
           <p
             className="hidden sm:block"
-            style={{ fontSize: 17, color: 'var(--ink-2)', maxWidth: 560, margin: '0 0 20px', lineHeight: 1.5 }}
+            style={{
+              fontSize: 16.5,
+              color: 'var(--ink-2)',
+              maxWidth: 520,
+              margin: '0 0 28px',
+              lineHeight: 1.65,
+            }}
           >
             {t('hero_subtitle')}
           </p>
-          {/* Primary actions, always above the fold: explore the data, jump to
-              the latest session, or play. Kept as real buttons so a first-time
-              visitor sees the two entries they reach for most. */}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Primary actions: explore the data, jump to the latest session,
+              or play — with the two quiet text links on the same visual
+              tier just beneath. */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link href="/votes" className="btn-ink">
               {t('cta_explore')}
             </Link>
@@ -258,7 +268,7 @@ export default async function HomePage() {
               {t('cta_play')}
             </Link>
           </div>
-          <div style={{ display: 'flex', gap: 18, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 22, marginTop: 18, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link href={'/recorregut' as Route} style={heroTextLink}>
               {t('lifecycle_link')}
             </Link>
@@ -268,14 +278,45 @@ export default async function HomePage() {
               {t('journalists_link')}
             </Link>
           </div>
-          <div style={{ display: 'flex', gap: 24, marginTop: 18, fontSize: 12, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
-            <span>{t('trust_no_trackers')}</span>
-            <span style={{ color: 'var(--rule)' }}>·</span>
-            <span>{t('trust_licence')}</span>
-            <span style={{ color: 'var(--rule)' }}>·</span>
-            <span>{t('trust_api')}</span>
-            <span style={{ color: 'var(--rule)' }}>·</span>
-            <span>{t('trust_gdpr')}</span>
+          {/* Trust signals — icon chips under a hairline, pushed to the
+              bottom of the column so they read as the hero's quiet
+              foundation instead of a cramped fourth row of text. */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '10px 26px',
+              marginTop: 'auto',
+              paddingTop: 24,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+            }}
+          >
+            {[
+              { Icon: ShieldCheck, label: t('trust_no_trackers') },
+              { Icon: ScrollText, label: t('trust_licence') },
+              { Icon: Code2, label: t('trust_api') },
+              { Icon: LockKeyhole, label: t('trust_gdpr') },
+            ].map(({ Icon, label }) => (
+              <span
+                key={label}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  color: 'var(--ink-2)',
+                }}
+              >
+                <Icon
+                  size={14}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                  style={{ color: 'var(--accent)', flex: 'none' }}
+                />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
 

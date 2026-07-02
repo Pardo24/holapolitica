@@ -30,6 +30,126 @@ const CHOICE_COLOR: Record<ChoiceKey, string> = {
 /** A party's stance plus, optionally, how many of its deputies cast it. */
 export type PartyStanceWithCount = PartyStance & { count?: number };
 
+/**
+ * Horizontal stance band for the vote-detail HEADER: one cluster per
+ * stance (A favor / En contra / Abstenció / Absents), each with its
+ * colored label + deputy total and the groups as LARGE logo badges
+ * with the group's own deputy count beneath. Sits right under the
+ * headline so "what was voted + who voted what" reads in one glance,
+ * before any chart.
+ */
+export function GroupStanceBand({
+  parties,
+  labels,
+  /** Deputy totals per stance (vote.ayes etc.) shown next to each label. */
+  totals,
+}: {
+  parties: PartyStanceWithCount[];
+  labels: StanceLabels;
+  totals?: Partial<Record<ChoiceKey, number>>;
+}) {
+  if (parties.length === 0) return null;
+
+  const byChoice = new Map<ChoiceKey, PartyStanceWithCount[]>();
+  for (const p of parties) {
+    const key = (COLUMN_ORDER as string[]).includes(p.choice)
+      ? (p.choice as ChoiceKey)
+      : 'absent';
+    const list = byChoice.get(key) ?? [];
+    list.push(p);
+    byChoice.set(key, list);
+  }
+  for (const list of byChoice.values()) {
+    list.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+  }
+  const clusters = COLUMN_ORDER.filter((c) => (byChoice.get(c)?.length ?? 0) > 0);
+
+  const wordFor = (c: ChoiceKey): string =>
+    c === 'aye'
+      ? labels.aye
+      : c === 'no'
+        ? labels.no
+        : c === 'abstention'
+          ? labels.abstention
+          : labels.absent;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'flex-start',
+        gap: '14px 32px',
+      }}
+    >
+      {clusters.map((c) => {
+        const list = byChoice.get(c)!;
+        const color = CHOICE_COLOR[c];
+        const total = totals?.[c];
+        return (
+          <div key={c} style={{ minWidth: 0, opacity: c === 'absent' ? 0.65 : 1 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 7,
+                marginBottom: 8,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color,
+                }}
+              >
+                {wordFor(c)}
+              </span>
+              {total != null && (
+                <span
+                  className="tabular"
+                  style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}
+                >
+                  {total}
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {list.map((p) => (
+                <span
+                  key={p.slug}
+                  title={`${displayGroupShort(p.name_short)}${p.count != null ? ` · ${p.count}` : ''} · ${wordFor(c)}`}
+                  style={{
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 3,
+                  }}
+                >
+                  <GroupBadge slug={p.slug} color={p.color_hex} size="lg" link={false} />
+                  <span
+                    className="tabular"
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      color: 'var(--ink-2)',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {p.count ?? ''}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function GroupVoteBreakdown({
   parties,
   labels,

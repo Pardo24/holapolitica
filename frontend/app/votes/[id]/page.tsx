@@ -36,7 +36,7 @@ import { Hemicycle } from '@/components/Hemicycle';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import {
-  GroupVoteBreakdown,
+  GroupStanceBand,
   type PartyStanceWithCount,
 } from '@/components/GroupVoteBreakdown';
 import { ResultPill } from '@/components/ResultPill';
@@ -550,17 +550,29 @@ export default async function VoteDetailPage({
             </>
           )}
         </div>
-      </header>
 
-      {/* How each group voted — full-width, grouped by stance (A favor /
-          En contra / Abstenció / Absents) with each group as a badge +
-          name. The prominent "who backed and who opposed this" band. */}
-      {voteStance.length > 0 && !vote.approved_by_assent && (
-        <section style={{ paddingTop: 24 }}>
-          <div className="eyebrow" style={{ marginBottom: 14 }}>{t('group_stance_title')}</div>
-          <GroupVoteBreakdown parties={voteStance} labels={stanceLabels} badgeSize="md" />
-        </section>
-      )}
+        {/* How each group voted — INSIDE the header, right under the
+            title: one cluster per stance with large party logos and
+            each group's deputy count. Title + who-voted + (below) the
+            charts read in a single glance, no separate section. */}
+        {voteStance.length > 0 && !vote.approved_by_assent && (
+          <div style={{ marginTop: 20 }}>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>
+              {t('group_stance_title')}
+            </div>
+            <GroupStanceBand
+              parties={voteStance}
+              labels={stanceLabels}
+              totals={{
+                aye: vote.ayes,
+                no: vote.noes,
+                abstention: vote.abstentions,
+                absent: vote.absent,
+              }}
+            />
+          </div>
+        )}
+      </header>
 
       {/* 2-col body: summary + totals (left) // cohesion + dissidents (right) */}
       <section
