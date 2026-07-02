@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api } from '@/lib/api';
+import { pickPlainSummary } from '@/lib/glossary';
 
 /**
  * Embed widget for a single Congress vote.
@@ -107,23 +108,67 @@ export default async function EmbedVotePage({
             {new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'long' })}
             {vote.expediente_raw ? ` · ${vote.expediente_raw}` : ''}
           </p>
-          <h1
-            className="serif"
-            style={{
-              margin: '4px 0 0',
-              fontSize: 17,
-              lineHeight: 1.35,
-              fontWeight: 600,
-              color: 'var(--ink)',
-              letterSpacing: '-0.005em',
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {vote.description?.trim() || vote.title}
-          </h1>
+          {/* AI plain-language summary leads when available (what a
+              reader actually parses in an iframe); the official text
+              drops to a small muted line beneath. Falls back to the
+              original subject as the headline. */}
+          {(() => {
+            const plain = pickPlainSummary(vote, locale);
+            const subject = vote.description?.trim() || vote.title;
+            return plain ? (
+              <>
+                <h1
+                  className="serif"
+                  style={{
+                    margin: '4px 0 0',
+                    fontSize: 16,
+                    lineHeight: 1.4,
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    letterSpacing: '-0.005em',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {plain}
+                </h1>
+                <p
+                  style={{
+                    margin: '5px 0 0',
+                    fontSize: 10.5,
+                    lineHeight: 1.4,
+                    color: 'var(--ink-3)',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {subject}
+                </p>
+              </>
+            ) : (
+              <h1
+                className="serif"
+                style={{
+                  margin: '4px 0 0',
+                  fontSize: 17,
+                  lineHeight: 1.35,
+                  fontWeight: 600,
+                  color: 'var(--ink)',
+                  letterSpacing: '-0.005em',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {subject}
+              </h1>
+            );
+          })()}
           {(vote.proposed_by_government || vote.proposing_group_short) && (
             <p
               style={{

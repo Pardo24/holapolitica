@@ -152,39 +152,63 @@ export default async function EmbedInitiativePage({
             </p>
           )}
         </div>
-        <h1
-          className="serif"
-          style={{
-            margin: '6px 0 0',
-            fontSize: 16,
-            lineHeight: 1.35,
-            fontWeight: 600,
-            color: 'var(--ink)',
-            letterSpacing: '-0.005em',
-            display: '-webkit-box',
-            WebkitLineClamp: 4,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {title}
-        </h1>
+        {/* AI plain-language summary leads as the headline; the
+            official title drops to a small muted line beneath it.
+            Initiatives without a summary keep the title as headline. */}
+        {summary ? (
+          <>
+            <h1
+              className="serif"
+              style={{
+                margin: '6px 0 0',
+                fontSize: 16,
+                lineHeight: 1.4,
+                fontWeight: 600,
+                color: 'var(--ink)',
+                letterSpacing: '-0.005em',
+                display: '-webkit-box',
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {summary}
+            </h1>
+            <p
+              style={{
+                margin: '5px 0 0',
+                fontSize: 10.5,
+                lineHeight: 1.4,
+                color: 'var(--ink-3)',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {title}
+            </p>
+          </>
+        ) : (
+          <h1
+            className="serif"
+            style={{
+              margin: '6px 0 0',
+              fontSize: 16,
+              lineHeight: 1.35,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              letterSpacing: '-0.005em',
+              display: '-webkit-box',
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {title}
+          </h1>
+        )}
       </header>
-
-      {summary && (
-        <p
-          className="serif"
-          style={{
-            margin: '0 0 12px',
-            fontSize: 13,
-            lineHeight: 1.55,
-            color: 'var(--ink-2)',
-            fontWeight: 400,
-          }}
-        >
-          {summary}
-        </p>
-      )}
 
       {initiative.topics && initiative.topics.length > 0 && (
         <div
