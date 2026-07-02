@@ -251,10 +251,33 @@ def fan_out_vote_push(vote_id: int) -> dict[str, int]:
 
 
 def ingest_active_deputies() -> int:
-    """RQ entrypoint: refresh the active deputies snapshot."""
+    """RQ entrypoint: refresh the active deputies snapshot.
+
+    After the roster upsert (which can open mandates for brand-new
+    substitutes and close them for departed deputies) we re-scrape the
+    official hemicycle image-map so the newcomers get seat coordinates,
+    then bust the cached hemicycle layout so the chamber widget reflects
+    the change without waiting out the 1 h TTL.
+    """
 
     async def _run() -> int:
+        from app.ingest.congreso.bootstrap import import_hemicycle_xv
+        from app.services.cache import invalidate
+
         stats = await import_active_deputies()
+        if stats.mandates_created or stats.mandates_closed:
+            log.info(
+                "ingest.deputies.roster_changed",
+                mandates_created=stats.mandates_created,
+                mandates_closed=stats.mandates_closed,
+            )
+        try:
+            await import_hemicycle_xv()
+        except Exception:
+            # Seat coordinates are an enhancement, not a dependency — a
+            # scrape hiccup must not fail the roster ingest.
+            log.warning("ingest.deputies.hemicycle_refresh_failed", exc_info=True)
+        await invalidate("legislatures:")
         return stats.deputies_seen
 
     return asyncio.run(_run())

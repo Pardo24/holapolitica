@@ -764,7 +764,16 @@ async def _compute_vote_hemicycle(session: AsyncSession, vote_id: int) -> VoteHe
         # frontend's color map paints this in the neutral "no-vote"
         # grey so the seat stays visible without claiming a position
         # the person never expressed.
-        resolved_choice: str = choice.value if choice is not None else VoteChoice.ABSENT.value
+        #
+        # ``choice`` reaches us as a plain string: VoteRecord.choice is
+        # a String column holding VoteChoice values, so Core SELECTs
+        # (this one) return str while ORM attribute access would return
+        # the enum. Normalise via str() so both shapes survive.
+        resolved_choice: str = (
+            str(choice.value if isinstance(choice, VoteChoice) else choice)
+            if choice is not None
+            else VoteChoice.ABSENT.value
+        )
         by_person[pid] = VoteHemicycleSeat(
             person_id=pid,
             full_name=full_name,

@@ -1587,7 +1587,8 @@
     "tap_for_info": "Toca un escó per veure el diputat o la diputada.",
     "view_profile": "Veure fitxa",
     "dismiss": "Tanca",
-    "no_position_yet": "Els seients encara no s'han carregat, es mostra una distribució provisional. Cada punt és clicable."
+    "no_position_yet": "Els seients encara no s'han carregat, es mostra una distribució provisional. Cada punt és clicable.",
+    "pending_placement": "Nous escons pendents d'ubicar al plànol:"
   },
   "embed_vote": {
     "not_found": "Votació no trobada",

@@ -11,11 +11,12 @@
  *   536×393; we remap into the component's own viewBox so the chart
  *   scales fluidly with its container.
  *
- * - When the ingest step ``hemicycle_xv`` has not yet run for a given
- *   deputy, ``seat_x`` and ``seat_y`` are NULL. We synthesise a
- *   curved-rows fallback for those seats so the chart remains usable
- *   end-to-end before the position data lands. Every seat is still
- *   coloured by group and clickable in that fallback mode.
+ * - When the ingest step ``hemicycle_xv`` has not yet run AT ALL,
+ *   every seat lacks coordinates and we synthesise a curved-rows
+ *   fallback so the chart remains usable end-to-end. When only a few
+ *   seats lack coordinates (fresh substitutes pending a re-scrape),
+ *   those deputies are listed by name under the chart instead of
+ *   being drawn at an invented position.
  *
  * Interaction (per the brief):
  *
@@ -168,16 +169,19 @@ interface PlacedSeat extends HemicycleSeat {
 
 function placeSeats(layout: HemicycleLayout): {
   placed: PlacedSeat[];
+  unplaced: HemicycleSeat[];
   usingFallback: boolean;
 } {
   const seated = layout.seats.filter((s) => s.seat_x != null && s.seat_y != null);
   const unseated = layout.seats.filter((s) => s.seat_x == null || s.seat_y == null);
 
-  // If we have ANY real seat positions, real seats use their coords
-  // and any stragglers (e.g. a brand-new substitute deputy whose
-  // position hasn't been re-scraped yet) get appended to the synthetic
-  // overflow at the far right. If we have NONE, the whole chart runs
-  // in fallback mode.
+  // If we have ANY real seat positions, real seats use their coords.
+  // Stragglers (e.g. a brand-new substitute deputy whose position
+  // hasn't been re-scraped yet) are NOT drawn as dots — a dot at an
+  // invented position reads as data. They're listed by name under the
+  // chart instead (see the pending-placement strip in the component).
+  // If we have NO positions at all, the whole chart runs in synthetic
+  // fallback mode and everyone gets an arc slot.
   const usingFallback = seated.length === 0;
 
   const placed: PlacedSeat[] = [];
@@ -185,18 +189,15 @@ function placeSeats(layout: HemicycleLayout): {
     const { cx, cy } = remap(s.seat_x as number, s.seat_y as number);
     placed.push({ ...s, cx, cy });
   }
-  const total = usingFallback ? unseated.length : Math.max(unseated.length, 1);
-  unseated.forEach((s, i) => {
-    const { cx, cy } = usingFallback
-      ? syntheticArc(i, total)
-      : // For "stragglers" without coords when most do have them,
-        // park them in a small row above the SVG header — visible
-        // but obviously distinct.
-        { cx: 40 + (i % 20) * 24, cy: 16 };
-    placed.push({ ...s, cx, cy });
-  });
+  if (usingFallback) {
+    unseated.forEach((s, i) => {
+      const { cx, cy } = syntheticArc(i, unseated.length);
+      placed.push({ ...s, cx, cy });
+    });
+    return { placed, unplaced: [], usingFallback };
+  }
 
-  return { placed, usingFallback };
+  return { placed, unplaced: unseated, usingFallback };
 }
 
 interface SelectedSeat {
@@ -260,7 +261,7 @@ export function Hemicycle({
   const [selected, setSelected] = useState<SelectedSeat | null>(null);
   const isTouch = useIsTouch();
 
-  const { placed, usingFallback } = useMemo(() => placeSeats(layout), [layout]);
+  const { placed, unplaced, usingFallback } = useMemo(() => placeSeats(layout), [layout]);
 
   const handleSeatHover = useCallback(
     (seat: PlacedSeat) => {
@@ -312,20 +313,13 @@ export function Hemicycle({
           style={{ width: '100%', height: 'auto', display: 'block' }}
           onMouseLeave={handleSeatLeave}
         >
-          {/* Official Congrés hemicycle backdrop — we cache a local copy
-              under /public/hemiciclo.png (downloaded with the same User-
-              Agent the deputy-photos importer uses) so we don't hotlink
-              theirs at request time. The seats sit on top with their
-              raw PNG-pixel coordinates aligned 1:1. */}
-          <image
-            href="/hemiciclo.png"
-            x={0}
-            y={0}
-            width={VIEW_W}
-            height={VIEW_H}
-            preserveAspectRatio="xMidYMid meet"
-            aria-hidden
-          />
+          {/* No image backdrop. The official PNG has every seat pre-
+              painted (grey dots + the dark-blue government bench), so
+              overlaying our colored dots on it produced ghost seats:
+              empty ministerial chairs stayed blue, and any half-pixel
+              offset showed the grey dot peeking behind ours. The 350
+              positioned dots draw the chamber's architecture on their
+              own; coordinates are still the official image-map's. */}
           {placed.map((seat) => (
             <SeatDot
               key={seat.person_id}
@@ -362,6 +356,54 @@ export function Hemicycle({
       >
         {usingFallback ? t('no_position_yet') : t('tap_for_info')}
       </div>
+
+      {/* Deputies without a scraped seat position yet (brand-new
+          substitutes, typically 0-2 people for a few days). Listed by
+          name instead of drawn at an invented position — honest, and
+          keeps the chart free of "floating" dots. */}
+      {unplaced.length > 0 && (
+        <div
+          style={{
+            marginTop: 8,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px 10px',
+            fontSize: 11.5,
+            color: 'var(--ink-3)',
+          }}
+        >
+          <span>{t('pending_placement')}</span>
+          {unplaced.map((s) => (
+            <Link
+              key={s.person_id}
+              href={`/persons/${s.person_id}` as Route}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                color: 'var(--ink-2)',
+                textDecoration: 'none',
+                fontWeight: 600,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 999,
+                  background: s.group_color ?? DEFAULT_COLOR,
+                  display: 'inline-block',
+                  flex: 'none',
+                }}
+              />
+              {s.full_name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Touch info pane — pinned below the SVG. Always rendered as a
           shell so the layout doesn't jump when the first seat is
