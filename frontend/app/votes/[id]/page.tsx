@@ -35,10 +35,11 @@ import { GroupChip } from '@/components/GroupChip';
 import { Hemicycle } from '@/components/Hemicycle';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
-import { buildStanceByVote } from '@/components/PartyStanceRow';
-import { GroupVoteBreakdown } from '@/components/GroupVoteBreakdown';
+import {
+  GroupVoteBreakdown,
+  type PartyStanceWithCount,
+} from '@/components/GroupVoteBreakdown';
 import { ResultPill } from '@/components/ResultPill';
-import { SplitCohesionRow } from '@/components/SplitCohesionRow';
 import { VoteDonut } from '@/components/VoteDonut';
 import {
   api,
@@ -216,6 +217,39 @@ function SectionTitle({
   );
 }
 
+/**
+ * Turn the per-group cohesion breakdown into the grouped-stance shape
+ * the {@link GroupVoteBreakdown} renders. Each group is placed in the
+ * column of its dominant choice (aye / no / abstention / absent), and
+ * ``count`` is how many of its deputies cast that choice — so "who
+ * backed this, and with how many votes" reads at a glance.
+ */
+function cohesionToStance(cohesion: CohesionResult[]): PartyStanceWithCount[] {
+  return cohesion.map((c) => {
+    const options: [string, number][] = [
+      ['aye', c.ayes],
+      ['no', c.noes],
+      ['abstention', c.abstentions],
+      ['absent', c.no_vote],
+    ];
+    let choice = options[0]![0];
+    let count = options[0]![1];
+    for (const [ch, n] of options) {
+      if (n > count) {
+        choice = ch;
+        count = n;
+      }
+    }
+    return {
+      slug: c.group_slug,
+      name_short: c.group_name_short,
+      color_hex: c.group_color_hex,
+      choice,
+      count,
+    };
+  });
+}
+
 export default async function VoteDetailPage({
   params,
 }: {
@@ -246,13 +280,12 @@ export default async function VoteDetailPage({
   // the group" there isn't meaningful, so we drop it from the dissidents.
   const dissidentBlocks = dissidents.blocks.filter((b) => b.group_slug !== 'gp-mixto');
 
-  // Per-group stance on this vote (majority choice), for the ambient
-  // green/red party discs. Best-effort.
+  // "How each group voted" — built from the cohesion breakdown, which
+  // carries the per-group vote counts. Each group is placed in the
+  // column of its dominant choice and shows how many of its deputies
+  // cast it. This replaces the old cohesion "voto por grupo" bars.
   const tSession = await getTranslations('session_sheet');
-  const groupChoicesResp = await api.votes.groupChoices([voteId]).catch(() => null);
-  const voteStance = groupChoicesResp
-    ? buildStanceByVote(groupChoicesResp.groups).get(voteId) ?? []
-    : [];
+  const voteStance = cohesionToStance(cohesion);
   const stanceLabels = {
     aye: tSession('choice_aye'),
     no: tSession('choice_no'),
@@ -767,33 +800,8 @@ export default async function VoteDetailPage({
           </section>
         </div>
 
-        {!vote.approved_by_assent && (
+        {!vote.approved_by_assent && dissidentBlocks.length > 0 && (
         <div>
-          <section>
-            <SectionTitle dek={t('cohesion_help')}>{t('cohesion_title')}</SectionTitle>
-            <div style={{ borderTop: '1px solid var(--ink)' }}>
-              {cohesion.map((row) => (
-                <SplitCohesionRow key={row.group_slug} row={row} />
-              ))}
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: 11,
-                color: 'var(--ink-3)',
-                marginTop: 10,
-                fontStyle: 'italic',
-                gap: 12,
-                flexWrap: 'wrap',
-              }}
-            >
-              <span>{t('cohesion_axis_left')}</span>
-              <span style={{ color: 'var(--ink-2)' }}>{t('cohesion_axis_center')}</span>
-              <span>{t('cohesion_axis_right')}</span>
-            </div>
-          </section>
-
           {dissidentBlocks.length > 0 && (
             <DissidentsSection
               blocks={dissidentBlocks}

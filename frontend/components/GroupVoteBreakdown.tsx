@@ -27,19 +27,22 @@ const CHOICE_COLOR: Record<ChoiceKey, string> = {
   absent: 'var(--nv, #94A3B8)',
 };
 
+/** A party's stance plus, optionally, how many of its deputies cast it. */
+export type PartyStanceWithCount = PartyStance & { count?: number };
+
 export function GroupVoteBreakdown({
   parties,
   labels,
   badgeSize = 'sm',
 }: {
-  parties: PartyStance[];
+  parties: PartyStanceWithCount[];
   labels: StanceLabels;
   /** Badge diameter. Detail pages use 'md' for a bolder read. */
   badgeSize?: 'xs' | 'sm' | 'md';
 }) {
   if (parties.length === 0) return null;
 
-  const byChoice = new Map<ChoiceKey, PartyStance[]>();
+  const byChoice = new Map<ChoiceKey, PartyStanceWithCount[]>();
   for (const p of parties) {
     const key = (COLUMN_ORDER as string[]).includes(p.choice)
       ? (p.choice as ChoiceKey)
@@ -47,6 +50,10 @@ export function GroupVoteBreakdown({
     const list = byChoice.get(key) ?? [];
     list.push(p);
     byChoice.set(key, list);
+  }
+  // Bigger blocs first inside each column when counts are known.
+  for (const list of byChoice.values()) {
+    list.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   }
   const columns = COLUMN_ORDER.filter((c) => (byChoice.get(c)?.length ?? 0) > 0);
 
@@ -131,10 +138,24 @@ export function GroupVoteBreakdown({
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       minWidth: 0,
+                      flex: 1,
                     }}
                   >
                     {displayGroupShort(p.name_short)}
                   </span>
+                  {p.count != null && (
+                    <span
+                      className="tabular"
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: 'var(--ink-2)',
+                        flex: 'none',
+                      }}
+                    >
+                      {p.count}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
