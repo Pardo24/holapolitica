@@ -1,6 +1,7 @@
 import { Check, Minus, X } from 'lucide-react';
 
 import type { GroupVoteChoiceRow } from '@/lib/api';
+import { groupLogoUrl } from '@/lib/groupLogos';
 import { displayGroupShort } from '@/lib/groups';
 
 /**
@@ -95,24 +96,49 @@ export function PartyStanceMini({
               style={{ color, flex: 'none' }}
             />
             <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-              {members.map((p, i) => (
-                <span
-                  key={p.slug}
-                  title={`${displayGroupShort(p.name_short)} · ${stanceWord(key)}`}
-                  style={{
-                    width: 13,
-                    height: 13,
-                    borderRadius: 999,
-                    background: p.color_hex ?? 'var(--ink-3)',
-                    display: 'inline-block',
-                    flex: 'none',
-                    // Overlapping avatar-stack look; the paper-colour
-                    // halo keeps neighbouring discs distinguishable.
-                    marginLeft: i === 0 ? 0 : -4,
-                    boxShadow: '0 0 0 1.5px var(--paper)',
-                  }}
-                />
-              ))}
+              {members.map((p, i) => {
+                const logo = groupLogoUrl(p.slug);
+                const title = `${displayGroupShort(p.name_short)} · ${stanceWord(key)}`;
+                // Overlapping avatar-stack look; the paper-colour halo
+                // keeps neighbouring discs distinguishable. Slightly
+                // bigger than the old plain dots (16px) so the party
+                // logos actually read; colour disc as fallback.
+                const common: React.CSSProperties = {
+                  width: 16,
+                  height: 16,
+                  borderRadius: 999,
+                  display: 'inline-block',
+                  flex: 'none',
+                  marginLeft: i === 0 ? 0 : -4,
+                  boxShadow: '0 0 0 1.5px var(--paper)',
+                };
+                return logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={p.slug}
+                    src={logo}
+                    alt=""
+                    title={title}
+                    width={16}
+                    height={16}
+                    loading="lazy"
+                    decoding="async"
+                    style={{
+                      ...common,
+                      objectFit: 'contain',
+                      padding: 1.5,
+                      boxSizing: 'border-box',
+                      background: '#fff',
+                    }}
+                  />
+                ) : (
+                  <span
+                    key={p.slug}
+                    title={title}
+                    style={{ ...common, background: p.color_hex ?? 'var(--ink-3)' }}
+                  />
+                );
+              })}
             </span>
           </span>
         );
