@@ -45,6 +45,7 @@ import type {
   VoteHemicycleSeat,
   VoteHemicycleLayout,
 } from '@/lib/api';
+import { ALL_SEAT_POSITIONS } from '@/lib/hemicycleAllSeats';
 
 // SVG viewBox we render into. We pick a 2.2:1 ratio that matches the
 // real chamber's aspect and gives a comfortable reading area for the
@@ -317,9 +318,28 @@ export function Hemicycle({
               painted (grey dots + the dark-blue government bench), so
               overlaying our colored dots on it produced ghost seats:
               empty ministerial chairs stayed blue, and any half-pixel
-              offset showed the grey dot peeking behind ours. The 350
-              positioned dots draw the chamber's architecture on their
-              own; coordinates are still the official image-map's. */}
+              offset showed the grey dot peeking behind ours. Instead
+              we draw the full chamber ourselves: a base layer with
+              every physical chair as an empty ring (static inventory
+              extracted from the same official image map), and the
+              occupied seats painted on top. Vacant seats and the
+              cabinet-bench chairs of non-deputy ministers therefore
+              stay visible as what they are — seats without a sitting
+              deputy. Skipped in synthetic-fallback mode, where dot
+              positions are invented and wouldn't line up. */}
+          {!usingFallback &&
+            ALL_SEAT_POSITIONS.map(([x, y]) => (
+              <circle
+                key={`empty-${x}-${y}`}
+                cx={x}
+                cy={y}
+                r={SEAT_R}
+                fill="var(--paper-3)"
+                stroke={SEAT_STROKE}
+                strokeWidth={SEAT_STROKE_W}
+                aria-hidden="true"
+              />
+            ))}
           {placed.map((seat) => (
             <SeatDot
               key={seat.person_id}
