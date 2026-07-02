@@ -2,7 +2,7 @@ import type { Route } from 'next';
 
 import { GroupChip } from '@/components/GroupChip';
 import { LawRow } from '@/components/LawRow';
-import { LawSummaryPanel } from '@/components/LawSummaryPanel';
+import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { TopicChip } from '@/components/TopicChip';
 import type { Vote } from '@/lib/api';
@@ -43,6 +43,11 @@ export function CompactVoteRow({
   locale: string;
 }) {
   const subject = v.description?.trim() || v.title;
+  // Headline = the plain-language AI summary when we have one; the dense
+  // official title then moves behind a "veure original" toggle. Falls
+  // back to the official title when no summary exists yet.
+  const plainSummary = pickPlainSummary(v, locale);
+  const headline = plainSummary ?? subject;
   const voteDate = new Date(v.voted_at);
   const isCurrentYear = voteDate.getFullYear() === new Date().getFullYear();
   const shortDate = voteDate
@@ -55,7 +60,6 @@ export function CompactVoteRow({
   // dateStyle 'medium' (e.g. "26 d'abr. 2026") matches the topic-hub
   // initiative rows so the date column is the same shape everywhere.
   const longDate = voteDate.toLocaleDateString(locale, { dateStyle: 'medium' });
-  const plainSummary = pickPlainSummary(v, locale);
   const topics = v.topics ?? [];
 
   const meta = (
@@ -102,10 +106,10 @@ export function CompactVoteRow({
           </span>
         </>
       )}
-      {/* Inline "explain" icon at the end of the meta line; the panel drops
-          full-width beneath (flex-basis:100%). */}
+      {/* When the AI summary is the headline, the official legal text is
+          one tap away via this toggle (drops full-width beneath). */}
       {plainSummary && (
-        <LawSummaryPanel summary={plainSummary} provider={v.plain_summary_provider} />
+        <LawOriginalToggle original={subject} provider={v.plain_summary_provider} />
       )}
     </>
   );
@@ -115,7 +119,7 @@ export function CompactVoteRow({
       href={`/votes/${v.id}` as Route}
       dateLong={longDate}
       dateShort={shortDate}
-      title={subject}
+      title={headline}
       meta={meta}
       outcomeAriaLabel={labels.result}
       outcome={
