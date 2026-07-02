@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { groupLogoUrl } from '@/lib/groupLogos';
 import { groupAbbreviation, readableTextOn } from '@/lib/groups';
 
 /**
@@ -35,6 +36,10 @@ export function GroupBadge({
   logoUrl?: string | null;
 }) {
   const abbrev = groupAbbreviation(slug);
+  // Prefer an explicitly-passed logo; otherwise fall back to the static
+  // local map (official party logos under /public/logos), so every badge
+  // on the site shows the party's real logo without a backend change.
+  const resolvedLogo = logoUrl ?? groupLogoUrl(slug);
   // Scale the inner font size with both the disc size AND the abbrev length —
   // 2-3 chars get a generous size, 4+ chars are squeezed so they don't kiss
   // the edge of the circle. Letter-spacing is tightened on longer labels.
@@ -46,16 +51,18 @@ export function GroupBadge({
     : 0.24;
   const fontPx = Math.max(7, Math.round(px * lengthFactor));
   const tracking = abbrev.length >= 4 ? '-0.04em' : '0.01em';
-  const inner = logoUrl ? (
+  const inner = resolvedLogo ? (
     // Logos go through plain <img> for the same reason deputy photos
-    // do (see frontend/app/persons/[id]/page.tsx): they're externally
+    // do (see frontend/app/persons/[id]/page.tsx): they're locally
     // hosted with predictable dimensions and don't need Next/Image's
-    // remote-domain allowlisting + optimiser pass. Lazy + decoded
-    // async so dense badge lists (e.g. cohesion table) don't block
-    // first paint.
+    // optimiser pass. Lazy + decoded async so dense badge lists
+    // (e.g. cohesion table) don't block first paint. `contain` (not
+    // cover) because several party logos are wide wordmarks that a
+    // circular crop would mutilate; the white plate keeps them
+    // legible in dark mode too.
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={logoUrl}
+      src={resolvedLogo}
       alt={`${abbrev} (${slug})`}
       title={abbrev}
       width={px}
@@ -66,9 +73,11 @@ export function GroupBadge({
       style={{
         width: px,
         height: px,
-        objectFit: 'cover',
+        objectFit: 'contain',
+        padding: Math.max(2, Math.round(px * 0.1)),
+        boxSizing: 'border-box',
         background: '#fff',
-        borderColor: 'rgba(0,0,0,.06)',
+        borderColor: 'rgba(0,0,0,.08)',
       }}
     />
   ) : (

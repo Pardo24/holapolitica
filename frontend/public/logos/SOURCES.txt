@@ -1,0 +1,11 @@
+Official party logos, used for identification (nominative use).
+Downloaded from Wikimedia Commons:
+
+gp-socialista.svg — https://upload.wikimedia.org/wikipedia/commons/4/41/Logotipo_del_PSOE.svg
+gp-vox.svg — https://upload.wikimedia.org/wikipedia/commons/a/aa/VOX_logo.svg
+gp-plurinacional-sumar.svg — https://upload.wikimedia.org/wikipedia/commons/5/51/Sumar_logo.svg
+gp-republicano.svg — https://upload.wikimedia.org/wikipedia/commons/f/f8/ERC_logo.svg
+gp-popular.svg — https://upload.wikimedia.org/wikipedia/commons/3/3c/Logo_del_PP_%282022%29.svg
+gp-junts-per-catalunya.svg — https://upload.wikimedia.org/wikipedia/commons/9/92/Junts_per_Catalunya_%282020%29.svg
+gp-vasco-eaj-pnv.svg — https://upload.wikimedia.org/wikipedia/commons/8/8c/Icono_EAJ-PNV_2025.svg
+gp-euskal-herria-bildu.svg — https://upload.wikimedia.org/wikipedia/commons/9/95/Icono_de_EH_Bildu_%282023%29.svg
