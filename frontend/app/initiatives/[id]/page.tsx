@@ -8,7 +8,7 @@ import { ArrowRight, ExternalLink, FileText, Route as RouteIcon } from 'lucide-r
 import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
-import { GroupVoteMatrix } from '@/components/GroupVoteMatrix';
+import { GroupVoteBreakdown } from '@/components/GroupVoteBreakdown';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import {
@@ -144,16 +144,6 @@ export default async function InitiativeDetailPage({
     ? buildStanceByVote(groupChoices.groups)
     : new Map();
   const stanceLabels: StanceLabels = {
-    aye: tSession('choice_aye'),
-    no: tSession('choice_no'),
-    abstention: tSession('choice_abstention'),
-    absent: tSession('choice_absent'),
-  };
-  const matrixLabels = {
-    show: tSession('matrix_show'),
-    loading: tSession('matrix_loading'),
-    error: tSession('matrix_error'),
-    title: tSession('matrix_title'),
     aye: tSession('choice_aye'),
     no: tSession('choice_no'),
     abstention: tSession('choice_abstention'),
@@ -594,11 +584,19 @@ export default async function InitiativeDetailPage({
                     </ul>
                   </details>
                 )}
-                {/* Who voted what across the law's votes (loads on demand). */}
-                <GroupVoteMatrix
-                  votes={votes.map((v) => ({ id: v.id, seq: null }))}
-                  labels={matrixLabels}
-                />
+                {/* How each group voted on the decisive (final) vote —
+                    grouped by stance, clearer than a per-vote table. */}
+                {finalVote && (stanceByVote.get(finalVote.id)?.length ?? 0) > 0 && (
+                  <div style={{ marginTop: 18 }}>
+                    <div className="eyebrow" style={{ marginBottom: 10 }}>
+                      {tVotes('group_stance_title')}
+                    </div>
+                    <GroupVoteBreakdown
+                      parties={stanceByVote.get(finalVote.id)!}
+                      labels={stanceLabels}
+                    />
+                  </div>
+                )}
               </>
             )
           ) : (
