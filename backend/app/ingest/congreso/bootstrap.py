@@ -240,17 +240,24 @@ async def backfill_vote_initiative_links() -> VoteInitiativeBackfillStats:
         # 2-part stem (when the sub-index is ``0000``).
         rows = (
             await session.execute(
-                _select(Initiative.official_id, Initiative.id).where(
-                    Initiative.chamber_id == chamber.id
-                )
+                _select(
+                    Initiative.official_id,
+                    Initiative.legislature_id,
+                    Initiative.id,
+                ).where(Initiative.chamber_id == chamber.id)
             )
         ).all()
-        index: dict[str, int] = {}
-        for official_id, initiative_id in rows:
-            index[official_id] = initiative_id
+        # Keyed by (legislature_id, official_id): the Congreso RESETS
+        # expediente numbers every term, so the same number (e.g. 130/000047)
+        # names a different initiative in 2014, 2018, 2021 and 2026. Matching
+        # without the legislature cross-linked votes from every term onto the
+        # newest law with that number.
+        index: dict[tuple[int, str], int] = {}
+        for official_id, leg_id, initiative_id in rows:
+            index[(leg_id, official_id)] = initiative_id
             stem = strip_zero_subindex(official_id)
             if stem != official_id:
-                index.setdefault(stem, initiative_id)
+                index.setdefault((leg_id, stem), initiative_id)
 
         log.info(
             "bootstrap.link_votes.starting",
@@ -262,7 +269,7 @@ async def backfill_vote_initiative_links() -> VoteInitiativeBackfillStats:
         # materialise the entire result set in memory.
         vote_ids_and_exptes = (
             await session.execute(
-                _select(Vote.id, Vote.expediente_raw)
+                _select(Vote.id, Vote.expediente_raw, SessionRow.legislature_id)
                 .join(SessionRow, SessionRow.id == Vote.session_id)
                 .where(SessionRow.chamber_id == chamber.id)
                 .where(Vote.initiative_id.is_(None))
@@ -272,11 +279,11 @@ async def backfill_vote_initiative_links() -> VoteInitiativeBackfillStats:
         ).all()
 
         processed = linked = unmatched = 0
-        for vote_id, expediente_raw in vote_ids_and_exptes:
+        for vote_id, expediente_raw, leg_id in vote_ids_and_exptes:
             processed += 1
-            target_id = index.get(expediente_raw)
+            target_id = index.get((leg_id, expediente_raw))
             if target_id is None and expediente_raw is not None:
-                target_id = index.get(strip_zero_subindex(expediente_raw))
+                target_id = index.get((leg_id, strip_zero_subindex(expediente_raw)))
             if target_id is None:
                 unmatched += 1
             else:
