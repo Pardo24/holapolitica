@@ -38,7 +38,7 @@ import { LawTypeChip } from '@/components/LawTypeChip';
 import { PartyStanceRow, buildStanceByVote } from '@/components/PartyStanceRow';
 import { ResultPill } from '@/components/ResultPill';
 import { SplitCohesionRow } from '@/components/SplitCohesionRow';
-import { StackedBar } from '@/components/StackedBar';
+import { VoteDonut } from '@/components/VoteDonut';
 import {
   api,
   ApiError,
@@ -582,67 +582,105 @@ export default async function VoteDetailPage({
                 {t('totals_label', { total: totalCast + vote.absent })}
               </h3>
             </div>
+            {/* Visual recount — half-donut (outer ring: result; inner
+                ring: each group's contribution in its own color) with
+                the four counts as a compact legend beside it. Replaces
+                the previous 4-number grid + StackedBar: same data, one
+                glance. */}
             <div
-              className="vote-totals-grid"
+              className="vote-recount-flex"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                columnGap: 24,
-                rowGap: 18,
+                display: 'flex',
+                gap: 28,
+                alignItems: 'center',
+                flexWrap: 'wrap',
               }}
             >
-              {[
-                { label: t('ayes'), n: vote.ayes, color: 'var(--aye)' },
-                { label: t('noes'), n: vote.noes, color: 'var(--no)' },
-                { label: t('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
-                { label: t('absent'), n: vote.absent, color: 'var(--nv)' },
-              ].map((c) => (
-                <div key={c.label} style={{ minWidth: 0 }}>
+              <div style={{ flex: '1 1 240px', minWidth: 220, maxWidth: 360 }}>
+                <VoteDonut
+                  totals={{
+                    aye: vote.ayes,
+                    no: vote.noes,
+                    abstention: vote.abstentions,
+                    absent: vote.absent,
+                  }}
+                  groups={cohesion}
+                  labels={{
+                    aye: t('ayes'),
+                    no: t('noes'),
+                    abstention: t('abstentions'),
+                    absent: t('absent'),
+                  }}
+                  ariaLabel={`${t('ayes')} ${vote.ayes} · ${t('noes')} ${vote.noes} · ${t('abstentions')} ${vote.abstentions} · ${t('absent')} ${vote.absent}`}
+                />
+                <p
+                  style={{
+                    fontSize: 10.5,
+                    color: 'var(--ink-3)',
+                    margin: '8px 0 0',
+                    textAlign: 'center',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {t('donut_caption')}
+                </p>
+              </div>
+              <div style={{ flex: '1 1 150px', display: 'grid', gap: 12 }}>
+                {[
+                  { label: t('ayes'), n: vote.ayes, color: 'var(--aye)' },
+                  { label: t('noes'), n: vote.noes, color: 'var(--no)' },
+                  { label: t('abstentions'), n: vote.abstentions, color: 'var(--abst)' },
+                  { label: t('absent'), n: vote.absent, color: 'var(--nv)' },
+                ].map((c) => (
                   <div
+                    key={c.label}
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      color: 'var(--ink-2)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      marginBottom: 6,
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      justifyContent: 'space-between',
+                      gap: 12,
                     }}
                   >
                     <span
-                      aria-hidden="true"
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 999,
-                        background: c.color,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 7,
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: 'var(--ink-2)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
                       }}
-                    />
-                    {c.label}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 999,
+                          background: c.color,
+                          flex: 'none',
+                        }}
+                      />
+                      {c.label}
+                    </span>
+                    <span
+                      className="tabular"
+                      style={{
+                        fontFamily: 'var(--font-serif)',
+                        fontSize: 'clamp(22px, 2.6vw, 30px)',
+                        fontWeight: 600,
+                        color: c.color,
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {c.n}
+                    </span>
                   </div>
-                  <div
-                    className="tabular"
-                    style={{
-                      fontFamily: 'var(--font-serif)',
-                      fontSize: 'clamp(28px, 4vw, 40px)',
-                      fontWeight: 600,
-                      color: c.color,
-                      letterSpacing: '-0.02em',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {c.n}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 14 }}>
-              <StackedBar
-                d={{ aye: vote.ayes, no: vote.noes, abst: vote.abstentions, nv: vote.absent }}
-                height={12}
-              />
+                ))}
+              </div>
             </div>
             <p
               style={{
@@ -783,7 +821,7 @@ export default async function VoteDetailPage({
           .vote-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
         }
         @media (max-width: 520px) {
-          .vote-totals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; column-gap: 20px !important; row-gap: 20px !important; }
+          .vote-recount-flex { gap: 18px !important; }
         }
       `}</style>
     </article>
