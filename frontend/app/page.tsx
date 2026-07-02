@@ -208,9 +208,17 @@ export default async function HomePage() {
           display: 'grid',
           gridTemplateColumns: '1.1fr 0.9fr',
           gap: 44,
-          paddingTop: 36,
-          paddingBottom: 32,
+          paddingTop: 40,
+          paddingBottom: 36,
           borderBottom: '1px solid var(--rule)',
+          // The cover owns the first viewport: hero + meta strip fill
+          // the screen on open, and "Últimas leyes" only appears when
+          // you scroll. 100svh minus topnav + hero paddings + meta
+          // strip; the left column's auto margins absorb the extra
+          // height by opening space above the buttons and above the
+          // trust chips. Cleared under 860px (media query below) where
+          // the columns stack and a forced height would leave a crater.
+          minHeight: 'calc(100svh - 205px)',
         }}
         className="home-hero"
       >
@@ -246,8 +254,22 @@ export default async function HomePage() {
           </p>
           {/* Actions: ONE primary button + the play entry. "Última sesión"
               was a third button duplicating the pleno card's CTA sitting
-              right next to it — gone. The quiet text links follow. */}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+              right next to it — gone. The quiet text links follow.
+              marginTop:auto — with the hero filling the viewport, the
+              free height opens up HERE, between the prose block and the
+              buttons, so title/subtitle and actions read as two distinct
+              moments instead of one cramped stack. The 32px floor keeps
+              the gap honest when the viewport is short. */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              marginTop: 'auto',
+              paddingTop: 32,
+            }}
+          >
             <Link href="/votes" className="btn-ink">
               {t('cta_explore')}
             </Link>
@@ -492,8 +514,10 @@ export default async function HomePage() {
           doesn't add a blank section to the home. */}
       {upcomingSessions.length > 0 && <UpcomingAgenda sessions={upcomingSessions} mode="home" />}
 
-      {/* Latest votes */}
-      <section style={{ paddingTop: 24 }}>
+      {/* Latest votes — below the fold by design (the hero owns the
+          first viewport); a wide top margin + its own hairline mark the
+          clear break between the cover and the feed. */}
+      <section style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid var(--rule)' }}>
         <div
           style={{
             display: 'flex',
@@ -584,7 +608,7 @@ export default async function HomePage() {
           is hidden and the mobile dashboard takes over. */}
       <style>{`
         @media (max-width: 860px) {
-          .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; padding-top: 24px !important; padding-bottom: 24px !important; }
+          .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; padding-top: 24px !important; padding-bottom: 24px !important; min-height: 0 !important; }
           /* Surfaces row stacks under 860 so each card keeps a
              comfortable internal layout; on a narrow tablet two
              cards side-by-side were cramming the body copy. */
