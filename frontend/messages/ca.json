@@ -660,7 +660,10 @@
     "surface_joc_body": "Endevina qui ha proposat una votació o com va sortir. Una manera lleugera d'aprendre com vota el Congrés.",
     "surface_joc_cta": "Posa't a prova",
     "latest_session_eyebrow": "El darrer ple, explicat",
-    "latest_session_explore": "Explora l'últim ple"
+    "latest_session_explore": "Explora l'últim ple",
+    "session_approved": "{n} aprovades",
+    "session_rejected": "{n} rebutjades",
+    "session_votes": "{n} votacions"
   },
   "deputy": {
     "title": "El teu diputat",

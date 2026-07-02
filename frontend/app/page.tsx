@@ -161,6 +161,20 @@ export default async function HomePage() {
       ? Math.round((summary.initiatives_classified / summary.initiatives_total) * 100)
       : null;
 
+  // Latest plenary session outcome for the home "último pleno" card — the
+  // full day's votes (not just the latest 5) so the aprovada/rebutjada split
+  // is accurate. One extra cached call; degrades to no split on failure.
+  const latestSessionDate = latestVotes[0]?.voted_at?.slice(0, 10) ?? null;
+  const sessionVotes = latestSessionDate
+    ? await api.votes
+        .list({ date_from: latestSessionDate, date_to: latestSessionDate, page_size: 100 })
+        .then((p) => p.items)
+        .catch(() => [] as Vote[])
+    : [];
+  const sessApproved = sessionVotes.filter((v) => v.result === 'approved').length;
+  const sessRejected = sessionVotes.filter((v) => v.result === 'rejected').length;
+  const sessTotal = sessionVotes.length;
+
   // Split the hero title so the second line can be tinted with the accent.
   const heroTitleLines = t('hero_title').split('\n');
 
@@ -421,32 +435,85 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Daily question — a hook, placed AFTER the hero so the value
-          proposition leads and the page doesn't open on a game. */}
-      <div style={{ marginTop: 8 }}>
-        <DailyTeaser
-          labels={{
-            eyebrow: tDaily('eyebrow'),
-            invite: tDaily('teaser_invite'),
-            answered_today_short: tDaily('answered_today_short'),
-            // raw: the {n} placeholder is interpolated client-side.
-            streak: tDaily.raw('streak'),
+      {/* At-a-glance band: the latest plenary (primary) sits beside the
+          daily question (secondary) as two consistent cards, with a quiet
+          provenance line beneath. Replaces three mismatched strips. */}
+      <section style={{ marginTop: 20 }}>
+        <div
+          className="home-glance"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1.6fr 1fr',
+            gap: 14,
+            alignItems: 'stretch',
           }}
-        />
-      </div>
-
-      {/* Coverage strip — a single quiet line of provenance figures.
-          Demoted from the old four-KPI band (which dominated the fold
-          without giving a returning visitor anything actionable): the
-          same numbers now read as one inline sentence and the detail
-          lives a click away on /stats. */}
-      <section
-        style={{
-          borderBottom: '1px solid var(--rule)',
-          paddingTop: 12,
-          paddingBottom: 12,
-        }}
-      >
+        >
+          {latestVotes[0]?.voted_at && (
+            <Link href={'/avui' as Route} className="glance-card glance-card--primary">
+              <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 8 }}>
+                {t('latest_session_eyebrow')}
+              </div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: 'clamp(22px, 2.6vw, 30px)',
+                  fontWeight: 600,
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.02em',
+                  color: 'var(--ink)',
+                }}
+              >
+                {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}
+              </div>
+              {sessTotal > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <div
+                    role="img"
+                    aria-label={`${t('session_approved', { n: sessApproved })}, ${t('session_rejected', { n: sessRejected })}`}
+                    style={{
+                      display: 'flex',
+                      height: 6,
+                      borderRadius: 999,
+                      overflow: 'hidden',
+                      background: 'var(--paper-3)',
+                    }}
+                  >
+                    {sessApproved > 0 && (
+                      <span style={{ width: `${(sessApproved / sessTotal) * 100}%`, background: 'var(--aye)' }} />
+                    )}
+                    {sessRejected > 0 && (
+                      <span style={{ width: `${(sessRejected / sessTotal) * 100}%`, background: 'var(--no)' }} />
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: 12.5 }}>
+                    <span className="tabular" style={{ color: 'var(--aye)', fontWeight: 600 }}>
+                      {t('session_approved', { n: sessApproved })}
+                    </span>
+                    <span className="tabular" style={{ color: 'var(--no)', fontWeight: 600 }}>
+                      {t('session_rejected', { n: sessRejected })}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <span className="glance-cta" style={{ marginTop: 'auto' }}>
+                {t('latest_session_explore')}
+                <ArrowRight size={16} aria-hidden="true" />
+              </span>
+            </Link>
+          )}
+          <DailyTeaser
+            labels={{
+              eyebrow: tDaily('eyebrow'),
+              invite: tDaily('teaser_invite'),
+              answered_today_short: tDaily('answered_today_short'),
+              streak: tDaily.raw('streak'),
+            }}
+          />
+        </div>
         <div
           style={{
             display: 'flex',
@@ -455,12 +522,13 @@ export default async function HomePage() {
             flexWrap: 'wrap',
             fontSize: 12.5,
             color: 'var(--ink-3)',
+            marginTop: 14,
+            paddingTop: 12,
+            borderTop: '1px solid var(--rule)',
           }}
         >
           <span>
-            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
-              350
-            </span>{' '}
+            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>350</span>{' '}
             {t('coverage_active_deputies').toLowerCase()}
           </span>
           <span style={{ color: 'var(--rule)' }}>·</span>
@@ -492,79 +560,39 @@ export default async function HomePage() {
             {t('coverage_see_all')} <ArrowRight size={13} aria-hidden="true" />
           </Link>
         </div>
+        <style>{`
+          .glance-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px 22px;
+            border: 1px solid var(--rule-strong);
+            border-radius: 16px;
+            background: var(--paper-2);
+            color: inherit;
+            text-decoration: none;
+            transition: border-color 0.12s ease;
+          }
+          .glance-card--primary { border-top: 3px solid var(--accent); }
+          .glance-card:hover, .glance-card:focus-visible { border-color: var(--ink); outline: none; }
+          .glance-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            background: var(--ink);
+            color: var(--paper);
+            font-size: 14px;
+            font-weight: 600;
+            align-self: flex-start;
+          }
+          @media (max-width: 860px) {
+            .home-glance { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
       </section>
-
-      {/* Latest-session banner — the big "explore the last plenary" entry
-          point, low on the page, styled like the mobile session card the
-          user liked. Full-width, dark, unmissable. */}
-      {latestVotes[0]?.voted_at && (
-        <section style={{ paddingTop: 32 }}>
-          <Link
-            href={'/avui' as Route}
-            className="home-session-banner"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 20,
-              padding: '24px 28px',
-              borderRadius: 18,
-              background: 'var(--ink)',
-              color: 'var(--paper)',
-              textDecoration: 'none',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  color: 'var(--paper-2)',
-                  marginBottom: 6,
-                }}
-              >
-                {t('latest_session_eyebrow')}
-              </div>
-              <div
-                className="serif"
-                style={{
-                  fontSize: 'clamp(24px, 3vw, 34px)',
-                  fontWeight: 600,
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })}
-              </div>
-            </div>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                flex: 'none',
-                padding: '11px 20px',
-                borderRadius: 999,
-                background: 'var(--paper)',
-                color: 'var(--ink)',
-                fontSize: 15,
-                fontWeight: 700,
-              }}
-            >
-              {t('latest_session_explore')}
-              <ArrowRight size={17} aria-hidden="true" />
-            </span>
-          </Link>
-          <style>{`.home-session-banner:hover, .home-session-banner:focus-visible { background: color-mix(in oklch, var(--ink) 90%, var(--accent)) !important; outline: none; }`}</style>
-        </section>
-      )}
 
       {/* Newsletter signup — single card with title + caption above
           the form, mail icon as a quiet accent on the left. On narrow
