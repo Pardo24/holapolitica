@@ -71,34 +71,6 @@ const heroTextLink: React.CSSProperties = {
   textUnderlineOffset: 4,
 };
 
-/** A colored result tile in the "this week" card. */
-function WeekStat({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div
-      style={{
-        background: `color-mix(in srgb, ${color} 12%, var(--paper))`,
-        borderRadius: 10,
-        padding: '9px 10px',
-      }}
-    >
-      <div
-        style={{
-          fontSize: 10,
-          color: 'var(--ink-3)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          fontWeight: 700,
-        }}
-      >
-        {label}
-      </div>
-      <div className="tabular" style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1.1, marginTop: 2 }}>
-        {value}
-      </div>
-    </div>
-  );
-}
-
 export default async function HomePage() {
   const t = await getTranslations('home');
   const tSite = await getTranslations('site');
@@ -148,14 +120,6 @@ export default async function HomePage() {
     highlights = buildHighlights(allGroups, new Map(topicStatsPerGroup));
   }
 
-  // "This week" descriptive widget — until the API exposes a daily-counts
-  // endpoint, derive the figures we have today from the latest 5 votes.
-  // Kept honest: shows actual ingested counts, never fabricated trends.
-  const weekVotes = latestVotes;
-  const weekApproved = weekVotes.filter((v) => v.result === 'approved').length;
-  const weekRejected = weekVotes.filter((v) => v.result === 'rejected').length;
-  const weekTied = weekVotes.filter((v) => v.result === 'tie').length;
-
   const classifiedPct =
     summary && summary.initiatives_total > 0
       ? Math.round((summary.initiatives_classified / summary.initiatives_total) * 100)
@@ -177,11 +141,6 @@ export default async function HomePage() {
 
   // Split the hero title so the second line can be tinted with the accent.
   const heroTitleLines = t('hero_title').split('\n');
-
-  // "Esta semana" stacked-bar proportions (approved vs rejected/tie).
-  const weekDecided = weekApproved + weekRejected + weekTied;
-  const weekApprovedPct = weekDecided > 0 ? Math.round((weekApproved / weekDecided) * 100) : 0;
-  const weekRejectedPct = weekDecided > 0 ? Math.round((weekRejected / weekDecided) * 100) : 0;
 
   return (
     <div>
@@ -321,13 +280,11 @@ export default async function HomePage() {
         </div>
 
         <div
-          // Right column now hosts TWO widgets stacked vertically: the
-          // HighlightsCarousel on top (rotating per-group fact card, replaces
-          // the previous CohesionCarousel — cohesion now lives only on
-          // /stats) and the existing "Aquesta setmana" aside below. We size
-          // them inside a flex column so they share the column gracefully.
-          // On mobile the entire `home-hero` collapses to a single column
-          // (see media query below) and the children stack naturally.
+          // Right column: the latest plenary session as the hero's primary
+          // card (freshest content, framed inside the opening view), with
+          // the rotating per-group HighlightsCarousel beneath it. The old
+          // "Aquesta setmana" aside duplicated the same session's numbers
+          // in a second visual language and is gone.
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -336,127 +293,15 @@ export default async function HomePage() {
           }}
           className="home-hero__right"
         >
-          {/* HighlightsCarousel — rotating per-group "top-supported / top-
-              rejected topic" cards. Symmetric: every group is shown in turn.
-              The component handles its own empty state internally. */}
-          <HighlightsCarousel items={highlights} allTopics={allTopics} />
-
-          <aside
-          style={{
-            border: '1px solid var(--rule-strong)',
-            borderRadius: 18,
-            padding: 24,
-            background: 'var(--paper-2)',
-            boxShadow: '0 1px 0 rgba(15,23,42,.03), 0 8px 24px -16px rgba(15,23,42,.12)',
-          }}
-        >
-          <div className="eyebrow" style={{ color: 'var(--accent)' }}>{t('week_eyebrow')}</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginTop: 8 }}>
-            <div
-              className="serif tabular"
-              style={{ fontSize: 56, fontWeight: 600, lineHeight: 1, letterSpacing: '-0.02em' }}
-            >
-              {weekVotes.length}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--ink-2)' }}>
-              {t('week_subtitle')}
-              <br />
-              <span style={{ color: 'var(--ink-3)', fontSize: 11 }}>
-                {t('week_breakdown', {
-                  sessions: new Set(weekVotes.map((v) => v.session_id)).size,
-                  initiatives: new Set(
-                    weekVotes
-                      .map((v) => v.initiative_id)
-                      .filter((x): x is number => x != null),
-                  ).size,
-                })}
-              </span>
-            </div>
-          </div>
-
-          {/* Stacked bar — a quick visual of the week's approved vs rejected. */}
-          {weekDecided > 0 && (
-            <div
-              role="img"
-              aria-label={`${weekApproved} ${tVotes('result.approved')}, ${weekRejected} ${tVotes('result.rejected')}`}
-              style={{
-                display: 'flex',
-                height: 8,
-                borderRadius: 999,
-                overflow: 'hidden',
-                background: 'var(--paper-3)',
-                marginTop: 18,
-              }}
-            >
-              {weekApproved > 0 && <span style={{ width: `${weekApprovedPct}%`, background: 'var(--aye)' }} />}
-              {weekRejected > 0 && <span style={{ width: `${weekRejectedPct}%`, background: 'var(--no)' }} />}
-            </div>
-          )}
-
-          {/* Colored breakdown tiles — give the week some life. */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
-            <WeekStat label={tVotes('result.approved')} value={weekApproved} color="var(--aye)" />
-            <WeekStat label={tVotes('result.rejected')} value={weekRejected} color="var(--no)" />
-            <WeekStat label={tVotes('result.tie')} value={weekTied} color="var(--abst)" />
-          </div>
-
-          <Link
-            href={'/avui' as Route}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              marginTop: 14,
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--ink)',
-            }}
-          >
-            {t('week_see_session')} <ArrowRight size={14} aria-hidden="true" />
-          </Link>
-
-          {/* Week-caveat methodology note. On mobile we hide the full caveat
-              body and keep just the "Mètodologia →" link so the panel
-              compresses but the affordance for transparency stays one tap
-              away. Desktop renders the full sentence. */}
-          <div
-            style={{
-              marginTop: 14,
-              fontSize: 11,
-              color: 'var(--ink-3)',
-              borderTop: '1px solid var(--rule)',
-              paddingTop: 10,
-              lineHeight: 1.5,
-            }}
-          >
-            <span className="hidden sm:inline">{t('week_caveat')}</span>
-          </div>
-        </aside>
-        </div>
-      </section>
-
-      {/* At-a-glance band: the latest plenary (primary) sits beside the
-          daily question (secondary) as two consistent cards, with a quiet
-          provenance line beneath. Replaces three mismatched strips. */}
-      <section style={{ marginTop: 20 }}>
-        <div
-          className="home-glance"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.6fr 1fr',
-            gap: 14,
-            alignItems: 'stretch',
-          }}
-        >
           {latestVotes[0]?.voted_at && (
-            <Link href={'/avui' as Route} className="glance-card glance-card--primary">
+            <Link href={'/avui' as Route} className="hero-pleno-card">
               <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 8 }}>
                 {t('latest_session_eyebrow')}
               </div>
               <div
                 className="serif"
                 style={{
-                  fontSize: 'clamp(22px, 2.6vw, 30px)',
+                  fontSize: 'clamp(22px, 2.4vw, 30px)',
                   fontWeight: 600,
                   lineHeight: 1.1,
                   letterSpacing: '-0.02em',
@@ -476,7 +321,7 @@ export default async function HomePage() {
                     aria-label={`${t('session_approved', { n: sessApproved })}, ${t('session_rejected', { n: sessRejected })}`}
                     style={{
                       display: 'flex',
-                      height: 6,
+                      height: 7,
                       borderRadius: 999,
                       overflow: 'hidden',
                       background: 'var(--paper-3)',
@@ -489,93 +334,56 @@ export default async function HomePage() {
                       <span style={{ width: `${(sessRejected / sessTotal) * 100}%`, background: 'var(--no)' }} />
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: 12.5 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      marginTop: 8,
+                      fontSize: 12.5,
+                      flexWrap: 'wrap',
+                      alignItems: 'baseline',
+                    }}
+                  >
                     <span className="tabular" style={{ color: 'var(--aye)', fontWeight: 600 }}>
                       {t('session_approved', { n: sessApproved })}
                     </span>
                     <span className="tabular" style={{ color: 'var(--no)', fontWeight: 600 }}>
                       {t('session_rejected', { n: sessRejected })}
                     </span>
+                    <span className="tabular" style={{ color: 'var(--ink-3)' }}>
+                      · {sessTotal} {t('week_subtitle')}
+                    </span>
                   </div>
                 </div>
               )}
-              <span className="glance-cta" style={{ marginTop: 'auto' }}>
+              <span className="hero-pleno-cta">
                 {t('latest_session_explore')}
                 <ArrowRight size={16} aria-hidden="true" />
               </span>
             </Link>
           )}
-          <DailyTeaser
-            labels={{
-              eyebrow: tDaily('eyebrow'),
-              invite: tDaily('teaser_invite'),
-              answered_today_short: tDaily('answered_today_short'),
-              streak: tDaily.raw('streak'),
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            gap: 16,
-            flexWrap: 'wrap',
-            fontSize: 12.5,
-            color: 'var(--ink-3)',
-            marginTop: 14,
-            paddingTop: 12,
-            borderTop: '1px solid var(--rule)',
-          }}
-        >
-          <span>
-            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>350</span>{' '}
-            {t('coverage_active_deputies').toLowerCase()}
-          </span>
-          <span style={{ color: 'var(--rule)' }}>·</span>
-          <span>
-            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
-              {summary ? summary.votes_total.toLocaleString(locale) : '—'}
-            </span>{' '}
-            {t('coverage_votes_ingested').toLowerCase()}
-          </span>
-          <span style={{ color: 'var(--rule)' }}>·</span>
-          <span>
-            <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
-              {classifiedPct == null ? '—' : `${classifiedPct}%`}
-            </span>{' '}
-            {t('coverage_classified').toLowerCase()}
-          </span>
-          <Link
-            href="/stats"
-            style={{
-              marginLeft: 'auto',
-              fontSize: 12,
-              color: 'var(--ink)',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            {t('coverage_see_all')} <ArrowRight size={13} aria-hidden="true" />
-          </Link>
+
+          {/* HighlightsCarousel — rotating per-group "top-supported / top-
+              rejected topic" cards. Symmetric: every group is shown in turn.
+              The component handles its own empty state internally. */}
+          <HighlightsCarousel items={highlights} allTopics={allTopics} />
         </div>
         <style>{`
-          .glance-card {
+          .hero-pleno-card {
             display: flex;
             flex-direction: column;
-            height: 100%;
-            padding: 20px 22px;
+            padding: 22px 24px;
             border: 1px solid var(--rule-strong);
+            border-top: 3px solid var(--accent);
             border-radius: 16px;
             background: var(--paper-2);
             color: inherit;
             text-decoration: none;
+            box-shadow: 0 1px 0 rgba(15,23,42,.03), 0 8px 24px -16px rgba(15,23,42,.12);
             transition: border-color 0.12s ease;
           }
-          .glance-card--primary { border-top: 3px solid var(--accent); }
-          .glance-card:hover, .glance-card:focus-visible { border-color: var(--ink); outline: none; }
-          .glance-cta {
+          .hero-pleno-card:hover, .hero-pleno-card:focus-visible { border-color: var(--ink); outline: none; }
+          .hero-pleno-cta {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -588,10 +396,69 @@ export default async function HomePage() {
             font-weight: 600;
             align-self: flex-start;
           }
-          @media (max-width: 860px) {
-            .home-glance { grid-template-columns: 1fr !important; }
-          }
         `}</style>
+      </section>
+
+      {/* Meta strip — one quiet line of coverage facts (the "how much
+          data is behind this" credibility signal) with the daily
+          question as a compact pill on the right. Replaces the previous
+          two-card glance band + separate coverage row: the latest pleno
+          now lives in the hero, and the daily game no longer competes
+          with it at the same visual weight. */}
+      <section
+        className="home-meta-strip"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          flexWrap: 'wrap',
+          fontSize: 12.5,
+          color: 'var(--ink-3)',
+          padding: '12px 0',
+          borderBottom: '1px solid var(--rule)',
+        }}
+      >
+        <span>
+          <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>350</span>{' '}
+          {t('coverage_active_deputies').toLowerCase()}
+        </span>
+        <span style={{ color: 'var(--rule)' }}>·</span>
+        <span>
+          <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+            {summary ? summary.votes_total.toLocaleString(locale) : '—'}
+          </span>{' '}
+          {t('coverage_votes_ingested').toLowerCase()}
+        </span>
+        <span style={{ color: 'var(--rule)' }}>·</span>
+        <span>
+          <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+            {classifiedPct == null ? '—' : `${classifiedPct}%`}
+          </span>{' '}
+          {t('coverage_classified').toLowerCase()}
+        </span>
+        <Link
+          href="/stats"
+          style={{
+            fontSize: 12,
+            color: 'var(--ink)',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+        >
+          {t('coverage_see_all')} <ArrowRight size={13} aria-hidden="true" />
+        </Link>
+        <span style={{ marginLeft: 'auto' }}>
+          <DailyTeaser
+            labels={{
+              eyebrow: tDaily('eyebrow'),
+              invite: tDaily('teaser_invite'),
+              answered_today_short: tDaily('answered_today_short'),
+              streak: tDaily.raw('streak'),
+            }}
+          />
+        </span>
       </section>
 
       {/* Newsletter signup — single card with title + caption above
