@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import { GroupBadge } from '@/components/GroupBadge';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import {
-  PartyStanceRow,
+  PartyStanceMini,
   buildStanceByVote,
   type PartyStance,
   type StanceLabels,
@@ -1049,17 +1049,35 @@ function LawVoteGroup({
                   {proposer.short}
                 </span>
               )}
-              {topics.map((tp) => (
+              {/* One topic chip only — the extra topics collapse into a
+                  quiet "+N" so the meta line doesn't turn into a badge
+                  wall (the dossier page lists them all). */}
+              {topics.slice(0, 1).map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
+              {topics.length > 1 && (
+                <span
+                  className="tabular"
+                  title={topics
+                    .slice(1)
+                    .map((tp) => pickTopicName(tp, locale))
+                    .join(' · ')}
+                  style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-3)' }}
+                >
+                  +{topics.length - 1}
+                </span>
+              )}
               {plainSummary && (
                 <LawOriginalToggle original={subject} provider={lead.plain_summary_provider} />
               )}
             </div>
           )}
-          {/* Who backed / opposed the law — the stance on its final vote. */}
+          {/* Who backed / opposed the law — the stance on its final vote.
+              Mini variant (glyph + plain discs) so the row doesn't drown
+              in badges; names stay on hover, the full breakdown lives on
+              the detail pages. */}
           {finalStance && finalStance.length > 0 && (
-            <PartyStanceRow parties={finalStance} labels={stanceLabels} />
+            <PartyStanceMini parties={finalStance} labels={stanceLabels} />
           )}
           {/* The law's individual votes. */}
           <div style={{ marginTop: 10 }}>
@@ -1422,9 +1440,22 @@ function VoteRow({
                   {proposer.short}
                 </span>
               )}
-              {topics.map((tp) => (
+              {/* Same one-chip cap as the law rows above. */}
+              {topics.slice(0, 1).map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
+              {topics.length > 1 && (
+                <span
+                  className="tabular"
+                  title={topics
+                    .slice(1)
+                    .map((tp) => pickTopicName(tp, locale))
+                    .join(' · ')}
+                  style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-3)' }}
+                >
+                  +{topics.length - 1}
+                </span>
+              )}
               {plainSummary && (
                 <LawOriginalToggle
                   original={subject}
@@ -1434,7 +1465,7 @@ function VoteRow({
             </div>
           )}
           {stance && stance.length > 0 && (
-            <PartyStanceRow parties={stance} labels={stanceLabels} />
+            <PartyStanceMini parties={stance} labels={stanceLabels} />
           )}
         </div>
 

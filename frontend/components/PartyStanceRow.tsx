@@ -1,3 +1,5 @@
+import { Check, Minus, X } from 'lucide-react';
+
 import type { GroupVoteChoiceRow } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -43,6 +45,80 @@ export function buildStanceByVote(groups: GroupVoteChoiceRow[]): Map<number, Par
     }
   }
   return map;
+}
+
+/**
+ * Ultra-compact stance strip for dense list rows (pleno sheet, vote
+ * cards): a small ✓ / ✗ / − glyph per stance followed by the groups as
+ * plain colour discs — no pills, no names, no rings. The full name +
+ * stance stays reachable via the ``title`` tooltip, and the detail
+ * pages carry the explicit GroupVoteBreakdown. Absent groups are
+ * omitted here on purpose: in a scanning context they're noise.
+ */
+export function PartyStanceMini({
+  parties,
+  labels,
+}: {
+  parties: PartyStance[];
+  labels: StanceLabels;
+}) {
+  if (parties.length === 0) return null;
+  const stanceWord = (c: string): string =>
+    c === 'aye' ? labels.aye : c === 'no' ? labels.no : labels.abstention;
+  const clusters: { key: string; color: string; Icon: typeof Check }[] = [
+    { key: 'aye', color: 'var(--aye, #16A34A)', Icon: Check },
+    { key: 'no', color: 'var(--no, #DC2626)', Icon: X },
+    { key: 'abstention', color: 'var(--abst, #CA8A04)', Icon: Minus },
+  ];
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        flexWrap: 'wrap',
+        marginTop: 8,
+      }}
+    >
+      {clusters.map(({ key, color, Icon }) => {
+        const members = parties.filter((p) => p.choice === key);
+        if (members.length === 0) return null;
+        return (
+          <span
+            key={key}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
+          >
+            <Icon
+              size={12}
+              strokeWidth={3}
+              aria-label={stanceWord(key)}
+              style={{ color, flex: 'none' }}
+            />
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+              {members.map((p, i) => (
+                <span
+                  key={p.slug}
+                  title={`${displayGroupShort(p.name_short)} · ${stanceWord(key)}`}
+                  style={{
+                    width: 13,
+                    height: 13,
+                    borderRadius: 999,
+                    background: p.color_hex ?? 'var(--ink-3)',
+                    display: 'inline-block',
+                    flex: 'none',
+                    // Overlapping avatar-stack look; the paper-colour
+                    // halo keeps neighbouring discs distinguishable.
+                    marginLeft: i === 0 ? 0 : -4,
+                    boxShadow: '0 0 0 1.5px var(--paper)',
+                  }}
+                />
+              ))}
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 export function PartyStanceRow({

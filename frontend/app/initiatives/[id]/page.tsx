@@ -12,7 +12,7 @@ import { GroupVoteBreakdown } from '@/components/GroupVoteBreakdown';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import {
-  PartyStanceRow,
+  PartyStanceMini,
   buildStanceByVote,
   type PartyStance,
   type StanceLabels,
@@ -797,7 +797,7 @@ function VoteCardBig({
         height={10}
       />
       {stance && stance.length > 0 && (
-        <PartyStanceRow parties={stance} labels={stanceLabels} />
+        <PartyStanceMini parties={stance} labels={stanceLabels} />
       )}
       <span
         style={{
@@ -908,7 +908,7 @@ function VoteCardCompact({
         height={8}
       />
       {stance && stance.length > 0 && (
-        <PartyStanceRow parties={stance} labels={stanceLabels} />
+        <PartyStanceMini parties={stance} labels={stanceLabels} />
       )}
     </Link>
   );
