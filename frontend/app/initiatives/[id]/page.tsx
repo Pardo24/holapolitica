@@ -18,6 +18,7 @@ import {
   type StanceLabels,
 } from '@/components/PartyStanceRow';
 import { ResultPill } from '@/components/ResultPill';
+import { ShareButton } from '@/components/ShareButton';
 import { StackedBar } from '@/components/StackedBar';
 import {
   api,
@@ -306,6 +307,7 @@ export default async function InitiativeDetailPage({
             <RouteIcon size={12} aria-hidden="true" />
             {tLifecycle('cta_short')}
           </Link>
+          <ShareButton url={`/initiatives/${initiative.id}`} title={title} size="sm" label={tVotes('share_cta')} />
         </div>
       </header>
 

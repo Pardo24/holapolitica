@@ -40,6 +40,7 @@ import {
   type PartyStanceWithCount,
 } from '@/components/GroupVoteBreakdown';
 import { ResultPill } from '@/components/ResultPill';
+import { ShareButton } from '@/components/ShareButton';
 import { VoteDonut } from '@/components/VoteDonut';
 import {
   api,
@@ -455,12 +456,18 @@ export default async function VoteDetailPage({
               <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--ink-3)', opacity: 0.6, display: 'inline-block' }} />
             </>
           )}
-          {/* Result + margin */}
+          {/* Result + margin. An assent vote says so explicitly — a plain
+              green "Aprobada" would hide that no roll call happened. */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <ResultPill result={vote.result} label={t(`result.${vote.result}`)} />
-            <span className="tabular" style={{ color: 'var(--ink-3)', fontSize: 12 }}>
-              {margin >= 0 ? `+${margin}` : margin}
-            </span>
+            <ResultPill
+              result={vote.result}
+              label={vote.approved_by_assent ? t('assent_title') : t(`result.${vote.result}`)}
+            />
+            {!vote.approved_by_assent && (
+              <span className="tabular" style={{ color: 'var(--ink-3)', fontSize: 12 }}>
+                {margin >= 0 ? `+${margin}` : margin}
+              </span>
+            )}
           </div>
           {(vote.proposing_group_short || vote.proposed_by_government) && (
             <>
@@ -549,6 +556,16 @@ export default async function VoteDetailPage({
               </a>
             </>
           )}
+          {/* Share — the anti-misinformation loop: the link unfurls as a
+              fact card (result + who voted what) wherever it's pasted. */}
+          <span style={{ marginLeft: 'auto' }}>
+            <ShareButton
+              url={`/votes/${vote.id}`}
+              title={subject}
+              size="sm"
+              label={t('share_cta')}
+            />
+          </span>
         </div>
 
         {/* How each group voted — INSIDE the header, right under the
@@ -557,8 +574,11 @@ export default async function VoteDetailPage({
             charts read in a single glance, no separate section. */}
         {voteStance.length > 0 && !vote.approved_by_assent && (
           <div style={{ marginTop: 20 }}>
-            <div className="eyebrow" style={{ marginBottom: 10 }}>
-              {t('group_stance_title')}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
+              <div className="eyebrow">{t('group_stance_title')}</div>
+              <span style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>
+                {t('group_stance_help')}
+              </span>
             </div>
             <GroupStanceBand
               parties={voteStance}

@@ -482,7 +482,8 @@ export default async function HomePage() {
           <span className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
             {summary ? summary.votes_total.toLocaleString(locale) : '—'}
           </span>{' '}
-          {t('coverage_votes_ingested').toLowerCase()}
+          {t('coverage_votes_ingested').toLowerCase()}{' '}
+          <span style={{ color: 'var(--ink-3)' }}>· {t('coverage_since')}</span>
         </span>
         <Link
           href="/stats"

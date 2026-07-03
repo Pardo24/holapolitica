@@ -663,7 +663,8 @@
     "latest_session_explore": "Explora el último pleno",
     "session_approved": "{n} aprobadas",
     "session_rejected": "{n} rechazadas",
-    "session_votes": "{n} votaciones"
+    "session_votes": "{n} votaciones",
+    "coverage_since": "desde agosto de 2023"
   },
   "deputy": {
     "title": "Tu diputado",
@@ -916,7 +917,9 @@
     "pagination_next_aria": "Página siguiente",
     "show_original": "Texto original",
     "group_stance_title": "Cómo ha votado cada grupo",
-    "donut_caption": "Anillo exterior: el resultado. Anillo interior: la aportación de cada grupo parlamentario."
+    "donut_caption": "Anillo exterior: el resultado. Anillo interior: la aportación de cada grupo parlamentario.",
+    "share_cta": "Compartir",
+    "group_stance_help": "Posición mayoritaria de los diputados de cada grupo en esta votación."
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",
