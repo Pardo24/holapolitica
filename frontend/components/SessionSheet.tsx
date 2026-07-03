@@ -248,19 +248,39 @@ export async function SessionSheet({
         </div>
       </header>
 
-      {/* Outcome bar — a single slim stacked bar giving the day's shape at
-          a glance (approved / rejected / tied) before the prose lede spells
-          it out. Visual, not a dashboard grid: it complements the editorial
-          copy rather than replacing it. */}
-      {ordered.length > 0 && (
-        <div style={{ margin: '0 0 24px', maxWidth: 720 }}>
+      {/* Lede — ONE summary block: the outcome bar (the day's shape at a
+          glance) followed by the newspaper-style prose sentence that
+          spells it out. The counts used to appear three times on this
+          opening (nav counter, a numbers row under the bar, and the
+          lede prose) — the numbers row is gone; the bar carries the
+          shape, the serif sentence carries the words, and every figure
+          stays one click from its source. No editorial framing
+          ("histórico", "polémico"); the sentence only states facts in
+          the order a journalist would. */}
+      <section
+        style={{
+          marginBottom: 32,
+          paddingBottom: 0,
+          maxWidth: 720,
+        }}
+      >
+        <div
+          className="eyebrow"
+          style={{ marginBottom: 10 }}
+        >
+          {t('lede_eyebrow')}
+        </div>
+        {ordered.length > 0 && (
           <div
+            role="img"
+            aria-label={`${counts.approved} ${t('result_approved')} · ${counts.rejected} ${t('result_rejected')}${counts.tie > 0 ? ` · ${counts.tie} ${t('result_tie')}` : ''}`}
             style={{
               display: 'flex',
               height: 10,
               borderRadius: 999,
               overflow: 'hidden',
               background: 'var(--rule)',
+              marginBottom: 14,
             }}
           >
             {counts.approved > 0 && (
@@ -273,45 +293,7 @@ export async function SessionSheet({
               <div style={{ width: `${(counts.tie / ordered.length) * 100}%`, background: 'var(--abst)' }} />
             )}
           </div>
-          <div style={{ display: 'flex', gap: 18, marginTop: 9, fontSize: 12.5, color: 'var(--ink-3)', flexWrap: 'wrap' }}>
-            <span>
-              <strong className="tabular" style={{ color: 'var(--aye)', fontWeight: 700 }}>{counts.approved}</strong>{' '}
-              {t('result_approved')}
-            </span>
-            <span>
-              <strong className="tabular" style={{ color: 'var(--no)', fontWeight: 700 }}>{counts.rejected}</strong>{' '}
-              {t('result_rejected')}
-            </span>
-            {counts.tie > 0 && (
-              <span>
-                <strong className="tabular" style={{ color: 'var(--abst)', fontWeight: 700 }}>{counts.tie}</strong>{' '}
-                {t('result_tie')}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Lede — newspaper-style prose summary. The day's counts live
-          inside a single serif paragraph so the page reads as
-          editorial copy, not a dashboard. The "tightest margin"
-          phrase wraps a Link to that specific vote so the lede
-          remains scannable but every figure stays one click from its
-          source. No editorial framing ("histórico", "polémico"); the
-          sentence only states facts in the order a journalist would. */}
-      <section
-        style={{
-          marginBottom: 32,
-          paddingBottom: 0,
-          maxWidth: 720,
-        }}
-      >
-        <div
-          className="eyebrow"
-          style={{ marginBottom: 8 }}
-        >
-          {t('lede_eyebrow')}
-        </div>
+        )}
         <p
           className="serif"
           style={{

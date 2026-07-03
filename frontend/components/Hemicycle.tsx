@@ -309,7 +309,7 @@ export function Hemicycle({
         style={{ position: 'relative', width: '100%' }}
       >
         <svg
-          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+          viewBox={`0 -12 ${VIEW_W} ${VIEW_H + 12}`}
           preserveAspectRatio="xMidYMid meet"
           style={{ width: '100%', height: 'auto', display: 'block' }}
           onMouseLeave={handleSeatLeave}
