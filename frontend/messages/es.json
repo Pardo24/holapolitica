@@ -1502,7 +1502,9 @@
     "stance_no_pct": "{pct}% en contra",
     "stance_abst_pct": "{pct}% abstención",
     "stance_divided": "Dividido",
-    "low_confidence_aria": "Muestra reducida — pocos votos emitidos"
+    "low_confidence_aria": "Muestra reducida — pocos votos emitidos",
+    "manifesto_toggle": "Programa electoral · {n}",
+    "manifesto_page": "pág. {n}"
   },
   "group_summary_carousel": {
     "empty": "Aún no hay suficientes datos para el resumen por grupo.",
@@ -1623,7 +1625,8 @@
     "source_label": "Fuente:",
     "proposed_by_label": "Propuesto por",
     "proposed_government": "Gobierno",
-    "cohesion_eyebrow": "Cómo han votado los grupos mayoritarios"
+    "cohesion_eyebrow": "Cómo han votado los grupos mayoritarios",
+    "stance_eyebrow": "Cómo votó cada grupo"
   },
   "embed_group": {
     "not_found": "Grupo parlamentario no encontrado",

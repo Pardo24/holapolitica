@@ -1501,7 +1501,9 @@
     "stance_no_pct": "{pct}% en contra",
     "stance_abst_pct": "{pct}% abstenció",
     "stance_divided": "Dividit",
-    "low_confidence_aria": "Mostra reduïda — pocs vots emesos"
+    "low_confidence_aria": "Mostra reduïda — pocs vots emesos",
+    "manifesto_toggle": "Programa electoral · {n}",
+    "manifesto_page": "pàg. {n}"
   },
   "group_summary_carousel": {
     "empty": "Encara no hi ha prou dades per al resum per grup.",
@@ -1622,7 +1624,8 @@
     "source_label": "Font:",
     "proposed_by_label": "Proposat per",
     "proposed_government": "Govern",
-    "cohesion_eyebrow": "Com han votat els grups majoritaris"
+    "cohesion_eyebrow": "Com han votat els grups majoritaris",
+    "stance_eyebrow": "Com ha votat cada grup"
   },
   "embed_group": {
     "not_found": "Grup parlamentari no trobat",

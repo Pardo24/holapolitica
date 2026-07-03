@@ -179,6 +179,15 @@ export default async function GroupDetailPage({
   const manifestoPoints: ManifestoPoint[] = await api.groups
     .manifesto(slug)
     .catch(() => [] as ManifestoPoint[]);
+  // Keyed by topic for the per-card collapsed quotes in TopicBars.
+  const manifestoByTopic: Record<string, { quote: string; page: number | null; source_url: string | null }[]> = {};
+  for (const pnt of manifestoPoints) {
+    (manifestoByTopic[pnt.topic_slug] ??= []).push({
+      quote: pnt.quote,
+      page: pnt.page,
+      source_url: pnt.source_url,
+    });
+  }
 
   return (
     <article>
@@ -422,158 +431,6 @@ export default async function GroupDetailPage({
         </section>
       )}
 
-      {/* Programa vs. voto — the promise↔record surface. Per topic with
-          manifesto commitments: the party's LITERAL quotes (page +
-          source link) on the left, the group's factual voting record on
-          that topic on the right. No fulfilment verdicts — the reader
-          compares. Hidden until a manifesto has been ingested. */}
-      {manifestoPoints.length > 0 && (
-        <section style={{ paddingTop: 28 }}>
-          <h2 className="h-title">{t('manifesto_title')}</h2>
-          <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
-            {t('manifesto_subtitle')}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginTop: 14 }}>
-            {[...new Set(manifestoPoints.map((p) => p.topic_slug))].map((topicSlug) => {
-              const points = manifestoPoints.filter((p) => p.topic_slug === topicSlug);
-              const stat = topicStats.find((r) => r.topic_slug === topicSlug) ?? null;
-              const proposes =
-                proposesByTopic.find((r) => r.topic_slug === topicSlug)?.count ?? 0;
-              const topicName = localizedTopicName(topicSlug, points[0]!.topic_slug);
-              const color =
-                allTopics.find((tp) => tp.slug === topicSlug)?.color_hex ?? 'var(--ink-3)';
-              const pct =
-                stat && stat.cast > 0 ? Math.round((stat.ayes / stat.cast) * 100) : null;
-              return (
-                <div
-                  key={topicSlug}
-                  className="group-manifesto-row"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 0.7fr)',
-                    gap: 20,
-                    border: '1px solid var(--rule)',
-                    borderLeft: `3px solid ${color}`,
-                    borderRadius: 12,
-                    background: 'var(--paper-2)',
-                    padding: '16px 20px',
-                  }}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <Link
-                      href={`/topics/${topicSlug}` as Route}
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        color: 'var(--ink)',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      {topicName}
-                    </Link>
-                    <div
-                      style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}
-                    >
-                      {points.slice(0, 3).map((p) => (
-                        <blockquote
-                          key={p.quote.slice(0, 60)}
-                          className="serif"
-                          style={{
-                            margin: 0,
-                            paddingLeft: 12,
-                            borderLeft: '2px solid var(--rule-strong)',
-                            fontSize: 14.5,
-                            lineHeight: 1.5,
-                            color: 'var(--ink)',
-                            fontStyle: 'italic',
-                          }}
-                        >
-                          “{p.quote}”{' '}
-                          {p.source_url ? (
-                            <a
-                              href={p.source_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="tabular"
-                              style={{
-                                fontSize: 11,
-                                fontStyle: 'normal',
-                                color: 'var(--ink-3)',
-                                whiteSpace: 'nowrap',
-                              }}
-                              title={t('manifesto_source')}
-                            >
-                              ({p.page != null ? t('manifesto_page', { n: p.page }) : 'PDF'})
-                            </a>
-                          ) : p.page != null ? (
-                            <span
-                              className="tabular"
-                              style={{ fontSize: 11, fontStyle: 'normal', color: 'var(--ink-3)' }}
-                            >
-                              ({t('manifesto_page', { n: p.page })})
-                            </span>
-                          ) : null}
-                        </blockquote>
-                      ))}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      minWidth: 0,
-                      borderLeft: '1px solid var(--rule)',
-                      paddingLeft: 20,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.07em',
-                        color: 'var(--ink-3)',
-                      }}
-                    >
-                      {t('manifesto_record_title')}
-                    </div>
-                    {pct != null && stat && (
-                      <div style={{ fontSize: 13.5, color: 'var(--ink)' }}>
-                        <span
-                          className="tabular serif"
-                          style={{ fontSize: 24, fontWeight: 600, color: 'var(--aye)' }}
-                        >
-                          {pct}%
-                        </span>{' '}
-                        <span style={{ color: 'var(--ink-2)' }}>
-                          {t('manifesto_record_votes', { n: stat.cast })}
-                        </span>
-                      </div>
-                    )}
-                    {proposes > 0 && (
-                      <div style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>
-                        {t('manifesto_record_proposed', { n: proposes })}
-                      </div>
-                    )}
-                    {pct == null && proposes === 0 && (
-                      <div style={{ fontSize: 12.5, color: 'var(--ink-3)' }}>—</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <style>{`
-            @media (max-width: 640px) {
-              .group-manifesto-row { grid-template-columns: 1fr !important; }
-              .group-manifesto-row > div:last-child { border-left: none !important; padding-left: 0 !important; border-top: 1px solid var(--rule); padding-top: 10px; }
-            }
-          `}</style>
-        </section>
-      )}
-
       {/* Composition — gender + age + constituent parties.
           Symmetric: every bucket (including "unknown") is shown, never
           hidden. Headline "Composició" (factual), never "Diversitat"
@@ -704,11 +561,17 @@ export default async function GroupDetailPage({
         <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
           {t('vote_by_topic_subtitle')}
         </p>
+        {/* Strip variant: one swipeable row instead of a wall of 17
+            cards. Cards whose topic has manifesto commitments carry a
+            collapsed "Programa electoral · N" block with the literal
+            quotes — closed by default so the voting record leads. */}
         <TopicBars
           rows={topicStats}
           emptyHint={t('vote_by_topic_empty_hint')}
           groupSlug={group.slug}
           allTopics={allTopics}
+          variant="strip"
+          manifestoByTopic={manifestoByTopic}
         />
       </section>
 

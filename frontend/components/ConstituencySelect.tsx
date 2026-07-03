@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { MapPinned } from 'lucide-react';
+import { Loader2, MapPinned } from 'lucide-react';
 
 import type { ConstituencyRow } from '@/lib/api';
 import { nearestProvince } from '@/lib/provinces';
@@ -98,7 +98,8 @@ export function ConstituencySelect({
         <button
           type="button"
           onClick={detect}
-          disabled={detecting}
+          disabled={detecting || pending}
+          aria-busy={detecting || pending}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -110,11 +111,31 @@ export function ConstituencySelect({
             color: 'var(--ink-2)',
             fontSize: 13,
             fontWeight: 600,
-            cursor: detecting ? 'progress' : 'pointer',
+            cursor: detecting || pending ? 'progress' : 'pointer',
           }}
         >
-          <MapPinned size={15} strokeWidth={1.8} aria-hidden="true" />
-          {detecting ? detectingLabel : geolocateLabel}
+          {/* Spinner covers BOTH waits: the browser's geolocation prompt/
+              fix (detecting) and the server round-trip that loads the
+              province's deputies afterwards (pending). Without it the
+              button looked dead for a couple of seconds. */}
+          {detecting || pending ? (
+            <Loader2
+              size={15}
+              strokeWidth={2}
+              aria-hidden="true"
+              className="geo-spinner"
+            />
+          ) : (
+            <MapPinned size={15} strokeWidth={1.8} aria-hidden="true" />
+          )}
+          {detecting || pending ? detectingLabel : geolocateLabel}
+          <style>{`
+            .geo-spinner { animation: geo-spin 0.9s linear infinite; }
+            @keyframes geo-spin { to { transform: rotate(360deg); } }
+            @media (prefers-reduced-motion: reduce) {
+              .geo-spinner { animation: none; }
+            }
+          `}</style>
         </button>
       </div>
       {error && <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{geolocateError}</span>}

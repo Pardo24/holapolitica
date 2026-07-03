@@ -1502,7 +1502,9 @@
     "stance_no_pct": "{pct}% against",
     "stance_abst_pct": "{pct}% abstention",
     "stance_divided": "Divided",
-    "low_confidence_aria": "Limited sample — few votes cast"
+    "low_confidence_aria": "Limited sample — few votes cast",
+    "manifesto_toggle": "Manifesto · {n}",
+    "manifesto_page": "p. {n}"
   },
   "group_summary_carousel": {
     "empty": "Not enough data yet for the per-group summary.",
@@ -1623,7 +1625,8 @@
     "source_label": "Source:",
     "proposed_by_label": "Proposed by",
     "proposed_government": "Government",
-    "cohesion_eyebrow": "How the largest groups voted"
+    "cohesion_eyebrow": "How the largest groups voted",
+    "stance_eyebrow": "How each group voted"
   },
   "embed_group": {
     "not_found": "Parliamentary group not found",
