@@ -68,13 +68,10 @@ html, body {
      double-tap-zoom heuristic on every clickable element below. */
   touch-action: manipulation;
   margin: 0;
-  /* Subtle gradient gives the page warmth without losing the paper feel.
-     A warm corner up top, paper everywhere else — vivid edge, calm middle. */
-  background-image:
-    radial-gradient(800px 360px at top right, color-mix(in oklch, var(--accent-warm) 12%, transparent) 0%, transparent 70%),
-    radial-gradient(600px 300px at top left, color-mix(in oklch, var(--accent) 10%, transparent) 0%, transparent 65%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  /* Flat paper backdrop. The old top-corner radial washes (warm right,
+     accent left) clashed with the home hero's own full-bleed gradient —
+     on wide viewports they read as two odd colour squares flanking the
+     navbar. One colour treatment per screen: the hero owns it. */
   /* Mobile-app feel — never let the page scroll horizontally; subtle tap
      highlight tinted to the brand accent instead of the default grey
      rectangle; smooth in-page anchor scrolling. */
