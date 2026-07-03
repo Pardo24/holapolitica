@@ -222,7 +222,7 @@ export default async function HomePage() {
           // the vertical breathing room reads as a designed cover, not
           // leftover white.
           background:
-            'linear-gradient(180deg, color-mix(in oklch, var(--accent) 7%, var(--paper)) 0%, color-mix(in oklch, var(--accent) 3%, var(--paper)) 60%, var(--paper) 100%)',
+            'linear-gradient(180deg, var(--paper) 0%, color-mix(in oklch, var(--accent) 6%, var(--paper)) 45%, color-mix(in oklch, var(--accent) 4%, var(--paper)) 72%, var(--paper) 100%)',
           borderBottom: '1px solid var(--rule)',
           alignItems: 'center',
           // The cover owns the first viewport: hero + meta strip fill
