@@ -273,12 +273,9 @@ export default async function GroupDetailPage({
 
         <aside style={{ borderLeft: '1px solid var(--ink)', paddingLeft: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-            <span
-              className="gdisc lg"
-              style={{ background: group.color_hex ?? 'var(--ink-3)' }}
-            >
-              {groupAbbreviation(group.slug)}
-            </span>
+            {/* Official party logo (falls back to the colour disc for
+                groups without one, e.g. GP Mixto). */}
+            <GroupBadge slug={group.slug} color={group.color_hex} size="lg" link={false} />
             <div>
               <div className="eyebrow">{t('civic_mark_eyebrow')}</div>
               <div

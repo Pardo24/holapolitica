@@ -88,9 +88,23 @@ export default async function HomePage() {
   try {
     [summary, latestVotes, upcomingSessions, allGroups, allTopics] = await Promise.all([
       api.stats.summary(),
+      // Over-fetch then dedupe: a law voted several times in one pleno
+      // (e.g. an RDL convalidation voted twice) produces multiple vote
+      // rows sharing an expediente, which read as the same law twice on
+      // the home list. Keep the most recent per expediente, trim to 5.
       api.votes
-        .list({ page: 1, page_size: 5 })
-        .then((p) => p.items),
+        .list({ page: 1, page_size: 12 })
+        .then((p) => {
+          const seen = new Set<string>();
+          return p.items
+            .filter((v) => {
+              const key = v.expediente_raw ?? `vote-${v.id}`;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            })
+            .slice(0, 5);
+        }),
       api.agenda
         .sessions({ legislature_id: 1, upcoming_only: true })
         .then((rows) => rows.slice(0, 4))
