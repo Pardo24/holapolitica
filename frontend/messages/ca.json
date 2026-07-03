@@ -219,7 +219,7 @@
     "newsletter": "Newsletter",
     "notifications": "Notificacions",
     "journalists": "Premsa",
-    "deputy": "El teu diputat"
+    "deputy": "Diputats"
   },
   "lleis": {
     "title": "Lleis",
@@ -681,7 +681,7 @@
     "coverage_since": "des d'agost de 2023"
   },
   "deputy": {
-    "title": "El teu diputat",
+    "title": "Diputats",
     "subtitle": "Tria la teva província i mira qui et representa al Congrés: el grup, l'assistència i el seu historial complet.",
     "picker_label": "La teva circumscripció:",
     "picker_placeholder": "Tria una província…",
@@ -697,7 +697,11 @@
     "geolocate_error": "No hem pogut detectar la teva província. Tria-la a mà.",
     "hemicycle_title": "La cambra",
     "hemicycle_hint": "Cada seient és un diputat. Passa-hi per sobre o toca'l per veure qui és. Tria la teva província per il·luminar els teus.",
-    "hemicycle_hint_selected": "Il·luminats, els diputats de {prov}. Passa per sobre o toca qualsevol seient per veure qui és."
+    "hemicycle_hint_selected": "Il·luminats, els diputats de {prov}. Passa per sobre o toca qualsevol seient per veure qui és.",
+    "groups_cta_title": "Els grups parlamentaris",
+    "groups_cta_sub": "Balanç, composició i programa de cada grup",
+    "map_cta_title": "El Mapa",
+    "map_cta_sub": "On és cada partit, segons com vota"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -809,7 +813,7 @@
     "joc_sub": "Posa't a prova amb votacions reals",
     "align_title": "Què votaries tu?",
     "align_sub": "Descobreix amb quins partits coincideixes",
-    "deputy_title": "El teu diputat",
+    "deputy_title": "Diputats",
     "deputy_sub": "Qui et representa, de debò",
     "map_title": "El Mapa",
     "map_sub": "On són els partits, segons com voten"
@@ -1608,7 +1612,10 @@
     "view_profile": "Veure fitxa",
     "dismiss": "Tanca",
     "no_position_yet": "Els seients encara no s'han carregat, es mostra una distribució provisional. Cada punt és clicable.",
-    "pending_placement": "Nous escons pendents d'ubicar al plànol:"
+    "pending_placement": "Nous escons pendents d'ubicar al plànol:",
+    "legend_hint": "Toca un grup per il·luminar els seus escons",
+    "legend_all_groups": "Tots els grups",
+    "legend_view_group": "Veure la fitxa del grup"
   },
   "embed_vote": {
     "not_found": "Votació no trobada",
