@@ -276,7 +276,8 @@
     "no_summary_yet": "Encara no hi ha un resum en llenguatge planer. Es generarà properament.",
     "related_title": "Altres lleis similars",
     "final_vote_label": "Votació final (decisiva)",
-    "other_votes_toggle": "Veure les altres {n} votacions (esmenes, articles...)"
+    "other_votes_toggle": "Veure les altres {n} votacions (esmenes, articles...)",
+    "affects_label": "A qui afecta"
   },
   "law_journey": {
     "eyebrow": "Trajectòria",

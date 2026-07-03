@@ -799,6 +799,13 @@ export interface Initiative {
   plain_summary_es: string | null;
   plain_summary_provider: string | null;
   plain_summary_generated_at: string | null;
+  /**
+   * LLM-extracted "who does this directly affect" tags per locale,
+   * e.g. `{ es: ['inquilinos'], ca: ['llogaters'] }`. NULL until the
+   * extraction job has processed the row; empty lists when the model
+   * couldn't name a concrete audience.
+   */
+  affected_audiences: { ca: string[]; es: string[] } | null;
   // BOE link — populated by the nightly enrichment worker for
   // approved laws that have been formally published. NULL when the
   // initiative hasn't reached publication or the matcher couldn't

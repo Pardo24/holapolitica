@@ -441,6 +441,11 @@ class Initiative(Base, TimestampMixin):
     plain_summary_es: Mapped[str | None] = mapped_column(Text)
     plain_summary_provider: Mapped[str | None] = mapped_column(String(64))
     plain_summary_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # LLM-extracted "who does this directly affect" tags, JSON
+    # ``{"ca": [...], "es": [...]}`` (max ~4 short audience tags per
+    # locale). NULL = not processed yet; empty lists = the model could
+    # not name a concrete audience. See ``app.services.affected``.
+    affected_audiences: Mapped[dict[str, list[str]] | None] = mapped_column(JSON)
 
 
 class Session(Base, TimestampMixin):

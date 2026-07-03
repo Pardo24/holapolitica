@@ -276,7 +276,8 @@
     "no_summary_yet": "No plain-language summary yet. One will be generated soon.",
     "related_title": "Other similar laws",
     "final_vote_label": "Final (decisive) vote",
-    "other_votes_toggle": "See the other {n} votes (amendments, articles...)"
+    "other_votes_toggle": "See the other {n} votes (amendments, articles...)",
+    "affects_label": "Who it affects"
   },
   "law_journey": {
     "eyebrow": "Trajectory",

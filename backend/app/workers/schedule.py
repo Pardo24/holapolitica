@@ -69,6 +69,16 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "30 */6 * * *",
         jobs.classify_pending_initiatives,
     ),
+    # "Who does this affect" extraction — trails the classifier tick by
+    # 15 minutes so freshly-summarised initiatives get their audience
+    # tags within the same 6h window. Cheap: one small LLM call per
+    # pending row, capped at 200/tick.
+    (
+        "monitor-affected-pending",
+        "ingest",
+        "45 */6 * * *",
+        jobs.generate_affected_pending,
+    ),
     # Upcoming agenda: daily at 08:00 (after the calendar publishes any
     # overnight Mesa decisions), plus an extra Monday 14:00 run because the
     # Mesa typically tweaks the week's pleno on Friday afternoon / Monday
