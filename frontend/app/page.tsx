@@ -277,11 +277,11 @@ export default async function HomePage() {
           >
             {t('hero_subtitle')}
           </p>
-          {/* Actions: ONE primary button + the play entry, in natural
-              flow right after the subtitle (an earlier auto-margin
-              opened a crater between prose and buttons — the viewport's
-              free height now goes to the bottom of the column, before
-              the trust chips). */}
+          {/* Actions: the two primary civic entries — the laws and the
+              deputies/parties hub — carry button weight; the game is the
+              lighter third. "Diputados" is a substantial surface (chamber
+              map, per-group balance, manifesto vs. vote) and was only
+              reachable from the nav before. */}
           <div
             style={{
               display: 'flex',
@@ -293,6 +293,10 @@ export default async function HomePage() {
           >
             <Link href="/votes" className="btn-ink">
               {t('cta_explore')}
+            </Link>
+            <Link href={'/el-teu-diputat' as Route} style={heroOutlineBtn}>
+              <Users size={15} strokeWidth={1.9} aria-hidden="true" />
+              {t('cta_deputies')}
             </Link>
             <Link href={'/jocs' as Route} style={heroOutlineBtn}>
               <Gamepad2 size={15} strokeWidth={1.9} aria-hidden="true" />

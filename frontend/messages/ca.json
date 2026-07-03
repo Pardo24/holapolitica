@@ -678,7 +678,8 @@
     "session_approved": "{n} aprovades",
     "session_rejected": "{n} rebutjades",
     "session_votes": "{n} votacions",
-    "coverage_since": "des d'agost de 2023"
+    "coverage_since": "des d'agost de 2023",
+    "cta_deputies": "Diputats i grups"
   },
   "deputy": {
     "title": "Diputats",

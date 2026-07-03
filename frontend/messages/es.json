@@ -678,7 +678,8 @@
     "session_approved": "{n} aprobadas",
     "session_rejected": "{n} rechazadas",
     "session_votes": "{n} votaciones",
-    "coverage_since": "desde agosto de 2023"
+    "coverage_since": "desde agosto de 2023",
+    "cta_deputies": "Diputados y grupos"
   },
   "deputy": {
     "title": "Diputados",
