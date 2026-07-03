@@ -678,7 +678,8 @@
     "session_approved": "{n} approved",
     "session_rejected": "{n} rejected",
     "session_votes": "{n} votes",
-    "coverage_since": "since August 2023"
+    "coverage_since": "since August 2023",
+    "cta_deputies": "Deputies & groups"
   },
   "deputy": {
     "title": "Deputies",
