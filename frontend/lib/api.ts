@@ -529,6 +529,14 @@ export interface GroupSnapshot {
 }
 
 /** Per-topic count of distinct initiatives a group has PROPOSED. */
+export interface ManifestoPoint {
+  topic_slug: string;
+  quote: string;
+  page: number | null;
+  election: string;
+  source_url: string | null;
+}
+
 export interface ProposesByTopicStat {
   topic_slug: string;
   topic_name_ca: string;
@@ -1075,6 +1083,8 @@ export const api = {
     // across the group's whole history. Feeds the group snapshot embed.
     snapshot: (slug: string) =>
       request<GroupSnapshot>(`/groups/${slug}/snapshot`, { revalidate: AGG_REVALIDATE }),
+    manifesto: (slug: string) =>
+      request<ManifestoPoint[]>(`/groups/${slug}/manifesto`, { revalidate: AGG_REVALIDATE }),
     proposesByTopic: (slug: string) =>
       request<ProposesByTopicStat[]>(`/groups/${slug}/proposes-by-topic`, {
         revalidate: AGG_REVALIDATE,

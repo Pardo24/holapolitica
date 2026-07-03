@@ -599,7 +599,14 @@
     "balance_total": "Impulsadas",
     "balance_approved": "Aprobadas",
     "balance_rejected": "Rechazadas",
-    "balance_pending": "Sin votación final"
+    "balance_pending": "Sin votación final",
+    "manifesto_title": "Programa electoral vs. voto",
+    "manifesto_subtitle": "Citas literales del programa electoral (elecciones de julio de 2023), con página y enlace a la fuente, junto al registro factual de voto del grupo en ese tema. Sin valoraciones: compara y juzga tú.",
+    "manifesto_page": "pág. {n}",
+    "manifesto_source": "Ver el programa (PDF)",
+    "manifesto_record_votes": "a favor en {n} votaciones del tema",
+    "manifesto_record_proposed": "{n} iniciativas impulsadas en este tema",
+    "manifesto_record_title": "Cómo ha votado"
   },
   "home": {
     "eyebrow": "Open data del Congreso de los Diputados",

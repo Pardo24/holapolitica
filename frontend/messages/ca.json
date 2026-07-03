@@ -599,7 +599,14 @@
     "balance_total": "Impulsades",
     "balance_approved": "Aprovades",
     "balance_rejected": "Rebutjades",
-    "balance_pending": "Sense votació final"
+    "balance_pending": "Sense votació final",
+    "manifesto_title": "Programa electoral vs. vot",
+    "manifesto_subtitle": "Cites literals del programa electoral (eleccions del juliol de 2023), amb pàgina i enllaç a la font, al costat del registre factual de vot del grup en aquell tema. Sense valoracions: compara i jutja tu.",
+    "manifesto_page": "pàg. {n}",
+    "manifesto_source": "Veure el programa (PDF)",
+    "manifesto_record_votes": "a favor en {n} votacions del tema",
+    "manifesto_record_proposed": "{n} iniciatives impulsades en aquest tema",
+    "manifesto_record_title": "Com ha votat"
   },
   "home": {
     "eyebrow": "Open data del Congrés dels Diputats",
