@@ -1507,7 +1507,9 @@
     "stance_divided": "Dividit",
     "low_confidence_aria": "Mostra reduïda — pocs vots emesos",
     "manifesto_toggle": "Programa electoral · {n}",
-    "manifesto_page": "pàg. {n}"
+    "manifesto_page": "pàg. {n}",
+    "carousel_prev": "Anterior",
+    "carousel_next": "Següent"
   },
   "group_summary_carousel": {
     "empty": "Encara no hi ha prou dades per al resum per grup.",

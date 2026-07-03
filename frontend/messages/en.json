@@ -1508,7 +1508,9 @@
     "stance_divided": "Divided",
     "low_confidence_aria": "Limited sample — few votes cast",
     "manifesto_toggle": "Manifesto · {n}",
-    "manifesto_page": "p. {n}"
+    "manifesto_page": "p. {n}",
+    "carousel_prev": "Previous",
+    "carousel_next": "Next"
   },
   "group_summary_carousel": {
     "empty": "Not enough data yet for the per-group summary.",

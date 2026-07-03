@@ -250,13 +250,9 @@ a { color: inherit; }
 }
 
 /* Floating circular prev/next button for ScrollCarousel. */
-.scroll-carousel-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  width: 32px;
-  height: 32px;
+.scroll-carousel-nav {
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
@@ -264,12 +260,12 @@ a { color: inherit; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px -3px rgba(15, 23, 42, 0.25);
+  padding: 0;
+  transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
 }
-.scroll-carousel-btn:hover {
+.scroll-carousel-nav:hover:not(:disabled) {
   background: var(--paper-2);
-  border-color: var(--ink-2);
+  border-color: var(--ink);
 }
 .scroll-carousel-btn:focus-visible {
   outline: 2px solid var(--accent);
@@ -1571,4 +1567,75 @@ body.hp-filter-pending .mobile-votes-list::after {
   .kpi { border-top-width: 1px; padding: 8px 0; }
   .kpi .value { font-size: 20px; }
   .hemicycle-block { display: none !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   Craft layer — the small details that make the surface feel finished.
+   Kept together so the intent reads as one system: selection and focus
+   carry the brand accent; interactive cards lift gently; list rows tint
+   on hover. Motion respects prefers-reduced-motion via the global rule
+   at the top of this file.
+--------------------------------------------------------------------------- */
+
+::selection {
+  background: color-mix(in oklch, var(--accent) 22%, var(--paper));
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Interactive cards share one elevation grammar: a soft resting shadow,
+   and on hover a 1px lift with a deeper (still quiet) shadow. */
+.topic-card-link,
+.deputy-card,
+.hero-pleno-card,
+.glance-card,
+.mobile-dashboard-tile {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease;
+}
+@media (hover: hover) {
+  .topic-card-link:hover,
+  .deputy-card:hover,
+  .hero-pleno-card:hover,
+  .glance-card:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 1px 0 rgba(15, 23, 42, 0.03),
+      0 10px 26px -14px rgba(15, 23, 42, 0.22);
+  }
+}
+
+/* Law-list rows: a whisper of ground on hover so the pointer always
+   knows which record it's on. */
+.law-row {
+  transition: background-color 120ms ease;
+  border-radius: 8px;
+}
+@media (hover: hover) {
+  .law-row:hover {
+    background-color: color-mix(in oklch, var(--accent) 4%, var(--paper));
+  }
+}
+
+/* Buttons and pill-links answer the pointer instead of snapping. */
+a,
+button {
+  transition-property: background-color, border-color, color, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: ease;
+}
+
+/* Serif display blocks get slightly tighter, more deliberate rendering. */
+.h-display,
+.h-headline,
+.h-title {
+  text-rendering: optimizeLegibility;
+  text-wrap: balance;
 }

@@ -4,14 +4,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
- * Horizontal scroller with ◂ ▸ buttons and a hidden scrollbar.
+ * Horizontal scroller with ◂ ▸ controls and a hidden scrollbar.
  *
  * Server-rendered cards/rows are passed as ``children`` (RSC-safe). The
  * scroller is a ``<ul role="list">`` so ``<li>`` children stay valid.
- * Buttons appear only when there's something to scroll to in that
- * direction — so there's no dangling "blur"/arrow at the start. Replaces
- * the old edge-fade gradients (which showed a left fade even at scroll
- * position 0) and the visible native scrollbar.
+ *
+ * The controls live in a small header row ABOVE the strip, aligned
+ * right — never overlaid on the content, so no arrow can cover the
+ * first card (the old floating buttons did exactly that). Both buttons
+ * are always rendered for a stable layout; the one that can't scroll
+ * further is disabled and dimmed.
  */
 export function ScrollCarousel({
   children,
@@ -31,12 +33,14 @@ export function ScrollCarousel({
   const ref = useRef<HTMLUListElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
+  const [overflows, setOverflows] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const update = () => {
       const max = el.scrollWidth - el.clientWidth - 1;
+      setOverflows(el.scrollWidth > el.clientWidth + 1);
       setCanLeft(el.scrollLeft > 1);
       setCanRight(el.scrollLeft < max);
     };
@@ -57,18 +61,41 @@ export function ScrollCarousel({
     el.scrollBy({ left: dir * distance, behavior: 'smooth' });
   }, []);
 
+  const navBtn = (dir: 1 | -1, enabled: boolean, label: string) => (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={!enabled}
+      onClick={() => scrollByDir(dir)}
+      className="scroll-carousel-nav"
+      style={{
+        opacity: enabled ? 1 : 0.35,
+        cursor: enabled ? 'pointer' : 'default',
+      }}
+    >
+      {dir === -1 ? (
+        <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" />
+      ) : (
+        <ChevronRight size={16} strokeWidth={2.2} aria-hidden="true" />
+      )}
+    </button>
+  );
+
   return (
-    <div style={{ position: 'relative' }}>
-      {canLeft && (
-        <button
-          type="button"
-          aria-label={prevLabel}
-          onClick={() => scrollByDir(-1)}
-          className="scroll-carousel-btn"
-          style={{ left: -6 }}
+    <div>
+      {/* Controls row — only when the strip actually overflows. */}
+      {overflows && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 6,
+            marginBottom: 6,
+          }}
         >
-          <ChevronLeft size={18} aria-hidden="true" />
-        </button>
+          {navBtn(-1, canLeft, prevLabel)}
+          {navBtn(1, canRight, nextLabel)}
+        </div>
       )}
       <ul
         ref={ref}
@@ -89,17 +116,6 @@ export function ScrollCarousel({
       >
         {children}
       </ul>
-      {canRight && (
-        <button
-          type="button"
-          aria-label={nextLabel}
-          onClick={() => scrollByDir(1)}
-          className="scroll-carousel-btn"
-          style={{ right: -6 }}
-        >
-          <ChevronRight size={18} aria-hidden="true" />
-        </button>
-      )}
     </div>
   );
 }

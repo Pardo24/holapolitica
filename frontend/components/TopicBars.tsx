@@ -3,6 +3,7 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import type { Topic, TopicVoteStat } from '@/lib/api';
+import { ScrollCarousel } from '@/components/ScrollCarousel';
 import { topicIcon } from '@/lib/topic_icons';
 import { resolveTopicName } from '@/lib/topics';
 
@@ -80,27 +81,7 @@ export async function TopicBars({
     (a, b) => b.ayes / b.cast - a.ayes / a.cast,
   );
 
-  const containerStyle: React.CSSProperties =
-    variant === 'strip'
-      ? {
-          display: 'flex',
-          gap: 12,
-          marginTop: 14,
-          overflowX: 'auto',
-          scrollSnapType: 'x mandatory',
-          paddingBottom: 8,
-          WebkitOverflowScrolling: 'touch',
-        }
-      : {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-          gap: 12,
-          marginTop: 14,
-        };
-
-  return (
-    <div style={containerStyle}>
-      {ordered.map((r) => {
+  const cards = ordered.map((r) => {
         const pct = Math.round((r.ayes / r.cast) * 100);
         const Icon = topicIcon(iconBySlug.get(r.topic_slug));
         const color = r.topic_color_hex ?? 'var(--ink-3)';
@@ -195,7 +176,7 @@ export async function TopicBars({
           border: '1px solid var(--rule)',
           background: 'var(--paper)',
           minWidth: 0,
-          ...(variant === 'strip' ? { flex: '0 0 235px', scrollSnapAlign: 'start' } : {}),
+          ...(variant === 'strip' ? { width: '100%' } : {}),
         };
 
         const quotes = manifestoByTopic?.[r.topic_slug] ?? [];
@@ -279,7 +260,42 @@ export async function TopicBars({
             {inner}
           </div>
         );
-      })}
+      });
+
+  if (variant === 'strip') {
+    // One swipeable row with ◂ ▸ controls — ScrollCarousel renders them
+    // ABOVE the strip, so no arrow ever overlays the first card.
+    return (
+      <div style={{ marginTop: 14 }}>
+        <ScrollCarousel gap={12} prevLabel={t('carousel_prev')} nextLabel={t('carousel_next')}>
+          {cards.map((card, i) => (
+            <li
+              key={ordered[i]!.topic_slug}
+              style={{
+                display: 'flex',
+                flex: '0 0 235px',
+                minWidth: 0,
+                scrollSnapAlign: 'start',
+              }}
+            >
+              {card}
+            </li>
+          ))}
+        </ScrollCarousel>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+        gap: 12,
+        marginTop: 14,
+      }}
+    >
+      {cards}
     </div>
   );
 }
