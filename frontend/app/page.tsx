@@ -211,6 +211,7 @@ export default async function HomePage() {
           paddingTop: 40,
           paddingBottom: 36,
           borderBottom: '1px solid var(--rule)',
+          alignItems: 'center',
           // The cover owns the first viewport: hero + meta strip fill
           // the screen on open, and "Últimas leyes" only appears when
           // you scroll. 100svh minus topnav + hero paddings + meta
@@ -292,8 +293,7 @@ export default async function HomePage() {
             style={{
               display: 'flex',
               gap: '10px 26px',
-              marginTop: 'auto',
-              paddingTop: 24,
+              marginTop: 28,
               flexWrap: 'wrap',
               alignItems: 'center',
             }}
@@ -335,7 +335,6 @@ export default async function HomePage() {
             flexDirection: 'column',
             gap: 18,
             minWidth: 0,
-            paddingTop: 18,
           }}
           className="home-hero__right"
         >
