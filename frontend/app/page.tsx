@@ -326,24 +326,17 @@ export default async function HomePage() {
         </div>
 
         <div
-          // Right column: the per-group HighlightsCarousel on TOP and the
-          // latest-pleno card at the BOTTOM of the column. With the hero
-          // filling the viewport, justify-content pushes them apart so
-          // the two widgets read as separate moments instead of a stack.
+          // Right column: the latest-pleno card on TOP (the primary,
+          // freshest content) with the per-group highlights carousel
+          // beneath it — stacked from the top with a moderate gap.
           style={{
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 24,
+            gap: 18,
             minWidth: 0,
           }}
           className="home-hero__right"
         >
-          {/* HighlightsCarousel — rotating per-group "top-supported / top-
-              rejected topic" cards. Symmetric: every group is shown in turn.
-              The component handles its own empty state internally. */}
-          <HighlightsCarousel items={highlights} allTopics={allTopics} />
-
           {latestVotes[0]?.voted_at && (
             <Link href={'/avui' as Route} className="hero-pleno-card">
               <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 8 }}>
@@ -413,6 +406,11 @@ export default async function HomePage() {
               </span>
             </Link>
           )}
+
+          {/* HighlightsCarousel — rotating per-group "top-supported / top-
+              rejected topic" cards. Symmetric: every group is shown in turn.
+              The component handles its own empty state internally. */}
+          <HighlightsCarousel items={highlights} allTopics={allTopics} />
         </div>
         <style>{`
           .hero-pleno-card {
