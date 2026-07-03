@@ -592,7 +592,13 @@
     "age_50_59": "50-59",
     "age_60_plus": "60 o més",
     "age_unknown": "Sense dada",
-    "no_party_data": "Sense dada de partit electoral per a cap dels {count} membres."
+    "no_party_data": "Sense dada de partit electoral per a cap dels {count} membres.",
+    "balance_title": "Balanç de la legislatura",
+    "balance_subtitle": "Iniciatives impulsades per aquest grup i el seu resultat al ple. Recompte oficial, sense valoracions: aprovar depèn de les majories de la cambra.",
+    "balance_total": "Impulsades",
+    "balance_approved": "Aprovades",
+    "balance_rejected": "Rebutjades",
+    "balance_pending": "Sense votació final"
   },
   "home": {
     "eyebrow": "Open data del Congrés dels Diputats",

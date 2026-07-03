@@ -145,6 +145,31 @@ export default async function GroupDetailPage({
 
   const hasProfile = topPropose !== null || topYes !== null || topNo !== null;
 
+  // Factual term balance — what this group put forward and how it fared
+  // in the plenary. Three cheap paginated calls read only the totals
+  // (page_size=1); `result` is the reliable outcome signal (latest
+  // linked vote), not the portal's lifecycle status. Best-effort: on
+  // failure the section simply doesn't render.
+  const balance = await (async () => {
+    try {
+      const base = { proposing_group_slug: slug, legislature_id: 1, page_size: 1 } as const;
+      const [totalRes, approvedRes, rejectedRes] = await Promise.all([
+        api.initiatives.list({ ...base }),
+        api.initiatives.list({ ...base, result: 'approved' }),
+        api.initiatives.list({ ...base, result: 'rejected' }),
+      ]);
+      if (totalRes.total === 0) return null;
+      return {
+        total: totalRes.total,
+        approved: approvedRes.total,
+        rejected: rejectedRes.total,
+        pending: Math.max(0, totalRes.total - approvedRes.total - rejectedRes.total),
+      };
+    } catch {
+      return null;
+    }
+  })();
+
   return (
     <article>
       {/* Breadcrumb */}
@@ -291,6 +316,101 @@ export default async function GroupDetailPage({
           </div>
         </aside>
       </header>
+
+      {/* Factual term balance — right under the header: how many
+          initiatives this group put forward and how they fared in the
+          plenary. Big serif numbers + one proportion bar; the subtitle
+          carries the neutrality caveat (passing depends on majorities,
+          not merit). */}
+      {balance && (
+        <section style={{ paddingTop: 28 }}>
+          <h2 className="h-title">{t('balance_title')}</h2>
+          <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
+            {t('balance_subtitle')}
+          </p>
+          <div
+            style={{
+              border: '1px solid var(--rule-strong)',
+              borderRadius: 14,
+              background: 'var(--paper-2)',
+              padding: '18px 22px',
+              marginTop: 12,
+              maxWidth: 760,
+            }}
+          >
+            <div
+              className="group-balance-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                gap: 16,
+              }}
+            >
+              {[
+                { label: t('balance_total'), n: balance.total, color: 'var(--ink)' },
+                { label: t('balance_approved'), n: balance.approved, color: 'var(--aye)' },
+                { label: t('balance_rejected'), n: balance.rejected, color: 'var(--no)' },
+                { label: t('balance_pending'), n: balance.pending, color: 'var(--ink-3)' },
+              ].map((c) => (
+                <div key={c.label} style={{ minWidth: 0 }}>
+                  <div
+                    className="tabular serif"
+                    style={{
+                      fontSize: 'clamp(26px, 3vw, 34px)',
+                      fontWeight: 600,
+                      color: c.color,
+                      lineHeight: 1,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    {c.n}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: 'var(--ink-3)',
+                      marginTop: 5,
+                    }}
+                  >
+                    {c.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Proportion bar — approved / rejected / pending. */}
+            <div
+              role="img"
+              aria-label={`${t('balance_approved')}: ${balance.approved} · ${t('balance_rejected')}: ${balance.rejected} · ${t('balance_pending')}: ${balance.pending}`}
+              style={{
+                display: 'flex',
+                height: 8,
+                borderRadius: 999,
+                overflow: 'hidden',
+                background: 'var(--paper-3)',
+                marginTop: 16,
+              }}
+            >
+              {balance.approved > 0 && (
+                <span style={{ width: `${(balance.approved / balance.total) * 100}%`, background: 'var(--aye)' }} />
+              )}
+              {balance.rejected > 0 && (
+                <span style={{ width: `${(balance.rejected / balance.total) * 100}%`, background: 'var(--no)' }} />
+              )}
+              {balance.pending > 0 && (
+                <span style={{ width: `${(balance.pending / balance.total) * 100}%`, background: 'var(--nv, #CBD5E1)' }} />
+              )}
+            </div>
+          </div>
+          <style>{`
+            @media (max-width: 560px) {
+              .group-balance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            }
+          `}</style>
+        </section>
+      )}
 
       {/* Composition — gender + age + constituent parties.
           Symmetric: every bucket (including "unknown") is shown, never

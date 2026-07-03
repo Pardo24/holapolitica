@@ -592,7 +592,13 @@
     "age_50_59": "50-59",
     "age_60_plus": "60 o más",
     "age_unknown": "Sin dato",
-    "no_party_data": "Sin dato de partido electoral para ninguno de los {count} miembros."
+    "no_party_data": "Sin dato de partido electoral para ninguno de los {count} miembros.",
+    "balance_title": "Balance de la legislatura",
+    "balance_subtitle": "Iniciativas impulsadas por este grupo y su resultado en el pleno. Recuento oficial, sin valoraciones: aprobar depende de las mayorías de la cámara.",
+    "balance_total": "Impulsadas",
+    "balance_approved": "Aprobadas",
+    "balance_rejected": "Rechazadas",
+    "balance_pending": "Sin votación final"
   },
   "home": {
     "eyebrow": "Open data del Congreso de los Diputados",

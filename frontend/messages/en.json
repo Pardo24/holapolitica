@@ -592,7 +592,13 @@
     "age_50_59": "50-59",
     "age_60_plus": "60 or older",
     "age_unknown": "No data",
-    "no_party_data": "No electoral-list party data for any of the {count} members."
+    "no_party_data": "No electoral-list party data for any of the {count} members.",
+    "balance_title": "Term balance",
+    "balance_subtitle": "Initiatives put forward by this group and their outcome in the plenary. Official tally, no judgement: passing depends on the chamber majorities.",
+    "balance_total": "Put forward",
+    "balance_approved": "Approved",
+    "balance_rejected": "Rejected",
+    "balance_pending": "No final vote yet"
   },
   "home": {
     "eyebrow": "Open data from the Spanish Congress",
