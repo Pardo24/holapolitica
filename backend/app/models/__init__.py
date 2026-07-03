@@ -560,6 +560,32 @@ class VoteRecord(Base, TimestampMixin):
     mandate: Mapped[Mandate] = relationship("Mandate", back_populates="vote_records")
 
 
+class ManifestoPoint(Base, TimestampMixin):
+    """A literal, page-referenced commitment from a party's electoral manifesto.
+
+    Extracted by ``app.ingest.manifestos`` and human-reviewed before
+    import. The neutrality contract: ``quote`` is verbatim text from the
+    published PDF (page number + source URL attached), mapped onto our
+    theme taxonomy — the site never issues fulfilment verdicts, it puts
+    the quote next to the group's factual voting record and lets the
+    reader judge.
+    """
+
+    __tablename__ = "manifesto_points"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Parliamentary-group slug the manifesto's party maps onto (the
+    # profile page joining key). Not a FK: groups are per-legislature
+    # rows while a manifesto belongs to the party across the term.
+    group_slug: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Election the manifesto was written for, e.g. "2023-07".
+    election: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    topic_slug: Mapped[str] = mapped_column(String(64), nullable=False)
+    quote: Mapped[str] = mapped_column(Text, nullable=False)
+    page: Mapped[int | None] = mapped_column(Integer)
+    source_url: Mapped[str | None] = mapped_column(String(500))
+
+
 # ---------------------------------------------------------------------------
 # Subscriptions and analytics (minimal, privacy-preserving)
 # ---------------------------------------------------------------------------

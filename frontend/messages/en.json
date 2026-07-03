@@ -599,7 +599,14 @@
     "balance_total": "Put forward",
     "balance_approved": "Approved",
     "balance_rejected": "Rejected",
-    "balance_pending": "No final vote yet"
+    "balance_pending": "No final vote yet",
+    "manifesto_title": "Manifesto vs. vote",
+    "manifesto_subtitle": "Literal quotes from the electoral manifesto (July 2023 election), with page and source link, next to the group's factual voting record on that topic. No judgements: compare for yourself.",
+    "manifesto_page": "p. {n}",
+    "manifesto_source": "View the manifesto (PDF)",
+    "manifesto_record_votes": "in favour across {n} votes on this topic",
+    "manifesto_record_proposed": "{n} initiatives put forward on this topic",
+    "manifesto_record_title": "How it voted"
   },
   "home": {
     "eyebrow": "Open data from the Spanish Congress",

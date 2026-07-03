@@ -32,6 +32,7 @@ from app.models import (
     Legislature,
     LegislatureStatus,
     Mandate,
+    ManifestoPoint,
     ParliamentaryGroup,
     Person,
 )
@@ -514,3 +515,45 @@ async def get_group_composition(
         3600,
         lambda: _compute_group_composition(session, slug, today),
     )
+
+
+class ManifestoPointRow(BaseModel):
+    """One literal manifesto commitment, page-referenced."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    topic_slug: str
+    quote: str
+    page: int | None
+    election: str
+    source_url: str | None
+
+
+@router.get("/{slug}/manifesto", response_model=list[ManifestoPointRow])
+async def get_group_manifesto(
+    slug: str, session: AsyncSession = Depends(get_session)
+) -> list[ManifestoPointRow]:
+    """Literal commitments from the party's electoral manifesto.
+
+    Verbatim quotes with page + source, mapped to the theme taxonomy —
+    the "Programa vs. voto" surface joins them with the group's factual
+    voting record on the same topic. Empty list until a manifesto has
+    been ingested for this group (see ``app/ingest/manifestos.py``).
+    Symmetry rule: same extraction pipeline and prompt for every party.
+    """
+
+    async def _compute() -> list[ManifestoPointRow]:
+        rows = (
+            (
+                await session.execute(
+                    select(ManifestoPoint)
+                    .where(ManifestoPoint.group_slug == slug)
+                    .order_by(ManifestoPoint.topic_slug, ManifestoPoint.page)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return [ManifestoPointRow.model_validate(r) for r in rows]
+
+    return await cached(f"stats:group:{slug}:manifesto", 3600, _compute)
