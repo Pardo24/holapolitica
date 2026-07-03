@@ -447,6 +447,9 @@ def generate_affected_pending(batch_size: int = 200) -> dict[str, int]:
                     initiative.affected_audiences = result.audiences
                     await session.commit()
                 succeeded += 1
+                # Mistral free-tier rate limit: ~1 req/s. Pace the loop
+                # so a 200-row batch never trips 429s.
+                await asyncio.sleep(1.1)
             except Exception as exc:
                 log.warning(
                     "affected.pending.failed",
