@@ -208,16 +208,26 @@ export default async function HomePage() {
           display: 'grid',
           gridTemplateColumns: '1.1fr 0.9fr',
           gap: 44,
-          paddingTop: 40,
+          // Full-bleed tinted band: negative inline margins stretch the
+          // section to the viewport edges (the .page container is
+          // centred), and the matching inline padding puts the content
+          // back exactly where it was. The negative top margin swallows
+          // .page's top padding so the wash meets the topnav.
+          marginInline: 'calc(50% - 50vw)',
+          paddingInline: 'calc(50vw - 50%)',
+          marginTop: -32,
+          paddingTop: 72,
           paddingBottom: 36,
+          // A very soft accent wash, fading back to paper at the fold —
+          // the vertical breathing room reads as a designed cover, not
+          // leftover white.
+          background:
+            'linear-gradient(180deg, color-mix(in oklch, var(--accent) 7%, var(--paper)) 0%, color-mix(in oklch, var(--accent) 3%, var(--paper)) 60%, var(--paper) 100%)',
           borderBottom: '1px solid var(--rule)',
           alignItems: 'center',
           // The cover owns the first viewport: hero + meta strip fill
           // the screen on open, and "Últimas leyes" only appears when
-          // you scroll. 100svh minus topnav + hero paddings + meta
-          // strip; the left column's auto margins absorb the extra
-          // height by opening space above the buttons and above the
-          // trust chips. Cleared under 860px (media query below) where
+          // you scroll. Cleared under 860px (media query below) where
           // the columns stack and a forced height would leave a crater.
           minHeight: 'calc(100svh - 205px)',
         }}
@@ -603,7 +613,7 @@ export default async function HomePage() {
           is hidden and the mobile dashboard takes over. */}
       <style>{`
         @media (max-width: 860px) {
-          .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; padding-top: 24px !important; padding-bottom: 24px !important; min-height: 0 !important; }
+          .home-hero { grid-template-columns: 1fr !important; gap: 24px !important; margin-top: -18px !important; padding-top: 40px !important; padding-bottom: 24px !important; min-height: 0 !important; }
           /* Surfaces row stacks under 860 so each card keeps a
              comfortable internal layout; on a narrow tablet two
              cards side-by-side were cramming the body copy. */
