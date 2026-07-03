@@ -3,6 +3,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
+import { groupLogoUrl } from '@/lib/groupLogos';
+import { groupAbbreviation, readableTextOn } from '@/lib/groups';
 
 /**
  * Embed widget for a single Congress vote.
@@ -48,31 +50,10 @@ export default async function EmbedVotePage({
     return <NotFound message={t('not_found')} />;
   }
 
-  // Cohesion strip: best-effort. If the cohesion endpoint errors (it
-  // returns 404 on votes that haven't been processed yet) we just
-  // skip the strip — the rest of the widget still renders. We also
-  // pull the per-group legislature-average cohesion so each row
-  // gets a reference marker — "this group voted 96% united today;
-  // their typical legislature cohesion is 92%". The Vote payload
-  // doesn't carry a legislature_id, but Hola Política is currently
-  // scoped to a single active legislature (XV = id 1); when phase 2
-  // ships we'll thread the linked initiative's legislature_id here.
-  const ACTIVE_LEGISLATURE_ID = 1;
-  const [cohesion, groupAverages] = await Promise.all([
-    api.metrics.cohesion(Number(id)).catch(() => []),
-    api.metrics
-      .groupSummary(ACTIVE_LEGISLATURE_ID)
-      .catch(() => [] as Awaited<ReturnType<typeof api.metrics.groupSummary>>),
-  ]);
-  const avgCohesionBySlug = new Map(
-    groupAverages
-      .filter((g) => g.avg_cohesion != null)
-      .map((g) => [g.group_slug, g.avg_cohesion as number] as const),
-  );
-  const topGroups = [...cohesion]
-    .filter((c) => c.cohesion != null && c.members_voting > 0)
-    .sort((a, b) => (b.members_voting ?? 0) - (a.members_voting ?? 0))
-    .slice(0, 4);
+  // Per-group breakdown: best-effort. If the cohesion endpoint errors
+  // (404 on votes not yet processed) we just skip the strip — the rest
+  // of the widget still renders.
+  const cohesion = await api.metrics.cohesion(Number(id)).catch(() => []);
 
   const resultPalette: Record<string, { bg: string; fg: string; label: string }> = {
     approved: { bg: 'var(--aye-soft)', fg: 'oklch(0.32 0.10 152)', label: t('result_approved') },
@@ -253,7 +234,7 @@ export default async function EmbedVotePage({
         <Stat label={t('label_absent')} value={vote.absent} color="var(--ink-3)" />
       </dl>
 
-      {topGroups.length > 0 && (
+      {cohesion.length > 0 && (
         <section
           style={{
             borderTop: '1px solid var(--rule)',
@@ -272,23 +253,21 @@ export default async function EmbedVotePage({
               fontWeight: 700,
             }}
           >
-            {t('cohesion_eyebrow')}
+            {t('stance_eyebrow')}
           </p>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 4 }}>
-            {topGroups.map((g) => (
-              <CohesionRow
-                key={g.group_slug}
-                label={g.group_name_short}
-                color={g.group_color_hex ?? 'var(--ink)'}
-                ayes={g.ayes}
-                noes={g.noes}
-                abstentions={g.abstentions}
-                noVote={g.no_vote}
-                voteCohesion={g.cohesion}
-                avgCohesion={avgCohesionBySlug.get(g.group_slug) ?? null}
-              />
-            ))}
-          </ul>
+          {/* Party stance clusters — the widget's money shot: each
+              group's LOGO under the position it took, with its deputy
+              count. Replaces the old cohesion rows (a % a journalist
+              had to decode); "who voted what" is what a reader pastes
+              this iframe for. Plain <img> logos = zero JS, iframe-safe. */}
+          <StanceClusters
+            cohesion={cohesion}
+            labels={{
+              aye: t('label_aye'),
+              no: t('label_no'),
+              abstention: t('label_abst'),
+            }}
+          />
         </section>
       )}
 
@@ -439,185 +418,131 @@ function StackedBar({
 }
 
 /**
- * One row of the per-group cohesion strip. Previous design rendered a
- * 6 px stacked bar per group — at 4 groups stacked the slivers were
- * too thin to identify and the colour mix read as visual noise. The
- * new layout shows the GROUP'S MAJORITY VOTE as a single coloured
- * pill ("Sí 120" / "No 88" / "Abst. 11" / "Absent 3"), which a
- * journalist can parse at a glance, plus the cohesion percentage to
- * the right. When the group split (no clear majority) we render a
- * subtle "Dividit" pill to flag the case without inventing a winner.
+ * Party stance clusters for the embed: one block per position (Sí /
+ * No / Abstención) with each group's logo (local SVG, white plate) and
+ * its deputy count. A group lands in the bucket where most of its
+ * deputies voted. No JS, no external assets — iframe-safe.
  */
-function CohesionRow({
-  label,
-  color,
-  ayes,
-  noes,
-  abstentions,
-  noVote,
-  voteCohesion,
-  avgCohesion,
+function StanceClusters({
+  cohesion,
+  labels,
 }: {
-  label: string;
-  color: string;
-  ayes: number;
-  noes: number;
-  abstentions: number;
-  noVote: number;
-  voteCohesion: number | null;
-  avgCohesion: number | null;
+  cohesion: {
+    group_slug: string;
+    group_name_short: string;
+    group_color_hex: string | null;
+    ayes: number;
+    noes: number;
+    abstentions: number;
+    no_vote: number;
+  }[];
+  labels: { aye: string; no: string; abstention: string };
 }) {
-  const total = ayes + noes + abstentions + noVote;
-  if (total === 0) return null;
-  const votePct =
-    voteCohesion != null ? Math.round(voteCohesion * 100) : null;
-  const avgPct = avgCohesion != null ? Math.round(avgCohesion * 100) : null;
-
-  // Find the majority choice. Ties between buckets are extremely rare
-  // (a group of 12 voting 6-6 ayes/noes happens once in a legislature
-  // at most) so we just pick the highest and surface the second-place
-  // count as a footnote only when the gap is small.
-  const buckets = [
-    { key: 'aye', n: ayes, color: 'var(--aye)', label: 'Sí' },
-    { key: 'no', n: noes, color: 'var(--no)', label: 'No' },
-    { key: 'abst', n: abstentions, color: 'var(--abst)', label: 'Abst.' },
-    { key: 'absent', n: noVote, color: 'var(--ink-3)', label: 'Absent' },
-  ];
-  const sorted = [...buckets].sort((a, b) => b.n - a.n);
-  const winner = sorted[0]!;
-  const runnerUp = sorted[1]!;
-  // A group reads as "Dividit" when the top two buckets are within
-  // 30% of each other AND neither carried > 60% of the group. Tuned
-  // so a tight PSOE+ERC alignment vs a defecting handful (e.g. 96-3)
-  // still reads as "Sí", but a genuine internal split (8-6-2) flips
-  // to "Dividit". The boundary is arbitrary but applied consistently.
-  const isSplit =
-    runnerUp.n > 0 &&
-    winner.n / total < 0.6 &&
-    runnerUp.n / winner.n > 0.7;
+  const COLOR: Record<string, string> = {
+    aye: 'var(--aye)',
+    no: 'var(--no)',
+    abstention: 'var(--abst)',
+  };
+  const majority = (g: (typeof cohesion)[number]): { key: string; n: number } => {
+    const buckets = [
+      { key: 'aye', n: g.ayes },
+      { key: 'no', n: g.noes },
+      { key: 'abstention', n: g.abstentions },
+      { key: 'absent', n: g.no_vote },
+    ];
+    return buckets.sort((a, b) => b.n - a.n)[0]!;
+  };
+  const clusters = (['aye', 'no', 'abstention'] as const)
+    .map((key) => ({
+      key,
+      label: key === 'aye' ? labels.aye : key === 'no' ? labels.no : labels.abstention,
+      members: cohesion
+        .map((g) => ({ g, m: majority(g) }))
+        .filter((x) => x.m.key === key && x.m.n > 0)
+        .sort((a, b) => b.m.n - a.m.n),
+    }))
+    .filter((c) => c.members.length > 0);
 
   return (
-    <li
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '110px minmax(0, 1fr) 86px',
-        alignItems: 'center',
-        gap: 12,
-        fontSize: 12,
-        color: 'var(--ink)',
-      }}
-    >
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          minWidth: 0,
-          overflow: 'hidden',
-        }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            width: 9,
-            height: 9,
-            borderRadius: 999,
-            background: color,
-            flex: 'none',
-            display: 'inline-block',
-          }}
-        />
-        <span
-          style={{
-            fontWeight: 700,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {label}
-        </span>
-      </span>
-      {isSplit ? (
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '4px 10px',
-            borderRadius: 999,
-            background: 'var(--paper-3)',
-            border: '1px dashed var(--rule-strong)',
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            whiteSpace: 'nowrap',
-            justifySelf: 'start',
-          }}
-        >
-          Dividit · {winner.label} {winner.n} / {runnerUp.label} {runnerUp.n}
-        </span>
-      ) : (
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 7,
-            padding: '4px 12px',
-            borderRadius: 999,
-            background: `color-mix(in oklch, ${winner.color} 18%, var(--paper))`,
-            border: `1px solid color-mix(in oklch, ${winner.color} 38%, var(--paper))`,
-            fontSize: 12,
-            fontWeight: 700,
-            color: winner.color,
-            whiteSpace: 'nowrap',
-            justifySelf: 'start',
-          }}
-        >
+    <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+      {clusters.map((c) => (
+        <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <span
-            aria-hidden="true"
             style={{
-              width: 7,
-              height: 7,
-              borderRadius: 999,
-              background: winner.color,
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.07em',
+              color: COLOR[c.key],
+              flex: 'none',
             }}
-          />
-          {winner.label} · {winner.n}
-        </span>
-      )}
-      {votePct != null ? (
-        <span
-          className="tabular"
-          title={
-            avgPct != null
-              ? `Cohesió en aquesta votació: ${votePct}% · mitjana de la legislatura: ${avgPct}%`
-              : undefined
-          }
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            textAlign: 'right',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {votePct}%
-          {avgPct != null && (
-            <span
-              style={{
-                color: 'var(--ink-3)',
-                fontWeight: 400,
-                marginLeft: 4,
-              }}
-            >
-              · {avgPct}%
-            </span>
-          )}
-        </span>
-      ) : (
-        <span />
-      )}
-    </li>
+          >
+            {c.label}
+          </span>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, flexWrap: 'wrap' }}>
+            {c.members.map(({ g, m }) => {
+              const logo = groupLogoUrl(g.group_slug);
+              const abbrev = groupAbbreviation(g.group_slug);
+              const title = g.group_name_short + ' · ' + String(m.n);
+              return (
+                <span
+                  key={g.group_slug}
+                  title={title}
+                  style={{
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}
+                >
+                  {logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logo}
+                      alt={abbrev}
+                      width={26}
+                      height={26}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        objectFit: 'contain',
+                        padding: 2,
+                        boxSizing: 'border-box',
+                        background: '#fff',
+                        borderRadius: 6,
+                        border: '1px solid rgba(0,0,0,.08)',
+                      }}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: 6,
+                        background: g.group_color_hex ?? '#9ca3af',
+                        color: readableTextOn(g.group_color_hex),
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: abbrev.length > 3 ? 7 : 9,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {abbrev}
+                    </span>
+                  )}
+                  <span
+                    className="tabular"
+                    style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--ink-2)', lineHeight: 1 }}
+                  >
+                    {m.n}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

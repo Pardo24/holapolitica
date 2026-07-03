@@ -26,11 +26,19 @@ const MIN_N_TO_SHOW = 5;
  * CAST (Sí+No+Abst); absent/no-vote excluded. Topics with cast < 5 are
  * hidden; 5–14 show with an n= badge and aren't statistically firm.
  */
+export interface TopicManifestoQuote {
+  quote: string;
+  page: number | null;
+  source_url: string | null;
+}
+
 export async function TopicBars({
   rows,
   emptyHint,
   groupSlug,
   allTopics,
+  variant = 'grid',
+  manifestoByTopic,
 }: {
   rows: TopicVoteStat[];
   emptyHint?: string;
@@ -38,6 +46,18 @@ export async function TopicBars({
   groupSlug?: string;
   /** Full catalogue — supplies localised names + per-topic icons. */
   allTopics?: Topic[];
+  /**
+   * `'grid'` (default) — the classic responsive grid.
+   * `'strip'` — a horizontal scroll-snap carousel: one row you swipe
+   * through instead of a wall of cards (group profile).
+   */
+  variant?: 'grid' | 'strip';
+  /**
+   * Literal manifesto quotes per topic slug. When provided, each card
+   * with quotes grows a collapsed "Programa electoral · N" details
+   * block — closed by default so the record stays the headline.
+   */
+  manifestoByTopic?: Record<string, TopicManifestoQuote[]>;
 }) {
   const t = await getTranslations('topic_bars');
   const locale = await getLocale();
@@ -60,15 +80,26 @@ export async function TopicBars({
     (a, b) => b.ayes / b.cast - a.ayes / a.cast,
   );
 
+  const containerStyle: React.CSSProperties =
+    variant === 'strip'
+      ? {
+          display: 'flex',
+          gap: 12,
+          marginTop: 14,
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          paddingBottom: 8,
+          WebkitOverflowScrolling: 'touch',
+        }
+      : {
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+          gap: 12,
+          marginTop: 14,
+        };
+
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-        gap: 12,
-        marginTop: 14,
-      }}
-    >
+    <div style={containerStyle}>
       {ordered.map((r) => {
         const pct = Math.round((r.ayes / r.cast) * 100);
         const Icon = topicIcon(iconBySlug.get(r.topic_slug));
@@ -164,7 +195,75 @@ export async function TopicBars({
           border: '1px solid var(--rule)',
           background: 'var(--paper)',
           minWidth: 0,
+          ...(variant === 'strip' ? { flex: '0 0 235px', scrollSnapAlign: 'start' } : {}),
         };
+
+        const quotes = manifestoByTopic?.[r.topic_slug] ?? [];
+
+        // Cards with manifesto quotes can't be a single <Link> (a
+        // <details> toggle inside an anchor navigates on toggle) — the
+        // card becomes a <div> whose TITLE links to the topic, and the
+        // quotes live in a closed-by-default details block beneath.
+        if (quotes.length > 0) {
+          return (
+            <div key={r.topic_slug} style={cardStyle}>
+              {groupSlug ? (
+                <Link
+                  href={`/topics/${r.topic_slug}?group=${encodeURIComponent(groupSlug)}` as Route}
+                  className="topic-card-link"
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
+                  {inner}
+                </Link>
+              ) : (
+                inner
+              )}
+              <details style={{ marginTop: 10, borderTop: '1px solid var(--rule)', paddingTop: 8 }}>
+                <summary
+                  style={{
+                    cursor: 'pointer',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--accent)',
+                    listStyle: 'none',
+                  }}
+                >
+                  {t('manifesto_toggle', { n: quotes.length })}
+                </summary>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                  {quotes.slice(0, 3).map((q) => (
+                    <blockquote
+                      key={q.quote.slice(0, 50)}
+                      className="serif"
+                      style={{
+                        margin: 0,
+                        paddingLeft: 9,
+                        borderLeft: '2px solid var(--rule-strong)',
+                        fontSize: 12.5,
+                        lineHeight: 1.45,
+                        color: 'var(--ink-2)',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      “{q.quote}”{' '}
+                      {q.source_url && q.page != null ? (
+                        <a
+                          href={q.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="tabular"
+                          style={{ fontSize: 10, fontStyle: 'normal', color: 'var(--ink-3)' }}
+                        >
+                          ({t('manifesto_page', { n: q.page })})
+                        </a>
+                      ) : null}
+                    </blockquote>
+                  ))}
+                </div>
+              </details>
+            </div>
+          );
+        }
 
         return groupSlug ? (
           <Link
