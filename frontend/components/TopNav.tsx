@@ -41,11 +41,13 @@ export async function TopNav() {
   // Everything else (Temes, Legislatures, Premsa, Persones, "Com et
   // representen?") stays reachable from within the pages and the footer, off
   // the top bar.
+  // Order mirrors the mission: the laws first (the core content), then
+  // your deputy, then the games, then the data.
   const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
     {
-      href: '/jocs' as Route,
-      label: t('jocs'),
-      icon: <Gamepad2 size={17} aria-hidden="true" strokeWidth={1.8} />,
+      href: '/lleis' as Route,
+      label: t('lleis'),
+      icon: <Scale size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/el-teu-diputat' as Route,
@@ -53,9 +55,9 @@ export async function TopNav() {
       icon: <MapPin size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
-      href: '/lleis' as Route,
-      label: t('lleis'),
-      icon: <Scale size={17} aria-hidden="true" strokeWidth={1.8} />,
+      href: '/jocs' as Route,
+      label: t('jocs'),
+      icon: <Gamepad2 size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/stats',
