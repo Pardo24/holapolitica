@@ -87,21 +87,82 @@ export default async function ElTeuDiputatPage({
           picking (or detecting) a province lights up just its seats so you
           see where your representatives sit. */}
       {hemicycle && hemicycle.seats.length > 0 && (
-        <section style={{ marginBottom: 24, maxWidth: 760 }}>
+        <section style={{ marginBottom: 24, maxWidth: 920 }}>
           <div className="eyebrow" style={{ marginBottom: 4 }}>
             {t('hemicycle_title')}
           </div>
           <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '0 0 10px', lineHeight: 1.5 }}>
             {selected ? t('hemicycle_hint_selected', { prov: selected }) : t('hemicycle_hint')}
           </p>
-          {/* Narrower, centred container with side padding: shrinks the
-              chart a touch on desktop and keeps the seats off the screen
-              edges on mobile (they otherwise span nearly the full width). */}
-          <div style={{ maxWidth: 600, margin: '0 auto', paddingInline: 'clamp(12px, 5vw, 28px)' }}>
-            <Hemicycle layout={hemicycle} highlightConstituency={selected} />
+          {/* Chart + clickable group legend (the legend doubles as the
+              gateway to the party profile pages). Side padding keeps
+              the seats off the screen edges on mobile. */}
+          <div style={{ margin: '0 auto', paddingInline: 'clamp(10px, 3vw, 20px)' }}>
+            <Hemicycle layout={hemicycle} highlightConstituency={selected} showLegend />
           </div>
         </section>
       )}
+
+      {/* Gateways: the party pages and the map — the two "where do the
+          parties stand" surfaces, reachable from the deputies hub. */}
+      <section
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 12,
+          marginBottom: 28,
+          maxWidth: 760,
+        }}
+      >
+        {[
+          {
+            href: '/groups' as Route,
+            title: t('groups_cta_title'),
+            sub: t('groups_cta_sub'),
+          },
+          {
+            href: '/mapa' as Route,
+            title: t('map_cta_title'),
+            sub: t('map_cta_sub'),
+          },
+        ].map((c) => (
+          <Link
+            key={c.href}
+            href={c.href}
+            className="deputy-card"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              padding: '14px 18px',
+              background: 'var(--paper-2)',
+              border: '1px solid var(--rule)',
+              borderRadius: 12,
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <span style={{ minWidth: 0 }}>
+              <span
+                className="serif"
+                style={{ display: 'block', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}
+              >
+                {c.title}
+              </span>
+              <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-3)', marginTop: 2 }}>
+                {c.sub}
+              </span>
+            </span>
+            <ChevronRight
+              size={17}
+              strokeWidth={2}
+              aria-hidden="true"
+              style={{ color: 'var(--ink-3)', flex: 'none' }}
+            />
+          </Link>
+        ))}
+      </section>
 
       {!selected ? (
         <EmptyState title={t('empty_title')} body={t('pick_prompt')} />

@@ -219,7 +219,7 @@
     "newsletter": "Newsletter",
     "notifications": "Notificaciones",
     "journalists": "Prensa",
-    "deputy": "Tu diputado"
+    "deputy": "Diputados"
   },
   "lleis": {
     "title": "Leyes",
@@ -681,7 +681,7 @@
     "coverage_since": "desde agosto de 2023"
   },
   "deputy": {
-    "title": "Tu diputado",
+    "title": "Diputados",
     "subtitle": "Elige tu provincia y mira quién te representa en el Congreso: el grupo, la asistencia y su historial completo.",
     "picker_label": "Tu circunscripción:",
     "picker_placeholder": "Elige una provincia…",
@@ -697,7 +697,11 @@
     "geolocate_error": "No hemos podido detectar tu provincia. Elígela a mano.",
     "hemicycle_title": "El hemiciclo",
     "hemicycle_hint": "Cada escaño es un diputado. Pasa por encima o tócalo para ver quién es. Elige tu provincia para iluminar los tuyos.",
-    "hemicycle_hint_selected": "Iluminados, los diputados de {prov}. Pasa por encima o toca cualquier escaño para ver quién es."
+    "hemicycle_hint_selected": "Iluminados, los diputados de {prov}. Pasa por encima o toca cualquier escaño para ver quién es.",
+    "groups_cta_title": "Los grupos parlamentarios",
+    "groups_cta_sub": "Balance, composición y programa de cada grupo",
+    "map_cta_title": "El Mapa",
+    "map_cta_sub": "Dónde está cada partido, según cómo vota"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -809,7 +813,7 @@
     "joc_sub": "Ponte a prueba con votaciones reales",
     "align_title": "¿Qué votarías tú?",
     "align_sub": "Descubre con qué partidos coincides",
-    "deputy_title": "Tu diputado",
+    "deputy_title": "Diputados",
     "deputy_sub": "Quién te representa, de verdad",
     "map_title": "El Mapa",
     "map_sub": "Dónde están los partidos, según cómo votan"
@@ -1609,7 +1613,10 @@
     "view_profile": "Ver ficha",
     "dismiss": "Cerrar",
     "no_position_yet": "Los asientos aún no se han cargado, se muestra una distribución provisional. Cada punto es pulsable.",
-    "pending_placement": "Nuevos escaños pendientes de ubicar en el plano:"
+    "pending_placement": "Nuevos escaños pendientes de ubicar en el plano:",
+    "legend_hint": "Toca un grupo para iluminar sus escaños",
+    "legend_all_groups": "Todos los grupos",
+    "legend_view_group": "Ver la ficha del grupo"
   },
   "embed_vote": {
     "not_found": "Votación no encontrada",

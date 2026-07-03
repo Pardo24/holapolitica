@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight, CalendarDays, Gamepad2, Map as MapIcon, Scale } from 'lucide-react';
+import { ArrowRight, CalendarDays, Gamepad2 } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
 
@@ -21,6 +21,10 @@ export default async function JocsPage() {
   const tHub = await getTranslations('hub');
   const tDaily = await getTranslations('daily');
 
+  // Games only. "¿Qué votarías tú?" and "El Mapa" are analysis surfaces,
+  // not games — the map now lives on the Diputados hub next to the
+  // party-page gateway, per feedback ("en juegos solo queda jugar o
+  // invitar a amigos").
   const cards: { href: Route; icon: React.ReactNode; title: string; sub: string; color: string }[] = [
     {
       href: '/pregunta-del-dia' as Route,
@@ -35,20 +39,6 @@ export default async function JocsPage() {
       title: tHub('joc_title'),
       sub: tHub('joc_sub'),
       color: '#7F77DD',
-    },
-    {
-      href: '/com-et-representen' as Route,
-      icon: <Scale size={22} strokeWidth={1.9} aria-hidden="true" />,
-      title: tHub('align_title'),
-      sub: tHub('align_sub'),
-      color: '#1D9E75',
-    },
-    {
-      href: '/mapa' as Route,
-      icon: <MapIcon size={22} strokeWidth={1.9} aria-hidden="true" />,
-      title: tHub('map_title'),
-      sub: tHub('map_sub'),
-      color: '#378ADD',
     },
   ];
 

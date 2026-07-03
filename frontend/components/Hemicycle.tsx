@@ -45,6 +45,8 @@ import type {
   VoteHemicycleSeat,
   VoteHemicycleLayout,
 } from '@/lib/api';
+import { GroupBadge } from '@/components/GroupBadge';
+import { displayGroupShort } from '@/lib/groups';
 import { ALL_SEAT_POSITIONS } from '@/lib/hemicycleAllSeats';
 
 // SVG viewBox we render into. We pick a 2.2:1 ratio that matches the
@@ -233,6 +235,7 @@ export function Hemicycle({
   layout,
   coloredBy = 'group',
   highlightConstituency = null,
+  showLegend = false,
 }: {
   // Accepts both the legislature-wide layout (group colors) and the
   // per-vote layout (each seat carries a `vote_choice`). The two
@@ -257,12 +260,43 @@ export function Hemicycle({
    * (default) renders the whole chamber at full strength.
    */
   highlightConstituency?: string | null;
+  /**
+   * Renders a clickable group legend beside the chamber (desktop) /
+   * beneath it (narrow): logo + name + seat count per group. Clicking
+   * a group lights up its seats; the arrow on each row links to the
+   * group's profile page — the legend doubles as the entry point to
+   * the party pages.
+   */
+  showLegend?: boolean;
 }) {
   const t = useTranslations('hemicycle');
   const [selected, setSelected] = useState<SelectedSeat | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const isTouch = useIsTouch();
 
   const { placed, unplaced, usingFallback } = useMemo(() => placeSeats(layout), [layout]);
+
+  // Legend rows: one per group, ordered by seat count desc. GP-less
+  // seats (no adscrits) are excluded from the legend but stay drawn.
+  const legendGroups = useMemo(() => {
+    if (!showLegend) return [];
+    const byGroup = new Map<
+      string,
+      { slug: string; short: string; color: string | null; count: number }
+    >();
+    for (const s of layout.seats) {
+      if (!s.group_slug) continue;
+      const row = byGroup.get(s.group_slug) ?? {
+        slug: s.group_slug,
+        short: s.group_short ?? s.group_slug,
+        color: s.group_color,
+        count: 0,
+      };
+      row.count += 1;
+      byGroup.set(s.group_slug, row);
+    }
+    return [...byGroup.values()].sort((a, b) => b.count - a.count);
+  }, [layout.seats, showLegend]);
 
   const handleSeatHover = useCallback(
     (seat: PlacedSeat) => {
@@ -303,6 +337,15 @@ export function Hemicycle({
 
   return (
     <div style={{ width: '100%' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 22,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+      <div style={{ flex: '1 1 340px', minWidth: 280 }}>
       <div
         role="img"
         aria-label={`${t('caption')} — ${totalSeats} — ${ariaSummary}`}
@@ -349,7 +392,9 @@ export function Hemicycle({
               isTouch={isTouch}
               coloredBy={coloredBy}
               dimmed={
-                !!highlightConstituency && seat.constituency !== highlightConstituency
+                (!!highlightConstituency &&
+                  seat.constituency !== highlightConstituency) ||
+                (!!selectedGroup && seat.group_slug !== selectedGroup)
               }
             />
           ))}
@@ -375,6 +420,100 @@ export function Hemicycle({
         }}
       >
         {usingFallback ? t('no_position_yet') : t('tap_for_info')}
+      </div>
+      </div>
+
+      {/* Group legend — clickable: a row per group lights up its seats;
+          the arrow goes to the group's profile page, making the legend
+          the natural gateway to the party pages. */}
+      {showLegend && legendGroups.length > 0 && (
+        <div style={{ flex: '0 1 235px', minWidth: 200 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--ink-3)',
+              marginBottom: 8,
+            }}
+          >
+            {t('legend_hint')}
+          </div>
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3,
+            }}
+          >
+            {legendGroups.map((g) => {
+              const active = selectedGroup === g.slug;
+              return (
+                <li key={g.slug}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={active}
+                    onClick={() => setSelectedGroup(active ? null : g.slug)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedGroup(active ? null : g.slug);
+                      }
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 9,
+                      padding: '5px 8px',
+                      borderRadius: 9,
+                      cursor: 'pointer',
+                      background: active ? 'var(--paper-3)' : 'transparent',
+                      border: `1px solid ${active ? 'var(--rule-strong)' : 'transparent'}`,
+                    }}
+                  >
+                    <GroupBadge slug={g.slug} color={g.color} size="sm" link={false} />
+                    <span
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: 'var(--ink)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {displayGroupShort(g.short)}
+                    </span>
+                    <span
+                      className="tabular"
+                      style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-2)', flex: 'none' }}
+                    >
+                      {g.count}
+                    </span>
+                    <Link
+                      href={`/groups/${g.slug}` as Route}
+                      aria-label={t('legend_view_group')}
+                      title={t('legend_view_group')}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        display: 'inline-flex',
+                        color: 'var(--ink-3)',
+                        flex: 'none',
+                      }}
+                    >
+                      <ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />
+                    </Link>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       </div>
 
       {/* Deputies without a scraped seat position yet (brand-new

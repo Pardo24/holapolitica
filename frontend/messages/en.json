@@ -219,7 +219,7 @@
     "newsletter": "Newsletter",
     "notifications": "Notifications",
     "journalists": "Press",
-    "deputy": "Your deputy"
+    "deputy": "Deputies"
   },
   "lleis": {
     "title": "Laws",
@@ -681,7 +681,7 @@
     "coverage_since": "since August 2023"
   },
   "deputy": {
-    "title": "Your deputy",
+    "title": "Deputies",
     "subtitle": "Pick your province and see who represents you in Congress: their group, their attendance and their full record.",
     "picker_label": "Your constituency:",
     "picker_placeholder": "Pick a province…",
@@ -697,7 +697,11 @@
     "geolocate_error": "Couldn't detect your province. Pick it manually.",
     "hemicycle_title": "The chamber",
     "hemicycle_hint": "Every seat is a deputy. Hover or tap to see who. Pick your province to light up yours.",
-    "hemicycle_hint_selected": "Highlighted: the deputies for {prov}. Hover or tap any seat to see who they are."
+    "hemicycle_hint_selected": "Highlighted: the deputies for {prov}. Hover or tap any seat to see who they are.",
+    "groups_cta_title": "The parliamentary groups",
+    "groups_cta_sub": "Balance, composition and manifesto of each group",
+    "map_cta_title": "The Map",
+    "map_cta_sub": "Where each party sits, by how it votes"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -809,7 +813,7 @@
     "joc_sub": "Test yourself with real votes",
     "align_title": "How would you vote?",
     "align_sub": "Find out which parties you match",
-    "deputy_title": "Your deputy",
+    "deputy_title": "Deputies",
     "deputy_sub": "Who really represents you",
     "map_title": "The Map",
     "map_sub": "Where the parties are, by how they vote"
@@ -1609,7 +1613,10 @@
     "view_profile": "View profile",
     "dismiss": "Dismiss",
     "no_position_yet": "Seat positions not yet loaded, a provisional layout is shown. Every dot is clickable.",
-    "pending_placement": "New seats pending placement on the floor plan:"
+    "pending_placement": "New seats pending placement on the floor plan:",
+    "legend_hint": "Tap a group to light up its seats",
+    "legend_all_groups": "All groups",
+    "legend_view_group": "View the group profile"
   },
   "embed_vote": {
     "not_found": "Vote not found",
