@@ -263,6 +263,7 @@ export default async function HomePage() {
               gap: 12,
               flexWrap: 'wrap',
               alignItems: 'center',
+              marginTop: 14,
             }}
           >
             <Link href="/votes" className="btn-ink">
@@ -334,6 +335,7 @@ export default async function HomePage() {
             flexDirection: 'column',
             gap: 18,
             minWidth: 0,
+            paddingTop: 18,
           }}
           className="home-hero__right"
         >
