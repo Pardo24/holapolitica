@@ -663,7 +663,8 @@
     "latest_session_explore": "Explore the latest session",
     "session_approved": "{n} approved",
     "session_rejected": "{n} rejected",
-    "session_votes": "{n} votes"
+    "session_votes": "{n} votes",
+    "coverage_since": "since August 2023"
   },
   "deputy": {
     "title": "Your deputy",
@@ -916,7 +917,9 @@
     "pagination_next_aria": "Next page",
     "show_original": "Original text",
     "group_stance_title": "How each group voted",
-    "donut_caption": "Outer ring: the result. Inner ring: each parliamentary group's contribution."
+    "donut_caption": "Outer ring: the result. Inner ring: each parliamentary group's contribution.",
+    "share_cta": "Share",
+    "group_stance_help": "The majority position of each group's deputies on this vote."
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",

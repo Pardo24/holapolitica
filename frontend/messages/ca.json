@@ -663,7 +663,8 @@
     "latest_session_explore": "Explora l'últim ple",
     "session_approved": "{n} aprovades",
     "session_rejected": "{n} rebutjades",
-    "session_votes": "{n} votacions"
+    "session_votes": "{n} votacions",
+    "coverage_since": "des d'agost de 2023"
   },
   "deputy": {
     "title": "El teu diputat",
@@ -916,7 +917,9 @@
     "pagination_next_aria": "Pàgina següent",
     "show_original": "Text original",
     "group_stance_title": "Com ha votat cada grup",
-    "donut_caption": "Anell exterior: el resultat. Anell interior: l'aportació de cada grup parlamentari."
+    "donut_caption": "Anell exterior: el resultat. Anell interior: l'aportació de cada grup parlamentari.",
+    "share_cta": "Comparteix",
+    "group_stance_help": "Posició majoritària dels diputats de cada grup en aquesta votació."
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",
