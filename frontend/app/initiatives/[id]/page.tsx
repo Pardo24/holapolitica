@@ -233,58 +233,84 @@ export default async function InitiativeDetailPage({
             flexWrap: 'wrap',
           }}
         >
-          {submittedDate && (
-            <div>
-              <span className="eyebrow">{t('submitted_at')}</span>
-              <div className="tabular">{submittedDate}</div>
-            </div>
-          )}
+          {/* Proposer FIRST and BIG: logo badge (md) + name in bold —
+              "who is behind this" is the fact a citizen looks for.
+              Sentence-case grey prefix instead of the old blue
+              uppercase eyebrow columns. */}
           {(parsedProposer.isGovernment || parsedProposer.groups.length > 0) && (
-            <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
-              <span className="eyebrow">{tVotes('proposed_by')}</span>
-              <div
-                style={{
-                  marginTop: 2,
-                  display: 'flex',
-                  gap: 6,
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                }}
-              >
-                {parsedProposer.isGovernment ? (
-                  <span className="badge" style={{ fontWeight: 600 }}>
-                    <span className="gdot" style={{ background: 'var(--ink)' }} />
-                    {tVotes('proposed_by_government')}
-                  </span>
-                ) : (
-                  parsedProposer.groups.map((g) => (
-                    <Link
-                      key={g.slug}
-                      href={`/groups/${g.slug}` as Route}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        color: 'inherit',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} />
-                      <span style={{ fontSize: 12, fontWeight: 600 }}>
-                        {displayGroupShort(g.name_short)}
-                      </span>
-                    </Link>
-                  ))
-                )}
-              </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+                {tVotes('proposed_by')}
+              </span>
+              {parsedProposer.isGovernment ? (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: 'var(--ink)',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{ width: 10, height: 10, borderRadius: 999, background: 'var(--ink)' }}
+                  />
+                  {tVotes('proposed_by_government')}
+                </span>
+              ) : (
+                parsedProposer.groups.map((g) => (
+                  <Link
+                    key={g.slug}
+                    href={`/groups/${g.slug}` as Route}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 9,
+                      color: 'inherit',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <GroupBadge slug={g.slug} color={g.color_hex} size="md" link={false} />
+                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
+                      {displayGroupShort(g.name_short)}
+                    </span>
+                  </Link>
+                ))
+              )}
             </div>
           )}
-          <div style={{ borderLeft: '1px solid var(--rule)', paddingLeft: 18 }}>
-            <span className="eyebrow">{t('status_label')}</span>
-            <div style={{ marginTop: 2, color: statusColor, fontWeight: 600 }}>
-              {statusLabel}
-            </div>
-          </div>
+          {/* Status as a self-explanatory coloured pill (soft tint of the
+              status colour + dot + label) — reads without a heading. */}
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '6px 14px',
+              borderRadius: 999,
+              background: `color-mix(in oklch, ${statusColor} 14%, var(--paper))`,
+              border: `1px solid color-mix(in oklch, ${statusColor} 35%, var(--paper))`,
+              color: statusColor,
+              fontSize: 13.5,
+              fontWeight: 700,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{ width: 8, height: 8, borderRadius: 999, background: statusColor }}
+            />
+            {statusLabel}
+          </span>
+          {submittedDate && (
+            <span style={{ fontSize: 12.5, color: 'var(--ink-3)' }}>
+              {t('submitted_at')}{' '}
+              <span className="tabular" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>
+                {submittedDate}
+              </span>
+            </span>
+          )}
           <Link
             href={'/recorregut' as Route}
             aria-label={tLifecycle('cta_short')}
