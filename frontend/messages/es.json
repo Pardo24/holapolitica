@@ -276,7 +276,8 @@
     "no_summary_yet": "Aún no hay un resumen en lenguaje claro. Se generará próximamente.",
     "related_title": "Otras leyes similares",
     "final_vote_label": "Votación final (decisiva)",
-    "other_votes_toggle": "Ver las otras {n} votaciones (enmiendas, artículos...)"
+    "other_votes_toggle": "Ver las otras {n} votaciones (enmiendas, artículos...)",
+    "affects_label": "A quién afecta"
   },
   "law_journey": {
     "eyebrow": "Trayectoria",

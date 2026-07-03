@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowRight, ExternalLink, FileText, Route as RouteIcon } from 'lucide-react';
+import { ArrowRight, ExternalLink, FileText, Route as RouteIcon, Users } from 'lucide-react';
 
 import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
@@ -394,6 +394,62 @@ export default async function InitiativeDetailPage({
               {t('no_summary_yet')}
             </p>
           )}
+
+          {/* Who does this directly affect — LLM-extracted audience tags
+              (inquilinos, autónomos…). The consequences layer: not just
+              what the law does, but whose life it touches. Hidden when
+              the extraction hasn't run or found no concrete audience. */}
+          {(() => {
+            const audiences =
+              initiative.affected_audiences?.[locale === 'ca' ? 'ca' : 'es'] ?? [];
+            if (audiences.length === 0) return null;
+            return (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  marginTop: 16,
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--ink-2)',
+                  }}
+                >
+                  <Users
+                    size={14}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    style={{ color: 'var(--accent)' }}
+                  />
+                  {t('affects_label')}
+                </span>
+                {audiences.map((tag) => (
+                  <span
+                    key={tag}
+                    style={{
+                      padding: '3px 11px',
+                      borderRadius: 999,
+                      background: 'color-mix(in oklch, var(--accent) 10%, var(--paper))',
+                      border: '1px solid color-mix(in oklch, var(--accent) 26%, var(--paper))',
+                      color: 'var(--ink)',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
 
           <div
             style={{

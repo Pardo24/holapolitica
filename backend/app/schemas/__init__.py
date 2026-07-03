@@ -223,6 +223,10 @@ class InitiativeRead(BaseModel):
     plain_summary_es: str | None = None
     plain_summary_provider: str | None = None
     plain_summary_generated_at: datetime | None = None
+    # LLM-extracted audiences: {"ca": [...], "es": [...]} short tags of
+    # who the initiative directly affects. NULL until the extraction
+    # job has run; empty lists when no concrete audience was named.
+    affected_audiences: dict[str, list[str]] | None = None
     # Boletín Oficial del Estado reference — populated by the worker
     # ``enrich_initiatives_boe`` for approved initiatives that have
     # been formally published as law. NULL otherwise. ``boe_id`` is

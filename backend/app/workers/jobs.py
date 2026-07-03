@@ -397,6 +397,76 @@ def ingest_pnl() -> dict[str, int]:
     return asyncio.run(_run())
 
 
+def generate_affected_pending(batch_size: int = 200) -> dict[str, int]:
+    """RQ entrypoint: extract "who does this affect" for a batch of initiatives.
+
+    Walks initiatives that already carry a plain summary (the input the
+    extractor needs) but have ``affected_audiences IS NULL``, newest
+    first. Each row commits in its own session; a failed extraction is
+    logged and skipped, and rows where the model finds no concrete
+    audience persist ``{"ca": [], "es": []}`` so they're never retried.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative
+    from app.services.affected import extract_affected_audiences
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            stmt = (
+                _select(Initiative.id)
+                .where(Initiative.affected_audiences.is_(None))
+                .where(Initiative.plain_summary_es.is_not(None))
+                .order_by(Initiative.id.desc())
+                .limit(batch_size)
+            )
+            ids = [int(i) for i in (await session.execute(stmt)).scalars().all()]
+
+        if not ids:
+            log.info("affected.pending.empty")
+            return {"attempted": 0, "succeeded": 0, "failed": 0}
+
+        succeeded = 0
+        failed = 0
+        for initiative_id in ids:
+            try:
+                async with AsyncSessionLocal() as session:
+                    initiative = (
+                        await session.execute(
+                            _select(Initiative).where(Initiative.id == initiative_id)
+                        )
+                    ).scalar_one_or_none()
+                    if initiative is None:
+                        continue
+                    result = await extract_affected_audiences(
+                        title=initiative.title_original,
+                        summary=initiative.plain_summary_es,
+                    )
+                    initiative.affected_audiences = result.audiences
+                    await session.commit()
+                succeeded += 1
+            except Exception as exc:
+                log.warning(
+                    "affected.pending.failed",
+                    initiative_id=initiative_id,
+                    error=str(exc),
+                )
+                failed += 1
+
+        log.info(
+            "affected.pending.done",
+            attempted=len(ids),
+            succeeded=succeeded,
+            failed=failed,
+            at=datetime.now(UTC).isoformat(),
+        )
+        return {"attempted": len(ids), "succeeded": succeeded, "failed": failed}
+
+    return asyncio.run(_run())
+
+
 def classify_pending_initiatives(batch_size: int = 200, kind: str = "theme") -> dict[str, int]:
     """RQ entrypoint: classify a batch of initiatives that still lack a topic.
 
