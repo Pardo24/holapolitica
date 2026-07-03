@@ -243,31 +243,26 @@ export default async function HomePage() {
           <p
             className="hidden sm:block"
             style={{
-              fontSize: 16.5,
+              fontSize: 18,
               color: 'var(--ink-2)',
-              maxWidth: 520,
-              margin: '0 0 28px',
-              lineHeight: 1.65,
+              maxWidth: 560,
+              margin: '0 0 30px',
+              lineHeight: 1.7,
             }}
           >
             {t('hero_subtitle')}
           </p>
-          {/* Actions: ONE primary button + the play entry. "Última sesión"
-              was a third button duplicating the pleno card's CTA sitting
-              right next to it — gone. The quiet text links follow.
-              marginTop:auto — with the hero filling the viewport, the
-              free height opens up HERE, between the prose block and the
-              buttons, so title/subtitle and actions read as two distinct
-              moments instead of one cramped stack. The 32px floor keeps
-              the gap honest when the viewport is short. */}
+          {/* Actions: ONE primary button + the play entry, in natural
+              flow right after the subtitle (an earlier auto-margin
+              opened a crater between prose and buttons — the viewport's
+              free height now goes to the bottom of the column, before
+              the trust chips). */}
           <div
             style={{
               display: 'flex',
               gap: 12,
               flexWrap: 'wrap',
               alignItems: 'center',
-              marginTop: 'auto',
-              paddingTop: 32,
             }}
           >
             <Link href="/votes" className="btn-ink">
@@ -331,19 +326,24 @@ export default async function HomePage() {
         </div>
 
         <div
-          // Right column: the latest plenary session as the hero's primary
-          // card (freshest content, framed inside the opening view), with
-          // the rotating per-group HighlightsCarousel beneath it. The old
-          // "Aquesta setmana" aside duplicated the same session's numbers
-          // in a second visual language and is gone.
+          // Right column: the per-group HighlightsCarousel on TOP and the
+          // latest-pleno card at the BOTTOM of the column. With the hero
+          // filling the viewport, justify-content pushes them apart so
+          // the two widgets read as separate moments instead of a stack.
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 14,
+            justifyContent: 'space-between',
+            gap: 24,
             minWidth: 0,
           }}
           className="home-hero__right"
         >
+          {/* HighlightsCarousel — rotating per-group "top-supported / top-
+              rejected topic" cards. Symmetric: every group is shown in turn.
+              The component handles its own empty state internally. */}
+          <HighlightsCarousel items={highlights} allTopics={allTopics} />
+
           {latestVotes[0]?.voted_at && (
             <Link href={'/avui' as Route} className="hero-pleno-card">
               <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 8 }}>
@@ -413,11 +413,6 @@ export default async function HomePage() {
               </span>
             </Link>
           )}
-
-          {/* HighlightsCarousel — rotating per-group "top-supported / top-
-              rejected topic" cards. Symmetric: every group is shown in turn.
-              The component handles its own empty state internally. */}
-          <HighlightsCarousel items={highlights} allTopics={allTopics} />
         </div>
         <style>{`
           .hero-pleno-card {

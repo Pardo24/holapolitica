@@ -104,11 +104,11 @@ export function PartyStanceMini({
                 // bigger than the old plain dots (16px) so the party
                 // logos actually read; colour disc as fallback.
                 const common: React.CSSProperties = {
-                  width: 16,
-                  height: 16,
+                  width: 20,
+                  height: 20,
                   display: 'inline-block',
                   flex: 'none',
-                  marginLeft: i === 0 ? 0 : -4,
+                  marginLeft: i === 0 ? 0 : -5,
                   boxShadow: '0 0 0 1.5px var(--paper)',
                 };
                 return logo ? (
@@ -118,14 +118,14 @@ export function PartyStanceMini({
                     src={logo}
                     alt=""
                     title={title}
-                    width={16}
-                    height={16}
+                    width={20}
+                    height={20}
                     loading="lazy"
                     decoding="async"
                     style={{
                       ...common,
                       objectFit: 'contain',
-                      padding: 1.5,
+                      padding: 2,
                       boxSizing: 'border-box',
                       background: '#fff',
                       // Rounded square, not a circle — wordmark logos
