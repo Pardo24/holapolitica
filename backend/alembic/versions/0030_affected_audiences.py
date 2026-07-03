@@ -6,7 +6,7 @@ stored as JSON ``{"ca": ["llogaters", ...], "es": ["inquilinos", ...]}``
 has processed the row; ``{"ca": [], "es": []}`` when the model could
 not name a concrete audience (so the job doesn't retry forever).
 
-Revision ID: 0030_initiative_affected_audiences
+Revision ID: 0030_affected_audiences
 Revises: 0029_daily_answer_counts
 Create Date: 2026-07-03
 """
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0030_initiative_affected_audiences"
+revision: str = "0030_affected_audiences"
 down_revision: str | None = "0029_daily_answer_counts"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
