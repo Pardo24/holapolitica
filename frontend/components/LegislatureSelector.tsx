@@ -85,12 +85,26 @@ export function LegislatureSelector({
           cursor: pending ? 'progress' : 'pointer',
         }}
       >
-        {legislatures.map((leg) => (
-          <option key={leg.id} value={String(leg.id)}>
-            {leg.number}
-            {leg.id === activeId ? ` (${currentSuffix})` : ''}
-          </option>
-        ))}
+        {legislatures.map((leg) => {
+          // "XV (2023-2027)" — the roman number keeps the identity, the
+          // years give a citizen the real period. The active term has no
+          // end date, so it reads "XV (2023-actual)".
+          const startYear = new Date(leg.start_date).getFullYear();
+          const endYear = leg.end_date ? new Date(leg.end_date).getFullYear() : null;
+          const endPart =
+            leg.id === activeId ? currentSuffix : endYear != null ? String(endYear) : '';
+          // Collapse a same-year term ("2019-2019" → "2019"); the active
+          // term keeps "2023-actual".
+          const period =
+            !endPart || (endYear === startYear && leg.id !== activeId)
+              ? String(startYear)
+              : `${startYear}-${endPart}`;
+          return (
+            <option key={leg.id} value={String(leg.id)}>
+              {leg.number} ({period})
+            </option>
+          );
+        })}
       </select>
     </label>
   );
