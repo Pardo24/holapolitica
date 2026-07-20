@@ -3,7 +3,7 @@ import type { Route } from 'next';
 
 import type { ParliamentaryGroupSummary } from '@/lib/api';
 import { groupLogoUrl } from '@/lib/groupLogos';
-import { displayGroupShort } from '@/lib/groups';
+import { displayGroupShort, groupAbbreviation } from '@/lib/groups';
 
 /**
  * Full-width strip of every parliamentary group — logo, seat count, and
@@ -122,12 +122,17 @@ export function PartyBand({
                     className="party-band__logo"
                   />
                 ) : (
-                  // GP Mixto has no shared brand — a plain colour disc.
+                  // GP Mixto has no shared brand and ships no logo. A bare
+                  // colour disc reads as an image that failed to load, so we
+                  // put the group's canonical abbreviation inside it — the
+                  // same "Mx" GroupBadge uses everywhere else on the site.
                   <span
                     aria-hidden="true"
-                    className="party-band__logo"
-                    style={{ background: color, borderRadius: 999 }}
-                  />
+                    className="party-band__logo party-band__logo--text"
+                    style={{ background: color }}
+                  >
+                    {groupAbbreviation(g.slug)}
+                  </span>
                 )}
                 <span className="party-band__name">{displayGroupShort(g.name_short)}</span>
                 <span className="party-band__seats tabular">
@@ -166,6 +171,12 @@ export function PartyBand({
              lines doesn't get a taller card than one that fits on one.
              Same reason the cards are identical in the first place: equal
              visual real estate for every group, regardless of size. */
+          /* 1fr equalises rows in a conforming engine; WebKit has been
+             inconsistent about it on auto-height grids, which is where the
+             "cards are different sizes in one column" report came from.
+             The min-height floor below makes the result identical either
+             way, and iOS matters doubly here since the app ships as a
+             WKWebView. */
           grid-auto-rows: 1fr;
           gap: 10px;
         }
@@ -185,6 +196,10 @@ export function PartyBand({
           transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
           overflow: hidden;
           height: 100%;
+          /* Floor, so every card is the same size even where
+             grid-auto-rows: 1fr does not equalise the rows. */
+          min-height: 132px;
+          justify-content: flex-start;
         }
         .party-band__card:hover,
         .party-band__card:focus-visible {
@@ -206,6 +221,17 @@ export function PartyBand({
           object-fit: contain;
           flex: none;
         }
+        /* Abbreviation disc for groups that ship no logo. */
+        .party-band__logo--text {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+        }
         .party-band__name {
           font-size: 13px;
           font-weight: 700;
@@ -218,11 +244,24 @@ export function PartyBand({
           min-width: 0;
           max-width: 100%;
           overflow-wrap: anywhere;
+          /* Explicitly block-level. These are flex items so they are
+             blockified anyway in a conforming engine, but stating it
+             removes any chance of the name and the seat count sharing a
+             line if the flex context is ever lost (a stale cached
+             stylesheet, a text-inflating mobile browser). */
+          display: block;
+          width: 100%;
         }
         .party-band__seats {
           font-size: 11.5px;
           color: var(--ink-3);
+          display: block;
+          width: 100%;
+          text-align: center;
+          /* Space from the name is owned here rather than by the parent
+             gap alone, so the two never touch even if the gap collapses. */
           margin-top: auto;
+          padding-top: 8px;
         }
         .party-band__seats b { color: var(--ink-2); font-size: 13px; }
         /* Phones keep the same two-column grid the rule above produces;
