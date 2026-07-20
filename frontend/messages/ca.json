@@ -140,7 +140,10 @@
     "topicband_rejected": "{n} rebutjades",
     "topicband_laws": "{n, plural, =1 {# llei} other {# lleis}}",
     "topicband_votes_sub": "{n} votacions en total",
-    "section_total_laws": "{count, plural, =1 {# llei} other {# lleis}}"
+    "section_total_laws": "{count, plural, =1 {# llei} other {# lleis}}",
+    "nobreak_inline_assent": "Aprovada per assentiment, sense votació nominal",
+    "nobreak_inline_secret": "Votació secreta: el vot individual no es publica",
+    "nobreak_inline_unavailable": "Sense desglossament individual publicat"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -954,7 +957,11 @@
     "group_stance_title": "Com ha votat cada grup",
     "donut_caption": "Anell exterior: el resultat. Anell interior: l'aportació de cada grup parlamentari.",
     "share_cta": "Comparteix",
-    "group_stance_help": "Posició majoritària dels diputats de cada grup en aquesta votació."
+    "group_stance_help": "Posició majoritària dels diputats de cada grup en aquesta votació.",
+    "nobreak_secret_title": "Votació secreta",
+    "nobreak_secret_body": "Els dictàmens de la Comissió de l'Estatut dels Diputats es voten en secret per reglament. El Congrés en publica els totals, però mai el vot de cada diputat, així que no es pot desglossar per grup.",
+    "nobreak_unavailable_title": "Sense desglossament publicat",
+    "nobreak_unavailable_body": "Tenim els totals d'aquesta votació, però la font del Congrés no ens va facilitar el vot individual de cada diputat. És un forat conegut en un grapat de votacions antigues."
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",

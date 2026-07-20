@@ -27,6 +27,7 @@ from app.metrics import (
     compute_group_coincidence_matrix,
     compute_group_summary,
 )
+from app.models import Vote
 from app.services.cache import cached
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
@@ -55,10 +56,16 @@ async def cohesion(
     vote_id: int = Query(..., description="ID of the vote to analyze"),
     session: AsyncSession = Depends(get_session),
 ) -> list[CohesionResult]:
-    rows = await compute_group_cohesion_for_vote(session, vote_id)
-    if not rows:
-        raise HTTPException(status_code=404, detail="No vote records for this vote_id")
-    return rows
+    # "No per-deputy records" is a legitimate outcome, not a missing
+    # resource: approval by assent holds no division, and secret ballots
+    # (dictámenes of the Comisión del Estatuto de los Diputados) publish
+    # totals but never individual votes. Returning 404 made callers treat
+    # those votes as non-existent — the vote-detail page turned every one
+    # of them into a 404 page, so ~140 real votes were dead links.
+    # An empty list is the honest answer; 404 stays for an unknown vote id.
+    if not await session.get(Vote, vote_id):
+        raise HTTPException(status_code=404, detail="Vote not found")
+    return await compute_group_cohesion_for_vote(session, vote_id)
 
 
 @router.get("/coincidence", response_model=list[CoincidenceCell])

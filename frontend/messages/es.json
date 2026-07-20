@@ -140,7 +140,10 @@
     "topicband_rejected": "{n} rechazadas",
     "topicband_laws": "{n, plural, =1 {# ley} other {# leyes}}",
     "topicband_votes_sub": "{n} votaciones en total",
-    "section_total_laws": "{count, plural, =1 {# ley} other {# leyes}}"
+    "section_total_laws": "{count, plural, =1 {# ley} other {# leyes}}",
+    "nobreak_inline_assent": "Aprobada por asentimiento, sin votación nominal",
+    "nobreak_inline_secret": "Votación secreta: el voto individual no se publica",
+    "nobreak_inline_unavailable": "Sin desglose individual publicado"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -954,7 +957,11 @@
     "group_stance_title": "Cómo ha votado cada grupo",
     "donut_caption": "Anillo exterior: el resultado. Anillo interior: la aportación de cada grupo parlamentario.",
     "share_cta": "Compartir",
-    "group_stance_help": "Posición mayoritaria de los diputados de cada grupo en esta votación."
+    "group_stance_help": "Posición mayoritaria de los diputados de cada grupo en esta votación.",
+    "nobreak_secret_title": "Votación secreta",
+    "nobreak_secret_body": "Los dictámenes de la Comisión del Estatuto de los Diputados se votan en secreto por reglamento. El Congreso publica los totales, pero nunca el voto de cada diputado, así que no puede desglosarse por grupo.",
+    "nobreak_unavailable_title": "Sin desglose publicado",
+    "nobreak_unavailable_body": "Tenemos los totales de esta votación, pero la fuente del Congreso no nos facilitó el voto individual de cada diputado. Es un hueco conocido en un puñado de votaciones antiguas."
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",

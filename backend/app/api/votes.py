@@ -470,6 +470,24 @@ class GroupVoteMatrixResponse(BaseModel):
     groups: list[GroupVoteChoiceRow]
 
 
+# Ceiling for /group-choices. A plenary sitting rarely passes ~60 votes;
+# 250 leaves generous headroom while still bounding the query.
+_GROUP_CHOICES_MAX = 250
+
+# Tie-break precedence when a group splits exactly evenly. This MUST match
+# ``cohesionToStance`` on the frontend (frontend/app/votes/[id]/page.tsx),
+# which keeps the first option on a tie in this same order. Previously this
+# endpoint broke ties alphabetically ("abstention" < "absent" < "aye" < "no"),
+# so a group split 50/50 aye/no showed "No" on the session sheet and "Sí" on
+# the vote page — the same fact, two answers.
+_CHOICE_PRECEDENCE = {
+    VoteChoice.AYE.value: 0,
+    VoteChoice.NO.value: 1,
+    VoteChoice.ABSTENTION.value: 2,
+    VoteChoice.ABSENT.value: 3,
+}
+
+
 def _fold_choice(choice: str) -> str:
     """Collapse the raw choice into the four the matrix renders."""
     if choice in (VoteChoice.ABSENT.value, VoteChoice.NO_VOTE_RECORDED.value):
@@ -479,7 +497,7 @@ def _fold_choice(choice: str) -> str:
 
 @router.get("/group-choices", response_model=GroupVoteMatrixResponse)
 async def get_group_choices(
-    ids: str = Query(..., description="Comma-separated vote ids (max 50)."),
+    ids: str = Query(..., description=f"Comma-separated vote ids (max {_GROUP_CHOICES_MAX})."),
     db: AsyncSession = Depends(get_session),
 ) -> GroupVoteMatrixResponse:
     """Per-group majority choice across a set of votes.
@@ -489,9 +507,20 @@ async def get_group_choices(
     its majority stance on each. Declared BEFORE ``/{vote_id}`` so the
     literal path wins over the int path param.
     """
-    vote_ids = [int(x) for x in ids.split(",") if x.strip().lstrip("-").isdigit()][:50]
+    vote_ids = [int(x) for x in ids.split(",") if x.strip().lstrip("-").isdigit()]
     if not vote_ids:
         return GroupVoteMatrixResponse(groups=[])
+    # Overflow is an ERROR, not a silent trim. The previous ``[:50]`` quietly
+    # dropped every id past the 50th, so a plenary sitting with more than 50
+    # votes — routine; 14 Jul 2026 had 56 — rendered its last votes with no
+    # party logos at all. That looked like missing data to readers when the
+    # data was there all along. Fail loudly instead, and set the ceiling
+    # above any realistic sitting.
+    if len(vote_ids) > _GROUP_CHOICES_MAX:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many vote ids: {len(vote_ids)} (max {_GROUP_CHOICES_MAX}).",
+        )
 
     async def factory() -> GroupVoteMatrixResponse:
         rows = (
@@ -536,8 +565,12 @@ async def get_group_choices(
             for vid in vote_ids:
                 c = counts.get((slug, vid))
                 if c:
-                    # Majority choice; ties break deterministically by name.
-                    choice_map[str(vid)] = max(c.items(), key=lambda kv: (kv[1], kv[0]))[0]
+                    # Majority choice; ties break by _CHOICE_PRECEDENCE so the
+                    # answer matches the vote-detail page exactly.
+                    choice_map[str(vid)] = max(
+                        c.items(),
+                        key=lambda kv: (kv[1], -_CHOICE_PRECEDENCE.get(kv[0], 99)),
+                    )[0]
             groups.append(
                 GroupVoteChoiceRow(
                     slug=slug,
@@ -548,7 +581,9 @@ async def get_group_choices(
             )
         return GroupVoteMatrixResponse(groups=groups)
 
-    key = "votes:group-choices:v1:" + ",".join(str(v) for v in sorted(vote_ids))
+    # v2: tie-breaking changed from alphabetical to _CHOICE_PRECEDENCE, so
+    # cached v1 entries would keep serving the old (disagreeing) answer.
+    key = "votes:group-choices:v2:" + ",".join(str(v) for v in sorted(vote_ids))
     return await cached(key, 3600, factory)
 
 

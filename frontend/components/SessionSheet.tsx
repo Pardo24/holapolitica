@@ -11,6 +11,11 @@ import {
   type PartyStance,
   type StanceLabels,
 } from '@/components/PartyStanceRow';
+import {
+  NoBreakdownInline,
+  noBreakdownReason,
+  type NoBreakdownReason,
+} from '@/components/NoBreakdownNotice';
 import { ResultPill } from '@/components/ResultPill';
 import { ScrollCarousel } from '@/components/ScrollCarousel';
 import { SessionVoteFilter } from '@/components/SessionVoteFilter';
@@ -101,6 +106,14 @@ export async function SessionSheet({
     no: t('choice_no'),
     abstention: t('choice_abstention'),
     absent: t('choice_absent'),
+  };
+  // Shown in place of the party logos when a vote genuinely has no
+  // per-deputy record. Threaded down so every row states its reason
+  // instead of silently rendering nothing.
+  const noBreakLabels: Record<NoBreakdownReason, string> = {
+    assent: t('nobreak_inline_assent'),
+    secret: t('nobreak_inline_secret'),
+    unavailable: t('nobreak_inline_unavailable'),
   };
 
   // Aggregated counts. Result is one of approved / rejected / tie.
@@ -716,6 +729,7 @@ export async function SessionSheet({
                             )[entry.votes.length - 1]!.id,
                           )}
                           stanceLabels={stanceLabels}
+                          noBreakLabels={noBreakLabels}
                           resultLabelFor={(r) => t(`result_${r}`)}
                           marginLabel={(margin) =>
                             margin === 0 ? t('margin_tie') : t('margin_short', { margin })
@@ -743,6 +757,7 @@ export async function SessionSheet({
                         }
                         stance={stanceByVote.get(v.id)}
                         stanceLabels={stanceLabels}
+                        noBreakLabels={noBreakLabels}
                       />
                     );
                   })}
@@ -926,6 +941,7 @@ function LawVoteGroup({
   finalTagLabel,
   finalStance,
   stanceLabels,
+  noBreakLabels,
   resultLabelFor,
   marginLabel,
 }: {
@@ -942,6 +958,7 @@ function LawVoteGroup({
   finalTagLabel: string;
   finalStance?: PartyStance[];
   stanceLabels: StanceLabels;
+  noBreakLabels: Record<NoBreakdownReason, string>;
   resultLabelFor: (r: Vote['result']) => string;
   marginLabel: (margin: number) => string;
 }) {
@@ -1135,8 +1152,19 @@ function LawVoteGroup({
               Mini variant (glyph + plain discs) so the row doesn't drown
               in badges; names stay on hover, the full breakdown lives on
               the detail pages. */}
-          {finalStance && finalStance.length > 0 && (
+          {finalStance && finalStance.length > 0 ? (
             <PartyStanceMini parties={finalStance} labels={stanceLabels} />
+          ) : (
+            (() => {
+              const reason = noBreakdownReason({
+                approvedByAssent: lead.approved_by_assent,
+                hasBreakdown: false,
+                subject: lead.description ?? lead.title,
+              });
+              return reason ? (
+                <NoBreakdownInline reason={reason} label={noBreakLabels[reason]} />
+              ) : null;
+            })()
           )}
           {/* The law's individual votes. */}
           <div style={{ marginTop: 10 }}>
@@ -1300,6 +1328,7 @@ function VoteRow({
   marginLabel,
   stance,
   stanceLabels,
+  noBreakLabels,
 }: {
   vote: Vote;
   locale: string;
@@ -1319,6 +1348,7 @@ function VoteRow({
   marginLabel: (margin: number) => string;
   stance?: PartyStance[];
   stanceLabels: StanceLabels;
+  noBreakLabels: Record<NoBreakdownReason, string>;
 }) {
   const subject = vote.description?.trim() || vote.title;
   // AI plain-language summary leads as the row headline; the raw official
@@ -1523,8 +1553,19 @@ function VoteRow({
               )}
             </div>
           )}
-          {stance && stance.length > 0 && (
+          {stance && stance.length > 0 ? (
             <PartyStanceMini parties={stance} labels={stanceLabels} />
+          ) : (
+            (() => {
+              const reason = noBreakdownReason({
+                approvedByAssent: vote.approved_by_assent,
+                hasBreakdown: false,
+                subject: vote.description ?? vote.title,
+              });
+              return reason ? (
+                <NoBreakdownInline reason={reason} label={noBreakLabels[reason]} />
+              ) : null;
+            })()
           )}
         </div>
 
