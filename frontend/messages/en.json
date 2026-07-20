@@ -137,7 +137,10 @@
     "topicband_caption": "Each topic in the sitting with the outcome of its votes. Tap a topic to jump to it.",
     "topicband_votes": "{n} votes",
     "topicband_approved": "{n} approved",
-    "topicband_rejected": "{n} rejected"
+    "topicband_rejected": "{n} rejected",
+    "topicband_laws": "{n, plural, =1 {# law} other {# laws}}",
+    "topicband_votes_sub": "{n} votes in total",
+    "section_total_laws": "{count, plural, =1 {# law} other {# laws}}"
   },
   "avui_og": {
     "brand": "Hola Política",

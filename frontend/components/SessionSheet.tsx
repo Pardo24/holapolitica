@@ -345,7 +345,7 @@ export async function SessionSheet({
                       className="tabular"
                       style={{ color: 'var(--ink-3)', marginLeft: 4 }}
                     >
-                      ({g.votes.length})
+                      ({summariseLaws(g.votes).laws})
                     </span>
                   </span>
                 ))}
@@ -385,8 +385,12 @@ export async function SessionSheet({
             nextLabel={t('topicband_eyebrow')}
           >
             {groupVotesByTopic(ordered, locale).map(({ topic, votes: tVotes, key }) => {
-              const approved = tVotes.filter((v) => v.result === 'approved').length;
-              const rejected = tVotes.filter((v) => v.result === 'rejected').length;
+              // Count LAWS and their fate, not raw vote rows: a bill's
+              // amendment votes are procedure, and counting them made a
+              // passed law read as '47 rechazadas'.
+              const summary = summariseLaws(tVotes);
+              const approved = summary.approved;
+              const rejected = summary.rejected;
               const color = topic?.color_hex ?? 'var(--ink-3)';
               const Icon = topicIcon(topic?.icon);
               const name = topic ? pickTopicName(topic, locale) : t('section_unclassified');
@@ -443,7 +447,13 @@ export async function SessionSheet({
                       className="tabular"
                       style={{ fontSize: 11.5, color: 'var(--ink-3)' }}
                     >
-                      {t('topicband_votes', { n: tVotes.length })}
+                      {t('topicband_laws', { n: summary.laws })}
+                      {tVotes.length !== summary.laws && (
+                        <span style={{ color: 'var(--ink-3)' }}>
+                          {' · '}
+                          {t('topicband_votes_sub', { n: tVotes.length })}
+                        </span>
+                      )}
                     </span>
                     {/* Outcome split — the answer, in the shared vote colours. */}
                     <span
@@ -460,7 +470,7 @@ export async function SessionSheet({
                       {approved > 0 && (
                         <span
                           style={{
-                            width: `${(approved / tVotes.length) * 100}%`,
+                            width: `${(approved / summary.laws) * 100}%`,
                             background: 'var(--aye)',
                           }}
                         />
@@ -468,7 +478,7 @@ export async function SessionSheet({
                       {rejected > 0 && (
                         <span
                           style={{
-                            width: `${(rejected / tVotes.length) * 100}%`,
+                            width: `${(rejected / summary.laws) * 100}%`,
                             background: 'var(--no)',
                           }}
                         />
@@ -525,12 +535,15 @@ export async function SessionSheet({
           }}
         >
           {groupVotesByTopic(ordered, locale).map(({ topic, votes: groupVotes, key }) => {
+            // Same law-level accounting as the band above: a bill's
+            // amendment votes must not be reported as outcomes.
+            const lawSummary = summariseLaws(groupVotes);
             const sectionCounts = {
-              approved: groupVotes.filter((v) => v.result === 'approved').length,
-              rejected: groupVotes.filter((v) => v.result === 'rejected').length,
-              tie: groupVotes.filter((v) => v.result === 'tie').length,
+              approved: lawSummary.approved,
+              rejected: lawSummary.rejected,
+              tie: lawSummary.tie,
             };
-            const decided = groupVotes.length || 1;
+            const decided = lawSummary.laws || 1;
             return (
               <details
                 key={key}
@@ -653,7 +666,7 @@ export async function SessionSheet({
                     }}
                   >
                     <span style={{ color: 'var(--ink-2)', fontWeight: 600 }}>
-                      {t('section_total', { count: groupVotes.length })}
+                      {t('section_total_laws', { count: lawSummary.laws })}
                     </span>
                     {sectionCounts.approved > 0 && (
                       <span style={{ color: 'var(--aye, #16A34A)' }}>
@@ -1650,6 +1663,49 @@ interface TopicGroup {
  * is forced last regardless of size; that's a presentational rule,
  * not a curation one — it still surfaces every uncategorised vote.
  */
+/**
+ * Collapse a topic's votes into LAWS and report each law's real fate.
+ *
+ * Why this exists: a Proyecto de Ley is voted once per amendment. The
+ * 14 July 2026 disability bill took 50 votes — 47 amendments voted
+ * down one by one, then the whole text approved 179-33. Counting raw
+ * vote rows made the summary read "50 votaciones · 3 aprobadas · 47
+ * rechazadas", i.e. "this area went terribly", when the truth was
+ * "one law, and it passed". Amendment votes are internal procedure;
+ * what a citizen is owed is the count of MATTERS and how each ended.
+ *
+ * A law's fate is its LAST vote (chronological, then sequence) — the
+ * whole-text vote that follows the amendments.
+ */
+function summariseLaws(votes: Vote[]): {
+  laws: number;
+  approved: number;
+  rejected: number;
+  tie: number;
+} {
+  const byLaw = new Map<string, Vote[]>();
+  for (const v of votes) {
+    const key = v.expediente_raw ?? `vote-${v.id}`;
+    const list = byLaw.get(key);
+    if (list) list.push(v);
+    else byLaw.set(key, [v]);
+  }
+  let approved = 0;
+  let rejected = 0;
+  let tie = 0;
+  for (const list of byLaw.values()) {
+    const final = [...list].sort(
+      (a, b) =>
+        a.voted_at.localeCompare(b.voted_at) ||
+        (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
+    )[list.length - 1]!;
+    if (final.result === 'approved') approved += 1;
+    else if (final.result === 'rejected') rejected += 1;
+    else tie += 1;
+  }
+  return { laws: byLaw.size, approved, rejected, tie };
+}
+
 function groupVotesByTopic(
   votes: Vote[],
   _locale: string,

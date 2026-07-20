@@ -137,7 +137,10 @@
     "topicband_caption": "Cada tema del pleno con el resultado de sus votaciones. Toca un tema para ir a él.",
     "topicband_votes": "{n} votaciones",
     "topicband_approved": "{n} aprobadas",
-    "topicband_rejected": "{n} rechazadas"
+    "topicband_rejected": "{n} rechazadas",
+    "topicband_laws": "{n, plural, =1 {# ley} other {# leyes}}",
+    "topicband_votes_sub": "{n} votaciones en total",
+    "section_total_laws": "{count, plural, =1 {# ley} other {# leyes}}"
   },
   "avui_og": {
     "brand": "Hola Política",
