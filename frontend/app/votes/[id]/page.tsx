@@ -39,6 +39,7 @@ import {
   GroupStanceBand,
   type PartyStanceWithCount,
 } from '@/components/GroupVoteBreakdown';
+import { NoBreakdownNotice, noBreakdownReason } from '@/components/NoBreakdownNotice';
 import { ResultPill } from '@/components/ResultPill';
 import { ShareButton } from '@/components/ShareButton';
 import { VoteDonut } from '@/components/VoteDonut';
@@ -269,17 +270,25 @@ export default async function VoteDetailPage({
   let cohesion: CohesionResult[] = [];
   try {
     vote = await api.votes.get(voteId);
-    cohesion = await api.metrics.cohesion(voteId);
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+  // Fetched separately and best-effort. It used to share the try above, so
+  // a 404 from /metrics/cohesion — which the API returned for any vote with
+  // no per-deputy records — made the whole page render as "vote not found".
+  // The vote plainly exists; it just has no breakdown, which the page now
+  // states explicitly. Never let a supporting metric 404 the primary record.
+  cohesion = await api.metrics.cohesion(voteId).catch(() => [] as CohesionResult[]);
   const dissidents = await api.votes
     .dissidents(voteId)
     .catch(() => ({ blocks: [] as Awaited<ReturnType<typeof api.votes.dissidents>>['blocks'] }));
   // GP Mixt is, by definition, a bag of unaligned deputies — "breaking with
   // the group" there isn't meaningful, so we drop it from the dissidents.
   const dissidentBlocks = dissidents.blocks.filter((b) => b.group_slug !== 'gp-mixto');
+  // Drives the body grid: no dissidents means no second column, rather
+  // than a reserved-but-empty half page.
+  const hasDissidents = !vote.approved_by_assent && dissidentBlocks.length > 0;
 
   // "How each group voted" — built from the cohesion breakdown, which
   // carries the per-group vote counts. Each group is placed in the
@@ -287,6 +296,15 @@ export default async function VoteDetailPage({
   // cast it. This replaces the old cohesion "voto por grupo" bars.
   const tSession = await getTranslations('session_sheet');
   const voteStance = cohesionToStance(cohesion);
+  // Null for the overwhelming majority of votes; otherwise which of the
+  // three legitimate reasons applies. Drives both the stance slot and the
+  // recount card, so a vote without a breakdown keeps the same page shape
+  // instead of collapsing into a different-looking page.
+  const noBreakdown = noBreakdownReason({
+    approvedByAssent: vote.approved_by_assent,
+    hasBreakdown: voteStance.length > 0,
+    subject: vote.description ?? vote.title,
+  });
   const stanceLabels = {
     aye: tSession('choice_aye'),
     no: tSession('choice_no'),
@@ -319,6 +337,10 @@ export default async function VoteDetailPage({
     dateStyle: 'long',
   });
   const totalCast = vote.ayes + vote.noes + vote.abstentions;
+  // Whether the chamber published any numbers at all. False only for
+  // approval by assent, where no division was held. Secret ballots and
+  // ingest gaps DO carry totals — they just lack the per-deputy detail.
+  const hasTotals = totalCast + vote.absent > 0;
   const needed = Math.floor(totalCast / 2) + 1;
   const margin = vote.ayes - vote.noes;
   const summary = pickPlainSummary(vote, locale);
@@ -572,14 +594,36 @@ export default async function VoteDetailPage({
             title: one cluster per stance with large party logos and
             each group's deputy count. Title + who-voted + (below) the
             charts read in a single glance, no separate section. */}
-        {voteStance.length > 0 && !vote.approved_by_assent && (
-          <div style={{ marginTop: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
-              <div className="eyebrow">{t('group_stance_title')}</div>
-              <span style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>
-                {t('group_stance_help')}
-              </span>
-            </div>
+        {/* Always rendered. When there IS no per-group data we show the
+            reason in this exact slot rather than dropping the section —
+            see NoBreakdownNotice for why an explained gap beats a silent
+            one. Every vote therefore has the same page shape. */}
+        <div style={{ marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
+            <div className="eyebrow">{t('group_stance_title')}</div>
+            <span style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>
+              {t('group_stance_help')}
+            </span>
+          </div>
+          {noBreakdown ? (
+            <NoBreakdownNotice
+              reason={noBreakdown}
+              title={
+                noBreakdown === 'assent'
+                  ? t('assent_title')
+                  : noBreakdown === 'secret'
+                    ? t('nobreak_secret_title')
+                    : t('nobreak_unavailable_title')
+              }
+              body={
+                noBreakdown === 'assent'
+                  ? t('assent_body')
+                  : noBreakdown === 'secret'
+                    ? t('nobreak_secret_body')
+                    : t('nobreak_unavailable_body')
+              }
+            />
+          ) : (
             <GroupStanceBand
               parties={voteStance}
               labels={stanceLabels}
@@ -590,16 +634,20 @@ export default async function VoteDetailPage({
                 absent: vote.absent,
               }}
             />
-          </div>
-        )}
+          )}
+        </div>
       </header>
 
-      {/* 2-col body: summary + totals (left) // cohesion + dissidents (right) */}
+      {/* Body: recount (left) // dissidents (right). The second column is
+          only declared when there is something to put in it — the grid
+          used to hold a fixed 0.95fr gutter open, so a unanimous vote (no
+          dissidents) or an assent vote left almost half the page blank
+          next to the recount card. */}
       <section
         className="vote-detail-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: '1.05fr 0.95fr',
+          gridTemplateColumns: hasDissidents ? '1.05fr 0.95fr' : 'minmax(0, 1fr)',
           gap: 40,
           paddingTop: 28,
         }}
@@ -635,8 +683,21 @@ export default async function VoteDetailPage({
               padding: 22,
             }}
           >
-            {vote.approved_by_assent ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* The card renders for EVERY vote. What varies is only what
+                goes inside the chart slot, because the three no-breakdown
+                reasons are not equivalent on the numbers:
+
+                  - assent      → no counts at all, so no chart is possible
+                  - secret/gap  → the totals ARE published (e.g. 345-0-0),
+                                  so the donut is real and stays; only the
+                                  hemicycle drops, since that needs the
+                                  per-deputy records we don't have.
+
+                Previously assent votes replaced the whole card with two
+                lines of prose, which is why those pages looked like a
+                different site. */}
+            {!hasTotals ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <h3
                   style={{
                     fontFamily: 'var(--font-serif)',
@@ -847,9 +908,8 @@ export default async function VoteDetailPage({
           </section>
         </div>
 
-        {!vote.approved_by_assent && dissidentBlocks.length > 0 && (
-        <div>
-          {dissidentBlocks.length > 0 && (
+        {hasDissidents && (
+          <div>
             <DissidentsSection
               blocks={dissidentBlocks}
               title={t('dissidents_title')}
@@ -865,8 +925,7 @@ export default async function VoteDetailPage({
                 abstention: t('dissidents_choice_abst'),
               }}
             />
-          )}
-        </div>
+          </div>
         )}
       </section>
 

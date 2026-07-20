@@ -140,7 +140,10 @@
     "topicband_rejected": "{n} rejected",
     "topicband_laws": "{n, plural, =1 {# law} other {# laws}}",
     "topicband_votes_sub": "{n} votes in total",
-    "section_total_laws": "{count, plural, =1 {# law} other {# laws}}"
+    "section_total_laws": "{count, plural, =1 {# law} other {# laws}}",
+    "nobreak_inline_assent": "Approved by assent, no recorded division",
+    "nobreak_inline_secret": "Secret ballot: individual votes are not published",
+    "nobreak_inline_unavailable": "No individual breakdown published"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -954,7 +957,11 @@
     "group_stance_title": "How each group voted",
     "donut_caption": "Outer ring: the result. Inner ring: each parliamentary group's contribution.",
     "share_cta": "Share",
-    "group_stance_help": "The majority position of each group's deputies on this vote."
+    "group_stance_help": "The majority position of each group's deputies on this vote.",
+    "nobreak_secret_title": "Secret ballot",
+    "nobreak_secret_body": "Opinions of the Committee on the Statute of Deputies are voted by secret ballot under the rules of the House. Congress publishes the totals but never the individual votes, so there is no per-group breakdown.",
+    "nobreak_unavailable_title": "No breakdown published",
+    "nobreak_unavailable_body": "We have the totals for this vote, but the Congress source did not provide each deputy's individual vote. This is a known gap in a handful of older votes."
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",
