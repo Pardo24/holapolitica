@@ -408,6 +408,16 @@ a { color: inherit; }
   border-bottom: 1px solid var(--ink);
   gap: 16px;
   flex-wrap: wrap;
+  /* Paint the nav — and crucially its bottom rule — above the page
+     content. The home hero is a full-bleed band pulled up by a negative
+     top margin so its wash meets the nav with no white gap; as a later
+     sibling in the same stacking context its background was painting
+     over the nav's border, which is why the rule showed on every view
+     except the home page. Lifting the nav one layer restores it without
+     giving back the gap. Every overlay on the site sits at z-index 60 or
+     above, so nothing that should cover the nav stops doing so. */
+  position: relative;
+  z-index: 1;
 }
 .topnav .brand {
   display: flex; align-items: center; gap: 10px;
