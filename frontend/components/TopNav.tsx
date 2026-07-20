@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, Building2, CalendarDays, Gamepad2, Users, Scale } from 'lucide-react';
+import { BarChart3, Bell, CalendarDays, Gamepad2, Users, Scale } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -52,9 +52,11 @@ export async function TopNav() {
   // site that wants to be cited. It is now an icon-only entry beside the
   // bell: still one click away, no longer a headline destination.
   //
-  // "Partits" is new and deliberate: the per-group pages carry the
-  // richest analysis on the site (record, cohesion, manifesto vs. votes)
-  // and previously had no direct route in from the top bar.
+  // Parties and deputies are ONE entry, not two. They answer the same
+  // question ("who is in the chamber and what do they stand for"), and on
+  // a phone — where most of our traffic is — two adjacent nav items that
+  // lead to halves of one answer just cost a tap and some confusion. The
+  // party cards now live inside the deputies hub next to the chamber map.
   const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
     {
       href: '/lleis' as Route,
@@ -65,11 +67,6 @@ export async function TopNav() {
       href: '/avui' as Route,
       label: t('plens'),
       icon: <CalendarDays size={17} aria-hidden="true" strokeWidth={1.8} />,
-    },
-    {
-      href: '/groups' as Route,
-      label: t('partits'),
-      icon: <Building2 size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/el-teu-diputat' as Route,

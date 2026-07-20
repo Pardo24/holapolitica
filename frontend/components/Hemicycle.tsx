@@ -447,28 +447,35 @@ export function Hemicycle({
               gap: 3,
             }}
           >
+            {/* The whole row is the link to the party page.
+                It used to be a click-to-highlight button with a 14px arrow
+                tucked at the end as the only way into the party profile —
+                unusable with a thumb, and most of our traffic is mobile.
+                Now: tapping anywhere navigates (the action people want),
+                and the seat highlight rides on hover/focus, which costs a
+                desktop user nothing and needs no tap budget on a phone. */}
             {legendGroups.map((g) => {
               const active = selectedGroup === g.slug;
               return (
                 <li key={g.slug}>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={active}
-                    onClick={() => setSelectedGroup(active ? null : g.slug)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedGroup(active ? null : g.slug);
-                      }
-                    }}
+                  <Link
+                    href={`/groups/${g.slug}` as Route}
+                    onMouseEnter={() => setSelectedGroup(g.slug)}
+                    onMouseLeave={() => setSelectedGroup(null)}
+                    onFocus={() => setSelectedGroup(g.slug)}
+                    onBlur={() => setSelectedGroup(null)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 9,
+                      // 44px floor: this is the primary way into a party
+                      // page on a phone, so it has to clear the touch target
+                      // guidance rather than sit at the 26px it was.
+                      minHeight: 44,
                       padding: '5px 8px',
                       borderRadius: 9,
-                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      color: 'inherit',
                       background: active ? 'var(--paper-3)' : 'transparent',
                       border: `1px solid ${active ? 'var(--rule-strong)' : 'transparent'}`,
                     }}
@@ -494,20 +501,13 @@ export function Hemicycle({
                     >
                       {g.count}
                     </span>
-                    <Link
-                      href={`/groups/${g.slug}` as Route}
-                      aria-label={t('legend_view_group')}
-                      title={t('legend_view_group')}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        display: 'inline-flex',
-                        color: 'var(--ink-3)',
-                        flex: 'none',
-                      }}
-                    >
-                      <ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />
-                    </Link>
-                  </div>
+                    <ArrowUpRight
+                      size={14}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                      style={{ color: 'var(--ink-3)', flex: 'none' }}
+                    />
+                  </Link>
                 </li>
               );
             })}

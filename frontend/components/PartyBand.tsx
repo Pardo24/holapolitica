@@ -28,34 +28,46 @@ export function PartyBand({
   caption,
   seatsLabel,
   seeAllLabel,
+  variant = 'band',
 }: {
   groups: ParliamentaryGroupSummary[];
   title: string;
   caption: string;
   /** Pluralisable "escons" label, already resolved by the caller. */
   seatsLabel: (n: number) => string;
-  seeAllLabel: string;
+  seeAllLabel?: string;
+  /**
+   * ``band`` — full-bleed tinted section, for the home page.
+   * ``plain`` — inline, no background, for use inside a page that already
+   * has its own header (the deputies + parties hub).
+   */
+  variant?: 'band' | 'plain';
 }) {
   if (groups.length === 0) return null;
   // Seat order — the chamber's own ranking, not ours.
   const ordered = [...groups].sort((a, b) => b.members_active - a.members_active);
+  const band = variant === 'band';
 
   return (
     <section
       aria-label={title}
-      style={{
-        // Full-bleed tinted band, same trick as the hero: negative inline
-        // margins reach the viewport edges, matching padding puts the
-        // content back on the grid.
-        marginInline: 'calc(50% - 50vw)',
-        paddingInline: 'calc(50vw - 50%)',
-        marginTop: 48,
-        paddingTop: 30,
-        paddingBottom: 32,
-        background: 'var(--hue-partits-soft)',
-        borderTop: '1px solid var(--rule)',
-        borderBottom: '1px solid var(--rule)',
-      }}
+      style={
+        band
+          ? {
+              // Full-bleed tinted band, same trick as the hero: negative
+              // inline margins reach the viewport edges, matching padding
+              // puts the content back on the grid.
+              marginInline: 'calc(50% - 50vw)',
+              paddingInline: 'calc(50vw - 50%)',
+              marginTop: 48,
+              paddingTop: 30,
+              paddingBottom: 32,
+              background: 'var(--hue-partits-soft)',
+              borderTop: '1px solid var(--rule)',
+              borderBottom: '1px solid var(--rule)',
+            }
+          : { marginTop: 4, marginBottom: 28 }
+      }
     >
       <div
         style={{
@@ -67,15 +79,17 @@ export function PartyBand({
           marginBottom: 4,
         }}
       >
-        <h2 className="h-headline" style={{ margin: 0, fontSize: 26 }}>
+        <h2 className="h-headline" style={{ margin: 0, fontSize: band ? 26 : 21 }}>
           {title}
         </h2>
-        <Link
-          href={'/groups' as Route}
-          style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600 }}
-        >
-          {seeAllLabel} →
-        </Link>
+        {seeAllLabel && (
+          <Link
+            href={'/el-teu-diputat' as Route}
+            style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600 }}
+          >
+            {seeAllLabel} →
+          </Link>
+        )}
       </div>
       <p style={{ margin: '0 0 18px', fontSize: 13.5, color: 'var(--ink-2)', maxWidth: 620 }}>
         {caption}
@@ -131,10 +145,28 @@ export function PartyBand({
           margin: 0;
           padding: 0;
           display: grid;
-          /* Auto-fit means the row reflows from 8 across on a wide screen
-             down to 2 on a phone without a single breakpoint — and it
-             already accommodates the 9th group if one appears. */
-          grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+          /* One rule, no breakpoints. 140px is a real floor: it is the
+             width at which the longest group name we carry
+             ("Plurinacional SUMAR") wraps to two lines instead of
+             shattering. Auto-fit then walks 2 → 3 → 5 → 6 columns as the
+             viewport grows, and no card is ever narrower than 140px:
+
+               320px → 2 cols of 141px      480px → 3 cols of 144px
+               375px → 2 cols of 168px      768px → 5 cols of 140px
+               414px → 2 cols of 188px     1000px → 6 cols of 152px
+
+             A forced 3-column rule under 520px used to override this and
+             squeezed phone cards to 110px (92px on a 320px screen), which
+             is where the cramping came from. Nine groups over two columns
+             leaves one card alone on the last row; that is ordinary grid
+             reflow, and the odd one out is whichever group the chamber
+             itself ranks last, not a choice of ours. */
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          /* Every row the same height, so a group whose name wraps to two
+             lines doesn't get a taller card than one that fits on one.
+             Same reason the cards are identical in the first place: equal
+             visual real estate for every group, regardless of size. */
+          grid-auto-rows: 1fr;
           gap: 10px;
         }
         .party-band__card {
@@ -177,9 +209,15 @@ export function PartyBand({
         .party-band__name {
           font-size: 13px;
           font-weight: 700;
-          line-height: 1.2;
+          line-height: 1.25;
           text-align: center;
           color: var(--ink);
+          /* Names are multi-word and unpredictable in length. Let them
+             wrap freely and, in the worst case, break inside a word
+             rather than push the card wider than its grid cell. */
+          min-width: 0;
+          max-width: 100%;
+          overflow-wrap: anywhere;
         }
         .party-band__seats {
           font-size: 11.5px;
@@ -187,15 +225,15 @@ export function PartyBand({
           margin-top: auto;
         }
         .party-band__seats b { color: var(--ink-2); font-size: 13px; }
-        /* Phones: three tighter cards per row, so eight groups land in
-           three rows instead of four tall ones. */
+        /* Phones keep the same two-column grid the rule above produces;
+           only the card gets a little tighter so two of them plus the gap
+           never fight for width. The logo stays large — at 140px+ per card
+           there is room for it, and it is the fastest way to recognise a
+           party at a glance. */
         @media (max-width: 520px) {
-          .party-band { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-          .party-band__card { padding: 13px 6px 10px; border-radius: 12px; }
-          .party-band__logo { width: 30px; height: 30px; }
-          .party-band__name { font-size: 11.5px; }
-          .party-band__seats { font-size: 10.5px; }
-          .party-band__seats b { font-size: 12px; }
+          .party-band { gap: 8px; }
+          .party-band__card { padding: 15px 10px 12px; border-radius: 12px; }
+          .party-band__logo { width: 36px; height: 36px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .party-band__card { transition: none; }

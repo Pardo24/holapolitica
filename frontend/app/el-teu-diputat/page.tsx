@@ -7,7 +7,14 @@ import { PageHeader } from '@/components/PageHeader';
 import { ConstituencySelect } from '@/components/ConstituencySelect';
 import { GroupBadge } from '@/components/GroupBadge';
 import { Hemicycle } from '@/components/Hemicycle';
-import { api, type ConstituencyRow, type DeputyCard, type HemicycleLayout } from '@/lib/api';
+import { PartyBand } from '@/components/PartyBand';
+import {
+  api,
+  type ConstituencyRow,
+  type DeputyCard,
+  type HemicycleLayout,
+  type ParliamentaryGroupSummary,
+} from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
 export const revalidate = 300;
@@ -35,16 +42,21 @@ export default async function ElTeuDiputatPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations('deputy');
+  const tHome = await getTranslations('home');
   const locale = await getLocale();
   const { prov } = await searchParams;
 
-  const [constituencies, hemicycle]: [ConstituencyRow[], HemicycleLayout | null] =
-    await Promise.all([
-      api.persons.constituencies().catch(() => [] as ConstituencyRow[]),
-      // Drives the chamber map at the top of the page. Graceful: an empty
-      // layout just renders nothing.
-      api.legislatures.hemicycle(1).catch(() => null),
-    ]);
+  const [constituencies, hemicycle, allGroups]: [
+    ConstituencyRow[],
+    HemicycleLayout | null,
+    ParliamentaryGroupSummary[],
+  ] = await Promise.all([
+    api.persons.constituencies().catch(() => [] as ConstituencyRow[]),
+    // Drives the chamber map at the top of the page. Graceful: an empty
+    // layout just renders nothing.
+    api.legislatures.hemicycle(1).catch(() => null),
+    api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
+  ]);
   const selected = prov && constituencies.some((c) => c.name === prov) ? prov : null;
 
   const deputies: DeputyCard[] = selected
@@ -103,8 +115,21 @@ export default async function ElTeuDiputatPage({
         </section>
       )}
 
-      {/* Gateways: the party pages and the map — the two "where do the
-          parties stand" surfaces, reachable from the deputies hub. */}
+      {/* The parties themselves, absorbed from the old standalone /groups
+          page. One card per group, each a large tap target straight into
+          that party's profile — on a phone this is the primary way in,
+          which is why it sits directly under the chamber map rather than
+          behind a "see the parties" gateway card as it used to. */}
+      <PartyBand
+        groups={allGroups}
+        variant="plain"
+        title={tHome('parties_title')}
+        caption={tHome('parties_caption')}
+        seatsLabel={(n) => tHome('parties_seats', { n })}
+      />
+
+      {/* Remaining gateway: the map. The party gateway is gone — the
+          parties are on this page now. */}
       <section
         style={{
           display: 'grid',
@@ -115,11 +140,6 @@ export default async function ElTeuDiputatPage({
         }}
       >
         {[
-          {
-            href: '/groups' as Route,
-            title: t('groups_cta_title'),
-            sub: t('groups_cta_sub'),
-          },
           {
             href: '/mapa' as Route,
             title: t('map_cta_title'),
