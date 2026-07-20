@@ -28,34 +28,46 @@ export function PartyBand({
   caption,
   seatsLabel,
   seeAllLabel,
+  variant = 'band',
 }: {
   groups: ParliamentaryGroupSummary[];
   title: string;
   caption: string;
   /** Pluralisable "escons" label, already resolved by the caller. */
   seatsLabel: (n: number) => string;
-  seeAllLabel: string;
+  seeAllLabel?: string;
+  /**
+   * ``band`` — full-bleed tinted section, for the home page.
+   * ``plain`` — inline, no background, for use inside a page that already
+   * has its own header (the deputies + parties hub).
+   */
+  variant?: 'band' | 'plain';
 }) {
   if (groups.length === 0) return null;
   // Seat order — the chamber's own ranking, not ours.
   const ordered = [...groups].sort((a, b) => b.members_active - a.members_active);
+  const band = variant === 'band';
 
   return (
     <section
       aria-label={title}
-      style={{
-        // Full-bleed tinted band, same trick as the hero: negative inline
-        // margins reach the viewport edges, matching padding puts the
-        // content back on the grid.
-        marginInline: 'calc(50% - 50vw)',
-        paddingInline: 'calc(50vw - 50%)',
-        marginTop: 48,
-        paddingTop: 30,
-        paddingBottom: 32,
-        background: 'var(--hue-partits-soft)',
-        borderTop: '1px solid var(--rule)',
-        borderBottom: '1px solid var(--rule)',
-      }}
+      style={
+        band
+          ? {
+              // Full-bleed tinted band, same trick as the hero: negative
+              // inline margins reach the viewport edges, matching padding
+              // puts the content back on the grid.
+              marginInline: 'calc(50% - 50vw)',
+              paddingInline: 'calc(50vw - 50%)',
+              marginTop: 48,
+              paddingTop: 30,
+              paddingBottom: 32,
+              background: 'var(--hue-partits-soft)',
+              borderTop: '1px solid var(--rule)',
+              borderBottom: '1px solid var(--rule)',
+            }
+          : { marginTop: 4, marginBottom: 28 }
+      }
     >
       <div
         style={{
@@ -67,15 +79,17 @@ export function PartyBand({
           marginBottom: 4,
         }}
       >
-        <h2 className="h-headline" style={{ margin: 0, fontSize: 26 }}>
+        <h2 className="h-headline" style={{ margin: 0, fontSize: band ? 26 : 21 }}>
           {title}
         </h2>
-        <Link
-          href={'/groups' as Route}
-          style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600 }}
-        >
-          {seeAllLabel} →
-        </Link>
+        {seeAllLabel && (
+          <Link
+            href={'/el-teu-diputat' as Route}
+            style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600 }}
+          >
+            {seeAllLabel} →
+          </Link>
+        )}
       </div>
       <p style={{ margin: '0 0 18px', fontSize: 13.5, color: 'var(--ink-2)', maxWidth: 620 }}>
         {caption}

@@ -211,7 +211,7 @@ export default async function HomePage() {
           tileDeputy: tHub('deputy_title'),
           tileMap: tHub('map_title'),
           tilePlens: t('cta_plenary'),
-          tilePartits: t('partits_cta'),
+          tileDeputiesParties: t('tile_deputies_parties'),
           tileVotes: t('mobile_tile_votes'),
           tilePersons: t('mobile_tile_persons'),
           tileTopics: t('mobile_tile_topics'),
@@ -326,26 +326,14 @@ export default async function HomePage() {
               {t('cta_plenary')}
             </Link>
             <Link
-              href={'/groups' as Route}
-              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-partits)' }}
-            >
-              <Building2
-                size={15}
-                strokeWidth={1.9}
-                aria-hidden="true"
-                style={{ color: 'var(--hue-partits)' }}
-              />
-              {t('partits_cta')}
-            </Link>
-            <Link
               href={'/el-teu-diputat' as Route}
-              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-lleis)' }}
+              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-partits)' }}
             >
               <Users
                 size={15}
                 strokeWidth={1.9}
                 aria-hidden="true"
-                style={{ color: 'var(--hue-lleis)' }}
+                style={{ color: 'var(--hue-partits)' }}
               />
               {t('cta_deputies')}
             </Link>
@@ -739,7 +727,7 @@ interface MobileDashboardLabels {
   tileDeputy: string;
   tileMap: string;
   tilePlens: string;
-  tilePartits: string;
+  tileDeputiesParties: string;
   tileVotes: string;
   tilePersons: string;
   tileTopics: string;
@@ -979,15 +967,15 @@ function MobileDashboard({
           tint="amber"
         />
         <DashboardTile
-          href={'/groups' as Route}
-          icon={<Building2 size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tilePartits}
+          href={'/el-teu-diputat' as Route}
+          icon={<Users size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileDeputiesParties}
           tint="teal"
         />
         <DashboardTile
-          href={'/el-teu-diputat' as Route}
-          icon={<Users size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileDeputy}
+          href={'/lleis' as Route}
+          icon={<Scale size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileVotes}
           tint="indigo"
         />
         <DashboardTile
@@ -1009,11 +997,6 @@ function MobileDashboard({
           marginBottom: 22,
         }}
       >
-        <DashboardChip
-          href={'/lleis' as Route}
-          icon={<Scale size={15} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileVotes}
-        />
         <DashboardChip
           href="/persons"
           icon={<MapPin size={15} strokeWidth={1.75} aria-hidden="true" />}
