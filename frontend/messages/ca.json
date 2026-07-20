@@ -132,7 +132,12 @@
     "choice_no": "En contra",
     "choice_abstention": "Abstenció",
     "choice_absent": "No vota",
-    "law_votes_toggle": "Veure les {count} votacions"
+    "law_votes_toggle": "Veure les {count} votacions",
+    "topicband_eyebrow": "Què s'ha votat, per tema",
+    "topicband_caption": "Cada tema del ple amb el resultat de les seves votacions. Toca un tema per anar-hi.",
+    "topicband_votes": "{n} votacions",
+    "topicband_approved": "{n} aprovades",
+    "topicband_rejected": "{n} rebutjades"
   },
   "avui_og": {
     "brand": "Hola Política",

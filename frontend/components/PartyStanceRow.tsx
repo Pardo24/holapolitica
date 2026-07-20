@@ -50,11 +50,13 @@ export function buildStanceByVote(groups: GroupVoteChoiceRow[]): Map<number, Par
 
 /**
  * Ultra-compact stance strip for dense list rows (pleno sheet, vote
- * cards): a small ✓ / ✗ / − glyph per stance followed by the groups as
- * plain colour discs — no pills, no names, no rings. The full name +
- * stance stays reachable via the ``title`` tooltip, and the detail
- * pages carry the explicit GroupVoteBreakdown. Absent groups are
- * omitted here on purpose: in a scanning context they're noise.
+ * cards): the groups clustered by the position they took, each logo
+ * carrying its OWN coloured ring — green for Sí, red for No, amber for
+ * abstention. The ring is what makes it unambiguous: a reader used to
+ * have to pair each logo with a ✓/✗ glyph sitting to its left, which
+ * invited mis-reading when clusters wrapped. Now every logo states its
+ * own answer, and the glyph is just a label for the cluster. Absent
+ * groups are omitted on purpose: in a scanning context they're noise.
  */
 export function PartyStanceMini({
   parties,
@@ -95,21 +97,21 @@ export function PartyStanceMini({
               aria-label={stanceWord(key)}
               style={{ color, flex: 'none' }}
             />
-            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-              {members.map((p, i) => {
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+              {members.map((p) => {
                 const logo = groupLogoUrl(p.slug);
                 const title = `${displayGroupShort(p.name_short)} · ${stanceWord(key)}`;
-                // Overlapping avatar-stack look; the paper-colour halo
-                // keeps neighbouring discs distinguishable. Slightly
-                // bigger than the old plain dots (16px) so the party
-                // logos actually read; colour disc as fallback.
+                // Each logo carries its own stance ring (2px in the
+                // choice colour) over a paper gap, so the answer travels
+                // WITH the logo instead of depending on the glyph beside
+                // the cluster. No overlap — the rings need to read as
+                // separate rings.
                 const common: React.CSSProperties = {
-                  width: 20,
-                  height: 20,
+                  width: 22,
+                  height: 22,
                   display: 'inline-block',
                   flex: 'none',
-                  marginLeft: i === 0 ? 0 : -5,
-                  boxShadow: '0 0 0 1.5px var(--paper)',
+                  boxShadow: `0 0 0 1.5px var(--paper), 0 0 0 3.5px ${color}`,
                 };
                 return logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -118,8 +120,8 @@ export function PartyStanceMini({
                     src={logo}
                     alt=""
                     title={title}
-                    width={20}
-                    height={20}
+                    width={22}
+                    height={22}
                     loading="lazy"
                     decoding="async"
                     style={{
