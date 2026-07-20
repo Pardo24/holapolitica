@@ -11,8 +11,8 @@ import {
   type PartyStance,
   type StanceLabels,
 } from '@/components/PartyStanceRow';
-import { ResizingIframe } from '@/components/ResizingIframe';
 import { ResultPill } from '@/components/ResultPill';
+import { ScrollCarousel } from '@/components/ScrollCarousel';
 import { SessionVoteFilter } from '@/components/SessionVoteFilter';
 import { StackedBar } from '@/components/StackedBar';
 import { Tooltip } from '@/components/Tooltip';
@@ -20,6 +20,7 @@ import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
+import { topicIcon } from '@/lib/topic_icons';
 
 /**
  * Plenary-session summary sheet — the canonical render for one day's
@@ -104,38 +105,9 @@ export async function SessionSheet({
 
   // Aggregated counts. Result is one of approved / rejected / tie.
   const counts = { approved: 0, rejected: 0, tie: 0 };
-  let tightestMargin = Number.POSITIVE_INFINITY;
-  let tightestVoteId: number | null = null;
   for (const v of ordered) {
     counts[v.result] += 1;
-    const margin = Math.abs(v.ayes - v.noes);
-    if (v.ayes + v.noes >= 30 && margin < tightestMargin) {
-      tightestMargin = margin;
-      tightestVoteId = v.id;
-    }
   }
-  const tightestVote = tightestVoteId
-    ? ordered.find((v) => v.id === tightestVoteId) ?? null
-    : null;
-  // Dossier-iframe target: prefer the tightest vote when it links to
-  // an initiative, otherwise pick the vote-with-initiative_id whose
-  // margin is closest, since only Proyecto/Proposición/Reforma series
-  // have backing Initiative rows (PNL / Moción / RDL convalidation
-  // don't, so their votes can never link). Without this fallback the
-  // dossier widget on /avui silently disappeared on any session
-  // dominated by non-legislative votes.
-  const featuredInitiativeVote =
-    tightestVote?.initiative_id != null
-      ? tightestVote
-      : ordered
-          .filter(
-            (v) =>
-              v.initiative_id != null && v.ayes + v.noes >= 30,
-          )
-          .sort(
-            (a, b) =>
-              Math.abs(a.ayes - a.noes) - Math.abs(b.ayes - b.noes),
-          )[0] ?? null;
 
   // Session number — every vote in the bucket shares the same
   // ``session_id``; we display the smallest sequence's session as the
@@ -325,38 +297,12 @@ export async function SessionSheet({
               ),
             },
           )}
-          {tightestVote ? (
-            <>
-              {' '}
-              {t.rich('lede_tightest_phrase', {
-                margin: tightestMargin,
-                a: (chunks) => (
-                  <Link
-                    href={`/votes/${tightestVote.id}` as Route}
-                    style={{
-                      color: 'var(--ink)',
-                      textDecoration: 'underline',
-                      textUnderlineOffset: 3,
-                    }}
-                  >
-                    {chunks}
-                  </Link>
-                ),
-                n: (chunks) => (
-                  <strong
-                    className="tabular"
-                    style={{
-                      color: 'var(--ink)',
-                      fontWeight: 600,
-                      letterSpacing: '-0.005em',
-                    }}
-                  >
-                    {chunks}
-                  </strong>
-                ),
-              })}
-            </>
-          ) : null}
+          {/* The "tightest margin" sentence used to sit here. Removed:
+              a margin is only meaningful between Sí and No, but ours
+              counted abstentions too, so it surfaced votes that weren't
+              actually contested — and readers couldn't tell what the
+              figure meant. The per-topic band below answers the real
+              question ("what was voted and how did it end") instead. */}
           {/* Dominant-topics phrase — third sentence of the lede.
               Lists up to 3 of the most-voted topics this session, each
               linked to /votes?topic=<slug> so a reader can keep
@@ -410,48 +356,145 @@ export async function SessionSheet({
         </p>
       </section>
 
-      {/* Featured-law dossier embed — when the day's tightest vote
-          links to an initiative, render the /embed/initiatives
-          widget inline as a same-origin iframe. This is the literal
-          fulfilment of the /journalists claim that "/avui is a
-          composition of these widgets" — Daniel's ask: '/avui ha
-          d'usar els widgets'. The iframe is bounded to a clear
-          dossier height, lazy-loaded, and gets a clear caption so a
-          reader knows this is the day's contentious law in dossier
-          form. */}
-      {featuredInitiativeVote?.initiative_id != null && (
-        <section
-          style={{
-            marginBottom: 28,
-            padding: '14px 16px',
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule)',
-          }}
-        >
-          <div
-            className="eyebrow"
-            style={{ marginBottom: 4, fontSize: 10, color: 'var(--ink-3)' }}
-          >
-            {t('featured_dossier_eyebrow')}
+      {/* Topic summary band — replaces the old "featured dossier" iframe
+          (which spotlighted one law picked by the tightest margin, an
+          arbitrary and unexplained choice). This answers the question a
+          reader actually arrives with: WHAT was voted today and HOW did
+          each area end. One card per topic, in the topic's own colour,
+          with its approved/rejected split; tapping jumps to that topic's
+          section below. */}
+      {ordered.length > 0 && (
+        <section style={{ marginBottom: 28 }}>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>
+            {t('topicband_eyebrow')}
           </div>
           <p
             style={{
-              margin: '0 0 10px',
+              margin: '0 0 4px',
               fontSize: 12,
               color: 'var(--ink-3)',
               lineHeight: 1.5,
+              maxWidth: 640,
             }}
           >
-            {t('featured_dossier_caption')}
+            {t('topicband_caption')}
           </p>
-          {/* Auto-height: the widget reports its own height (EmbedAutoHeight),
-              so the wrapper matches the embed instead of a fixed 480px box.
-              Borderless — the embed-card inside supplies its own chrome. */}
-          <ResizingIframe
-            src={`/embed/initiatives/${featuredInitiativeVote.initiative_id}`}
-            title={t('featured_dossier_iframe_title')}
-            fallbackHeight={480}
-          />
+          <ScrollCarousel
+            gap={12}
+            prevLabel={t('topicband_eyebrow')}
+            nextLabel={t('topicband_eyebrow')}
+          >
+            {groupVotesByTopic(ordered, locale).map(({ topic, votes: tVotes, key }) => {
+              const approved = tVotes.filter((v) => v.result === 'approved').length;
+              const rejected = tVotes.filter((v) => v.result === 'rejected').length;
+              const color = topic?.color_hex ?? 'var(--ink-3)';
+              const Icon = topicIcon(topic?.icon);
+              const name = topic ? pickTopicName(topic, locale) : t('section_unclassified');
+              return (
+                <li key={key} style={{ flex: '0 0 210px', scrollSnapAlign: 'start' }}>
+                  <a
+                    href={`#session-topic-${topic?.slug ?? 'unclassified'}`}
+                    className="topic-card-link"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 8,
+                      height: '100%',
+                      padding: '13px 15px',
+                      borderRadius: 12,
+                      border: '1px solid var(--rule)',
+                      borderTop: `3px solid ${color}`,
+                      background: `color-mix(in oklch, ${color} 6%, var(--paper))`,
+                      textDecoration: 'none',
+                      color: 'inherit',
+                    }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: 26,
+                          height: 26,
+                          borderRadius: 8,
+                          flex: 'none',
+                          color,
+                          background: `color-mix(in oklch, ${color} 18%, var(--paper))`,
+                        }}
+                      >
+                        <Icon size={14} strokeWidth={2} aria-hidden="true" />
+                      </span>
+                      <span
+                        className="line-clamp-2"
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: 'var(--ink)',
+                          lineHeight: 1.25,
+                          minWidth: 0,
+                        }}
+                      >
+                        {name}
+                      </span>
+                    </span>
+                    <span
+                      className="tabular"
+                      style={{ fontSize: 11.5, color: 'var(--ink-3)' }}
+                    >
+                      {t('topicband_votes', { n: tVotes.length })}
+                    </span>
+                    {/* Outcome split — the answer, in the shared vote colours. */}
+                    <span
+                      role="img"
+                      aria-label={`${t('topicband_approved', { n: approved })}, ${t('topicband_rejected', { n: rejected })}`}
+                      style={{
+                        display: 'flex',
+                        height: 6,
+                        borderRadius: 999,
+                        overflow: 'hidden',
+                        background: 'var(--rule)',
+                      }}
+                    >
+                      {approved > 0 && (
+                        <span
+                          style={{
+                            width: `${(approved / tVotes.length) * 100}%`,
+                            background: 'var(--aye)',
+                          }}
+                        />
+                      )}
+                      {rejected > 0 && (
+                        <span
+                          style={{
+                            width: `${(rejected / tVotes.length) * 100}%`,
+                            background: 'var(--no)',
+                          }}
+                        />
+                      )}
+                    </span>
+                    <span
+                      style={{
+                        display: 'flex',
+                        gap: 10,
+                        fontSize: 11.5,
+                        flexWrap: 'wrap',
+                        marginTop: 'auto',
+                      }}
+                    >
+                      <span className="tabular" style={{ color: 'var(--aye)', fontWeight: 700 }}>
+                        {t('topicband_approved', { n: approved })}
+                      </span>
+                      <span className="tabular" style={{ color: 'var(--no)', fontWeight: 700 }}>
+                        {t('topicband_rejected', { n: rejected })}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
+          </ScrollCarousel>
         </section>
       )}
 
@@ -496,6 +539,11 @@ export async function SessionSheet({
                 style={{
                   marginBottom: 0,
                   borderBottom: '1px solid var(--rule)',
+                  // A rail in the topic's own colour ties each section to
+                  // its card in the band above and gives the long list a
+                  // chromatic spine instead of a grey ledger.
+                  borderLeft: `3px solid ${topic?.color_hex ?? 'var(--rule-strong)'}`,
+                  paddingLeft: 12,
                   // Clear the sticky mobile back bar when an anchor from the
                   // lede scrolls this group into view.
                   scrollMarginTop: 64,
@@ -949,10 +997,26 @@ function LawVoteGroup({
             >
               {headline}
             </Link>
-            {/* The law's outcome — its final vote's result, shown prominently
-                so "did it pass?" is answered at a glance despite the many
-                votes. */}
-            <span style={{ flex: 'none' }} title={finalResultLabel}>
+            {/* The law's outcome — its final vote's result. The
+                "Resultado final" label is now VISIBLE (it used to hide in
+                a title tooltip): with several votes on one law, a reader
+                needs to be told that this pill is the law's fate, not one
+                of the N sub-votes. */}
+            <span
+              style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'var(--ink-3)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {finalResultLabel}
+              </span>
               <ResultPill result={finalVote.result} label={resultLabelFor(finalVote.result)} />
             </span>
             <span

@@ -132,7 +132,12 @@
     "choice_no": "En contra",
     "choice_abstention": "Abstención",
     "choice_absent": "No vota",
-    "law_votes_toggle": "Ver las {count} votaciones"
+    "law_votes_toggle": "Ver las {count} votaciones",
+    "topicband_eyebrow": "Qué se ha votado, por tema",
+    "topicband_caption": "Cada tema del pleno con el resultado de sus votaciones. Toca un tema para ir a él.",
+    "topicband_votes": "{n} votaciones",
+    "topicband_approved": "{n} aprobadas",
+    "topicband_rejected": "{n} rechazadas"
   },
   "avui_og": {
     "brand": "Hola Política",

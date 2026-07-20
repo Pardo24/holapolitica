@@ -132,7 +132,12 @@
     "choice_no": "Against",
     "choice_abstention": "Abstention",
     "choice_absent": "Absent",
-    "law_votes_toggle": "See the {count} votes"
+    "law_votes_toggle": "See the {count} votes",
+    "topicband_eyebrow": "What was voted, by topic",
+    "topicband_caption": "Each topic in the sitting with the outcome of its votes. Tap a topic to jump to it.",
+    "topicband_votes": "{n} votes",
+    "topicband_approved": "{n} approved",
+    "topicband_rejected": "{n} rejected"
   },
   "avui_og": {
     "brand": "Hola Política",
