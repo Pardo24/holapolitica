@@ -768,6 +768,7 @@ function GroupTopicRow({
   return (
     <Link
       href={href}
+      scroll={false}
       style={{
         display: 'grid',
         gridTemplateColumns: '12px 1fr 36px',
@@ -911,6 +912,7 @@ function ProposerRow({
   return (
     <Link
       href={href}
+      scroll={false}
       style={{
         display: 'grid',
         gridTemplateColumns: '28px 1fr 36px',
@@ -1061,6 +1063,7 @@ function CompactTopicInitiativesBody({
       </div>
       <Link
         href={href}
+        scroll={false}
         prefetch={false}
         style={{
           display: 'inline-flex',
