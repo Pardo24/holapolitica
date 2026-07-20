@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, Gamepad2, MapPin, Scale } from 'lucide-react';
+import { BarChart3, Bell, Building2, CalendarDays, Gamepad2, Users, Scale } from 'lucide-react';
 
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
@@ -41,8 +41,20 @@ export async function TopNav() {
   // Everything else (Temes, Legislatures, Premsa, Persones, "Com et
   // representen?") stays reachable from within the pages and the footer, off
   // the top bar.
-  // Order mirrors the mission: the laws first (the core content), then
-  // your deputy, then the games, then the data.
+  // Order mirrors the mission — this is a current-affairs record, so the
+  // nav is the four things a citizen comes here to check: what was voted
+  // (Lleis), what happened in the chamber this week (Plens), who the
+  // parties are and how they behave (Partits), who represents you
+  // (Diputats), and the aggregate picture (Dades).
+  //
+  // The game used to hold a labelled primary slot, which put a quiz at
+  // the same weight as the parliamentary record — the wrong signal for a
+  // site that wants to be cited. It is now an icon-only entry beside the
+  // bell: still one click away, no longer a headline destination.
+  //
+  // "Partits" is new and deliberate: the per-group pages carry the
+  // richest analysis on the site (record, cohesion, manifesto vs. votes)
+  // and previously had no direct route in from the top bar.
   const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
     {
       href: '/lleis' as Route,
@@ -50,14 +62,19 @@ export async function TopNav() {
       icon: <Scale size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
-      href: '/el-teu-diputat' as Route,
-      label: t('deputy'),
-      icon: <MapPin size={17} aria-hidden="true" strokeWidth={1.8} />,
+      href: '/avui' as Route,
+      label: t('plens'),
+      icon: <CalendarDays size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
-      href: '/jocs' as Route,
-      label: t('jocs'),
-      icon: <Gamepad2 size={17} aria-hidden="true" strokeWidth={1.8} />,
+      href: '/groups' as Route,
+      label: t('partits'),
+      icon: <Building2 size={17} aria-hidden="true" strokeWidth={1.8} />,
+    },
+    {
+      href: '/el-teu-diputat' as Route,
+      label: t('deputy'),
+      icon: <Users size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/stats',
@@ -95,6 +112,15 @@ export async function TopNav() {
           keeps the switcher working without any client JS — Server
           Components re-render and `getLocale()` reads the new cookie. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {/* Games — demoted from a labelled primary slot to an icon here.
+            Keeps the quiz and the alignment test reachable without
+            billing them as one of the site's main surfaces. */}
+        <NavLink
+          href={'/jocs' as Route}
+          label={t('jocs')}
+          icon={<Gamepad2 size={17} aria-hidden="true" strokeWidth={1.8} />}
+          iconOnly
+        />
         {/* Notifications bell — icon only, pushed to the far right next
             to the language switcher. */}
         <NavLink

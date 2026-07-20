@@ -4,6 +4,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
   BarChart3,
+  Building2,
+  CalendarDays,
   Code2,
   Gamepad2,
   Layers,
@@ -18,6 +20,7 @@ import {
 import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
+import { PartyBand } from '@/components/PartyBand';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { DailyTeaser } from '@/components/DailyTeaser';
 import { DailyNotification } from '@/components/DailyNotification';
@@ -183,6 +186,15 @@ export default async function HomePage() {
         latestVotes={latestVotes}
         upcomingSessions={upcomingSessions}
         locale={locale}
+        partyBand={
+          <PartyBand
+            groups={allGroups}
+            title={t('parties_title')}
+            caption={t('parties_caption')}
+            seatsLabel={(n) => t('parties_seats', { n })}
+            seeAllLabel={t('parties_see_all')}
+          />
+        }
         labels={{
           brand: t('mobile_brand'),
           motto: tSite('motto'),
@@ -198,6 +210,8 @@ export default async function HomePage() {
           tileAlign: tHub('align_title'),
           tileDeputy: tHub('deputy_title'),
           tileMap: tHub('map_title'),
+          tilePlens: t('cta_plenary'),
+          tilePartits: t('partits_cta'),
           tileVotes: t('mobile_tile_votes'),
           tilePersons: t('mobile_tile_persons'),
           tileTopics: t('mobile_tile_topics'),
@@ -277,11 +291,16 @@ export default async function HomePage() {
           >
             {t('hero_subtitle')}
           </p>
-          {/* Actions: the two primary civic entries — the laws and the
-              deputies/parties hub — carry button weight; the game is the
-              lighter third. "Diputados" is a substantial surface (chamber
-              map, per-group balance, manifesto vs. vote) and was only
-              reachable from the nav before. */}
+          {/* Actions: the four current-affairs entries. The laws carry
+              full button weight; the chamber's week (Plens), the parties
+              and the deputies follow as outlined siblings — each one
+              tinted with its surface hue so the row reads as four
+              territories, not four identical pills.
+
+              The game used to sit here as a peer of the parliamentary
+              record. It has moved down to the quiet link row: still
+              available, no longer presented as one of the reasons to
+              use the site. */}
           <div
             style={{
               display: 'flex',
@@ -294,18 +313,53 @@ export default async function HomePage() {
             <Link href="/votes" className="btn-ink">
               {t('cta_explore')}
             </Link>
-            <Link href={'/el-teu-diputat' as Route} style={heroOutlineBtn}>
-              <Users size={15} strokeWidth={1.9} aria-hidden="true" />
-              {t('cta_deputies')}
+            <Link
+              href={'/avui' as Route}
+              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-plens)' }}
+            >
+              <CalendarDays
+                size={15}
+                strokeWidth={1.9}
+                aria-hidden="true"
+                style={{ color: 'var(--hue-plens)' }}
+              />
+              {t('cta_plenary')}
             </Link>
-            <Link href={'/jocs' as Route} style={heroOutlineBtn}>
-              <Gamepad2 size={15} strokeWidth={1.9} aria-hidden="true" />
-              {t('cta_play')}
+            <Link
+              href={'/groups' as Route}
+              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-partits)' }}
+            >
+              <Building2
+                size={15}
+                strokeWidth={1.9}
+                aria-hidden="true"
+                style={{ color: 'var(--hue-partits)' }}
+              />
+              {t('partits_cta')}
+            </Link>
+            <Link
+              href={'/el-teu-diputat' as Route}
+              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-lleis)' }}
+            >
+              <Users
+                size={15}
+                strokeWidth={1.9}
+                aria-hidden="true"
+                style={{ color: 'var(--hue-lleis)' }}
+              />
+              {t('cta_deputies')}
             </Link>
           </div>
           <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link href={'/recorregut' as Route} style={heroTextLink}>
               {t('lifecycle_link')}
+            </Link>
+            <Link
+              href={'/jocs' as Route}
+              style={{ ...heroTextLink, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <Gamepad2 size={14} strokeWidth={1.9} aria-hidden="true" />
+              {t('cta_play')}
             </Link>
             {/* Press entry — surfaces the (otherwise footer-only) journalists
                 page from the hero, a credibility signal for newsrooms. */}
@@ -532,6 +586,21 @@ export default async function HomePage() {
         </span>
       </section>
 
+      {/* The parties — the first thing you meet after the cover. Placed
+          this high on purpose: the per-group pages hold the deepest
+          analysis on the site (voting record, cohesion, manifesto vs.
+          votes) and were getting almost no traffic because nothing on
+          the home page pointed at them. It also carries the page's
+          strongest colour, and it is colour we don't have to invent:
+          the parties' own brand hues. */}
+      <PartyBand
+        groups={allGroups}
+        title={t('parties_title')}
+        caption={t('parties_caption')}
+        seatsLabel={(n) => t('parties_seats', { n })}
+        seeAllLabel={t('parties_see_all')}
+      />
+
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           shown only when there's something scheduled, so an empty agenda
           doesn't add a blank section to the home. */}
@@ -669,6 +738,8 @@ interface MobileDashboardLabels {
   tileAlign: string;
   tileDeputy: string;
   tileMap: string;
+  tilePlens: string;
+  tilePartits: string;
   tileVotes: string;
   tilePersons: string;
   tileTopics: string;
@@ -690,6 +761,7 @@ function MobileDashboard({
   latestVotes,
   upcomingSessions,
   locale,
+  partyBand,
   labels,
 }: {
   highlights: Highlight[];
@@ -697,6 +769,8 @@ function MobileDashboard({
   latestVotes: Vote[];
   upcomingSessions: ScheduledSession[];
   locale: string;
+  /** Pre-rendered <PartyBand>, shared with the desktop layout. */
+  partyBand: React.ReactNode;
   labels: MobileDashboardLabels;
 }) {
   // Cap the latest-votes list at 3 on mobile — the rest live behind the
@@ -880,10 +954,15 @@ function MobileDashboard({
         </Link>
       )}
 
-      {/* Primary focal grid (2×2) — the experiences we want people to do,
-          game-first. Mirrors the desktop FocalHub (which is hidden on
-          mobile), so these newer surfaces stay reachable here as the main
-          navigation. minmax(0, 1fr) so long labels can't blow out the row. */}
+      {/* Primary focal grid (2×2) — the current-affairs surfaces, in the
+          order that matches what this site is for: what the chamber did
+          (Plens), who the parties are (Partits), who represents you
+          (Diputats), and the aggregate picture (Dades).
+
+          This grid used to be game-first, which made a quiz the single
+          biggest tap target on the mobile home. The games moved to the
+          chip row below alongside the alignment test and the map — all
+          still one tap away, none of them presented as the headline. */}
       <nav
         aria-label={labels.brand}
         style={{
@@ -894,34 +973,34 @@ function MobileDashboard({
         }}
       >
         <DashboardTile
-          href={'/jocs' as Route}
-          icon={<Gamepad2 size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileJoc}
-          tint="violet"
+          href={'/avui' as Route}
+          icon={<CalendarDays size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tilePlens}
+          tint="amber"
         />
         <DashboardTile
-          href={'/com-et-representen' as Route}
-          icon={<Scale size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileAlign}
+          href={'/groups' as Route}
+          icon={<Building2 size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tilePartits}
           tint="teal"
         />
         <DashboardTile
           href={'/el-teu-diputat' as Route}
-          icon={<MapPin size={26} strokeWidth={1.75} aria-hidden="true" />}
+          icon={<Users size={26} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tileDeputy}
-          tint="amber"
+          tint="indigo"
         />
         <DashboardTile
-          href={'/mapa' as Route}
-          icon={<MapIcon size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileMap}
-          tint="indigo"
+          href="/stats"
+          icon={<BarChart3 size={26} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileStats}
+          tint="violet"
         />
       </nav>
 
-      {/* Secondary lookups — compact chips so the data surfaces (votes,
-          deputies, topics, stats) stay one tap away without competing
-          with the focal grid above. */}
+      {/* Secondary lookups — compact chips. Holds the deeper lookups
+          (laws, topics) plus the three playful surfaces the focal grid
+          no longer fronts. */}
       <div
         style={{
           display: 'flex',
@@ -937,7 +1016,7 @@ function MobileDashboard({
         />
         <DashboardChip
           href="/persons"
-          icon={<Users size={15} strokeWidth={1.75} aria-hidden="true" />}
+          icon={<MapPin size={15} strokeWidth={1.75} aria-hidden="true" />}
           label={labels.tilePersons}
         />
         <DashboardChip
@@ -946,11 +1025,26 @@ function MobileDashboard({
           label={labels.tileTopics}
         />
         <DashboardChip
-          href="/stats"
-          icon={<BarChart3 size={15} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileStats}
+          href={'/com-et-representen' as Route}
+          icon={<Scale size={15} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileAlign}
+        />
+        <DashboardChip
+          href={'/mapa' as Route}
+          icon={<MapIcon size={15} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileMap}
+        />
+        <DashboardChip
+          href={'/jocs' as Route}
+          icon={<Gamepad2 size={15} strokeWidth={1.75} aria-hidden="true" />}
+          label={labels.tileJoc}
         />
       </div>
+
+      {/* Parties — same full-bleed band as desktop, three across on a
+          phone. Sits directly under the navigation so the group pages
+          are reachable without scrolling to the bottom. */}
+      {partyBand}
 
       {/* Highlights carousel — same component as desktop. The component
           owns its own width via 100% layout, so we just wrap it in a

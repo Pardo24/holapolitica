@@ -227,7 +227,9 @@
     "newsletter": "Newsletter",
     "notifications": "Notificaciones",
     "journalists": "Prensa",
-    "deputy": "Diputados"
+    "deputy": "Diputados",
+    "plens": "Plenos",
+    "partits": "Partidos"
   },
   "lleis": {
     "title": "Leyes",
@@ -687,7 +689,13 @@
     "session_rejected": "{n} rechazadas",
     "session_votes": "{n} votaciones",
     "coverage_since": "desde agosto de 2023",
-    "cta_deputies": "Diputados y grupos"
+    "cta_deputies": "Diputados",
+    "cta_plenary": "Plenos",
+    "parties_title": "Los partidos del Congreso",
+    "parties_caption": "Cada grupo tiene su ficha: qué propone, cómo vota, con cuánta unidad vota y qué decía su programa electoral.",
+    "parties_seats": "{n, plural, =1 {escaño} other {escaños}}",
+    "parties_see_all": "Ver todos los grupos",
+    "partits_cta": "Partidos"
   },
   "deputy": {
     "title": "Diputados",

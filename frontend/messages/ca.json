@@ -227,7 +227,9 @@
     "newsletter": "Newsletter",
     "notifications": "Notificacions",
     "journalists": "Premsa",
-    "deputy": "Diputats"
+    "deputy": "Diputats",
+    "plens": "Plens",
+    "partits": "Partits"
   },
   "lleis": {
     "title": "Lleis",
@@ -687,7 +689,13 @@
     "session_rejected": "{n} rebutjades",
     "session_votes": "{n} votacions",
     "coverage_since": "des d'agost de 2023",
-    "cta_deputies": "Diputats i grups"
+    "cta_deputies": "Diputats",
+    "cta_plenary": "Plens",
+    "parties_title": "Els partits del Congrés",
+    "parties_caption": "Cada grup té la seva fitxa: què proposa, com vota, com de unit vota i què deia el seu programa electoral.",
+    "parties_seats": "{n, plural, =1 {escó} other {escons}}",
+    "parties_see_all": "Veure tots els grups",
+    "partits_cta": "Partits"
   },
   "deputy": {
     "title": "Diputats",
