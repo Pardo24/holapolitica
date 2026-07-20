@@ -15,7 +15,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
-from app.models import Vote
 from app.metrics import (
     AttendanceRow,
     CohesionResult,
@@ -28,6 +27,7 @@ from app.metrics import (
     compute_group_coincidence_matrix,
     compute_group_summary,
 )
+from app.models import Vote
 from app.services.cache import cached
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
