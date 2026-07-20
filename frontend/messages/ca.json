@@ -137,7 +137,10 @@
     "topicband_caption": "Cada tema del ple amb el resultat de les seves votacions. Toca un tema per anar-hi.",
     "topicband_votes": "{n} votacions",
     "topicband_approved": "{n} aprovades",
-    "topicband_rejected": "{n} rebutjades"
+    "topicband_rejected": "{n} rebutjades",
+    "topicband_laws": "{n, plural, =1 {# llei} other {# lleis}}",
+    "topicband_votes_sub": "{n} votacions en total",
+    "section_total_laws": "{count, plural, =1 {# llei} other {# lleis}}"
   },
   "avui_og": {
     "brand": "Hola Política",
