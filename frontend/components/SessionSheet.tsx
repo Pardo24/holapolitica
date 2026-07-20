@@ -992,7 +992,16 @@ function LawVoteGroup({
       : null;
 
   return (
-    <li style={{ padding: '14px 0', borderBottom: '1px solid var(--rule)' }}>
+    // The law is filtered by ITS OWN outcome — the result of its final
+    // vote — not by the results of the individual votes inside it. A bill
+    // that passed after 47 amendments were voted down is an APPROVED law;
+    // filtering the sitting by "rejected" must not surface it. This <li>
+    // carried no data-result at all before, so multi-vote laws were never
+    // filtered while their inner amendment rows were, which is backwards.
+    <li
+      data-result={finalVote.result}
+      style={{ padding: '14px 0', borderBottom: '1px solid var(--rule)' }}
+    >
       <div
         style={{
           display: 'grid',
@@ -1253,7 +1262,11 @@ function SubVote({
 }) {
   const margin = Math.abs(vote.ayes - vote.noes);
   return (
-    <li data-result={vote.result} style={{ borderTop: '1px solid var(--rule)' }}>
+    // Deliberately NO data-result: this is one vote inside a law, and the
+    // filter selects laws. Once a law matches, every one of its votes is
+    // shown — including the amendments that went the other way, which is
+    // exactly what you want to read when you open it.
+    <li style={{ borderTop: '1px solid var(--rule)' }}>
       <Link
         href={`/votes/${vote.id}` as Route}
         style={{

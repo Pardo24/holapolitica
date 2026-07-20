@@ -432,6 +432,7 @@ export default async function StatsPage({
             </div>
             <Link
               href={'/stats?tab=filtered' as Route}
+              scroll={false}
               style={{
                 flex: 'none',
                 display: 'inline-flex',
@@ -500,6 +501,7 @@ export default async function StatsPage({
               })}{' '}
               <Link
                 href={'/stats?tab=filtered' as Route}
+                scroll={false}
                 style={{ color: 'var(--ink)' }}
               >
                 {t('try_other_filter')}
@@ -1072,6 +1074,7 @@ async function FilterBar({
       {hasAny && (
         <Link
           href={'/stats?tab=filtered' as Route}
+          scroll={false}
           style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 'auto' }}
         >
           {t('clear_filters')}
@@ -2311,6 +2314,7 @@ function TopicProposersPanel({
                   ) : (
                     <Link
                       href={`/stats?tab=filtered&topic=${encodeURIComponent(topicSlug)}&group=${encodeURIComponent(p.slug)}` as Route}
+                      scroll={false}
                       style={{ color: 'inherit', textDecoration: 'none' }}
                     >
                       {displayGroupShort(p.name_short)}
@@ -2402,6 +2406,7 @@ function GroupActivityPanel({
                 />
                 <Link
                   href={`/stats?tab=filtered&topic=${encodeURIComponent(tt.topic_slug)}&group=${encodeURIComponent(groupSlug)}` as Route}
+                  scroll={false}
                   style={{ color: 'inherit', textDecoration: 'none' }}
                 >
                   {tt.topic_name_ca}
