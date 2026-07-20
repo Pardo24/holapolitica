@@ -227,7 +227,9 @@
     "newsletter": "Newsletter",
     "notifications": "Notifications",
     "journalists": "Press",
-    "deputy": "Deputies"
+    "deputy": "Deputies",
+    "plens": "Sittings",
+    "partits": "Parties"
   },
   "lleis": {
     "title": "Laws",
@@ -687,7 +689,13 @@
     "session_rejected": "{n} rejected",
     "session_votes": "{n} votes",
     "coverage_since": "since August 2023",
-    "cta_deputies": "Deputies & groups"
+    "cta_deputies": "Deputies",
+    "cta_plenary": "Sittings",
+    "parties_title": "The parties in Congress",
+    "parties_caption": "Every group has a profile: what it proposes, how it votes, how cohesively, and what its manifesto promised.",
+    "parties_seats": "{n, plural, =1 {seat} other {seats}}",
+    "parties_see_all": "See all groups",
+    "partits_cta": "Parties"
   },
   "deputy": {
     "title": "Deputies",

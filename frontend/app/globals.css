@@ -42,6 +42,27 @@
   --gp-pnv: #00897B;
   --gp-mixto: #757575;
 
+  /* ---------------------------------------------------------------
+     Surface hues — one muted colour per top-level destination, so the
+     site reads as four coloured territories instead of one grey slab.
+     These were previously a mobile-only constant (TILE_TINT in
+     app/page.tsx); promoting them to tokens lets the nav, the home
+     cards and the page headers all agree on "leyes = indigo",
+     "plenos = copper", "partidos = teal", "datos = violet".
+
+     Saturation stays low on purpose: this is a civic record, not a
+     product landing page. `-soft` is the same hue mixed into paper at
+     ~12%, safe as a background behind --ink text.
+     --------------------------------------------------------------- */
+  --hue-lleis: #475189;
+  --hue-lleis-soft: color-mix(in oklch, #475189 12%, var(--paper));
+  --hue-plens: #9A6628;
+  --hue-plens-soft: color-mix(in oklch, #9A6628 13%, var(--paper));
+  --hue-partits: #2F807A;
+  --hue-partits-soft: color-mix(in oklch, #2F807A 12%, var(--paper));
+  --hue-dades: #6E4F8E;
+  --hue-dades-soft: color-mix(in oklch, #6E4F8E 12%, var(--paper));
+
   /* Type — system stack only. Hierarchy via size/weight/tracking. */
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
@@ -52,6 +73,11 @@
   --radius-3: 10px;
 
   --shadow-1: 0 1px 0 rgba(15,23,42,.04), 0 1px 2px rgba(15,23,42,.04);
+  /* Layered, wide-and-soft — a card should look lifted off the paper,
+     not outlined on it. The hairline border stays for structure; these
+     add the depth that a page built only from 1px rules lacks. */
+  --shadow-2: 0 1px 0 rgba(15,23,42,.03), 0 8px 24px -16px rgba(15,23,42,.18);
+  --shadow-3: 0 1px 0 rgba(15,23,42,.03), 0 2px 6px -3px rgba(15,23,42,.10), 0 18px 40px -26px rgba(15,23,42,.28);
 
   /* Theme color for PWA / mobile address bar */
   color-scheme: light;
