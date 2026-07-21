@@ -120,13 +120,14 @@ html { scroll-behavior: smooth; }
   }
 }
 
-/* Mobile-app: safe-area padding for the bottom of the page so anything
-   sticky (or just the final element) doesn't sit behind the home indicator
-   on devices with rounded corners / notches. */
+/* Mobile-app: reserve space at the bottom of the page for the fixed
+   BottomTabBar (see components/BottomTabBar.tsx) plus the iOS home
+   indicator, so the last of the page content is never hidden behind the
+   bar. ~58px bar height + the safe-area inset + a little breathing room. */
 @media (max-width: 640px) {
   body > .page,
   .page {
-    padding-bottom: max(32px, env(safe-area-inset-bottom)) !important;
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

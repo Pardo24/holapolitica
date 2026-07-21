@@ -232,7 +232,12 @@
     "journalists": "Prensa",
     "deputy": "Diputados",
     "plens": "Plenos",
-    "partits": "Partidos"
+    "partits": "Partidos",
+    "tab_inici": "Inicio",
+    "tab_lleis": "Leyes",
+    "tab_partits": "Partidos",
+    "tab_dades": "Datos",
+    "primary_aria": "Navegación principal"
   },
   "lleis": {
     "title": "Leyes",
@@ -699,7 +704,8 @@
     "parties_seats": "{n, plural, =1 {escaño} other {escaños}}",
     "parties_see_all": "Ver todos los grupos",
     "partits_cta": "Partidos",
-    "tile_deputies_parties": "Diputados y partidos"
+    "tile_deputies_parties": "Diputados y partidos",
+    "mobile_section_explore": "Explora"
   },
   "deputy": {
     "title": "Diputados y partidos",

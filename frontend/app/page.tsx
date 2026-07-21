@@ -3,15 +3,12 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
-  BarChart3,
-  Building2,
   CalendarDays,
   Code2,
   Gamepad2,
   Layers,
   LockKeyhole,
   Map as MapIcon,
-  MapPin,
   Scale,
   ShieldCheck,
   Users,
@@ -208,17 +205,12 @@ export default async function HomePage() {
           sessionBannerCta: t('mobile_session_banner_cta'),
           tileJoc: tHub('joc_title'),
           tileAlign: tHub('align_title'),
-          tileDeputy: tHub('deputy_title'),
           tileMap: tHub('map_title'),
-          tilePlens: t('cta_plenary'),
-          tileDeputiesParties: t('tile_deputies_parties'),
-          tileVotes: t('mobile_tile_votes'),
-          tilePersons: t('mobile_tile_persons'),
           tileTopics: t('mobile_tile_topics'),
-          tileStats: t('mobile_tile_stats'),
           sectionHighlights: t('mobile_section_highlights'),
           sectionUpcoming: t('mobile_section_upcoming'),
           sectionLatest: t('mobile_section_latest'),
+          sectionExplore: t('mobile_section_explore'),
           seeAll: t('mobile_see_all'),
           highlightsSeeAll: t('highlights_see_all'),
           noResults: tVotes('no_results'),
@@ -724,17 +716,12 @@ interface MobileDashboardLabels {
   sessionBannerCta: string;
   tileJoc: string;
   tileAlign: string;
-  tileDeputy: string;
   tileMap: string;
-  tilePlens: string;
-  tileDeputiesParties: string;
-  tileVotes: string;
-  tilePersons: string;
   tileTopics: string;
-  tileStats: string;
   sectionHighlights: string;
   sectionUpcoming: string;
   sectionLatest: string;
+  sectionExplore: string;
   seeAll: string;
   highlightsSeeAll: string;
   noResults: string;
@@ -877,27 +864,29 @@ function MobileDashboard({
         .mobile-home-mark::after  { top: 17px; }
       `}</style>
 
-      {/* Search bar was removed from the mobile home in 2026-05-12 — it
-          competed with the 2×2 tile grid for the same screen space and
-          users reach the votes index via the "Votacions" tile anyway. The
-          desktop home still surfaces a search via the topnav. */}
+      {/* The home is now CONTENT, not a menu. The four primary
+          destinations moved to the persistent bottom tab bar
+          (components/BottomTabBar.tsx), so the old 2×2 tile grid and the
+          chip "junk drawer" are gone. What remains reads top-to-bottom
+          as: what the chamber just did → the specific latest votes → a
+          look at the parties → per-group leanings → a quiet "explore"
+          row for the secondary surfaces. Nothing here duplicates the
+          bottom bar. */}
 
-      {/* Hero banner pointing at /avui — the citizen-friendly daily
-          sheet. Sits ABOVE the tile grid because it's the entry-point
-          we want a returning visitor to land on; tiles below are
-          navigation to the deeper lookup surfaces. */}
+      {/* Lead: the latest plenary session, as a full card. This is the
+          one thing a returning visitor wants first — what happened. */}
       {latestVotes[0]?.voted_at && (
         <Link
           href={`/avui/${latestVotes[0].voted_at.slice(0, 10)}` as Route}
           style={{
             display: 'block',
-            padding: '14px 16px',
+            padding: '16px 18px',
             border: '1px solid var(--ink)',
             background: 'var(--ink)',
             color: 'var(--paper)',
-            borderRadius: 14,
+            borderRadius: 16,
             textDecoration: 'none',
-            marginBottom: 14,
+            marginBottom: 22,
           }}
         >
           <div
@@ -907,7 +896,7 @@ function MobileDashboard({
               textTransform: 'uppercase',
               fontWeight: 700,
               color: 'var(--paper-2)',
-              marginBottom: 4,
+              marginBottom: 5,
             }}
           >
             {labels.sessionBannerEyebrow}
@@ -915,10 +904,10 @@ function MobileDashboard({
           <div
             className="serif"
             style={{
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: 600,
-              lineHeight: 1.25,
-              letterSpacing: '-0.01em',
+              lineHeight: 1.2,
+              letterSpacing: '-0.015em',
             }}
           >
             {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
@@ -929,9 +918,9 @@ function MobileDashboard({
           </div>
           <div
             style={{
-              fontSize: 12,
+              fontSize: 12.5,
               color: 'var(--paper-2)',
-              marginTop: 4,
+              marginTop: 6,
               display: 'flex',
               alignItems: 'center',
               gap: 4,
@@ -942,106 +931,49 @@ function MobileDashboard({
         </Link>
       )}
 
-      {/* Primary focal grid (2×2) — the current-affairs surfaces, in the
-          order that matches what this site is for: what the chamber did
-          (Plens), who the parties are (Partits), who represents you
-          (Diputats), and the aggregate picture (Dades).
-
-          This grid used to be game-first, which made a quiz the single
-          biggest tap target on the mobile home. The games moved to the
-          chip row below alongside the alignment test and the map — all
-          still one tap away, none of them presented as the headline. */}
-      <nav
-        aria-label={labels.brand}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-          gap: 10,
-          marginBottom: 12,
-        }}
-      >
-        <DashboardTile
-          href={'/avui' as Route}
-          icon={<CalendarDays size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tilePlens}
-          tint="amber"
-        />
-        <DashboardTile
-          href={'/el-teu-diputat' as Route}
-          icon={<Users size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileDeputiesParties}
-          tint="teal"
-        />
-        <DashboardTile
-          href={'/lleis' as Route}
-          icon={<Scale size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileVotes}
-          tint="indigo"
-        />
-        <DashboardTile
-          href="/stats"
-          icon={<BarChart3 size={26} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileStats}
-          tint="violet"
-        />
-      </nav>
-
-      {/* Secondary lookups — compact chips. Holds the deeper lookups
-          (laws, topics) plus the three playful surfaces the focal grid
-          no longer fronts. */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 8,
-          marginBottom: 22,
-        }}
-      >
-        <DashboardChip
-          href="/persons"
-          icon={<MapPin size={15} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tilePersons}
-        />
-        <DashboardChip
-          href="/topics"
-          icon={<Layers size={15} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileTopics}
-        />
-        <DashboardChip
-          href={'/com-et-representen' as Route}
-          icon={<Scale size={15} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileAlign}
-        />
-        <DashboardChip
-          href={'/mapa' as Route}
-          icon={<MapIcon size={15} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileMap}
-        />
-        <DashboardChip
-          href={'/jocs' as Route}
-          icon={<Gamepad2 size={15} strokeWidth={1.75} aria-hidden="true" />}
-          label={labels.tileJoc}
-        />
-      </div>
-
-      {/* Parties — same full-bleed band as desktop, three across on a
-          phone. Sits directly under the navigation so the group pages
-          are reachable without scrolling to the bottom. */}
-      {partyBand}
-
-      {/* Highlights carousel — same component as desktop. The component
-          owns its own width via 100% layout, so we just wrap it in a
-          tight section header here. */}
+      {/* The specific latest votes — high, because it's the freshest
+          concrete content. "See all" leads into the Lleis tab. */}
       <DashboardSection
-        title={labels.sectionHighlights}
-        seeAllHref="/stats"
-        seeAllLabel={labels.highlightsSeeAll}
+        title={labels.sectionLatest}
+        seeAllHref="/lleis"
+        seeAllLabel={labels.seeAll}
       >
-        <HighlightsCarousel items={highlights} allTopics={allTopics} />
+        {latestThree.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, padding: '14px 0' }}>
+            {labels.noResults}
+          </p>
+        ) : (
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              border: '1px solid var(--rule)',
+              borderRadius: 12,
+              overflow: 'hidden',
+              minWidth: 0,
+            }}
+          >
+            {latestThree.map((v, i) => (
+              <MobileVoteRow
+                key={v.id}
+                v={v}
+                locale={locale}
+                isFirst={i === 0}
+                resultLabel={
+                  v.result === 'approved'
+                    ? labels.voteResultApproved
+                    : v.result === 'rejected'
+                      ? labels.voteResultRejected
+                      : labels.voteResultTie
+                }
+              />
+            ))}
+          </ul>
+        )}
       </DashboardSection>
 
-      {/* Upcoming sessions — hidden entirely when there are none, to keep
-          the dashboard above-the-fold dense with real content. */}
+      {/* Upcoming sessions — only when something is scheduled. */}
       {upcomingTwo.length > 0 && (
         <DashboardSection title={labels.sectionUpcoming}>
           <ul
@@ -1080,22 +1012,10 @@ function MobileDashboard({
                     flex: '0 0 auto',
                   }}
                 >
-                  {new Date(s.date).toLocaleDateString(locale, {
-                    day: 'numeric',
-                    month: 'short',
-                  })}
+                  {new Date(s.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                 </span>
-                <span
-                  style={{
-                    minWidth: 0,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {s.items.length > 0
-                    ? `${s.items.length} · ${s.items[0]?.subject ?? ''}`
-                    : '—'}
+                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {s.items.length > 0 ? `${s.items.length} · ${s.items[0]?.subject ?? ''}` : '—'}
                 </span>
               </li>
             ))}
@@ -1103,174 +1023,54 @@ function MobileDashboard({
         </DashboardSection>
       )}
 
-      {/* Latest 3 votes — minimal rows (date, subject, result colour).
-          Tap target = full row; we keep each ≥ 56px. */}
+      {/* A look at the parties — the single home entry to the group
+          pages now (the deputies tile and the "search deputy" chip are
+          gone, so this no longer competes with them). The band leads
+          into the Partits tab for the full roster. */}
+      {partyBand}
+
+      {/* Per-group topic leanings — discovery, → Dades. */}
       <DashboardSection
-        title={labels.sectionLatest}
-        seeAllHref="/votes"
-        seeAllLabel={labels.seeAll}
+        title={labels.sectionHighlights}
+        seeAllHref="/stats"
+        seeAllLabel={labels.highlightsSeeAll}
       >
-        {latestThree.length === 0 ? (
-          <p
-            style={{
-              fontSize: 13,
-              color: 'var(--ink-3)',
-              margin: 0,
-              padding: '14px 0',
-            }}
-          >
-            {labels.noResults}
-          </p>
-        ) : (
-          <ul
-            style={{
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              border: '1px solid var(--rule)',
-              borderRadius: 12,
-              overflow: 'hidden',
-              minWidth: 0,
-            }}
-          >
-            {latestThree.map((v, i) => (
-              <MobileVoteRow
-                key={v.id}
-                v={v}
-                locale={locale}
-                isFirst={i === 0}
-                resultLabel={
-                  v.result === 'approved'
-                    ? labels.voteResultApproved
-                    : v.result === 'rejected'
-                      ? labels.voteResultRejected
-                      : labels.voteResultTie
-                }
-              />
-            ))}
-          </ul>
-        )}
+        <HighlightsCarousel items={highlights} allTopics={allTopics} />
+      </DashboardSection>
+
+      {/* Explore — the secondary and playful surfaces, kept reachable
+          but deliberately quiet at the foot of the page: a topic index,
+          the chamber map, the "what would you vote" test and the game.
+          None of them is a peer of the parliamentary record, so none of
+          them sits in the bottom bar. */}
+      <DashboardSection title={labels.sectionExplore}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <DashboardChip
+            href="/topics"
+            icon={<Layers size={15} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileTopics}
+          />
+          <DashboardChip
+            href={'/mapa' as Route}
+            icon={<MapIcon size={15} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileMap}
+          />
+          <DashboardChip
+            href={'/com-et-representen' as Route}
+            icon={<Scale size={15} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileAlign}
+          />
+          <DashboardChip
+            href={'/jocs' as Route}
+            icon={<Gamepad2 size={15} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileJoc}
+          />
+        </div>
       </DashboardSection>
     </div>
   );
 }
 
-type TileTint = 'indigo' | 'teal' | 'amber' | 'violet';
-
-// Muted civic palette — each tile gets its own hue so the dashboard
-// scans as four distinct surfaces, but the saturations stay low to
-// keep the page from feeling like a startup landing. Foreground is
-// the full-saturation hue; background is the same hue mixed with the
-// paper colour for a ~10% tint. CSS color-mix() is supported in every
-// browser we target (2023+).
-const TILE_TINT: Record<TileTint, { fg: string; bg: string }> = {
-  indigo: {
-    fg: '#475189',
-    bg: 'color-mix(in oklch, #475189 12%, var(--paper))',
-  },
-  teal: {
-    fg: '#2F807A',
-    bg: 'color-mix(in oklch, #2F807A 12%, var(--paper))',
-  },
-  amber: {
-    fg: '#9A6628',
-    bg: 'color-mix(in oklch, #9A6628 13%, var(--paper))',
-  },
-  violet: {
-    fg: '#6E4F8E',
-    bg: 'color-mix(in oklch, #6E4F8E 12%, var(--paper))',
-  },
-};
-
-function DashboardTile({
-  href,
-  icon,
-  label,
-  tint,
-}: {
-  // `Link` accepts string or UrlObject; we type loose here because Next's
-  // typed-routes infer them per-page. Both forms validate at the Link site.
-  href: React.ComponentProps<typeof Link>['href'];
-  icon: React.ReactNode;
-  label: string;
-  tint: TileTint;
-}) {
-  const { fg, bg } = TILE_TINT[tint];
-  return (
-    <Link
-      href={href}
-      className="mobile-dashboard-tile"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: 10,
-        minHeight: 110,
-        padding: 16,
-        borderRadius: 16,
-        border: '1px solid var(--rule-strong)',
-        background: 'var(--paper)',
-        color: 'var(--ink)',
-        textDecoration: 'none',
-        boxShadow:
-          '0 1px 0 rgba(15, 23, 42, .03), 0 6px 18px -14px rgba(15, 23, 42, .18)',
-        minWidth: 0,
-      }}
-    >
-      <span
-        aria-hidden="true"
-        className="mobile-dashboard-tile__icon"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 44,
-          height: 44,
-          borderRadius: 12,
-          background: bg,
-          color: fg,
-        }}
-      >
-        {icon}
-      </span>
-      <span
-        style={{
-          fontSize: 15,
-          fontWeight: 700,
-          letterSpacing: '-0.005em',
-          lineHeight: 1.2,
-          // Allow up to two lines so longer focal labels ("Què votaries
-          // tu?", "El teu diputat") render in full instead of truncating.
-          display: '-webkit-box',
-          WebkitBoxOrient: 'vertical',
-          WebkitLineClamp: 2,
-          overflow: 'hidden',
-          maxWidth: '100%',
-        }}
-      >
-        {label}
-      </span>
-      <style>{`
-        .mobile-dashboard-tile:active {
-          background: var(--ink);
-          color: var(--paper);
-          border-color: var(--ink);
-        }
-        /* Keep the colored disc legible against the dark pressed
-           background — invert it to paper/ink so the icon stays
-           visible without flashing white. */
-        .mobile-dashboard-tile:active .mobile-dashboard-tile__icon {
-          background: var(--paper);
-          color: var(--ink);
-        }
-        .mobile-dashboard-tile:active span:not(.mobile-dashboard-tile__icon) {
-          color: inherit;
-        }
-      `}</style>
-    </Link>
-  );
-}
 
 function DashboardChip({
   href,
