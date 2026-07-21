@@ -59,10 +59,14 @@ export function MobileBackBar() {
     [hasHistory, router],
   );
 
-  // The bar is only meaningful off-home; hiding here avoids the layout
-  // shift the CSS-only `display:none` would still cause inside the
-  // sticky context.
-  if (pathname === '/') return null;
+  // The back bar is for DRILL-DOWNS only. The four primary destinations
+  // — home, Lleis, Partits, Dades — are reachable from the bottom tab
+  // bar on every screen, so a back affordance on them is noise (and
+  // "back" after a tab tap would step to the previous tab, which reads
+  // as broken). It shows on everything else: a vote, a party page, a
+  // deputy, a topic — the sub-pages you genuinely drilled into.
+  const PRIMARY_TABS = new Set(['/', '/lleis', '/el-teu-diputat', '/stats']);
+  if (PRIMARY_TABS.has(pathname)) return null;
 
   return (
     <div className="mobile-back-bar" aria-label={t('aria_back')}>

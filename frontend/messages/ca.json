@@ -232,7 +232,12 @@
     "journalists": "Premsa",
     "deputy": "Diputats",
     "plens": "Plens",
-    "partits": "Partits"
+    "partits": "Partits",
+    "tab_inici": "Inici",
+    "tab_lleis": "Lleis",
+    "tab_partits": "Partits",
+    "tab_dades": "Dades",
+    "primary_aria": "Navegació principal"
   },
   "lleis": {
     "title": "Lleis",
@@ -699,7 +704,8 @@
     "parties_seats": "{n, plural, =1 {escó} other {escons}}",
     "parties_see_all": "Veure tots els grups",
     "partits_cta": "Partits",
-    "tile_deputies_parties": "Diputats i partits"
+    "tile_deputies_parties": "Diputats i partits",
+    "mobile_section_explore": "Explora"
   },
   "deputy": {
     "title": "Diputats i partits",

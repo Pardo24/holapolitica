@@ -232,7 +232,12 @@
     "journalists": "Press",
     "deputy": "Deputies",
     "plens": "Sittings",
-    "partits": "Parties"
+    "partits": "Parties",
+    "tab_inici": "Home",
+    "tab_lleis": "Laws",
+    "tab_partits": "Parties",
+    "tab_dades": "Data",
+    "primary_aria": "Primary navigation"
   },
   "lleis": {
     "title": "Laws",
@@ -699,7 +704,8 @@
     "parties_seats": "{n, plural, =1 {seat} other {seats}}",
     "parties_see_all": "See all groups",
     "partits_cta": "Parties",
-    "tile_deputies_parties": "Deputies & parties"
+    "tile_deputies_parties": "Deputies & parties",
+    "mobile_section_explore": "Explore"
   },
   "deputy": {
     "title": "Deputies & parties",
