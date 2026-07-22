@@ -900,6 +900,49 @@ function MobileDashboard({
         </Link>
       )}
 
+      {/* The landing's navigation proposals — where to go next: the
+          map, the games, the topics, the data. Four equal tiles, each
+          with its own muted hue. Directly under the pleno hero so the
+          FIRST screen is exactly: what happened + where you can go.
+          All layout-critical styles are inline — same hardening as the
+          party cards, so no stylesheet mishap can break the grid. */}
+      <DashboardSection title={labels.sectionExplore}>
+        <nav
+          aria-label={labels.sectionExplore}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 10,
+          }}
+        >
+          <NavTile
+            href={'/mapa' as Route}
+            icon={<MapIcon size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileMap}
+            fg="#475189"
+          />
+          <NavTile
+            href={'/jocs' as Route}
+            icon={<Gamepad2 size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileJoc}
+            fg="#6E4F8E"
+          />
+          <NavTile
+            href="/topics"
+            icon={<Layers size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileTopics}
+            fg="#2F807A"
+          />
+          <NavTile
+            href="/stats"
+            icon={<BarChart3 size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileStats}
+            fg="#9A6628"
+          />
+        </nav>
+      </DashboardSection>
+
+
       {/* Upcoming sessions — only when something is scheduled. */}
       {upcomingTwo.length > 0 && (
         <DashboardSection title={labels.sectionUpcoming}>
@@ -955,49 +998,6 @@ function MobileDashboard({
           gone, so this no longer competes with them). The band leads
           into the Partits tab for the full roster. */}
       {partyBand}
-
-      {/* The landing's navigation proposals — where to go next: the
-          map, the games, the topics, the data. Four equal tiles, each
-          with its own muted hue. Deliberately AFTER the content (pleno +
-          parties): the home leads with what happened, then offers the
-          onward journeys. All layout-critical styles are inline — same
-          hardening as the party cards, so no stylesheet mishap can
-          break the grid. */}
-      <DashboardSection title={labels.sectionExplore}>
-        <nav
-          aria-label={labels.sectionExplore}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gap: 10,
-          }}
-        >
-          <NavTile
-            href={'/mapa' as Route}
-            icon={<MapIcon size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileMap}
-            fg="#475189"
-          />
-          <NavTile
-            href={'/jocs' as Route}
-            icon={<Gamepad2 size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileJoc}
-            fg="#6E4F8E"
-          />
-          <NavTile
-            href="/topics"
-            icon={<Layers size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileTopics}
-            fg="#2F807A"
-          />
-          <NavTile
-            href="/stats"
-            icon={<BarChart3 size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileStats}
-            fg="#9A6628"
-          />
-        </nav>
-      </DashboardSection>
 
       {/* Per-group topic leanings — discovery, → Dades. */}
       <DashboardSection
