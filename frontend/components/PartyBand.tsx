@@ -100,14 +100,32 @@ export function PartyBand({
           const logo = groupLogoUrl(g.slug);
           const color = g.color_hex ?? 'var(--ink-3)';
           return (
-            <li key={g.slug} style={{ minWidth: 0 }}>
+            <li key={g.slug} style={{ minWidth: 0, display: 'flex' }}>
               <Link
                 href={`/groups/${g.slug}` as Route}
                 className="party-band__card"
-                // The brand colour drives the top rail and the hover
-                // border via a custom property, so one CSS rule covers
-                // every party without per-party classes.
-                style={{ ['--party' as string]: color }}
+                // The layout-critical properties live INLINE, not only in
+                // the stylesheet. A user's browser rendered these cards
+                // with the class's decoration applied but its layout
+                // dropped — cards shrunk to their content at unequal
+                // sizes, left-aligned. Whatever ate the rule (an
+                // extension, an engine quirk, a stale cache), inline
+                // styles are immune to all of it: they travel WITH the
+                // element and outrank any stylesheet. The class keeps
+                // only what is cosmetic and safe to lose (shadow, hover,
+                // radius, the rail).
+                style={{
+                  ['--party' as string]: color,
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  position: 'relative',
+                  minHeight: 132,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                }}
               >
                 <span className="party-band__rail" aria-hidden="true" />
                 {logo ? (
@@ -129,13 +147,50 @@ export function PartyBand({
                   <span
                     aria-hidden="true"
                     className="party-band__logo party-band__logo--text"
-                    style={{ background: color }}
+                    // Fully self-sufficient: size, shape and type are
+                    // inline so the disc reads as a badge even if the
+                    // stylesheet never arrives. Without them it collapsed
+                    // to bare text.
+                    style={{
+                      background: color,
+                      width: 40,
+                      height: 40,
+                      borderRadius: 999,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      flex: 'none',
+                    }}
                   >
                     {groupAbbreviation(g.slug)}
                   </span>
                 )}
-                <span className="party-band__name">{displayGroupShort(g.name_short)}</span>
-                <span className="party-band__seats tabular">
+                <span
+                  className="party-band__name"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'center',
+                    minWidth: 0,
+                    overflowWrap: 'anywhere',
+                    marginTop: 8,
+                  }}
+                >
+                  {displayGroupShort(g.name_short)}
+                </span>
+                <span
+                  className="party-band__seats tabular"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'center',
+                    marginTop: 'auto',
+                    paddingTop: 8,
+                  }}
+                >
                   <b>{g.members_active}</b> {seatsLabel(g.members_active)}
                 </span>
               </Link>
