@@ -693,8 +693,8 @@
     "surface_joc_cta": "Posa't a prova",
     "latest_session_eyebrow": "El darrer ple, explicat",
     "latest_session_explore": "Explora l'últim ple",
-    "session_approved": "{n} aprovades",
-    "session_rejected": "{n} rebutjades",
+    "session_approved": "{n, plural, =1 {# aprovada} other {# aprovades}}",
+    "session_rejected": "{n, plural, =1 {# rebutjada} other {# rebutjades}}",
     "session_votes": "{n} votacions",
     "coverage_since": "des d'agost de 2023",
     "cta_deputies": "Diputats i partits",
@@ -705,7 +705,9 @@
     "parties_see_all": "Veure tots els grups",
     "partits_cta": "Partits",
     "tile_deputies_parties": "Diputats i partits",
-    "mobile_section_explore": "Explora"
+    "mobile_section_explore": "Explora",
+    "mobile_section_topics": "L'últim ple, per temes",
+    "mobile_topic_laws": "{n, plural, =1 {1 llei} other {# lleis}}"
   },
   "deputy": {
     "title": "Diputats i partits",

@@ -22,9 +22,9 @@ import { OnboardingModal } from '@/components/OnboardingModal';
 import { DailyTeaser } from '@/components/DailyTeaser';
 import { DailyNotification } from '@/components/DailyNotification';
 import { ResultPill } from '@/components/ResultPill';
-import { SummaryHover } from '@/components/SummaryHover';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
-import { pickPlainSummary } from '@/lib/glossary';
+import { pickTopicName } from '@/lib/topics';
+import { topicIcon } from '@/lib/topic_icons';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
 import {
   api,
@@ -33,22 +33,7 @@ import {
   type Topic,
   type TopicVoteStat,
   type Vote,
-  type VoteResult,
 } from '@/lib/api';
-
-// CSS-var color for a vote outcome — used by the inline mobile result
-// label on the mobile dashboard rows below so the colored word matches
-// the desktop pill semantics.
-function resultColor(result: VoteResult): string {
-  switch (result) {
-    case 'approved':
-      return 'var(--aye)';
-    case 'rejected':
-      return 'var(--no)';
-    case 'tie':
-      return 'var(--abst)';
-  }
-}
 
 // Outlined secondary button + quiet text link used in the hero action row.
 const heroOutlineBtn: React.CSSProperties = {
@@ -149,6 +134,41 @@ export default async function HomePage() {
   const sessRejected = sessionVotes.filter((v) => v.result === 'rejected').length;
   const sessTotal = sessionVotes.length;
 
+  // The latest sitting grouped BY TOPIC, counting LAWS and their final
+  // outcome — not individual votes, for the same reason the session
+  // sheet counts laws: a bill that passed after 47 amendment votes went
+  // down is one approved law, not 47 rejections. Feeds the mobile home's
+  // topic cards, which replaced the raw law list: "Sanidad pública,
+  // 1 ley aprobada" is something a citizen can read on a phone;
+  // a truncated two-line legal title is not.
+  const topicPulse = (() => {
+    const byLaw = new Map<string, Vote[]>();
+    for (const v of sessionVotes) {
+      const key = v.expediente_raw ?? `vote-${v.id}`;
+      const list = byLaw.get(key);
+      if (list) list.push(v);
+      else byLaw.set(key, [v]);
+    }
+    const byTopic = new Map<string, { laws: number; approved: number; rejected: number }>();
+    for (const list of byLaw.values()) {
+      const final = [...list].sort(
+        (a, b) =>
+          a.voted_at.localeCompare(b.voted_at) ||
+          (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
+      )[list.length - 1]!;
+      const slug = final.topics?.[0]?.slug;
+      if (!slug) continue;
+      const agg = byTopic.get(slug) ?? { laws: 0, approved: 0, rejected: 0 };
+      agg.laws += 1;
+      if (final.result === 'approved') agg.approved += 1;
+      else if (final.result === 'rejected') agg.rejected += 1;
+      byTopic.set(slug, agg);
+    }
+    return [...byTopic.entries()]
+      .map(([slug, agg]) => ({ slug, topic: allTopics.find((t2) => t2.slug === slug) ?? null, ...agg }))
+      .sort((a, b) => b.laws - a.laws);
+  })();
+
   // Split the hero title so the second line can be tinted with the accent.
   const heroTitleLines = t('hero_title').split('\n');
 
@@ -192,6 +212,105 @@ export default async function HomePage() {
             seeAllLabel={t('parties_see_all')}
           />
         }
+        topicCards={
+          topicPulse.length > 0 ? (
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                // Same equal-real-estate rule as the party band: a topic
+                // whose name wraps to two lines must not get a taller
+                // card than one that fits on one.
+                gridAutoRows: '1fr',
+                gap: 8,
+              }}
+            >
+              {topicPulse.map(({ slug, topic, laws, approved, rejected }) => {
+                const Icon = topicIcon(topic?.icon);
+                const color = topic?.color_hex ?? 'var(--ink-3)';
+                return (
+                  <li key={slug} style={{ minWidth: 0, display: 'flex' }}>
+                    <Link
+                      href={`/topics/${slug}` as Route}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                        padding: '13px 14px',
+                        borderRadius: 12,
+                        border: '1px solid var(--rule)',
+                        borderTop: `3px solid ${color}`,
+                        background: 'var(--paper)',
+                        boxShadow: 'var(--shadow-2)',
+                        textDecoration: 'none',
+                        color: 'inherit',
+                        minWidth: 0,
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 28,
+                            height: 28,
+                            borderRadius: 8,
+                            flex: 'none',
+                            background: `color-mix(in oklch, ${color} 14%, var(--paper))`,
+                            color,
+                          }}
+                        >
+                          <Icon size={16} strokeWidth={1.9} />
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 700,
+                            lineHeight: 1.25,
+                            color: 'var(--ink)',
+                            minWidth: 0,
+                            overflowWrap: 'anywhere',
+                          }}
+                        >
+                          {pickTopicName(topic, locale) || slug}
+                        </span>
+                      </span>
+                      <span
+                        className="tabular"
+                        style={{
+                          marginTop: 'auto',
+                          fontSize: 11.5,
+                          color: 'var(--ink-3)',
+                          display: 'flex',
+                          gap: 8,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <b style={{ color: 'var(--ink-2)' }}>{t('mobile_topic_laws', { n: laws })}</b>
+                        {approved > 0 && (
+                          <span style={{ color: 'var(--aye)', fontWeight: 600 }}>
+                            {t('session_approved', { n: approved })}
+                          </span>
+                        )}
+                        {rejected > 0 && (
+                          <span style={{ color: 'var(--no)', fontWeight: 600 }}>
+                            {t('session_rejected', { n: rejected })}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null
+        }
         labels={{
           brand: t('mobile_brand'),
           motto: tSite('motto'),
@@ -209,14 +328,9 @@ export default async function HomePage() {
           tileTopics: t('mobile_tile_topics'),
           sectionHighlights: t('mobile_section_highlights'),
           sectionUpcoming: t('mobile_section_upcoming'),
-          sectionLatest: t('mobile_section_latest'),
+          sectionTopics: t('mobile_section_topics'),
           sectionExplore: t('mobile_section_explore'),
-          seeAll: t('mobile_see_all'),
           highlightsSeeAll: t('highlights_see_all'),
-          noResults: tVotes('no_results'),
-          voteResultApproved: tVotes('result.approved'),
-          voteResultRejected: tVotes('result.rejected'),
-          voteResultTie: tVotes('result.tie'),
         }}
       />
 
@@ -720,14 +834,9 @@ interface MobileDashboardLabels {
   tileTopics: string;
   sectionHighlights: string;
   sectionUpcoming: string;
-  sectionLatest: string;
+  sectionTopics: string;
   sectionExplore: string;
-  seeAll: string;
   highlightsSeeAll: string;
-  noResults: string;
-  voteResultApproved: string;
-  voteResultRejected: string;
-  voteResultTie: string;
 }
 
 function MobileDashboard({
@@ -737,6 +846,7 @@ function MobileDashboard({
   upcomingSessions,
   locale,
   partyBand,
+  topicCards,
   labels,
 }: {
   highlights: Highlight[];
@@ -746,11 +856,10 @@ function MobileDashboard({
   locale: string;
   /** Pre-rendered <PartyBand>, shared with the desktop layout. */
   partyBand: React.ReactNode;
+  /** Pre-rendered per-topic cards of the latest sitting (or null). */
+  topicCards: React.ReactNode;
   labels: MobileDashboardLabels;
 }) {
-  // Cap the latest-votes list at 3 on mobile — the rest live behind the
-  // "Veure totes →" link. Keeps the dashboard scannable on a phone.
-  const latestThree = latestVotes.slice(0, 3);
   // Show only the next 2 upcoming sessions on the dashboard.
   const upcomingTwo = upcomingSessions.slice(0, 2);
 
@@ -931,47 +1040,15 @@ function MobileDashboard({
         </Link>
       )}
 
-      {/* The specific latest votes — high, because it's the freshest
-          concrete content. "See all" leads into the Lleis tab. */}
-      <DashboardSection
-        title={labels.sectionLatest}
-        seeAllHref="/lleis"
-        seeAllLabel={labels.seeAll}
-      >
-        {latestThree.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0, padding: '14px 0' }}>
-            {labels.noResults}
-          </p>
-        ) : (
-          <ul
-            style={{
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              border: '1px solid var(--rule)',
-              borderRadius: 12,
-              overflow: 'hidden',
-              minWidth: 0,
-            }}
-          >
-            {latestThree.map((v, i) => (
-              <MobileVoteRow
-                key={v.id}
-                v={v}
-                locale={locale}
-                isFirst={i === 0}
-                resultLabel={
-                  v.result === 'approved'
-                    ? labels.voteResultApproved
-                    : v.result === 'rejected'
-                      ? labels.voteResultRejected
-                      : labels.voteResultTie
-                }
-              />
-            ))}
-          </ul>
-        )}
-      </DashboardSection>
+      {/* What the sitting decided, BY TOPIC — this replaced the raw
+          "latest laws" rows. Those showed the first two lines of each
+          vote's legal title, which on a phone read as truncated jargon.
+          A topic card ("Sanidad pública — 1 ley, aprobada") is the same
+          information at the altitude a citizen actually reads. Each card
+          leads to the topic's page with its full voting record. */}
+      {topicCards != null && (
+        <DashboardSection title={labels.sectionTopics}>{topicCards}</DashboardSection>
+      )}
 
       {/* Upcoming sessions — only when something is scheduled. */}
       {upcomingTwo.length > 0 && (
@@ -1256,114 +1333,3 @@ function DashboardSection({
   );
 }
 
-function MobileVoteRow({
-  v,
-  locale,
-  isFirst,
-  resultLabel,
-}: {
-  v: Vote;
-  locale: string;
-  isFirst: boolean;
-  resultLabel: string;
-}) {
-  const subject = v.description?.trim() || v.title;
-  const voteDate = new Date(v.voted_at);
-  const isCurrentYear = voteDate.getFullYear() === new Date().getFullYear();
-  const shortDate = voteDate
-    .toLocaleDateString(locale, {
-      day: 'numeric',
-      month: 'short',
-      ...(isCurrentYear ? {} : { year: '2-digit' }),
-    })
-    .replace(/\.$/, '');
-  const plainSummary = pickPlainSummary(v, locale);
-  return (
-    <li
-      style={{
-        borderTop: isFirst ? 'none' : '1px solid var(--rule)',
-        background: 'var(--paper)',
-        minWidth: 0,
-      }}
-    >
-      <Link
-        href={`/votes/${v.id}`}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) auto',
-          gap: 10,
-          padding: '12px 14px',
-          minHeight: 56,
-          textDecoration: 'none',
-          color: 'inherit',
-          alignItems: 'center',
-          minWidth: 0,
-        }}
-      >
-        <div style={{ minWidth: 0 }}>
-          {/* Mobile: title FIRST — no metadata above. Legislatura + date
-              live on the inline meta line BELOW the title so the row
-              reads "subject → context", not "context → subject". */}
-          <div
-            style={{
-              fontSize: 13,
-              lineHeight: 1.35,
-              color: 'var(--ink)',
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 2,
-              overflow: 'hidden',
-              wordBreak: 'break-word',
-            }}
-          >
-            {/* Plain-language summary affordance — same component used on
-                the desktop home row. Touch-only on this mobile dashboard,
-                so it surfaces as a small "i" button that toggles a native
-                <details> panel; the trigger calls preventDefault on tap so
-                the parent vote-row <Link> doesn't navigate when the user
-                only wanted to read the summary. Falls through to plain
-                text when no LLM summary exists for the vote. */}
-            <SummaryHover
-              summary={plainSummary}
-              fallback={v.description ?? undefined}
-              provider={v.plain_summary_provider}
-              visibleText={subject}
-            >
-              {subject}
-            </SummaryHover>
-          </div>
-          {/* Single meta line beneath the title — "XV · 19 nov" inline.
-              Kept terse so a 2-line title still fits the 56px touch
-              target. */}
-          <div
-            className="tabular"
-            style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 3 }}
-          >
-            XV · {shortDate}
-          </div>
-        </div>
-        {/* Result indicator — disc only, never the word. The redundant
-            colored "aprovada"/"rebutjada" text that used to live here
-            double-encoded the same fact as the indicator. The label is
-            still announced via aria-label / title for assistive tech. */}
-        <span
-          role="img"
-          aria-label={resultLabel}
-          title={resultLabel}
-          style={{
-            width: 14,
-            height: 14,
-            borderRadius: 999,
-            display: 'inline-block',
-            flex: '0 0 auto',
-            background:
-              v.result === 'tie' ? 'transparent' : resultColor(v.result),
-            border:
-              v.result === 'tie' ? `2px solid ${resultColor(v.result)}` : '0',
-            boxSizing: 'border-box',
-          }}
-        />
-      </Link>
-    </li>
-  );
-}
