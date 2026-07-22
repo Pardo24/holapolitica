@@ -170,7 +170,16 @@ export default async function MapaPage({
                 </text>
               </g>
               {nodes.map((n) => (
-                <g key={n.slug} className="map-node">
+                // SVG-native anchor: every disc IS the link to its
+                // party's page. Same destination the hemicycle legend
+                // and the party cards use, so "tap a party, get the
+                // party" holds everywhere a party appears.
+                <a
+                  key={n.slug}
+                  href={`/groups/${n.slug}`}
+                  className="map-node"
+                  aria-label={displayGroupShort(n.nameShort)}
+                >
                   {/* Native tooltip / touch fallback. */}
                   <title>{displayGroupShort(n.nameShort)}</title>
                   <circle cx={n.cx} cy={n.cy} r={n.r} fill={n.color} fillOpacity={0.82} />
@@ -195,10 +204,11 @@ export default async function MapaPage({
                   >
                     {displayGroupShort(n.nameShort)}
                   </text>
-                </g>
+                </a>
               ))}
               <style>{`
-                .map-node { cursor: default; }
+                .map-node { cursor: pointer; }
+                .map-node:focus-visible circle { stroke: var(--accent); stroke-width: 3; }
                 .map-label { opacity: 0; transition: opacity 120ms ease; pointer-events: none; }
                 .map-node:hover .map-label { opacity: 1; }
                 .map-node:hover circle { fill-opacity: 1; }
