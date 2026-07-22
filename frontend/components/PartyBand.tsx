@@ -135,7 +135,10 @@ export function PartyBand({
                     alt=""
                     width={40}
                     height={40}
-                    loading="lazy"
+                    // Eager on purpose: these are 1-2KB SVGs and the band
+                    // is primary content near the fold. lazy-loading them
+                    // saved nothing and made Edge's data-saver intervention
+                    // swap them for placeholders on slow connections.
                     decoding="async"
                     className="party-band__logo"
                   />
