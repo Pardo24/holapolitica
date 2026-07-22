@@ -3,13 +3,13 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
+  BarChart3,
   CalendarDays,
   Code2,
   Gamepad2,
   Layers,
   LockKeyhole,
   Map as MapIcon,
-  Scale,
   ShieldCheck,
   Users,
 } from 'lucide-react';
@@ -23,8 +23,6 @@ import { DailyTeaser } from '@/components/DailyTeaser';
 import { DailyNotification } from '@/components/DailyNotification';
 import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
-import { pickTopicName } from '@/lib/topics';
-import { topicIcon } from '@/lib/topic_icons';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
 import {
   api,
@@ -62,6 +60,7 @@ export default async function HomePage() {
   const tSite = await getTranslations('site');
   const tVotes = await getTranslations('votes');
   const tHub = await getTranslations('hub');
+  const tNav = await getTranslations('nav');
   const tDaily = await getTranslations('daily');
   const locale = await getLocale();
 
@@ -134,41 +133,6 @@ export default async function HomePage() {
   const sessRejected = sessionVotes.filter((v) => v.result === 'rejected').length;
   const sessTotal = sessionVotes.length;
 
-  // The latest sitting grouped BY TOPIC, counting LAWS and their final
-  // outcome — not individual votes, for the same reason the session
-  // sheet counts laws: a bill that passed after 47 amendment votes went
-  // down is one approved law, not 47 rejections. Feeds the mobile home's
-  // topic cards, which replaced the raw law list: "Sanidad pública,
-  // 1 ley aprobada" is something a citizen can read on a phone;
-  // a truncated two-line legal title is not.
-  const topicPulse = (() => {
-    const byLaw = new Map<string, Vote[]>();
-    for (const v of sessionVotes) {
-      const key = v.expediente_raw ?? `vote-${v.id}`;
-      const list = byLaw.get(key);
-      if (list) list.push(v);
-      else byLaw.set(key, [v]);
-    }
-    const byTopic = new Map<string, { laws: number; approved: number; rejected: number }>();
-    for (const list of byLaw.values()) {
-      const final = [...list].sort(
-        (a, b) =>
-          a.voted_at.localeCompare(b.voted_at) ||
-          (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
-      )[list.length - 1]!;
-      const slug = final.topics?.[0]?.slug;
-      if (!slug) continue;
-      const agg = byTopic.get(slug) ?? { laws: 0, approved: 0, rejected: 0 };
-      agg.laws += 1;
-      if (final.result === 'approved') agg.approved += 1;
-      else if (final.result === 'rejected') agg.rejected += 1;
-      byTopic.set(slug, agg);
-    }
-    return [...byTopic.entries()]
-      .map(([slug, agg]) => ({ slug, topic: allTopics.find((t2) => t2.slug === slug) ?? null, ...agg }))
-      .sort((a, b) => b.laws - a.laws);
-  })();
-
   // Split the hero title so the second line can be tinted with the accent.
   const heroTitleLines = t('hero_title').split('\n');
 
@@ -212,105 +176,6 @@ export default async function HomePage() {
             seeAllLabel={t('parties_see_all')}
           />
         }
-        topicCards={
-          topicPulse.length > 0 ? (
-            <ul
-              style={{
-                listStyle: 'none',
-                margin: 0,
-                padding: 0,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                // Same equal-real-estate rule as the party band: a topic
-                // whose name wraps to two lines must not get a taller
-                // card than one that fits on one.
-                gridAutoRows: '1fr',
-                gap: 8,
-              }}
-            >
-              {topicPulse.map(({ slug, topic, laws, approved, rejected }) => {
-                const Icon = topicIcon(topic?.icon);
-                const color = topic?.color_hex ?? 'var(--ink-3)';
-                return (
-                  <li key={slug} style={{ minWidth: 0, display: 'flex' }}>
-                    <Link
-                      href={`/topics/${slug}` as Route}
-                      style={{
-                        flex: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                        padding: '13px 14px',
-                        borderRadius: 12,
-                        border: '1px solid var(--rule)',
-                        borderTop: `3px solid ${color}`,
-                        background: 'var(--paper)',
-                        boxShadow: 'var(--shadow-2)',
-                        textDecoration: 'none',
-                        color: 'inherit',
-                        minWidth: 0,
-                      }}
-                    >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                        <span
-                          aria-hidden="true"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 28,
-                            height: 28,
-                            borderRadius: 8,
-                            flex: 'none',
-                            background: `color-mix(in oklch, ${color} 14%, var(--paper))`,
-                            color,
-                          }}
-                        >
-                          <Icon size={16} strokeWidth={1.9} />
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            lineHeight: 1.25,
-                            color: 'var(--ink)',
-                            minWidth: 0,
-                            overflowWrap: 'anywhere',
-                          }}
-                        >
-                          {pickTopicName(topic, locale) || slug}
-                        </span>
-                      </span>
-                      <span
-                        className="tabular"
-                        style={{
-                          marginTop: 'auto',
-                          fontSize: 11.5,
-                          color: 'var(--ink-3)',
-                          display: 'flex',
-                          gap: 8,
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <b style={{ color: 'var(--ink-2)' }}>{t('mobile_topic_laws', { n: laws })}</b>
-                        {approved > 0 && (
-                          <span style={{ color: 'var(--aye)', fontWeight: 600 }}>
-                            {t('session_approved', { n: approved })}
-                          </span>
-                        )}
-                        {rejected > 0 && (
-                          <span style={{ color: 'var(--no)', fontWeight: 600 }}>
-                            {t('session_rejected', { n: rejected })}
-                          </span>
-                        )}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null
-        }
         labels={{
           brand: t('mobile_brand'),
           motto: tSite('motto'),
@@ -322,13 +187,12 @@ export default async function HomePage() {
           lastUpdate: t('mobile_last_update'),
           sessionBannerEyebrow: t('mobile_session_banner_eyebrow'),
           sessionBannerCta: t('mobile_session_banner_cta'),
-          tileJoc: tHub('joc_title'),
-          tileAlign: tHub('align_title'),
+          tileJoc: tNav('jocs'),
           tileMap: tHub('map_title'),
           tileTopics: t('mobile_tile_topics'),
+          tileStats: t('mobile_tile_stats'),
           sectionHighlights: t('mobile_section_highlights'),
           sectionUpcoming: t('mobile_section_upcoming'),
-          sectionTopics: t('mobile_section_topics'),
           sectionExplore: t('mobile_section_explore'),
           highlightsSeeAll: t('highlights_see_all'),
         }}
@@ -829,12 +693,11 @@ interface MobileDashboardLabels {
   sessionBannerEyebrow: string;
   sessionBannerCta: string;
   tileJoc: string;
-  tileAlign: string;
   tileMap: string;
   tileTopics: string;
+  tileStats: string;
   sectionHighlights: string;
   sectionUpcoming: string;
-  sectionTopics: string;
   sectionExplore: string;
   highlightsSeeAll: string;
 }
@@ -846,7 +709,6 @@ function MobileDashboard({
   upcomingSessions,
   locale,
   partyBand,
-  topicCards,
   labels,
 }: {
   highlights: Highlight[];
@@ -856,8 +718,6 @@ function MobileDashboard({
   locale: string;
   /** Pre-rendered <PartyBand>, shared with the desktop layout. */
   partyBand: React.ReactNode;
-  /** Pre-rendered per-topic cards of the latest sitting (or null). */
-  topicCards: React.ReactNode;
   labels: MobileDashboardLabels;
 }) {
   // Show only the next 2 upcoming sessions on the dashboard.
@@ -1040,16 +900,6 @@ function MobileDashboard({
         </Link>
       )}
 
-      {/* What the sitting decided, BY TOPIC — this replaced the raw
-          "latest laws" rows. Those showed the first two lines of each
-          vote's legal title, which on a phone read as truncated jargon.
-          A topic card ("Sanidad pública — 1 ley, aprobada") is the same
-          information at the altitude a citizen actually reads. Each card
-          leads to the topic's page with its full voting record. */}
-      {topicCards != null && (
-        <DashboardSection title={labels.sectionTopics}>{topicCards}</DashboardSection>
-      )}
-
       {/* Upcoming sessions — only when something is scheduled. */}
       {upcomingTwo.length > 0 && (
         <DashboardSection title={labels.sectionUpcoming}>
@@ -1106,6 +956,49 @@ function MobileDashboard({
           into the Partits tab for the full roster. */}
       {partyBand}
 
+      {/* The landing's navigation proposals — where to go next: the
+          map, the games, the topics, the data. Four equal tiles, each
+          with its own muted hue. Deliberately AFTER the content (pleno +
+          parties): the home leads with what happened, then offers the
+          onward journeys. All layout-critical styles are inline — same
+          hardening as the party cards, so no stylesheet mishap can
+          break the grid. */}
+      <DashboardSection title={labels.sectionExplore}>
+        <nav
+          aria-label={labels.sectionExplore}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 10,
+          }}
+        >
+          <NavTile
+            href={'/mapa' as Route}
+            icon={<MapIcon size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileMap}
+            fg="#475189"
+          />
+          <NavTile
+            href={'/jocs' as Route}
+            icon={<Gamepad2 size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileJoc}
+            fg="#6E4F8E"
+          />
+          <NavTile
+            href="/topics"
+            icon={<Layers size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileTopics}
+            fg="#2F807A"
+          />
+          <NavTile
+            href="/stats"
+            icon={<BarChart3 size={24} strokeWidth={1.75} aria-hidden="true" />}
+            label={labels.tileStats}
+            fg="#9A6628"
+          />
+        </nav>
+      </DashboardSection>
+
       {/* Per-group topic leanings — discovery, → Dades. */}
       <DashboardSection
         title={labels.sectionHighlights}
@@ -1115,86 +1008,74 @@ function MobileDashboard({
         <HighlightsCarousel items={highlights} allTopics={allTopics} />
       </DashboardSection>
 
-      {/* Explore — the secondary and playful surfaces, kept reachable
-          but deliberately quiet at the foot of the page: a topic index,
-          the chamber map, the "what would you vote" test and the game.
-          None of them is a peer of the parliamentary record, so none of
-          them sits in the bottom bar. */}
-      <DashboardSection title={labels.sectionExplore}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <DashboardChip
-            href="/topics"
-            icon={<Layers size={15} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileTopics}
-          />
-          <DashboardChip
-            href={'/mapa' as Route}
-            icon={<MapIcon size={15} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileMap}
-          />
-          <DashboardChip
-            href={'/com-et-representen' as Route}
-            icon={<Scale size={15} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileAlign}
-          />
-          <DashboardChip
-            href={'/jocs' as Route}
-            icon={<Gamepad2 size={15} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileJoc}
-          />
-        </div>
-      </DashboardSection>
     </div>
   );
 }
 
 
-function DashboardChip({
+function NavTile({
   href,
   icon,
   label,
+  fg,
 }: {
   href: React.ComponentProps<typeof Link>['href'];
   icon: React.ReactNode;
   label: string;
+  /** The tile's muted hue — drives the icon disc tint. */
+  fg: string;
 }) {
-  // Compact secondary nav: a small bordered pill with a quiet icon. Sized
-  // to clear the 44px touch floor via padding. Grows to fill the row with
-  // flex so 2–4 chips wrap tidily.
+  // Landing navigation tile. Everything load-bearing is inline (the
+  // party-card lesson): equal size, layout and tint survive any
+  // stylesheet loss.
   return (
     <Link
       href={href}
-      className="mobile-dashboard-chip"
       style={{
-        flex: '1 1 auto',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 7,
-        minHeight: 44,
-        padding: '0 14px',
-        borderRadius: 999,
-        border: '1px solid var(--rule)',
-        background: 'var(--paper-2)',
-        color: 'var(--ink-2)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 10,
+        minHeight: 104,
+        minWidth: 0,
+        padding: 14,
+        borderRadius: 14,
+        border: '1px solid var(--rule-strong)',
+        background: 'var(--paper)',
+        color: 'var(--ink)',
         textDecoration: 'none',
-        fontSize: 13,
-        fontWeight: 600,
-        whiteSpace: 'nowrap',
+        boxShadow: 'var(--shadow-2)',
       }}
     >
-      <span aria-hidden="true" style={{ color: 'var(--ink-3)', display: 'inline-flex' }}>
+      <span
+        aria-hidden="true"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 42,
+          height: 42,
+          borderRadius: 12,
+          flex: 'none',
+          background: `color-mix(in oklch, ${fg} 13%, var(--paper))`,
+          color: fg,
+        }}
+      >
         {icon}
       </span>
-      {label}
-      <style>{`
-        .mobile-dashboard-chip:active {
-          background: var(--ink);
-          color: var(--paper);
-          border-color: var(--ink);
-        }
-        .mobile-dashboard-chip:active span { color: var(--paper); }
-      `}</style>
+      <span
+        style={{
+          fontSize: 14.5,
+          fontWeight: 700,
+          letterSpacing: '-0.005em',
+          lineHeight: 1.2,
+          minWidth: 0,
+          overflowWrap: 'anywhere',
+        }}
+      >
+        {label}
+      </span>
     </Link>
   );
 }

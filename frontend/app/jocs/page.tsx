@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight, CalendarDays, Gamepad2 } from 'lucide-react';
+import { ArrowRight, CalendarDays, Gamepad2, Scale } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
 
@@ -39,6 +39,16 @@ export default async function JocsPage() {
       title: tHub('joc_title'),
       sub: tHub('joc_sub'),
       color: '#7F77DD',
+    },
+    // The alignment test lived on the mobile home's "Explora" row; that
+    // row is gone (the home is a landing now), and this participative
+    // hub is its natural address.
+    {
+      href: '/com-et-representen' as Route,
+      icon: <Scale size={22} strokeWidth={1.9} aria-hidden="true" />,
+      title: tHub('align_title'),
+      sub: tHub('align_sub'),
+      color: '#2F807A',
     },
   ];
 
