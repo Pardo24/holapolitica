@@ -1823,7 +1823,6 @@ button {
 @media (max-width: 640px) {
   .party-band { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .party-band__card { padding: 15px 10px 12px; border-radius: 12px; }
-  .party-band__logo { width: 36px; height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .party-band__card { transition: none; }
