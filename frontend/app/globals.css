@@ -331,7 +331,7 @@ a { color: inherit; }
   margin: 0 auto;
 }
 @media (max-width: 720px) {
-  .page { padding: 18px 16px 32px; }
+  .page { padding: 18px 22px 32px; }
 }
 
 /* Embed widgets — chrome-less shell rendered by app/layout.tsx for
@@ -1337,7 +1337,7 @@ body.hp-filter-pending .mobile-votes-list::after {
 }
 
 @media (max-width: 720px) {
-  .page { padding: 16px 14px 32px; font-size: 14px; }
+  .page { padding: 16px 20px 32px; font-size: 14px; }
   .topnav { gap: 10px; }
 
   .kpi { padding: 10px 0; }
