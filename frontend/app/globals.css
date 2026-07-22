@@ -1813,13 +1813,15 @@ button {
   padding-top: 8px;
 }
 .party-band__seats b { color: var(--ink-2); font-size: 13px; }
-/* Phones keep the same two-column grid the rule above produces;
-   only the card gets a little tighter so two of them plus the gap
-   never fight for width. The logo stays large — at 140px+ per card
-   there is room for it, and it is the fastest way to recognise a
-   party at a glance. */
-@media (max-width: 520px) {
-  .party-band { gap: 8px; }
+/* Phones: a FIXED two-column grid, not auto-fit. Auto-fit flips to
+   three narrower columns on wider phones (≥ ~460px) and back to two on
+   smaller ones, so the same cards rendered at different sizes depending
+   on the device — reported as "some cards get very small and unequal".
+   Two fixed tracks of minmax(0, 1fr) make every card exactly half the
+   row on every phone: a relative size that never changes, and every
+   card identical. Auto-fit still governs tablet/desktop above 640px. */
+@media (max-width: 640px) {
+  .party-band { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .party-band__card { padding: 15px 10px 12px; border-radius: 12px; }
   .party-band__logo { width: 36px; height: 36px; }
 }

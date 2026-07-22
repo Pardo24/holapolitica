@@ -693,8 +693,8 @@
     "surface_joc_cta": "Ponte a prueba",
     "latest_session_eyebrow": "El último pleno, explicado",
     "latest_session_explore": "Explora el último pleno",
-    "session_approved": "{n} aprobadas",
-    "session_rejected": "{n} rechazadas",
+    "session_approved": "{n, plural, =1 {# aprobada} other {# aprobadas}}",
+    "session_rejected": "{n, plural, =1 {# rechazada} other {# rechazadas}}",
     "session_votes": "{n} votaciones",
     "coverage_since": "desde agosto de 2023",
     "cta_deputies": "Diputados y partidos",
@@ -705,7 +705,9 @@
     "parties_see_all": "Ver todos los grupos",
     "partits_cta": "Partidos",
     "tile_deputies_parties": "Diputados y partidos",
-    "mobile_section_explore": "Explora"
+    "mobile_section_explore": "Explora",
+    "mobile_section_topics": "El último pleno, por temas",
+    "mobile_topic_laws": "{n, plural, =1 {1 ley} other {# leyes}}"
   },
   "deputy": {
     "title": "Diputados y partidos",

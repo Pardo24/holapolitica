@@ -693,8 +693,8 @@
     "surface_joc_cta": "Test yourself",
     "latest_session_eyebrow": "The latest session, explained",
     "latest_session_explore": "Explore the latest session",
-    "session_approved": "{n} approved",
-    "session_rejected": "{n} rejected",
+    "session_approved": "{n, plural, =1 {# approved} other {# approved}}",
+    "session_rejected": "{n, plural, =1 {# rejected} other {# rejected}}",
     "session_votes": "{n} votes",
     "coverage_since": "since August 2023",
     "cta_deputies": "Deputies & parties",
@@ -705,7 +705,9 @@
     "parties_see_all": "See all groups",
     "partits_cta": "Parties",
     "tile_deputies_parties": "Deputies & parties",
-    "mobile_section_explore": "Explore"
+    "mobile_section_explore": "Explore",
+    "mobile_section_topics": "The latest sitting, by topic",
+    "mobile_topic_laws": "{n, plural, =1 {1 law} other {# laws}}"
   },
   "deputy": {
     "title": "Deputies & parties",
