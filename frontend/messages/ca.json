@@ -707,7 +707,8 @@
     "tile_deputies_parties": "Diputats i partits",
     "mobile_section_explore": "Explora",
     "mobile_section_topics": "L'últim ple, per temes",
-    "mobile_topic_laws": "{n, plural, =1 {1 llei} other {# lleis}}"
+    "mobile_topic_laws": "{n, plural, =1 {1 llei} other {# lleis}}",
+    "mobile_investigate_parties": "Investiga els partits"
   },
   "deputy": {
     "title": "Diputats i partits",

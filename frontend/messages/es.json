@@ -707,7 +707,8 @@
     "tile_deputies_parties": "Diputados y partidos",
     "mobile_section_explore": "Explora",
     "mobile_section_topics": "El último pleno, por temas",
-    "mobile_topic_laws": "{n, plural, =1 {1 ley} other {# leyes}}"
+    "mobile_topic_laws": "{n, plural, =1 {1 ley} other {# leyes}}",
+    "mobile_investigate_parties": "Investiga los partidos"
   },
   "deputy": {
     "title": "Diputados y partidos",

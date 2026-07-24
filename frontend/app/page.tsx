@@ -18,9 +18,9 @@ import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PartyBand } from '@/components/PartyBand';
+import { ScrollDownCue } from '@/components/ScrollDownCue';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { DailyTeaser } from '@/components/DailyTeaser';
-import { DailyNotification } from '@/components/DailyNotification';
 import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
@@ -143,20 +143,6 @@ export default async function HomePage() {
           on every subsequent visit. */}
       <OnboardingModal />
 
-      {/* Mobile: a floating, dismissible daily-question notification (overlays,
-          no layout shift). The desktop daily card now sits BELOW the hero, so
-          the serious value proposition — not a game — is the first thing a
-          first-time visitor or a journalist sees. */}
-      <div className="sm:hidden">
-        <DailyNotification
-          labels={{
-            eyebrow: tDaily('eyebrow'),
-            invite: tDaily('teaser_invite'),
-            dismiss: tDaily('dismiss'),
-          }}
-        />
-      </div>
-
       {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
           native-app-style entry point: brand strip, search, 2×2 tile grid,
           and three compact content sections that reuse the same fetched
@@ -167,6 +153,9 @@ export default async function HomePage() {
         latestVotes={latestVotes}
         upcomingSessions={upcomingSessions}
         locale={locale}
+        sessApproved={sessApproved}
+        sessRejected={sessRejected}
+        sessTotal={sessTotal}
         partyBand={
           <PartyBand
             groups={allGroups}
@@ -195,6 +184,9 @@ export default async function HomePage() {
           sectionUpcoming: t('mobile_section_upcoming'),
           sectionExplore: t('mobile_section_explore'),
           highlightsSeeAll: t('highlights_see_all'),
+          investigateParties: t('mobile_investigate_parties'),
+          sessionApproved: t('session_approved', { n: sessApproved }),
+          sessionRejected: t('session_rejected', { n: sessRejected }),
         }}
       />
 
@@ -700,6 +692,9 @@ interface MobileDashboardLabels {
   sectionUpcoming: string;
   sectionExplore: string;
   highlightsSeeAll: string;
+  investigateParties: string;
+  sessionApproved: string;
+  sessionRejected: string;
 }
 
 function MobileDashboard({
@@ -708,6 +703,9 @@ function MobileDashboard({
   latestVotes,
   upcomingSessions,
   locale,
+  sessApproved,
+  sessRejected,
+  sessTotal,
   partyBand,
   labels,
 }: {
@@ -718,6 +716,9 @@ function MobileDashboard({
   locale: string;
   /** Pre-rendered <PartyBand>, shared with the desktop layout. */
   partyBand: React.ReactNode;
+  sessApproved: number;
+  sessRejected: number;
+  sessTotal: number;
   labels: MobileDashboardLabels;
 }) {
   // Show only the next 2 upcoming sessions on the dashboard.
@@ -885,11 +886,44 @@ function MobileDashboard({
               month: 'long',
             })}
           </div>
+          {/* The day's outcome, on the card itself — a thin split bar plus
+              the counts, so the lead reads as "this happened, and here's
+              the shape of it", not just a date. Green/red survive the dark
+              card because they're the vote-choice tokens, tuned for it. */}
+          {sessTotal > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div
+                role="img"
+                aria-label={`${labels.sessionApproved}, ${labels.sessionRejected}`}
+                style={{
+                  display: 'flex',
+                  height: 7,
+                  borderRadius: 999,
+                  overflow: 'hidden',
+                  background: 'color-mix(in oklch, var(--paper) 22%, transparent)',
+                }}
+              >
+                {sessApproved > 0 && (
+                  <span style={{ width: `${(sessApproved / sessTotal) * 100}%`, background: 'var(--aye)' }} />
+                )}
+                {sessRejected > 0 && (
+                  <span style={{ width: `${(sessRejected / sessTotal) * 100}%`, background: 'var(--no)' }} />
+                )}
+              </div>
+              <div
+                className="tabular"
+                style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 12, flexWrap: 'wrap' }}
+              >
+                <span style={{ color: 'var(--aye)', fontWeight: 700 }}>{labels.sessionApproved}</span>
+                <span style={{ color: 'var(--no)', fontWeight: 700 }}>{labels.sessionRejected}</span>
+              </div>
+            </div>
+          )}
           <div
             style={{
               fontSize: 12.5,
               color: 'var(--paper-2)',
-              marginTop: 6,
+              marginTop: 12,
               display: 'flex',
               alignItems: 'center',
               gap: 4,
@@ -942,6 +976,10 @@ function MobileDashboard({
         </nav>
       </DashboardSection>
 
+      {/* "Start here ↓" — the invitation to scroll into the parties, in
+          place of the old daily-question toast. It closes the first
+          screen and smooth-scrolls to the party grid below. */}
+      <ScrollDownCue targetId="mobile-parties" label={labels.investigateParties} />
 
       {/* Upcoming sessions — only when something is scheduled. */}
       {upcomingTwo.length > 0 && (
@@ -996,8 +1034,12 @@ function MobileDashboard({
       {/* A look at the parties — the single home entry to the group
           pages now (the deputies tile and the "search deputy" chip are
           gone, so this no longer competes with them). The band leads
-          into the Partits tab for the full roster. */}
-      {partyBand}
+          into the Partits tab for the full roster. The id is the scroll
+          target of the "start here" cue above; scroll-margin keeps a
+          little air above it when jumped to. */}
+      <div id="mobile-parties" style={{ scrollMarginTop: 12 }}>
+        {partyBand}
+      </div>
 
       {/* Per-group topic leanings — discovery, → Dades. */}
       <DashboardSection
