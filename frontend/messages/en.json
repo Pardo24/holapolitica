@@ -707,7 +707,8 @@
     "tile_deputies_parties": "Deputies & parties",
     "mobile_section_explore": "Explore",
     "mobile_section_topics": "The latest sitting, by topic",
-    "mobile_topic_laws": "{n, plural, =1 {1 law} other {# laws}}"
+    "mobile_topic_laws": "{n, plural, =1 {1 law} other {# laws}}",
+    "mobile_investigate_parties": "Explore the parties"
   },
   "deputy": {
     "title": "Deputies & parties",
