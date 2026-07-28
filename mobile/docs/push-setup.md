@@ -70,62 +70,46 @@ SDK. To unblock that:
 The legacy "FCM server key" (a single string) was deprecated by Google
 in June 2024 — use the service-account JSON via the v1 HTTP API instead.
 
-## 4. Wiring inside the app
+## 4. Wiring — DONE (in code)
 
-The **backend side is already built** (dormant until FCM creds exist):
+Both the backend and the web bridge are now **fully wired**. Nothing here
+needs writing; it activates the moment the FCM credentials from steps 2–3
+are in place.
 
+**Backend** (`backend/`):
 - `device_tokens` table + `DeviceToken` model (migration `0026_device_tokens`).
 - `POST /push/devices` — idempotent upsert of `{ token, platform, topic_slugs, group_slugs }`.
 - `POST /push/devices/unregister` — `{ token }`.
 - `app.services.native_push.fan_out_native_for_vote(...)` — FCM delivery,
   a no-op (`skipped='fcm_not_configured'`) until `FCM_SERVICE_ACCOUNT_JSON`
   is set.
+- **Now called** alongside the web fan-out in `fan_out_vote_push`
+  (`app/workers/jobs.py`), so every new vote notifies native devices too
+  once FCM is on.
 
-Two activation steps remain on the backend:
+**Web bridge** (`frontend/`, runs inside the WebView):
+- `lib/native.ts` — `isNativeApp()`, `registerForPush()`, `onPushTap()`,
+  reading `window.Capacitor` (no `@capacitor/*` dependency in the web build).
+- `components/NativePushBridge.tsx` — mounted in the root layout; requests
+  permission, registers the device token to `POST /push/devices`, and
+  routes notification taps to their `data.url`. **Inert in browsers**
+  (`isNativeApp()` is false), so the web is unchanged.
+- `components/NotificationsManager.tsx` — inside the app, the same
+  topic/group picker registers the interests against the device token
+  (`/push/devices`) instead of a Web Push subscription.
+- `components/PushBootstrap.tsx` — skips the service worker inside the app
+  (Web Push doesn't work in a WebView).
 
-1. Set `FCM_SERVICE_ACCOUNT_JSON` (the service-account JSON from step 3).
-2. Call `fan_out_native_for_vote` alongside the web fan-out in
-   `app/workers/jobs.py` (the per-vote push path) so new votes notify
-   native devices too.
+**The only remaining activation is operational, not code:**
+1. Set **`FCM_SERVICE_ACCOUNT_JSON`** on the backend (the service-account
+   JSON from step 3), then restart the worker.
+2. Drop **`google-services.json`** into `mobile/android/app/` (step 2) and
+   rebuild the app.
+3. (iOS, later) `GoogleService-Info.plist` + the APNs `.p8` in Firebase.
 
-Frontend: the WebView **runs the deployed Next.js app**, so register from
-`frontend/` in a `lib/native/push.ts` module guarded by
-`Capacitor.isNativePlatform()` (requires `npm i @capacitor/core
-@capacitor/push-notifications` in `frontend/`):
-
-```ts
-import { Capacitor } from '@capacitor/core';
-import { PushNotifications } from '@capacitor/push-notifications';
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? '';
-
-export async function registerNativePush(topicSlugs: string[], groupSlugs: string[]) {
-  if (!Capacitor.isNativePlatform()) return; // browsers keep using Web Push
-  const perm = await PushNotifications.requestPermissions();
-  if (perm.receive !== 'granted') return;
-  await PushNotifications.register();
-  PushNotifications.addListener('registration', async (token) => {
-    await fetch(`${API}/push/devices`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      // token.value is the APNs token (iOS) or FCM token (Android).
-      body: JSON.stringify({
-        token: token.value,
-        platform: Capacitor.getPlatform(), // 'ios' | 'android' | 'web'
-        topic_slugs: topicSlugs,
-        group_slugs: groupSlugs,
-      }),
-    });
-  });
-}
-```
-
-Mount it from the notifications UI so the interests the user already picks
-for Web Push are reused for native. Testing still needs a real device (see §5).
-
-> **Editorial guardrail:** native payloads must stay factual — the sender
-> sends only the vote title + a link, no framing (CLAUDE.md "mirall, no
-> megàfon").
+> **Editorial guardrail:** native payloads stay factual — the sender ships
+> only the vote title + a link, no framing (CLAUDE.md "mirall, no megàfon").
+> This is already how `fan_out_native_for_vote` builds the message.
 
 ## 5. Testing
 

@@ -243,18 +243,32 @@ def _enqueue_push_fanout_for_recent_votes(window_minutes: int = 60) -> None:
 
 
 def fan_out_vote_push(vote_id: int) -> dict[str, int]:
-    """RQ entrypoint: fan out push notifications for one vote."""
+    """RQ entrypoint: fan out push notifications for one vote.
+
+    Two parallel channels, same interest matching:
+      - Web Push (browsers), always active.
+      - Native APNs/FCM (the Capacitor app), dormant until
+        FCM_SERVICE_ACCOUNT_JSON is set — ``fan_out_native_for_vote``
+        no-ops when it isn't, so this is safe to run on every vote before
+        native push is switched on.
+    """
 
     async def _run() -> dict[str, int]:
+        from app.services.native_push import fan_out_native_for_vote
         from app.services.push import fan_out_new_vote
 
+        origin = _site_url()
         async with AsyncSessionLocal() as session:
-            result = await fan_out_new_vote(session, vote_id, site_origin=_site_url())
+            result = await fan_out_new_vote(session, vote_id, site_origin=origin)
+            native = await fan_out_native_for_vote(session, vote_id, site_origin=origin)
         return {
             "sent": result.sent,
             "deleted": result.deleted,
             "failed": result.failed,
             "skipped": result.skipped,
+            "native_sent": native.sent,
+            "native_deleted": native.deleted,
+            "native_skipped": 1 if native.skipped else 0,
         }
 
     return asyncio.run(_run())

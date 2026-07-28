@@ -57,6 +57,7 @@ import {
 } from '@/lib/api';
 import { groupTopicsByCategory, categoryLabel } from '@/lib/topic_categories';
 import { pickTopicName } from '@/lib/topics';
+import { isNativeApp, nativeDeviceToken, nativePlatform, registerForPush } from '@/lib/native';
 
 type Phase =
   | 'init'
@@ -137,6 +138,23 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
   useEffect(() => {
     let cancelled = false;
     const probe = async (): Promise<void> => {
+      // Inside the Capacitor app, push is native (APNs/FCM), not Web
+      // Push. Skip the service-worker probe entirely and drive the flow
+      // off the device token. The token identifies the device the same
+      // way `endpoint` identifies a browser subscription on the web.
+      if (isNativeApp()) {
+        const token = nativeDeviceToken();
+        if (cancelled) return;
+        if (token) {
+          setEndpoint(token);
+          setPhase('subscribed');
+        } else {
+          // Permission not granted yet (or registration pending) — the
+          // "enable" CTA triggers registerForPush() in handleEnable.
+          setPhase('not-granted');
+        }
+        return;
+      }
       if (
         typeof window === 'undefined' ||
         !('serviceWorker' in navigator) ||
@@ -235,6 +253,35 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
   const handleEnable = useCallback(async () => {
     setBusy(true);
     setMessage(null);
+    // Native app: register the device token with the chosen interests.
+    // No service worker, no VAPID — the OS + FCM/APNs handle delivery.
+    if (isNativeApp()) {
+      try {
+        const token = await registerForPush();
+        if (!token) {
+          setPhase('not-granted');
+          setMessage(t('msg_denied'));
+          return;
+        }
+        await api.push.registerDevice({
+          token,
+          platform: nativePlatform(),
+          topic_slugs: Array.from(selected),
+          group_slugs: Array.from(selectedGroups),
+        });
+        setEndpoint(token);
+        setApplied(new Set(selected));
+        setAppliedGroups(new Set(selectedGroups));
+        setPhase('subscribed');
+        setMessage(t('msg_enabled'));
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        setMessage(t('msg_error', { reason }));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
@@ -274,6 +321,28 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
     if (!endpoint) return;
     setBusy(true);
     setMessage(null);
+    // Native: re-register the same token (idempotent upsert) with the
+    // new interests — there is no /push/interests-by-token PATCH, and
+    // registerDevice already replaces the interest set.
+    if (isNativeApp()) {
+      try {
+        await api.push.registerDevice({
+          token: endpoint,
+          platform: nativePlatform(),
+          topic_slugs: Array.from(selected),
+          group_slugs: Array.from(selectedGroups),
+        });
+        setApplied(new Set(selected));
+        setAppliedGroups(new Set(selectedGroups));
+        setMessage(t('msg_saved'));
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        setMessage(t('msg_error', { reason }));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     try {
       await api.push.updateInterests({
         endpoint,
@@ -300,6 +369,27 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
   const handleStop = useCallback(async () => {
     setBusy(true);
     setMessage(null);
+    // Native: drop the device token server-side. We keep the OS-level
+    // registration (harmless without a stored token) so re-enabling
+    // doesn't need another permission prompt.
+    if (isNativeApp()) {
+      try {
+        if (endpoint) await api.push.unregisterDevice({ token: endpoint }).catch(() => null);
+        setEndpoint(null);
+        setSelected(new Set());
+        setApplied(new Set());
+        setSelectedGroups(new Set());
+        setAppliedGroups(new Set());
+        setPhase('not-granted');
+        setMessage(t('msg_stopped'));
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        setMessage(t('msg_error', { reason }));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     try {
       const reg = await navigator.serviceWorker.getRegistration('/');
       const sub = reg ? await reg.pushManager.getSubscription() : null;

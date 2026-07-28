@@ -15,9 +15,15 @@
 
 import { useEffect } from 'react';
 
+import { isNativeApp } from '@/lib/native';
+
 export function PushBootstrap(): null {
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Inside the Capacitor app, push is delivered natively (APNs/FCM via
+    // NativePushBridge); the Web Push API doesn't work in a WebView, so
+    // registering the service worker here would be dead weight.
+    if (isNativeApp()) return;
     if (!('serviceWorker' in navigator)) return;
 
     const register = async (): Promise<void> => {

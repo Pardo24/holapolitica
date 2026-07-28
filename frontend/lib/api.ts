@@ -1223,6 +1223,32 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    /**
+     * Native (APNs/FCM) device-token registration from the Capacitor app.
+     * Parallel to the Web Push endpoints above and keyed by the device
+     * token instead of a browser endpoint. Idempotent upsert: calling
+     * again with the same token updates its interests.
+     */
+    registerDevice: (body: {
+      token: string;
+      platform: 'ios' | 'android' | 'web';
+      topic_slugs: string[];
+      group_slugs: string[];
+    }) =>
+      request<{
+        token: string;
+        platform: string;
+        topic_slugs: string[];
+        group_slugs: string[];
+      }>('/push/devices', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    unregisterDevice: (body: { token: string }) =>
+      request<{ status: string; detail: string | null }>('/push/devices/unregister', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
   },
   newsletter: {
     /**
