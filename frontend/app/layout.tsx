@@ -8,6 +8,7 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { BottomTabBar } from '@/components/BottomTabBar';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { MobileBackBar } from '@/components/MobileBackBar';
+import { NativePushBridge } from '@/components/NativePushBridge';
 import { PushBootstrap } from '@/components/PushBootstrap';
 import { TopNav } from '@/components/TopNav';
 
@@ -84,7 +85,13 @@ export default async function RootLayout({
             <main className="embed-shell">{children}</main>
           ) : (
             <div className="page">
+              {/* Web push (service worker) on the web; native push
+                  (APNs/FCM) inside the Capacitor app. Both are inert
+                  outside their platform: PushBootstrap self-skips when
+                  there's no serviceWorker, NativePushBridge self-skips
+                  when not running in the app. */}
               <PushBootstrap />
+              <NativePushBridge />
               <InstallPrompt />
               <TopNav />
               <MobileBackBar />
