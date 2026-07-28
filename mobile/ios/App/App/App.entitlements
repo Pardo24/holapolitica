@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  iOS entitlements for Monitor Parlamentari.
+  iOS entitlements for Hola Política.
 
   - aps-environment             enables APNs. Set to 'production' for App
                                 Store builds; Xcode auto-switches when
@@ -9,7 +9,7 @@
   - com.apple.developer.associated-domains
                                 enables Universal Links. The 'applinks:'
                                 prefix tells iOS to fetch
-                                https://monitor-parlamentari.cat/.well-known/apple-app-site-association
+                                https://holapolitica.org/.well-known/apple-app-site-association
                                 and route matching URLs to the app.
                                 See mobile/docs/deeplinks.md.
 -->
@@ -20,8 +20,8 @@
     <string>development</string>
     <key>com.apple.developer.associated-domains</key>
     <array>
-        <string>applinks:monitor-parlamentari.cat</string>
-        <string>applinks:www.monitor-parlamentari.cat</string>
+        <string>applinks:holapolitica.org</string>
+        <string>applinks:www.holapolitica.org</string>
     </array>
 </dict>
 </plist>

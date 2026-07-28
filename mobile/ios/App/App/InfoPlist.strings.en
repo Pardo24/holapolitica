@@ -1,4 +1,4 @@
 /* English localisation. Copy to App/en.lproj/InfoPlist.strings */
-CFBundleDisplayName = "Monitor Parlamentari";
+CFBundleDisplayName = "Hola Política";
 NSCameraUsageDescription = "Camera access is requested to scan vote QR codes.";
 NSPhotoLibraryUsageDescription = "Photo library access is requested to save shared social cards.";

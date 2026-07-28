@@ -1,4 +1,4 @@
-# Monitor Parlamentari — Mobile (Capacitor wrapper)
+# Hola Política — Mobile (Capacitor wrapper)
 
 This directory is a thin Capacitor 6 wrapper around the production
 Next.js web app in `../frontend`. The native shell loads the canonical
@@ -12,7 +12,7 @@ shipping native features the web cannot deliver:
 
 - **Push notifications** — `@capacitor/push-notifications` over APNs/FCM
   (see `docs/push-setup.md`).
-- **Universal Links / App Links** — `https://monitor-parlamentari.cat/votes/123`
+- **Universal Links / App Links** — `https://holapolitica.org/votes/123`
   opens the right screen in the app (see `docs/deeplinks.md`).
 - **Native share sheet** — `@capacitor/share` extends the Web Share API
   with iOS/Android share extensions.
@@ -106,7 +106,7 @@ npx cap build android
 ## Pointing the WebView at a different URL
 
 By default `capacitor.config.ts` reads `MOBILE_TARGET_URL` and falls back
-to `https://monitor-parlamentari.cat`. To point at a local frontend over
+to `https://holapolitica.org`. To point at a local frontend over
 a tunnel:
 
 ```bash

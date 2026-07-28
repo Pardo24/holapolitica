@@ -1,8 +1,8 @@
 {
-  "name": "monitor-parlamentari-mobile",
+  "name": "holapolitica-mobile",
   "version": "0.1.0",
   "private": true,
-  "description": "Capacitor wrapper packaging the Monitor Parlamentari Next.js web app as iOS and Android apps. The wrapper points at the production web URL — there is no duplicated UI.",
+  "description": "Capacitor wrapper packaging the Hola Política Next.js web app as iOS and Android apps. The wrapper points at the production web URL — there is no duplicated UI.",
   "scripts": {
     "sync": "cap sync",
     "ios:open": "cap open ios",
