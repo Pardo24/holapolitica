@@ -14,7 +14,7 @@ through the Apple Developer and Firebase consoles.
 
 1. Sign in at <https://developer.apple.com/account/resources/authkeys/list>.
 2. Click **+** to create a new key.
-3. Name: `Monitor Parlamentari APNs`. Tick **Apple Push Notifications
+3. Name: `Hola Política APNs`. Tick **Apple Push Notifications
    service (APNs)**. Continue → Register.
 4. **Download the `.p8` file**. Apple only lets you download it once;
    store it in a password manager.
@@ -25,7 +25,7 @@ through the Apple Developer and Firebase consoles.
    - Same screen → add **Background Modes** → tick **Remote
      notifications**. (`App.entitlements` and `Info.plist` in this repo
      already declare both; Xcode just needs to acknowledge them.)
-   - Confirm the bundle ID is `cat.monitorparlamentari.app`.
+   - Confirm the bundle ID is `org.holapolitica.app`.
 
 The `.p8` file, Key ID and Team ID are what Firebase (or any APNs sender)
 needs — see the FCM step below.
@@ -37,18 +37,18 @@ sender for iOS. That lets the backend send to a single endpoint instead
 of integrating two SDKs.
 
 1. Go to <https://console.firebase.google.com> → **Add project**.
-2. Project name: `monitor-parlamentari`. Disable Google Analytics (we do
+2. Project name: `holapolitica`. Disable Google Analytics (we do
    not run trackers).
 3. **Add Android app**:
-   - Package name: `cat.monitorparlamentari.app`.
-   - Nickname: "Monitor Parlamentari Android".
+   - Package name: `org.holapolitica.app`.
+   - Nickname: "Hola Política Android".
    - SHA-1: leave blank for now; required only for Dynamic Links / Google
      Sign-In.
    - Download `google-services.json` → save to
      `mobile/android/app/google-services.json` (already gitignored).
 4. **Add iOS app**:
-   - Bundle ID: `cat.monitorparlamentari.app`.
-   - Nickname: "Monitor Parlamentari iOS".
+   - Bundle ID: `org.holapolitica.app`.
+   - Nickname: "Hola Política iOS".
    - Download `GoogleService-Info.plist` → drag into Xcode under the
      `App` target. Path: `mobile/ios/App/App/GoogleService-Info.plist`
      (gitignored).

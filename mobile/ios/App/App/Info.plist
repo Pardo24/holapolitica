@@ -20,7 +20,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>ca</string>
     <key>CFBundleDisplayName</key>
-    <string>Monitor Parlamentari</string>
+    <string>Hola Política</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>

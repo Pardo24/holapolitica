@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Monitor Parlamentari</string>
-    <string name="title_activity_main">Monitor Parlamentari</string>
-    <string name="package_name">cat.monitorparlamentari.app</string>
-    <string name="custom_url_scheme">cat.monitorparlamentari.app</string>
+    <string name="app_name">Hola Política</string>
+    <string name="title_activity_main">Hola Política</string>
+    <string name="package_name">org.holapolitica.app</string>
+    <string name="custom_url_scheme">org.holapolitica.app</string>
 </resources>

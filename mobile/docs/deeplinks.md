@@ -2,7 +2,7 @@
 
 We use **Universal Links** on iOS and **App Links** on Android — both
 backed by the same web URLs. A user who taps
-`https://monitor-parlamentari.cat/votes/123` in Mail / WhatsApp / Twitter
+`https://holapolitica.org/votes/123` in Mail / WhatsApp / Twitter
 sees the app open straight at vote 123, with no URL scheme dialog and no
 intermediate browser hop.
 
@@ -30,8 +30,8 @@ the WebView loads them directly:
 ```xml
 <key>com.apple.developer.associated-domains</key>
 <array>
-  <string>applinks:monitor-parlamentari.cat</string>
-  <string>applinks:www.monitor-parlamentari.cat</string>
+  <string>applinks:holapolitica.org</string>
+  <string>applinks:www.holapolitica.org</string>
 </array>
 ```
 
@@ -44,7 +44,7 @@ file already has it.
 Host the following JSON at:
 
 ```
-https://monitor-parlamentari.cat/.well-known/apple-app-site-association
+https://holapolitica.org/.well-known/apple-app-site-association
 ```
 
 Served as `application/json`, **no redirect**, **no extension**, HTTPS only.
@@ -54,7 +54,7 @@ Served as `application/json`, **no redirect**, **no extension**, HTTPS only.
   "applinks": {
     "details": [
       {
-        "appIDs": ["TEAMID.cat.monitorparlamentari.app"],
+        "appIDs": ["TEAMID.org.holapolitica.app"],
         "components": [
           { "/": "/votes/*" },
           { "/": "/initiatives/*" },
@@ -92,15 +92,15 @@ Apple caches AASA aggressively; force a refresh on a device by toggling
 ### 1. Manifest intent filter (already shipped)
 
 `mobile/android/app/src/main/AndroidManifest.xml` declares the
-`autoVerify="true"` intent-filter for both `monitor-parlamentari.cat`
-and `www.monitor-parlamentari.cat`. No further code change needed.
+`autoVerify="true"` intent-filter for both `holapolitica.org`
+and `www.holapolitica.org`. No further code change needed.
 
 ### 2. assetlinks.json
 
 Host the following JSON at:
 
 ```
-https://monitor-parlamentari.cat/.well-known/assetlinks.json
+https://holapolitica.org/.well-known/assetlinks.json
 ```
 
 Served as `application/json`, HTTPS only, no redirect.
@@ -111,7 +111,7 @@ Served as `application/json`, HTTPS only, no redirect.
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "cat.monitorparlamentari.app",
+      "package_name": "org.holapolitica.app",
       "sha256_cert_fingerprints": [
         "AA:BB:CC:…"
       ]
@@ -153,10 +153,10 @@ After deploying both `.well-known` files:
 
 ```bash
 # iOS — Apple's CDN check
-curl https://app-site-association.cdn-apple.com/a/v1/monitor-parlamentari.cat
+curl https://app-site-association.cdn-apple.com/a/v1/holapolitica.org
 
 # Android — Google's Digital Asset Links verifier
-curl 'https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://monitor-parlamentari.cat&relation=delegate_permission/common.handle_all_urls'
+curl 'https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://holapolitica.org&relation=delegate_permission/common.handle_all_urls'
 ```
 
 Both should return JSON listing the app. If they do not, double-check
