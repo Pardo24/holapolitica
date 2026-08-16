@@ -1,14 +1,36 @@
 apply plugin: 'com.android.application'
 
+// Release signing. The credentials live in android/keystore.properties
+// (gitignored) which points at the upload keystore OUTSIDE the repo, so
+// no secret is ever committed. When the file is absent (e.g. CI or a
+// fresh clone) the release signingConfig is simply not applied and the
+// build stays unsigned — see mobile/docs/ANDROID-RELEASE.md.
+def keystorePropsFile = rootProject.file('keystore.properties')
+def hasKeystore = keystorePropsFile.exists()
+def keystoreProps = new Properties()
+if (hasKeystore) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
 android {
     namespace "org.holapolitica.app"
     compileSdk rootProject.ext.compileSdkVersion
+    signingConfigs {
+        if (hasKeystore) {
+            release {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
     defaultConfig {
         applicationId "org.holapolitica.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,6 +42,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasKeystore) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

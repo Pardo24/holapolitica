@@ -37,3 +37,4 @@ android/keystore/
 # Env
 .env
 .env.local
+android/keystore.properties
