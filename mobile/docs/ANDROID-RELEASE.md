@@ -91,24 +91,20 @@ Play no publica fins que aquests apartats estan complets:
 ## 6. Deep links — App Links (opcional, es pot fer després)
 
 Perquè un enllaç `https://holapolitica.org/votes/123` **obri l'app** en lloc
-del navegador:
+del navegador. El fitxer ja se serveix (avui torna `[]`); només hi falta el
+fingerprint, i es posa per **variable d'entorn**, sense tocar codi:
 
 1. **[TU]** A Play Console: _Setup → App integrity → App signing_ → copia el
-   **SHA-256 certificate fingerprint** de la clau de **distribució**.
-2. Crea `frontend/public/.well-known/assetlinks.json` amb:
+   **SHA-256 certificate fingerprint** de la clau de **distribució** (i, si
+   vols, també el de la clau de **pujada**).
+2. **[TU]** A Vercel → el projecte → _Settings → Environment Variables_ →
+   afegeix `ANDROID_CERT_SHA256` amb el/s fingerprint/s separats per coma.
+   Redesplega (o _Redeploy_ des de Vercel).
+3. Verifica-ho: `https://holapolitica.org/.well-known/assetlinks.json` ha de
+   passar de `[]` a l'associació amb el teu fingerprint.
 
-   ```json
-   [{
-     "relation": ["delegate_permission/common.handle_all_urls"],
-     "target": {
-       "namespace": "android_app",
-       "package_name": "org.holapolitica.app",
-       "sha256_cert_fingerprints": ["EL:SHA256:QUE:HAS:COPIAT"]
-     }
-   }]
-   ```
-3. Desplega el web (merge a `main`). Verifica-ho a
-   `https://holapolitica.org/.well-known/assetlinks.json`.
+> El manifest ja declara l'`intent-filter autoVerify` per a `holapolitica.org`;
+> Android verifica l'associació sol a la instal·lació.
 
 Si no ho fas, els enllaços simplement obren al navegador (degrada bé); no
 bloqueja la publicació.
