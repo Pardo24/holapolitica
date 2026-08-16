@@ -27,6 +27,17 @@ const COMMON_SECURITY_HEADERS = [
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  async rewrites() {
+    return [
+      // Android App Links verification file. Served from a route handler
+      // (app/api/assetlinks) so its content is driven by the
+      // ANDROID_CERT_SHA256 env var — the signing SHA-256 is only known
+      // after the app is created in Play Console, and this way filling it
+      // in is an env change, not a code change. The canonical path
+      // Android fetches is /.well-known/assetlinks.json.
+      { source: '/.well-known/assetlinks.json', destination: '/api/assetlinks' },
+    ];
+  },
   async headers() {
     return [
       // Embed widgets: iframable from anywhere, no framing block.
