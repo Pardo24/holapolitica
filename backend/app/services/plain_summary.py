@@ -173,9 +173,16 @@ _BANNED_TERMS = (
     # rejecting valid summaries like "derechos y beneficios de las familias".
     "beneficioso",
     "beneficiosa",
-    # Action-framing words used to editorialise
-    "lluita",  # "una lluita per..."
-    "amenaç",  # "una amenaça per..."
+    # Framing the initiative itself as "a fight" / "a threat". Matched as
+    # the indefinite PHRASE, in both languages: "Una lluita contra la
+    # corrupció" editorialises, but "reforça la lluita contra els delictes
+    # informàtics" only names an existing policy area. Banning the bare
+    # words "lluita"/"amenaç" rejected every Catalan translation of such
+    # summaries while the Spanish original ("la lucha contra...") passed.
+    "una lluita",
+    "una lucha",
+    "una amenaça",
+    "una amenaza",
     # Strong ideological adjectives
     "progressist",
     "conservadorame",
