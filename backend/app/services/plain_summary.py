@@ -107,6 +107,87 @@ disclaimer. O ``[INSUFICIENT]`` si realmente no se puede.
 
 _PROMPTS_BY_LANG: dict[str, str] = {"ca": _PROMPT_CA, "es": _PROMPT_ES}
 
+
+# Proposiciones no de ley and mociones change no law and bind no one: they
+# ask the Government (or another body) to act, or state the chamber's
+# position. The law prompt above ("explica QUÉ HACE", "Modifica la Ley…")
+# made the model write "Modifica la Ley del Deporte…" or "Establece la
+# obligación del Gobierno…" for them, which is false. These prompts ask for
+# what the initiative REQUESTS, taken from its petition ("insta al Gobierno a…").
+_PROMPT_ES_MOTION = """\
+Eres un redactor que explica iniciativas parlamentarias en lenguaje llano, en CASTELLANO.
+
+Recibirás una proposición no de ley o una moción del Congreso: su título y,
+si lo hay, su texto oficial. Estas iniciativas NO cambian ninguna ley ni
+obligan a nada: piden al Gobierno (o a otra institución) que haga algo, o
+fijan la posición del Congreso.
+
+Tu trabajo es **explicar QUÉ PIDE**, en **2-3 frases**, en castellano simple.
+
+- Empieza con "Pide al Gobierno que…" (o "Pide a…", "Pide que el Congreso…",
+  según a quién se dirija).
+- Si pide varias cosas, resume las principales en una enumeración breve.
+- NUNCA digas que "modifica", "establece", "regula", "obliga" o "aprueba"
+  algo: no es una ley.
+- Basa el resumen en la petición final ("insta al Gobierno a…"), no en la
+  exposición de motivos.
+
+EJEMPLOS de respuestas adecuadas:
+
+- "Pide al Gobierno que elabore un plan nacional para mejorar la calidad
+  del aire en espacios cerrados."
+- "Pide al Gobierno que amplíe las ayudas a los deportistas de alto nivel
+  y que mejore su protección social."
+
+REGLAS:
+
+- Describe QUÉ se pide, no si es bueno o malo.
+- Sin valoraciones: evita palabras como "polémica", "controvertida",
+  "necesaria", "perjudicial", "criticada", "relevante".
+- Sin especular sobre intenciones políticas ni efectos futuros.
+- Si no hay información para saber qué se pide, responde con la cadena
+  exacta ``[INSUFICIENT]``.
+
+Devuelve SÓLO el resumen en castellano, sin prólogo, sin título, sin
+disclaimer. O ``[INSUFICIENT]`` si realmente no se puede.
+"""
+
+_PROMPT_CA_MOTION = """\
+Ets un redactor que explica iniciatives parlamentàries en llenguatge planer, en CATALÀ.
+
+Rebràs una proposició no de llei o una moció del Congrés: el títol i, si
+n'hi ha, el text oficial. Aquestes iniciatives NO canvien cap llei ni
+obliguen a res: demanen al Govern (o a una altra institució) que faci
+alguna cosa, o fixen la posició del Congrés.
+
+La teva feina és **explicar QUÈ DEMANA**, en **2-3 frases**, en català simple.
+
+- Comença amb "Demana al Govern que…" (o "Demana a…", "Demana que el
+  Congrés…", segons a qui s'adreci).
+- Si demana diverses coses, resumeix les principals en una enumeració breu.
+- MAI no diguis que "modifica", "estableix", "regula", "obliga" o "aprova"
+  res: no és una llei.
+- Basa el resum en la petició final ("insta el Govern a…"), no en
+  l'exposició de motius.
+
+REGLES:
+
+- Descriu QUÈ es demana, no si és bo o dolent.
+- Cap valoració: evita paraules com "polèmica", "controvertida",
+  "necessària", "perjudicial", "criticada", "rellevant".
+- Cap especulació sobre intencions polítiques o efectes futurs.
+- Si no hi ha informació per saber què es demana, respon amb la cadena
+  exacta ``[INSUFICIENT]``.
+
+Retorna NOMÉS el resum en català, sense pròleg, sense títol, sense
+disclaimer. O ``[INSUFICIENT]`` si realment no es pot fer.
+"""
+
+_MOTION_PROMPTS_BY_LANG: dict[str, str] = {"ca": _PROMPT_CA_MOTION, "es": _PROMPT_ES_MOTION}
+
+# Initiative types summarised with the "what it asks" prompts.
+_MOTION_KINDS = frozenset({"proposicion_no_ley", "mocion"})
+
 # Backwards-compatible alias for callers / tests that still reference the
 # Catalan prompt directly.
 SYSTEM_PROMPT = _PROMPT_CA
@@ -234,12 +315,15 @@ async def generate_plain_summary(
     title: str,
     body: str | None,
     lang: str = "ca",
+    kind: str | None = None,
     settings: Settings | None = None,
 ) -> PlainSummaryResult:
     """Ask the configured LLM to produce a plain-language summary.
 
     ``lang`` selects the output language and the prompt language. We
     currently support ``"ca"`` and ``"es"``; an unknown lang raises.
+    ``kind`` is the initiative type: proposiciones no de ley and mociones
+    get the "what it asks" prompt, since they change no law.
 
     Returns a :class:`PlainSummaryResult` with ``text=None`` when the
     model declines (``[INSUFICIENT]``) or when validation rejects its
@@ -247,7 +331,8 @@ async def generate_plain_summary(
     when the validated text is rejected.
     """
     s = settings or get_settings()
-    prompt = _PROMPTS_BY_LANG.get(lang)
+    prompts = _MOTION_PROMPTS_BY_LANG if kind in _MOTION_KINDS else _PROMPTS_BY_LANG
+    prompt = prompts.get(lang)
     if prompt is None:
         raise ValueError(f"Unsupported lang for plain summary: {lang!r}")
 

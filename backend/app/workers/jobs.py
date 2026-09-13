@@ -771,6 +771,20 @@ def repair_summary_language_gaps() -> dict[str, dict[str, int]]:
     return asyncio.run(_repair())
 
 
+def enrich_motion_texts() -> dict[str, int]:
+    """RQ entrypoint: BOCG text for new PNLs / motions (see motion_texts)."""
+    from app.ingest.congreso.motion_texts import enrich_motion_texts as _enrich
+
+    return asyncio.run(_enrich())
+
+
+def summarise_pending_initiatives() -> dict[str, int]:
+    """RQ entrypoint: summaries for initiatives with text but no summary yet."""
+    from app.ingest.congreso.bootstrap import summarise_pending_initiatives as _run
+
+    return asyncio.run(_run())
+
+
 def enrich_persons_wikipedia() -> dict[str, int]:
     """Fetch Wikipedia summary extracts for every person with a URL.
 

@@ -405,7 +405,9 @@ async def import_initiatives() -> dict[str, InitiativeImportStats]:
                 # almost always NULL): it gives the LLM a much richer
                 # input to distil down to 2-3 plain-language sentences.
                 body = row.object_text or row.summary
-                es = await generate_plain_summary(title=row.title_original, body=body, lang="es")
+                es = await generate_plain_summary(
+                    title=row.title_original, body=body, lang="es", kind=row.type
+                )
                 ca_text: str | None = None
                 if es.text:
                     ca_text = (await translate_summary(text=es.text, target_lang="ca")).text
@@ -813,7 +815,7 @@ async def generate_all_plain_summaries(lang: str = "ca") -> dict[str, int | str]
                     # ``import_initiatives``.
                     body = row.object_text or row.summary
                     result = await generate_plain_summary(
-                        title=row.title_original, body=body, lang=lang
+                        title=row.title_original, body=body, lang=lang, kind=row.type
                     )
                     setattr(row, target_col_name, result.text)
                     # We only update provider/generated_at when we got a
@@ -1122,6 +1124,79 @@ async def repair_summary_language_gaps() -> dict[str, dict[str, int]]:
     return result
 
 
+async def summarise_pending_initiatives(limit: int = 100) -> dict[str, int]:
+    """Plain summaries for initiatives that have official text but no summary.
+
+    Daily companion of ``motion_texts``: once a PNL's BOCG text lands, this
+    writes its summary (Spanish from the text, with the prompt for its type,
+    then Catalan translated from it). Newest first, capped per run for the
+    free LLM plan, and stops at a zero quota.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative
+    from app.services.llm_http import LLMUnavailableError
+    from app.services.plain_summary import generate_plain_summary, translate_summary
+
+    async with AsyncSessionLocal() as session:
+        ids = list(
+            (
+                await session.execute(
+                    _select(Initiative.id)
+                    .where(
+                        Initiative.plain_summary_es.is_(None),
+                        Initiative.object_text.is_not(None),
+                    )
+                    .order_by(Initiative.id.desc())
+                    .limit(limit)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    ok = insufficient = errors = 0
+    for iid in ids:
+        try:
+            async with AsyncSessionLocal() as inner:
+                row = (
+                    await inner.execute(_select(Initiative).where(Initiative.id == iid))
+                ).scalar_one()
+                es = await generate_plain_summary(
+                    title=row.title_original, body=row.object_text, lang="es", kind=row.type
+                )
+                ca_text: str | None = None
+                if es.text:
+                    ca_text = (await translate_summary(text=es.text, target_lang="ca")).text
+                row.plain_summary_es = es.text
+                row.plain_summary_ca = ca_text
+                row.plain_summary_provider = es.provider
+                row.plain_summary_generated_at = datetime.now(UTC)
+                await inner.commit()
+                if es.text:
+                    ok += 1
+                else:
+                    insufficient += 1
+        except LLMUnavailableError as e:
+            log.error("summarise_pending.llm_unavailable", error=str(e))
+            break
+        except Exception as e:
+            errors += 1
+            log.warning("summarise_pending.error", initiative_id=iid, error=str(e))
+    result = {"seen": len(ids), "summarised": ok, "insufficient": insufficient, "errors": errors}
+    log.info("summarise_pending.done", **result)
+    return result
+
+
+async def enrich_motion_texts_all() -> dict[str, int]:
+    """Backfill: BOCG text for every current-legislature PNL / motion without it."""
+    from app.ingest.congreso.motion_texts import enrich_motion_texts
+
+    return await enrich_motion_texts(limit=5000)
+
+
 async def generate_vote_plain_summaries_es() -> dict[str, int | str]:
     """Bootstrap-friendly alias for the Spanish run on votes."""
     return await generate_vote_plain_summaries(lang="es")
@@ -1383,6 +1458,10 @@ _STEPS = {
     # Fill any row that has a summary in only one of CA/ES (both tables,
     # both directions). Also runs daily from the scheduler.
     "summary_gaps": repair_summary_language_gaps,
+    # PNL / motion text from the BOCG (all of the current legislature), and
+    # summaries for any initiative that has text but no summary yet.
+    "motion_texts": enrich_motion_texts_all,
+    "summarise_pending": summarise_pending_initiatives,
     # Legacy step names: the bare names now point at the cheap Catalan
     # translation pass (was: re-summarise from source). The original
     # from-source Catalan summariser is still reachable as a function for
