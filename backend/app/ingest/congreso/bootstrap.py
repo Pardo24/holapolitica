@@ -1041,6 +1041,7 @@ async def _translate_missing_summaries(model: type[Any], *, target_lang: str) ->
 
     from sqlalchemy import select as _select
 
+    from app.services.llm_http import LLMUnavailableError
     from app.services.plain_summary import translate_summary
 
     source_attr = "plain_summary_es" if target_lang == "ca" else "plain_summary_ca"
@@ -1060,7 +1061,7 @@ async def _translate_missing_summaries(model: type[Any], *, target_lang: str) ->
             .all()
         )
 
-    ok = insufficient = errors = 0
+    ok = insufficient = errors = aborted = 0
     for row_id in ids:
         try:
             async with AsyncSessionLocal() as inner:
@@ -1078,13 +1079,25 @@ async def _translate_missing_summaries(model: type[Any], *, target_lang: str) ->
                     ok += 1
                 else:
                     insufficient += 1
+        except LLMUnavailableError as e:
+            # Zero quota: every remaining row would fail the same way, so
+            # stop and leave them for the next daily run.
+            log.error("summary_gap.llm_unavailable", target=target_lang, error=str(e))
+            aborted = 1
+            break
         except Exception as e:
             errors += 1
             log.warning(
                 "summary_gap.translate_error", row_id=row_id, target=target_lang, error=str(e)
             )
         await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
-    return {"seen": len(ids), "translated": ok, "insufficient": insufficient, "errors": errors}
+    return {
+        "seen": len(ids),
+        "translated": ok,
+        "insufficient": insufficient,
+        "errors": errors,
+        "aborted": aborted,
+    }
 
 
 async def repair_summary_language_gaps() -> dict[str, dict[str, int]]:

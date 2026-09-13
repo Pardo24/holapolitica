@@ -110,11 +110,12 @@ async def test_repair_fills_each_missing_language_from_the_other(
     assert ca_only.plain_summary_es == "[es] Regula el lloguer."
     assert ca_only.plain_summary_provider == "llm:mistral-small"
     assert ca_only.plain_summary_generated_at is not None
-    empty = {"seen": 0, "translated": 0, "insufficient": 0, "errors": 0}
+    empty = {"seen": 0, "translated": 0, "insufficient": 0, "errors": 0, "aborted": 0}
+    one_done = {"seen": 1, "translated": 1, "insufficient": 0, "errors": 0, "aborted": 0}
     assert result == {
-        "initiatives_ca": {"seen": 1, "translated": 1, "insufficient": 0, "errors": 0},
+        "initiatives_ca": one_done,
         "votes_ca": empty,
-        "initiatives_es": {"seen": 1, "translated": 1, "insufficient": 0, "errors": 0},
+        "initiatives_es": one_done,
         "votes_es": empty,
     }
 
@@ -150,4 +151,42 @@ async def test_repair_leaves_row_null_when_translation_declined(
         "translated": 0,
         "insufficient": 1,
         "errors": 0,
+        "aborted": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_repair_stops_a_pass_when_the_llm_has_no_quota(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.services.llm_http import LLMUnavailableError
+
+    first = _FakeRow(id=7, plain_summary_es="Regula el alquiler.")
+    factory = _SessionFactory(
+        sessions=[
+            _FakeSession([[7, 8]]),  # initiatives -> ca: two candidates
+            _FakeSession([first]),  # row 7 hits the zero quota
+            # row 8 is never fetched: the pass stops
+            _FakeSession([[]]),
+            _FakeSession([[]]),
+            _FakeSession([[]]),
+        ]
+    )
+    monkeypatch.setattr(bootstrap_mod, "AsyncSessionLocal", factory)
+    monkeypatch.setattr(bootstrap_mod, "_LLM_INTER_CALL_DELAY_S", 0)
+
+    async def no_quota(*, text: str, target_lang: str) -> PlainSummaryResult:
+        raise LLMUnavailableError("0 requests/minute")
+
+    monkeypatch.setattr("app.services.plain_summary.translate_summary", no_quota)
+
+    result = await bootstrap_mod.repair_summary_language_gaps()
+
+    assert first.plain_summary_ca is None
+    assert result["initiatives_ca"] == {
+        "seen": 2,
+        "translated": 0,
+        "insufficient": 0,
+        "errors": 0,
+        "aborted": 1,
     }

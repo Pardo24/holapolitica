@@ -74,6 +74,10 @@ class Settings(BaseSettings):
     mistral_api_key: str | None = None
     anthropic_api_key: str | None = None
     qwen_base_url: str = "http://localhost:11434"
+    # Minimum seconds between two LLM requests from one process (see
+    # app/services/llm_http.py). Mistral's free plan allows about one
+    # request per second; 1.5 s leaves headroom for the odd burst.
+    llm_min_interval_s: float = 1.5
 
     # Email (alerts and double opt-in)
     email_provider: Literal["smtp", "mailgun", "resend", "listmonk"] = "smtp"

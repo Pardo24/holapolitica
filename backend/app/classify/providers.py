@@ -21,17 +21,11 @@ from dataclasses import dataclass
 from typing import Any
 
 import httpx
-from tenacity import (
-    AsyncRetrying,
-    RetryError,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from app.classify.prompts import build_user_prompt, system_prompt_for
 from app.core.config import Settings, get_settings
 from app.core.logging import get_logger
+from app.services.llm_http import post_llm
 
 log = get_logger(__name__)
 
@@ -202,20 +196,15 @@ async def _retrying_post(
     body: dict[str, Any],
     headers: dict[str, str],
 ) -> httpx.Response:
-    try:
-        async for attempt in AsyncRetrying(
-            stop=stop_after_attempt(3),
-            wait=wait_exponential(multiplier=1, min=2, max=20),
-            retry=retry_if_exception_type((httpx.HTTPError,)),
-            reraise=True,
-        ):
-            with attempt:
-                response = await client.post(url, json=body, headers=headers)
-                response.raise_for_status()
-                return response
-    except RetryError as e:
-        raise ClassifierError(f"LLM request failed: {e}") from e
-    raise RuntimeError("Unreachable")  # mypy
+    """POST through the shared LLM transport: spacing, backoff on 429/5xx,
+    and an immediate stop when the provider reports a zero quota."""
+    return await post_llm(
+        client,
+        url,
+        json_body=body,
+        headers=headers,
+        min_interval_s=get_settings().llm_min_interval_s,
+    )
 
 
 def parse_classifier_response(content: str, *, allowed_slugs: set[str]) -> list[ClassifierResult]:
