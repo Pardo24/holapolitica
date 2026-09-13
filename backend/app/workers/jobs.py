@@ -753,6 +753,13 @@ def enrich_initiatives_boe() -> dict[str, int]:
     return asyncio.run(_run())
 
 
+def repair_summary_language_gaps() -> dict[str, dict[str, int]]:
+    """RQ entrypoint: give every one-language plain summary its CA/ES pair."""
+    from app.ingest.congreso.bootstrap import repair_summary_language_gaps as _repair
+
+    return asyncio.run(_repair())
+
+
 def enrich_persons_wikipedia() -> dict[str, int]:
     """Fetch Wikipedia summary extracts for every person with a URL.
 
