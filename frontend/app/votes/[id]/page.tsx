@@ -341,7 +341,6 @@ export default async function VoteDetailPage({
   // approval by assent, where no division was held. Secret ballots and
   // ingest gaps DO carry totals — they just lack the per-deputy detail.
   const hasTotals = totalCast + vote.absent > 0;
-  const needed = Math.floor(totalCast / 2) + 1;
   const margin = vote.ayes - vote.noes;
   const summary = pickPlainSummary(vote, locale);
 
@@ -527,7 +526,7 @@ export default async function VoteDetailPage({
             <>
               <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--ink-3)', opacity: 0.6, display: 'inline-block' }} />
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <Lbl>Temes</Lbl>
+                <Lbl>{t('topics_short')}</Lbl>
                 <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap' }}>
                   {topics.map((topic) => (
                     <Link
@@ -897,7 +896,6 @@ export default async function VoteDetailPage({
               }}
             >
               {t('majority_caveat', {
-                needed,
                 ayes: vote.ayes,
                 noes: vote.noes,
                 margin: margin >= 0 ? `+${margin}` : String(margin),

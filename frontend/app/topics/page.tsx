@@ -21,7 +21,7 @@ export default async function TopicsPage() {
     <div>
       <PageHeader
         title={t('title')}
-        subtitle="Taxonomia · classificació automàtica"
+        subtitle={t('eyebrow')}
         icon={<Layers size={20} strokeWidth={1.8} aria-hidden="true" />}
         bordered
       >

@@ -373,7 +373,7 @@ export default async function StatsPage({
           <Section
             title={
               <>
-                <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm>{' '}
+                <GlossaryTerm term="Coincidència">{t('coincidence_label')}</GlossaryTerm>{' '}
                 {t('coincidence_between_suffix')}
               </>
             }
@@ -674,7 +674,7 @@ export default async function StatsPage({
               <Section
                 title={
                   <>
-                    <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm>{' '}
+                    <GlossaryTerm term="Coincidència">{t('coincidence_label')}</GlossaryTerm>{' '}
                     {t('coincidence_between_suffix')}
                   </>
                 }

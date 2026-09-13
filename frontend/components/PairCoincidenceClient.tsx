@@ -239,9 +239,10 @@ function PairResult({
 // Glossary term re-exposed here so the eyebrow stays consistent with
 // the server widget's wording.
 export function PairCoincidenceEyebrow({ suffix }: { suffix: string }) {
+  const t = useTranslations('stats');
   return (
     <>
-      <GlossaryTerm term="Coincidència">Coincidència</GlossaryTerm> {suffix}
+      <GlossaryTerm term="Coincidència">{t('coincidence_label')}</GlossaryTerm> {suffix}
     </>
   );
 }

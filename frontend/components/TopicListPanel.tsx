@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, type Topic, type TopicGlobalStat } from '@/lib/api';
 import { topicIcon } from '@/lib/topic_icons';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * Renders the editorial-theme taxonomy as a grid of topic cards.
@@ -18,10 +20,13 @@ import { topicIcon } from '@/lib/topic_icons';
  * initiatives. "Mirall, no megàfon".
  */
 export async function TopicListPanel() {
-  const [themeTopics, globals] = await Promise.all([
+  const [themeTopics, globals, t, locale] = await Promise.all([
     api.topics.list({ kind: 'theme' }),
     api.stats.topicsGlobal().catch(() => [] as TopicGlobalStat[]),
+    getTranslations('topics'),
+    getLocale(),
   ]);
+  const labels = { eyebrow: t('card_eyebrow'), empty: t('card_empty') };
 
   const countsBySlug = new Map(
     globals.map((g) => [g.topic_slug, g.initiatives_total] as const),
@@ -43,8 +48,13 @@ export async function TopicListPanel() {
         {themeTopics.map((topic) => (
           <TopicCard
             key={topic.slug}
+            name={pickTopicName(topic, locale)}
             topic={topic}
-            count={countsBySlug.get(topic.slug) ?? 0}
+            countLabel={(() => {
+              const count = countsBySlug.get(topic.slug) ?? 0;
+              return count > 0 ? t('card_count', { n: count }) : labels.empty;
+            })()}
+            eyebrow={labels.eyebrow}
           />
         ))}
       </ul>
@@ -81,7 +91,17 @@ export async function TopicListPanel() {
   );
 }
 
-function TopicCard({ topic, count }: { topic: Topic; count: number }) {
+function TopicCard({
+  topic,
+  name,
+  countLabel,
+  eyebrow,
+}: {
+  topic: Topic;
+  name: string;
+  countLabel: string;
+  eyebrow: string;
+}) {
   const color = topic.color_hex ?? '#1a2138';
   const Icon = topicIcon(topic.icon);
   return (
@@ -137,7 +157,7 @@ function TopicCard({ topic, count }: { topic: Topic; count: number }) {
             className="eyebrow topic-card-eyebrow"
             style={{ fontSize: 10, color }}
           >
-            Tema
+            {eyebrow}
           </span>
         </div>
         <h2
@@ -151,7 +171,7 @@ function TopicCard({ topic, count }: { topic: Topic; count: number }) {
             letterSpacing: '-0.01em',
           }}
         >
-          {topic.name_ca}
+          {name}
         </h2>
         <div
           style={{
@@ -162,7 +182,7 @@ function TopicCard({ topic, count }: { topic: Topic; count: number }) {
           }}
         >
           <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-            {count > 0 ? `${count} iniciatives` : 'sense dades encara'}
+            {countLabel}
           </span>
           <span style={{ color: 'var(--ink)', display: 'inline-flex' }}>
             <ArrowRight size={14} aria-hidden="true" />

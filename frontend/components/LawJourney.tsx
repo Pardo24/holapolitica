@@ -135,15 +135,28 @@ export async function LawJourney({
         ? tType('non_binding')
         : null;
   const typeDesc = tType(`desc.${type}`);
-  const activeIndex = deriveActiveIndex(type, status, hasBoe, voteResult);
+  // For single-vote procedures (PNL, moció, RDL) the floor vote IS the
+  // outcome, but the initiative's own status often lags behind the vote
+  // feed and still says "submitted". Showing "Presentada" next to an
+  // approved vote contradicts the page, so the vote result wins there.
+  // Legislative series are left alone: one vote on a bill (e.g. the
+  // toma en consideración) is not its final outcome.
+  const singleVote =
+    type === 'proposicion_no_ley' || type === 'mocion' || type === 'real_decreto_ley';
+  const effectiveStatus: InitiativeStatus | null =
+    singleVote && (voteResult === 'approved' || voteResult === 'rejected') &&
+    status !== 'approved' && status !== 'rejected'
+      ? voteResult
+      : status;
+  const activeIndex = deriveActiveIndex(type, effectiveStatus, hasBoe, voteResult);
   const accent =
-    voteResult === 'approved' || status === 'approved'
+    voteResult === 'approved' || effectiveStatus === 'approved'
       ? 'var(--aye)'
-      : voteResult === 'rejected' || status === 'rejected'
+      : voteResult === 'rejected' || effectiveStatus === 'rejected'
         ? 'var(--no)'
         : 'var(--paper)';
   const typeLabel = t(`type.${type}`);
-  const statusLabel = status ? t(`status.${status}`) : null;
+  const statusLabel = effectiveStatus ? t(`status.${effectiveStatus}`) : null;
   const doneCount = activeIndex + 1;
 
   return (

@@ -814,7 +814,7 @@ function KpiStrip({
       </div>
       <div className="kpi">
         <span className="label">
-          <GlossaryTerm term="Dissidència">Dissidència</GlossaryTerm>
+          <GlossaryTerm term="Dissidència">{t('kpi_dissidence_label')}</GlossaryTerm>
         </span>
         <span className="value tabular">
           {kpis.dissidence_pct === null ? '—' : `${(kpis.dissidence_pct * 100).toFixed(0)}%`}

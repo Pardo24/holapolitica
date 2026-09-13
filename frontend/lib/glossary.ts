@@ -318,15 +318,18 @@ export function typeLabelCa(type: string): string {
 }
 
 /**
- * Pick the LLM-generated plain-language summary for the user's locale,
- * falling back through the available languages so we never show a blank
- * tooltip when one of the two has been generated.
+ * Pick the LLM-generated plain-language summary for the user's locale.
+ *
+ * Catalan readers fall back to the Spanish summary (they read Spanish).
+ * Spanish and English readers do NOT fall back to Catalan: a Catalan
+ * paragraph on the Spanish site reads as a bug, and the caller already
+ * falls back to the official title (which is Spanish) when this returns
+ * null. English has no summary of its own, so it gets the Spanish one.
  */
 export function pickPlainSummary(
   obj: { plain_summary_ca?: string | null; plain_summary_es?: string | null },
   locale: string,
 ): string | null {
-  if (locale === 'es') return obj.plain_summary_es ?? obj.plain_summary_ca ?? null;
-  if (locale === 'en') return obj.plain_summary_es ?? obj.plain_summary_ca ?? null;
-  return obj.plain_summary_ca ?? obj.plain_summary_es ?? null;
+  if (locale === 'ca') return obj.plain_summary_ca ?? obj.plain_summary_es ?? null;
+  return obj.plain_summary_es ?? null;
 }
