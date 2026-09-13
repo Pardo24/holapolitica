@@ -2,7 +2,7 @@ import { Check, Minus, X } from 'lucide-react';
 
 import type { GroupVoteChoiceRow } from '@/lib/api';
 import { groupLogoUrl } from '@/lib/groupLogos';
-import { displayGroupShort } from '@/lib/groups';
+import { displayGroupShort, groupAbbreviation } from '@/lib/groups';
 
 /**
  * Ambient "who voted for / against" strip, shared by the session sheet and
@@ -38,6 +38,20 @@ export function buildStanceByVote(groups: GroupVoteChoiceRow[]): Map<number, Par
     }
   }
   return map;
+}
+
+/** Where the generic abbreviation isn't what a reader would recognise. */
+const STANCE_LABEL_OVERRIDES: Record<string, string> = {
+  'gp-euskal-herria-bildu': 'Bildu',
+  'gp-mixto': 'Mixto',
+};
+
+/** Short visible name printed under each party mark. */
+function stanceLabel(p: PartyStance): string {
+  const override = STANCE_LABEL_OVERRIDES[p.slug];
+  if (override) return override;
+  const abbr = groupAbbreviation(p.slug);
+  return abbr === '???' ? displayGroupShort(p.name_short) : abbr;
 }
 
 /**
@@ -105,13 +119,11 @@ export function PartyStanceMini({
                   flex: 'none',
                   boxShadow: `0 0 0 1.5px var(--paper), 0 0 0 3.5px ${color}`,
                 };
-                return logo ? (
+                const mark = logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    key={p.slug}
                     src={logo}
                     alt=""
-                    title={title}
                     width={22}
                     height={22}
                     loading="lazy"
@@ -129,14 +141,43 @@ export function PartyStanceMini({
                   />
                 ) : (
                   <span
-                    key={p.slug}
-                    title={title}
+                    aria-hidden="true"
                     style={{
                       ...common,
                       borderRadius: 999,
                       background: p.color_hex ?? 'var(--ink-3)',
                     }}
                   />
+                );
+                // The short name is printed under the mark: logos alone
+                // assumed the reader knows every party's logo, and the
+                // name lived only in a hover tooltip, which a phone never
+                // shows (and the Mixto group has no logo at all).
+                return (
+                  <span
+                    key={p.slug}
+                    title={title}
+                    style={{
+                      display: 'inline-flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 6,
+                      minWidth: 26,
+                    }}
+                  >
+                    {mark}
+                    <span
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 600,
+                        lineHeight: 1,
+                        color: 'var(--ink-2)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {stanceLabel(p)}
+                    </span>
+                  </span>
                 );
               })}
             </span>

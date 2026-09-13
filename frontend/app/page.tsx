@@ -24,6 +24,7 @@ import { DailyTeaser } from '@/components/DailyTeaser';
 import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
+import { summariseLaws } from '@/lib/sessionSummary';
 import {
   api,
   type ParliamentaryGroupSummary,
@@ -129,8 +130,13 @@ export default async function HomePage() {
         .then((p) => p.items)
         .catch(() => [] as Vote[])
     : [];
-  const sessApproved = sessionVotes.filter((v) => v.result === 'approved').length;
-  const sessRejected = sessionVotes.filter((v) => v.result === 'rejected').length;
+  // Approved / rejected are counted per INITIATIVE (its final vote), the
+  // same way the pleno page counts: a bill's amendment votes are procedure,
+  // and counting them made the card read "6 rechazadas" for laws that passed.
+  // ``sessTotal`` stays the raw vote count (shown as "N votaciones en pleno").
+  const sessOutcome = summariseLaws(sessionVotes);
+  const sessApproved = sessOutcome.approved;
+  const sessRejected = sessOutcome.rejected;
   const sessTotal = sessionVotes.length;
 
   // Split the hero title so the second line can be tinted with the accent.
@@ -405,10 +411,10 @@ export default async function HomePage() {
                     }}
                   >
                     {sessApproved > 0 && (
-                      <span style={{ width: `${(sessApproved / sessTotal) * 100}%`, background: 'var(--aye)' }} />
+                      <span style={{ width: `${(sessApproved / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--aye)' }} />
                     )}
                     {sessRejected > 0 && (
-                      <span style={{ width: `${(sessRejected / sessTotal) * 100}%`, background: 'var(--no)' }} />
+                      <span style={{ width: `${(sessRejected / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--no)' }} />
                     )}
                   </div>
                   <div
@@ -904,10 +910,10 @@ function MobileDashboard({
                 }}
               >
                 {sessApproved > 0 && (
-                  <span style={{ width: `${(sessApproved / sessTotal) * 100}%`, background: 'var(--aye)' }} />
+                  <span style={{ width: `${(sessApproved / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--aye)' }} />
                 )}
                 {sessRejected > 0 && (
-                  <span style={{ width: `${(sessRejected / sessTotal) * 100}%`, background: 'var(--no)' }} />
+                  <span style={{ width: `${(sessRejected / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--no)' }} />
                 )}
               </div>
               <div
