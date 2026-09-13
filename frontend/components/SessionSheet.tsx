@@ -17,13 +17,22 @@ import {
   type NoBreakdownReason,
 } from '@/components/NoBreakdownNotice';
 import { ResultPill } from '@/components/ResultPill';
-import { SessionVoteFilter } from '@/components/SessionVoteFilter';
+import { SessionVoteFilter, type TopicOption } from '@/components/SessionVoteFilter';
 import { StackedBar } from '@/components/StackedBar';
 import { Tooltip } from '@/components/Tooltip';
 import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
-import { summariseLaws } from '@/lib/sessionSummary';
+import {
+  fateResult,
+  fateVote,
+  initiativeKey,
+  stageOutcome,
+  summariseLaws,
+  voteKind,
+  voteStage,
+  type VoteKind,
+} from '@/lib/sessionSummary';
 import { pickTopicName } from '@/lib/topics';
 
 /**
@@ -39,9 +48,10 @@ import { pickTopicName } from '@/lib/topics';
  *   2. Lede — the day's outcome counted per INITIATIVE (its final
  *      vote), not per raw vote row, plus the most active topics.
  *      Purely factual, no editorial framing.
- *   3. Vote list — grouped by topic, every section open, each
- *      initiative once (its amendment votes nested and collapsed) with
- *      who voted Sí / No / Abstención under it.
+ *   3. Vote list — grouped by what a vote can do (laws, motions and
+ *      PNL, procedures folded), with topics as a filter. Each item once,
+ *      its outcome worded for its procedural stage, who voted what, then
+ *      its metadata; its other votes (or points) nested and collapsed.
  *
  * The caller passes the session date, the votes, optional prev/next
  * dates for navigation, and whether to show the archive banner. The
@@ -123,6 +133,85 @@ export async function SessionSheet({
 
   const anchorDate = new Date(`${date}T12:00:00Z`);
   const dateLong = anchorDate.toLocaleDateString(locale, { dateStyle: 'full' });
+
+  // Result wording depends on the vote's procedural stage: approving a
+  // toma en consideración only lets a bill start its passage, and in a
+  // debate de totalidad the vote is on the amendments (see voteStage).
+  const outcomeLabelFor = (v: Vote): string => {
+    const stage = voteStage(v);
+    const outcome = stageOutcome(v);
+    return stage === 'other' || outcome === 'tie'
+      ? t(`result_${outcome}`)
+      : t(`outcome_${stage}_${outcome}`);
+  };
+  const stageHintFor = (v: Vote): string | null => {
+    const stage = voteStage(v);
+    return stage === 'other' ? null : t(`stage_hint_${stage}`);
+  };
+  const marginLabel = (margin: number): string =>
+    margin === 0 ? t('margin_tie') : t('margin_short', { margin });
+  const groupLabels: GroupLabels = {
+    ayes: t('ayes_short'),
+    noes: t('noes_short'),
+    finalResult: t('law_final_result'),
+    votesToggle: (n) => t('law_votes_toggle', { count: n }),
+    pointsToggle: (n) => t('points_toggle', { count: n }),
+    pointLabel: (n) => t('point_label', { n }),
+    pointsSummary: (approved, total) => t('points_summary', { approved, total }),
+    whyMultiple: t('law_why_multiple'),
+    whyPoints: t('points_why'),
+    finalTag: t('law_vote_final_tag'),
+  };
+  const topicSlugsOf = (v: Vote): string => (v.topics ?? []).map((tp) => tp.slug).join(' ');
+  const renderEntry = (entry: SessionEntry, kind: VoteKind) => {
+    if (entry.kind === 'law') {
+      const lead = entry.votes[0]!;
+      const proposerGroup = lead.proposing_group_slug
+        ? groupBySlug.get(lead.proposing_group_slug) ?? null
+        : null;
+      return (
+        <LawVoteGroup
+          key={`law-${entry.key}`}
+          votes={entry.votes}
+          kind={kind}
+          locale={locale}
+          proposerLogoUrl={proposerGroup?.logo_url ?? null}
+          proposedByGovernmentLabel={t('proposed_by_government')}
+          labels={groupLabels}
+          stanceByVote={stanceByVote}
+          stanceLabels={stanceLabels}
+          noBreakLabels={noBreakLabels}
+          outcomeLabelFor={outcomeLabelFor}
+          stageHintFor={stageHintFor}
+          marginLabel={marginLabel}
+          topicSlugs={topicSlugsOf(lead)}
+        />
+      );
+    }
+    const v = entry.vote;
+    const proposerGroup = v.proposing_group_slug
+      ? groupBySlug.get(v.proposing_group_slug) ?? null
+      : null;
+    return (
+      <VoteRow
+        key={v.id}
+        vote={v}
+        locale={locale}
+        proposerLogoUrl={proposerGroup?.logo_url ?? null}
+        resultLabel={outcomeLabelFor(v)}
+        ayesLabel={t('ayes_short')}
+        noesLabel={t('noes_short')}
+        abstLabel={t('abst_short')}
+        proposedByGovernmentLabel={t('proposed_by_government')}
+        marginLabel={marginLabel}
+        stance={stanceByVote.get(v.id)}
+        stanceLabels={stanceLabels}
+        noBreakLabels={noBreakLabels}
+        stageHint={stageHintFor(v)}
+        topicSlugs={topicSlugsOf(v)}
+      />
+    );
+  };
 
   return (
     <article style={{ paddingTop: 18, paddingBottom: 48 }}>
@@ -346,13 +435,12 @@ export async function SessionSheet({
                 {topTopics.map((g, i) => (
                   <span key={g.key}>
                     {i > 0 ? ', ' : ''}
-                    {/* In-page anchor to the topic's collapsible section
-                        below; a small client effect opens that <details>
-                        and scrolls to it. The underline takes the topic's
+                    {/* Applies the list's topic filter and scrolls to it
+                        (#tema-<slug>, see SessionVoteFilter). The underline takes the topic's
                         own colour so the lede visually ties to the coloured
                         sections. */}
                     <a
-                      href={`#session-topic-${g.topic!.slug}`}
+                      href={`#tema-${g.topic!.slug}`}
                       style={{
                         color: 'var(--ink)',
                         fontWeight: 500,
@@ -379,12 +467,12 @@ export async function SessionSheet({
         </p>
       </section>
 
-      {/* Vote list — grouped by topic so the page reads as a topic-
-          structured agenda rather than a flat dump. Each section
-          carries a small summary line (N votes, M approved, K
-          rejected) so readers can skim before diving into the
-          individual rows. Votes without a classified topic fall into
-          a "Sense classificar" bucket pinned to the bottom. */}
+      {/* Vote list — grouped by what a vote can DO: laws first (they
+          create or change law), then motions and PNL (positions, no law
+          changes), then procedures (treaties, reports) folded. Topics are
+          a filter over the whole list (chips above it, and the lede's
+          topic links), not a second list. Every item appears once, with
+          its outcome and who voted what before its metadata. */}
       {ordered.length === 0 ? (
         <section style={{ marginBottom: 28 }}>
           <div
@@ -402,225 +490,69 @@ export async function SessionSheet({
             all: t('filter_all'),
             approved: t('filter_approved'),
             rejected: t('filter_rejected'),
+            topicEyebrow: t('topic_filter_eyebrow'),
+            topicAll: t('topic_filter_all'),
+            empty: t('filter_empty'),
           }}
+          topics={sessionTopicOptions(ordered, locale)}
         >
-          {groupVotesByTopic(ordered, locale).map(({ topic, votes: groupVotes, key }) => {
-            // Same law-level accounting as the band above: a bill's
-            // amendment votes must not be reported as outcomes.
-            const lawSummary = summariseLaws(groupVotes);
-            const sectionCounts = {
-              approved: lawSummary.approved,
-              rejected: lawSummary.rejected,
-              tie: lawSummary.tie,
-            };
-            const decided = lawSummary.laws || 1;
-            return (
+          {groupVotesByKind(ordered).map(({ kind, votes: kindVotes }) => {
+            const s = summariseLaws(kindVotes);
+            const heading = (
+              <KindHeading
+                title={t(`kind_${kind}_title`)}
+                description={t(`kind_${kind}_desc`)}
+                counts={[
+                  t('section_total_laws', { count: s.laws }),
+                  s.approved > 0 ? t('section_approved', { count: s.approved }) : null,
+                  s.rejected > 0 ? t('section_rejected', { count: s.rejected }) : null,
+                  s.tie > 0 ? t('section_tie', { count: s.tie }) : null,
+                ]}
+              />
+            );
+            const list = (
+              <ul style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}>
+                {buildSessionEntries(kindVotes).map((entry) => renderEntry(entry, kind))}
+              </ul>
+            );
+            return kind === 'procedures' ? (
               <details
-                open
-                key={key}
-                id={`session-topic-${topic?.slug ?? 'unclassified'}`}
-                className="session-topic-group"
-                style={{
-                  marginBottom: 0,
-                  borderBottom: '1px solid var(--rule)',
-                  // A rail in the topic's own colour ties each section to
-                  // its card in the band above and gives the long list a
-                  // chromatic spine instead of a grey ledger.
-                  borderLeft: `3px solid ${topic?.color_hex ?? 'var(--rule-strong)'}`,
-                  paddingLeft: 12,
-                  // Clear the sticky mobile back bar when an anchor from the
-                  // lede scrolls this group into view.
-                  scrollMarginTop: 64,
-                }}
+                key={kind}
+                id="session-kind-procedures"
+                className="session-kind-group"
+                style={{ borderTop: '1px solid var(--rule)', marginTop: 8, marginBottom: 20 }}
               >
                 <summary
                   className="session-topic-summary"
-                  aria-label={
-                    topic
-                      ? t('section_aria', { topic: pickTopicName(topic, locale) })
-                      : t('section_aria_unclassified')
-                  }
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    flexWrap: 'wrap',
-                    padding: '12px 2px',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                    padding: '14px 0 6px',
                     cursor: 'pointer',
                   }}
                 >
                   <ChevronRight
                     className="session-topic-chevron"
-                    size={14}
+                    size={15}
                     strokeWidth={2}
                     aria-hidden="true"
-                    style={{ flex: 'none', color: 'var(--ink-3)' }}
+                    style={{ flex: 'none', color: 'var(--ink-3)', marginTop: 5 }}
                   />
-                  {topic?.color_hex && (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: 9,
-                        height: 9,
-                        borderRadius: 2,
-                        background: topic.color_hex,
-                        display: 'inline-block',
-                        flex: 'none',
-                      }}
-                    />
-                  )}
-                  <h2
-                    className="serif"
-                    style={{
-                      margin: 0,
-                      fontSize: 'clamp(13px, 1.3vw, 15px)',
-                      fontWeight: 600,
-                      letterSpacing: '0.02em',
-                      color: 'var(--ink)',
-                      minWidth: 0,
-                    }}
-                  >
-                    {topic
-                      ? pickTopicName(topic, locale)
-                      : t('section_unclassified')}
-                  </h2>
-                  {/* Mini result bar — keeps the outcome legible while the
-                      group is collapsed, so the tree is scannable without
-                      expanding every topic. */}
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      display: 'flex',
-                      width: 64,
-                      height: 5,
-                      borderRadius: 999,
-                      overflow: 'hidden',
-                      background: 'var(--paper-3)',
-                      flex: 'none',
-                    }}
-                  >
-                    {sectionCounts.approved > 0 && (
-                      <span
-                        style={{
-                          width: `${(sectionCounts.approved / decided) * 100}%`,
-                          background: 'var(--aye, #16A34A)',
-                        }}
-                      />
-                    )}
-                    {sectionCounts.rejected > 0 && (
-                      <span
-                        style={{
-                          width: `${(sectionCounts.rejected / decided) * 100}%`,
-                          background: 'var(--no, #DC2626)',
-                        }}
-                      />
-                    )}
-                    {sectionCounts.tie > 0 && (
-                      <span
-                        style={{
-                          width: `${(sectionCounts.tie / decided) * 100}%`,
-                          background: 'var(--abst, #CA8A04)',
-                        }}
-                      />
-                    )}
-                  </span>
-                  <div
-                    className="tabular"
-                    style={{
-                      marginLeft: 'auto',
-                      fontSize: 12,
-                      color: 'var(--ink-3)',
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      gap: 10,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span style={{ color: 'var(--ink-2)', fontWeight: 600 }}>
-                      {t('section_total_laws', { count: lawSummary.laws })}
-                    </span>
-                    {sectionCounts.approved > 0 && (
-                      <span style={{ color: 'var(--aye, #16A34A)' }}>
-                        {t('section_approved', { count: sectionCounts.approved })}
-                      </span>
-                    )}
-                    {sectionCounts.rejected > 0 && (
-                      <span style={{ color: 'var(--no, #DC2626)' }}>
-                        {t('section_rejected', { count: sectionCounts.rejected })}
-                      </span>
-                    )}
-                    {sectionCounts.tie > 0 && (
-                      <span style={{ color: 'var(--abst, #CA8A04)' }}>
-                        {t('section_tie', { count: sectionCounts.tie })}
-                      </span>
-                    )}
-                  </div>
+                  {heading}
                 </summary>
-                <ul style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}>
-                  {buildSessionEntries(groupVotes).map((entry) => {
-                    // A law that was voted several times in this session
-                    // (amendments, articles, the whole text) collapses into a
-                    // single entry — the law once, its votes nested below.
-                    if (entry.kind === 'law') {
-                      const lead = entry.votes[0]!;
-                      const proposerGroup = lead.proposing_group_slug
-                        ? groupBySlug.get(lead.proposing_group_slug) ?? null
-                        : null;
-                      return (
-                        <LawVoteGroup
-                          key={`law-${entry.initiativeId}`}
-                          votes={entry.votes}
-                          locale={locale}
-                          proposerLogoUrl={proposerGroup?.logo_url ?? null}
-                          ayesLabel={t('ayes_short')}
-                          noesLabel={t('noes_short')}
-                          proposedByGovernmentLabel={t('proposed_by_government')}
-                          votesCountLabel={(n) => t('law_votes_count', { count: n })}
-                          votesToggleLabel={(n) => t('law_votes_toggle', { count: n })}
-                          finalResultLabel={t('law_final_result')}
-                          whyMultiple={t('law_why_multiple')}
-                          finalTagLabel={t('law_vote_final_tag')}
-                          finalStance={stanceByVote.get(
-                            [...entry.votes].sort(
-                              (a, b) =>
-                                (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
-                            )[entry.votes.length - 1]!.id,
-                          )}
-                          stanceLabels={stanceLabels}
-                          noBreakLabels={noBreakLabels}
-                          resultLabelFor={(r) => t(`result_${r}`)}
-                          marginLabel={(margin) =>
-                            margin === 0 ? t('margin_tie') : t('margin_short', { margin })
-                          }
-                        />
-                      );
-                    }
-                    const v = entry.vote;
-                    const proposerGroup = v.proposing_group_slug
-                      ? groupBySlug.get(v.proposing_group_slug) ?? null
-                      : null;
-                    return (
-                      <VoteRow
-                        key={v.id}
-                        vote={v}
-                        locale={locale}
-                        proposerLogoUrl={proposerGroup?.logo_url ?? null}
-                        resultLabel={t(`result_${v.result}`)}
-                        ayesLabel={t('ayes_short')}
-                        noesLabel={t('noes_short')}
-                        abstLabel={t('abst_short')}
-                        proposedByGovernmentLabel={t('proposed_by_government')}
-                        marginLabel={(margin) =>
-                          margin === 0 ? t('margin_tie') : t('margin_short', { margin })
-                        }
-                        stance={stanceByVote.get(v.id)}
-                        stanceLabels={stanceLabels}
-                        noBreakLabels={noBreakLabels}
-                      />
-                    );
-                  })}
-                </ul>
+                {list}
               </details>
+            ) : (
+              <section
+                key={kind}
+                id={`session-kind-${kind}`}
+                className="session-kind-group"
+                style={{ marginBottom: 20 }}
+              >
+                {heading}
+                {list}
+              </section>
             );
           })}
         </SessionVoteFilter>
@@ -747,32 +679,31 @@ function NavButton({
   );
 }
 
-// Group a topic's votes so a law that was voted several times in the same
-// session (amendments / articles / the whole text) appears ONCE. The
-// Congreso open-data labels every sub-vote with the law's title, so without
-// this they read as duplicate rows. Votes with no initiative, or an
-// initiative voted only once, stay as individual rows.
+// One entry per ITEM: an item voted several times in the sitting (a bill's
+// amendments and whole text, a decree-law's convalidation and follow-up, a
+// motion voted point by point) appears ONCE with its votes nested. The
+// Congreso labels every sub-vote with the item's title, so without this they
+// read as duplicate rows.
 type SessionEntry =
   | { kind: 'single'; vote: Vote }
-  | { kind: 'law'; initiativeId: number; votes: Vote[] };
+  | { kind: 'law'; key: string; votes: Vote[] };
 
 function buildSessionEntries(votes: Vote[]): SessionEntry[] {
-  const counts = new Map<number, number>();
+  const counts = new Map<string, number>();
   for (const v of votes) {
-    if (v.initiative_id != null) {
-      counts.set(v.initiative_id, (counts.get(v.initiative_id) ?? 0) + 1);
-    }
+    const key = initiativeKey(v);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   const entries: SessionEntry[] = [];
-  const lawIndex = new Map<number, number>();
+  const itemIndex = new Map<string, number>();
   for (const v of votes) {
-    const id = v.initiative_id;
-    if (id != null && (counts.get(id) ?? 0) >= 2) {
-      let idx = lawIndex.get(id);
+    const key = initiativeKey(v);
+    if ((counts.get(key) ?? 0) >= 2) {
+      let idx = itemIndex.get(key);
       if (idx == null) {
         idx = entries.length;
-        entries.push({ kind: 'law', initiativeId: id, votes: [] });
-        lawIndex.set(id, idx);
+        entries.push({ kind: 'law', key, votes: [] });
+        itemIndex.set(key, idx);
       }
       (entries[idx] as Extract<SessionEntry, { kind: 'law' }>).votes.push(v);
     } else {
@@ -782,43 +713,280 @@ function buildSessionEntries(votes: Vote[]): SessionEntry[] {
   return entries;
 }
 
-/** A law voted several times in one session: rendered once (its AI summary
- *  headline + proposer + Text-original toggle) with each of its votes nested
- *  below as a compact, individually-clickable row. */
+const KIND_ORDER: readonly VoteKind[] = ['laws', 'motions', 'procedures'];
+
+/** Split the sitting into laws / motions / procedures. Classified per ITEM
+ *  (its first vote) so one item's votes never split across sections. */
+function groupVotesByKind(votes: Vote[]): { kind: VoteKind; votes: Vote[] }[] {
+  const kindByItem = new Map<string, VoteKind>();
+  for (const v of votes) {
+    const key = initiativeKey(v);
+    if (!kindByItem.has(key)) kindByItem.set(key, voteKind(v));
+  }
+  const buckets = new Map<VoteKind, Vote[]>();
+  for (const v of votes) {
+    const kind = kindByItem.get(initiativeKey(v))!;
+    const list = buckets.get(kind);
+    if (list) list.push(v);
+    else buckets.set(kind, [v]);
+  }
+  return KIND_ORDER.filter((k) => buckets.has(k)).map((kind) => ({
+    kind,
+    votes: buckets.get(kind)!,
+  }));
+}
+
+/** Topics present in the sitting, most frequent first, for the filter. */
+function sessionTopicOptions(votes: Vote[], locale: string): TopicOption[] {
+  const bySlug = new Map<string, { option: TopicOption; n: number }>();
+  for (const v of votes) {
+    // Editorial themes only: SDG tags ride along on votes, and showing both
+    // taxonomies as chips would offer overlapping, confusing filters.
+    for (const tp of (v.topics ?? []).filter((x) => x.kind === 'theme')) {
+      const seen = bySlug.get(tp.slug);
+      if (seen) seen.n += 1;
+      else {
+        bySlug.set(tp.slug, {
+          option: { slug: tp.slug, name: pickTopicName(tp, locale), color: tp.color_hex },
+          n: 1,
+        });
+      }
+    }
+  }
+  return [...bySlug.values()].sort((a, b) => b.n - a.n).map((e) => e.option);
+}
+
+function KindHeading({
+  title,
+  description,
+  counts,
+}: {
+  title: string;
+  description: string;
+  counts: (string | null)[];
+}) {
+  return (
+    <div style={{ minWidth: 0, flex: 1, marginBottom: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <h2
+          className="serif"
+          style={{
+            margin: 0,
+            fontSize: 'clamp(17px, 1.8vw, 20px)',
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
+            color: 'var(--ink)',
+          }}
+        >
+          {title}
+        </h2>
+        <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+          {counts.filter(Boolean).join(' · ')}
+        </span>
+      </div>
+      <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.45 }}>
+        {description}
+      </p>
+    </div>
+  );
+}
+
+const STAGE_HINT_STYLE: React.CSSProperties = {
+  margin: '6px 0 0',
+  fontSize: 11.5,
+  color: 'var(--ink-3)',
+  lineHeight: 1.4,
+};
+
+/** Why a vote has no party breakdown, stated instead of rendering nothing. */
+function NoBreakdownFor({
+  vote,
+  labels,
+}: {
+  vote: Vote;
+  labels: Record<NoBreakdownReason, string>;
+}) {
+  const reason = noBreakdownReason({
+    approvedByAssent: vote.approved_by_assent,
+    hasBreakdown: false,
+    subject: vote.description ?? vote.title,
+  });
+  return reason ? <NoBreakdownInline reason={reason} label={labels[reason]} /> : null;
+}
+
+type Proposer =
+  | { kind: 'group'; short: string; slug: string | null; color: string; logoUrl: string | null }
+  | { kind: 'government'; short: string; color: string }
+  | null;
+
+function proposerOf(vote: Vote, logoUrl: string | null, governmentLabel: string): Proposer {
+  if (vote.proposing_group_short) {
+    return {
+      kind: 'group',
+      short: vote.proposing_group_short,
+      slug: vote.proposing_group_slug,
+      color: vote.proposing_group_color ?? 'var(--ink-3)',
+      logoUrl,
+    };
+  }
+  return vote.proposed_by_government
+    ? { kind: 'government', short: governmentLabel, color: 'var(--ink)' }
+    : null;
+}
+
+/** Proposer, first topic (+N) and the "Texto original" toggle: context,
+ *  shown under the outcome and the parties rather than before them. */
+function MetaStrip({
+  proposer,
+  topics,
+  locale,
+  plainSummary,
+  subject,
+  provider,
+}: {
+  proposer: Proposer;
+  topics: InitiativeTopicSlug[];
+  locale: string;
+  plainSummary: string | null;
+  subject: string;
+  provider: string | null;
+}) {
+  if (!proposer && topics.length === 0 && !plainSummary) return null;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginTop: 8,
+        flexWrap: 'wrap',
+        minWidth: 0,
+      }}
+    >
+      {proposer && proposer.kind === 'group' && proposer.slug && (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '2px 10px 2px 2px',
+            borderRadius: 999,
+            background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
+            border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <GroupBadge
+            slug={proposer.slug}
+            color={proposer.color}
+            size="xs"
+            link={false}
+            logoUrl={proposer.logoUrl}
+          />
+          {proposer.short}
+        </span>
+      )}
+      {proposer && proposer.kind === 'government' && (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '3px 10px',
+            borderRadius: 999,
+            background: 'var(--paper-2)',
+            border: '1px solid var(--rule-strong)',
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{ width: 8, height: 8, borderRadius: 999, background: proposer.color }}
+          />
+          {proposer.short}
+        </span>
+      )}
+      {/* One topic chip only — the extra topics collapse into a quiet
+          "+N" so the line doesn't turn into a badge wall. */}
+      {topics.slice(0, 1).map((tp) => (
+        <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+      ))}
+      {topics.length > 1 && (
+        <span
+          className="tabular"
+          title={topics
+            .slice(1)
+            .map((tp) => pickTopicName(tp, locale))
+            .join(' · ')}
+          style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-3)' }}
+        >
+          +{topics.length - 1}
+        </span>
+      )}
+      {plainSummary && <LawOriginalToggle original={subject} provider={provider} />}
+    </div>
+  );
+}
+
+interface GroupLabels {
+  ayes: string;
+  noes: string;
+  finalResult: string;
+  votesToggle: (n: number) => string;
+  pointsToggle: (n: number) => string;
+  pointLabel: (n: number) => string;
+  pointsSummary: (approved: number, total: number) => string;
+  whyMultiple: string;
+  whyPoints: string;
+  finalTag: string;
+}
+
+/**
+ * An item voted several times in one sitting, rendered once. Two shapes:
+ *
+ * - A bill (amendments, articles, then the whole text) or a decree-law
+ *   (convalidation, then "tramitar como proyecto"): the outcome is the
+ *   DECIDING vote (``fateVote``), with who voted what on it.
+ * - A motion / PNL voted point by point: each point stands on its own, so
+ *   the header says "X de N puntos aprobados" and every point carries its
+ *   own party strip; one strip can't speak for all the points. The open
+ *   data doesn't publish the text of each point.
+ */
 function LawVoteGroup({
   votes,
+  kind,
   locale,
   proposerLogoUrl,
-  ayesLabel,
-  noesLabel,
   proposedByGovernmentLabel,
-  votesCountLabel,
-  votesToggleLabel,
-  finalResultLabel,
-  whyMultiple,
-  finalTagLabel,
-  finalStance,
+  labels,
+  stanceByVote,
   stanceLabels,
   noBreakLabels,
-  resultLabelFor,
+  outcomeLabelFor,
+  stageHintFor,
   marginLabel,
+  topicSlugs,
 }: {
   votes: Vote[];
+  kind: VoteKind;
   locale: string;
   proposerLogoUrl: string | null;
-  ayesLabel: string;
-  noesLabel: string;
   proposedByGovernmentLabel: string;
-  votesCountLabel: (n: number) => string;
-  votesToggleLabel: (n: number) => string;
-  finalResultLabel: string;
-  whyMultiple: string;
-  finalTagLabel: string;
-  finalStance?: PartyStance[];
+  labels: GroupLabels;
+  stanceByVote: Map<number, PartyStance[]>;
   stanceLabels: StanceLabels;
   noBreakLabels: Record<NoBreakdownReason, string>;
-  resultLabelFor: (r: Vote['result']) => string;
+  outcomeLabelFor: (v: Vote) => string;
+  stageHintFor: (v: Vote) => string | null;
   marginLabel: (margin: number) => string;
+  /** Space-separated topic slugs, read by the session topic filter. */
+  topicSlugs: string;
 }) {
   const lead = votes[0]!;
   const subject = lead.description?.trim() || lead.title;
@@ -828,36 +996,31 @@ function LawVoteGroup({
   const ordered = [...votes].sort(
     (a, b) => (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
   );
-  // The law's fate is the result of its final (highest-sequence) vote —
-  // the whole-text / dictamen vote that comes after the amendments.
-  const finalVote = ordered[ordered.length - 1]!;
-  const proposer = lead.proposing_group_short
-    ? {
-        kind: 'group' as const,
-        short: lead.proposing_group_short,
-        slug: lead.proposing_group_slug,
-        color: lead.proposing_group_color ?? 'var(--ink-3)',
-        logoUrl: proposerLogoUrl,
-      }
-    : lead.proposed_by_government
-      ? {
-          kind: 'government' as const,
-          short: proposedByGovernmentLabel,
-          slug: null,
-          color: 'var(--ink)',
-          logoUrl: null,
-        }
-      : null;
+  const byPoints = kind === 'motions';
+  const decider = fateVote(ordered);
+  const outcome = fateResult(ordered);
+  const approvedPoints = ordered.filter((v) => v.result === 'approved').length;
+  const hint = byPoints ? null : stageHintFor(decider);
+  const deciderStance = stanceByVote.get(decider.id);
+  const proposer = proposerOf(lead, proposerLogoUrl, proposedByGovernmentLabel);
+  const headlineStyle: React.CSSProperties = {
+    margin: 0,
+    fontSize: 'clamp(14px, 1.4vw, 15px)',
+    fontWeight: 400,
+    color: 'var(--ink)',
+    lineHeight: 1.35,
+    letterSpacing: '-0.005em',
+    flex: '1 1 280px',
+    minWidth: 0,
+    textDecoration: 'none',
+  };
 
   return (
-    // The law is filtered by ITS OWN outcome — the result of its final
-    // vote — not by the results of the individual votes inside it. A bill
-    // that passed after 47 amendments were voted down is an APPROVED law;
-    // filtering the sitting by "rejected" must not surface it. This <li>
-    // carried no data-result at all before, so multi-vote laws were never
-    // filtered while their inner amendment rows were, which is backwards.
+    // Filtered by the ITEM's outcome (fateResult), not by its inner votes:
+    // a bill that passed after its amendments were voted down is approved.
     <li
-      data-result={finalVote.result}
+      data-result={outcome}
+      data-topics={topicSlugs}
       style={{ padding: '14px 0', borderBottom: '1px solid var(--rule)' }}
     >
       <div
@@ -869,175 +1032,70 @@ function LawVoteGroup({
           alignItems: 'start',
         }}
       >
-        {/* Gutter glyph signals "one law, several votes". */}
+        {/* Gutter glyph signals "one item, several votes". */}
         <span aria-hidden="true" style={{ paddingTop: 3, color: 'var(--ink-3)' }}>
           <Layers size={14} strokeWidth={1.9} />
         </span>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-            {/* The law — links to its dossier. Sub-votes below are their own
-                links, so this is not a wrapping anchor (no nested <a>). */}
-            <Link
-              href={`/initiatives/${lead.initiative_id}` as Route}
-              className="serif"
-              style={{
-                margin: 0,
-                fontSize: 'clamp(14px, 1.4vw, 15px)',
-                fontWeight: 400,
-                color: 'var(--ink)',
-                lineHeight: 1.35,
-                letterSpacing: '-0.005em',
-                flex: '1 1 280px',
-                minWidth: 0,
-                textDecoration: 'none',
-              }}
-            >
-              {headline}
-            </Link>
-            {/* The law's outcome — its final vote's result. The
-                "Resultado final" label is now VISIBLE (it used to hide in
-                a title tooltip): with several votes on one law, a reader
-                needs to be told that this pill is the law's fate, not one
-                of the N sub-votes. */}
-            <span
-              style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  color: 'var(--ink-3)',
-                  whiteSpace: 'nowrap',
-                }}
+            {lead.initiative_id != null ? (
+              <Link
+                href={`/initiatives/${lead.initiative_id}` as Route}
+                className="serif"
+                style={headlineStyle}
               >
-                {finalResultLabel}
+                {headline}
+              </Link>
+            ) : (
+              <span className="serif" style={headlineStyle}>
+                {headline}
               </span>
-              <ResultPill result={finalVote.result} label={resultLabelFor(finalVote.result)} />
-            </span>
+            )}
             <span
-              className="tabular"
               style={{
                 flex: 'none',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--ink-2)',
-                background: 'var(--paper-3)',
-                borderRadius: 999,
-                padding: '2px 9px',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {votesCountLabel(votes.length)}
-            </span>
-          </div>
-          {(proposer || topics.length > 0 || plainSummary) && (
-            <div
-              style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                marginTop: 8,
                 flexWrap: 'wrap',
-                minWidth: 0,
               }}
             >
-              {proposer && proposer.kind === 'group' && proposer.slug && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '2px 10px 2px 2px',
-                    borderRadius: 999,
-                    background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
-                    border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <GroupBadge
-                    slug={proposer.slug}
-                    color={proposer.color}
-                    size="xs"
-                    link={false}
-                    logoUrl={proposer.logoUrl}
-                  />
-                  {proposer.short}
-                </span>
-              )}
-              {proposer && proposer.kind === 'government' && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '3px 10px',
-                    borderRadius: 999,
-                    background: 'var(--paper-2)',
-                    border: '1px solid var(--rule-strong)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+              {byPoints ? (
+                <ResultPill
+                  result={outcome}
+                  label={labels.pointsSummary(approvedPoints, ordered.length)}
+                />
+              ) : (
+                <>
+                  <ResultPill result={outcome} label={outcomeLabelFor(decider)} />
                   <span
-                    aria-hidden="true"
-                    style={{ width: 8, height: 8, borderRadius: 999, background: proposer.color }}
-                  />
-                  {proposer.short}
-                </span>
+                    className="tabular"
+                    style={{ fontSize: 11, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}
+                  >
+                    {marginLabel(Math.abs(decider.ayes - decider.noes))}
+                  </span>
+                </>
               )}
-              {/* One topic chip only — the extra topics collapse into a
-                  quiet "+N" so the meta line doesn't turn into a badge
-                  wall (the dossier page lists them all). */}
-              {topics.slice(0, 1).map((tp) => (
-                <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
-              ))}
-              {topics.length > 1 && (
-                <span
-                  className="tabular"
-                  title={topics
-                    .slice(1)
-                    .map((tp) => pickTopicName(tp, locale))
-                    .join(' · ')}
-                  style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-3)' }}
-                >
-                  +{topics.length - 1}
-                </span>
-              )}
-              {plainSummary && (
-                <LawOriginalToggle original={subject} provider={lead.plain_summary_provider} />
-              )}
-            </div>
-          )}
-          {/* Who backed / opposed the law — the stance on its final vote.
-              Mini variant (glyph + plain discs) so the row doesn't drown
-              in badges; names stay on hover, the full breakdown lives on
-              the detail pages. */}
-          {finalStance && finalStance.length > 0 ? (
-            <PartyStanceMini parties={finalStance} labels={stanceLabels} />
-          ) : (
-            (() => {
-              const reason = noBreakdownReason({
-                approvedByAssent: lead.approved_by_assent,
-                hasBreakdown: false,
-                subject: lead.description ?? lead.title,
-              });
-              return reason ? (
-                <NoBreakdownInline reason={reason} label={noBreakLabels[reason]} />
-              ) : null;
-            })()
-          )}
-          {/* The law's individual votes. */}
+            </span>
+          </div>
+          {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
+          {/* Who voted what comes before the metadata: it is the answer the
+              reader came for. Point-by-point motions show it per point. */}
+          {!byPoints &&
+            (deciderStance && deciderStance.length > 0 ? (
+              <PartyStanceMini parties={deciderStance} labels={stanceLabels} />
+            ) : (
+              <NoBreakdownFor vote={decider} labels={noBreakLabels} />
+            ))}
+          <MetaStrip
+            proposer={proposer}
+            topics={topics}
+            locale={locale}
+            plainSummary={plainSummary}
+            subject={subject}
+            provider={lead.plain_summary_provider}
+          />
           <div style={{ marginTop: 10 }}>
-            {/* The individual votes are collapsed: the header already leads
-                with the final result + who voted, so the amendment / article
-                votes are here only if you want them. */}
             <details>
               <summary
                 style={{
@@ -1050,8 +1108,10 @@ function LawVoteGroup({
                   color: 'var(--ink-2)',
                 }}
               >
-                {votesToggleLabel(votes.length)}
-                {/* Educational note: why a law is voted several times. */}
+                {byPoints
+                  ? labels.pointsToggle(ordered.length)
+                  : labels.votesToggle(ordered.length)}
+                {/* Educational note: why one item is voted several times. */}
                 <Tooltip
                   term={
                     <span
@@ -1073,20 +1133,22 @@ function LawVoteGroup({
                       i
                     </span>
                   }
-                  explanation={whyMultiple}
+                  explanation={byPoints ? labels.whyPoints : labels.whyMultiple}
                 />
               </summary>
               <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>
-                {ordered.map((v) => (
+                {ordered.map((v, i) => (
                   <SubVote
                     key={v.id}
                     vote={v}
-                    ayesLabel={ayesLabel}
-                    noesLabel={noesLabel}
-                    resultLabel={resultLabelFor(v.result)}
+                    label={byPoints ? labels.pointLabel(i + 1) : null}
+                    ayesLabel={labels.ayes}
+                    noesLabel={labels.noes}
+                    resultLabel={outcomeLabelFor(v)}
                     marginLabel={marginLabel}
-                    isFinal={v.id === finalVote.id}
-                    finalTagLabel={finalTagLabel}
+                    tag={!byPoints && v.id === decider.id ? labels.finalTag : null}
+                    stance={byPoints ? stanceByVote.get(v.id) : undefined}
+                    stanceLabels={stanceLabels}
                   />
                 ))}
               </ul>
@@ -1098,32 +1160,34 @@ function LawVoteGroup({
   );
 }
 
-/** One vote inside a {@link LawVoteGroup}: sequence, result, tally — a
- *  compact row linking to the full vote. Carries ``data-result`` so the
- *  session result filter hides it like any other vote row. */
+/** One vote inside a {@link LawVoteGroup}: its label (sequence, or "Punto
+ *  N" for a point-by-point motion), result and tally, linking to the full
+ *  vote. Point rows also carry their own party strip. Deliberately NO
+ *  data-result: the filter selects items, and once an item matches, all
+ *  its votes show, including the ones that went the other way. */
 function SubVote({
   vote,
+  label,
   ayesLabel,
   noesLabel,
   resultLabel,
   marginLabel,
-  isFinal = false,
-  finalTagLabel,
+  tag,
+  stance,
+  stanceLabels,
 }: {
   vote: Vote;
+  label: string | null;
   ayesLabel: string;
   noesLabel: string;
   resultLabel: string;
   marginLabel: (margin: number) => string;
-  isFinal?: boolean;
-  finalTagLabel?: string;
+  tag: string | null;
+  stance?: PartyStance[];
+  stanceLabels: StanceLabels;
 }) {
   const margin = Math.abs(vote.ayes - vote.noes);
   return (
-    // Deliberately NO data-result: this is one vote inside a law, and the
-    // filter selects laws. Once a law matches, every one of its votes is
-    // shown — including the amendments that went the other way, which is
-    // exactly what you want to read when you open it.
     <li style={{ borderTop: '1px solid var(--rule)' }}>
       <Link
         href={`/votes/${vote.id}` as Route}
@@ -1139,21 +1203,21 @@ function SubVote({
       >
         <span
           className="tabular"
-          aria-hidden="true"
           style={{
             fontSize: 11,
             color: 'var(--ink-3)',
             fontWeight: 600,
-            letterSpacing: '0.08em',
+            letterSpacing: label ? '0.02em' : '0.08em',
             minWidth: 22,
           }}
         >
-          {vote.sequence_in_session != null
-            ? String(vote.sequence_in_session).padStart(2, '0')
-            : '—'}
+          {label ??
+            (vote.sequence_in_session != null
+              ? String(vote.sequence_in_session).padStart(2, '0')
+              : '—')}
         </span>
-        <ResultPill result={vote.result} label={resultLabel} />
-        {isFinal && finalTagLabel && (
+        <ResultPill result={stageOutcome(vote)} label={resultLabel} />
+        {tag && (
           <span
             style={{
               fontSize: 9,
@@ -1168,7 +1232,7 @@ function SubVote({
               whiteSpace: 'nowrap',
             }}
           >
-            {finalTagLabel}
+            {tag}
           </span>
         )}
         <span className="tabular" style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>
@@ -1176,13 +1240,15 @@ function SubVote({
           <span style={{ color: 'var(--ink-3)', margin: '0 6px' }}>·</span>
           <strong style={{ color: 'var(--no, #DC2626)' }}>{vote.noes}</strong> {noesLabel}
         </span>
-        <span
-          className="tabular"
-          style={{ fontSize: 11, color: 'var(--ink-3)', marginLeft: 'auto' }}
-        >
+        <span className="tabular" style={{ fontSize: 11, color: 'var(--ink-3)', marginLeft: 'auto' }}>
           {marginLabel(margin)}
         </span>
       </Link>
+      {stance && stance.length > 0 && (
+        <div style={{ padding: '0 0 10px 34px' }}>
+          <PartyStanceMini parties={stance} labels={stanceLabels} />
+        </div>
+      )}
     </li>
   );
 }
@@ -1200,6 +1266,8 @@ function VoteRow({
   stance,
   stanceLabels,
   noBreakLabels,
+  stageHint,
+  topicSlugs,
 }: {
   vote: Vote;
   locale: string;
@@ -1220,6 +1288,9 @@ function VoteRow({
   stance?: PartyStance[];
   stanceLabels: StanceLabels;
   noBreakLabels: Record<NoBreakdownReason, string>;
+  stageHint?: string | null;
+  /** Space-separated topic slugs, read by the session topic filter. */
+  topicSlugs: string;
 }) {
   const subject = vote.description?.trim() || vote.title;
   // AI plain-language summary leads as the row headline; the raw official
@@ -1228,6 +1299,8 @@ function VoteRow({
   const plainSummary = pickPlainSummary(vote, locale);
   const headline = plainSummary ?? subject;
   const margin = Math.abs(vote.ayes - vote.noes);
+  // The item outcome: inverted for a debate de totalidad (see stageOutcome).
+  const outcome = stageOutcome(vote);
   // Topic chips — every topic the vote inherits from its linked
   // initiative gets a chip on the row itself. Even though the
   // surrounding section header already names the primary topic, the
@@ -1255,7 +1328,8 @@ function VoteRow({
       : null;
   return (
     <li
-      data-result={vote.result}
+      data-result={outcome}
+      data-topics={topicSlugs}
       style={{
         padding: '14px 0',
         borderBottom: '1px solid var(--rule)',
@@ -1327,9 +1401,17 @@ function VoteRow({
               {headline}
             </h3>
             <span style={{ flex: 'none' }}>
-              <ResultPill result={vote.result} label={resultLabel} />
+              <ResultPill result={outcome} label={resultLabel} />
             </span>
           </div>
+          {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
+          {/* Who voted what comes before the metadata: it is the answer
+              the reader came for. */}
+          {stance && stance.length > 0 ? (
+            <PartyStanceMini parties={stance} labels={stanceLabels} />
+          ) : (
+            <NoBreakdownFor vote={vote} labels={noBreakLabels} />
+          )}
           {/* Metadata strip — proposer badge (with logo when available)
               and topic chips. Both sit on the same line so the vote
               row reads "the law, who tabled it, what theme(s) it
@@ -1423,20 +1505,6 @@ function VoteRow({
                 />
               )}
             </div>
-          )}
-          {stance && stance.length > 0 ? (
-            <PartyStanceMini parties={stance} labels={stanceLabels} />
-          ) : (
-            (() => {
-              const reason = noBreakdownReason({
-                approvedByAssent: vote.approved_by_assent,
-                hasBreakdown: false,
-                subject: vote.description ?? vote.title,
-              });
-              return reason ? (
-                <NoBreakdownInline reason={reason} label={noBreakLabels[reason]} />
-              ) : null;
-            })()
           )}
         </div>
 

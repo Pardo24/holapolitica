@@ -2,134 +2,187 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-type Filter = 'all' | 'approved' | 'rejected';
+type ResultFilter = 'all' | 'approved' | 'rejected';
+
+export interface TopicOption {
+  slug: string;
+  name: string;
+  color: string | null;
+}
 
 /**
- * Result filter for the plenary session sheet's collapsible topic tree.
+ * Filters for the plenary session sheet: by the item's result and by
+ * topic. Topics are a filter over the whole list, not a second list.
  *
- * Renders three toggle chips (all / approved / rejected) above the
- * server-rendered `<details>` topic groups (passed as ``children``). The
- * groups and their vote rows are server-rendered with ``data-result`` on
- * each row `<li>`; this client wrapper just sets a class on the container so
- * CSS hides the non-matching rows, and imperatively opens the groups that
- * have a match (collapsing the rest) so a filtered view reads at a glance
- * instead of needing every topic expanded by hand.
+ * The rows are server-rendered ``<li data-result data-topics>`` (one per
+ * item; the nested sub-votes carry neither, so they follow their item).
+ * This client wrapper hides the rows that don't match both filters,
+ * hides a section (``.session-kind-group``) left with no row, and opens
+ * the folded "Trámites" section when a filter finds something inside it.
  *
- * Picking "all" restores the default collapsed tree.
+ * The lede's topic links point at ``#tema-<slug>``: arriving on that hash
+ * applies the topic filter and scrolls to the list.
  */
 export function SessionVoteFilter({
   labels,
+  topics,
   children,
 }: {
-  labels: { eyebrow: string; all: string; approved: string; rejected: string };
+  labels: {
+    eyebrow: string;
+    all: string;
+    approved: string;
+    rejected: string;
+    topicEyebrow: string;
+    topicAll: string;
+    empty: string;
+  };
+  topics: TopicOption[];
   children: React.ReactNode;
 }) {
-  const [filter, setFilter] = useState<Filter>('all');
-  const ref = useRef<HTMLDivElement>(null);
+  const [result, setResult] = useState<ResultFilter>('all');
+  const [topic, setTopic] = useState<string | null>(null);
+  const [empty, setEmpty] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  // Open + scroll to the topic group an in-page anchor points at (the lede's
-  // topic links use `#session-topic-<slug>`). Native <details> don't open on
-  // anchor navigation, so we do it here on mount and on every hash change.
   useEffect(() => {
-    const openFromHash = () => {
+    const fromHash = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      if (!id.startsWith('session-topic-')) return;
-      const el = document.getElementById(id);
-      if (el instanceof HTMLDetailsElement) {
-        el.open = true;
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (!id.startsWith('tema-')) return;
+      const slug = id.slice('tema-'.length);
+      if (!topics.some((tp) => tp.slug === slug)) return;
+      setTopic(slug);
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
-    openFromHash();
-    window.addEventListener('hashchange', openFromHash);
-    return () => window.removeEventListener('hashchange', openFromHash);
-  }, []);
+    fromHash();
+    window.addEventListener('hashchange', fromHash);
+    return () => window.removeEventListener('hashchange', fromHash);
+  }, [topics]);
 
-  const apply = (next: Filter) => {
-    setFilter(next);
-    const root = ref.current;
+  useEffect(() => {
+    const root = listRef.current;
     if (!root) return;
-    const groups = root.querySelectorAll<HTMLDetailsElement>('details.session-topic-group');
-    groups.forEach((d) => {
-      if (next === 'all') {
-        d.style.display = '';
-        d.open = false; // back to the collapsed default
-        return;
-      }
-      const hasMatch = d.querySelector(`li[data-result="${next}"]`) != null;
-      d.style.display = hasMatch ? '' : 'none';
-      d.open = hasMatch;
+    const filtering = result !== 'all' || topic != null;
+    let anyVisible = false;
+    root.querySelectorAll<HTMLLIElement>('li[data-result]').forEach((li) => {
+      const okResult = result === 'all' || li.dataset.result === result;
+      const okTopic = topic == null || (li.dataset.topics ?? '').split(' ').includes(topic);
+      const show = okResult && okTopic;
+      li.style.display = show ? '' : 'none';
+      if (show) anyVisible = true;
     });
-  };
+    root.querySelectorAll<HTMLElement>('.session-kind-group').forEach((group) => {
+      const hasRow = Array.from(group.querySelectorAll<HTMLLIElement>('li[data-result]')).some(
+        (li) => li.style.display !== 'none',
+      );
+      group.style.display = hasRow ? '' : 'none';
+      if (group instanceof HTMLDetailsElement && filtering) group.open = hasRow;
+    });
+    setEmpty(!anyVisible);
+  }, [result, topic]);
 
-  const chip = (value: Filter, label: string, dot?: string) => {
-    const active = filter === value;
-    return (
-      <button
-        type="button"
-        aria-pressed={active}
-        onClick={() => apply(value)}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '5px 12px',
-          borderRadius: 999,
-          border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
-          background: active ? 'var(--ink)' : 'transparent',
-          color: active ? 'var(--paper)' : 'var(--ink-2)',
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {dot && (
-          <span
-            aria-hidden="true"
-            style={{ width: 8, height: 8, borderRadius: 999, background: dot, flex: 'none' }}
-          />
-        )}
-        {label}
-      </button>
-    );
+  const chip = (
+    key: string,
+    active: boolean,
+    onClick: () => void,
+    label: string,
+    dot?: string | null,
+  ) => (
+    <button
+      key={key}
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '5px 12px',
+        borderRadius: 999,
+        border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
+        background: active ? 'var(--ink)' : 'transparent',
+        color: active ? 'var(--paper)' : 'var(--ink-2)',
+        fontSize: 12,
+        fontWeight: 600,
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        flex: 'none',
+      }}
+    >
+      {dot && (
+        <span
+          aria-hidden="true"
+          style={{ width: 8, height: 8, borderRadius: 999, background: dot, flex: 'none' }}
+        />
+      )}
+      {label}
+    </button>
+  );
+
+  const rowStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    paddingBottom: 10,
+  };
+  const eyebrowStyle: React.CSSProperties = {
+    margin: 0,
+    marginRight: 4,
+    color: 'var(--ink-3)',
+    flex: 'none',
   };
 
   return (
-    <section style={{ marginBottom: 8 }}>
-      <div
-        role="group"
-        aria-label={labels.eyebrow}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          flexWrap: 'wrap',
-          paddingBottom: 12,
-          marginBottom: 4,
-        }}
-      >
-        <span
-          className="eyebrow"
-          style={{ margin: 0, marginRight: 4, color: 'var(--ink-3)' }}
-        >
+    <section ref={sectionRef} style={{ marginBottom: 8, scrollMarginTop: 64 }}>
+      <div role="group" aria-label={labels.eyebrow} style={{ ...rowStyle, flexWrap: 'wrap' }}>
+        <span className="eyebrow" style={eyebrowStyle}>
           {labels.eyebrow}
         </span>
-        {chip('all', labels.all)}
-        {chip('approved', labels.approved, 'var(--aye, #16A34A)')}
-        {chip('rejected', labels.rejected, 'var(--no, #DC2626)')}
+        {chip('all', result === 'all', () => setResult('all'), labels.all)}
+        {chip(
+          'approved',
+          result === 'approved',
+          () => setResult('approved'),
+          labels.approved,
+          'var(--aye, #16A34A)',
+        )}
+        {chip(
+          'rejected',
+          result === 'rejected',
+          () => setResult('rejected'),
+          labels.rejected,
+          'var(--no, #DC2626)',
+        )}
       </div>
-      <div ref={ref} className={`session-vote-filter session-vote-filter--${filter}`}>
-        {children}
-      </div>
-      <style>{`
-        .session-vote-filter--approved li[data-result='rejected'],
-        .session-vote-filter--approved li[data-result='tie'],
-        .session-vote-filter--rejected li[data-result='approved'],
-        .session-vote-filter--rejected li[data-result='tie'] {
-          display: none;
-        }
-      `}</style>
+      {topics.length > 1 && (
+        // One swipeable line on phones rather than a wall of wrapped chips.
+        <div
+          role="group"
+          aria-label={labels.topicEyebrow}
+          style={{ ...rowStyle, overflowX: 'auto', marginBottom: 4 }}
+        >
+          <span className="eyebrow" style={eyebrowStyle}>
+            {labels.topicEyebrow}
+          </span>
+          {chip('topic-all', topic == null, () => setTopic(null), labels.topicAll)}
+          {topics.map((tp) =>
+            chip(
+              `topic-${tp.slug}`,
+              topic === tp.slug,
+              () => setTopic(topic === tp.slug ? null : tp.slug),
+              tp.name,
+              tp.color,
+            ),
+          )}
+        </div>
+      )}
+      <div ref={listRef}>{children}</div>
+      {empty && (
+        <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '12px 0 20px' }}>
+          {labels.empty}
+        </p>
+      )}
     </section>
   );
 }
