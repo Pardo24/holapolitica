@@ -41,6 +41,8 @@ def test_neutral_summary_passes() -> None:
         "Una iniciativa rellevant per al sector",
         "Una lluita contra la corrupció",
         "Una amenaça per a la convivència",
+        "Una lucha contra la corrupción",
+        "Una amenaza para la convivencia",
     ],
 )
 def test_editorial_phrases_are_rejected(phrase: str) -> None:
@@ -58,6 +60,12 @@ def test_editorial_phrases_are_rejected(phrase: str) -> None:
         "Estableix les condicions del judici just.",
         "Modifica les normes sobre el sistema públic.",
         "Reforma diverses lleis orgàniques.",
+        # "la lluita / la lucha contra X" names a policy area; only the
+        # indefinite "una lluita" frames the initiative itself.
+        "Reforça la lluita contra els delictes informàtics.",
+        "Refuerza la lucha contra los discursos de odio.",
+        "Protegeix les infraestructures crítiques davant les amenaces.",
+        "Estableix mesures davant l'amenaça terrorista.",
     ],
 )
 def test_neutral_phrases_with_lookalike_words_pass(phrase: str) -> None:
