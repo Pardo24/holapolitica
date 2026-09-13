@@ -74,10 +74,15 @@ class Settings(BaseSettings):
     mistral_api_key: str | None = None
     anthropic_api_key: str | None = None
     qwen_base_url: str = "http://localhost:11434"
+    # Mistral model id. On the free plan the per-model limits differ, and
+    # some models get none: mistral-small / mistral-medium answer with a
+    # 0 requests/minute limit and mistral-large with 403, while
+    # ministral-14b is allowed (~30 requests/minute). Checked 2026-09-14.
+    mistral_model: str = "ministral-14b-2512"
     # Minimum seconds between two LLM requests from one process (see
-    # app/services/llm_http.py). Mistral's free plan allows about one
-    # request per second; 1.5 s leaves headroom for the odd burst.
-    llm_min_interval_s: float = 1.5
+    # app/services/llm_http.py). 2.1 s keeps us under ministral-14b's
+    # ~30 requests/minute on the free plan.
+    llm_min_interval_s: float = 2.1
 
     # Email (alerts and double opt-in)
     email_provider: Literal["smtp", "mailgun", "resend", "listmonk"] = "smtp"
