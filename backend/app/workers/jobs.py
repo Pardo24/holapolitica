@@ -426,6 +426,7 @@ def generate_affected_pending(batch_size: int = 200) -> dict[str, int]:
 
     from app.models import Initiative
     from app.services.affected import extract_affected_audiences
+    from app.services.llm_http import LLMUnavailableError
 
     async def _run() -> dict[str, int]:
         async with AsyncSessionLocal() as session:
@@ -461,9 +462,13 @@ def generate_affected_pending(batch_size: int = 200) -> dict[str, int]:
                     initiative.affected_audiences = result.audiences
                     await session.commit()
                 succeeded += 1
-                # Mistral free-tier rate limit: ~1 req/s. Pace the loop
-                # so a 200-row batch never trips 429s.
-                await asyncio.sleep(1.1)
+                # Pacing for the free-tier rate limit now lives in the
+                # shared LLM transport (app/services/llm_http.py).
+            except LLMUnavailableError as exc:
+                # Zero quota: every remaining row would fail the same way.
+                log.error("affected.pending.aborted", error=str(exc))
+                failed += 1
+                break
             except Exception as exc:
                 log.warning(
                     "affected.pending.failed",
@@ -514,6 +519,7 @@ def classify_pending_initiatives(batch_size: int = 200, kind: str = "theme") -> 
         _classified_by_label,
     )
     from app.models import Initiative, InitiativeTopic
+    from app.services.llm_http import LLMUnavailableError
 
     async def _run() -> dict[str, int]:
         classifier = build_classifier()
@@ -553,6 +559,11 @@ def classify_pending_initiatives(batch_size: int = 200, kind: str = "theme") -> 
                     service = ClassificationService(session, classifier)
                     await service.classify_initiative(initiative_id, kind=kind)
                 succeeded += 1
+            except LLMUnavailableError as exc:
+                # Zero quota: every remaining row would fail the same way.
+                log.error("classify.pending.aborted", kind=kind, error=str(exc))
+                failed += 1
+                break
             except Exception as exc:
                 log.warning(
                     "classify.pending.failed",

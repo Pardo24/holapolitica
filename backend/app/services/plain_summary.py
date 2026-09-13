@@ -316,6 +316,8 @@ async def _call_llm_for_text(settings: Settings, *, system: str, user: str) -> s
     """
     import httpx
 
+    from app.services.llm_http import post_llm
+
     if settings.llm_provider == "anthropic":
         if not settings.anthropic_api_key:
             raise ClassifierError("ANTHROPIC_API_KEY is not configured")
@@ -331,10 +333,13 @@ async def _call_llm_for_text(settings: Settings, *, system: str, user: str) -> s
             "anthropic-version": "2023-06-01",
         }
         async with httpx.AsyncClient(timeout=httpx.Timeout(90.0, read=90.0)) as client:
-            r = await client.post(
-                "https://api.anthropic.com/v1/messages", json=body, headers=headers
+            r = await post_llm(
+                client,
+                "https://api.anthropic.com/v1/messages",
+                json_body=body,
+                headers=headers,
+                min_interval_s=settings.llm_min_interval_s,
             )
-            r.raise_for_status()
         blocks = r.json()["content"]
         text: str = next(b["text"] for b in blocks if b.get("type") == "text")
         return text
@@ -365,8 +370,13 @@ async def _call_llm_for_text(settings: Settings, *, system: str, user: str) -> s
         headers["Authorization"] = f"Bearer {api_key}"
 
     async with httpx.AsyncClient(timeout=httpx.Timeout(90.0, read=90.0)) as client:
-        r = await client.post(f"{base}/v1/chat/completions", json=body, headers=headers)
-        r.raise_for_status()
+        r = await post_llm(
+            client,
+            f"{base}/v1/chat/completions",
+            json_body=body,
+            headers=headers,
+            min_interval_s=settings.llm_min_interval_s,
+        )
     return str(r.json()["choices"][0]["message"]["content"])
 
 
