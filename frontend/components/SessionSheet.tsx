@@ -17,15 +17,14 @@ import {
   type NoBreakdownReason,
 } from '@/components/NoBreakdownNotice';
 import { ResultPill } from '@/components/ResultPill';
-import { ScrollCarousel } from '@/components/ScrollCarousel';
 import { SessionVoteFilter } from '@/components/SessionVoteFilter';
 import { StackedBar } from '@/components/StackedBar';
 import { Tooltip } from '@/components/Tooltip';
 import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
+import { summariseLaws } from '@/lib/sessionSummary';
 import { pickTopicName } from '@/lib/topics';
-import { topicIcon } from '@/lib/topic_icons';
 
 /**
  * Plenary-session summary sheet — the canonical render for one day's
@@ -37,16 +36,12 @@ import { topicIcon } from '@/lib/topic_icons';
  *
  *   1. Masthead — session number + long date + vote count + prev/next
  *      navigation between adjacent sessions in the loaded window.
- *   2. Stats strip — counts of approved / rejected / tied votes plus
- *      the session's tightest margin. Purely numerical, no editorial
- *      framing.
- *   3. Vote list — every vote of the session in chronological order
- *      (oldest first, since that's how a plenary actually runs). Each
- *      row carries the title, the result pill, the stacked-bar
- *      visual and a per-vote margin caption. The first vote
- *      additionally shows the LLM plain-language summary when one
- *      exists so the page has a "lede" without us picking an
- *      editorial highlight.
+ *   2. Lede — the day's outcome counted per INITIATIVE (its final
+ *      vote), not per raw vote row, plus the most active topics.
+ *      Purely factual, no editorial framing.
+ *   3. Vote list — grouped by topic, every section open, each
+ *      initiative once (its amendment votes nested and collapsed) with
+ *      who voted Sí / No / Abstención under it.
  *
  * The caller passes the session date, the votes, optional prev/next
  * dates for navigation, and whether to show the archive banner. The
@@ -116,11 +111,10 @@ export async function SessionSheet({
     unavailable: t('nobreak_inline_unavailable'),
   };
 
-  // Aggregated counts. Result is one of approved / rejected / tie.
-  const counts = { approved: 0, rejected: 0, tie: 0 };
-  for (const v of ordered) {
-    counts[v.result] += 1;
-  }
+  // The day's outcome counted by INITIATIVE (its final vote), not by raw
+  // vote rows: amendment and item-by-item votes are procedure, and counting
+  // them made a sitting with 5 laws read "rechazado 45".
+  const counts = summariseLaws(ordered);
 
   // Session number — every vote in the bucket shares the same
   // ``session_id``; we display the smallest sequence's session as the
@@ -269,13 +263,13 @@ export async function SessionSheet({
             }}
           >
             {counts.approved > 0 && (
-              <div style={{ width: `${(counts.approved / ordered.length) * 100}%`, background: 'var(--aye)' }} />
+              <div style={{ width: `${(counts.approved / counts.laws) * 100}%`, background: 'var(--aye)' }} />
             )}
             {counts.rejected > 0 && (
-              <div style={{ width: `${(counts.rejected / ordered.length) * 100}%`, background: 'var(--no)' }} />
+              <div style={{ width: `${(counts.rejected / counts.laws) * 100}%`, background: 'var(--no)' }} />
             )}
             {counts.tie > 0 && (
-              <div style={{ width: `${(counts.tie / ordered.length) * 100}%`, background: 'var(--abst)' }} />
+              <div style={{ width: `${(counts.tie / counts.laws) * 100}%`, background: 'var(--abst)' }} />
             )}
           </div>
         )}
@@ -292,7 +286,7 @@ export async function SessionSheet({
           {t.rich(
             counts.tie > 0 ? 'lede_paragraph_with_tie' : 'lede_paragraph',
             {
-              total: ordered.length,
+              total: counts.laws,
               approved: counts.approved,
               rejected: counts.rejected,
               tie: counts.tie,
@@ -309,6 +303,22 @@ export async function SessionSheet({
                 </strong>
               ),
             },
+          )}
+          {/* The raw vote count, stated once and explained, so the
+              per-initiative figures above never read as a mistake next
+              to the "N votaciones" in the header. */}
+          {ordered.length > counts.laws && (
+            <>
+              {' '}
+              {t.rich('lede_votes_note', {
+                votes: ordered.length,
+                n: (chunks) => (
+                  <strong className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
+                    {chunks}
+                  </strong>
+                ),
+              })}
+            </>
           )}
           {/* The "tightest margin" sentence used to sit here. Removed:
               a margin is only meaningful between Sí and No, but ours
@@ -369,159 +379,6 @@ export async function SessionSheet({
         </p>
       </section>
 
-      {/* Topic summary band — replaces the old "featured dossier" iframe
-          (which spotlighted one law picked by the tightest margin, an
-          arbitrary and unexplained choice). This answers the question a
-          reader actually arrives with: WHAT was voted today and HOW did
-          each area end. One card per topic, in the topic's own colour,
-          with its approved/rejected split; tapping jumps to that topic's
-          section below. */}
-      {ordered.length > 0 && (
-        <section style={{ marginBottom: 28 }}>
-          <div className="eyebrow" style={{ marginBottom: 4 }}>
-            {t('topicband_eyebrow')}
-          </div>
-          <p
-            style={{
-              margin: '0 0 4px',
-              fontSize: 12,
-              color: 'var(--ink-3)',
-              lineHeight: 1.5,
-              maxWidth: 640,
-            }}
-          >
-            {t('topicband_caption')}
-          </p>
-          <ScrollCarousel
-            gap={12}
-            prevLabel={t('topicband_eyebrow')}
-            nextLabel={t('topicband_eyebrow')}
-          >
-            {groupVotesByTopic(ordered, locale).map(({ topic, votes: tVotes, key }) => {
-              // Count LAWS and their fate, not raw vote rows: a bill's
-              // amendment votes are procedure, and counting them made a
-              // passed law read as '47 rechazadas'.
-              const summary = summariseLaws(tVotes);
-              const approved = summary.approved;
-              const rejected = summary.rejected;
-              const color = topic?.color_hex ?? 'var(--ink-3)';
-              const Icon = topicIcon(topic?.icon);
-              const name = topic ? pickTopicName(topic, locale) : t('section_unclassified');
-              return (
-                <li key={key} style={{ flex: '0 0 210px', scrollSnapAlign: 'start' }}>
-                  <a
-                    href={`#session-topic-${topic?.slug ?? 'unclassified'}`}
-                    className="topic-card-link"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 8,
-                      height: '100%',
-                      padding: '13px 15px',
-                      borderRadius: 12,
-                      border: '1px solid var(--rule)',
-                      borderTop: `3px solid ${color}`,
-                      background: `color-mix(in oklch, ${color} 6%, var(--paper))`,
-                      textDecoration: 'none',
-                      color: 'inherit',
-                    }}
-                  >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: 26,
-                          height: 26,
-                          borderRadius: 8,
-                          flex: 'none',
-                          color,
-                          background: `color-mix(in oklch, ${color} 18%, var(--paper))`,
-                        }}
-                      >
-                        <Icon size={14} strokeWidth={2} aria-hidden="true" />
-                      </span>
-                      <span
-                        className="line-clamp-2"
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: 'var(--ink)',
-                          lineHeight: 1.25,
-                          minWidth: 0,
-                        }}
-                      >
-                        {name}
-                      </span>
-                    </span>
-                    <span
-                      className="tabular"
-                      style={{ fontSize: 11.5, color: 'var(--ink-3)' }}
-                    >
-                      {t('topicband_laws', { n: summary.laws })}
-                      {tVotes.length !== summary.laws && (
-                        <span style={{ color: 'var(--ink-3)' }}>
-                          {' · '}
-                          {t('topicband_votes_sub', { n: tVotes.length })}
-                        </span>
-                      )}
-                    </span>
-                    {/* Outcome split — the answer, in the shared vote colours. */}
-                    <span
-                      role="img"
-                      aria-label={`${t('topicband_approved', { n: approved })}, ${t('topicband_rejected', { n: rejected })}`}
-                      style={{
-                        display: 'flex',
-                        height: 6,
-                        borderRadius: 999,
-                        overflow: 'hidden',
-                        background: 'var(--rule)',
-                      }}
-                    >
-                      {approved > 0 && (
-                        <span
-                          style={{
-                            width: `${(approved / summary.laws) * 100}%`,
-                            background: 'var(--aye)',
-                          }}
-                        />
-                      )}
-                      {rejected > 0 && (
-                        <span
-                          style={{
-                            width: `${(rejected / summary.laws) * 100}%`,
-                            background: 'var(--no)',
-                          }}
-                        />
-                      )}
-                    </span>
-                    <span
-                      style={{
-                        display: 'flex',
-                        gap: 10,
-                        fontSize: 11.5,
-                        flexWrap: 'wrap',
-                        marginTop: 'auto',
-                      }}
-                    >
-                      <span className="tabular" style={{ color: 'var(--aye)', fontWeight: 700 }}>
-                        {t('topicband_approved', { n: approved })}
-                      </span>
-                      <span className="tabular" style={{ color: 'var(--no)', fontWeight: 700 }}>
-                        {t('topicband_rejected', { n: rejected })}
-                      </span>
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-          </ScrollCarousel>
-        </section>
-      )}
-
-
       {/* Vote list — grouped by topic so the page reads as a topic-
           structured agenda rather than a flat dump. Each section
           carries a small summary line (N votes, M approved, K
@@ -559,6 +416,7 @@ export async function SessionSheet({
             const decided = lawSummary.laws || 1;
             return (
               <details
+                open
                 key={key}
                 id={`session-topic-${topic?.slug ?? 'unclassified'}`}
                 className="session-topic-group"
@@ -1712,54 +1570,12 @@ interface TopicGroup {
  * order). Votes without an initiative or without a classified topic
  * fall into a single "Sense classificar" bucket pinned to the end.
  *
- * Topic order: sections are sorted by number of votes descending so
- * the heaviest topic of the day reads first. The unclassified bucket
+ * Topic order: sections are sorted by number of initiatives decided
+ * (ties broken by raw vote count), so the busiest topic reads first and
+ * the order matches the "(N)" counts in the lede. The unclassified bucket
  * is forced last regardless of size; that's a presentational rule,
  * not a curation one — it still surfaces every uncategorised vote.
  */
-/**
- * Collapse a topic's votes into LAWS and report each law's real fate.
- *
- * Why this exists: a Proyecto de Ley is voted once per amendment. The
- * 14 July 2026 disability bill took 50 votes — 47 amendments voted
- * down one by one, then the whole text approved 179-33. Counting raw
- * vote rows made the summary read "50 votaciones · 3 aprobadas · 47
- * rechazadas", i.e. "this area went terribly", when the truth was
- * "one law, and it passed". Amendment votes are internal procedure;
- * what a citizen is owed is the count of MATTERS and how each ended.
- *
- * A law's fate is its LAST vote (chronological, then sequence) — the
- * whole-text vote that follows the amendments.
- */
-function summariseLaws(votes: Vote[]): {
-  laws: number;
-  approved: number;
-  rejected: number;
-  tie: number;
-} {
-  const byLaw = new Map<string, Vote[]>();
-  for (const v of votes) {
-    const key = v.expediente_raw ?? `vote-${v.id}`;
-    const list = byLaw.get(key);
-    if (list) list.push(v);
-    else byLaw.set(key, [v]);
-  }
-  let approved = 0;
-  let rejected = 0;
-  let tie = 0;
-  for (const list of byLaw.values()) {
-    const final = [...list].sort(
-      (a, b) =>
-        a.voted_at.localeCompare(b.voted_at) ||
-        (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
-    )[list.length - 1]!;
-    if (final.result === 'approved') approved += 1;
-    else if (final.result === 'rejected') rejected += 1;
-    else tie += 1;
-  }
-  return { laws: byLaw.size, approved, rejected, tie };
-}
-
 function groupVotesByTopic(
   votes: Vote[],
   _locale: string,
@@ -1778,7 +1594,10 @@ function groupVotesByTopic(
   const ordered = [...buckets.values()].sort((a, b) => {
     if (a.key === '__unclassified') return 1;
     if (b.key === '__unclassified') return -1;
-    return b.votes.length - a.votes.length;
+    return (
+      summariseLaws(b.votes).laws - summariseLaws(a.votes).laws ||
+      b.votes.length - a.votes.length
+    );
   });
   return ordered;
 }

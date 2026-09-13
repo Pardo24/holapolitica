@@ -205,7 +205,9 @@ export default async function AvuiPage() {
           >
             {t('newsletter_caption')}
           </p>
-          <NewsletterSignup />
+          {/* ``bare``: this block already shows the heading and caption;
+              the card variant repeated them in its own eyebrow + body. */}
+          <NewsletterSignup variant="bare" />
           <div
             style={{
               marginTop: 26,
