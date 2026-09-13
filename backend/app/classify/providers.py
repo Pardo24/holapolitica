@@ -120,8 +120,12 @@ class MistralClassifier(_ChatCompletionsClassifier):
             raise ClassifierError("MISTRAL_API_KEY is not configured")
         super().__init__(
             base_url="https://api.mistral.ai",
-            model="mistral-small-latest",
+            model=settings.mistral_model,
             api_key=settings.mistral_api_key,
+            # Kept as "llm:mistral-small" whatever the model: it is stored
+            # as InitiativeTopic.classified_by and the pending-classification
+            # query filters on it, so renaming it would re-classify every
+            # initiative from scratch.
             name="llm:mistral-small",
         )
 

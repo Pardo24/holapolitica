@@ -22,6 +22,7 @@ contract. If you change the prompt, run the tests.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from app.classify.providers import ClassifierError
@@ -203,6 +204,24 @@ def assert_neutral_summary(text: str) -> None:
             raise ValueError(f"banned editorial term: {banned!r} in summary")
 
 
+# **bold** / __bold__, or *italic* around a word or phrase.
+_MD_EMPHASIS = re.compile(r"(\*\*|__)(.+?)\1|(?<![\w*])\*(?!\s)([^*\n]+?)(?<!\s)\*(?![\w*])")
+
+
+def _strip_markdown(text: str) -> str:
+    """Drop markdown emphasis and inline code marks from a model's output.
+
+    The site renders summaries as plain text, so ``**violencia vicaria**``
+    would show its asterisks literally. Newer models add emphasis even
+    when the prompt asks for plain prose.
+    """
+
+    def _keep_inner(m: re.Match[str]) -> str:
+        return m.group(2) if m.group(2) is not None else m.group(3)
+
+    return _MD_EMPHASIS.sub(_keep_inner, text).replace("`", "")
+
+
 async def generate_plain_summary(
     *,
     title: str,
@@ -237,6 +256,7 @@ async def generate_plain_summary(
         cleaned = cleaned.strip("`").strip()
         if "\n" in cleaned:
             cleaned = cleaned.split("\n", 1)[1].strip()
+    cleaned = _strip_markdown(cleaned)
 
     if cleaned.upper().startswith(INSUFFICIENT) or not cleaned:
         return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
@@ -280,6 +300,7 @@ async def translate_summary(
         cleaned = cleaned.strip("`").strip()
         if "\n" in cleaned:
             cleaned = cleaned.split("\n", 1)[1].strip()
+    cleaned = _strip_markdown(cleaned)
 
     if not cleaned or cleaned.upper().startswith(INSUFFICIENT):
         return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
@@ -298,7 +319,9 @@ async def translate_summary(
 
 def _provider_name(settings: Settings) -> str:
     if settings.llm_provider == "mistral":
-        return "llm:mistral-small"
+        # The model actually used, for the audit trail and the "Resumen
+        # automático por …" caveat (older rows say "llm:mistral-small").
+        return f"llm:{settings.mistral_model}"
     if settings.llm_provider == "anthropic":
         return "llm:claude-haiku"
     if settings.llm_provider == "local_qwen":
@@ -347,7 +370,7 @@ async def _call_llm_for_text(settings: Settings, *, system: str, user: str) -> s
     # OpenAI-compatible (Mistral or Qwen)
     if settings.llm_provider == "mistral":
         base = "https://api.mistral.ai"
-        model = "mistral-small-latest"
+        model = settings.mistral_model
         api_key: str | None = settings.mistral_api_key
     else:  # local_qwen
         base = settings.qwen_base_url
