@@ -119,6 +119,16 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
     ("monitor-enrich-wikidata", "ingest", "0 3 * * *", jobs.enrich_persons_wikidata),
     ("monitor-enrich-wikipedia", "ingest", "30 3 * * *", jobs.enrich_persons_wikipedia),
     ("monitor-enrich-boe", "ingest", "0 4 * * *", jobs.enrich_initiatives_boe),
+    # PNL / motion texts from the BOCG (07:00, after the 06:50 PNL import),
+    # then plain summaries for any initiative that has text but no summary
+    # yet (07:05). Both capped per run; same queue, so they run in order.
+    ("monitor-motion-texts", "ingest", "0 7 * * *", jobs.enrich_motion_texts),
+    (
+        "monitor-summarise-pending",
+        "ingest",
+        "5 7 * * *",
+        jobs.summarise_pending_initiatives,
+    ),
     # Plain summaries must exist in both CA and ES. After the morning
     # ingests (06:45 initiatives, 06:50 PNL), translate any summary that
     # only landed in one language. Near no-op once the backlog is clear.
