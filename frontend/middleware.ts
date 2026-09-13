@@ -52,7 +52,29 @@ function negotiate(
   return defaultLocale;
 }
 
+/** ``/es``, ``/ca/votes/1``… — a locale-prefixed URL. */
+const LOCALE_PREFIX = /^\/(ca|es|en)(\/.*)?$/;
+
 export function middleware(request: NextRequest) {
+  // The site has no locale segment in its URLs (the locale lives in the
+  // NEXT_LOCALE cookie), but people naturally type or share
+  // holapolitica.org/es. Those used to 404. Treat the prefix as a
+  // language choice: set the cookie and redirect to the unprefixed path.
+  const prefixed = LOCALE_PREFIX.exec(request.nextUrl.pathname);
+  if (prefixed) {
+    const url = request.nextUrl.clone();
+    url.pathname = prefixed[2] || '/';
+    const redirect = NextResponse.redirect(url);
+    redirect.cookies.set({
+      name: COOKIE_NAME,
+      value: prefixed[1]!,
+      path: '/',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 365,
+    });
+    return redirect;
+  }
+
   const headers = new Headers(request.headers);
   headers.set('x-pathname', request.nextUrl.pathname);
   headers.set('x-search', request.nextUrl.search);

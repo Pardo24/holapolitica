@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { useMessages } from 'next-intl';
 
 import { termDefinitionCa } from '@/lib/glossary';
 
@@ -38,7 +39,13 @@ export function GlossaryTerm({
   children: React.ReactNode;
 }) {
   const id = useId();
-  const definition = termDefinitionCa(term);
+  // The definition comes from the locale's ``glossary`` messages (keyed
+  // by the canonical Catalan term). Read the raw map rather than calling
+  // ``t(term)``: next-intl would treat any "." in a key as nesting. The
+  // Catalan table in lib/glossary.ts is the fallback for terms a locale
+  // file doesn't carry yet.
+  const messages = useMessages() as { glossary?: Record<string, string> };
+  const definition = messages.glossary?.[term] ?? termDefinitionCa(term);
   const anchorRef = useRef<HTMLSpanElement>(null);
   const [flipBelow, setFlipBelow] = useState(false);
   const [open, setOpen] = useState(false);
@@ -97,7 +104,6 @@ export function GlossaryTerm({
         role="button"
         aria-haspopup="true"
         aria-expanded={open}
-        aria-label={`${term}: ${definition}`}
         aria-describedby={id}
       >
         {children}

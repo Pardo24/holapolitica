@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, ApiError, type Vote } from '@/lib/api';
+import { pickPlainSummary } from '@/lib/glossary';
 import { groupAbbreviation, readableTextOn } from '@/lib/groups';
 
 /**
@@ -88,11 +89,7 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
   }
 
   // AI-first headline, same rule as the vote page itself.
-  const plain =
-    (locale === 'es' ? vote.plain_summary_es : vote.plain_summary_ca) ??
-    vote.plain_summary_es ??
-    vote.plain_summary_ca ??
-    null;
+  const plain = pickPlainSummary(vote, locale);
   const subject = plain ?? (vote.description?.trim() || vote.title);
   const subjectShort =
     subject.length > 200 ? subject.slice(0, 197) + '…' : subject;

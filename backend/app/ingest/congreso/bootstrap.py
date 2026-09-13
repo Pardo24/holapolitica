@@ -23,6 +23,7 @@ import asyncio
 import sys
 from dataclasses import asdict, dataclass
 from datetime import UTC
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -332,7 +333,7 @@ async def import_initiatives() -> dict[str, InitiativeImportStats]:
     from app.classify.providers import build_classifier
     from app.classify.service import ClassificationService
     from app.models import Initiative
-    from app.services.plain_summary import generate_plain_summary
+    from app.services.plain_summary import generate_plain_summary, translate_summary
 
     async with AsyncSessionLocal() as session:
         chamber = await _get_congreso_chamber(session)
@@ -390,22 +391,32 @@ async def import_initiatives() -> dict[str, InitiativeImportStats]:
                 service = ClassificationService(enrich_session, classifier)
                 await service.classify_initiative(row.id)
                 enriched += 1
-                # Plain-language summaries (best-effort each lang).
+                # Plain-language summaries, CA + ES only (the English
+                # site reads the Spanish one). Same summarise-once-then-
+                # translate pipeline as the bootstrap steps: summarise
+                # the source into Spanish, then translate that into
+                # Catalan. Two independent summaries used to fail
+                # independently and leave one-language rows behind; now
+                # a Catalan summary only exists alongside its Spanish
+                # source, and ``repair_summary_language_gaps`` fills a
+                # failed translation on its next daily run.
                 # Prefer the bill's own "Exposición de motivos" prose
                 # over the open-data feed's ``summary`` field (which is
                 # almost always NULL): it gives the LLM a much richer
                 # input to distil down to 2-3 plain-language sentences.
                 body = row.object_text or row.summary
-                ca = await generate_plain_summary(title=row.title_original, body=body, lang="ca")
                 es = await generate_plain_summary(title=row.title_original, body=body, lang="es")
-                row.plain_summary_ca = ca.text
+                ca_text: str | None = None
+                if es.text:
+                    ca_text = (await translate_summary(text=es.text, target_lang="ca")).text
                 row.plain_summary_es = es.text
-                row.plain_summary_provider = ca.provider
+                row.plain_summary_ca = ca_text
+                row.plain_summary_provider = es.provider
                 from datetime import datetime
 
                 row.plain_summary_generated_at = datetime.now(UTC)
                 await enrich_session.commit()
-                summarised_ca += 1 if ca.text else 0
+                summarised_ca += 1 if ca_text else 0
                 summarised_es += 1 if es.text else 0
         except Exception as e:
             log.warning(
@@ -1018,6 +1029,86 @@ async def generate_vote_plain_summaries(lang: str = "ca") -> dict[str, int | str
         }
 
 
+async def _translate_missing_summaries(model: type[Any], *, target_lang: str) -> dict[str, int]:
+    """Translate the summary into ``target_lang`` for rows that only have the other language.
+
+    Works on any table with ``plain_summary_ca`` / ``plain_summary_es``
+    columns (initiatives and votes). Targets rows where the source
+    language is set and the target is NULL; per-row guarded, so a
+    failure just leaves that row for the next run.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.services.plain_summary import translate_summary
+
+    source_attr = "plain_summary_es" if target_lang == "ca" else "plain_summary_ca"
+    target_attr = f"plain_summary_{target_lang}"
+
+    async with AsyncSessionLocal() as session:
+        ids = list(
+            (
+                await session.execute(
+                    _select(model.id).where(
+                        getattr(model, source_attr).is_not(None),
+                        getattr(model, target_attr).is_(None),
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    ok = insufficient = errors = 0
+    for row_id in ids:
+        try:
+            async with AsyncSessionLocal() as inner:
+                row = (await inner.execute(_select(model).where(model.id == row_id))).scalar_one()
+                source = getattr(row, source_attr)
+                if not source:
+                    continue
+                result = await translate_summary(text=source, target_lang=target_lang)
+                setattr(row, target_attr, result.text)
+                if result.text or row.plain_summary_provider is None:
+                    row.plain_summary_provider = result.provider
+                    row.plain_summary_generated_at = datetime.now(UTC)
+                await inner.commit()
+                if result.text:
+                    ok += 1
+                else:
+                    insufficient += 1
+        except Exception as e:
+            errors += 1
+            log.warning(
+                "summary_gap.translate_error", row_id=row_id, target=target_lang, error=str(e)
+            )
+        await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
+    return {"seen": len(ids), "translated": ok, "insufficient": insufficient, "errors": errors}
+
+
+async def repair_summary_language_gaps() -> dict[str, dict[str, int]]:
+    """Make every plain summary exist in both Catalan and Spanish.
+
+    The site is bilingual for summaries (the English locale reads the
+    Spanish one), so a row with only one language shows a summary in one
+    locale and the raw official title in the other. This fills each gap
+    by translating the language that does exist: cheap (one short LLM
+    call per gap), idempotent, and a near no-op once the backlog is
+    clear. Scheduled daily after the morning ingests.
+    """
+    from app.models import Initiative, Vote
+
+    result = {
+        "initiatives_ca": await _translate_missing_summaries(Initiative, target_lang="ca"),
+        "votes_ca": await _translate_missing_summaries(Vote, target_lang="ca"),
+        "initiatives_es": await _translate_missing_summaries(Initiative, target_lang="es"),
+        "votes_es": await _translate_missing_summaries(Vote, target_lang="es"),
+    }
+    log.info("summary_gap.done", **result)
+    return result
+
+
 async def generate_vote_plain_summaries_es() -> dict[str, int | str]:
     """Bootstrap-friendly alias for the Spanish run on votes."""
     return await generate_vote_plain_summaries(lang="es")
@@ -1276,6 +1367,9 @@ _STEPS = {
     "plain_summaries_ca": translate_initiative_summaries_ca_from_es,
     "vote_plain_summaries_es": generate_vote_plain_summaries_es,
     "vote_plain_summaries_ca": translate_vote_summaries_ca_from_es,
+    # Fill any row that has a summary in only one of CA/ES (both tables,
+    # both directions). Also runs daily from the scheduler.
+    "summary_gaps": repair_summary_language_gaps,
     # Legacy step names: the bare names now point at the cheap Catalan
     # translation pass (was: re-summarise from source). The original
     # from-source Catalan summariser is still reachable as a function for

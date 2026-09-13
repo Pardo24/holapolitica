@@ -119,6 +119,15 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
     ("monitor-enrich-wikidata", "ingest", "0 3 * * *", jobs.enrich_persons_wikidata),
     ("monitor-enrich-wikipedia", "ingest", "30 3 * * *", jobs.enrich_persons_wikipedia),
     ("monitor-enrich-boe", "ingest", "0 4 * * *", jobs.enrich_initiatives_boe),
+    # Plain summaries must exist in both CA and ES. After the morning
+    # ingests (06:45 initiatives, 06:50 PNL), translate any summary that
+    # only landed in one language. Near no-op once the backlog is clear.
+    (
+        "monitor-summary-language-gaps",
+        "ingest",
+        "15 7 * * *",
+        jobs.repair_summary_language_gaps,
+    ),
 ]
 
 
