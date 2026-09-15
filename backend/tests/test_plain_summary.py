@@ -66,6 +66,11 @@ def test_editorial_phrases_are_rejected(phrase: str) -> None:
         "Refuerza la lucha contra los discursos de odio.",
         "Protegeix les infraestructures crítiques davant les amenaces.",
         "Estableix mesures davant l'amenaça terrorista.",
+        # Damages as a noun are facts a motion asks about, not a judgement;
+        # only the adjective "perjudicial" is banned.
+        "Analitzi els perjudicis econòmics de l'apagada.",
+        "Evalúe los perjuicios económicos del apagón.",
+        "Eviti que les lleis afavoreixin unes comunitats en perjudici d'altres.",
     ],
 )
 def test_neutral_phrases_with_lookalike_words_pass(phrase: str) -> None:
