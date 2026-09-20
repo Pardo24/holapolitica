@@ -64,6 +64,10 @@ export default async function ComEtRepresentenPage() {
               results_rest: t('results_rest'),
               results_of_votes: t.raw('results_of_votes'),
               results_top_caption: t.raw('results_top_caption'),
+              results_topics: t('results_topics'),
+              share: t('share'),
+              share_copied: t('share_copied'),
+              share_text: t.raw('share_text'),
             }}
           />
         )}

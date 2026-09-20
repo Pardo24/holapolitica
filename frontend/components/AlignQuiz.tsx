@@ -42,6 +42,10 @@ export interface AlignQuizLabels {
   results_rest: string;
   results_of_votes: string; // "{agree} de {compared} votacions"
   results_top_caption: string; // uses {name}, {agree}, {compared}
+  results_topics: string;
+  share: string;
+  share_copied: string;
+  share_text: string; // uses {name}, {pct}, {compared}
 }
 
 interface GroupResult {
@@ -65,6 +69,7 @@ export function AlignQuiz({
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
   const [done, setDone] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const total = questions.length;
 
@@ -88,6 +93,59 @@ export function AlignQuiz({
       .sort((a, b) => b.pct - a.pct || b.compared - a.compared);
   }, [answers, questions]);
 
+  // The same coincidence, bucketed by the topics each answered vote carries.
+  // One global percentage hides the interesting part: people rarely agree
+  // with the same group on housing and on defence. Ties are shown in full
+  // rather than broken arbitrarily, so the tool never invents a winner.
+  const byTopic = useMemo(() => {
+    interface Tally {
+      name: string;
+      agree: number;
+      compared: number;
+    }
+    const agg = new Map<string, { topic: string; groups: Map<string, Tally> }>();
+    for (const q of questions) {
+      const ua = answers[q.vote_id];
+      if (!ua || ua === 'skip') continue;
+      for (const tp of q.topics) {
+        const bucket = agg.get(tp.slug) ?? { topic: pickTopicName(tp, locale), groups: new Map() };
+        for (const p of q.group_positions) {
+          const g = bucket.groups.get(p.slug) ?? {
+            name: displayGroupShort(p.name_short),
+            agree: 0,
+            compared: 0,
+          };
+          g.compared += 1;
+          if (p.choice === ua) g.agree += 1;
+          bucket.groups.set(p.slug, g);
+        }
+        agg.set(tp.slug, bucket);
+      }
+    }
+    return [...agg.entries()]
+      .map(([slug, b]) => {
+        const tallies = [...b.groups.values()].filter((g) => g.compared > 0);
+        if (tallies.length === 0) return null;
+        const best = Math.max(...tallies.map((g) => g.agree / g.compared));
+        const winners = tallies.filter((g) => g.agree / g.compared === best);
+        const first = winners[0];
+        if (!first) return null;
+        return {
+          slug,
+          topic: b.topic,
+          names: winners
+            .slice(0, 3)
+            .map((g) => g.name)
+            .join(' · '),
+          agree: first.agree,
+          compared: first.compared,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null && x.compared >= 2)
+      .sort((a, b) => b.compared - a.compared)
+      .slice(0, 6);
+  }, [answers, questions, locale]);
+
   const answeredCount = useMemo(
     () => Object.values(answers).filter((a) => a !== 'skip').length,
     [answers],
@@ -105,6 +163,25 @@ export function AlignQuiz({
     setAnswers({});
     setIdx(0);
     setDone(false);
+    setCopied(false);
+  }
+
+  async function share() {
+    const top = results[0];
+    if (!top) return;
+    const text = `${labels.share_text
+      .replace('{name}', top.name)
+      .replace('{pct}', String(Math.round(top.pct * 100)))
+      .replace('{compared}', String(top.compared))} ${window.location.origin}/com-et-representen`;
+    try {
+      if (navigator.share) await navigator.share({ text });
+      else {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+      }
+    } catch {
+      /* dismissed or clipboard blocked */
+    }
   }
 
   if (total === 0) return null;
@@ -165,6 +242,53 @@ export function AlignQuiz({
           </>
         )}
 
+        {byTopic.length > 0 && (
+          <>
+            <p style={{ ...EYEBROW, marginTop: 22 }}>{labels.results_topics}</p>
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              {byTopic.map((t) => (
+                <li
+                  key={t.slug}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    gap: 10,
+                    padding: '9px 11px',
+                    borderRadius: 10,
+                    border: '1px solid var(--rule)',
+                    background: 'var(--paper-2)',
+                  }}
+                >
+                  <span style={{ fontSize: 13, color: 'var(--ink-2)', minWidth: 0 }}>{t.topic}</span>
+                  <span style={{ fontSize: 13, textAlign: 'right', minWidth: 0 }}>
+                    <span style={{ fontWeight: 600, color: 'var(--ink)', overflowWrap: 'anywhere' }}>
+                      {t.names}
+                    </span>
+                    <span
+                      className="tabular"
+                      style={{ color: 'var(--ink-3)', marginLeft: 6, whiteSpace: 'nowrap' }}
+                    >
+                      {labels.results_of_votes
+                        .replace('{agree}', String(t.agree))
+                        .replace('{compared}', String(t.compared))}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
         <p
           style={{
             marginTop: 18,
@@ -180,9 +304,27 @@ export function AlignQuiz({
           {labels.neutrality_note}
         </p>
 
-        <button type="button" onClick={restart} className="btn-ink btn-sm" style={{ marginTop: 16 }}>
-          {labels.restart}
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+          <button type="button" onClick={restart} className="btn-ink btn-sm">
+            {labels.restart}
+          </button>
+          {results.length > 0 && (
+            <button
+              type="button"
+              onClick={share}
+              className="btn-sm"
+              style={{
+                border: '1px solid var(--rule-strong)',
+                borderRadius: 8,
+                background: 'var(--paper)',
+                color: 'var(--ink)',
+                cursor: 'pointer',
+              }}
+            >
+              {copied ? labels.share_copied : labels.share}
+            </button>
+          )}
+        </div>
       </div>
     );
   }

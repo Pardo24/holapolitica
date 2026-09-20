@@ -869,6 +869,10 @@
     "results_rest": "Todos los grupos",
     "results_of_votes": "{agree} de {compared} votaciones",
     "results_top_caption": "Has coincidido con {name} en {agree} de las {compared} votaciones que has respondido.",
+    "results_topics": "Por temas",
+    "share": "Comparte el resultado",
+    "share_copied": "Copiado",
+    "share_text": "He coincidido más con {name} ({pct}%) en {compared} votaciones reales del Congreso.",
     "view_vote": "Ver la votación original"
   },
   "hub": {

@@ -869,6 +869,10 @@
     "results_rest": "Tots els grups",
     "results_of_votes": "{agree} de {compared} votacions",
     "results_top_caption": "Has coincidit amb {name} en {agree} de les {compared} votacions que has respost.",
+    "results_topics": "Per temes",
+    "share": "Comparteix el resultat",
+    "share_copied": "Copiat",
+    "share_text": "He coincidit més amb {name} ({pct}%) en {compared} votacions reals del Congrés.",
     "view_vote": "Veure la votació original"
   },
   "hub": {

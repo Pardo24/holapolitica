@@ -36,6 +36,14 @@ const nextConfig = {
       // in is an env change, not a code change. The canonical path
       // Android fetches is /.well-known/assetlinks.json.
       { source: '/.well-known/assetlinks.json', destination: '/api/assetlinks' },
+      // Apple Universal Links, same pattern: the iOS entitlements claim
+      // applinks:holapolitica.org, and iOS only honours that claim if this
+      // path answers. Content is driven by APPLE_TEAM_ID. Note Apple fetches
+      // the path WITHOUT a .json extension.
+      {
+        source: '/.well-known/apple-app-site-association',
+        destination: '/api/apple-app-site-association',
+      },
     ];
   },
   async headers() {
