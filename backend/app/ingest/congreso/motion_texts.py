@@ -42,8 +42,13 @@ _DETAIL_PATH = (
     "&p_p_mode=view&_iniciativas_mode=mostrarDetalle"
     "&_iniciativas_legislatura={legislature}&_iniciativas_id={expediente}"
 )
+# Serie D bulletins come in two shapes: the plain issue
+# (``BOCG-15-D-578.PDF``) and a per-part "cuadernillo"
+# (``BOCG-15-D-222-C1.PDF``). Missing the second form is what left 86
+# initiatives counted as ``no_link`` — most mociones publish that way.
 _BOCG_D_LINK = re.compile(
-    r"/public_oficiales/L\d+/CONG/BOCG/D/BOCG-\d+-D-\d+\.PDF(?:#page=(\d+))?", re.IGNORECASE
+    r"/public_oficiales/L\d+/CONG/BOCG/D/BOCG-\d+-D-\d+(?:-[A-Z]+\d*)?\.PDF(?:#page=(\d+))?",
+    re.IGNORECASE,
 )
 # An item header inside a Serie D bulletin: an expediente alone on its line.
 _ITEM_HEADER = re.compile(r"^\s*\d{3}/\d{6}(?:/\d{4})?\s*$", re.MULTILINE)

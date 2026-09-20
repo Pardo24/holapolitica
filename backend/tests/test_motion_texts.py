@@ -37,6 +37,13 @@ def test_finds_the_serie_d_link_and_page() -> None:
     assert find_bocg_d_link("<p>sin publicaciones</p>") is None
 
 
+def test_finds_the_cuadernillo_form() -> None:
+    # Most mociones publish as a per-part "cuadernillo" (…-D-222-C1.PDF).
+    # Matching only the plain issue left them counted as "no link".
+    html = '<a href="/public_oficiales/L15/CONG/BOCG/D/BOCG-15-D-222-C1.PDF#page=18">PDF</a>'
+    assert find_bocg_d_link(html) == ("/public_oficiales/L15/CONG/BOCG/D/BOCG-15-D-222-C1.PDF", 18)
+
+
 def test_slices_one_item_from_its_header_to_the_next() -> None:
     body = slice_item_text(_BULLETIN, "162/000833")
     assert body is not None
