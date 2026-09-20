@@ -241,10 +241,13 @@ export function AlignQuiz({
             <h2
               className="serif"
               style={{
-                fontSize: 19,
+                // Summaries run from 20 to 80 words. At a fixed 19px the long
+                // ones pushed the answer buttons a full screen below the fold
+                // on a phone, which is most of the traffic.
+                fontSize: 'clamp(16px, 4vw, 19px)',
                 fontWeight: 600,
                 margin: '0 0 12px',
-                lineHeight: 1.45,
+                lineHeight: 1.4,
                 color: 'var(--ink)',
               }}
             >
