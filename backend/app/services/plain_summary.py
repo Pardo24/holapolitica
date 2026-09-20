@@ -209,6 +209,10 @@ REGLES:
 - No afegeixis ni treguis informació. No reescriguis ni interpretis.
 - No introdueixis cap valoració que no sigui a l'original.
 - Conserva els noms de lleis i institucions de manera natural en català.
+- Català normatiu central. Subjuntiu correcte: "comparteixi", "exigeixi", \
+"garanteixi", "respecti", "convoqui", "dimiteixi" (mai "compartisci", \
+"exigisci", "respeti", "convoqua"). "Dimita" és "dimiteixi", no "dimensioni". \
+"Maltrato" és "maltractament".
 
 Retorna NOMÉS la traducció al català, sense pròleg, cometes ni disclaimer.
 """
@@ -248,7 +252,11 @@ _BANNED_TERMS = (
     # Value judgments
     "innecesari",  # innecesaria/o
     "innecessari",
-    "perjudic",  # perjudicial, perjudica
+    # Only the evaluative adjective. The bare stem also matched the nouns
+    # "perjuicios"/"perjudicis" (damages) and "en perjudici de", which PNL
+    # summaries need when they report what a motion asks ("evaluate the
+    # economic damages of the blackout").
+    "perjudicial",
     # Only the evaluative ADJECTIVE ("es beneficioso/beneficiosa") — NOT the
     # neutral noun "beneficios" (benefits), which is factual and was wrongly
     # rejecting valid summaries like "derechos y beneficios de las familias".
@@ -335,6 +343,11 @@ async def generate_plain_summary(
     prompt = prompts.get(lang)
     if prompt is None:
         raise ValueError(f"Unsupported lang for plain summary: {lang!r}")
+    if kind in _MOTION_KINDS and not (body and body.strip()):
+        # A PNL / motion title ("... relativa a la vivienda") never says what
+        # is asked, and the model fills the gap with a plausible guess. Wait
+        # for the BOCG text (motion_texts) instead of calling the model.
+        return PlainSummaryResult(text=None, provider=_provider_name(s), raw="")
 
     label_title = "Títol" if lang == "ca" else "Título"
     label_body = "Text oficial" if lang == "ca" else "Texto oficial"

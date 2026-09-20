@@ -37,6 +37,22 @@ async def test_laws_keep_the_what_it_does_prompt(captured: list[str]) -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("body", [None, "", "   "])
+async def test_motions_without_text_skip_the_model(captured: list[str], body: str | None) -> None:
+    # A title alone never says what a PNL asks; the model would guess.
+    result = await ps.generate_plain_summary(title="PNL sobre vivienda", body=body, kind="mocion")
+    assert result.text is None
+    assert captured == []
+
+
+@pytest.mark.asyncio
+async def test_laws_without_text_still_use_the_title(captured: list[str]) -> None:
+    result = await ps.generate_plain_summary(title="Ley", body=None, lang="es", kind="proyecto_ley")
+    assert result.text is not None
+    assert len(captured) == 1
+
+
+@pytest.mark.asyncio
 async def test_catalan_motion_prompt(captured: list[str]) -> None:
     await ps.generate_plain_summary(title="Moció", body="text", lang="ca", kind="mocion")
     assert "QUÈ DEMANA" in captured[0]
