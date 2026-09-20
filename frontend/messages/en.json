@@ -863,6 +863,12 @@
     "neutrality_note": "This is your coincidence with each group's real vote on these specific votes. It is not a voting recommendation or an assessment of the groups.",
     "restart": "Start over",
     "none_answered": "You didn't answer any vote. Start over and pick a stance to see the results.",
+    "question_label": "What was voted",
+    "official_title": "Official title",
+    "results_podium": "Who you coincide with most",
+    "results_rest": "All groups",
+    "results_of_votes": "{agree} of {compared} votes",
+    "results_top_caption": "You voted like {name} on {agree} of the {compared} votes you answered.",
     "view_vote": "View the original vote"
   },
   "hub": {

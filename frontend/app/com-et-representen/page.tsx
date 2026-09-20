@@ -55,6 +55,12 @@ export default async function ComEtRepresentenPage() {
               restart: t('restart'),
               none_answered: t('none_answered'),
               view_vote: t('view_vote'),
+              question_label: t('question_label'),
+              official_title: t('official_title'),
+              results_podium: t('results_podium'),
+              results_rest: t('results_rest'),
+              results_of_votes: t('results_of_votes'),
+              results_top_caption: t('results_top_caption'),
             }}
           />
         )}

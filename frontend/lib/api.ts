@@ -654,6 +654,8 @@ export interface AlignGroupPosition {
 export interface AlignTopic {
   slug: string;
   name_ca: string;
+  name_es?: string | null;
+  name_en?: string | null;
   color_hex?: string | null;
 }
 
