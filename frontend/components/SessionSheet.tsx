@@ -22,7 +22,7 @@ import { StackedBar } from '@/components/StackedBar';
 import { Tooltip } from '@/components/Tooltip';
 import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
-import { pickPlainSummary } from '@/lib/glossary';
+import { pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
 import {
   fateResult,
   fateVote,
@@ -74,6 +74,7 @@ export async function SessionSheet({
   locale: string;
 }) {
   const t = await getTranslations('session_sheet');
+  const tCommon = await getTranslations('common');
 
   // Resolve the per-group ``logo_url`` so each VoteRow can render a
   // proper branded badge instead of a generic colored dot. Today
@@ -163,6 +164,15 @@ export async function SessionSheet({
     finalTag: t('law_vote_final_tag'),
   };
   const topicSlugsOf = (v: Vote): string => (v.topics ?? []).map((tp) => tp.slug).join(' ');
+  // Procedural votes carry no initiative and so never get a summary; their
+  // description only restates the title. Say what the procedure does instead
+  // of leaving the row as bare legalese. The key is a fixed slug, hence the
+  // cast for the typed t().
+  const proceduralNoteFor = (v: Vote): string | null => {
+    if (pickPlainSummary(v, locale)) return null;
+    const key = proceduralExplainerKey(v.title, v.description);
+    return key ? (tCommon as unknown as (k: string) => string)(`procedural_${key}`) : null;
+  };
   const renderEntry = (entry: SessionEntry, kind: VoteKind) => {
     if (entry.kind === 'law') {
       const lead = entry.votes[0]!;
@@ -208,6 +218,7 @@ export async function SessionSheet({
         stanceLabels={stanceLabels}
         noBreakLabels={noBreakLabels}
         stageHint={stageHintFor(v)}
+        proceduralNote={proceduralNoteFor(v)}
         topicSlugs={topicSlugsOf(v)}
       />
     );
@@ -1267,6 +1278,7 @@ function VoteRow({
   stanceLabels,
   noBreakLabels,
   stageHint,
+  proceduralNote,
   topicSlugs,
 }: {
   vote: Vote;
@@ -1289,6 +1301,8 @@ function VoteRow({
   stanceLabels: StanceLabels;
   noBreakLabels: Record<NoBreakdownReason, string>;
   stageHint?: string | null;
+  /** What this kind of procedural vote does, when no summary exists. */
+  proceduralNote?: string | null;
   /** Space-separated topic slugs, read by the session topic filter. */
   topicSlugs: string;
 }) {
@@ -1405,6 +1419,18 @@ function VoteRow({
             </span>
           </div>
           {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
+          {proceduralNote && (
+            <p
+              style={{
+                margin: '6px 0 0',
+                fontSize: 12.5,
+                lineHeight: 1.5,
+                color: 'var(--ink-2)',
+              }}
+            >
+              {proceduralNote}
+            </p>
+          )}
           {/* Who voted what comes before the metadata: it is the answer
               the reader came for. */}
           {stance && stance.length > 0 ? (

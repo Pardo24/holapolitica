@@ -1408,7 +1408,16 @@
     "page": "Page",
     "totals": "Totals",
     "plain_summary_title": "In plain language",
-    "plain_summary_caveat": "Automatic summary by {provider}. May contain inaccuracies; the official text is the authoritative source."
+    "plain_summary_caveat": "Automatic summary by {provider}. May contain inaccuracies; the official text is the authoritative source.",
+    "procedural_single_reading": "Direct single-reading procedure: the plenary agrees to pass the text in one vote, skipping the committee stage.",
+    "procedural_totality_amendment": "Wholesale amendment: proposes returning the text to its author or replacing it entirely with another.",
+    "procedural_rules_reform": "Reform of the Congress rules of procedure: changes the internal rules governing how the chamber works.",
+    "procedural_deputies_statute": "Statute of Deputies: the plenary rules on deputies' declarations of activities and assets.",
+    "procedural_court_of_auditors": "Court of Auditors: the plenary rules on the audit of public accounts.",
+    "procedural_stability_targets": "Budget stability targets: Congress approves or rejects the deficit and debt limits set by the government.",
+    "procedural_deadline_extension": "Deadline extension: gives a committee more time to finish its work.",
+    "procedural_new_committee": "New committee: the plenary decides to create a new parliamentary committee.",
+    "procedural_committee_report": "Committee report: the plenary votes on the conclusions of a parliamentary working group."
   },
   "glossary": {
     "Proposició de Llei": "Legislative initiative filed by parliamentary groups in the Congress.",
