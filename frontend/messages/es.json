@@ -863,6 +863,12 @@
     "neutrality_note": "Esta es tu coincidencia con el voto real de cada grupo en estas votaciones concretas. No es una recomendación de voto ni una valoración de los grupos.",
     "restart": "Volver a empezar",
     "none_answered": "No has respondido ninguna votación. Vuelve a empezar y elige una postura para ver los resultados.",
+    "question_label": "Qué se votaba",
+    "official_title": "Título oficial",
+    "results_podium": "Con quién coincides más",
+    "results_rest": "Todos los grupos",
+    "results_of_votes": "{agree} de {compared} votaciones",
+    "results_top_caption": "Has coincidido con {name} en {agree} de las {compared} votaciones que has respondido.",
     "view_vote": "Ver la votación original"
   },
   "hub": {

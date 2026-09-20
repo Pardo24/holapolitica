@@ -60,6 +60,10 @@ class _Chosen(NamedTuple):
 class AlignTopic(BaseModel):
     slug: str
     name_ca: str
+    # The quiz renders in the reader's language, so the chips ship all three
+    # names (they were Catalan-only on a Spanish page before).
+    name_es: str | None = None
+    name_en: str | None = None
     color_hex: str | None = None
 
 
@@ -215,7 +219,13 @@ async def align_questions(
             ).all()
             for initiative_id, topic in topic_rows:
                 topics_by_initiative[initiative_id].append(
-                    AlignTopic(slug=topic.slug, name_ca=topic.name_ca, color_hex=topic.color_hex)
+                    AlignTopic(
+                        slug=topic.slug,
+                        name_ca=topic.name_ca,
+                        name_es=topic.name_es,
+                        name_en=topic.name_en,
+                        color_hex=topic.color_hex,
+                    )
                 )
 
         out: list[AlignQuestion] = []

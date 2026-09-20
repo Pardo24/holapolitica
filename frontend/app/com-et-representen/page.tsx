@@ -41,20 +41,29 @@ export default async function ComEtRepresentenPage() {
             questions={questions}
             locale={locale}
             labels={{
-              progress: t('progress'),
+              // Templated strings go through t.raw: the component fills the
+              // placeholders itself, and t() would parse them as ICU
+              // arguments and fail. Same pattern as the Trivia page.
+              progress: t.raw('progress'),
               aye: t('stance_aye'),
               no: t('stance_no'),
               abstention: t('stance_abstention'),
               skip: t('skip'),
               back: t('back'),
               results_title: t('results_title'),
-              results_intro: t('results_intro'),
+              results_intro: t.raw('results_intro'),
               coincidence_unit: t('coincidence_unit'),
-              votes_compared: t('votes_compared'),
+              votes_compared: t.raw('votes_compared'),
               neutrality_note: t('neutrality_note'),
               restart: t('restart'),
               none_answered: t('none_answered'),
               view_vote: t('view_vote'),
+              question_label: t('question_label'),
+              official_title: t('official_title'),
+              results_podium: t('results_podium'),
+              results_rest: t('results_rest'),
+              results_of_votes: t.raw('results_of_votes'),
+              results_top_caption: t.raw('results_top_caption'),
             }}
           />
         )}
