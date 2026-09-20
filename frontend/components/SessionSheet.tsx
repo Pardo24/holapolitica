@@ -194,6 +194,7 @@ export async function SessionSheet({
           outcomeLabelFor={outcomeLabelFor}
           stageHintFor={stageHintFor}
           marginLabel={marginLabel}
+          proceduralNote={proceduralNoteFor(lead)}
           topicSlugs={topicSlugsOf(lead)}
         />
       );
@@ -982,6 +983,7 @@ function LawVoteGroup({
   outcomeLabelFor,
   stageHintFor,
   marginLabel,
+  proceduralNote,
   topicSlugs,
 }: {
   votes: Vote[];
@@ -996,6 +998,8 @@ function LawVoteGroup({
   outcomeLabelFor: (v: Vote) => string;
   stageHintFor: (v: Vote) => string | null;
   marginLabel: (margin: number) => string;
+  /** What this kind of procedural vote does, when no summary exists. */
+  proceduralNote?: string | null;
   /** Space-separated topic slugs, read by the session topic filter. */
   topicSlugs: string;
 }) {
@@ -1090,6 +1094,11 @@ function LawVoteGroup({
             </span>
           </div>
           {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
+          {proceduralNote && (
+            <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+              {proceduralNote}
+            </p>
+          )}
           {/* Who voted what comes before the metadata: it is the answer the
               reader came for. Point-by-point motions show it per point. */}
           {!byPoints &&
