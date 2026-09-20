@@ -869,6 +869,10 @@
     "results_rest": "All groups",
     "results_of_votes": "{agree} of {compared} votes",
     "results_top_caption": "You voted like {name} on {agree} of the {compared} votes you answered.",
+    "results_topics": "By topic",
+    "share": "Share the result",
+    "share_copied": "Copied",
+    "share_text": "I voted like {name} most ({pct}%) across {compared} real Congreso votes.",
     "view_vote": "View the original vote"
   },
   "hub": {
