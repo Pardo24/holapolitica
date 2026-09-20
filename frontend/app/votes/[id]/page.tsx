@@ -52,7 +52,7 @@ import {
   type VoteHemicycleLayout,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
-import { pickPlainSummary } from '@/lib/glossary';
+import { pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
 
 interface Params {
@@ -343,6 +343,14 @@ export default async function VoteDetailPage({
   const hasTotals = totalCast + vote.absent > 0;
   const margin = vote.ayes - vote.noes;
   const summary = pickPlainSummary(vote, locale);
+  // No summary and none coming: 157 counted votes this legislature are pure
+  // procedure, carry no initiative, and their description only restates the
+  // title. We can't summarise what isn't there, but we CAN say what this kind
+  // of vote does. The key is a fixed slug, hence the cast for the typed t().
+  const proceduralKey = summary ? null : proceduralExplainerKey(vote.title, vote.description);
+  const proceduralNote = proceduralKey
+    ? (tCommon as unknown as (key: string) => string)(`procedural_${proceduralKey}`)
+    : null;
 
   const topics = vote.topics ?? initiative?.topics ?? [];
 
@@ -455,6 +463,23 @@ export default async function VoteDetailPage({
           >
             <AnnotatedText text={subject} />
           </h1>
+        )}
+        {proceduralNote && (
+          <p
+            style={{
+              margin: '0 0 18px',
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: '1px solid var(--rule)',
+              background: 'var(--paper-2)',
+              fontSize: 13,
+              lineHeight: 1.5,
+              color: 'var(--ink-2)',
+              maxWidth: 860,
+            }}
+          >
+            {proceduralNote}
+          </p>
         )}
 
         {/* Meta strip — dot-separated, low-chrome */}

@@ -333,3 +333,39 @@ export function pickPlainSummary(
   if (locale === 'ca') return obj.plain_summary_ca ?? obj.plain_summary_es ?? null;
   return obj.plain_summary_es ?? null;
 }
+
+/**
+ * Identify a purely procedural vote from its wording.
+ *
+ * 157 counted votes of this legislature carry no initiative and therefore
+ * no plain summary, and their ``description`` only restates the title
+ * ("Tramitación directa y en lectura única de Proposición de reforma del
+ * Reglamento..."). Asking a model to summarise that would invent content:
+ * the title IS all there is. What a reader actually misses is what this
+ * KIND of vote does, so we explain the procedure instead, from a fixed
+ * list. Returns the message key suffix under ``common.procedural_*``, or
+ * null when the wording isn't one we can explain honestly.
+ *
+ * Order matters: the most specific wording wins, since a single title can
+ * mention both a reform of the Reglamento and its single-reading handling.
+ */
+const PROCEDURAL_PATTERNS: readonly (readonly [RegExp, string])[] = [
+  [/enmienda a la totalidad/i, 'totality_amendment'],
+  [/pr[óo]rroga del plazo/i, 'deadline_extension'],
+  [/creaci[óo]n de\s+(una\s+)?comisi[óo]n/i, 'new_committee'],
+  [/objetivos de estabilidad presupuestaria/i, 'stability_targets'],
+  [/estatuto de los diputados/i, 'deputies_statute'],
+  [/tribunal de cuentas/i, 'court_of_auditors'],
+  [/tramitaci[óo]n directa y en lectura [úu]nica/i, 'single_reading'],
+  [/reforma del reglamento/i, 'rules_reform'],
+  [/informe de la (sub)?comisi[óo]n|informe de la ponencia/i, 'committee_report'],
+];
+
+export function proceduralExplainerKey(...texts: (string | null | undefined)[]): string | null {
+  const haystack = texts.filter(Boolean).join(' ');
+  if (!haystack) return null;
+  for (const [pattern, key] of PROCEDURAL_PATTERNS) {
+    if (pattern.test(haystack)) return key;
+  }
+  return null;
+}

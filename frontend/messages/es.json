@@ -1408,7 +1408,16 @@
     "page": "Página",
     "totals": "Totales",
     "plain_summary_title": "En llano",
-    "plain_summary_caveat": "Resumen automático por {provider}. Puede contener imprecisiones; el texto legal es la fuente autorizada."
+    "plain_summary_caveat": "Resumen automático por {provider}. Puede contener imprecisiones; el texto legal es la fuente autorizada.",
+    "procedural_single_reading": "Tramitación directa y en lectura única: el Pleno acuerda aprobar el texto en una sola votación, sin pasar por ponencia ni comisión.",
+    "procedural_totality_amendment": "Enmienda a la totalidad: propone devolver el texto a quien lo presentó o sustituirlo entero por otro.",
+    "procedural_rules_reform": "Reforma del Reglamento del Congreso: cambia las normas internas que regulan cómo funciona la cámara.",
+    "procedural_deputies_statute": "Estatuto de los Diputados: el Pleno se pronuncia sobre las declaraciones de actividades y bienes de los diputados.",
+    "procedural_court_of_auditors": "Tribunal de Cuentas: el Pleno se pronuncia sobre la fiscalización de las cuentas públicas.",
+    "procedural_stability_targets": "Objetivos de estabilidad presupuestaria: el Congreso aprueba o rechaza los límites de déficit y deuda que fija el Gobierno.",
+    "procedural_deadline_extension": "Prórroga de plazo: alarga el tiempo del que dispone una comisión para terminar su trabajo.",
+    "procedural_new_committee": "Creación de una comisión: el Pleno decide crear una nueva comisión parlamentaria.",
+    "procedural_committee_report": "Informe de comisión: el Pleno vota las conclusiones de un grupo de trabajo parlamentario."
   },
   "glossary": {
     "Proposició de Llei": "Iniciativa legislativa que presentan grupos parlamentarios del Congreso.",

@@ -1408,7 +1408,16 @@
     "page": "Pàgina",
     "totals": "Totals",
     "plain_summary_title": "En pla",
-    "plain_summary_caveat": "Resum automàtic per {provider}. Pot contenir imprecisions; el text legal és la font autoritzada."
+    "plain_summary_caveat": "Resum automàtic per {provider}. Pot contenir imprecisions; el text legal és la font autoritzada.",
+    "procedural_single_reading": "Tramitació directa i en lectura única: el Ple acorda aprovar el text en una sola votació, sense passar per ponència ni comissió.",
+    "procedural_totality_amendment": "Esmena a la totalitat: proposa retornar el text a qui el va presentar o substituir-lo sencer per un altre.",
+    "procedural_rules_reform": "Reforma del Reglament del Congrés: canvia les normes internes que regulen com funciona la cambra.",
+    "procedural_deputies_statute": "Estatut dels Diputats: el Ple es pronuncia sobre les declaracions d'activitats i béns dels diputats.",
+    "procedural_court_of_auditors": "Tribunal de Comptes: el Ple es pronuncia sobre la fiscalització dels comptes públics.",
+    "procedural_stability_targets": "Objectius d'estabilitat pressupostària: el Congrés aprova o rebutja els límits de dèficit i deute que fixa el Govern.",
+    "procedural_deadline_extension": "Pròrroga de termini: allarga el temps de què disposa una comissió per acabar la seva feina.",
+    "procedural_new_committee": "Creació d'una comissió: el Ple decideix crear una comissió parlamentària nova.",
+    "procedural_committee_report": "Informe de comissió: el Ple vota les conclusions d'un grup de treball parlamentari."
   },
   "glossary": {
     "Proposició de Llei": "Iniciativa legislativa que presenten grups parlamentaris del Congrés. Si s'aprova, esdevé llei vigent.",
