@@ -1417,7 +1417,10 @@
     "procedural_stability_targets": "Objetivos de estabilidad presupuestaria: el Congreso aprueba o rechaza los límites de déficit y deuda que fija el Gobierno.",
     "procedural_deadline_extension": "Prórroga de plazo: alarga el tiempo del que dispone una comisión para terminar su trabajo.",
     "procedural_new_committee": "Creación de una comisión: el Pleno decide crear una nueva comisión parlamentaria.",
-    "procedural_committee_report": "Informe de comisión: el Pleno vota las conclusiones de un grupo de trabajo parlamentario."
+    "procedural_committee_report": "Informe de comisión: el Pleno vota las conclusiones de un grupo de trabajo parlamentario.",
+    "procedural_treaty": "Tratado internacional: el Congreso autoriza (o no) que España se comprometa con este acuerdo con otros estados u organismos.",
+    "procedural_constitutional_reform": "Reforma constitucional: propuesta para cambiar un artículo de la Constitución, que exige mayorías reforzadas.",
+    "procedural_government_submission": "El Gobierno remite un documento a las Cortes para que el Congreso se pronuncie sobre él."
   },
   "glossary": {
     "Proposició de Llei": "Iniciativa legislativa que presentan grupos parlamentarios del Congreso.",

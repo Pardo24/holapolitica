@@ -351,21 +351,42 @@ export function pickPlainSummary(
  */
 const PROCEDURAL_PATTERNS: readonly (readonly [RegExp, string])[] = [
   [/enmienda a la totalidad/i, 'totality_amendment'],
-  [/pr[óo]rroga del plazo/i, 'deadline_extension'],
-  [/creaci[óo]n de\s+(una\s+)?comisi[óo]n/i, 'new_committee'],
+  [/pr[óo]rroga/i, 'deadline_extension'],
+  [/creaci[óo]n de\s+(una\s+)?(sub)?comisi[óo]n/i, 'new_committee'],
   [/objetivos de estabilidad presupuestaria/i, 'stability_targets'],
-  [/estatuto de los diputados/i, 'deputies_statute'],
+  // "Acuerdo del Gobierno por el que se remite…" is the cabinet sending a
+  // document over, NOT a treaty; it must be tested before the treaty rule.
+  [/acuerdo del gobierno por el que se remite/i, 'government_submission'],
+  [/reforma (del art[íi]culo .*de la constituci[óo]n|constitucional)/i, 'constitutional_reform'],
+  [/(comisi[óo]n del )?estatuto de los diputados|comisi[óo]n del estatuto/i, 'deputies_statute'],
   [/tribunal de cuentas/i, 'court_of_auditors'],
+  // Before the treaty rule: "Acuerdo de tramitación directa…" opens with
+  // "Acuerdo" but is procedure, not a treaty.
   [/tramitaci[óo]n directa y en lectura [úu]nica/i, 'single_reading'],
   [/reforma del reglamento/i, 'rules_reform'],
   [/informe de la (sub)?comisi[óo]n|informe de la ponencia/i, 'committee_report'],
+  // Treaty ratifications (article 94 CE) are the biggest group of votes with
+  // no summary: 52 this legislature, under many wordings ("Acuerdo de Sede",
+  // "Convención de las Naciones Unidas", "Acuerdo Global de Transporte
+  // Aéreo"). Matched last and anchored at the start, so every procedural
+  // rule above wins over it.
+  [
+    /^\s*(tratado|convenci[óo]n|convenio|protocolo|canje de notas|acuerdo|enmienda al acuerdo)\b/i,
+    'treaty',
+  ],
 ];
 
 export function proceduralExplainerKey(...texts: (string | null | undefined)[]): string | null {
-  const haystack = texts.filter(Boolean).join(' ');
-  if (!haystack) return null;
+  // Each text is tested on its own, never concatenated: the treaty rule is
+  // anchored at the start, and a vote's title ("Dictámenes de la Comisión de
+  // Asuntos Exteriores sobre Convenios internacionales.") often precedes the
+  // description that actually names the treaty. Patterns loop on the outside
+  // so their priority order still decides.
+  const candidates = texts.map((t) => t?.trim()).filter((t): t is string => Boolean(t));
   for (const [pattern, key] of PROCEDURAL_PATTERNS) {
-    if (pattern.test(haystack)) return key;
+    for (const text of candidates) {
+      if (pattern.test(text)) return key;
+    }
   }
   return null;
 }
