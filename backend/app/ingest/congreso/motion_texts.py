@@ -60,6 +60,12 @@ _LEGISLATURE = "XV"
 _LEGISLATURE_START = date(2023, 8, 17)
 _FETCH_DELAY_S = 0.5
 _PAGES_TO_READ = 8
+# The ``#page=`` anchor sometimes points at the page where the item ENDS, not
+# where its header is, so reading only forwards missed the expediente header
+# entirely (3 initiatives came back as "not found" with their bulletin in
+# hand). Start a few pages earlier; text before the header is discarded by
+# ``slice_item_text`` anyway.
+_PAGES_BACK = 3
 _MAX_CHARS = 8000
 _MIN_CHARS = 80
 
@@ -168,8 +174,8 @@ async def enrich_motion_texts(*, limit: int = 150) -> dict[str, int]:
                     reader = PdfReader(io.BytesIO(pdf.content))
                     readers[path] = reader
                     stats["pdfs"] += 1
-                first = max(0, (page or 1) - 1)
-                last = min(first + _PAGES_TO_READ, len(reader.pages))
+                first = max(0, (page or 1) - 1 - _PAGES_BACK)
+                last = min(first + _PAGES_TO_READ + _PAGES_BACK, len(reader.pages))
                 text = "\n".join(reader.pages[i].extract_text() or "" for i in range(first, last))
                 body = slice_item_text(text, expediente)
                 if body is None:
