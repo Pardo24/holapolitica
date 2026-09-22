@@ -1417,7 +1417,10 @@
     "procedural_stability_targets": "Budget stability targets: Congress approves or rejects the deficit and debt limits set by the government.",
     "procedural_deadline_extension": "Deadline extension: gives a committee more time to finish its work.",
     "procedural_new_committee": "New committee: the plenary decides to create a new parliamentary committee.",
-    "procedural_committee_report": "Committee report: the plenary votes on the conclusions of a parliamentary working group."
+    "procedural_committee_report": "Committee report: the plenary votes on the conclusions of a parliamentary working group.",
+    "procedural_treaty": "International treaty: Congress authorises (or refuses) Spain binding itself to this agreement with other states or bodies.",
+    "procedural_constitutional_reform": "Constitutional reform: a proposal to change an article of the Constitution, which requires reinforced majorities.",
+    "procedural_government_submission": "The government submits a document to the Cortes for Congress to rule on."
   },
   "glossary": {
     "Proposició de Llei": "Legislative initiative filed by parliamentary groups in the Congress.",

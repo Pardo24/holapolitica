@@ -1417,7 +1417,10 @@
     "procedural_stability_targets": "Objectius d'estabilitat pressupostària: el Congrés aprova o rebutja els límits de dèficit i deute que fixa el Govern.",
     "procedural_deadline_extension": "Pròrroga de termini: allarga el temps de què disposa una comissió per acabar la seva feina.",
     "procedural_new_committee": "Creació d'una comissió: el Ple decideix crear una comissió parlamentària nova.",
-    "procedural_committee_report": "Informe de comissió: el Ple vota les conclusions d'un grup de treball parlamentari."
+    "procedural_committee_report": "Informe de comissió: el Ple vota les conclusions d'un grup de treball parlamentari.",
+    "procedural_treaty": "Tractat internacional: el Congrés autoritza (o no) que Espanya es comprometi amb aquest acord amb altres estats o organismes.",
+    "procedural_constitutional_reform": "Reforma constitucional: proposta per canviar un article de la Constitució, que exigeix majories reforçades.",
+    "procedural_government_submission": "El Govern trasllada un document a les Corts perquè el Congrés s'hi pronunciï."
   },
   "glossary": {
     "Proposició de Llei": "Iniciativa legislativa que presenten grups parlamentaris del Congrés. Si s'aprova, esdevé llei vigent.",
