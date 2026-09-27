@@ -9,7 +9,7 @@ import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { TopicChip } from '@/components/TopicChip';
 import { TopicCombobox } from '@/components/TopicCombobox';
-import type { ParliamentaryGroupSummary, Topic } from '@/lib/api';
+import type { AudienceCount, ParliamentaryGroupSummary, Topic } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -39,28 +39,37 @@ export interface LawsFilterLabels {
   more_filters: string;
   clear_all: string;
   remove_label: string;
+  audience_label: string;
 }
 
 interface Props {
   topics: Topic[];
   groups: ParliamentaryGroupSummary[];
+  /** Audience tags in use, most common first; the row shows the top ones. */
+  audiences: AudienceCount[];
   initialQ: string;
   initialResult: string;
   initialTopicSlugs: string[];
   initialGroupSlugs: string[];
+  initialAudiences: string[];
   locale: string;
   labels: LawsFilterLabels;
 }
+
+/** How many audience chips to offer before the reader has picked any. */
+const AUDIENCE_CHIPS = 10;
 
 const STATUS_OPTIONS = ['approved', 'rejected', 'pending'] as const;
 
 export function LawsFilterBar({
   topics,
   groups,
+  audiences,
   initialQ,
   initialResult,
   initialTopicSlugs,
   initialGroupSlugs,
+  initialAudiences,
   locale,
   labels,
 }: Props) {
@@ -128,11 +137,26 @@ export function LawsFilterBar({
   const removeGroup = (slug: string) =>
     updateMulti('proposing_group_slug', initialGroupSlugs, slug, false);
 
+  const toggleAudience = (tag: string) =>
+    updateMulti('audience', initialAudiences, tag, !initialAudiences.includes(tag));
+
   const clearAll = () => {
     const next = new URLSearchParams(sp.toString());
-    ['q', 'result', 'topic_slug', 'proposing_group_slug', 'page'].forEach((k) => next.delete(k));
+    ['q', 'result', 'topic_slug', 'proposing_group_slug', 'audience', 'page'].forEach((k) =>
+      next.delete(k),
+    );
     pushUrl(next);
   };
+
+  // Always offer the tags already picked (even if they fall out of the top
+  // slice) plus the most common ones, so a chosen filter never disappears.
+  const audienceChips = [
+    ...initialAudiences,
+    ...audiences
+      .map((a) => a.tag)
+      .filter((tag) => !initialAudiences.includes(tag))
+      .slice(0, AUDIENCE_CHIPS),
+  ];
 
   const topicBySlug = useMemo(() => new Map(topics.map((tp) => [tp.slug, tp] as const)), [topics]);
   const groupBySlug = useMemo(() => new Map(groups.map((g) => [g.slug, g] as const)), [groups]);
@@ -191,6 +215,68 @@ export function LawsFilterBar({
           }}
         />
       </label>
+
+      {/* "Laws that affect me" — the question most readers actually arrive
+          with, so it sits in the primary row rather than behind the
+          disclosure. Tags come from the initiatives themselves, ordered by
+          how many laws carry them, so every chip returns something. */}
+      {audienceChips.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <span
+            style={{
+              display: 'block',
+              fontSize: 11,
+              letterSpacing: '0.07em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              color: 'var(--ink-3)',
+              marginBottom: 6,
+            }}
+          >
+            {labels.audience_label}
+          </span>
+          {/* One scrolling line rather than a wrapping block: eleven tags
+              wrapped to seven rows on a phone and pushed the laws off the
+              screen, which is the opposite of the point. */}
+          <div
+            className="no-scrollbar"
+            style={{
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'nowrap',
+              overflowX: 'auto',
+              paddingBottom: 2,
+            }}
+          >
+          {audienceChips.map((tag) => {
+            const active = initialAudiences.includes(tag);
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => toggleAudience(tag)}
+                aria-pressed={active}
+                style={{
+                  padding: '5px 11px',
+                  borderRadius: 999,
+                  border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
+                  background: active ? 'var(--ink)' : 'var(--paper)',
+                  color: active ? 'var(--paper)' : 'var(--ink-2)',
+                  fontSize: 12.5,
+                  fontWeight: active ? 600 : 400,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  whiteSpace: 'nowrap',
+                  flex: 'none',
+                }}
+              >
+                {tag}
+              </button>
+            );
+          })}
+          </div>
+        </div>
+      )}
 
       {/* Primary: status chips + More-filters disclosure + clear. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>

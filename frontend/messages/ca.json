@@ -297,7 +297,10 @@
     "card_by_assent": "Aprovada per assentiment, sense votació nominal",
     "card_no_breakdown": "Sense desglossament per grup en aquesta votació.",
     "card_side_empty": "Cap grup",
-    "card_open": "Veure la llei"
+    "card_open": "Veure la llei",
+    "card_group_detail": "Detall per grup",
+    "card_audience_filter": "A qui afecta",
+    "card_audience_all": "Qualsevol"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",

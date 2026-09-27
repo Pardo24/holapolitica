@@ -878,6 +878,12 @@ export interface InitiativeListItem extends Initiative {
   latest_vote?: LawLatestVote | null;
 }
 
+/** One affected-audience tag and how many initiatives carry it. */
+export interface AudienceCount {
+  tag: string;
+  count: number;
+}
+
 export type ScheduledSessionStatus =
   | 'scheduled'
   | 'modified'
@@ -1053,6 +1059,8 @@ export const api = {
         result?: 'approved' | 'rejected' | 'pending';
         topic_slug?: string;
         proposing_group_slug?: string;
+        /** Affected-audience tag(s), comma-separated, evaluated as OR. */
+        audience?: string;
         q?: string;
         page?: number;
         page_size?: number;
@@ -1064,6 +1072,17 @@ export const api = {
       });
       const suffix = qs.toString() ? `?${qs.toString()}` : '';
       return request<Paginated<InitiativeListItem>>(`/initiatives${suffix}`);
+    },
+    /** Affected-audience tags in use, most common first, for the filter. */
+    audiences: (params: { legislature_id?: number; creates_law?: boolean; lang?: string; limit?: number } = {}) => {
+      const qs = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== '') qs.set(k, String(v));
+      });
+      const suffix = qs.toString() ? `?${qs.toString()}` : '';
+      return request<AudienceCount[]>(`/initiatives/audiences${suffix}`, {
+        revalidate: AGG_REVALIDATE,
+      });
     },
   },
   topics: {
