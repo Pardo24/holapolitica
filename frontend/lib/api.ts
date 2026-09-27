@@ -844,8 +844,38 @@ export interface Initiative {
  * vote, so a row can show a credible outcome even when the imported
  * `status` is unreliable (e.g. Reial Decret Llei, always "submitted").
  */
+/** How one parliamentary group voted on a law's decisive vote. */
+export interface LawVoteGroupStance {
+  slug: string;
+  name_short: string;
+  color_hex: string | null;
+  choice: 'aye' | 'no' | 'abstention';
+  /** Deputies of the group backing that stance (the group's majority). */
+  deputies: number;
+  /** Deputies of the group with any record on the vote, absences included. */
+  total: number;
+}
+
+/**
+ * The decisive (most recent) vote on an initiative, with its tally and every
+ * group's stance, so the laws list can show who voted what without opening
+ * the law. Null while an initiative has no linked vote yet.
+ */
+export interface LawLatestVote {
+  vote_id: number;
+  result: VoteResult | null;
+  voted_at: string | null;
+  ayes: number;
+  noes: number;
+  abstentions: number;
+  absent: number;
+  approved_by_assent: boolean;
+  groups: LawVoteGroupStance[];
+}
+
 export interface InitiativeListItem extends Initiative {
   latest_vote_result: VoteResult | null;
+  latest_vote?: LawLatestVote | null;
 }
 
 export type ScheduledSessionStatus =

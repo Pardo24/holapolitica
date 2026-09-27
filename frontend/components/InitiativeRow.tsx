@@ -11,6 +11,7 @@ import { TopicChip } from '@/components/TopicChip';
 import type { Initiative, VoteResult } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort, type ParsedProposer } from '@/lib/groups';
+import { STATUS_COLOR, STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
 
 /**
@@ -28,29 +29,6 @@ import { pickTopicName } from '@/lib/topics';
  *
  * Neutrality: factual only (type, proposer, outcome). No editorial framing.
  */
-
-const STATUS_KEY: Record<string, string> = {
-  approved: 'status_singular_approved',
-  rejected: 'status_singular_rejected',
-  in_debate: 'status_singular_in_debate',
-  submitted: 'status_singular_submitted',
-  withdrawn: 'status_singular_withdrawn',
-  expired: 'status_singular_expired',
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  approved: 'var(--aye)',
-  rejected: 'var(--no)',
-  in_debate: 'var(--accent)',
-  submitted: 'var(--accent)',
-  withdrawn: 'var(--nv)',
-  expired: 'var(--nv)',
-};
-
-// Lifecycle states that are a real verdict — for these the initiative
-// status IS the outcome. Non-terminal ones (submitted / in_debate) defer
-// to a linked vote result when one is available.
-const TERMINAL_STATUSES = new Set(['approved', 'rejected', 'withdrawn', 'expired']);
 
 const MAX_BADGES = 3;
 
@@ -98,7 +76,10 @@ export async function InitiativeRow({
   const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
 
   // Prefer the real vote result over a non-terminal status (RDL etc.).
-  const showVoteResult = latestVoteResult != null && !TERMINAL_STATUSES.has(initiative.status);
+  // The null check stays inline so TypeScript keeps narrowing the result
+  // for the pill below; the helper only owns the status rule.
+  const showVoteResult =
+    latestVoteResult != null && prefersVoteResult(initiative.status, latestVoteResult);
 
   const meta = (
     <>

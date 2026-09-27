@@ -287,7 +287,17 @@
     "nonlaw_eyebrow": "And the rest of the votes?",
     "nonlaw_title": "Votes that don't create law",
     "nonlaw_body": "Most plenary votes don't create law: they're non-binding proposals, motions and interpellations. They don't change the law, but they show where groups stand and what they want to push. Useful for understanding how they think.",
-    "nonlaw_cta": "See all votes"
+    "nonlaw_cta": "See all votes",
+    "card_affects": "Who it affects",
+    "card_votes_eyebrow": "How it was voted",
+    "card_in_favour": "In favour",
+    "card_against": "Against",
+    "card_abstention": "Abstention",
+    "card_not_voted_yet": "Not yet voted in the plenary.",
+    "card_by_assent": "Approved by assent, with no recorded vote",
+    "card_no_breakdown": "No per-group breakdown for this vote.",
+    "card_side_empty": "No group",
+    "card_open": "View the law"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",

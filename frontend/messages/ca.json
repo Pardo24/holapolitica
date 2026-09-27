@@ -287,7 +287,17 @@
     "nonlaw_eyebrow": "I la resta de votacions?",
     "nonlaw_title": "Votacions que no creen llei",
     "nonlaw_body": "La majoria de votacions del ple no creen llei: són proposicions no de llei, mocions i interpel·lacions. No canvien la llei, però mostren la posició dels grups i el que volen impulsar. Útils per entendre com pensen.",
-    "nonlaw_cta": "Veure totes les votacions"
+    "nonlaw_cta": "Veure totes les votacions",
+    "card_affects": "A qui afecta",
+    "card_votes_eyebrow": "Com s'ha votat",
+    "card_in_favour": "A favor",
+    "card_against": "En contra",
+    "card_abstention": "Abstenció",
+    "card_not_voted_yet": "Encara no s'ha votat al ple.",
+    "card_by_assent": "Aprovada per assentiment, sense votació nominal",
+    "card_no_breakdown": "Sense desglossament per grup en aquesta votació.",
+    "card_side_empty": "Cap grup",
+    "card_open": "Veure la llei"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",
