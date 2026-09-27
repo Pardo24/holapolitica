@@ -167,17 +167,6 @@ export default async function InitiativeDetailPage({
 
   return (
     <article>
-      {/* Trajectory banner — dark, full-bleed strip pinned at the top
-          of the page that names the procedural type (Projecte de Llei,
-          PNL, Moció, RDL...) and highlights the current step in its
-          Reglament-defined journey. Same component is used on
-          /votes/[id]; the data shape (type + status + BOE flag) feeds
-          both surfaces identically. */}
-      <LawJourney
-        type={initiative.type}
-        status={initiative.status}
-        hasBoe={!!initiative.boe_url}
-      />
 
       {/* Breadcrumb */}
       <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 6 }}>
@@ -191,17 +180,22 @@ export default async function InitiativeDetailPage({
       {/* Header */}
       <header style={{ paddingTop: 8, paddingBottom: 24, borderBottom: '1px solid var(--ink)' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
+          {/* The plain summary leads. The official title used to be the
+              headline here while the summary sat half a page below, so the
+              page opened with the legalese a reader came to avoid. Same
+              order as the laws list and the vote page now. */}
           <h1
             className="h-headline"
             style={{
               margin: 0,
-              fontSize: 'clamp(24px, 3.4vw, 36px)',
+              fontSize: summary ? 'clamp(21px, 2.8vw, 31px)' : 'clamp(24px, 3.4vw, 36px)',
               maxWidth: 980,
               minWidth: 0,
               flex: '1 1 auto',
+              lineHeight: summary ? 1.35 : undefined,
             }}
           >
-            <AnnotatedText text={title} />
+            {summary ? summary : <AnnotatedText text={title} />}
           </h1>
           <div
             style={{
@@ -220,6 +214,30 @@ export default async function InitiativeDetailPage({
             </span>
           </div>
         </div>
+
+        {/* The official wording, kept right under the headline for anyone
+            checking the exact text, with the AI caveat the summary needs. */}
+        {summary && (
+          <>
+            <p
+              style={{
+                margin: '10px 0 0',
+                fontSize: 13.5,
+                lineHeight: 1.5,
+                color: 'var(--ink-3)',
+                maxWidth: 900,
+              }}
+            >
+              <AnnotatedText text={title} />
+            </p>
+            <p style={{ margin: '6px 0 0', fontSize: 11.5, color: 'var(--ink-3)', fontStyle: 'italic' }}>
+              {tVotes('plain_summary_disclaimer')}{' '}
+              ({tCommon('plain_summary_caveat', {
+                provider: initiative.plain_summary_provider ?? 'IA',
+              })})
+            </p>
+          </>
+        )}
 
         <div
           className="initiative-meta-strip"
@@ -337,6 +355,15 @@ export default async function InitiativeDetailPage({
         </div>
       </header>
 
+      {/* Where the law stands in its journey. It used to open the page,
+          which spent the most valuable position on procedure; it now
+          follows the answer (what it does, and the official wording). */}
+      <LawJourney
+        type={initiative.type}
+        status={initiative.status}
+        hasBoe={!!initiative.boe_url}
+      />
+
       {/* Two-column layout: plain summary + vote box */}
       <section
         className="initiative-detail-grid"
@@ -348,51 +375,10 @@ export default async function InitiativeDetailPage({
         }}
       >
         <div>
-          {summary ? (
-            <>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  marginBottom: 8,
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span className="eyebrow">{tVotes('plain_summary_title')}</span>
-                <AiBadge label={tVotes('plain_summary_ai_badge')} />
-              </div>
-              <p
-                className="serif"
-                style={{
-                  fontSize: 18,
-                  lineHeight: 1.55,
-                  color: 'var(--ink)',
-                  margin: 0,
-                  fontWeight: 400,
-                  whiteSpace: 'pre-line',
-                }}
-              >
-                {summary}
-              </p>
-              <p
-                style={{
-                  fontSize: 12,
-                  color: 'var(--ink-3)',
-                  marginTop: 6,
-                  fontStyle: 'italic',
-                }}
-              >
-                {tVotes('plain_summary_disclaimer')}{' '}
-                <span style={{ color: 'var(--ink-3)' }}>
-                  ({tCommon('plain_summary_caveat', { provider: initiative.plain_summary_provider ?? 'IA' })})
-                </span>
-              </p>
-            </>
-          ) : (
-            <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-              {t('no_summary_yet')}
-            </p>
+          {/* The summary now leads the page header, so this column opens
+              with who the law touches instead of repeating it. */}
+          {!summary && (
+            <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_summary_yet')}</p>
           )}
 
           {/* Who does this directly affect — LLM-extracted audience tags
