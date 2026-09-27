@@ -9,7 +9,7 @@ import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { TopicChip } from '@/components/TopicChip';
-import type { InitiativeListItem, LawVoteGroupStance } from '@/lib/api';
+import type { InitiativeListItem, LawLatestVote, LawVoteGroupStance } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort, type ParsedProposer } from '@/lib/groups';
 import { STATUS_COLOR, STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
@@ -217,15 +217,7 @@ export async function LawCard({
                 {voteDate}
               </span>
             </div>
-            <StackedBar
-              d={{
-                aye: vote.ayes,
-                no: vote.noes,
-                abst: vote.abstentions,
-                nv: vote.absent,
-              }}
-              height={12}
-            />
+            <GroupRibbon vote={vote} />
             <div
               className="tabular"
               style={{
@@ -243,35 +235,50 @@ export async function LawCard({
             </div>
 
             {vote.groups.length > 0 ? (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                  gap: 10,
-                  marginTop: 12,
-                }}
-              >
-                <StanceColumn
-                  label={t('card_in_favour')}
-                  color="var(--aye)"
-                  groups={inFavour}
-                  emptyLabel={t('card_side_empty')}
-                />
-                <StanceColumn
-                  label={t('card_against')}
-                  color="var(--no)"
-                  groups={against}
-                  emptyLabel={t('card_side_empty')}
-                />
-                {abstained.length > 0 && (
+              // Small by default, big on demand: the ribbon above already
+              // says who is on each side, so the per-group counts open only
+              // for whoever wants them and a card stays scannable.
+              <details style={{ marginTop: 10 }}>
+                <summary
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--ink-3)',
+                    cursor: 'pointer',
+                    listStyle: 'revert',
+                  }}
+                >
+                  {t('card_group_detail')}
+                </summary>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+                    gap: 10,
+                    marginTop: 10,
+                  }}
+                >
                   <StanceColumn
-                    label={t('card_abstention')}
-                    color="var(--abst)"
-                    groups={abstained}
+                    label={t('card_in_favour')}
+                    color="var(--aye)"
+                    groups={inFavour}
                     emptyLabel={t('card_side_empty')}
                   />
-                )}
-              </div>
+                  <StanceColumn
+                    label={t('card_against')}
+                    color="var(--no)"
+                    groups={against}
+                    emptyLabel={t('card_side_empty')}
+                  />
+                  {abstained.length > 0 && (
+                    <StanceColumn
+                      label={t('card_abstention')}
+                      color="var(--abst)"
+                      groups={abstained}
+                      emptyLabel={t('card_side_empty')}
+                    />
+                  )}
+                </div>
+              </details>
             ) : (
               <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>
                 {t('card_no_breakdown')}
@@ -339,6 +346,60 @@ const EYEBROW: React.CSSProperties = {
   color: 'var(--ink-3)',
   fontWeight: 600,
 };
+
+/**
+ * The chamber as one ribbon: each side takes the width its votes earned,
+ * and inside it every group takes the width its deputies earned, painted in
+ * the group's own colour. A rail underneath repeats the side colour, so the
+ * sides stay unmistakable even though the segments are party-coloured.
+ *
+ * Decorative: the same information is in the tally line and, in full, in the
+ * per-group detail below, so screen readers skip it.
+ */
+function GroupRibbon({ vote }: { vote: LawLatestVote }) {
+  const zones = [
+    { key: 'aye', color: 'var(--aye)', count: vote.ayes },
+    { key: 'abstention', color: 'var(--abst)', count: vote.abstentions },
+    { key: 'no', color: 'var(--no)', count: vote.noes },
+    { key: 'absent', color: 'var(--nv)', count: vote.absent },
+  ].filter((z) => z.count > 0);
+  if (zones.length === 0) return null;
+
+  return (
+    <div aria-hidden="true" style={{ display: 'flex', gap: 3 }}>
+      {zones.map((zone) => {
+        const groups = vote.groups.filter((g) => g.choice === zone.key);
+        return (
+          <div key={zone.key} style={{ flex: `${zone.count} 0 0`, minWidth: 2 }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 1,
+                height: 13,
+                borderRadius: 3,
+                overflow: 'hidden',
+                background: zone.color,
+              }}
+            >
+              {groups.map((g) => (
+                <span
+                  key={g.slug}
+                  title={`${displayGroupShort(g.name_short)} · ${g.deputies}`}
+                  style={{
+                    flex: `${g.deputies} 0 0`,
+                    background: g.color_hex ?? zone.color,
+                    minWidth: 0,
+                  }}
+                />
+              ))}
+            </div>
+            <div style={{ height: 3, borderRadius: 999, background: zone.color, marginTop: 2 }} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function Tally({ color, label, n }: { color: string; label: string; n: number }) {
   return (

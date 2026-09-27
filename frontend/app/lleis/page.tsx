@@ -8,6 +8,7 @@ import { LawsFilterBar } from '@/components/LawsFilterBar';
 import { PageHeader } from '@/components/PageHeader';
 import {
   api,
+  type AudienceCount,
   type InitiativeListItem,
   type ParliamentaryGroupSummary,
   type Topic,
@@ -28,6 +29,8 @@ interface SearchParams {
   result?: string;
   topic_slug?: string;
   proposing_group_slug?: string;
+  /** Affected-audience tags, comma-separated: "laws that affect me". */
+  audience?: string;
   q?: string;
   page?: string;
 }
@@ -58,22 +61,34 @@ export default async function LleisPage({
     : undefined;
   const topicSlugs = splitCsv(sp.topic_slug);
   const groupSlugs = splitCsv(sp.proposing_group_slug);
+  const audienceTags = splitCsv(sp.audience);
   const query = (sp.q ?? '').trim();
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
 
-  const [data, groups, topics] = await Promise.all([
+  const [data, groups, topics, audiences] = await Promise.all([
     api.initiatives.list({
       legislature_id: 1,
       creates_law: true,
       result: resultFilter,
       topic_slug: topicSlugs.length ? topicSlugs.join(',') : undefined,
       proposing_group_slug: groupSlugs.length ? groupSlugs.join(',') : undefined,
+      audience: audienceTags.length ? audienceTags.join(',') : undefined,
       q: query || undefined,
       page,
       page_size: PAGE_SIZE,
     }),
     api.groups.list(1).catch(() => [] as ParliamentaryGroupSummary[]),
     api.topics.list().catch(() => [] as Topic[]),
+    // Audience tags exist in Catalan and Spanish only; English readers get
+    // the Spanish ones, which is what the extractor produced from the law.
+    api.initiatives
+      .audiences({
+        legislature_id: 1,
+        creates_law: true,
+        lang: locale === 'ca' ? 'ca' : 'es',
+        limit: 24,
+      })
+      .catch(() => [] as AudienceCount[]),
   ]);
 
   const lastPage = Math.max(1, Math.ceil(data.total / PAGE_SIZE));
@@ -104,6 +119,8 @@ export default async function LleisPage({
         initialResult={resultFilter ?? ''}
         initialTopicSlugs={topicSlugs}
         initialGroupSlugs={groupSlugs}
+        audiences={audiences}
+        initialAudiences={audienceTags}
         locale={locale}
         labels={{
           search_placeholder: t('search_placeholder'),
@@ -119,6 +136,7 @@ export default async function LleisPage({
           more_filters: t('more_filters'),
           clear_all: t('clear_all'),
           remove_label: t('remove_label'),
+          audience_label: t('card_audience_filter'),
         }}
       />
 

@@ -297,7 +297,10 @@
     "card_by_assent": "Aprobada por asentimiento, sin votación nominal",
     "card_no_breakdown": "Sin desglose por grupo en esta votación.",
     "card_side_empty": "Ningún grupo",
-    "card_open": "Ver la ley"
+    "card_open": "Ver la ley",
+    "card_group_detail": "Detalle por grupo",
+    "card_audience_filter": "A quién afecta",
+    "card_audience_all": "Cualquiera"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",

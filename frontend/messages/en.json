@@ -297,7 +297,10 @@
     "card_by_assent": "Approved by assent, with no recorded vote",
     "card_no_breakdown": "No per-group breakdown for this vote.",
     "card_side_empty": "No group",
-    "card_open": "View the law"
+    "card_open": "View the law",
+    "card_group_detail": "Detail by group",
+    "card_audience_filter": "Who it affects",
+    "card_audience_all": "Anyone"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",
