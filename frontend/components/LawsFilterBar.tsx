@@ -11,6 +11,7 @@ import { TopicChip } from '@/components/TopicChip';
 import { TopicCombobox } from '@/components/TopicCombobox';
 import type { AudienceCount, ParliamentaryGroupSummary, Topic } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { useEdgeFade } from '@/lib/useEdgeFade';
 import { pickTopicName } from '@/lib/topics';
 
 /**
@@ -75,6 +76,7 @@ export function LawsFilterBar({
 }: Props) {
   const router = useRouter();
   const sp = useSearchParams();
+  const audienceScroller = useEdgeFade<HTMLDivElement>();
   const [, startTransition] = useTransition();
   const [qDraft, setQDraft] = useState(initialQ);
 
@@ -239,7 +241,8 @@ export function LawsFilterBar({
               wrapped to seven rows on a phone and pushed the laws off the
               screen, which is the opposite of the point. */}
           <div
-            className="no-scrollbar"
+            ref={audienceScroller.ref}
+            className={`no-scrollbar ${audienceScroller.className}`}
             style={{
               display: 'flex',
               gap: 8,

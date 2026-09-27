@@ -151,7 +151,17 @@ export function TopicChipsStrip({
         ref={stripRef}
         role="navigation"
         aria-label="Filtrar per tema"
-        className="topic-chips-strip no-scrollbar"
+        className={`topic-chips-strip no-scrollbar ${
+          // The arrows only show on wide screens; on a phone the fade is
+          // what tells the reader the row continues instead of being cut.
+          canLeft && canRight
+            ? 'edge-fade-both'
+            : canRight
+              ? 'edge-fade-right'
+              : canLeft
+                ? 'edge-fade-left'
+                : ''
+        }`}
         style={{
           display: 'flex',
           gap: 8,
