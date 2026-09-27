@@ -886,7 +886,9 @@
     "share": "Comparte el resultado",
     "share_copied": "Copiado",
     "share_text": "He coincidido más con {name} ({pct}%) en {compared} votaciones reales del Congreso.",
-    "view_vote": "Ver la votación original"
+    "view_vote": "Ver la votación original",
+    "see_results": "Ver resultados con {n} respuestas",
+    "more_questions": "Otras preguntas"
   },
   "hub": {
     "joc_title": "Trivia",

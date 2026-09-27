@@ -983,9 +983,11 @@ export const api = {
       }),
   },
   align: {
-    questions: (n = 8, legislatureId?: number) => {
+    /** ``seed`` > 0 asks for a different (reproducible) set of votes. */
+    questions: (n = 8, legislatureId?: number, seed?: number) => {
       const qs = new URLSearchParams({ n: String(n) });
       if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
+      if (seed) qs.set('seed', String(seed));
       return request<AlignQuestion[]>(`/align/questions?${qs.toString()}`, {
         revalidate: AGG_REVALIDATE,
       });

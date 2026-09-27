@@ -14,6 +14,7 @@ the vote's own title / plain-language summary, with no editorial framing.
 
 from __future__ import annotations
 
+import random
 from collections import Counter, defaultdict
 from typing import NamedTuple
 
@@ -89,6 +90,17 @@ async def align_questions(
     legislature_id: int | None = Query(
         None, description="Legislature to draw from; defaults to the current one."
     ),
+    seed: int = Query(
+        0,
+        ge=0,
+        le=999_999,
+        description=(
+            "Pick a different set of questions from the same eligible pool. "
+            "0 keeps the default (most recent first); any other value shuffles "
+            "deterministically, so the same seed always returns the same "
+            "questions and a reader can ask for 'other questions'."
+        ),
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> list[AlignQuestion]:
     """Return ``n`` recent, contextful votes with each group's majority stance.
@@ -162,6 +174,12 @@ async def align_questions(
             # Take the whole deduped pool; the final assembly applies the
             # quality filter (drop unanimous / position-less votes) and caps
             # at n, so we can't fall short because early votes were unanimous.
+
+        # A seed reshuffles the eligible pool (the last ~n*6 votes with a
+        # summary) so "other questions" returns a different, reproducible set
+        # instead of the same most-recent ones every time.
+        if seed:
+            random.Random(seed).shuffle(chosen)
 
         vote_ids = [c.vote_id for c in chosen]
         if not vote_ids:
@@ -254,4 +272,4 @@ async def align_questions(
             )
         return out
 
-    return await cached(f"align:questions:{legislature_id}:{n}", _CACHE_TTL, factory)
+    return await cached(f"align:questions:{legislature_id}:{n}:{seed}", _CACHE_TTL, factory)

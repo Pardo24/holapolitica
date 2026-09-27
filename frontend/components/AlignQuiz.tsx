@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 
@@ -46,6 +46,8 @@ export interface AlignQuizLabels {
   share: string;
   share_copied: string;
   share_text: string; // uses {name}, {pct}, {compared}
+  see_results: string;
+  more_questions: string;
 }
 
 interface GroupResult {
@@ -72,6 +74,32 @@ export function AlignQuiz({
   const [copied, setCopied] = useState(false);
 
   const total = questions.length;
+
+  // Answers survive a reload. Keyed by the first vote of the set, so a
+  // different set of questions never inherits answers from another one.
+  // Storage can be unavailable (private windows, blocked cookies): every
+  // access is guarded and the quiz works the same without it.
+  const storageKey = `align:answers:${questions[0]?.vote_id ?? 'none'}`;
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { answers?: Record<number, Answer>; idx?: number };
+      if (saved.answers && typeof saved.answers === 'object') setAnswers(saved.answers);
+      if (typeof saved.idx === 'number') setIdx(Math.min(Math.max(0, saved.idx), total - 1));
+    } catch {
+      /* no storage, or corrupt value: start clean */
+    }
+  }, [storageKey, total]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify({ answers, idx }));
+    } catch {
+      /* storage full or blocked */
+    }
+  }, [answers, idx, storageKey]);
 
   const results = useMemo<GroupResult[]>(() => {
     const agg = new Map<string, GroupResult>();
@@ -164,6 +192,22 @@ export function AlignQuiz({
     setIdx(0);
     setDone(false);
     setCopied(false);
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      /* nothing to clear */
+    }
+  }
+
+  /** A different, reproducible set of votes from the same pool. */
+  function moreQuestions() {
+    const seed = Math.floor(Math.random() * 999_999) + 1;
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      /* nothing to clear */
+    }
+    window.location.search = `?seed=${seed}`;
   }
 
   async function share() {
@@ -308,6 +352,20 @@ export function AlignQuiz({
           <button type="button" onClick={restart} className="btn-ink btn-sm">
             {labels.restart}
           </button>
+          <button
+            type="button"
+            onClick={moreQuestions}
+            className="btn-sm"
+            style={{
+              border: '1px solid var(--rule-strong)',
+              borderRadius: 8,
+              background: 'var(--paper)',
+              color: 'var(--ink)',
+              cursor: 'pointer',
+            }}
+          >
+            {labels.more_questions}
+          </button>
           {results.length > 0 && (
             <button
               type="button"
@@ -423,9 +481,24 @@ export function AlignQuiz({
 
       {/* Stance buttons */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 16 }}>
-        <StanceButton label={labels.aye} color="var(--aye)" onClick={() => choose('aye')} />
-        <StanceButton label={labels.no} color="var(--no)" onClick={() => choose('no')} />
-        <StanceButton label={labels.abstention} color="var(--abst)" onClick={() => choose('abstention')} />
+        <StanceButton
+          label={labels.aye}
+          color="var(--aye)"
+          selected={answers[q.vote_id] === 'aye'}
+          onClick={() => choose('aye')}
+        />
+        <StanceButton
+          label={labels.no}
+          color="var(--no)"
+          selected={answers[q.vote_id] === 'no'}
+          onClick={() => choose('no')}
+        />
+        <StanceButton
+          label={labels.abstention}
+          color="var(--abst)"
+          selected={answers[q.vote_id] === 'abstention'}
+          onClick={() => choose('abstention')}
+        />
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
         <button
@@ -451,6 +524,28 @@ export function AlignQuiz({
           {labels.skip} →
         </button>
       </div>
+      {/* People answer three or four and want to know already. Waiting for
+          all ten before showing anything is why they close the tab. */}
+      {answeredCount > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+          <button
+            type="button"
+            onClick={() => setDone(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--ink-2)',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: '6px 4px',
+              fontFamily: 'inherit',
+            }}
+          >
+            {labels.see_results.replace('{n}', String(answeredCount))}
+          </button>
+        </div>
+      )}
       <p style={{ marginTop: 12, fontSize: 11, color: 'var(--ink-3)' }}>
         <Link href={`/votes/${q.vote_id}` as Route} style={{ color: 'var(--ink-3)' }} target="_blank">
           {labels.view_vote}
@@ -670,16 +765,29 @@ function GroupRow({ r, rank, labels }: { r: GroupResult; rank: number; labels: A
   );
 }
 
-function StanceButton({ label, color, onClick }: { label: string; color: string; onClick: () => void }) {
+function StanceButton({
+  label,
+  color,
+  selected,
+  onClick,
+}: {
+  label: string;
+  color: string;
+  /** The stance already chosen for this vote: going back must show it. */
+  selected: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       style={{
         padding: '14px 10px',
         borderRadius: 12,
         border: `1.5px solid ${color}`,
-        background: 'var(--paper)',
+        background: selected ? `color-mix(in oklch, ${color} 16%, var(--paper))` : 'var(--paper)',
+        boxShadow: selected ? `inset 0 0 0 2px ${color}` : 'none',
         color: 'var(--ink)',
         fontSize: 15,
         fontWeight: 600,
