@@ -14,13 +14,22 @@ export const revalidate = 300;
  * real past votes; the page mirrors back which groups voted the same way.
  * Neutral by construction: the criterion is the user's own, computed on-device.
  */
-export default async function ComEtRepresentenPage() {
+export default async function ComEtRepresentenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ seed?: string }>;
+}) {
   const t = await getTranslations('align');
   const locale = await getLocale();
+  // "Other questions" reshuffles the same eligible pool behind a seed, so a
+  // reader who has answered these ten can keep going, and a shared link
+  // always shows the same set.
+  const { seed } = await searchParams;
+  const seedNumber = seed && /^\d+$/.test(seed) ? Number(seed) : undefined;
 
   let questions: AlignQuestion[] = [];
   try {
-    questions = await api.align.questions(10);
+    questions = await api.align.questions(10, undefined, seedNumber);
   } catch {
     questions = [];
   }
@@ -68,6 +77,8 @@ export default async function ComEtRepresentenPage() {
               share: t('share'),
               share_copied: t('share_copied'),
               share_text: t.raw('share_text'),
+              see_results: t.raw('see_results'),
+              more_questions: t('more_questions'),
             }}
           />
         )}
