@@ -770,6 +770,8 @@ export interface InitiativeVoteSummary {
   noes: number;
   abstentions: number;
   absent: number;
+  /** Approved by acclamation: no roll call, so the tally is all zeroes. */
+  approved_by_assent?: boolean;
 }
 
 export interface InitiativeTopicSlug {
