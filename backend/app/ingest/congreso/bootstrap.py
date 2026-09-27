@@ -1124,6 +1124,47 @@ async def repair_summary_language_gaps() -> dict[str, dict[str, int]]:
     return result
 
 
+async def normalise_audiences_all() -> dict[str, int]:
+    """Rewrite every stored ``affected_audiences`` into canonical tags.
+
+    The extractor now normalises on the way in, but ~1.5k initiatives were
+    tagged before that, so the filter offered "administracions públiques"
+    and "administració pública" as separate collectives. One pass, idempotent:
+    re-running it changes nothing once the rows are canonical.
+    """
+    from app.db.session import AsyncSessionLocal
+    from app.models import Initiative
+    from app.services.affected import normalise_audience_tags
+
+    stats = {"seen": 0, "changed": 0}
+    async with AsyncSessionLocal() as session:
+        rows = (
+            (
+                await session.execute(
+                    select(Initiative).where(Initiative.affected_audiences.is_not(None))
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for row in rows:
+            data = row.affected_audiences
+            if not isinstance(data, dict):
+                continue
+            stats["seen"] += 1
+            before = {lang: list(data.get(lang) or []) for lang in ("ca", "es")}
+            after = {
+                lang: normalise_audience_tags([t for t in before[lang] if isinstance(t, str)])
+                for lang in ("ca", "es")
+            }
+            if after != before:
+                row.affected_audiences = after
+                stats["changed"] += 1
+        await session.commit()
+    log.info("audiences.normalised", **stats)
+    return stats
+
+
 async def summarise_pending_initiatives(limit: int = 100) -> dict[str, int]:
     """Plain summaries for initiatives that have official text but no summary.
 
@@ -1462,6 +1503,9 @@ _STEPS = {
     # summaries for any initiative that has text but no summary yet.
     "motion_texts": enrich_motion_texts_all,
     "summarise_pending": summarise_pending_initiatives,
+    # One-off (idempotent) cleanup of the audience tags behind the /lleis
+    # "who it affects" filter.
+    "normalise_audiences": normalise_audiences_all,
     # Legacy step names: the bare names now point at the cheap Catalan
     # translation pass (was: re-summarise from source). The original
     # from-source Catalan summariser is still reachable as a function for
