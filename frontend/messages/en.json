@@ -887,7 +887,7 @@
     "share_copied": "Copied",
     "share_text": "I voted like {name} most ({pct}%) across {compared} real Congreso votes.",
     "view_vote": "View the original vote",
-    "see_results": "See results with {n} answers",
+    "see_results": "See results with {count, plural, =1 {# answer} other {# answers}}",
     "more_questions": "Other questions"
   },
   "hub": {

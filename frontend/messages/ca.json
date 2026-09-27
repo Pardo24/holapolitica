@@ -887,7 +887,7 @@
     "share_copied": "Copiat",
     "share_text": "He coincidit més amb {name} ({pct}%) en {compared} votacions reals del Congrés.",
     "view_vote": "Veure la votació original",
-    "see_results": "Veure resultats amb {n} respostes",
+    "see_results": "Veure resultats amb {count, plural, =1 {# resposta} other {# respostes}}",
     "more_questions": "Altres preguntes"
   },
   "hub": {

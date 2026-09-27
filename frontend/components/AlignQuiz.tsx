@@ -46,7 +46,8 @@ export interface AlignQuizLabels {
   share: string;
   share_copied: string;
   share_text: string; // uses {name}, {pct}, {compared}
-  see_results: string;
+  /** Takes the count so the message can use a real plural. */
+  see_results: (n: number) => string;
   more_questions: string;
 }
 
@@ -542,7 +543,7 @@ export function AlignQuiz({
               fontFamily: 'inherit',
             }}
           >
-            {labels.see_results.replace('{n}', String(answeredCount))}
+            {labels.see_results(answeredCount)}
           </button>
         </div>
       )}
