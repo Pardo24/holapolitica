@@ -11,11 +11,11 @@ in :mod:`app.api.topics` and :mod:`app.api.stats` — to keep each
 router's responsibility narrow.
 """
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import String, and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
@@ -36,6 +36,7 @@ from app.schemas import (
     InitiativeTopicSlug,
     InitiativeVoteSummary,
 )
+from app.services.cache import cached
 
 router = APIRouter(prefix="/initiatives", tags=["initiatives"])
 
@@ -94,6 +95,16 @@ async def list_initiatives(
             "Filter by the parliamentary group that proposed the initiative "
             "(resolved via its linked votes). Single slug or comma-separated "
             "list; the synthetic slug 'govern' matches Government-proposed."
+        ),
+    ),
+    audience: str | None = Query(
+        None,
+        description=(
+            "Filter by an affected audience tag ('inquilinos', 'autònoms'…) "
+            "as extracted into ``affected_audiences``. Single tag or a "
+            "comma-separated list evaluated as OR. Matching is exact on the "
+            "tag and language-agnostic: the Catalan and Spanish lists are "
+            "both searched, so a reader filters in their own language."
         ),
     ),
     q: str | None = Query(
@@ -166,6 +177,17 @@ async def list_initiatives(
                     select(latest_sq.c.iid).where(latest_sq.c.rn == 1, latest_sq.c.res == result)
                 )
             )
+    # Audience filter — "show me the laws that touch me". The tags live in a
+    # JSON column ({"ca": [...], "es": [...]}), and we match the quoted tag
+    # against the serialised column: exact on the whole tag (the quotes stop
+    # "joves" matching "joves agricultors"), language-agnostic, and portable
+    # to SQLite, which the tests run on. Several tags are OR-ed, like topics.
+    audience_tags = _split_csv(audience)
+    if audience_tags:
+        serialised = func.cast(Initiative.affected_audiences, String)
+        conditions.append(
+            or_(*[serialised.contains(f'"{tag}"', autoescape=True) for tag in audience_tags])
+        )
     # Full-text search. On Postgres we run the 'spanish' FTS config over the
     # title + summary + preamble (object_text) + plain-language summaries and
     # rank by relevance — so "lleis sobre X" surfaces a bill even when X only
@@ -410,6 +432,56 @@ async def _load_group_stances(
     for items in out.values():
         items.sort(key=lambda g: (-int(g["deputies"]), str(g["slug"])))
     return dict(out)
+
+
+@router.get("/audiences", response_model=list[dict[str, object]])
+async def list_audiences(
+    legislature_id: int | None = Query(None, description="Filter by legislature"),
+    creates_law: bool | None = Query(
+        None, description="Same lens as the list endpoint: law-creating types only."
+    ),
+    lang: str = Query("ca", pattern="^(ca|es)$", description="Language of the returned tags."),
+    limit: int = Query(40, ge=1, le=200),
+    session: AsyncSession = Depends(get_session),
+) -> list[dict[str, object]]:
+    """The affected-audience tags in use, most common first.
+
+    Powers the "laws that affect me" filter: a reader picks a collective
+    ("arrendataris", "autònoms") instead of guessing search words. Counted
+    over the same lens the list uses, so every tag offered returns rows.
+
+    Aggregated in Python rather than with ``jsonb_array_elements`` so the
+    tests, which run on SQLite, exercise the same code path. At ~1.5k rows
+    with a tiny JSON column each, one pass costs nothing and the result is
+    cached for an hour.
+    """
+    conditions: list[Any] = [Initiative.affected_audiences.is_not(None)]
+    if legislature_id is not None:
+        conditions.append(Initiative.legislature_id == legislature_id)
+    if creates_law is True:
+        conditions.append(Initiative.type.in_(_LAW_TYPES))
+    elif creates_law is False:
+        conditions.append(Initiative.type.not_in(_LAW_TYPES))
+
+    async def factory() -> list[dict[str, object]]:
+        rows = (
+            await session.execute(select(Initiative.affected_audiences).where(and_(*conditions)))
+        ).all()
+        counts: Counter[str] = Counter()
+        for (audiences,) in rows:
+            if not isinstance(audiences, dict):
+                continue
+            tags = audiences.get(lang) or []
+            if not isinstance(tags, list):
+                continue
+            # One initiative counts once per tag, never twice for a repeat.
+            for tag in {t.strip() for t in tags if isinstance(t, str) and t.strip()}:
+                counts[tag] += 1
+        return [{"tag": tag, "count": n} for tag, n in counts.most_common(limit)]
+
+    return await cached(
+        f"initiatives:audiences:{legislature_id}:{creates_law}:{lang}:{limit}", 3600, factory
+    )
 
 
 @router.get("/{initiative_id}", response_model=InitiativeDetail)
