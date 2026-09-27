@@ -77,7 +77,9 @@ export default async function ComEtRepresentenPage({
               share: t('share'),
               share_copied: t('share_copied'),
               share_text: t.raw('share_text'),
-              see_results: t.raw('see_results'),
+              // A real ICU plural, so one answer doesn't read "1 respostes".
+              // t() with values is fine; it was t() WITHOUT them that broke.
+              see_results: (n: number) => t('see_results', { count: n }),
               more_questions: t('more_questions'),
             }}
           />
