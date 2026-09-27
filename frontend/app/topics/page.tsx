@@ -30,13 +30,15 @@ export default async function TopicsPage() {
         </p>
       </PageHeader>
 
-      {/* Follow-topics banner — the previous /topics page was a bare list
-          of taxonomy chips, which left users wondering what they could
-          actually DO with topics. Surfacing the "subscribe per topic"
-          affordance up top reframes the page as "pick what you care
-          about, get email when it moves" instead of "static taxonomy
-          reference". The CTA leads to /notifications (the existing
-          preferences hub); no preselection in v1 — the user picks there. */}
+      <TopicListPanel />
+
+
+      {/* Follow-topics banner. It offers to email a reader when a topic
+          moves, which only makes sense once they have seen the topics, so
+          it sits AFTER the list: at the top it spent half a phone screen
+          asking for a subscription from someone who had not been shown
+          anything yet. The CTA leads to /notifications, where the reader
+          picks the topics themselves. */}
       <section
         aria-labelledby="topics-follow-title"
         style={{
@@ -113,8 +115,6 @@ export default async function TopicsPage() {
           {t('follow_banner_cta')} <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </section>
-
-      <TopicListPanel />
 
       {/* Mobile: stack the banner contents instead of side-by-side. The
           three-column grid collapses to a single column and the CTA

@@ -19,7 +19,7 @@ import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PartyBand } from '@/components/PartyBand';
 import { ScrollDownCue } from '@/components/ScrollDownCue';
-import { OnboardingModal } from '@/components/OnboardingModal';
+import { IntroNote } from '@/components/IntroNote';
 import { DailyTeaser } from '@/components/DailyTeaser';
 import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
@@ -144,10 +144,11 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* First-visit onboarding overlay — auto-opens once per
-          device (localStorage flag, see OnboardingModal); skipped
-          on every subsequent visit. */}
-      <OnboardingModal />
+      {/* First-visit explanation. It used to be a three-slide overlay that
+          covered the whole phone screen before any vote was visible; it is
+          now a dismissible strip above the content, same storage flag, so
+          the first thing a visitor sees is the chamber, not a barrier. */}
+      <IntroNote />
 
       {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
           native-app-style entry point: brand strip, search, 2×2 tile grid,

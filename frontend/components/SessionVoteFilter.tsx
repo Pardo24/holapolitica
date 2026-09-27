@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { useEdgeFade } from '@/lib/useEdgeFade';
+
 type ResultFilter = 'all' | 'approved' | 'rejected';
 
 export interface TopicOption {
@@ -41,6 +43,9 @@ export function SessionVoteFilter({
   children: React.ReactNode;
 }) {
   const [result, setResult] = useState<ResultFilter>('all');
+  // Fade the side the row can still scroll towards; a chip cut in half at
+  // the screen edge reads as broken, not as "swipe for more".
+  const topicScroller = useEdgeFade<HTMLDivElement>();
   const [topic, setTopic] = useState<string | null>(null);
   const [empty, setEmpty] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
@@ -158,8 +163,10 @@ export function SessionVoteFilter({
       {topics.length > 1 && (
         // One swipeable line on phones rather than a wall of wrapped chips.
         <div
+          ref={topicScroller.ref}
           role="group"
           aria-label={labels.topicEyebrow}
+          className={`no-scrollbar ${topicScroller.className}`}
           style={{ ...rowStyle, overflowX: 'auto', marginBottom: 4 }}
         >
           <span className="eyebrow" style={eyebrowStyle}>

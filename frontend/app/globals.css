@@ -1828,3 +1828,19 @@ button {
   .party-band__card { transition: none; }
   .party-band__card:hover, .party-band__card:focus-visible { transform: none; }
 }
+
+/* Horizontal chip rows: fade the edge that still has content behind it, so
+   a row that scrolls looks like it scrolls instead of looking clipped. The
+   class is applied by ``useEdgeFade`` only while that direction can move. */
+.edge-fade-right {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 34px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 calc(100% - 34px), transparent 100%);
+}
+.edge-fade-left {
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 34px), transparent 100%);
+  mask-image: linear-gradient(to left, #000 calc(100% - 34px), transparent 100%);
+}
+.edge-fade-both {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%);
+}

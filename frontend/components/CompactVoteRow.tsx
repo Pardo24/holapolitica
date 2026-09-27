@@ -79,7 +79,10 @@ export function CompactVoteRow({
             </span>
           ) : v.proposing_group_short ? (
             <GroupChip
-              slug={v.proposing_group_slug ?? undefined}
+              // No slug on purpose: the whole row is already a link, and a
+              // link inside a link is invalid HTML. It rendered nested <a>
+              // elements and broke hydration on every list page. The group
+              // is one tap away from the vote itself.
               short={displayGroupShort(v.proposing_group_short)}
               color={v.proposing_group_color}
               size="xs"
