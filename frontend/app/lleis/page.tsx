@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, ChevronLeft, ChevronRight, MessagesSquare, Scale } from 'lucide-react';
 
-import { InitiativeRow } from '@/components/InitiativeRow';
+import { LawCard } from '@/components/LawCard';
 import { LawsFilterBar } from '@/components/LawsFilterBar';
 import { PageHeader } from '@/components/PageHeader';
 import {
@@ -129,14 +129,22 @@ export default async function LleisPage({
       {data.items.length === 0 ? (
         <p style={{ fontSize: 13, color: 'var(--ink-3)', paddingTop: 12 }}>{t('empty')}</p>
       ) : (
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        <ul
+          style={{
+            listStyle: 'none',
+            margin: 0,
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+          }}
+        >
           {data.items.map((i: InitiativeListItem) => (
-            <InitiativeRow
+            <LawCard
               key={i.id}
               initiative={i}
               parsed={parseProposer(i.submitted_by, groups)}
               locale={locale}
-              latestVoteResult={i.latest_vote_result}
             />
           ))}
         </ul>

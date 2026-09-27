@@ -287,7 +287,17 @@
     "nonlaw_eyebrow": "¿Y el resto de votaciones?",
     "nonlaw_title": "Votaciones que no crean ley",
     "nonlaw_body": "La mayoría de votaciones del pleno no crean ley: son proposiciones no de ley, mociones e interpelaciones. No cambian la ley, pero muestran la posición de los grupos y lo que quieren impulsar. Útiles para entender cómo piensan.",
-    "nonlaw_cta": "Ver todas las votaciones"
+    "nonlaw_cta": "Ver todas las votaciones",
+    "card_affects": "A quién afecta",
+    "card_votes_eyebrow": "Cómo se ha votado",
+    "card_in_favour": "A favor",
+    "card_against": "En contra",
+    "card_abstention": "Abstención",
+    "card_not_voted_yet": "Todavía no se ha votado en el pleno.",
+    "card_by_assent": "Aprobada por asentimiento, sin votación nominal",
+    "card_no_breakdown": "Sin desglose por grupo en esta votación.",
+    "card_side_empty": "Ningún grupo",
+    "card_open": "Ver la ley"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",
