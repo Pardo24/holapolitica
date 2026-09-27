@@ -11,6 +11,9 @@ in :mod:`app.api.topics` and :mod:`app.api.stats` — to keep each
 router's responsibility narrow.
 """
 
+from collections import defaultdict
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +27,8 @@ from app.models import (
     ParliamentaryGroup,
     Topic,
     Vote,
+    VoteChoice,
+    VoteRecord,
 )
 from app.schemas import (
     InitiativeDetail,
@@ -237,7 +242,7 @@ async def list_initiatives(
     items = list((await session.execute(stmt)).scalars().unique().all())
 
     item_ids = [i.id for i in items]
-    latest_result_by_initiative = await _load_latest_vote_result(session, item_ids)
+    latest_vote_by_initiative = await _load_latest_vote(session, item_ids)
     topics_by_initiative = await _load_topics_by_initiative(session, item_ids)
 
     return {
@@ -247,7 +252,10 @@ async def list_initiatives(
         "items": [
             {
                 **InitiativeRead.model_validate(i).model_dump(mode="json"),
-                "latest_vote_result": latest_result_by_initiative.get(i.id),
+                "latest_vote_result": (latest_vote_by_initiative.get(i.id) or {}).get("result"),
+                # The whole decisive vote, so a list row can show who voted
+                # what without opening the initiative. None until it is voted.
+                "latest_vote": latest_vote_by_initiative.get(i.id),
                 "topics": [
                     InitiativeTopicSlug.model_validate(tp).model_dump(mode="json")
                     for tp in topics_by_initiative.get(i.id, [])
@@ -281,32 +289,127 @@ async def _load_topics_by_initiative(
     return by_id
 
 
-async def _load_latest_vote_result(
-    session: AsyncSession, initiative_ids: list[int]
-) -> dict[int, str | None]:
-    """Map each initiative id to the result of its most recent linked vote.
+# The three stances that are a POSITION. Absent / no-record are not, so a
+# group that only failed to show up has no stance to report.
+_STANCES: tuple[VoteChoice, ...] = (VoteChoice.AYE, VoteChoice.NO, VoteChoice.ABSTENTION)
 
-    One bulk query over the page's initiative ids; ordered latest-first so
-    the first row seen per initiative is the most recent vote. Empty when an
-    initiative has no linked vote yet. Lets the laws view show the real
-    outcome where the imported ``Initiative.status`` is unreliable (RDL).
+
+async def _load_latest_vote(
+    session: AsyncSession, initiative_ids: list[int]
+) -> dict[int, dict[str, Any]]:
+    """Map each initiative id to its most recent linked vote: the tally AND
+    how each parliamentary group voted.
+
+    Two bulk queries for the whole page (the votes, then their records), so
+    the laws list can show who voted what on every card without a request
+    per row. Empty when an initiative has no linked vote yet, which is the
+    case for roughly 3 in 5 law-creating initiatives (still in progress).
     """
     if not initiative_ids:
         return {}
     rows = (
         await session.execute(
-            select(Vote.initiative_id, Vote.result, Vote.voted_at)
+            select(
+                Vote.id,
+                Vote.initiative_id,
+                Vote.result,
+                Vote.voted_at,
+                Vote.ayes,
+                Vote.noes,
+                Vote.abstentions,
+                Vote.absent,
+                Vote.approved_by_assent,
+            )
             .where(Vote.initiative_id.in_(initiative_ids))
             .order_by(Vote.voted_at.desc())
         )
     ).all()
-    out: dict[int, str | None] = {}
-    for initiative_id, result, _voted_at in rows:
-        if initiative_id is not None and initiative_id not in out:
+
+    latest: dict[int, dict[str, Any]] = {}
+    for vote_id, initiative_id, result, voted_at, ayes, noes, abst, absent, by_assent in rows:
+        if initiative_id is None or initiative_id in latest:
+            continue  # ordered latest-first, so the first row wins
+        latest[initiative_id] = {
+            "vote_id": vote_id,
             # ``VoteResult`` is a StrEnum, so the row value is already a
             # plain string; ``str(...)`` normalises it for the JSON body.
-            out[initiative_id] = str(result) if result is not None else None
-    return out
+            "result": str(result) if result is not None else None,
+            "voted_at": voted_at.isoformat() if voted_at is not None else None,
+            "ayes": ayes,
+            "noes": noes,
+            "abstentions": abst,
+            "absent": absent,
+            "approved_by_assent": by_assent,
+            "groups": [],
+        }
+
+    stances = await _load_group_stances(session, [v["vote_id"] for v in latest.values()])
+    for payload in latest.values():
+        payload["groups"] = stances.get(int(payload["vote_id"]), [])
+    return latest
+
+
+async def _load_group_stances(
+    session: AsyncSession, vote_ids: list[int]
+) -> dict[int, list[dict[str, Any]]]:
+    """Each group's majority stance on each vote, biggest delegation first.
+
+    Same aggregation as the alignment questionnaire: a group's stance is
+    whichever of aye/no/abstention most of its deputies cast. ``deputies``
+    is how many backed that stance, so the card can show "PP 135" rather
+    than implying unanimity.
+    """
+    if not vote_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(
+                VoteRecord.vote_id,
+                ParliamentaryGroup.slug,
+                ParliamentaryGroup.name_short,
+                ParliamentaryGroup.color_hex,
+                VoteRecord.choice,
+                func.count(),
+            )
+            .join(ParliamentaryGroup, ParliamentaryGroup.id == VoteRecord.group_id_at_time)
+            .where(VoteRecord.vote_id.in_(vote_ids))
+            .group_by(
+                VoteRecord.vote_id,
+                ParliamentaryGroup.slug,
+                ParliamentaryGroup.name_short,
+                ParliamentaryGroup.color_hex,
+                VoteRecord.choice,
+            )
+        )
+    ).all()
+
+    counts: dict[tuple[int, str], dict[str, int]] = defaultdict(dict)
+    meta: dict[str, tuple[str, str | None]] = {}
+    for vote_id, slug, name_short, color_hex, choice, n in rows:
+        counts[(vote_id, slug)][str(choice)] = n
+        meta[slug] = (name_short, color_hex)
+
+    out: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    for (vote_id, slug), per_choice in counts.items():
+        stance, backing = max(
+            ((c, per_choice.get(str(c), 0)) for c in _STANCES), key=lambda kv: kv[1]
+        )
+        if backing == 0:
+            continue  # the group was only absent / unrecorded
+        name_short, color_hex = meta[slug]
+        out[vote_id].append(
+            {
+                "slug": slug,
+                "name_short": name_short,
+                "color_hex": color_hex,
+                "choice": stance.value,
+                "deputies": backing,
+                "total": sum(per_choice.values()),
+            }
+        )
+    for items in out.values():
+        items.sort(key=lambda g: (-int(g["deputies"]), str(g["slug"])))
+    return dict(out)
 
 
 @router.get("/{initiative_id}", response_model=InitiativeDetail)
