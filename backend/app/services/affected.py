@@ -53,6 +53,93 @@ _TAG_RE = re.compile(r"^[\w àáèéíïòóúüç·'\-]{2,40}$", re.IGNORECASE)
 
 _MAX_TAGS = 4
 
+# Leading articles the model sometimes keeps ("els agricultors").
+_ARTICLES = ("els ", "les ", "los ", "las ", "el ", "la ", "l'")
+
+# Same collective, different words. The model is free-text, so the same
+# audience arrives under several spellings and the filter ends up offering
+# "administracions públiques" AND "administració pública" as if they were
+# different groups of people. Merges are deliberately conservative: only
+# where the two name the same collective, never where one is a subset of
+# the other (e.g. "propietaris" is NOT merged into "arrendadors").
+_CANONICAL_TAGS: dict[str, str] = {
+    # Spanish
+    "administración pública": "administraciones públicas",
+    "gobierno español": "gobierno",
+    "gobierno central": "gobierno",
+    "gobierno de españa": "gobierno",
+    "fuerzas seguridad": "fuerzas de seguridad",
+    "fuerzas y cuerpos de seguridad": "fuerzas de seguridad",
+    "alumnos": "estudiantes",
+    "alumnado": "estudiantes",
+    "empleados públicos": "funcionarios públicos",
+    "pasajeros": "viajeros",
+    "arrendatarios": "inquilinos",
+    "trabajadoras": "trabajadores",
+    "consumidoras": "consumidores",
+    "ciudadanos": "ciudadanía",
+    "ciudadanas": "ciudadanía",
+    "ciudadanos españoles": "ciudadanía",
+    "magistrados": "jueces",
+    "jueces y magistrados": "jueces",
+    "profesores": "docentes",
+    "profesorado": "docentes",
+    "menores de edad": "menores",
+    "autonomos": "autónomos",
+    # Catalan
+    "administració pública": "administracions públiques",
+    "govern espanyol": "govern",
+    "govern central": "govern",
+    "govern d'espanya": "govern",
+    "forces seguretat": "forces de seguretat",
+    "forces i cossos de seguretat": "forces de seguretat",
+    "alumnes": "estudiants",
+    "alumnat": "estudiants",
+    "empleats públics": "funcionaris públics",
+    "passatgers": "viatgers",
+    "llogaters": "arrendataris",
+    "treballadores": "treballadors",
+    "consumidores": "consumidors",
+    "ciutadans": "ciutadania",
+    "ciutadanes": "ciutadania",
+    "magistrats": "jutges",
+    "jutges i magistrats": "jutges",
+    "professors": "docents",
+    "professorat": "docents",
+    "menors d'edat": "menors",
+    "autonoms": "autònoms",
+    # Mistranslations of "padres" seen in production; both mean parents.
+    "paders": "pares",
+    "pais": "pares",
+}
+
+
+def normalise_audience_tag(tag: str) -> str:
+    """Canonical form of one audience tag.
+
+    Lowercases, collapses whitespace, drops a leading article and a trailing
+    period, then maps known variants onto one spelling. Unknown tags pass
+    through cleaned but unchanged: the map is a curated list, not a guess.
+    """
+    clean = re.sub(r"\s+", " ", tag.strip().rstrip(".").lower())
+    for article in _ARTICLES:
+        if clean.startswith(article):
+            clean = clean[len(article) :].strip()
+            break
+    return _CANONICAL_TAGS.get(clean, clean)
+
+
+def normalise_audience_tags(tags: list[str]) -> list[str]:
+    """Normalise a list of tags, dropping duplicates and keeping order."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for tag in tags:
+        canonical = normalise_audience_tag(tag)
+        if canonical and canonical not in seen:
+            seen.add(canonical)
+            out.append(canonical)
+    return out
+
 
 @dataclass(frozen=True, slots=True)
 class AffectedResult:
@@ -79,7 +166,9 @@ def _validate(payload: object) -> dict[str, list[str]] | None:
             tag = v.strip().rstrip(".").lower()
             if tag and _TAG_RE.match(tag):
                 tags.append(tag)
-        out[locale] = tags
+        # Canonical spellings, so the audience filter offers one chip per
+        # collective instead of one per wording the model happened to use.
+        out[locale] = normalise_audience_tags(tags)
     return out
 
 

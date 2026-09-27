@@ -11,6 +11,7 @@ in :mod:`app.api.topics` and :mod:`app.api.stats` — to keep each
 router's responsibility narrow.
 """
 
+import json
 from collections import Counter, defaultdict
 from typing import Any
 
@@ -36,6 +37,7 @@ from app.schemas import (
     InitiativeTopicSlug,
     InitiativeVoteSummary,
 )
+from app.services.affected import normalise_audience_tag
 from app.services.cache import cached
 
 router = APIRouter(prefix="/initiatives", tags=["initiatives"])
@@ -182,12 +184,19 @@ async def list_initiatives(
     # against the serialised column: exact on the whole tag (the quotes stop
     # "joves" matching "joves agricultors"), language-agnostic, and portable
     # to SQLite, which the tests run on. Several tags are OR-ed, like topics.
-    audience_tags = _split_csv(audience)
+    audience_tags = [normalise_audience_tag(tag) for tag in _split_csv(audience)]
     if audience_tags:
         serialised = func.cast(Initiative.affected_audiences, String)
-        conditions.append(
-            or_(*[serialised.contains(f'"{tag}"', autoescape=True) for tag in audience_tags])
-        )
+        clauses = []
+        for tag in audience_tags:
+            # The JSON column stores non-ASCII escaped ("ciudadanía"), so
+            # matching the literal accented tag silently found nothing — and
+            # "ciudadanía" alone is 141 laws. json.dumps reproduces exactly
+            # the stored form, quotes included; the raw form is kept as well
+            # for any row written without escaping.
+            clauses.append(serialised.contains(json.dumps(tag), autoescape=True))
+            clauses.append(serialised.contains(f'"{tag}"', autoescape=True))
+        conditions.append(or_(*clauses))
     # Full-text search. On Postgres we run the 'spanish' FTS config over the
     # title + summary + preamble (object_text) + plain-language summaries and
     # rank by relevance — so "lleis sobre X" surfaces a bill even when X only
