@@ -271,7 +271,7 @@ export default async function JournalistsPage() {
               </Link>
             ),
             persons: (chunks) => (
-              <Link href={'/persons' as Route} style={{ color: 'var(--accent)' }}>
+              <Link href={'/el-teu-diputat?tab=tots' as Route} style={{ color: 'var(--accent)' }}>
                 {chunks}
               </Link>
             ),

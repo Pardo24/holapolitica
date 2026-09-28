@@ -771,7 +771,11 @@
     "groups_cta_title": "Els grups parlamentaris",
     "groups_cta_sub": "Balanç, composició i vots de cada grup",
     "map_cta_title": "El Mapa",
-    "map_cta_sub": "On se situa cada partit, segons experts"
+    "map_cta_sub": "On se situa cada partit, segons experts",
+    "tabs_aria": "Vistes de representants",
+    "tab_mine": "Els meus diputats",
+    "tab_all": "Tots els diputats",
+    "tab_groups": "Grups"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",

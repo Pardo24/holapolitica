@@ -6,7 +6,10 @@ import { ChevronRight, MapPin, User } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { ConstituencySelect } from '@/components/ConstituencySelect';
 import { GroupBadge } from '@/components/GroupBadge';
+import { DeputiesList } from '@/components/DeputiesList';
+import { GroupListPanel } from '@/components/GroupListPanel';
 import { Hemicycle } from '@/components/Hemicycle';
+import { HubTabs } from '@/components/HubTabs';
 import { PartyBand } from '@/components/PartyBand';
 import {
   api,
@@ -21,6 +24,8 @@ export const revalidate = 300;
 
 interface SearchParams {
   prov?: string;
+  /** meus (default) | tots | grups */
+  tab?: string;
 }
 
 interface PartyGroup {
@@ -44,7 +49,8 @@ export default async function ElTeuDiputatPage({
   const t = await getTranslations('deputy');
   const tHome = await getTranslations('home');
   const locale = await getLocale();
-  const { prov } = await searchParams;
+  const { prov, tab } = await searchParams;
+  const activeTab = tab === 'grups' ? 'grups' : tab === 'tots' ? 'tots' : 'meus';
 
   const [constituencies, hemicycle, allGroups]: [
     ConstituencyRow[],
@@ -74,6 +80,48 @@ export default async function ElTeuDiputatPage({
   }
   const parties = [...byGroup.values()].sort((a, b) => b.deputies.length - a.deputies.length);
 
+  // One page for the chamber's people, three questions: who represents ME,
+  // who are they ALL, and how do they group. /persons used to answer the
+  // last two with its own hemicycle and its own group list, so the site had
+  // two pages showing the same thing under different names.
+  const tabs = (
+    <HubTabs
+      ariaLabel={t('tabs_aria')}
+      tabs={[
+        { href: '/el-teu-diputat' as Route, label: t('tab_mine'), active: activeTab === 'meus' },
+        {
+          href: '/el-teu-diputat?tab=tots' as Route,
+          label: t('tab_all'),
+          active: activeTab === 'tots',
+        },
+        {
+          href: '/el-teu-diputat?tab=grups' as Route,
+          label: t('tab_groups'),
+          active: activeTab === 'grups',
+        },
+      ]}
+    />
+  );
+
+  if (activeTab !== 'meus') {
+    return (
+      <div>
+        <PageHeader
+          title={t('title')}
+          subtitle={t('subtitle')}
+          icon={<MapPin size={20} strokeWidth={1.8} aria-hidden="true" />}
+          bordered
+        />
+        {tabs}
+        {activeTab === 'grups' ? (
+          <GroupListPanel />
+        ) : (
+          <DeputiesList layout={hemicycle} groups={allGroups} />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader
@@ -82,6 +130,7 @@ export default async function ElTeuDiputatPage({
         icon={<MapPin size={20} strokeWidth={1.8} aria-hidden="true" />}
         bordered
       />
+      {tabs}
 
       <div style={{ paddingTop: 18, marginBottom: selected ? 18 : 0 }}>
         <ConstituencySelect

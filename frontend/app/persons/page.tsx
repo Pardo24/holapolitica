@@ -1,75 +1,25 @@
+import { permanentRedirect } from 'next/navigation';
 import type { Route } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { Users } from 'lucide-react';
 
-import { DeputiesList } from '@/components/DeputiesList';
-import { GroupListPanel } from '@/components/GroupListPanel';
-import { HubTabs } from '@/components/HubTabs';
-import { PageHeader } from '@/components/PageHeader';
-import { api } from '@/lib/api';
-
-type PersonsTab = 'diputats' | 'grups';
-
-interface SearchParams {
-  tab?: string;
-}
-
-export default async function PersonsPage({
+/**
+ * The deputies directory lives at /el-teu-diputat.
+ *
+ * This page and that one both showed a hemicycle and the list of groups
+ * under different names, and the site's own navigation pointed at one from
+ * the bottom bar and the other from the menu. /el-teu-diputat won because
+ * its name says what it does; this route keeps working for old links and
+ * search results, and carries the tab across.
+ *
+ * Only the index moves: /persons/[id], every deputy's own page, is
+ * untouched.
+ */
+export default async function PersonsIndexRedirect({
   searchParams,
 }: {
-  searchParams: Promise<SearchParams>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
-  const t = await getTranslations('persons');
-  const tNav = await getTranslations('nav');
-  const params = await searchParams;
-  const activeTab: PersonsTab = params.tab === 'grups' ? 'grups' : 'diputats';
-
-  return (
-    <div>
-      <PageHeader
-        title={tNav('persons')}
-        subtitle={t('hub_eyebrow')}
-        icon={<Users size={20} strokeWidth={1.8} aria-hidden="true" />}
-      />
-
-      <HubTabs
-        ariaLabel="Vistes de representants"
-        tabs={[
-          {
-            href: '/persons' as Route,
-            label: t('title'),
-            active: activeTab === 'diputats',
-          },
-          {
-            href: '/persons?tab=grups' as Route,
-            label: t('groups_tab_label'),
-            active: activeTab === 'grups',
-          },
-        ]}
-      />
-
-      {activeTab === 'diputats' ? <DiputatsTab /> : <GroupListPanel />}
-    </div>
-  );
-}
-
-async function DiputatsTab() {
-  // We fetch:
-  // - groups: for the right-hand sidebar + the group filter combobox
-  // - hemicycle layout: serves a DUAL purpose — drives the SVG chart
-  //   AND supplies every active deputy (name, photo_url, group, slug,
-  //   constituency) so the directory list can render entirely client
-  //   side without an extra paginated `/persons` call.
-  //
-  // The hemicycle endpoint is graceful (returns 200 + every active
-  // deputy even when seat coordinates haven't been ingested yet). We
-  // still ``catch`` to keep the page interactive if the backend goes
-  // away — the empty layout produces an empty list and an empty SVG,
-  // and the groups sidebar continues to render.
-  const [groups, hemicycleLayout] = await Promise.all([
-    api.groups.list(),
-    api.legislatures.hemicycle(1).catch(() => null),
-  ]);
-
-  return <DeputiesList layout={hemicycleLayout} groups={groups} />;
+  const { tab } = await searchParams;
+  // The old page had two tabs: the directory (default) and groups.
+  const target = tab === 'grups' ? '/el-teu-diputat?tab=grups' : '/el-teu-diputat?tab=tots';
+  permanentRedirect(target as Route);
 }
