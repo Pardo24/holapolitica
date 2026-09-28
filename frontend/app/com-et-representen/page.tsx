@@ -113,6 +113,8 @@ export default async function ComEtRepresentenPage({
               view_vote: t('view_vote'),
               question_label: t('question_label'),
               official_title: t('official_title'),
+              read_more: t('read_more'),
+              read_less: t('read_less'),
               results_podium: t('results_podium'),
               results_rest: t('results_rest'),
               results_of_votes: t.raw('results_of_votes'),
