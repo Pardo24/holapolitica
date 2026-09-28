@@ -771,7 +771,11 @@
     "groups_cta_title": "The parliamentary groups",
     "groups_cta_sub": "Balance, composition and votes of each group",
     "map_cta_title": "The Map",
-    "map_cta_sub": "Where each party sits, according to experts"
+    "map_cta_sub": "Where each party sits, according to experts",
+    "tabs_aria": "Representative views",
+    "tab_mine": "My deputies",
+    "tab_all": "All deputies",
+    "tab_groups": "Groups"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",

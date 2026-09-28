@@ -771,7 +771,11 @@
     "groups_cta_title": "Los grupos parlamentarios",
     "groups_cta_sub": "Balance, composición y votos de cada grupo",
     "map_cta_title": "El Mapa",
-    "map_cta_sub": "Dónde se sitúa cada partido, según expertos"
+    "map_cta_sub": "Dónde se sitúa cada partido, según expertos",
+    "tabs_aria": "Vistas de representantes",
+    "tab_mine": "Mis diputados",
+    "tab_all": "Todos los diputados",
+    "tab_groups": "Grupos"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
