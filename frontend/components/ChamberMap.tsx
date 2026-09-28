@@ -69,6 +69,23 @@ export function ChamberMap({
   // and one without stays an empty ring.
   const occupied = seats.filter((s) => s.seat_x != null && s.seat_y != null);
 
+  // Only the chairs nobody sits in get a ring. Drawing all 369 and painting
+  // over 350 of them doubled the SVG in the document for 19 visible rings
+  // (the Banco Azul benches), and this page ships the map twice — once per
+  // breakpoint tree.
+  const taken = new Set(occupied.map((s) => `${s.seat_x},${s.seat_y}`));
+  const emptyChairs = ALL_SEAT_POSITIONS.filter(([x, y]) => !taken.has(`${x},${y}`));
+
+  // One <g> per colour, so a seat is just its coordinates: the fill was the
+  // longest part of each circle and it repeats 350 times.
+  const seatsByColor = new Map<string, { x: number; y: number }[]>();
+  for (const s of occupied) {
+    const color = s.group_color ?? '#9ca3af';
+    const list = seatsByColor.get(color) ?? [];
+    list.push({ x: s.seat_x as number, y: s.seat_y as number });
+    seatsByColor.set(color, list);
+  }
+
   return (
     <Link
       href={href}
@@ -95,27 +112,22 @@ export function ChamberMap({
         aria-label={ariaLabel}
         style={{ display: 'block', width: '100%', height: 'auto' }}
       >
-        {/* Shared attributes live on the <g>: 719 circles that each
-            repeated their own stroke made the document noticeably
-            heavier for nothing. */}
-        {/* Every chair in the room, including the ones nobody sits in. */}
-        <g fill="none" stroke="var(--rule-strong)" strokeWidth={1} opacity={0.5}>
-          {ALL_SEAT_POSITIONS.map(([x, y]) => (
+        {/* Shared attributes live on the <g>, never on each circle. */}
+        {/* The chairs with nobody in them — the cabinet benches, and any
+            seat vacant between a resignation and its replacement. */}
+        <g fill="none" stroke="var(--rule-strong)" strokeWidth={1} opacity={0.6}>
+          {emptyChairs.map(([x, y]) => (
             <circle key={`chair-${x}-${y}`} cx={x} cy={y} r={SEAT_R} />
           ))}
         </g>
-        {/* The deputies, in their group's colour. */}
-        <g stroke="rgba(20, 28, 60, 0.18)" strokeWidth={1}>
-          {occupied.map((s) => (
-            <circle
-              key={s.person_id}
-              cx={s.seat_x as number}
-              cy={s.seat_y as number}
-              r={SEAT_R}
-              fill={s.group_color ?? '#9ca3af'}
-            />
-          ))}
-        </g>
+        {/* The deputies, one group per colour. */}
+        {[...seatsByColor.entries()].map(([color, list]) => (
+          <g key={color} fill={color} stroke="rgba(20, 28, 60, 0.18)" strokeWidth={1}>
+            {list.map(({ x, y }) => (
+              <circle key={`${x},${y}`} cx={x} cy={y} r={SEAT_R} />
+            ))}
+          </g>
+        ))}
       </svg>
 
       {/* The legend is the same information in words: every group, its
