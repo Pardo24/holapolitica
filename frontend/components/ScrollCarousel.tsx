@@ -101,7 +101,17 @@ export function ScrollCarousel({
         ref={ref}
         role="list"
         aria-label={ariaLabel}
-        className="no-scrollbar"
+        // The arrows only show on wide screens; on a phone the fade is what
+        // tells the reader a card is cut off on purpose and the row moves.
+        className={`no-scrollbar ${
+          canLeft && canRight
+            ? 'edge-fade-both'
+            : canRight
+              ? 'edge-fade-right'
+              : canLeft
+                ? 'edge-fade-left'
+                : ''
+        }`}
         style={{
           listStyle: 'none',
           margin: 0,
