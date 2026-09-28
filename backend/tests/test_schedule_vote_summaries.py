@@ -28,7 +28,7 @@ def _definition(job_id: str) -> tuple[Any, ...]:
 
 
 def test_vote_summaries_are_scheduled_daily() -> None:
-    job_id, queue_name, cron_string, fn = _definition("monitor-summarise-pending-votes")
+    _job_id, queue_name, cron_string, fn = _definition("monitor-summarise-pending-votes")
 
     assert queue_name == "ingest"
     assert fn is jobs.summarise_pending_votes
