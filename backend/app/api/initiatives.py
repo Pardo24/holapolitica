@@ -399,6 +399,7 @@ async def _load_group_stances(
                 ParliamentaryGroup.slug,
                 ParliamentaryGroup.name_short,
                 ParliamentaryGroup.color_hex,
+                ParliamentaryGroup.logo_url,
                 VoteRecord.choice,
                 func.count(),
             )
@@ -409,16 +410,17 @@ async def _load_group_stances(
                 ParliamentaryGroup.slug,
                 ParliamentaryGroup.name_short,
                 ParliamentaryGroup.color_hex,
+                ParliamentaryGroup.logo_url,
                 VoteRecord.choice,
             )
         )
     ).all()
 
     counts: dict[tuple[int, str], dict[str, int]] = defaultdict(dict)
-    meta: dict[str, tuple[str, str | None]] = {}
-    for vote_id, slug, name_short, color_hex, choice, n in rows:
+    meta: dict[str, tuple[str, str | None, str | None]] = {}
+    for vote_id, slug, name_short, color_hex, logo_url, choice, n in rows:
         counts[(vote_id, slug)][str(choice)] = n
-        meta[slug] = (name_short, color_hex)
+        meta[slug] = (name_short, color_hex, logo_url)
 
     out: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for (vote_id, slug), per_choice in counts.items():
@@ -427,12 +429,15 @@ async def _load_group_stances(
         )
         if backing == 0:
             continue  # the group was only absent / unrecorded
-        name_short, color_hex = meta[slug]
+        name_short, color_hex, logo_url = meta[slug]
         out[vote_id].append(
             {
                 "slug": slug,
                 "name_short": name_short,
                 "color_hex": color_hex,
+                # So a reader recognises the party by its emblem rather than
+                # by decoding a colour key.
+                "logo_url": logo_url,
                 "choice": stance.value,
                 "deputies": backing,
                 "total": sum(per_choice.values()),

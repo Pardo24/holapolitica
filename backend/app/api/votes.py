@@ -14,6 +14,7 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.api.initiatives import _load_group_stances
 from app.api.legislatures import HemicycleLayout, HemicycleSeat
 from app.db import get_session
 from app.ingest.congreso.hemicycle import (
@@ -220,12 +221,23 @@ async def list_votes(
     topics_by_initiative = await _load_topics_by_initiative(db, init_ids)
     types_by_initiative = await _load_types_by_initiative(db, init_ids)
 
+    # How each group voted, for every vote on the page: the list renders the
+    # same card as /lleis, which answers "who backed it" without a click.
+    # One grouped aggregate for the whole page, shared with the laws list.
+    stances_by_vote = await _load_group_stances(db, [v.id for v in items])
+
     return {
         "total": total,
         "page": page,
         "page_size": page_size,
         "items": [
-            _serialize_vote(v, groups, topics_by_initiative, types_by_initiative) for v in items
+            {
+                **_serialize_vote(v, groups, topics_by_initiative, types_by_initiative).model_dump(
+                    mode="json"
+                ),
+                "groups": stances_by_vote.get(v.id, []),
+            }
+            for v in items
         ],
     }
 
