@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Scale } from 'lucide-react';
 
 import { AlignQuiz } from '@/components/AlignQuiz';
+import { EdgeFadeRow } from '@/components/EdgeFadeRow';
 import { PageHeader } from '@/components/PageHeader';
 import { api, type AlignQuestion, type Topic } from '@/lib/api';
 import { pickTopicName } from '@/lib/topics';
@@ -66,10 +67,9 @@ export default async function ComEtRepresentenPage({
           >
             {t('topic_picker')}
           </span>
-          <div
-            className="no-scrollbar"
-            style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}
-          >
+          {/* Fourteen topics don't fit a phone; the fade says the row
+              carries on past the edge. */}
+          <EdgeFadeRow ariaLabel={t('topic_picker')}>
             <TopicPick href={'/com-et-representen' as Route} active={!topicSlug}>
               {t('topic_any')}
             </TopicPick>
@@ -82,7 +82,7 @@ export default async function ComEtRepresentenPage({
                 {pickTopicName(tp, locale)}
               </TopicPick>
             ))}
-          </div>
+          </EdgeFadeRow>
         </div>
       )}
 
