@@ -1,18 +1,16 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowRight, BarChart3, X } from 'lucide-react';
+import { BarChart3, X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { CoincidenceProgressive } from '@/components/CoincidenceProgressive';
-import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
 import { StatsGroupFilter, StatsTopicFilter } from '@/components/StatsFilterClient';
-import { StatsPie, type StatsPieLabels } from '@/components/StatsPie';
 import { SummaryHover } from '@/components/SummaryHover';
 import { Tooltip } from '@/components/Tooltip';
 import {
@@ -37,7 +35,7 @@ import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
-import { pickTopicDescription, pickTopicName, resolveTopicName } from '@/lib/topics';
+import { pickTopicName, resolveTopicName } from '@/lib/topics';
 
 // Status color mapping retained because individual sections / fallback
 // labels still reference it; PLURAL_KEY / TYPE_KEY tables were used only
@@ -59,7 +57,6 @@ const STATUS_SINGULAR_KEY: Record<string, string> = {
   expired: 'status_singular_expired',
 };
 
-type TabKey = 'overview' | 'filtered';
 
 // ISR window for the /stats route. The Vercel edge caches the rendered
 // HTML for this many seconds; subsequent visits get served from the CDN
@@ -102,12 +99,6 @@ export default async function StatsPage({
   //   - otherwise: if any filter is set, default to "filtered"; else "overview"
   // This way a deep link with ?group=X or ?topic=Y lands on the filtered
   // analysis tab, and a bare /stats lands on the overview, per the spec.
-  const explicitTab: TabKey | null =
-    params.tab === 'overview' || params.tab === 'filtered'
-      ? (params.tab as TabKey)
-      : null;
-  const activeTab: TabKey =
-    explicitTab ?? (anyFilter ? 'filtered' : 'overview');
 
   // Data fetching — every read is kicked off in PARALLEL up front so the
   // page renders as soon as the slowest single response lands. Previously
@@ -226,15 +217,6 @@ export default async function StatsPage({
     !!cross &&
     cross.joint_initiatives_total === 0;
 
-  // slug → plain-language topic description for the pie's click-to-explain
-  // panel. Built from the full topic list (which carries descriptions);
-  // the pie itself only receives the lighter TopicGlobalStat rows.
-  const topicDescriptions: Record<string, string> = {};
-  for (const tp of allTopics) {
-    const d = pickTopicDescription(tp, locale);
-    if (d) topicDescriptions[tp.slug] = d;
-  }
-
   return (
     <div style={{ maxWidth: 1060, marginInline: 'auto' }}>
       <header
@@ -283,10 +265,9 @@ export default async function StatsPage({
             {t('intro')}
           </p>
         </div>
-        {/* Top-right big-number — total votes registered. Hidden on mobile
-            (the mobile dashboard already surfaces the same figure inline)
-            and only on the overview tab where the legacy KPIs are gone. */}
-        {activeTab === 'overview' && (
+        {/* Top-right big-number — total votes registered. Hidden on mobile,
+            where the dashboard already surfaces the same figure inline. */}
+        {(
           <div
             className="hidden sm:flex"
             style={{
@@ -367,7 +348,6 @@ export default async function StatsPage({
         cross={cross}
         coincidence={coincidence}
         topicStatsByGroup={topicStatsByGroup}
-        groupSummary={groupSummary}
         summary={summary}
         selectedTopic={selectedTopic}
         selectedGroup={selectedGroup}
@@ -378,121 +358,14 @@ export default async function StatsPage({
 
       {/* Desktop tabbed layout — hidden on mobile, identical to before. */}
       <div className="hidden sm:block">
-      {/* Tabs — top-level page navigation. Server-rendered Links so the
-          tab state survives reloads and can be deep-linked. Switching tab
-          preserves the currently selected filters so context isn't lost. */}
-      <Tabs
-        active={activeTab}
-        selectedTopic={selectedTopic}
-        selectedGroup={selectedGroup}
-        labels={{
-          overview: t('tab_overview'),
-          filtered: t('tab_filtered'),
-        }}
-        ariaLabel={t('tablist_aria')}
-      />
+      {/* No tabs any more. The page used to open on an "overview" of
+          aggregates nobody asked for — a carousel of cohesion percentages
+          and a donut with fourteen topic slices — while the analysis that
+          answers actual questions ("what does the chamber do about
+          housing", "what does this party table") sat behind a second tab.
+          The filter now IS the page: pick a topic and/or a group and read
+          the answer. Old ?tab= links still work; the value is ignored. */}
 
-      {activeTab === 'overview' && (
-        <>
-          {/* Per-party first: each group's cohesion + attendance. This is what
-              the page is about — parties, not headline totals. One card per
-              group, all shown for symmetry. */}
-          {groupSummary.length > 0 && (
-            <Section
-              title={t('group_summary_title')}
-              subtitle={t('group_summary_subtitle')}
-            >
-              <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
-            </Section>
-          )}
-
-          {/* The party comparator — who votes with whom. */}
-          <Section
-            title={
-              <>
-                <GlossaryTerm term="Coincidència">{t('coincidence_label')}</GlossaryTerm>{' '}
-                {t('coincidence_between_suffix')}
-              </>
-            }
-            subtitle={t('coincidence_overview_subtitle')}
-          >
-            <CoincidenceProgressive groups={allGroups} cells={coincidence}>
-              <CoincidenceMatrix
-                groups={allGroups}
-                cells={coincidence}
-                highlightSlug={null}
-              />
-            </CoincidenceProgressive>
-          </Section>
-
-          {/* Global breakdown last — the headline totals matter less than the
-              per-party and per-topic views above. Interactive: switch between
-              status, proposing groups and topics. Desktop only (the mobile
-              dashboard owns that view). */}
-          <Section title={t('pie_title')} subtitle={t('pie_subtitle')}>
-            <div className="hidden sm:block">
-              <StatsPie
-                byStatus={byStatus}
-                topics={topics}
-                labels={statsPieLabels(t)}
-                topicDescriptions={topicDescriptions}
-                explainHint={t('pie_explain_hint')}
-              />
-            </div>
-          </Section>
-
-          {/* End-of-overview CTA into the filtered analysis. */}
-          <section
-            style={{
-              marginTop: 40,
-              padding: '20px 22px',
-              borderRadius: 14,
-              background: 'var(--paper-2)',
-              border: '1px solid var(--rule-strong)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 18,
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div
-                className="serif"
-                style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.01em' }}
-              >
-                {t('more_data_title')}
-              </div>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--ink-3)', maxWidth: 560, lineHeight: 1.5 }}>
-                {t('more_data_body')}
-              </p>
-            </div>
-            <Link
-              href={'/stats?tab=filtered' as Route}
-              scroll={false}
-              style={{
-                flex: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 18px',
-                borderRadius: 999,
-                background: 'var(--ink)',
-                color: 'var(--paper)',
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              {t('more_data_cta')}
-              <ArrowRight size={16} aria-hidden="true" />
-            </Link>
-          </section>
-        </>
-      )}
-
-      {activeTab === 'filtered' && (
-        <>
           {/* Fused filter bar — Group + Topic in a single GET form at the
               top of this tab. Replaces the two separate filter sections the
               page used to have. */}
@@ -510,13 +383,34 @@ export default async function StatsPage({
               locale={locale}
               labels={{
                 title: t('pick_topic_title'),
-                subtitle: t('pick_topic_subtitle', { tab: t('tab_filtered') }),
+                subtitle: t('pick_topic_subtitle'),
                 initiativesUnit: (count: number) =>
                   t('pick_topic_initiatives_unit', { count }),
                 orGroupPrefix: t('pick_topic_or_group_prefix'),
                 orGroupLink: t('pick_topic_or_group_link'),
               }}
             />
+          )}
+
+          {/* The one aggregate worth the whole page's width: who votes with
+              whom. It survived the overview because it answers a question
+              instead of reporting a percentage, and it only shows while
+              nothing is filtered — once a topic is picked, the per-topic
+              version below says the same thing for that topic. */}
+          {!anyFilter && (
+            <Section
+              title={
+                <>
+                  <GlossaryTerm term="Coincidència">{t('coincidence_label')}</GlossaryTerm>{' '}
+                  {t('coincidence_between_suffix')}
+                </>
+              }
+              subtitle={t('coincidence_overview_subtitle')}
+            >
+              <CoincidenceProgressive groups={allGroups} cells={coincidence}>
+                <CoincidenceMatrix groups={allGroups} cells={coincidence} highlightSlug={null} />
+              </CoincidenceProgressive>
+            </Section>
           )}
 
           {isEmpty && (
@@ -788,8 +682,6 @@ export default async function StatsPage({
               </Section>
             </>
           )}
-        </>
-      )}
 
       </div>
 
@@ -797,64 +689,12 @@ export default async function StatsPage({
         @media (max-width: 860px) {
           .stats-twocol { grid-template-columns: 1fr !important; }
         }
-        /* Highlights + Cohesion sit side-by-side on desktop. Use display:flex
-           so each child can flex evenly; the row wraps below 900px and the
-           cohesion column hides under the sm breakpoint (mobile already has
-           its own GroupSummaryCarousel in MobileStatsDashboard). */
-        .stats-carousel-row {
-          display: flex;
-          gap: 14px;
-          align-items: stretch;
-          flex-wrap: wrap;
-          /* Cap the height so these two widgets read as secondary
-             support material, not the main act. The interactive pie
-             below is the page's focal element. */
-          max-height: 220px;
-        }
-        .stats-carousel-row > div {
-          max-height: 220px;
-          overflow: hidden;
-        }
-        @media (max-width: 900px) {
-          .stats-carousel-row { flex-direction: column; }
-        }
-        @media (max-width: 640px) {
-          .stats-cohesion-col { display: none; }
-        }
-        /* StatsPie collapses the side-by-side pie + mode toggle into a
-           single column below 900px so the legend below the pie remains
-           legible at narrow widths. */
-        @media (max-width: 900px) {
-          .stats-pie-wrap { grid-template-columns: 1fr !important; }
-        }
       `}</style>
     </div>
   );
 }
 
 type StatsT = Awaited<ReturnType<typeof getTranslations<'stats'>>>;
-
-/** Translation bundle for the StatsPie segmented-radio + legend. Built
- *  here so the page-level translations stay co-located with their
- *  consumers. */
-function statsPieLabels(t: StatsT): StatsPieLabels {
-  return {
-    title: t('pie_mode_legend'),
-    modeTopic: t('pie_mode_topic'),
-    modeTopicAcceptance: t('pie_mode_topic_acceptance'),
-    modeStatus: t('pie_mode_status'),
-    modeAria: t('pie_mode_aria'),
-    statusApproved: t('status_plural_approved'),
-    statusRejected: t('status_plural_rejected'),
-    statusInDebate: t('status_plural_in_debate'),
-    statusSubmitted: t('status_plural_submitted'),
-    statusWithdrawn: t('status_plural_withdrawn'),
-    statusExpired: t('status_plural_expired'),
-    statusOther: t('status_other_short'),
-    initiativesUnit: t('initiatives_unit'),
-    emptyMode: t('empty_no_data'),
-  };
-}
 
 function kpiLabels(t: StatsT): KpiLabels {
   return {
@@ -963,87 +803,6 @@ function KpiStrip({
   );
 }
 
-// ─── Tabs ──────────────────────────────────────────────────────────────────
-
-/** Button-styled radio group rendered as <Link>s. No client JS required —
- *  switching tab is a navigation that re-runs the server component, so the
- *  data fetched matches the active tab. Filters in URL are preserved across
- *  the switch so the user doesn't lose context. */
-function Tabs({
-  active,
-  selectedTopic,
-  selectedGroup,
-  labels,
-  ariaLabel,
-}: {
-  active: TabKey;
-  selectedTopic: string;
-  selectedGroup: string;
-  labels: Record<TabKey, string>;
-  ariaLabel: string;
-}) {
-  const overviewHref = buildTabHref('overview', selectedTopic, selectedGroup);
-  const filteredHref = buildTabHref('filtered', selectedTopic, selectedGroup);
-  return (
-    <nav
-      role="tablist"
-      aria-label={ariaLabel}
-      style={{
-        display: 'flex',
-        gap: 4,
-        marginTop: 18,
-        marginBottom: 4,
-        borderBottom: '1px solid var(--rule)',
-      }}
-    >
-      <TabButton href={overviewHref} active={active === 'overview'}>
-        {labels.overview}
-      </TabButton>
-      <TabButton href={filteredHref} active={active === 'filtered'}>
-        {labels.filtered}
-      </TabButton>
-    </nav>
-  );
-}
-
-function TabButton({
-  href,
-  active,
-  children,
-}: {
-  href: Route;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      role="tab"
-      aria-selected={active}
-      style={{
-        padding: '10px 16px',
-        fontSize: 13,
-        fontWeight: active ? 700 : 500,
-        color: active ? 'var(--ink)' : 'var(--ink-3)',
-        textDecoration: 'none',
-        borderBottom: active ? '2px solid var(--ink)' : '2px solid transparent',
-        marginBottom: -1,
-        cursor: 'pointer',
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function buildTabHref(tab: TabKey, topic: string, group: string): Route {
-  const qs = new URLSearchParams();
-  qs.set('tab', tab);
-  if (topic !== 'all') qs.set('topic', topic);
-  if (group !== 'all') qs.set('group', group);
-  return `/stats?${qs.toString()}` as Route;
-}
-
 // ─── Filter bar + chips ────────────────────────────────────────────────────
 
 async function FilterBar({
@@ -1064,7 +823,7 @@ async function FilterBar({
     <section
       id="stats-filter-bar"
       className="stats-filter"
-      aria-label={t('tab_filtered')}
+      aria-label={t('filter_card_aria')}
       style={{
         padding: 14,
         border: '1px solid var(--rule)',
