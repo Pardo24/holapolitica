@@ -42,6 +42,7 @@ import {
 import { NoBreakdownNotice, noBreakdownReason } from '@/components/NoBreakdownNotice';
 import { ResultPill } from '@/components/ResultPill';
 import { ShareButton } from '@/components/ShareButton';
+import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { VoteDonut } from '@/components/VoteDonut';
 import {
   api,
@@ -264,6 +265,7 @@ export default async function VoteDetailPage({
   const t = await getTranslations('votes');
   const tCommon = await getTranslations('common');
   const tInitiative = await getTranslations('initiative_detail');
+  const tLleis = await getTranslations('lleis');
   const locale = await getLocale();
 
   let vote: Vote;
@@ -448,6 +450,10 @@ export default async function VoteDetailPage({
             </p>
           </>
         ) : (
+          <>
+            {/* No summary yet. Saying so is the difference between "we
+                haven't written one" and "this is how we write". */}
+            <SummaryProvenance kind="none" label={tLleis('card_no_summary')} />
           <h1
             style={{
               margin: 0,
@@ -463,6 +469,7 @@ export default async function VoteDetailPage({
           >
             <AnnotatedText text={subject} />
           </h1>
+          </>
         )}
         {proceduralNote && (
           <p

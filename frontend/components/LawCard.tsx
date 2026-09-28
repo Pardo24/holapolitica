@@ -8,6 +8,7 @@ import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
+import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
@@ -126,7 +127,14 @@ export async function LawCard({
         )}
       </div>
 
-      {/* Line 2: what it does, in plain language. */}
+      {/* Line 2: what it does, in plain language — and who wrote that
+          line. When no summary exists the card used to show the official
+          title with no explanation, which read as if the project had
+          chosen to speak in legalese. */}
+      <SummaryProvenance
+        kind={plainSummary ? 'ai' : 'none'}
+        label={plainSummary ? t('card_ai_summary') : t('card_no_summary')}
+      />
       <h3 style={{ margin: 0 }}>
         <Link
           href={href}
