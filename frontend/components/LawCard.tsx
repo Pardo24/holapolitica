@@ -9,9 +9,10 @@ import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
 import { StackedBar } from '@/components/StackedBar';
 import { TopicChip } from '@/components/TopicChip';
-import type { InitiativeListItem, LawLatestVote, LawVoteGroupStance } from '@/lib/api';
+import { VoteSplit } from '@/components/VoteSplit';
+import type { InitiativeListItem } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
-import { displayGroupShort, type ParsedProposer } from '@/lib/groups';
+import { type ParsedProposer } from '@/lib/groups';
 import { STATUS_COLOR, STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
 
@@ -201,90 +202,23 @@ export async function LawCard({
             {voteDate ? ` · ${voteDate}` : ''}
           </p>
         ) : (
-          <>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                gap: 10,
-                flexWrap: 'wrap',
-                marginBottom: 8,
-              }}
-            >
-              <span style={EYEBROW}>{t('card_votes_eyebrow')}</span>
-              <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-                {voteDate}
-              </span>
-            </div>
-            <GroupRibbon vote={vote} />
-            <div
-              className="tabular"
-              style={{
-                display: 'flex',
-                gap: 14,
-                flexWrap: 'wrap',
-                marginTop: 8,
-                fontSize: 12.5,
-                color: 'var(--ink-2)',
-              }}
-            >
-              <Tally color="var(--aye)" label={t('card_in_favour')} n={vote.ayes} />
-              <Tally color="var(--no)" label={t('card_against')} n={vote.noes} />
-              <Tally color="var(--abst)" label={t('card_abstention')} n={vote.abstentions} />
-            </div>
-
-            {vote.groups.length > 0 ? (
-              // Small by default, big on demand: the ribbon above already
-              // says who is on each side, so the per-group counts open only
-              // for whoever wants them and a card stays scannable.
-              <details style={{ marginTop: 10 }}>
-                <summary
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--ink-3)',
-                    cursor: 'pointer',
-                    listStyle: 'revert',
-                  }}
-                >
-                  {t('card_group_detail')}
-                </summary>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                    gap: 10,
-                    marginTop: 10,
-                  }}
-                >
-                  <StanceColumn
-                    label={t('card_in_favour')}
-                    color="var(--aye)"
-                    groups={inFavour}
-                    emptyLabel={t('card_side_empty')}
-                  />
-                  <StanceColumn
-                    label={t('card_against')}
-                    color="var(--no)"
-                    groups={against}
-                    emptyLabel={t('card_side_empty')}
-                  />
-                  {abstained.length > 0 && (
-                    <StanceColumn
-                      label={t('card_abstention')}
-                      color="var(--abst)"
-                      groups={abstained}
-                      emptyLabel={t('card_side_empty')}
-                    />
-                  )}
-                </div>
-              </details>
-            ) : (
-              <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>
-                {t('card_no_breakdown')}
-              </p>
-            )}
-          </>
+          <VoteSplit
+            ayes={vote.ayes}
+            noes={vote.noes}
+            abstentions={vote.abstentions}
+            absent={vote.absent}
+            groups={vote.groups}
+            date={voteDate}
+            labels={{
+              eyebrow: t('card_votes_eyebrow'),
+              inFavour: t('card_in_favour'),
+              against: t('card_against'),
+              abstention: t('card_abstention'),
+              detail: t('card_group_detail'),
+              sideEmpty: t('card_side_empty'),
+              noBreakdown: t('card_no_breakdown'),
+            }}
+          />
         )}
       </div>
 
@@ -346,138 +280,3 @@ const EYEBROW: React.CSSProperties = {
   color: 'var(--ink-3)',
   fontWeight: 600,
 };
-
-/**
- * The chamber as one ribbon: each side takes the width its votes earned,
- * and inside it every group takes the width its deputies earned, painted in
- * the group's own colour. A rail underneath repeats the side colour, so the
- * sides stay unmistakable even though the segments are party-coloured.
- *
- * Decorative: the same information is in the tally line and, in full, in the
- * per-group detail below, so screen readers skip it.
- */
-function GroupRibbon({ vote }: { vote: LawLatestVote }) {
-  const zones = [
-    { key: 'aye', color: 'var(--aye)', count: vote.ayes },
-    { key: 'abstention', color: 'var(--abst)', count: vote.abstentions },
-    { key: 'no', color: 'var(--no)', count: vote.noes },
-    { key: 'absent', color: 'var(--nv)', count: vote.absent },
-  ].filter((z) => z.count > 0);
-  if (zones.length === 0) return null;
-
-  return (
-    <div aria-hidden="true" style={{ display: 'flex', gap: 3 }}>
-      {zones.map((zone) => {
-        const groups = vote.groups.filter((g) => g.choice === zone.key);
-        return (
-          <div key={zone.key} style={{ flex: `${zone.count} 0 0`, minWidth: 2 }}>
-            <div
-              style={{
-                display: 'flex',
-                gap: 1,
-                height: 13,
-                borderRadius: 3,
-                overflow: 'hidden',
-                background: zone.color,
-              }}
-            >
-              {groups.map((g) => (
-                <span
-                  key={g.slug}
-                  title={`${displayGroupShort(g.name_short)} · ${g.deputies}`}
-                  style={{
-                    flex: `${g.deputies} 0 0`,
-                    background: g.color_hex ?? zone.color,
-                    minWidth: 0,
-                  }}
-                />
-              ))}
-            </div>
-            <div style={{ height: 3, borderRadius: 999, background: zone.color, marginTop: 2 }} />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Tally({ color, label, n }: { color: string; label: string; n: number }) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-      <span
-        aria-hidden="true"
-        style={{ width: 8, height: 8, borderRadius: 999, background: color, flex: 'none' }}
-      />
-      <strong style={{ fontWeight: 600, color: 'var(--ink)' }}>{n}</strong> {label}
-    </span>
-  );
-}
-
-/**
- * One side of the chamber. Rendered identically for every side, groups
- * ordered by how many deputies backed the stance (the API sorts them), so
- * the layout itself carries no editorial weight.
- */
-function StanceColumn({
-  label,
-  color,
-  groups,
-  emptyLabel,
-}: {
-  label: string;
-  color: string;
-  groups: LawVoteGroupStance[];
-  emptyLabel: string;
-}) {
-  return (
-    <div style={{ minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-        <span
-          aria-hidden="true"
-          style={{ width: 8, height: 8, borderRadius: 999, background: color, flex: 'none' }}
-        />
-        <span style={EYEBROW}>{label}</span>
-      </div>
-      {groups.length === 0 ? (
-        <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{emptyLabel}</span>
-      ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {groups.map((g) => (
-            <span
-              key={g.slug}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                maxWidth: '100%',
-                padding: '3px 8px',
-                borderRadius: 999,
-                border: '1px solid var(--rule)',
-                background: 'var(--paper)',
-                fontSize: 12,
-                color: 'var(--ink)',
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: 999,
-                  background: g.color_hex ?? 'var(--ink-3)',
-                  flex: 'none',
-                }}
-              />
-              <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-                {displayGroupShort(g.name_short)}
-              </span>
-              <span className="tabular" style={{ color: 'var(--ink-3)', fontSize: 11 }}>
-                {g.deputies}
-              </span>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
