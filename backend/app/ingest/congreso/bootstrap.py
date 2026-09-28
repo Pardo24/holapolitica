@@ -939,7 +939,9 @@ _VOTE_DESCRIPTION_MIN_LEN = 60
 _LLM_INTER_CALL_DELAY_S = 1.0
 
 
-async def generate_vote_plain_summaries(lang: str = "ca") -> dict[str, int | str]:
+async def generate_vote_plain_summaries(
+    lang: str = "ca", *, limit: int | None = None
+) -> dict[str, int | str]:
     """Generate plain-language summaries for *votes* that lack one.
 
     Mirrors :func:`generate_all_plain_summaries` but operates on the
@@ -955,6 +957,12 @@ async def generate_vote_plain_summaries(lang: str = "ca") -> dict[str, int | str
     re-running picks up failures and leaves successes untouched.
 
     Per-row try/except — a single LLM hiccup doesn't kill the batch.
+
+    ``limit`` caps one run and is what the daily cron uses: the archive
+    holds 16k votes across six legislatures, so an uncapped pass would
+    queue thousands of LLM calls. Newest first, because an unexplained
+    vote hurts most on the day it is on the front page — the older tail
+    is reached run by run, or in one manual pass with ``limit=None``.
     """
     from datetime import datetime
 
@@ -970,20 +978,19 @@ async def generate_vote_plain_summaries(lang: str = "ca") -> dict[str, int | str
     target_col = getattr(Vote, target_col_name)
 
     async with AsyncSessionLocal() as session:
-        ids = list(
-            (
-                await session.execute(
-                    _select(Vote.id).where(
-                        target_col.is_(None),
-                        Vote.description.is_not(None),
-                        _func.length(Vote.description) > _VOTE_DESCRIPTION_MIN_LEN,
-                    )
-                )
+        stmt = (
+            _select(Vote.id)
+            .where(
+                target_col.is_(None),
+                Vote.description.is_not(None),
+                _func.length(Vote.description) > _VOTE_DESCRIPTION_MIN_LEN,
             )
-            .scalars()
-            .all()
+            .order_by(Vote.voted_at.desc())
         )
-        log.info("vote_plain_summary.starting", lang=lang, count=len(ids))
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        ids = list((await session.execute(stmt)).scalars().all())
+        log.info("vote_plain_summary.starting", lang=lang, count=len(ids), limit=limit)
 
         ok = insufficient = errors = 0
         for vid in ids:

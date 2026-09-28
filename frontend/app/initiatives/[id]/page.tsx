@@ -21,6 +21,7 @@ import {
 import { ResultPill } from '@/components/ResultPill';
 import { ShareButton } from '@/components/ShareButton';
 import { StackedBar } from '@/components/StackedBar';
+import { SummaryProvenance } from '@/components/SummaryProvenance';
 import {
   api,
   ApiError,
@@ -181,6 +182,14 @@ export default async function InitiativeDetailPage({
 
       {/* Header */}
       <header style={{ paddingTop: 8, paddingBottom: 24, borderBottom: '1px solid var(--ink)' }}>
+        {/* Who wrote the headline below. With a summary the caveat under
+            the official title says the rest; without one, this is the only
+            thing that separates "we have no summary yet" from "this is how
+            we write". */}
+        <SummaryProvenance
+          kind={summary ? 'ai' : 'none'}
+          label={summary ? tLleis('card_ai_summary') : tLleis('card_no_summary')}
+        />
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
           {/* The plain summary leads. The official title used to be the
               headline here while the summary sat half a page below, so the

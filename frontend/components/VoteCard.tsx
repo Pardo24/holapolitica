@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
+import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { Vote } from '@/lib/api';
@@ -64,6 +65,13 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
         />
       </div>
 
+      {/* Same label as on a law card: the headline is either a machine
+          summary or the chamber's own wording, and which one it is should
+          never be a guess. */}
+      <SummaryProvenance
+        kind={plainSummary ? 'ai' : 'none'}
+        label={plainSummary ? t('card_ai_summary') : t('card_no_summary')}
+      />
       <h3 style={{ margin: 0 }}>
         <Link
           href={href}
