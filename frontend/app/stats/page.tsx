@@ -6,15 +6,14 @@ import { ArrowRight, BarChart3, X } from 'lucide-react';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
 import { CoincidenceProgressive } from '@/components/CoincidenceProgressive';
-import { GroupCombobox } from '@/components/GroupCombobox';
 import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
+import { StatsGroupFilter, StatsTopicFilter } from '@/components/StatsFilterClient';
 import { StatsPie, type StatsPieLabels } from '@/components/StatsPie';
 import { SummaryHover } from '@/components/SummaryHover';
-import { TopicCombobox } from '@/components/TopicCombobox';
 import { Tooltip } from '@/components/Tooltip';
 import {
   api,
@@ -1062,84 +1061,103 @@ async function FilterBar({
   const tStatsFilter = await getTranslations('stats_filter');
   const hasAny = selectedTopic !== 'all' || selectedGroup !== 'all';
   return (
-    <form
-      method="GET"
+    <section
       id="stats-filter-bar"
       className="stats-filter"
+      aria-label={t('tab_filtered')}
       style={{
-        display: 'flex',
-        gap: 12,
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        padding: '12px 14px',
+        padding: 14,
         border: '1px solid var(--rule)',
-        background: 'var(--paper-2)',
-        borderRadius: 12,
+        background: 'var(--paper)',
+        borderRadius: 14,
         marginTop: 18,
         marginBottom: 4,
         scrollMarginTop: 80,
       }}
     >
-      {/* Stay on this tab when the form submits. */}
-      <input type="hidden" name="tab" value="filtered" />
-      <label style={selectStyle.label}>
-        {t('filter_topic_label')}
-        <TopicCombobox
-          name="topic"
-          value={selectedTopic}
-          topics={topics}
-          emptyValue="all"
-          clearLabel={tStatsFilter('topic_clear')}
-          placeholder={tStatsFilter('topic_placeholder')}
-          ariaLabel={t('filter_topic_aria')}
-        />
-      </label>
-      <label style={selectStyle.label}>
-        {t('filter_group_label')}
-        <GroupCombobox
-          name="group"
-          value={selectedGroup}
-          groups={groups}
-          emptyValue="all"
-          clearLabel={tStatsFilter('group_clear')}
-          placeholder={t('filter_group_placeholder')}
-          ariaLabel={t('filter_group_aria')}
-        />
-      </label>
-      <button type="submit" className="btn-ink btn-sm">
-        {t('filter_apply')}
-      </button>
+      {/* Two fields, each applying on change. This was a GET form with an
+          Apply button: a reader who picked a topic and then read on saw
+          nothing happen, since the page only reacted to the button. The
+          rest of the site (laws, votes) auto-applies, so this does too. */}
+      <div
+        className="stats-filter-fields"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 12,
+          alignItems: 'start',
+        }}
+      >
+        <StatsField label={t('filter_topic_label')}>
+          <StatsTopicFilter
+            allTopics={topics}
+            selectedTopic={selectedTopic}
+            ariaLabel={t('filter_topic_aria')}
+            placeholder={tStatsFilter('topic_placeholder')}
+            clearLabel={tStatsFilter('topic_clear')}
+          />
+        </StatsField>
+        <StatsField label={t('filter_group_label')}>
+          <StatsGroupFilter
+            allGroups={groups}
+            selectedGroup={selectedGroup}
+            ariaLabel={t('filter_group_aria')}
+            placeholder={t('filter_group_placeholder')}
+            clearLabel={tStatsFilter('group_clear')}
+          />
+        </StatsField>
+      </div>
+
       {hasAny && (
-        <Link
-          href={'/stats?tab=filtered' as Route}
-          scroll={false}
-          style={{ fontSize: 12, color: 'var(--ink-3)', marginLeft: 'auto' }}
-        >
-          {t('clear_filters')}
-        </Link>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+          <Link
+            href={'/stats?tab=filtered' as Route}
+            scroll={false}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ink-3)',
+              textDecoration: 'none',
+            }}
+          >
+            <X size={13} aria-hidden="true" />
+            {t('clear_filters')}
+          </Link>
+        </div>
       )}
-    </form>
+
+      <style>{`
+        @media (max-width: 600px) {
+          .stats-filter-fields { grid-template-columns: minmax(0, 1fr) !important; }
+        }
+      `}</style>
+    </section>
   );
 }
 
-const selectStyle = {
-  label: {
-    fontSize: 12,
-    color: 'var(--ink-3)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-  } as React.CSSProperties,
-  input: {
-    padding: '6px 10px',
-    border: '1px solid var(--ink)',
-    background: 'var(--paper)',
-    fontSize: 13,
-    fontFamily: 'inherit',
-    color: 'var(--ink)',
-    minWidth: 160,
-  } as React.CSSProperties,
-};
+/** Field label above a picker — the same eyebrow the laws and votes
+ *  filter cards use, so the three read as one family. */
+function StatsField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+      <span
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          color: 'var(--ink-3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}
+      >
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
 
 /**
  * Empty-state topic picker rendered when the user lands on the
