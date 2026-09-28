@@ -40,7 +40,7 @@ Neutral por diseño: cada partido recibe el mismo espacio, el orden es el del
 propio Congreso, y nunca destacamos ni puntuamos a nadie.
 
 Sin rastreadores. Sin publicidad. Código abierto (EUPL-1.2), datos bajo
-CC-BY 4.0. La app carga la web holapolitica.org; todo el contenido es público
+CC-BY 4.0. La app carga la web www.holapolitica.org; todo el contenido es público
 y no requiere cuenta.
 ```
 
@@ -77,7 +77,7 @@ CC-BY 4.0.
 - **Category:** News & Magazines (Noticias y revistas). Alternative: Education.
 - **Tags:** politics, government, civic, open data.
 - **Contact email:** (your support email)
-- **Privacy policy URL:** `https://holapolitica.org/about/data`
+- **Privacy policy URL:** `https://www.holapolitica.org/about/data`
 
 ## Graphic assets you must provide
 

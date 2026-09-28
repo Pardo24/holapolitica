@@ -4,9 +4,14 @@ import { NextResponse } from 'next/server';
  * Android App Links / Digital Asset Links verification file.
  *
  * Served at `/.well-known/assetlinks.json` (via a rewrite in
- * next.config.mjs) so that tapping `https://holapolitica.org/<path>` opens
- * the Capacitor app instead of the browser once Android verifies this
+ * next.config.mjs) so that tapping `https://www.holapolitica.org/<path>`
+ * opens the Capacitor app instead of the browser once Android verifies this
  * association at install time.
+ *
+ * Host caveat: the apex (holapolitica.org) 307-redirects to www at the
+ * Vercel edge and Google does not follow redirects when verifying, so only
+ * the www host can verify — see mobile/docs/deeplinks.md, "Which host
+ * verifies".
  *
  * The signing certificate SHA-256 is only known after the app exists in
  * Play Console (Play App Signing → App integrity → SHA-256). So the

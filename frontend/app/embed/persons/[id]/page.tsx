@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 /**
  * Embed widget for a member of parliament.
  *
- *   <iframe src="https://holapolitica.org/embed/persons/123"
+ *   <iframe src="https://www.holapolitica.org/embed/persons/123"
  *           width="100%" height="220" frameborder="0"></iframe>
  *
  * Strict rules (CLAUDE.md): factual only, no editorial framing, no

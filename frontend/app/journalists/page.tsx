@@ -69,7 +69,9 @@ export default async function JournalistsPage() {
     ? 'habitatge'
     : (topicOptions[0]?.value ?? 'habitatge');
 
-  const embedOrigin = 'https://holapolitica.org';
+  // Canonical host: the apex redirects (307) to www, so a snippet built on
+  // it would make every embedded iframe pay a redirect on the host's page.
+  const embedOrigin = 'https://www.holapolitica.org';
 
   return (
     <article style={{ maxWidth: 880, paddingTop: 24, paddingBottom: 64 }}>
@@ -198,7 +200,7 @@ export default async function JournalistsPage() {
           description={t('widget_dossier_desc')}
           src={`/embed/initiatives/${sampleInitiativeId}`}
           height={560}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="560" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_dossier')}"\n></iframe>`}
+          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="560" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_dossier')}"\n></iframe>`}
         />
 
         <EmbedExample
@@ -206,7 +208,7 @@ export default async function JournalistsPage() {
           description={t('widget_explorer_desc')}
           src="/embed/explorer?topic=habitatge&result=approved&limit=6"
           height={640}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="640" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_explorer')}"\n></iframe>\n<!-- ${t('explorer_params_comment')} -->`}
+          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="640" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_explorer')}"\n></iframe>\n<!-- ${t('explorer_params_comment')} -->`}
         />
 
         <EmbedExample
@@ -214,7 +216,7 @@ export default async function JournalistsPage() {
           description={t('widget_vote_desc')}
           src={`/embed/votes/${sampleVoteId}`}
           height={520}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
+          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
         />
 
         <EmbedPicker
@@ -250,7 +252,7 @@ export default async function JournalistsPage() {
           description={t('widget_topic_desc')}
           src="/embed/topics/habitatge"
           height={280}
-          snippet={`<iframe\n  src="https://holapolitica.org/embed/topics/<slug>"\n  width="100%" height="280" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_topic')}"\n></iframe>`}
+          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/topics/<slug>"\n  width="100%" height="280" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_topic')}"\n></iframe>`}
         />
 
         <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
@@ -288,13 +290,13 @@ export default async function JournalistsPage() {
         <p>{t('og_intro_1')}</p>
         <p>{t('og_intro_2')}</p>
         <pre style={preStyle}>
-{`https://holapolitica.org/opengraph-image
-https://holapolitica.org/votes/${sampleVoteId}/opengraph-image
-https://holapolitica.org/groups/gp-socialista/opengraph-image
-https://holapolitica.org/topics/habitatge/opengraph-image
-https://holapolitica.org/persons/<id>/opengraph-image
-https://holapolitica.org/initiatives/<id>/opengraph-image
-https://holapolitica.org/stats/opengraph-image`}
+{`https://www.holapolitica.org/opengraph-image
+https://www.holapolitica.org/votes/${sampleVoteId}/opengraph-image
+https://www.holapolitica.org/groups/gp-socialista/opengraph-image
+https://www.holapolitica.org/topics/habitatge/opengraph-image
+https://www.holapolitica.org/persons/<id>/opengraph-image
+https://www.holapolitica.org/initiatives/<id>/opengraph-image
+https://www.holapolitica.org/stats/opengraph-image`}
         </pre>
       </Section>
 
