@@ -21,6 +21,7 @@ from typing import NamedTuple
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import or_, select
+from sqlalchemy import true as sa_true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -90,6 +91,13 @@ async def align_questions(
     legislature_id: int | None = Query(
         None, description="Legislature to draw from; defaults to the current one."
     ),
+    topic_slug: str | None = Query(
+        None,
+        description=(
+            "Only votes on initiatives classified under this topic, so a "
+            "reader can answer on the subject they care about."
+        ),
+    ),
     seed: int = Query(
         0,
         ge=0,
@@ -142,6 +150,19 @@ async def align_questions(
                 .outerjoin(Initiative, Initiative.id == Vote.initiative_id)
                 .where(SessionRow.legislature_id == leg_id)
                 .where(Vote.approved_by_assent.is_(False))
+                # "Play on housing": restrict the pool to votes whose linked
+                # initiative carries that topic. Votes with no initiative have
+                # no topic either, so they drop out, which is correct: an
+                # unclassified vote can't be said to be about anything.
+                .where(
+                    Initiative.id.in_(
+                        select(InitiativeTopic.initiative_id)
+                        .join(Topic, Topic.id == InitiativeTopic.topic_id)
+                        .where(Topic.slug == topic_slug)
+                    )
+                    if topic_slug
+                    else sa_true()
+                )
                 .where(
                     or_(
                         Vote.plain_summary_ca.is_not(None),
@@ -272,4 +293,6 @@ async def align_questions(
             )
         return out
 
-    return await cached(f"align:questions:{legislature_id}:{n}:{seed}", _CACHE_TTL, factory)
+    return await cached(
+        f"align:questions:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
+    )

@@ -887,8 +887,14 @@
     "share_copied": "Copiat",
     "share_text": "He coincidit més amb {name} ({pct}%) en {compared} votacions reals del Congrés.",
     "view_vote": "Veure la votació original",
-    "see_results": "Veure resultats amb {count, plural, =1 {# resposta} other {# respostes}}",
-    "more_questions": "Altres preguntes"
+    "more_questions": "Altres preguntes",
+    "topic_picker": "Sobre quin tema",
+    "topic_any": "Qualsevol tema",
+    "results_votes": "Votació a votació amb {name}",
+    "results_same": "Igual que tu:",
+    "results_diff": "Diferent de tu:",
+    "see_results_one": "Veure resultats amb {n} resposta",
+    "see_results_other": "Veure resultats amb {n} respostes"
   },
   "hub": {
     "joc_title": "Trivia",

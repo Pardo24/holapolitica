@@ -887,8 +887,14 @@
     "share_copied": "Copiado",
     "share_text": "He coincidido más con {name} ({pct}%) en {compared} votaciones reales del Congreso.",
     "view_vote": "Ver la votación original",
-    "see_results": "Ver resultados con {count, plural, =1 {# respuesta} other {# respuestas}}",
-    "more_questions": "Otras preguntas"
+    "more_questions": "Otras preguntas",
+    "topic_picker": "Sobre qué tema",
+    "topic_any": "Cualquier tema",
+    "results_votes": "Votación a votación con {name}",
+    "results_same": "Igual que tú:",
+    "results_diff": "Distinto a ti:",
+    "see_results_one": "Ver resultados con {n} respuesta",
+    "see_results_other": "Ver resultados con {n} respuestas"
   },
   "hub": {
     "joc_title": "Trivia",
