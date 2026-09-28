@@ -46,9 +46,13 @@ export interface AlignQuizLabels {
   share: string;
   share_copied: string;
   share_text: string; // uses {name}, {pct}, {compared}
-  /** Takes the count so the message can use a real plural. */
-  see_results: (n: number) => string;
+  /** Both plural forms as plain strings: a server component cannot hand a
+   *  function to a client component, and React throws when it tries. */
+  see_results: { one: string; other: string };
   more_questions: string;
+  results_votes: string; // uses {name}
+  results_same: string;
+  results_diff: string;
 }
 
 interface GroupResult {
@@ -284,6 +288,82 @@ export function AlignQuiz({
                 </ul>
               </>
             )}
+          </>
+        )}
+
+        {/* Vote by vote against the group you coincided with most. A single
+            percentage is a dead end: this says which votes it came from and
+            links each one, so a reader can check the claim. */}
+        {answeredCount > 0 && results[0] && (
+          <>
+            <p style={{ ...EYEBROW, marginTop: 22 }}>
+              {labels.results_votes.replace('{name}', results[0].name)}
+            </p>
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              {questions
+                .filter((q) => {
+                  const a = answers[q.vote_id];
+                  return a != null && a !== 'skip';
+                })
+                .map((q) => {
+                  const mine = answers[q.vote_id];
+                  const theirs = q.group_positions.find(
+                    (p) => p.slug === results[0]!.slug,
+                  )?.choice;
+                  const same = theirs != null && theirs === mine;
+                  const text =
+                    (locale.startsWith('es') ? q.plain_summary_es : q.plain_summary_ca) ||
+                    q.plain_summary_es ||
+                    q.title;
+                  return (
+                    <li key={q.vote_id}>
+                      <Link
+                        href={`/votes/${q.vote_id}` as Route}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 8,
+                          padding: '8px 10px',
+                          borderRadius: 10,
+                          border: '1px solid var(--rule)',
+                          background: 'var(--paper-2)',
+                          textDecoration: 'none',
+                          color: 'var(--ink-2)',
+                          fontSize: 13,
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            flex: 'none',
+                            marginTop: 2,
+                            width: 9,
+                            height: 9,
+                            borderRadius: 999,
+                            background: same ? 'var(--aye)' : 'var(--no)',
+                          }}
+                        />
+                        <span style={{ minWidth: 0 }}>
+                          <span style={{ fontWeight: 600, color: 'var(--ink)' }}>
+                            {same ? labels.results_same : labels.results_diff}
+                          </span>{' '}
+                          {text}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+            </ul>
           </>
         )}
 
@@ -543,7 +623,10 @@ export function AlignQuiz({
               fontFamily: 'inherit',
             }}
           >
-            {labels.see_results(answeredCount)}
+            {(answeredCount === 1 ? labels.see_results.one : labels.see_results.other).replace(
+              '{n}',
+              String(answeredCount),
+            )}
           </button>
         </div>
       )}

@@ -1,9 +1,12 @@
+import Link from 'next/link';
+import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Scale } from 'lucide-react';
 
 import { AlignQuiz } from '@/components/AlignQuiz';
 import { PageHeader } from '@/components/PageHeader';
-import { api, type AlignQuestion } from '@/lib/api';
+import { api, type AlignQuestion, type Topic } from '@/lib/api';
+import { pickTopicName } from '@/lib/topics';
 
 // Questions rotate with the data; a short ISR window keeps them fresh without
 // hammering the backend (the payload is also cached server-side).
@@ -17,22 +20,24 @@ export const revalidate = 300;
 export default async function ComEtRepresentenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seed?: string }>;
+  searchParams: Promise<{ seed?: string; tema?: string }>;
 }) {
   const t = await getTranslations('align');
   const locale = await getLocale();
   // "Other questions" reshuffles the same eligible pool behind a seed, so a
   // reader who has answered these ten can keep going, and a shared link
-  // always shows the same set.
-  const { seed } = await searchParams;
+  // always shows the same set. ``tema`` narrows the pool to one subject.
+  const { seed, tema } = await searchParams;
   const seedNumber = seed && /^\d+$/.test(seed) ? Number(seed) : undefined;
+  const topicSlug = tema && /^[a-z0-9-]+$/.test(tema) ? tema : undefined;
 
-  let questions: AlignQuestion[] = [];
-  try {
-    questions = await api.align.questions(10, undefined, seedNumber);
-  } catch {
-    questions = [];
-  }
+  const [questions, allTopics] = await Promise.all([
+    api.align.questions(10, undefined, seedNumber, topicSlug).catch(() => [] as AlignQuestion[]),
+    api.topics.list().catch(() => [] as Topic[]),
+  ]);
+  // Only offer topics the questionnaire can actually fill, so a chip never
+  // leads to an empty round.
+  const themeTopics = allTopics.filter((tp) => tp.kind !== 'sdg');
 
   return (
     <div style={{ maxWidth: 680, marginInline: 'auto' }}>
@@ -42,6 +47,45 @@ export default async function ComEtRepresentenPage({
         icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}
         bordered
       />
+      {/* Pick the subject before answering. Ten votes drawn from the whole
+          plenary can feel arbitrary; ten on housing are ten a reader has an
+          opinion about. Server-rendered links, so a chosen topic is in the
+          URL and can be shared. */}
+      {themeTopics.length > 0 && (
+        <div style={{ paddingTop: 18 }}>
+          <span
+            style={{
+              display: 'block',
+              fontSize: 11,
+              letterSpacing: '0.07em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              color: 'var(--ink-3)',
+              marginBottom: 6,
+            }}
+          >
+            {t('topic_picker')}
+          </span>
+          <div
+            className="no-scrollbar"
+            style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}
+          >
+            <TopicPick href={'/com-et-representen' as Route} active={!topicSlug}>
+              {t('topic_any')}
+            </TopicPick>
+            {themeTopics.map((tp) => (
+              <TopicPick
+                key={tp.slug}
+                href={`/com-et-representen?tema=${tp.slug}` as Route}
+                active={topicSlug === tp.slug}
+              >
+                {pickTopicName(tp, locale)}
+              </TopicPick>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ paddingTop: 22 }}>
         {questions.length === 0 ? (
           <p style={{ color: 'var(--ink-3)', fontSize: 14 }}>{t('unavailable')}</p>
@@ -79,12 +123,46 @@ export default async function ComEtRepresentenPage({
               share_text: t.raw('share_text'),
               // A real ICU plural, so one answer doesn't read "1 respostes".
               // t() with values is fine; it was t() WITHOUT them that broke.
-              see_results: (n: number) => t('see_results', { count: n }),
+              see_results: { one: t.raw('see_results_one'), other: t.raw('see_results_other') },
               more_questions: t('more_questions'),
+              results_votes: t.raw('results_votes'),
+              results_same: t('results_same'),
+              results_diff: t('results_diff'),
             }}
           />
         )}
       </div>
     </div>
+  );
+}
+
+/** One subject chip. A link, not a button: the choice lives in the URL. */
+function TopicPick({
+  href,
+  active,
+  children,
+}: {
+  href: Route;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        flex: 'none',
+        whiteSpace: 'nowrap',
+        padding: '5px 11px',
+        borderRadius: 999,
+        border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
+        background: active ? 'var(--ink)' : 'var(--paper)',
+        color: active ? 'var(--paper)' : 'var(--ink-2)',
+        fontSize: 12.5,
+        fontWeight: active ? 600 : 400,
+        textDecoration: 'none',
+      }}
+    >
+      {children}
+    </Link>
   );
 }

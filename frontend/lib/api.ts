@@ -985,11 +985,13 @@ export const api = {
       }),
   },
   align: {
-    /** ``seed`` > 0 asks for a different (reproducible) set of votes. */
-    questions: (n = 8, legislatureId?: number, seed?: number) => {
+    /** ``seed`` > 0 asks for a different (reproducible) set of votes;
+     *  ``topicSlug`` restricts them to one subject. */
+    questions: (n = 8, legislatureId?: number, seed?: number, topicSlug?: string) => {
       const qs = new URLSearchParams({ n: String(n) });
       if (legislatureId != null) qs.set('legislature_id', String(legislatureId));
       if (seed) qs.set('seed', String(seed));
+      if (topicSlug) qs.set('topic_slug', topicSlug);
       return request<AlignQuestion[]>(`/align/questions?${qs.toString()}`, {
         revalidate: AGG_REVALIDATE,
       });
