@@ -21,12 +21,14 @@ import { PartyBand } from '@/components/PartyBand';
 import { ScrollDownCue } from '@/components/ScrollDownCue';
 import { IntroNote } from '@/components/IntroNote';
 import { DailyTeaser } from '@/components/DailyTeaser';
+import { ChamberMap } from '@/components/ChamberMap';
 import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
 import { summariseLaws } from '@/lib/sessionSummary';
 import {
   api,
+  type HemicycleLayout,
   type ParliamentaryGroupSummary,
   type ScheduledSession,
   type Topic,
@@ -70,8 +72,11 @@ export default async function HomePage() {
   let upcomingSessions: ScheduledSession[] = [];
   let allGroups: ParliamentaryGroupSummary[] = [];
   let allTopics: Topic[] = [];
+  // The chamber map in the hero. Optional: if the layout fails to load the
+  // card simply doesn't render, and the rest of the page is unaffected.
+  let hemicycle: HemicycleLayout | null = null;
   try {
-    [summary, latestVotes, upcomingSessions, allGroups, allTopics] = await Promise.all([
+    [summary, latestVotes, upcomingSessions, allGroups, allTopics, hemicycle] = await Promise.all([
       api.stats.summary(),
       // Over-fetch then dedupe: a law voted several times in one pleno
       // (e.g. an RDL convalidation voted twice) produces multiple vote
@@ -97,6 +102,7 @@ export default async function HomePage() {
       api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
       // Powers locale-aware topic names inside HighlightsCarousel.
       api.topics.list().catch(() => [] as Topic[]),
+      api.legislatures.hemicycle(1).catch(() => null),
     ]);
   } catch {
     /* backend not ready — render with zeros */
@@ -163,6 +169,17 @@ export default async function HomePage() {
         sessApproved={sessApproved}
         sessRejected={sessRejected}
         sessTotal={sessTotal}
+        chamberMap={
+          hemicycle && hemicycle.seats.length > 0 ? (
+            <ChamberMap
+              layout={hemicycle}
+              eyebrow={t('chamber_eyebrow')}
+              caption={t('chamber_caption')}
+              cta={t('chamber_cta')}
+              ariaLabel={t('chamber_aria')}
+            />
+          ) : null
+        }
         partyBand={
           <PartyBand
             groups={allGroups}
@@ -447,10 +464,19 @@ export default async function HomePage() {
             </Link>
           )}
 
-          {/* HighlightsCarousel — rotating per-group "top-supported / top-
-              rejected topic" cards. Symmetric: every group is shown in turn.
-              The component handles its own empty state internally. */}
-          <HighlightsCarousel items={highlights} allTopics={allTopics} />
+          {/* The chamber itself, drawn from the real seat map. The fold
+              had no image of any kind; this is the one picture of a
+              parliament everyone recognises, and it is data, not
+              decoration. */}
+          {hemicycle && hemicycle.seats.length > 0 && (
+            <ChamberMap
+              layout={hemicycle}
+              eyebrow={t('chamber_eyebrow')}
+              caption={t('chamber_caption')}
+              cta={t('chamber_cta')}
+              ariaLabel={t('chamber_aria')}
+            />
+          )}
         </div>
         <style>{`
           .hero-pleno-card {
@@ -611,6 +637,28 @@ export default async function HomePage() {
         </ul>
       </section>
 
+      {/* What each group leans into — out of the hero (where it was a
+          third card in one column) and into a band of its own. From the
+          cover down the page now alternates plain paper and a tinted
+          band, so it reads as sections instead of one white sheet:
+          cover, facts, the parties in their own colours, the feed, and
+          this. */}
+      {highlights.length > 0 && (
+        <section
+          style={{
+            marginInline: 'calc(50% - 50vw)',
+            paddingInline: 'calc(50vw - 50%)',
+            marginTop: 44,
+            paddingBlock: 30,
+            background: 'var(--hue-dades-soft)',
+            borderTop: '1px solid var(--rule)',
+            borderBottom: '1px solid var(--rule)',
+          }}
+        >
+          <HighlightsCarousel items={highlights} allTopics={allTopics} />
+        </section>
+      )}
+
       {/* Newsletter — at the very END of the page, quiet: a hairline-
           topped section with title, one-line caption and the form. No
           card, no giant icon; someone who scrolled the whole page is
@@ -714,6 +762,7 @@ function MobileDashboard({
   sessRejected,
   sessTotal,
   partyBand,
+  chamberMap,
   labels,
 }: {
   highlights: Highlight[];
@@ -723,6 +772,8 @@ function MobileDashboard({
   locale: string;
   /** Pre-rendered <PartyBand>, shared with the desktop layout. */
   partyBand: React.ReactNode;
+  /** Pre-rendered <ChamberMap>; null when the seat layout didn't load. */
+  chamberMap: React.ReactNode;
   sessApproved: number;
   sessRejected: number;
   sessTotal: number;
@@ -940,6 +991,11 @@ function MobileDashboard({
           </div>
         </Link>
       )}
+
+      {/* The chamber, in colour, straight after what it just did. The
+          phone home was type and hairlines all the way down; this is the
+          one image that says "parliament" before a word is read. */}
+      {chamberMap && <div style={{ marginTop: 16 }}>{chamberMap}</div>}
 
       {/* The landing's navigation proposals — where to go next: the
           map, the games, the topics, the data. Four equal tiles, each
