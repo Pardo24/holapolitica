@@ -22,6 +22,7 @@ import { StackedBar } from '@/components/StackedBar';
 import { Tooltip } from '@/components/Tooltip';
 import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
+import { VoteSplit, type VoteSplitLabels } from '@/components/VoteSplit';
 import { pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
 import {
   fateResult,
@@ -75,6 +76,18 @@ export async function SessionSheet({
 }) {
   const t = await getTranslations('session_sheet');
   const tCommon = await getTranslations('common');
+  const tLleis = await getTranslations('lleis');
+  // The same vote block as /lleis and the law page, so one vote reads the
+  // same wherever it appears.
+  const splitLabels: VoteSplitLabels = {
+    eyebrow: tLleis('card_votes_eyebrow'),
+    inFavour: tLleis('card_in_favour'),
+    against: tLleis('card_against'),
+    abstention: tLleis('card_abstention'),
+    detail: tLleis('card_group_detail'),
+    sideEmpty: tLleis('card_side_empty'),
+    noBreakdown: tLleis('card_no_breakdown'),
+  };
 
   // Resolve the per-group ``logo_url`` so each VoteRow can render a
   // proper branded badge instead of a generic colored dot. Today
@@ -182,6 +195,7 @@ export async function SessionSheet({
       return (
         <LawVoteGroup
           key={`law-${entry.key}`}
+          splitLabels={splitLabels}
           votes={entry.votes}
           kind={kind}
           locale={locale}
@@ -206,6 +220,7 @@ export async function SessionSheet({
     return (
       <VoteRow
         key={v.id}
+        splitLabels={splitLabels}
         vote={v}
         locale={locale}
         proposerLogoUrl={proposerGroup?.logo_url ?? null}
@@ -341,7 +356,10 @@ export async function SessionSheet({
         style={{
           marginBottom: 32,
           paddingBottom: 0,
-          maxWidth: 720,
+          // Wider than the old 720: rows now carry the vote breakdown, and
+          // squeezing the two sides into a narrow column was part of why
+          // "who voted what" was hard to read here.
+          maxWidth: 880,
         }}
       >
         <div
@@ -979,6 +997,7 @@ function LawVoteGroup({
   labels,
   stanceByVote,
   stanceLabels,
+  splitLabels,
   noBreakLabels,
   outcomeLabelFor,
   stageHintFor,
@@ -994,6 +1013,7 @@ function LawVoteGroup({
   labels: GroupLabels;
   stanceByVote: Map<number, PartyStance[]>;
   stanceLabels: StanceLabels;
+  splitLabels: VoteSplitLabels;
   noBreakLabels: Record<NoBreakdownReason, string>;
   outcomeLabelFor: (v: Vote) => string;
   stageHintFor: (v: Vote) => string | null;
@@ -1103,7 +1123,14 @@ function LawVoteGroup({
               reader came for. Point-by-point motions show it per point. */}
           {!byPoints &&
             (deciderStance && deciderStance.length > 0 ? (
-              <PartyStanceMini parties={deciderStance} labels={stanceLabels} />
+              <VoteSplit
+                ayes={decider.ayes}
+                noes={decider.noes}
+                abstentions={decider.abstentions}
+                absent={decider.absent}
+                groups={deciderStance}
+                labels={splitLabels}
+              />
             ) : (
               <NoBreakdownFor vote={decider} labels={noBreakLabels} />
             ))}
@@ -1285,6 +1312,7 @@ function VoteRow({
   marginLabel,
   stance,
   stanceLabels,
+  splitLabels,
   noBreakLabels,
   stageHint,
   proceduralNote,
@@ -1308,6 +1336,7 @@ function VoteRow({
   marginLabel: (margin: number) => string;
   stance?: PartyStance[];
   stanceLabels: StanceLabels;
+  splitLabels: VoteSplitLabels;
   noBreakLabels: Record<NoBreakdownReason, string>;
   stageHint?: string | null;
   /** What this kind of procedural vote does, when no summary exists. */
@@ -1443,7 +1472,14 @@ function VoteRow({
           {/* Who voted what comes before the metadata: it is the answer
               the reader came for. */}
           {stance && stance.length > 0 ? (
-            <PartyStanceMini parties={stance} labels={stanceLabels} />
+            <VoteSplit
+              ayes={vote.ayes}
+              noes={vote.noes}
+              abstentions={vote.abstentions}
+              absent={vote.absent}
+              groups={stance}
+              labels={splitLabels}
+            />
           ) : (
             <NoBreakdownFor vote={vote} labels={noBreakLabels} />
           )}
