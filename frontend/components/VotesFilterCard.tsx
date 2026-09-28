@@ -2,29 +2,37 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
+import { CalendarDays, ChevronDown, Scale, Search, SlidersHorizontal, X } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
+import { LegislatureSelector } from '@/components/LegislatureSelector';
 import { TopicCombobox } from '@/components/TopicCombobox';
-import type { ParliamentaryGroupSummary, Topic, VoteResult } from '@/lib/api';
+import type { Legislature, ParliamentaryGroupSummary, Topic, VoteResult } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { useEdgeFade } from '@/lib/useEdgeFade';
 import { pickTopicName } from '@/lib/topics';
 
 /**
  * Filter toolbar for /votes.
  *
+ * Every control on the page lives here — the page used to stack this card
+ * under a separate legislature/lens row and a topic strip, three toolbars
+ * deep before the first vote.
+ *
  * Design: a clean toolbar with a clear hierarchy rather than a flat form.
  *  - The SEARCH box is the hero (full width, top).
  *  - RESULT is the primary categorical filter — a compact segmented
  *    control, always visible, since "approved / rejected" is the question
- *    most readers come with.
- *  - TOPIC and GROUP are secondary "drill-down" filters tucked behind a
- *    "More filters" disclosure, so the default view stays uncluttered.
- *    The panel auto-opens whenever one of those filters is active, so a
- *    selection is never hidden.
- *  - Active topic/group selections render as removable chips; "Clear all"
- *    appears only when something is filtered.
+ *    most readers come with. The LAWS-ONLY lens sits beside it: it changes
+ *    what the archive contains, so it belongs in the primary row.
+ *  - TOPIC, GROUP and the LEGISLATURE switch are secondary "drill-downs"
+ *    tucked behind a "More filters" disclosure, so the default view stays
+ *    uncluttered. The panel auto-opens whenever one of those is active, so
+ *    a selection is never hidden.
+ *  - Active topic/group selections render as removable chips, as does a
+ *    date arrived at from another page; "Clear all" appears only when
+ *    something is filtered.
  *
  * URL-driven and auto-applying (no Apply button): every change pushes the
  * router. Multi-value for topic + group (comma-separated slugs); search is
@@ -48,6 +56,9 @@ export interface VotesFilterCardLabels {
   clear_all: string;
   remove_label: string;
   more_filters: string;
+  law_only: string;
+  legislature_label: string;
+  legislature_current: string;
 }
 
 interface Props {
@@ -57,7 +68,14 @@ interface Props {
   initialTopicSlugs: string[];
   initialGroupSlugs: string[];
   initialResult: VoteResult | '';
-  hasOtherActiveFilters: boolean;
+  /** ``?law=1`` — keep only the votes that make law. */
+  lawOnly: boolean;
+  /** Already-formatted single day, when the URL carries date_from=date_to. */
+  activeDateLabel: string | null;
+  /** Empty (or single) when there is nothing to switch between. */
+  legislatures: Legislature[];
+  activeLegId: number | null;
+  selectedLegId: number | null;
   locale: string;
   labels: VotesFilterCardLabels;
 }
@@ -69,19 +87,30 @@ export function VotesFilterCard({
   initialTopicSlugs,
   initialGroupSlugs,
   initialResult,
-  hasOtherActiveFilters,
+  lawOnly,
+  activeDateLabel,
+  legislatures,
+  activeLegId,
+  selectedLegId,
   locale,
   labels,
 }: Props) {
   const router = useRouter();
   const sp = useSearchParams();
+  const resultScroller = useEdgeFade<HTMLDivElement>();
   const [, startTransition] = useTransition();
   const [qDraft, setQDraft] = useState(initialQ);
 
+  // Browsing a past term is a context, not a filter, but it is just as
+  // hidden inside the disclosure, so it counts towards the badge and opens
+  // the panel.
+  const historicalLeg =
+    selectedLegId != null && activeLegId != null && selectedLegId !== activeLegId;
   const secondaryActive =
-    initialTopicSlugs.length + initialGroupSlugs.length + (hasOtherActiveFilters ? 1 : 0);
-  // Disclosure for the secondary (topic / group) filters. Open by default
-  // only when one is already applied, so a selection is never hidden.
+    initialTopicSlugs.length + initialGroupSlugs.length + (historicalLeg ? 1 : 0);
+  // Disclosure for the secondary (topic / group / legislature) controls.
+  // Open by default only when one is already applied, so a selection is
+  // never hidden.
   const [expanded, setExpanded] = useState(secondaryActive > 0);
 
   const pushUrl = useCallback(
@@ -99,11 +128,13 @@ export function VotesFilterCard({
     setQDraft(initialQ);
   }, [initialQ]);
 
-  // Keep the panel open whenever secondary filters are active (e.g. a topic
-  // chip was clicked in the strip above this card).
+  // Keep the panel open whenever a secondary control is engaged, so what is
+  // filtering the list is never out of sight.
   useEffect(() => {
-    if (initialTopicSlugs.length > 0 || initialGroupSlugs.length > 0) setExpanded(true);
-  }, [initialTopicSlugs.length, initialGroupSlugs.length]);
+    if (initialTopicSlugs.length > 0 || initialGroupSlugs.length > 0 || historicalLeg) {
+      setExpanded(true);
+    }
+  }, [initialTopicSlugs.length, initialGroupSlugs.length, historicalLeg]);
 
   useEffect(() => {
     if (qDraft === initialQ) return;
@@ -144,12 +175,30 @@ export function VotesFilterCard({
     pushUrl(next);
   };
 
+  const toggleLawOnly = () => {
+    const next = new URLSearchParams(sp.toString());
+    if (lawOnly) next.delete('law');
+    else next.set('law', '1');
+    pushUrl(next);
+  };
+
+  const clearDate = () => {
+    const next = new URLSearchParams(sp.toString());
+    next.delete('date_from');
+    next.delete('date_to');
+    pushUrl(next);
+  };
+
   const clearAll = () => {
     const next = new URLSearchParams(sp.toString());
+    // `legislature` survives: it says WHICH archive you are reading, not
+    // how it is filtered, so clearing the filters shouldn't teleport you
+    // back to the current term.
     next.delete('q');
     next.delete('topic_slug');
     next.delete('proposing_group_slug');
     next.delete('result');
+    next.delete('law');
     next.delete('date_from');
     next.delete('date_to');
     next.delete('page');
@@ -164,7 +213,8 @@ export function VotesFilterCard({
     initialTopicSlugs.length +
     initialGroupSlugs.length +
     (initialResult ? 1 : 0) +
-    (hasOtherActiveFilters ? 1 : 0);
+    (lawOnly ? 1 : 0) +
+    (activeDateLabel ? 1 : 0);
 
   return (
     <section
@@ -211,7 +261,8 @@ export function VotesFilterCard({
         />
       </label>
 
-      {/* Primary controls: result (segmented) + the More-filters disclosure. */}
+      {/* Primary controls: result (segmented) + the laws lens + the
+          More-filters disclosure. */}
       <div
         style={{
           display: 'flex',
@@ -221,14 +272,21 @@ export function VotesFilterCard({
           marginTop: 12,
         }}
       >
+        {/* Four segments don't fit a phone's width, and the control can't
+            wrap without ceasing to look like one control — so it scrolls,
+            with a fade marking the side that has more. */}
         <div
           role="radiogroup"
           aria-label={labels.result_label}
+          ref={resultScroller.ref}
+          className={`no-scrollbar ${resultScroller.className}`}
           style={{
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
             gap: 2,
             padding: 3,
+            maxWidth: '100%',
+            overflowX: 'auto',
             border: '1px solid var(--rule-strong)',
             borderRadius: 999,
             background: 'var(--paper-2)',
@@ -259,6 +317,43 @@ export function VotesFilterCard({
             onClick={() => setResult('tie')}
           />
         </div>
+
+        {/* The laws lens. Especially load-bearing on a past legislature,
+            where those votes carry no linked initiative and the expediente
+            prefix is the only way to find the laws. */}
+        <button
+          type="button"
+          onClick={toggleLawOnly}
+          aria-pressed={lawOnly}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 12px',
+            borderRadius: 999,
+            border: `1px solid ${lawOnly ? 'var(--ink)' : 'var(--rule-strong)'}`,
+            background: lawOnly ? 'var(--ink)' : 'var(--paper)',
+            color: lawOnly ? 'var(--paper)' : 'var(--ink-2)',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          <Scale size={14} strokeWidth={1.8} aria-hidden="true" />
+          {labels.law_only}
+        </button>
+
+        {/* A day filter can only arrive by link (from /avui, or the embed
+            explorer), so it needs somewhere to show and a way out. */}
+        {activeDateLabel && (
+          <SelectedChip
+            label={activeDateLabel}
+            accent={<CalendarDays size={13} strokeWidth={1.8} aria-hidden="true" />}
+            onRemove={clearDate}
+            removeLabel={labels.remove_label}
+          />
+        )}
 
         <div style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
           <button
@@ -336,7 +431,8 @@ export function VotesFilterCard({
         </div>
       </div>
 
-      {/* Secondary filters: topic + group. Disclosed on demand. */}
+      {/* Secondary: the legislature context, then topic + group. Disclosed
+          on demand. */}
       {expanded && (
         <div
           className="votes-filter-secondary"
@@ -350,6 +446,20 @@ export function VotesFilterCard({
             alignItems: 'start',
           }}
         >
+          {legislatures.length > 1 && selectedLegId != null && (
+            // Its own row: switching term re-scopes the whole archive, so
+            // it reads as the frame around the two filters below it.
+            <div style={{ gridColumn: '1 / -1' }}>
+              <LegislatureSelector
+                legislatures={legislatures}
+                activeId={activeLegId}
+                selectedId={selectedLegId}
+                label={labels.legislature_label}
+                currentSuffix={labels.legislature_current}
+              />
+            </div>
+          )}
+
           <Field label={labels.topics_label}>
             <TopicCombobox
               name=""

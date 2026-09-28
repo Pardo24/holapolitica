@@ -561,7 +561,7 @@ export default async function HomePage() {
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           shown only when there's something scheduled, so an empty agenda
           doesn't add a blank section to the home. */}
-      {upcomingSessions.length > 0 && <UpcomingAgenda sessions={upcomingSessions} mode="home" />}
+      {upcomingSessions.length > 0 && <UpcomingAgenda sessions={upcomingSessions} />}
 
       {/* Latest votes — below the fold by design (the hero owns the
           first viewport); a wide top margin + its own hairline mark the

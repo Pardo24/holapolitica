@@ -4,75 +4,24 @@ import type { ScheduledSession } from '@/lib/api';
 
 interface UpcomingAgendaProps {
   sessions: ScheduledSession[];
-  /**
-   * - `home`: full card with eyebrow + title, multi-row list, empty state.
-   * - `compact`: inline banner above a table. Hidden entirely when empty.
-   */
-  mode: 'home' | 'compact';
 }
 
 /**
- * Server component that renders the upcoming plenary agenda.
+ * Server component that renders the upcoming plenary agenda on the home page.
  *
- * Behaviour by mode:
- *  - `home`: always renders. Shows a friendly empty-state when no sessions
- *    are scheduled (the agenda ingestion can run dry for stretches).
- *  - `compact`: renders nothing when empty — keeps the /votes table from
- *    inheriting visual clutter. When populated, shows a single-line banner
- *    above the list with up to two upcoming sessions.
+ * Always renders: it shows a friendly empty-state when no sessions are
+ * scheduled (the agenda ingestion can run dry for stretches). It used to have
+ * a second, compact form that sat above the /votes list; that archive now
+ * leads with its results instead, so the card belongs to the home page alone.
  *
  * Visual rules:
  *  - Long subjects truncate with ellipsis. Container is `overflow: hidden`
  *    + `min-width: 0` so nothing pushes the page horizontally on mobile.
  *  - No links to a detail route yet — no `/sessions/[id]` page exists.
  */
-export async function UpcomingAgenda({ sessions, mode }: UpcomingAgendaProps) {
+export async function UpcomingAgenda({ sessions }: UpcomingAgendaProps) {
   const t = await getTranslations('upcoming');
   const locale = await getLocale();
-
-  if (mode === 'compact' && sessions.length === 0) return null;
-
-  if (mode === 'compact') {
-    // Up to 2 sessions in the compact banner — anything more crowds the
-    // table that follows.
-    const visible = sessions.slice(0, 2);
-    return (
-      <section
-        aria-label={t('title_compact')}
-        style={{
-          marginTop: 14,
-          marginBottom: 14,
-          padding: '12px 16px',
-          border: '1px solid var(--rule)',
-          borderRadius: 10,
-          background: 'var(--paper-2)',
-          overflow: 'hidden',
-          minWidth: 0,
-        }}
-      >
-        <div
-          className="eyebrow"
-          style={{ marginBottom: 6, fontSize: 11 }}
-        >
-          {t('title_compact')}
-        </div>
-        <ul
-          style={{
-            listStyle: 'none',
-            margin: 0,
-            padding: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-          }}
-        >
-          {visible.map((s) => (
-            <CompactRow key={s.id} session={s} locale={locale} t={t} />
-          ))}
-        </ul>
-      </section>
-    );
-  }
 
   return (
     <section
@@ -291,55 +240,3 @@ function HomeRow({
   );
 }
 
-function CompactRow({
-  session,
-  locale,
-  t,
-}: {
-  session: ScheduledSession;
-  locale: string;
-  t: UpcomingTranslator;
-}) {
-  const dateStr = formatDate(session.date, locale);
-  const isPlanned = session.status === 'planned';
-  const itemCount = session.items.length;
-  return (
-    <li
-      style={{
-        display: 'flex',
-        gap: 10,
-        alignItems: 'baseline',
-        minWidth: 0,
-        flexWrap: 'wrap',
-      }}
-    >
-      <span
-        className="tabular"
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: 'var(--ink)',
-          whiteSpace: 'nowrap',
-          flex: '0 0 auto',
-        }}
-      >
-        {dateStr}
-      </span>
-      <span
-        style={{
-          fontSize: 12,
-          color: 'var(--ink-2)',
-          minWidth: 0,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          flex: '1 1 auto',
-        }}
-      >
-        {isPlanned
-          ? t('planned_label')
-          : t('items_count', { count: itemCount })}
-      </span>
-    </li>
-  );
-}

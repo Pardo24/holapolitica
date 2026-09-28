@@ -1,16 +1,23 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, Scale, SearchX } from 'lucide-react';
+import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, SearchX } from 'lucide-react';
 
 import { VoteCard } from '@/components/VoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
-import { TopicChipsStrip } from '@/components/TopicChipsStrip';
-import { LegislatureSelector } from '@/components/LegislatureSelector';
-import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { VotesFilterCard } from '@/components/VotesFilterCard';
-import { api, type Legislature, type ScheduledSession, type Vote, type VoteResult } from '@/lib/api';
+import { api, type Legislature, type VoteResult } from '@/lib/api';
+
+/**
+ * The votes archive — every roll call, law-making or not.
+ *
+ * /lleis is the front door (the initiatives that become law); this is the
+ * complete record behind it, so the page is built like an archive: one
+ * control surface at the top, then results. What wasn't searching or
+ * filtering (the agenda banner, the topic strip) moved out — an archive that
+ * makes you scroll past a promo before the first result isn't one.
+ */
 
 interface SearchParams {
   /**
@@ -28,7 +35,7 @@ interface SearchParams {
   result?: VoteResult;
   q?: string;
   page?: string;
-  /** YYYY-MM-DD — both set together when the calendar strip cell is tapped. */
+  /** YYYY-MM-DD — set together by the links from /avui and the embed explorer. */
   date_from?: string;
   date_to?: string;
   /** Legislature id to browse (historical). Absent = current (active). */
@@ -106,8 +113,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
   let data: Awaited<ReturnType<typeof api.votes.list>> | null = null;
   let topics: Awaited<ReturnType<typeof api.topics.list>> = [];
   let groups: Awaited<ReturnType<typeof api.groups.list>> = [];
-  let upcomingSessions: ScheduledSession[] = [];
-  let topicCounts: Awaited<ReturnType<typeof api.stats.topicsGlobal>> = [];
   let legislatures: Legislature[] = [];
   let error: string | null = null;
 
@@ -126,7 +131,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
   const isHistorical = !!selectedLeg && !!activeLeg && selectedLeg.id !== activeLeg.id;
 
   try {
-    [data, topics, groups, upcomingSessions, topicCounts] = await Promise.all([
+    [data, topics, groups] = await Promise.all([
       api.votes.list({
         legislature_id: selectedLegId,
         topic_slug: params.topic_slug,
@@ -143,30 +148,24 @@ async function VotesListTab({ params }: { params: SearchParams }) {
       api.groups
         .list(selectedLegId)
         .catch(() => [] as Awaited<ReturnType<typeof api.groups.list>>),
-      // Compact agenda banner above the list — same upcoming data as the
-      // home page, but `mode="compact"` hides it entirely when empty so
-      // the table is not preceded by a stale "no data" block.
-      api.agenda
-        .sessions({ legislature_id: 1, upcoming_only: true })
-        .then((rows) => rows.slice(0, 4))
-        .catch(() => [] as ScheduledSession[]),
-      // Per-topic initiative counts feed the mobile topic carousel
-      // (every topic visible, deterministic order — never editorial).
-      api.stats.topicsGlobal().catch(() => []),
     ]);
   } catch (e) {
     error = e instanceof Error ? e.message : 'unknown error';
   }
 
+  // A single day, arrived at from /avui or the embed explorer. There is no
+  // date picker on this page, so the filter card shows it as a removable
+  // chip: a filter the reader can't see is a filter they can't undo.
   const activeDate =
-    params.date_from && params.date_from === params.date_to
-      ? params.date_from
-      : null;
+    params.date_from && params.date_from === params.date_to ? params.date_from : null;
+  const activeDateLabel = activeDate
+    ? new Date(activeDate).toLocaleDateString(locale, { dateStyle: 'medium' })
+    : null;
 
-  // Topic / group filters can now be a comma-separated list (the
-  // backend OR's across the slugs). Split here so the chip strip and
-  // the filter card both see arrays; the API call still forwards the
-  // raw comma-joined string so the backend keeps the URL shape stable.
+  // Topic / group filters can be a comma-separated list (the backend OR's
+  // across the slugs). Split here so the filter card sees arrays; the API
+  // call still forwards the raw comma-joined string so the backend keeps
+  // the URL shape stable.
   const topicSlugs = (params.topic_slug ?? '')
     .split(',')
     .map((s) => s.trim())
@@ -176,125 +175,13 @@ async function VotesListTab({ params }: { params: SearchParams }) {
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const totalPages = data
-    ? Math.max(1, Math.ceil(data.total / data.page_size))
-    : 1;
-
-  // "Només lleis" context toggle — a URL flag preserved across the other
-  // filters (like the legislature selector). Especially useful on a historical
-  // legislature, where it's the way to see that era's laws (the votes have no
-  // linked Initiative, so the lens reads the expediente prefix server-side).
-  const lawOnly = params.law === '1';
-  const lawHref = (() => {
-    const qs = new URLSearchParams();
-    for (const [k, v] of Object.entries(params)) {
-      if (v && k !== 'page' && k !== 'law') qs.set(k, String(v));
-    }
-    if (!lawOnly) qs.set('law', '1');
-    const s = qs.toString();
-    return (s ? `/votes?${s}` : '/votes') as Route;
-  })();
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1;
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          flexWrap: 'wrap',
-          paddingTop: 14,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          {legislatures.length > 1 && selectedLegId != null && (
-            <LegislatureSelector
-              legislatures={legislatures}
-              activeId={activeLeg?.id ?? null}
-              selectedId={selectedLegId}
-              label={t('legislature_label')}
-              currentSuffix={t('legislature_current')}
-            />
-          )}
-          <Link
-            href={lawHref}
-            aria-pressed={lawOnly}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 12px',
-              borderRadius: 999,
-              border: `1px solid ${lawOnly ? 'var(--ink)' : 'var(--rule-strong)'}`,
-              background: lawOnly ? 'var(--ink)' : 'var(--paper-2)',
-              color: lawOnly ? 'var(--paper)' : 'var(--ink-2)',
-              fontSize: 13,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            <Scale size={14} aria-hidden="true" strokeWidth={1.8} />
-            {t('law_only_label')}
-          </Link>
-        </div>
-        <div className="tabular" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-          <span style={{ color: 'var(--ink)', fontWeight: 600 }}>
-            {data ? data.total.toLocaleString(locale) : '—'}
-          </span>
-          {data && (
-            <>
-              {' · '}
-              {tCommon('page')} {page} / {totalPages}
-            </>
-          )}
-        </div>
-      </div>
-
-      {isHistorical && selectedLeg && (
-        <p
-          style={{
-            margin: '10px 0 0',
-            padding: '8px 12px',
-            borderRadius: 8,
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule)',
-            fontSize: 12.5,
-            color: 'var(--ink-2)',
-            lineHeight: 1.5,
-          }}
-        >
-          {t('legislature_historical_note', {
-            number: selectedLeg.number,
-            start: new Date(selectedLeg.start_date).getFullYear(),
-            end: selectedLeg.end_date ? new Date(selectedLeg.end_date).getFullYear() : '',
-          })}
-        </p>
-      )}
-
-      {/* Horizontal chip strip of every theme topic — same component
-          on desktop and mobile. Each chip is a scroll-snap target so
-          a phone user can fling through the whole taxonomy and tap
-          to filter the list directly. */}
-      <TopicChipsStrip
-        topics={topics}
-        counts={topicCounts}
-        activeSlugs={topicSlugs}
-        allLabel={t('topic_chips_all_label')}
-        countSuffix={t('carousel_count_suffix')}
-        locale={locale}
-      />
-
-      {/* Upcoming sessions, compact — renders nothing if empty so the
-          table is not preceded by clutter. */}
-      <UpcomingAgenda sessions={upcomingSessions} mode="compact" />
-
-      {/* Auto-apply filter card. Owns its own URL state via the
-          router — no Apply button, no GET form, no advanced collapse.
-          Multi-value for topic + group via comma-separated URL params
-          (backend OR's across the values); selected chips render
-          inline under each combobox with their own × to remove a
-          single value. */}
+      {/* One control surface: search, result, the laws lens and the
+          legislature switch all live in this card. They used to be three
+          stacked toolbars, which pushed the first vote below the fold. */}
       <VotesFilterCard
         topics={topics}
         groups={groups}
@@ -302,7 +189,11 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         initialTopicSlugs={topicSlugs}
         initialGroupSlugs={groupSlugs}
         initialResult={params.result ?? ''}
-        hasOtherActiveFilters={Boolean(activeDate)}
+        lawOnly={params.law === '1'}
+        activeDateLabel={activeDateLabel}
+        legislatures={legislatures}
+        activeLegId={activeLeg?.id ?? null}
+        selectedLegId={selectedLegId ?? null}
         locale={locale}
         labels={{
           search: t('filters.search'),
@@ -322,8 +213,32 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           clear_all: t('filters_clear_all'),
           remove_label: 'Treu',
           more_filters: t('filters.more'),
+          law_only: t('law_only_label'),
+          legislature_label: t('legislature_label'),
+          legislature_current: t('legislature_current'),
         }}
       />
+
+      {isHistorical && selectedLeg && (
+        <p
+          style={{
+            margin: '12px 0 0',
+            padding: '8px 12px',
+            borderRadius: 8,
+            background: 'var(--paper-2)',
+            border: '1px solid var(--rule)',
+            fontSize: 12.5,
+            color: 'var(--ink-2)',
+            lineHeight: 1.5,
+          }}
+        >
+          {t('legislature_historical_note', {
+            number: selectedLeg.number,
+            start: new Date(selectedLeg.start_date).getFullYear(),
+            end: selectedLeg.end_date ? new Date(selectedLeg.end_date).getFullYear() : '',
+          })}
+        </p>
+      )}
 
       {error && (
         <div
@@ -338,6 +253,15 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         >
           {tCommon('error')}: {error}
         </div>
+      )}
+
+      {/* How many results, right above them — where /lleis puts it, rather
+          than in a separate header row the eye has to come back to. */}
+      {data && (
+        <p className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', margin: '16px 0 4px' }}>
+          {t('records_count', { count: data.total.toLocaleString(locale) })}
+          {totalPages > 1 && ` · ${tCommon('page')} ${page}/${totalPages}`}
+        </p>
       )}
 
       {data && data.items.length === 0 && (
@@ -357,12 +281,8 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         </div>
       )}
 
-      {/* Single responsive list — CompactVoteRow delegates to the shared
-          ``.law-row`` shell (LawRow), the same flat shape at every
-          viewport (no separate mobile/desktop variants). The previous
-          design rendered two parallel <ul>'s gated by `sm:hidden` /
-          `hidden sm:block`, which left both in the HTML and read as a
-          duplicated "filtered list". One list, one source of truth. */}
+      {/* The same card as /lleis (VoteCard is LawCard's twin), so a vote
+          looks like a vote wherever you meet it. */}
       {data && data.items.length > 0 && (
         <ul
           className="votes-list"
@@ -396,13 +316,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           nextLabel={t('pagination_next_aria')}
         />
       )}
-
-      <style>{`
-        @media (max-width: 720px) {
-          .filter-rail { grid-template-columns: 1fr 1fr !important; }
-          .filter-rail > div:nth-child(n+5) { grid-column: 1 / -1; }
-        }
-      `}</style>
     </div>
   );
 }
@@ -528,4 +441,3 @@ function Pagination({
     </div>
   );
 }
-
