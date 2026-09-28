@@ -1,10 +1,13 @@
 /**
  * Skeleton for /votes while the SSR page renders.
  *
- * /votes fans out to the calendar strip, the topic carousel and the
- * paginated list — about half a dozen backend hits in parallel. On a
- * cold ISR revalidation that adds up to ~1-1.5s; this skeleton makes
- * the page feel instant even under that worst case.
+ * /votes fans out to the legislature list, the topic and group lists and the
+ * paginated votes themselves — several backend hits in parallel. On a cold
+ * ISR revalidation that adds up to ~1-1.5s; this skeleton makes the page feel
+ * instant under that worst case.
+ *
+ * It mirrors the real chrome: header, one filter card, then the vote cards.
+ * A skeleton that promises a different layout is worse than none.
  */
 export default function VotesLoading() {
   return (
@@ -17,62 +20,52 @@ export default function VotesLoading() {
       <Bar w="32%" h={11} mb={8} />
       <Bar w="55%" h={28} mb={18} />
 
-      {/* Calendar strip */}
-      <div style={{ display: 'flex', gap: 8, overflow: 'hidden', marginBottom: 18 }}>
-        {Array.from({ length: 8 }, (_, i) => (
+      {/* Filter card: search box + the row of controls under it. */}
+      <div
+        style={{
+          border: '1px solid var(--rule)',
+          borderRadius: 14,
+          padding: 14,
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ height: 44, background: 'var(--paper-2)', borderRadius: 10 }} />
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+          <div style={{ flex: '0 0 230px', height: 32, background: 'var(--paper-2)', borderRadius: 999 }} />
+          <div style={{ flex: '0 0 110px', height: 32, background: 'var(--paper-2)', borderRadius: 999 }} />
+          <div style={{ flex: '0 0 120px', height: 32, background: 'var(--paper-2)', borderRadius: 999, marginLeft: 'auto' }} />
+        </div>
+      </div>
+
+      {/* Vote cards (4 placeholders) — same shape as VoteCard: chips row,
+          headline, the vote block, footer. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {Array.from({ length: 4 }, (_, i) => (
           <div
             key={i}
             style={{
-              flex: 'none',
-              width: 60,
-              height: 78,
-              background: 'var(--paper-2)',
-              borderRadius: 10,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Filter row */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        <div
-          style={{
-            flex: '1 1 220px',
-            height: 44,
-            background: 'var(--paper-2)',
-            borderRadius: 10,
-          }}
-        />
-        <div
-          style={{
-            flex: '0 0 96px',
-            height: 44,
-            background: 'var(--paper-2)',
-            borderRadius: 10,
-          }}
-        />
-      </div>
-
-      {/* Vote rows (5 placeholders) */}
-      <div>
-        {Array.from({ length: 5 }, (_, i) => (
-          <div
-            key={i}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '64px 1fr auto',
-              gap: 14,
-              padding: '14px 0',
-              borderBottom: '1px solid var(--rule)',
-              alignItems: 'center',
+              border: '1px solid var(--rule)',
+              borderRadius: 16,
+              padding: '18px 18px 16px',
             }}
           >
-            <Bar w={56} h={14} />
-            <div>
-              <Bar w="80%" h={14} mb={6} />
-              <Bar w="40%" h={12} />
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <Bar w={90} h={18} />
+              <Bar w={70} h={18} />
+              <div style={{ flex: 1 }} />
+              <Bar w={84} h={18} />
             </div>
-            <Bar w={90} h={20} />
+            <Bar w="88%" h={16} mb={7} />
+            <Bar w="62%" h={16} mb={14} />
+            <div
+              style={{
+                height: 74,
+                background: 'var(--paper-2)',
+                borderRadius: 12,
+                marginBottom: 12,
+              }}
+            />
+            <Bar w="40%" h={11} />
           </div>
         ))}
       </div>
