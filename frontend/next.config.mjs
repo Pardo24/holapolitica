@@ -27,6 +27,23 @@ const COMMON_SECURITY_HEADERS = [
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  async redirects() {
+    return [
+      // The deputies directory moved into /el-teu-diputat as a tab. Declared
+      // here rather than with permanentRedirect() in the page: a page-level
+      // redirect answers the document request with 200 and the target's
+      // HTML, so search engines keep both URLs as separate pages. This
+      // emits a real 308. The tab is carried across; the specific rule has
+      // to come first, since the first match wins.
+      {
+        source: '/persons',
+        has: [{ type: 'query', key: 'tab', value: 'grups' }],
+        destination: '/el-teu-diputat?tab=grups',
+        permanent: true,
+      },
+      { source: '/persons', destination: '/el-teu-diputat?tab=tots', permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       // Android App Links verification file. Served from a route handler
