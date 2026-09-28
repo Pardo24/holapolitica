@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
@@ -77,6 +77,7 @@ export async function SessionSheet({
   const t = await getTranslations('session_sheet');
   const tCommon = await getTranslations('common');
   const tLleis = await getTranslations('lleis');
+  const tVotes = await getTranslations('votes');
   // The same vote block as /lleis and the law page, so one vote reads the
   // same wherever it appears.
   const splitLabels: VoteSplitLabels = {
@@ -236,6 +237,7 @@ export async function SessionSheet({
         stageHint={stageHintFor(v)}
         proceduralNote={proceduralNoteFor(v)}
         topicSlugs={topicSlugsOf(v)}
+        seeVoteLabel={tVotes('see_vote')}
       />
     );
   };
@@ -1317,6 +1319,7 @@ function VoteRow({
   stageHint,
   proceduralNote,
   topicSlugs,
+  seeVoteLabel,
 }: {
   vote: Vote;
   locale: string;
@@ -1343,6 +1346,8 @@ function VoteRow({
   proceduralNote?: string | null;
   /** Space-separated topic slugs, read by the session topic filter. */
   topicSlugs: string;
+  /** "See the vote" — the row is no longer one big link, so it needs one. */
+  seeVoteLabel: string;
 }) {
   const subject = vote.description?.trim() || vote.title;
   // AI plain-language summary leads as the row headline; the raw official
@@ -1387,8 +1392,12 @@ function VoteRow({
         borderBottom: '1px solid var(--rule)',
       }}
     >
-      <Link
-        href={`/votes/${vote.id}` as Route}
+      {/* A plain grid, NOT a link. The whole row used to be one <a>, so the
+          "detail by group" disclosure inside it could never open: the click
+          went to the vote page instead (and interactive content inside an
+          anchor is invalid HTML). The headline and an explicit link at the
+          foot carry the navigation now. */}
+      <div
         className="session-vote-row"
         style={{
           display: 'grid',
@@ -1401,7 +1410,6 @@ function VoteRow({
           columnGap: 16,
           rowGap: 6,
           color: 'inherit',
-          textDecoration: 'none',
           alignItems: 'start',
         }}
       >
@@ -1438,19 +1446,26 @@ function VoteRow({
             }}
           >
             <h3
-              className="serif"
               style={{
                 margin: 0,
-                fontSize: 'clamp(14px, 1.4vw, 15px)',
-                fontWeight: 400,
-                color: 'var(--ink)',
-                lineHeight: 1.35,
-                letterSpacing: '-0.005em',
                 flex: '1 1 280px',
                 minWidth: 0,
               }}
             >
-              {headline}
+              <Link
+                href={`/votes/${vote.id}` as Route}
+                className="serif"
+                style={{
+                  fontSize: 'clamp(14px, 1.4vw, 15px)',
+                  fontWeight: 400,
+                  color: 'var(--ink)',
+                  lineHeight: 1.35,
+                  letterSpacing: '-0.005em',
+                  textDecoration: 'none',
+                }}
+              >
+                {headline}
+              </Link>
             </h3>
             <span style={{ flex: 'none' }}>
               <ResultPill result={outcome} label={resultLabel} />
@@ -1577,6 +1592,25 @@ function VoteRow({
               )}
             </div>
           )}
+          {/* The way into the vote, now that the row isn't one big click
+              target. Same wording as the cards on /votacions. */}
+          <Link
+            href={`/votes/${vote.id}` as Route}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              marginTop: 8,
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: 'var(--ink-2)',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {seeVoteLabel}
+            <ArrowRight size={12} strokeWidth={2} aria-hidden="true" />
+          </Link>
         </div>
 
         {/* Count panel — right-aligned column. The three figures stack
@@ -1634,7 +1668,7 @@ function VoteRow({
             {marginLabel(margin)}
           </span>
         </div>
-      </Link>
+      </div>
     </li>
   );
 }
