@@ -16,8 +16,10 @@ def anyio_backend() -> str:
 
 
 def test_validate_accepts_clean_payload() -> None:
+    # "llogaters" canonicalises to "arrendataris": the filter chips are one
+    # per collective, not one per synonym the model happened to pick.
     out = _validate({"es": ["Inquilinos", "propietarios."], "ca": ["llogaters", "propietaris"]})
-    assert out == {"es": ["inquilinos", "propietarios"], "ca": ["llogaters", "propietaris"]}
+    assert out == {"es": ["inquilinos", "propietarios"], "ca": ["arrendataris", "propietaris"]}
 
 
 def test_validate_caps_at_four_and_drops_junk() -> None:
@@ -47,7 +49,8 @@ async def test_extract_parses_fenced_json(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setattr(affected_mod, "_call_llm_for_text", fake_llm)
     monkeypatch.setattr(affected_mod, "_provider_name", lambda s: "test")
     result = await extract_affected_audiences(title="Ley de alquileres", summary=None)
-    assert result.audiences == {"es": ["inquilinos"], "ca": ["llogaters"]}
+    # Same canonicalisation as in _validate: "llogaters" -> "arrendataris".
+    assert result.audiences == {"es": ["inquilinos"], "ca": ["arrendataris"]}
 
 
 async def test_extract_bad_output_yields_empty(monkeypatch: pytest.MonkeyPatch) -> None:

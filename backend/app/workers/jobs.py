@@ -785,6 +785,26 @@ def summarise_pending_initiatives() -> dict[str, int]:
     return asyncio.run(_run())
 
 
+# One day's worth of catching up. A plenary week leaves a handful of
+# unsummarised votes, so this is really a cap for the historical tail;
+# at ~1s between calls a full run is under two minutes.
+_VOTE_SUMMARY_LIMIT_PER_RUN = 80
+
+
+def summarise_pending_votes() -> dict[str, int | str]:
+    """RQ entrypoint: plain summaries for votes that carry their own text.
+
+    Procedural votes (convalidation of a decree-law, motions, amendment
+    blocks) have no initiative behind them, so the initiative-side job
+    never sees them and the card falls back to the raw description. This
+    generates the Spanish summary; the 07:15 language-gap job then
+    translates it into Catalan, so both locales land the same day.
+    """
+    from app.ingest.congreso.bootstrap import generate_vote_plain_summaries as _run
+
+    return asyncio.run(_run(lang="es", limit=_VOTE_SUMMARY_LIMIT_PER_RUN))
+
+
 def enrich_persons_wikipedia() -> dict[str, int]:
     """Fetch Wikipedia summary extracts for every person with a URL.
 

@@ -129,6 +129,17 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "5 7 * * *",
         jobs.summarise_pending_initiatives,
     ),
+    # Votes that carry their own text (procedural ones: convalidations,
+    # motions, amendment blocks) have no initiative behind them, so the
+    # job above never reaches them and the card shows the raw legal
+    # description. Runs between it and the language repair, so the ES
+    # summary generated here is translated into CA at 07:15 the same day.
+    (
+        "monitor-summarise-pending-votes",
+        "ingest",
+        "10 7 * * *",
+        jobs.summarise_pending_votes,
+    ),
     # Plain summaries must exist in both CA and ES. After the morning
     # ingests (06:45 initiatives, 06:50 PNL), translate any summary that
     # only landed in one language. Near no-op once the backlog is clear.
