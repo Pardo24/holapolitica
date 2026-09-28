@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 
@@ -51,6 +51,8 @@ export interface AlignQuizLabels {
   see_results: { one: string; other: string };
   more_questions: string;
   results_votes: string; // uses {name}
+  read_more: string;
+  read_less: string;
   results_same: string;
   results_diff: string;
 }
@@ -78,7 +80,29 @@ export function AlignQuiz({
   const [done, setDone] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // The summary on the question card is clamped, because the long ones put
+  // the answer buttons below the fold on a phone (measured at 375x812: six
+  // of ten questions ran past it, and the bottom tab bar takes 58px more).
+  // Five lines keeps every question answerable without scrolling. Whoever
+  // wants the rest opens it in place; nothing is hidden without a way in.
+  const [expanded, setExpanded] = useState(false);
+  const [clipped, setClipped] = useState(false);
+  const summaryRef = useRef<HTMLHeadingElement | null>(null);
+
   const total = questions.length;
+  const currentVoteId = questions[idx]?.vote_id;
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [currentVoteId]);
+
+  useEffect(() => {
+    // Only measure while clamped: expanded, the element no longer overflows
+    // and the toggle would vanish under the reader's finger.
+    if (expanded) return;
+    const el = summaryRef.current;
+    setClipped(!!el && el.scrollHeight > el.clientHeight + 2);
+  }, [currentVoteId, expanded, done]);
 
   // Answers survive a reload. Keyed by the first vote of the set, so a
   // different set of questions never inherits answers from another one.
@@ -353,11 +377,37 @@ export function AlignQuiz({
                             background: same ? 'var(--aye)' : 'var(--no)',
                           }}
                         />
-                        <span style={{ minWidth: 0 }}>
-                          <span style={{ fontWeight: 600, color: 'var(--ink)' }}>
+                        <span style={{ minWidth: 0, display: 'block' }}>
+                          {/* The verdict on its own line: run inline, it was
+                              swallowed by summaries that are a paragraph
+                              long, which is exactly what the reader is
+                              scanning for. */}
+                          <span
+                            style={{
+                              display: 'block',
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              letterSpacing: '0.07em',
+                              textTransform: 'uppercase',
+                              color: same ? 'var(--aye)' : 'var(--no)',
+                              marginBottom: 3,
+                            }}
+                          >
                             {same ? labels.results_same : labels.results_diff}
-                          </span>{' '}
-                          {text}
+                          </span>
+                          {/* Two lines each: ten full summaries turned the
+                              results into a wall of text on a phone. The row
+                              links to the vote, where the whole thing is. */}
+                          <span
+                            style={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {text}
+                          </span>
                         </span>
                       </Link>
                     </li>
@@ -520,6 +570,7 @@ export function AlignQuiz({
           <>
             <p style={{ ...EYEBROW, marginBottom: 8 }}>{labels.question_label}</p>
             <h2
+              ref={summaryRef}
               className="serif"
               style={{
                 // Summaries run from 20 to 80 words. At a fixed 19px the long
@@ -530,10 +581,39 @@ export function AlignQuiz({
                 margin: '0 0 12px',
                 lineHeight: 1.4,
                 color: 'var(--ink)',
+                ...(expanded
+                  ? null
+                  : {
+                      display: '-webkit-box',
+                      WebkitLineClamp: 5,
+                      WebkitBoxOrient: 'vertical' as const,
+                      overflow: 'hidden',
+                    }),
               }}
             >
               {summary}
             </h2>
+            {clipped && (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                aria-expanded={expanded}
+                style={{
+                  display: 'inline-block',
+                  margin: '-6px 0 12px',
+                  padding: 0,
+                  border: 0,
+                  background: 'transparent',
+                  color: 'var(--accent)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                }}
+              >
+                {expanded ? labels.read_less : labels.read_more}
+              </button>
+            )}
             <details style={{ marginTop: 2 }}>
               <summary
                 style={{
