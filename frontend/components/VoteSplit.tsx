@@ -63,6 +63,12 @@ export function VoteSplit({
   const against = groups.filter((g) => g.choice === 'no');
   const abstained = groups.filter((g) => g.choice === 'abstention');
   const big = size === 'lg';
+  const zones = [
+    { key: 'aye', color: 'var(--aye)', count: ayes },
+    { key: 'abstention', color: 'var(--abst)', count: abstentions },
+    { key: 'no', color: 'var(--no)', count: noes },
+    { key: 'absent', color: 'var(--nv)', count: absent },
+  ];
 
   return (
     <>
@@ -84,16 +90,11 @@ export function VoteSplit({
         )}
       </div>
 
-      <Ribbon
-        zones={[
-          { key: 'aye', color: 'var(--aye)', count: ayes },
-          { key: 'abstention', color: 'var(--abst)', count: abstentions },
-          { key: 'no', color: 'var(--no)', count: noes },
-          { key: 'absent', color: 'var(--nv)', count: absent },
-        ]}
-        groups={groups}
-        height={big ? 18 : 13}
-      />
+      {/* In a list the ribbon came first and asked the reader to decode
+          nine party colours before learning the result. The plain tally
+          leads instead, and the ribbon waits inside the detail. On a law's
+          own page (size="lg") the breakdown IS the content, so it stays. */}
+      {big && <Ribbon zones={zones} groups={groups} height={18} />}
 
       <div
         className="tabular"
@@ -101,8 +102,8 @@ export function VoteSplit({
           display: 'flex',
           gap: 14,
           flexWrap: 'wrap',
-          marginTop: 8,
-          fontSize: big ? 14 : 12.5,
+          marginTop: big ? 8 : 0,
+          fontSize: big ? 14 : 13,
           color: 'var(--ink-2)',
         }}
       >
@@ -122,6 +123,11 @@ export function VoteSplit({
           >
             {labels.detail}
           </summary>
+          {!big && (
+            <div style={{ marginTop: 10 }}>
+              <Ribbon zones={zones} groups={groups} height={13} />
+            </div>
+          )}
           <div
             style={{
               display: 'grid',

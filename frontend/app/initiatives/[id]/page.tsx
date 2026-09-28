@@ -10,6 +10,7 @@ import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupVoteBreakdown } from '@/components/GroupVoteBreakdown';
 import { LawJourney } from '@/components/LawJourney';
+import { VoteSplit } from '@/components/VoteSplit';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import {
   PartyStanceMini,
@@ -92,6 +93,7 @@ export default async function InitiativeDetailPage({
 
   const t = await getTranslations('initiative_detail');
   const tVotes = await getTranslations('votes');
+  const tLleis = await getTranslations('lleis');
   const tCommon = await getTranslations('common');
   const tLifecycle = await getTranslations('lifecycle');
   // Status labels live under the ``stats`` namespace; we look them up
@@ -355,6 +357,41 @@ export default async function InitiativeDetailPage({
         </div>
       </header>
 
+      {/* How the chamber split, right after what the law does. It used
+          to sit some 400 lines below, so the page answered "what is this"
+          long before "who backed it". Same component as the laws list,
+          with the breakdown open: on a law's own page it is the point. */}
+      {finalVote && !finalVote.approved_by_assent && (
+        <section
+          style={{
+            marginTop: 18,
+            padding: '14px 16px',
+            borderRadius: 12,
+            border: '1px solid var(--rule)',
+            background: 'var(--paper-2)',
+          }}
+        >
+          <VoteSplit
+            ayes={finalVote.ayes}
+            noes={finalVote.noes}
+            abstentions={finalVote.abstentions}
+            absent={finalVote.absent}
+            groups={stanceByVote.get(finalVote.id) ?? []}
+            date={new Date(finalVote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })}
+            size="lg"
+            labels={{
+              eyebrow: tLleis('card_votes_eyebrow'),
+              inFavour: tLleis('card_in_favour'),
+              against: tLleis('card_against'),
+              abstention: tLleis('card_abstention'),
+              detail: tLleis('card_group_detail'),
+              sideEmpty: tLleis('card_side_empty'),
+              noBreakdown: tLleis('card_no_breakdown'),
+            }}
+          />
+        </section>
+      )}
+
       {/* Where the law stands in its journey. It used to open the page,
           which spent the most valuable position on procedure; it now
           follows the answer (what it does, and the official wording). */}
@@ -578,21 +615,17 @@ export default async function InitiativeDetailPage({
         </div>
 
         <div>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>
-            {votes.length > 1
-              ? t('vote_box_title_multipart', { n: votes.length })
-              : t('vote_box_title')}
-          </div>
+          {votes.length > 1 && (
+            <div className="eyebrow" style={{ marginBottom: 8 }}>
+              {t('vote_box_title_multipart', { n: votes.length })}
+            </div>
+          )}
           {primaryVote ? (
             votes.length === 1 ? (
-              <VoteCardBig
-                vote={primaryVote}
-                locale={locale}
-                t={t}
-                tVotes={tVotes}
-                stance={stanceByVote.get(primaryVote.id)}
-                stanceLabels={stanceLabels}
-              />
+              // A law with a single vote now has that vote at the top of the
+              // page; repeating it here showed the same tally and the same
+              // group lists twice.
+              null
             ) : (
               <>
                 {/* The decisive vote leads — the whole-text vote after the
