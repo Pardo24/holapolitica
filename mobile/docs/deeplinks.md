@@ -2,7 +2,7 @@
 
 We use **Universal Links** on iOS and **App Links** on Android — both
 backed by the same web URLs. A user who taps
-`https://holapolitica.org/votes/123` in Mail / WhatsApp / Twitter
+`https://www.holapolitica.org/votes/123` in Mail / WhatsApp / Twitter
 sees the app open straight at vote 123, with no URL scheme dialog and no
 intermediate browser hop.
 
@@ -44,10 +44,15 @@ file already has it.
 Host the following JSON at:
 
 ```
-https://holapolitica.org/.well-known/apple-app-site-association
+https://www.holapolitica.org/.well-known/apple-app-site-association
 ```
 
 Served as `application/json`, **no redirect**, **no extension**, HTTPS only.
+
+> **The apex does not serve it.** `holapolitica.org` 307-redirects to
+> `www.holapolitica.org` at the Vercel edge, and neither Apple nor Google
+> follows a redirect for these files. So only the `www` host can be
+> verified today. See "Which host verifies" at the end of this file.
 
 ```json
 {
@@ -100,10 +105,11 @@ and `www.holapolitica.org`. No further code change needed.
 Host the following JSON at:
 
 ```
-https://holapolitica.org/.well-known/assetlinks.json
+https://www.holapolitica.org/.well-known/assetlinks.json
 ```
 
-Served as `application/json`, HTTPS only, no redirect.
+Served as `application/json`, HTTPS only, no redirect. As with the AASA
+file, the apex redirects and therefore cannot be verified.
 
 ```json
 [
@@ -152,15 +158,44 @@ Copy the line that starts with `SHA256:` and paste into the
 After deploying both `.well-known` files:
 
 ```bash
+# The files themselves — expect 200 and JSON, never a 3xx:
+curl -i https://www.holapolitica.org/.well-known/apple-app-site-association
+curl -i https://www.holapolitica.org/.well-known/assetlinks.json
+
 # iOS — Apple's CDN check
-curl https://app-site-association.cdn-apple.com/a/v1/holapolitica.org
+curl https://app-site-association.cdn-apple.com/a/v1/www.holapolitica.org
 
 # Android — Google's Digital Asset Links verifier
-curl 'https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://holapolitica.org&relation=delegate_permission/common.handle_all_urls'
+curl 'https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://www.holapolitica.org&relation=delegate_permission/common.handle_all_urls'
 ```
 
 Both should return JSON listing the app. If they do not, double-check
 content-type, HTTPS, and that no redirect is in the way.
+
+Until `APPLE_TEAM_ID` and `ANDROID_CERT_SHA256` are set in Vercel, the two
+routes answer with an empty association (`{"applinks":{"details":[]}}` and
+`[]`). That is deliberate and valid: no app is claimed, links keep opening
+in the browser, and nothing breaks. Setting the env vars and redeploying is
+the whole of the switch-on.
+
+## Which host verifies
+
+The app claims both hosts (entitlement and manifest), which is right: a
+claim for a host that doesn't answer is simply ignored, so there is no harm
+in keeping the apex listed. But today only `www.holapolitica.org` can pass
+verification, because the apex redirects.
+
+Two ways to decide this before submitting:
+
+1. **Accept www-only** (nothing to do). Links shared from the site itself
+   are canonical `www` URLs, since that is what `metadataBase` and the
+   sitemap emit. An apex link opens in the browser, which then redirects to
+   `www` in the browser rather than in the app.
+2. **Make the apex verify too**: in the Vercel project's Domains settings,
+   stop `holapolitica.org` from redirecting to `www` so it serves the app,
+   and add an apex → www redirect in `frontend/next.config.mjs` that
+   excludes `/.well-known/*`. Then both hosts answer the files and both
+   verify, while the canonical stays `www`.
 
 ## Handling deep links in the WebView
 

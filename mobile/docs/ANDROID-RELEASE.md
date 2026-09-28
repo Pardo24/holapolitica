@@ -1,7 +1,7 @@
 # Publicar Hola Política a Google Play — runbook (Windows)
 
 Aquesta guia et porta de zero a l'app publicada a Play. L'app és una closca
-Capacitor que carrega `https://holapolitica.org` dins d'un WebView: **no hi ha
+Capacitor que carrega `https://www.holapolitica.org` dins d'un WebView: **no hi ha
 UI duplicada**, i cada desplegament del web actualitza l'app sense passar per
 revisió. Només empaquetes aquesta closca un cop.
 
@@ -81,7 +81,7 @@ Play no publica fins que aquests apartats estan complets:
   gràfic destacat (1024×500), i **captures de pantalla** (mín. 2 de telèfon).
   Fes-les del mòbil amb la portada, un ple, una fitxa de partit i les dades.
 - **Categoria:** _Notícies i revistes_ (o _Educació_).
-- **Política de privadesa:** URL → `https://holapolitica.org/about/data`.
+- **Política de privadesa:** URL → `https://www.holapolitica.org/about/data`.
 - **Data safety:** com **no fem servir rastrejadors**, respon _No es recopilen
   dades_ (o només les mínimes tècniques). Aquest és el nostre avantatge.
 - **Content rating:** qüestionari → surt PEGI 3 / per a tothom.
@@ -90,7 +90,7 @@ Play no publica fins que aquests apartats estan complets:
 
 ## 6. Deep links — App Links (opcional, es pot fer després)
 
-Perquè un enllaç `https://holapolitica.org/votes/123` **obri l'app** en lloc
+Perquè un enllaç `https://www.holapolitica.org/votes/123` **obri l'app** en lloc
 del navegador. El fitxer ja se serveix (avui torna `[]`); només hi falta el
 fingerprint, i es posa per **variable d'entorn**, sense tocar codi:
 
@@ -100,11 +100,14 @@ fingerprint, i es posa per **variable d'entorn**, sense tocar codi:
 2. **[TU]** A Vercel → el projecte → _Settings → Environment Variables_ →
    afegeix `ANDROID_CERT_SHA256` amb el/s fingerprint/s separats per coma.
    Redesplega (o _Redeploy_ des de Vercel).
-3. Verifica-ho: `https://holapolitica.org/.well-known/assetlinks.json` ha de
+3. Verifica-ho: `https://www.holapolitica.org/.well-known/assetlinks.json` ha de
    passar de `[]` a l'associació amb el teu fingerprint.
 
-> El manifest ja declara l'`intent-filter autoVerify` per a `holapolitica.org`;
-> Android verifica l'associació sol a la instal·lació.
+> El manifest ja declara l'`intent-filter autoVerify` per als dos amfitrions;
+> Android verifica l'associació sol a la instal·lació. Compte: el domini sense
+> `www` redirigeix (307) i Google no segueix redireccions per a aquest fitxer,
+> així que avui només es verifica `www.holapolitica.org`. Mira
+> `mobile/docs/deeplinks.md`, secció "Which host verifies".
 
 Si no ho fas, els enllaços simplement obren al navegador (degrada bé); no
 bloqueja la publicació.

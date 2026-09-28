@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 /**
  * Embed widget: who votes IN FAVOUR and AGAINST on a topic.
  *
- *   <iframe src="https://holapolitica.org/embed/topics/habitatge/parties"
+ *   <iframe src="https://www.holapolitica.org/embed/topics/habitatge/parties"
  *           width="100%" height="420" frameborder="0"
  *           loading="lazy"></iframe>
  *

@@ -17,7 +17,10 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * a local tunnel (ngrok / cloudflared) while production builds target the
  * canonical domain.
  */
-const PRODUCTION_URL = 'https://holapolitica.org';
+// The canonical host is www: the apex 307-redirects to it at the edge, and
+// the site's own metadataBase and sitemap already point there. Loading the
+// apex made every cold start pay a redirect before the first byte of HTML.
+const PRODUCTION_URL = 'https://www.holapolitica.org';
 const TARGET_URL = process.env.MOBILE_TARGET_URL ?? PRODUCTION_URL;
 
 const config: CapacitorConfig = {

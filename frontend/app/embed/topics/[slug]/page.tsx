@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 /**
  * Embed widget for a topic / SDG.
  *
- *   <iframe src="https://holapolitica.org/embed/topics/habitatge"
+ *   <iframe src="https://www.holapolitica.org/embed/topics/habitatge"
  *           width="100%" height="220" frameborder="0"></iframe>
  *
  * Same rules as `/embed/votes/[id]` — see CLAUDE.md.

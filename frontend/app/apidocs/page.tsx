@@ -118,7 +118,7 @@ export default function ApiDocsPage() {
         </p>
         <pre style={preStyle}>
 {`<iframe
-  src="https://holapolitica.org/embed/votes/12345"
+  src="https://www.holapolitica.org/embed/votes/12345"
   width="100%" height="320" frameborder="0"
   sandbox="allow-scripts allow-same-origin"
   loading="lazy"
