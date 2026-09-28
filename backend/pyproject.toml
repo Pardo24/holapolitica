@@ -7,7 +7,13 @@ license = "EUPL-1.2"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
-    "sqlalchemy[asyncio]>=2.0.30",
+    # Capped to the 2.0 line. Unbounded, a fresh install (CI, or a
+    # production image rebuild) silently picked up SQLAlchemy 2.1, whose
+    # Row typing the code has never been written against: the mypy job has
+    # been failing on `main` since, and the deployed image jumped a minor
+    # nobody chose. Moving to 2.1 is a deliberate upgrade, not a side
+    # effect of the next rebuild.
+    "sqlalchemy[asyncio]>=2.0.30,<2.1",
     "asyncpg>=0.29.0",
     "alembic>=1.13.0",
     "pydantic[email]>=2.7.0",
@@ -44,7 +50,10 @@ dev = [
     "httpx>=0.27.0",
     "ruff>=0.4.0",
     "black>=24.4.0",
-    "mypy>=1.10.0",
+    # Same reason: the checker itself has to be a decision. mypy 2.3 reports
+    # 15 errors in wide select() row unpacking that 2.0 accepts; adopting it
+    # is a separate change with real code behind it.
+    "mypy>=2.0,<2.1",
     "types-python-slugify>=8.0.0",
     "aiosqlite>=0.20.0",
 ]
