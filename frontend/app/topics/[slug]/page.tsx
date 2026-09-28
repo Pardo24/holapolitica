@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Bell, ExternalLink, Newspaper } from 'lucide-react';
 
-import { InitiativeRow } from '@/components/InitiativeRow';
+import { LawCard } from '@/components/LawCard';
 import { ResultPill } from '@/components/ResultPill';
 import { TopicGroupFilter } from '@/components/TopicGroupFilter';
 import { Tooltip } from '@/components/Tooltip';
@@ -637,9 +637,18 @@ export default async function TopicDetailPage({
             {anyFilterActive ? emptyWithFilter : emptyNoFilter}
           </p>
         ) : (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 14,
+            }}
+          >
             {activeList.slice(0, 30).map((i) => (
-              <InitiativeRow
+              <LawCard
                 key={i.id}
                 initiative={i}
                 parsed={parsedByInitiative.get(i.id) ?? { isGovernment: false, groups: [], raw: (i.submitted_by ?? '').trim() }}

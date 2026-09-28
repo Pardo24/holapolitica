@@ -1102,7 +1102,8 @@ export const api = {
       if (params.legislature_id != null) qs.set('legislature_id', String(params.legislature_id));
       if (params.status) qs.set('status', params.status);
       const suffix = qs.toString() ? `?${qs.toString()}` : '';
-      return request<Initiative[]>(`/topics/${slug}/initiatives${suffix}`, {
+      // Same shape as the laws list, so the hub renders the same card.
+      return request<InitiativeListItem[]>(`/topics/${slug}/initiatives${suffix}`, {
         revalidate: AGG_REVALIDATE,
       });
     },

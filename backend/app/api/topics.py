@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.initiatives import _load_latest_vote, _load_topics_by_initiative
 from app.db import get_session
 from app.metrics import GroupVoteStatRow, compute_group_stats_for_topic
 from app.models import Initiative, InitiativeTopic, Legislature, Topic
-from app.schemas import InitiativeRead, TopicNewsRead, TopicRead
+from app.schemas import InitiativeRead, InitiativeTopicSlug, TopicNewsRead, TopicRead
 from app.services.cache import cached
 from app.services.topic_news import fetch_topic_news
 
@@ -92,13 +93,13 @@ async def get_topic_group_stats(
     )
 
 
-@router.get("/{slug}/initiatives", response_model=list[InitiativeRead])
+@router.get("/{slug}/initiatives", response_model=list[dict[str, object]])
 async def list_topic_initiatives(
     slug: str,
     legislature_id: int | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     session: AsyncSession = Depends(get_session),
-) -> list[Initiative]:
+) -> list[dict[str, object]]:
     """All initiatives classified under ``slug``, regardless of vote linkage.
 
     The /topics card surfaces an initiative count from
@@ -128,7 +129,26 @@ async def list_topic_initiatives(
         Initiative.submitted_at.desc().nullslast(),
         Initiative.id.desc(),
     )
-    return list((await session.execute(stmt)).scalars().all())
+    items = list((await session.execute(stmt)).scalars().all())
+
+    # Same shape as the laws list, so the topic hub can render the same card
+    # instead of its own compact row: each initiative carries its decisive
+    # vote (tally + how each group voted) and its topics.
+    item_ids = [i.id for i in items]
+    latest_vote_by_initiative = await _load_latest_vote(session, item_ids)
+    topics_by_initiative = await _load_topics_by_initiative(session, item_ids)
+    return [
+        {
+            **InitiativeRead.model_validate(i).model_dump(mode="json"),
+            "latest_vote_result": (latest_vote_by_initiative.get(i.id) or {}).get("result"),
+            "latest_vote": latest_vote_by_initiative.get(i.id),
+            "topics": [
+                InitiativeTopicSlug.model_validate(tp).model_dump(mode="json")
+                for tp in topics_by_initiative.get(i.id, [])
+            ],
+        }
+        for i in items
+    ]
 
 
 @router.get("/{slug}/news", response_model=list[TopicNewsRead])
