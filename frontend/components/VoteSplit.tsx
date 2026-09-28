@@ -26,6 +26,8 @@ export interface VoteSplitGroup {
   /** "aye" | "no" | "abstention"; anything else is not a position. */
   choice: string;
   deputies?: number;
+  /** Party emblem when one is on file; falls back to the colour disc. */
+  logo_url?: string | null;
 }
 
 export interface VoteSplitLabels {
@@ -205,7 +207,10 @@ function Ribbon({
                 height,
                 borderRadius: 3,
                 overflow: 'hidden',
-                background: zone.color,
+                // The gaps between segments show this colour through, so the
+                // bar reads as green-or-red at a glance and still shows how
+                // many groups make up each side.
+                background: 'var(--paper-2)',
               }}
             >
               {inZone.map((g) => (
@@ -215,7 +220,10 @@ function Ribbon({
                   style={{
                     // Equal slices when the per-group counts are unknown.
                     flex: `${g.deputies ?? 1} 0 0`,
-                    background: g.color_hex ?? zone.color,
+                    // The side's colour, never the party's: the question the
+                    // bar answers is "did it pass", and party colours made
+                    // the reader decode nine hues first.
+                    background: zone.color,
                     minWidth: 0,
                   }}
                 />
@@ -281,16 +289,39 @@ function StanceColumn({
                 color: 'var(--ink)',
               }}
             >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: 999,
-                  background: g.color_hex ?? 'var(--ink-3)',
-                  flex: 'none',
-                }}
-              />
+              {/* The party's emblem, so it is recognised rather than
+                  decoded. Groups with no logo on file keep the colour disc. */}
+              {g.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={g.logo_url}
+                  alt=""
+                  width={14}
+                  height={14}
+                  loading="lazy"
+                  decoding="async"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    flex: 'none',
+                    borderRadius: 999,
+                    objectFit: 'cover',
+                    background: '#fff',
+                    border: '1px solid rgba(0,0,0,.06)',
+                  }}
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 999,
+                    background: g.color_hex ?? 'var(--ink-3)',
+                    flex: 'none',
+                  }}
+                />
+              )}
               <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                 {displayGroupShort(g.name_short)}
               </span>
