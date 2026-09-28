@@ -1298,7 +1298,14 @@
     "pie_explain_hint": "De què tracta aquest tema",
     "more_data_title": "Vols més dades?",
     "more_data_body": "A l'anàlisi filtrat pots creuar un tema amb un grup parlamentari i veure aprovacions, coincidències i activitat.",
-    "more_data_cta": "Anar a l'anàlisi filtrat"
+    "more_data_cta": "Anar a l'anàlisi filtrat",
+    "headline_aria": "Xifres principals",
+    "headline_votes_label": "votacions registrades",
+    "headline_votes_note": "Cada votació del ple des de l'agost del 2023, amb el vot de cada diputat.",
+    "headline_approved_label": "iniciatives aprovades",
+    "headline_approved_note": "De {total} registrades. La resta segueixen en tràmit, s'han rebutjat o han decaigut.",
+    "headline_classified_label": "classificades per tema",
+    "headline_classified_note": "Proporció d'iniciatives amb tema assignat automàticament, que és el que permet filtrar."
   },
   "quiz": {
     "meta_title": "Joc cívic · Hola Política",

@@ -317,6 +317,44 @@ export default async function StatsPage({
         )}
       </header>
 
+      {/* Three figures with a sentence each, before any chart. The page
+          used to open on a cohesion carousel: a reader met "100%" with no
+          way of knowing what it counted or whether it was good. These say
+          what the atlas is built from and what each number means. */}
+      <section
+        aria-label={t('headline_aria')}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+          gap: 12,
+          marginTop: 18,
+        }}
+      >
+        <HeadlineFigure
+          value={summary.votes_total.toLocaleString(locale)}
+          label={t('headline_votes_label')}
+          note={t('headline_votes_note')}
+        />
+        <HeadlineFigure
+          value={(
+            byStatus.find((s) => s.status === 'approved')?.count ?? 0
+          ).toLocaleString(locale)}
+          label={t('headline_approved_label')}
+          note={t('headline_approved_note', {
+            total: summary.initiatives_total.toLocaleString(locale),
+          })}
+        />
+        <HeadlineFigure
+          value={`${
+            summary.initiatives_total > 0
+              ? Math.round((summary.initiatives_classified / summary.initiatives_total) * 100)
+              : 0
+          }%`}
+          label={t('headline_classified_label')}
+          note={t('headline_classified_note')}
+        />
+      </section>
+
       {/* Mobile-only dashboard (≤640px). Same data, denser layout — every
           key signal visible without scrolling through paragraphs. Hidden on
           ≥sm so the existing tabbed layout below survives unchanged. */}
@@ -2619,3 +2657,48 @@ const listReset: React.CSSProperties = {
   margin: 0,
   padding: 0,
 };
+
+/**
+ * One headline figure: the number, what it counts, and one line saying how
+ * to read it. The atlas is a wall of aggregates, and a number with no
+ * sentence next to it invites the reader to invent its meaning.
+ */
+function HeadlineFigure({
+  value,
+  label,
+  note,
+}: {
+  value: string;
+  label: string;
+  note: string;
+}) {
+  return (
+    <div
+      style={{
+        border: '1px solid var(--rule)',
+        borderRadius: 12,
+        background: 'var(--paper-2)',
+        padding: '14px 15px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        minWidth: 0,
+      }}
+    >
+      <span
+        className="serif tabular"
+        style={{
+          fontSize: 'clamp(24px, 4vw, 30px)',
+          fontWeight: 600,
+          lineHeight: 1.05,
+          letterSpacing: '-0.02em',
+          color: 'var(--ink)',
+        }}
+      >
+        {value}
+      </span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
+      <span style={{ fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.45 }}>{note}</span>
+    </div>
+  );
+}

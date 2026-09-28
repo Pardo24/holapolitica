@@ -1298,7 +1298,14 @@
     "pie_explain_hint": "What this topic covers",
     "more_data_title": "Want more data?",
     "more_data_body": "In the filtered analysis you can cross a topic with a parliamentary group and see approvals, coincidences and activity.",
-    "more_data_cta": "Go to filtered analysis"
+    "more_data_cta": "Go to filtered analysis",
+    "headline_aria": "Headline figures",
+    "headline_votes_label": "votes recorded",
+    "headline_votes_note": "Every plenary vote since August 2023, with how each deputy voted.",
+    "headline_approved_label": "initiatives approved",
+    "headline_approved_note": "Out of {total} recorded. The rest are still in progress, rejected or lapsed.",
+    "headline_classified_label": "classified by topic",
+    "headline_classified_note": "Share of initiatives with a topic assigned automatically, which is what makes filtering possible."
   },
   "quiz": {
     "meta_title": "Civic quiz · Hola Política",

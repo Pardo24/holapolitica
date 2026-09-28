@@ -1298,7 +1298,14 @@
     "pie_explain_hint": "De qué trata este tema",
     "more_data_title": "¿Quieres más datos?",
     "more_data_body": "En el análisis filtrado puedes cruzar un tema con un grupo parlamentario y ver aprobaciones, coincidencias y actividad.",
-    "more_data_cta": "Ir al análisis filtrado"
+    "more_data_cta": "Ir al análisis filtrado",
+    "headline_aria": "Cifras principales",
+    "headline_votes_label": "votaciones registradas",
+    "headline_votes_note": "Cada votación del pleno desde agosto de 2023, con el voto de cada diputado.",
+    "headline_approved_label": "iniciativas aprobadas",
+    "headline_approved_note": "De {total} registradas. El resto siguen en trámite, se han rechazado o han decaído.",
+    "headline_classified_label": "clasificadas por tema",
+    "headline_classified_note": "Proporción de iniciativas con tema asignado automáticamente, que es lo que permite filtrar."
   },
   "quiz": {
     "meta_title": "Juego cívico · Hola Política",
