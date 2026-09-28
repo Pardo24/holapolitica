@@ -18,10 +18,15 @@ import { pickTopicName } from '@/lib/topics';
  * Filter toolbar for /lleis — the same clean, hierarchical pattern as the
  * /votes toolbar, adapted to the laws view:
  *  - SEARCH is the hero (full width, top).
- *  - STATUS (approved / rejected / in progress) is the primary chip row —
- *    "did it pass" is the question for a law.
- *  - TOPIC + GROUP are secondary drill-downs behind a "More filters"
- *    disclosure that auto-opens when either is active, with removable chips.
+ *  - TOPIC + PROPOSING GROUP sit right under it, always visible: "laws
+ *    about X" and "what does party Y table" are the two questions this list
+ *    gets asked. They used to be hidden behind the disclosure while the
+ *    audience tags took the visible row.
+ *  - STATUS (approved / rejected / in progress) is the chip row below —
+ *    "did it pass" is the other question a law gets asked.
+ *  - AUDIENCE ("who does it affect") moved into the "More filters"
+ *    disclosure: a real question, but a narrower one, and its long tail of
+ *    tags ate the visible row. It auto-opens whenever a tag is applied.
  *
  * /lleis is laws-only; non-binding votes (positions) live on /votes, reached
  * via an explained link on the page. URL-driven and auto-applying.
@@ -80,7 +85,9 @@ export function LawsFilterBar({
   const [, startTransition] = useTransition();
   const [qDraft, setQDraft] = useState(initialQ);
 
-  const secondaryActive = initialTopicSlugs.length + initialGroupSlugs.length;
+  // The disclosure now holds the audience tags only; topic and group are
+  // in the visible row.
+  const secondaryActive = initialAudiences.length;
   const [expanded, setExpanded] = useState(secondaryActive > 0);
 
   const pushUrl = useCallback(
@@ -99,8 +106,8 @@ export function LawsFilterBar({
   }, [initialQ]);
 
   useEffect(() => {
-    if (initialTopicSlugs.length > 0 || initialGroupSlugs.length > 0) setExpanded(true);
-  }, [initialTopicSlugs.length, initialGroupSlugs.length]);
+    if (initialAudiences.length > 0) setExpanded(true);
+  }, [initialAudiences.length]);
 
   useEffect(() => {
     if (qDraft === initialQ) return;
@@ -167,7 +174,8 @@ export function LawsFilterBar({
     (qDraft.trim() ? 1 : 0) +
     (initialResult ? 1 : 0) +
     initialTopicSlugs.length +
-    initialGroupSlugs.length;
+    initialGroupSlugs.length +
+    initialAudiences.length;
 
   const statusLabel: Record<string, string> = {
     approved: labels.status_approved,
@@ -218,70 +226,100 @@ export function LawsFilterBar({
         />
       </label>
 
-      {/* "Laws that affect me" — the question most readers actually arrive
-          with, so it sits in the primary row rather than behind the
-          disclosure. Tags come from the initiatives themselves, ordered by
-          how many laws carry them, so every chip returns something. */}
-      {audienceChips.length > 0 && (
-        <div style={{ marginTop: 12 }}>
-          <span
-            style={{
-              display: 'block',
-              fontSize: 11,
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              color: 'var(--ink-3)',
-              marginBottom: 6,
-            }}
-          >
-            {labels.audience_label}
-          </span>
-          {/* One scrolling line rather than a wrapping block: eleven tags
-              wrapped to seven rows on a phone and pushed the laws off the
-              screen, which is the opposite of the point. */}
-          <div
-            ref={audienceScroller.ref}
-            className={`no-scrollbar ${audienceScroller.className}`}
-            style={{
-              display: 'flex',
-              gap: 8,
-              flexWrap: 'nowrap',
-              overflowX: 'auto',
-              paddingBottom: 2,
-            }}
-          >
-          {audienceChips.map((tag) => {
-            const active = initialAudiences.includes(tag);
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => toggleAudience(tag)}
-                aria-pressed={active}
-                style={{
-                  padding: '5px 11px',
-                  borderRadius: 999,
-                  border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
-                  background: active ? 'var(--ink)' : 'var(--paper)',
-                  color: active ? 'var(--paper)' : 'var(--ink-2)',
-                  fontSize: 12.5,
-                  fontWeight: active ? 600 : 400,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  whiteSpace: 'nowrap',
-                  flex: 'none',
-                }}
-              >
-                {tag}
-              </button>
-            );
-          })}
-          </div>
-        </div>
-      )}
+      {/* Topic and proposing group are PRIMARY: "which laws about X" and
+          "what does party Y table" are the two questions this list gets
+          asked, and both used to be hidden behind the disclosure while the
+          audience tags took the visible row. */}
+      <div
+        className="laws-filter-primary"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 12,
+          marginTop: 12,
+          alignItems: 'start',
+        }}
+      >
+        <FilterField label={labels.topic_label}>
+          <TopicCombobox
+            name=""
+            value=""
+            onChange={addTopic}
+            topics={topics}
+            emptyValue=""
+            clearLabel={labels.topic_placeholder}
+            placeholder={labels.topic_placeholder}
+            ariaLabel={labels.topic_label}
+          />
+          {initialTopicSlugs.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              {initialTopicSlugs.map((slug) => {
+                const tp = topicBySlug.get(slug);
+                if (!tp) return null;
+                return (
+                  <span key={slug} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <TopicChip name={pickTopicName(tp, locale)} color={tp.color_hex} />
+                    <RemoveButton
+                      onClick={() => removeTopic(slug)}
+                      label={`${labels.remove_label} ${pickTopicName(tp, locale)}`}
+                    />
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </FilterField>
 
-      {/* Primary: status chips + More-filters disclosure + clear. */}
+        <FilterField label={labels.group_label}>
+          <GroupCombobox
+            name=""
+            value=""
+            onChange={addGroup}
+            groups={groups}
+            extraOptions={[{ slug: 'govern', label: labels.group_government }]}
+            emptyValue=""
+            clearLabel={labels.group_placeholder}
+            placeholder={labels.group_placeholder}
+            ariaLabel={labels.group_label}
+          />
+          {initialGroupSlugs.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              {initialGroupSlugs.map((slug) => {
+                const label =
+                  slug === 'govern'
+                    ? labels.group_government
+                    : displayGroupShort(groupBySlug.get(slug)?.name_short ?? slug);
+                const g = slug === 'govern' ? null : groupBySlug.get(slug);
+                return (
+                  <span
+                    key={slug}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '3px 6px 3px 6px',
+                      borderRadius: 999,
+                      border: '1px solid var(--rule-strong)',
+                      background: 'var(--paper)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: 'var(--ink-2)',
+                    }}
+                  >
+                    {g && (
+                      <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} logoUrl={g.logo_url} />
+                    )}
+                    {label}
+                    <RemoveButton onClick={() => removeGroup(slug)} label={`${labels.remove_label} ${label}`} />
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </FilterField>
+      </div>
+
+      {/* Outcome chips (did it pass) + the disclosure + clear. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <StatusChip active={!initialResult} onClick={() => setStatus(null)}>
@@ -368,100 +406,82 @@ export function LawsFilterBar({
 
       {expanded && (
         <div
-          className="laws-filter-secondary"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gap: 12,
             marginTop: 14,
             paddingTop: 14,
             borderTop: '1px solid var(--rule)',
-            alignItems: 'start',
           }}
         >
-          <FilterField label={labels.topic_label}>
-            <TopicCombobox
-              name=""
-              value=""
-              onChange={addTopic}
-              topics={topics}
-              emptyValue=""
-              clearLabel={labels.topic_placeholder}
-              placeholder={labels.topic_placeholder}
-              ariaLabel={labels.topic_label}
-            />
-            {initialTopicSlugs.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                {initialTopicSlugs.map((slug) => {
-                  const tp = topicBySlug.get(slug);
-                  if (!tp) return null;
-                  return (
-                    <span key={slug} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <TopicChip name={pickTopicName(tp, locale)} color={tp.color_hex} />
-                      <RemoveButton
-                        onClick={() => removeTopic(slug)}
-                        label={`${labels.remove_label} ${pickTopicName(tp, locale)}`}
-                      />
-                    </span>
-                  );
-                })}
+          {/* "Laws that affect me" — a real question, but a narrower one
+              than the topic or the party, and the tags are a long tail
+              that ate the visible row. Behind the disclosure, which opens
+              by itself whenever a tag is applied. Tags come from the
+              initiatives themselves, ordered by how many laws carry them,
+              so every chip returns something. */}
+          {audienceChips.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <span
+                style={{
+                  display: 'block',
+                  fontSize: 11,
+                  letterSpacing: '0.07em',
+                  textTransform: 'uppercase',
+                  fontWeight: 600,
+                  color: 'var(--ink-3)',
+                  marginBottom: 6,
+                }}
+              >
+                {labels.audience_label}
+              </span>
+              {/* One scrolling line rather than a wrapping block: eleven tags
+                  wrapped to seven rows on a phone and pushed the laws off the
+                  screen, which is the opposite of the point. */}
+              <div
+                ref={audienceScroller.ref}
+                className={`no-scrollbar ${audienceScroller.className}`}
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  flexWrap: 'nowrap',
+                  overflowX: 'auto',
+                  paddingBottom: 2,
+                }}
+              >
+              {audienceChips.map((tag) => {
+                const active = initialAudiences.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleAudience(tag)}
+                    aria-pressed={active}
+                    style={{
+                      padding: '5px 11px',
+                      borderRadius: 999,
+                      border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
+                      background: active ? 'var(--ink)' : 'var(--paper)',
+                      color: active ? 'var(--paper)' : 'var(--ink-2)',
+                      fontSize: 12.5,
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      whiteSpace: 'nowrap',
+                      flex: 'none',
+                    }}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
               </div>
-            )}
-          </FilterField>
-
-          <FilterField label={labels.group_label}>
-            <GroupCombobox
-              name=""
-              value=""
-              onChange={addGroup}
-              groups={groups}
-              extraOptions={[{ slug: 'govern', label: labels.group_government }]}
-              emptyValue=""
-              clearLabel={labels.group_placeholder}
-              placeholder={labels.group_placeholder}
-              ariaLabel={labels.group_label}
-            />
-            {initialGroupSlugs.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                {initialGroupSlugs.map((slug) => {
-                  const label =
-                    slug === 'govern'
-                      ? labels.group_government
-                      : displayGroupShort(groupBySlug.get(slug)?.name_short ?? slug);
-                  const g = slug === 'govern' ? null : groupBySlug.get(slug);
-                  return (
-                    <span
-                      key={slug}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '3px 6px 3px 6px',
-                        borderRadius: 999,
-                        border: '1px solid var(--rule-strong)',
-                        background: 'var(--paper)',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: 'var(--ink-2)',
-                      }}
-                    >
-                      {g && (
-                        <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} logoUrl={g.logo_url} />
-                      )}
-                      {label}
-                      <RemoveButton onClick={() => removeGroup(slug)} label={`${labels.remove_label} ${label}`} />
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-          </FilterField>
+            </div>
+      )}
         </div>
       )}
 
       <style>{`
         @media (max-width: 600px) {
-          .laws-filter-secondary { grid-template-columns: minmax(0, 1fr) !important; }
+          .laws-filter-primary { grid-template-columns: minmax(0, 1fr) !important; }
         }
       `}</style>
     </section>

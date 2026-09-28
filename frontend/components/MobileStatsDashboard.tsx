@@ -6,7 +6,6 @@ import { ChevronDown, ArrowRight, X } from 'lucide-react';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
-import { GroupSummaryCarousel } from '@/components/GroupSummaryCarousel';
 import {
   PairCoincidenceClient,
   PairCoincidenceEyebrow,
@@ -21,7 +20,6 @@ import type {
   CoincidenceCell,
   CrossTopicGroup,
   GroupActivity,
-  GroupSummaryRow,
   InitiativeMini,
   InitiativeStatusCount,
   ParliamentaryGroupSummary,
@@ -76,7 +74,6 @@ export async function MobileStatsDashboard({
   cross,
   coincidence,
   topicStatsByGroup,
-  groupSummary,
   summary,
   selectedTopic,
   selectedGroup,
@@ -93,7 +90,6 @@ export async function MobileStatsDashboard({
   cross: CrossTopicGroup | null;
   coincidence: CoincidenceCell[];
   topicStatsByGroup: Map<string, TopicVoteStat[]>;
-  groupSummary: GroupSummaryRow[];
   summary: StatsSummary;
   selectedTopic: string;
   /** Desktop tabbed layout also exposes a ``group`` filter. Mobile
@@ -135,29 +131,25 @@ export async function MobileStatsDashboard({
 
   return (
     <div className="sm:hidden" style={{ paddingTop: 18 }}>
-      {/* Widget order — the per-group cards lead (the page is about the
-          parties), then the topic-scoped widgets and the pair comparison:
-          1. GroupSummaryCarousel — per-group cohesion + votes emitted.
-          2. Topic-scope card: initiatives state + topic filter +
+      {/* Widget order — the filter leads, because picking a topic is what
+          this page is for, and then the between-group comparison:
+          1. Topic-scope card: initiatives state + topic filter +
              top proposers, then (when a topic is picked) the "Suport
              vs rebuig per tema" stance columns, then the compact
              3-latest initiatives list with a link to the topic page.
-          3. PairCoincidence — between-group comparison.
+          2. PairCoincidence — between-group comparison.
+
+          The page used to open on a carousel of per-group cohesion and
+          attendance percentages: a reader met "100%" with no way of
+          knowing what it counted or whether it was good, and it was the
+          first thing on the page. Cohesion still lives where it has
+          context — each group's own page, and the filtered analysis when
+          a group is selected.
 
           Symmetry intact at every step (see PerTopicCoincidenceBody
           and PairCoincidenceWidget docs). */}
 
-      {/* ─── 1. Per-group summary cards (cohesion + attendance) ────── */}
-      {groupSummary.length > 0 && (
-        <DashSection
-          eyebrow={t('group_summary_eyebrow')}
-          info={t('group_summary_info')}
-        >
-          <GroupSummaryCarousel rows={groupSummary} highlightSlug={null} />
-        </DashSection>
-      )}
-
-      {/* ─── 2. Single bordered card grouping the topic-scoped widgets:
+      {/* ─── 1. Single bordered card grouping the topic-scoped widgets:
               the global initiatives state + topic filter, the "Suport vs
               rebuig per tema" stance widget (only when a topic is picked)
               and the compact 3-latest initiatives list with a link to the
