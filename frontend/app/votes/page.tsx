@@ -3,7 +3,7 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, Scale, SearchX } from 'lucide-react';
 
-import { CompactVoteRow } from '@/components/CompactVoteRow';
+import { VoteCard } from '@/components/VoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
 import { TopicChipsStrip } from '@/components/TopicChipsStrip';
@@ -370,24 +370,13 @@ async function VotesListTab({ params }: { params: SearchParams }) {
             listStyle: 'none',
             margin: 0,
             padding: '8px 0 0',
-            display: 'grid',
-            gap: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
           }}
         >
           {data.items.map((vote) => (
-            <CompactVoteRow
-              key={vote.id}
-              v={vote}
-              locale={locale}
-              labels={{
-                ayes: t('ayes'),
-                noes: t('noes'),
-                abstentions: t('abstentions'),
-                proposed_by: t('proposed_by'),
-                proposed_by_government: t('proposed_by_government'),
-                result: t(`result.${vote.result}` as 'result.approved'),
-              }}
-            />
+            <VoteCard key={vote.id} vote={vote} locale={locale} />
           ))}
         </ul>
       )}

@@ -1034,7 +1034,8 @@
     "nobreak_secret_title": "Votación secreta",
     "nobreak_secret_body": "Los dictámenes de la Comisión del Estatuto de los Diputados se votan en secreto por reglamento. El Congreso publica los totales, pero nunca el voto de cada diputado, así que no puede desglosarse por grupo.",
     "nobreak_unavailable_title": "Sin desglose publicado",
-    "nobreak_unavailable_body": "Tenemos los totales de esta votación, pero la fuente del Congreso no nos facilitó el voto individual de cada diputado. Es un hueco conocido en un puñado de votaciones antiguas."
+    "nobreak_unavailable_body": "Tenemos los totales de esta votación, pero la fuente del Congreso no nos facilitó el voto individual de cada diputado. Es un hueco conocido en un puñado de votaciones antiguas.",
+    "see_vote": "Ver la votación"
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",

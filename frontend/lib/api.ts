@@ -243,6 +243,9 @@ export interface Vote {
   // no initiative or its initiative hasn't been LLM-classified yet.
   // Populated by the backend `_load_topics_by_initiative` bulk join.
   topics?: InitiativeTopicSlug[];
+  /** Each group's majority stance on this vote, so a list row can show who
+   *  backed it without opening the vote. Same shape as the laws list. */
+  groups?: LawVoteGroupStance[];
 }
 
 /**

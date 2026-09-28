@@ -1034,7 +1034,8 @@
     "nobreak_secret_title": "Votació secreta",
     "nobreak_secret_body": "Els dictàmens de la Comissió de l'Estatut dels Diputats es voten en secret per reglament. El Congrés en publica els totals, però mai el vot de cada diputat, així que no es pot desglossar per grup.",
     "nobreak_unavailable_title": "Sense desglossament publicat",
-    "nobreak_unavailable_body": "Tenim els totals d'aquesta votació, però la font del Congrés no ens va facilitar el vot individual de cada diputat. És un forat conegut en un grapat de votacions antigues."
+    "nobreak_unavailable_body": "Tenim els totals d'aquesta votació, però la font del Congrés no ens va facilitar el vot individual de cada diputat. És un forat conegut en un grapat de votacions antigues.",
+    "see_vote": "Veure la votació"
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",
