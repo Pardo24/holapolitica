@@ -1034,7 +1034,8 @@
     "nobreak_secret_title": "Secret ballot",
     "nobreak_secret_body": "Opinions of the Committee on the Statute of Deputies are voted by secret ballot under the rules of the House. Congress publishes the totals but never the individual votes, so there is no per-group breakdown.",
     "nobreak_unavailable_title": "No breakdown published",
-    "nobreak_unavailable_body": "We have the totals for this vote, but the Congress source did not provide each deputy's individual vote. This is a known gap in a handful of older votes."
+    "nobreak_unavailable_body": "We have the totals for this vote, but the Congress source did not provide each deputy's individual vote. This is a known gap in a handful of older votes.",
+    "see_vote": "View the vote"
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",

@@ -1,3 +1,4 @@
+import { groupLogoUrl } from '@/lib/groupLogos';
 import { displayGroupShort } from '@/lib/groups';
 
 /**
@@ -273,7 +274,11 @@ function StanceColumn({
         <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>{emptyLabel}</span>
       ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {groups.map((g) => (
+          {groups.map((g) => {
+            // Official party emblems ship with the site (public/logos); the
+            // API field is a fallback for groups added later.
+            const logo = groupLogoUrl(g.slug) ?? g.logo_url ?? null;
+            return (
             <span
               key={g.slug}
               style={{
@@ -291,10 +296,10 @@ function StanceColumn({
             >
               {/* The party's emblem, so it is recognised rather than
                   decoded. Groups with no logo on file keep the colour disc. */}
-              {g.logo_url ? (
+              {logo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={g.logo_url}
+                  src={logo}
                   alt=""
                   width={14}
                   height={14}
@@ -330,8 +335,9 @@ function StanceColumn({
                   {g.deputies}
                 </span>
               )}
-            </span>
-          ))}
+              </span>
+            );
+          })}
         </div>
       )}
     </div>
