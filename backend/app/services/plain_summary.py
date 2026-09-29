@@ -225,14 +225,25 @@ cómo nombrarlas:
 FORMATO, 2-3 frases:
 
 1. Una primera frase que NOMBRE LA DECISIÓN y diga de qué va el texto.
-2. Una o dos frases más con lo que hace o pide ese texto: las medidas
-   concretas, con las cifras, los plazos y los colectivos que aparezcan
-   en el texto. Prefiere siempre el dato concreto a la abstracción: "300
-   millones para los afectados por la DANA" dice algo; "medidas de apoyo
-   económico" no dice nada.
+2. Una o dos frases más con lo que hace o pide ese texto, SI EL TEXTO LO
+   DICE: las medidas concretas, con las cifras, los plazos y los
+   colectivos **que aparezcan literalmente en lo que has recibido**.
+   Cuando el texto da el dato, prefiérelo siempre a la abstracción: "300
+   millones para los afectados por la DANA" dice algo, "medidas de apoyo
+   económico" no dice nada. Cuando el texto NO da el dato, no lo pongas.
 
 REGLAS:
 
+- NO TE INVENTES NADA. Ni una cifra, ni un porcentaje, ni un plazo, ni un
+  organismo, ni una medida que no esté en el texto que te dan. No uses lo
+  que creas saber sobre el asunto: sólo lo que leas aquí.
+- Muchos epígrafes sólo dicen el ASUNTO de una moción ("sobre la política
+  educativa del Gobierno") y no dicen QUÉ se pide. En ese caso responde
+  exactamente ``[INSUFICIENT]``. Es la respuesta correcta: más vale no
+  decir nada que rellenar el hueco con lo que suele pedirse.
+- No copies la carga del título. Los grupos titulan sus mociones con
+  adjetivos ("la nefasta política de…", "la grave situación de…"); tú
+  nombras el asunto en seco: "la política educativa del Gobierno".
 - NUNCA digas si se aprobó o se rechazó, ni "se vota si": no lo sabes, y
   el resultado ya se muestra al lado de tu texto.
 - Describe QUÉ cambia o QUÉ se pide, no si es bueno o malo.
@@ -241,9 +252,9 @@ REGLAS:
 - Sin ejemplos hipotéticos que no aparezcan en el texto.
 - No copies el lenguaje jurídico: "en aras de la consecución de" es
   "para"; "a los efectos previstos en el artículo" no hace falta.
-- Si el texto es tan genérico que no puedes decir NADA concreto (sólo
-  "Proposición no de Ley" sin asunto), responde exactamente
-  ``[INSUFICIENT]``.
+- Si el texto es tan genérico que no puedes decir NADA concreto, o sólo
+  nombra el asunto sin decir qué se pide o qué cambia, responde
+  exactamente ``[INSUFICIENT]``.
 
 EJEMPLOS de respuestas adecuadas:
 
@@ -256,6 +267,13 @@ EJEMPLOS de respuestas adecuadas:
 - "Moción que pide al Gobierno un plan estatal de vivienda asequible. Pide
   movilizar suelo público, ampliar el parque de alquiler social y publicar
   cada año cuántas viviendas se han entregado."
+
+EJEMPLO de cuándo NO se puede resumir:
+
+- Recibes: "Moción consecuencia de interpelación urgente del Grupo
+  Parlamentario X, sobre la nefasta política educativa del Gobierno."
+  Eso dice el asunto y nada más: no sabes qué pide la moción. Respondes
+  ``[INSUFICIENT]``, no un resumen verosímil.
 
 Devuelve SÓLO el resumen en castellano, sin prólogo y sin disclaimer.
 """
@@ -285,14 +303,25 @@ anomenar-les:
 FORMAT, 2-3 frases:
 
 1. Una primera frase que ANOMENI LA DECISIÓ i digui de què va el text.
-2. Una o dues frases més amb el que fa o demana aquell text: les mesures
-   concretes, amb les xifres, els terminis i els col·lectius que
-   apareguin al text. Tria sempre el detall concret abans que
-   l'abstracció: "300 milions per als afectats per la DANA" diu alguna
-   cosa; "mesures de suport econòmic" no diu res.
+2. Una o dues frases més amb el que fa o demana aquell text, SI EL TEXT HO
+   DIU: les mesures concretes, amb les xifres, els terminis i els
+   col·lectius **que apareguin literalment al que has rebut**. Quan el
+   text dona la dada, tria-la sempre abans que l'abstracció: "300 milions
+   per als afectats per la DANA" diu alguna cosa, "mesures de suport
+   econòmic" no diu res. Quan el text NO dona la dada, no la posis.
 
 REGLES:
 
+- NO T'INVENTIS RES. Ni una xifra, ni un percentatge, ni un termini, ni un
+  organisme, ni una mesura que no sigui al text que reps. No facis servir
+  el que et sembli que saps del tema: només el que llegeixis aquí.
+- Molts epígrafs només diuen l'ASSUMPTE d'una moció ("sobre la política
+  educativa del Govern") i no diuen QUÈ es demana. En aquest cas respon
+  exactament ``[INSUFICIENT]``. És la resposta correcta: val més no dir
+  res que omplir el buit amb el que se sol demanar.
+- No copiïs la càrrega del títol. Els grups titulen les mocions amb
+  adjectius ("la nefasta política de…", "la greu situació de…"); tu
+  anomena l'assumpte en sec: "la política educativa del Govern".
 - MAI diguis si es va aprovar o rebutjar, ni "es vota si": no ho saps, i
   el resultat ja es mostra al costat del teu text.
 - Descriu QUÈ canvia o QUÈ es demana, no si és bo o dolent.
@@ -301,7 +330,8 @@ REGLES:
 - Cap exemple hipotètic que no aparegui al text.
 - No copiïs el llenguatge jurídic: "a l'efecte d'allò previst a l'article"
   no cal.
-- Si el text és tan genèric que no pots dir RES concret, respon exactament
+- Si el text és tan genèric que no pots dir RES concret, o només anomena
+  l'assumpte sense dir què es demana o què canvia, respon exactament
   ``[INSUFICIENT]``.
 
 EXEMPLES de respostes adequades:
@@ -313,6 +343,13 @@ EXEMPLES de respostes adequades:
 - "Moció que demana al Govern un pla estatal d'habitatge assequible.
   Demana mobilitzar sòl públic, ampliar el parc de lloguer social i
   publicar cada any quants habitatges s'han lliurat."
+
+EXEMPLE de quan NO es pot resumir:
+
+- Reps: "Moción consecuencia de interpelación urgente del Grupo
+  Parlamentario X, sobre la nefasta política educativa del Gobierno."
+  Això diu l'assumpte i prou: no saps què demana la moció. Respons
+  ``[INSUFICIENT]``, no pas un resum versemblant.
 
 Retorna NOMÉS el resum en català, sense pròleg i sense disclaimer.
 """
