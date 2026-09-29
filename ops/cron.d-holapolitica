@@ -1,0 +1,13 @@
+# Hola Política operations. Install as /etc/cron.d/holapolitica (root:root,
+# mode 644, and the file must end with a newline or cron ignores it).
+#
+#   cp ops/cron.d-holapolitica /etc/cron.d/holapolitica
+#
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Database dump at 03:30 UTC, well clear of the 06:45-07:15 ingest block.
+30 3 * * * root /opt/holapolitica/ops/pg-backup.sh >> /var/log/holapolitica-backup.log 2>&1
+
+# Is anything broken? Every ten minutes; it only mails when the state changes.
+*/10 * * * * root /opt/holapolitica/ops/healthcheck.sh >> /var/log/holapolitica-health.log 2>&1
