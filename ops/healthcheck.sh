@@ -40,8 +40,11 @@ curl -fsS --max-time 20 -o /dev/null https://www.holapolitica.org/ \
 
 # rq-scheduler: the earliest scheduled job should be in the future. An hour
 # of slack absorbs a job that is running right now.
-NEXT=$(docker exec holapolitica-redis-1 redis-cli --no-raw zrange rq:scheduler:scheduled_jobs 0 0 WITHSCORES 2>/dev/null \
-        | tr -d '"' | tail -1 | cut -d. -f1 || true)
+# Raw output is two lines, the job id then its score; --no-raw numbers the
+# lines and that numbering ended up inside the value, so this check always
+# reported that it could not read them.
+NEXT=$(docker exec holapolitica-redis-1 redis-cli zrange rq:scheduler:scheduled_jobs 0 0 WITHSCORES 2>/dev/null \
+        | tail -1 | tr -cd '0-9' || true)
 if [ -n "${NEXT:-}" ] && [ "$NEXT" -gt 0 ] 2>/dev/null; then
   NOW=$(date -u +%s)
   [ "$NEXT" -gt $((NOW - 3600)) ] \
