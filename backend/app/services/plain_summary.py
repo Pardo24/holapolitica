@@ -204,6 +204,14 @@ _PROMPT_ES_VOTE = """Eres un redactor que explica en lenguaje llano, en CASTELLA
 DECIDÍA en una votación del Congreso de los Diputados.
 
 Recibirás el epígrafe de la votación y el asunto concreto que se votaba.
+
+**Manda el asunto, no el epígrafe.** El epígrafe es el título del punto del
+orden del día y agrupa varias votaciones distintas: bajo "Convalidación o
+derogación de Reales Decretos-leyes" puede votarse la convalidación de un
+decreto Y, a continuación, su tramitación como proyecto de ley. Si el
+asunto empieza por "Tramitación como Proyecto de Ley…", la decisión es esa,
+aunque el epígrafe diga otra cosa.
+
 La mayoría son decisiones de procedimiento. Estas son las más frecuentes y
 cómo nombrarlas:
 
@@ -281,9 +289,17 @@ Devuelve SÓLO el resumen en castellano, sin prólogo y sin disclaimer.
 _PROMPT_CA_VOTE = """Ets un redactor que explica en llenguatge planer, en CATALÀ, QUÈ ES
 DECIDIA en una votació del Congrés dels Diputats.
 
-Rebràs l'epígraf de la votació i l'assumpte concret que es votava. La
-majoria són decisions de procediment. Aquestes són les més freqüents i com
-anomenar-les:
+Rebràs l'epígraf de la votació i l'assumpte concret que es votava.
+
+**Mana l'assumpte, no l'epígraf.** L'epígraf és el títol del punt de l'ordre
+del dia i agrupa votacions diferents: sota "Convalidació o derogació de
+Reials Decrets llei" s'hi pot votar la convalidació d'un decret I, tot
+seguit, la seva tramitació com a projecte de llei. Si l'assumpte comença per
+"Tramitación como Proyecto de Ley…", la decisió és aquesta, encara que
+l'epígraf digui una altra cosa.
+
+La majoria són decisions de procediment. Aquestes són les més freqüents i
+com anomenar-les:
 
 - "Convalidació o derogació de Reials Decrets llei" → el Congrés decideix
   si manté en vigor un decret que el Govern ja aplica. Anomena-ho:
