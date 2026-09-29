@@ -185,6 +185,145 @@ disclaimer. O ``[INSUFICIENT]`` si realment no es pot fer.
 
 _MOTION_PROMPTS_BY_LANG: dict[str, str] = {"ca": _PROMPT_CA_MOTION, "es": _PROMPT_ES_MOTION}
 
+
+# A VOTE is not a law and not a motion: it is a decision the chamber took on
+# a particular day, and most of them are procedural. "Convalidación de Reales
+# Decretos-leyes", "Tramitación como Proyecto de Ley", "Toma en
+# consideración", "Enmiendas del Senado". Until now these went through the
+# law prompt ("explica QUÉ HACE"), which made the model write "Modifica la
+# ley…" about a vote that modified nothing: it decided whether to keep a
+# decree alive, or whether to let a bill start its passage.
+#
+# Two rules carry most of the quality here:
+#  - name the decision, as a noun phrase, so the headline reads like a
+#    headline and not like a sentence about a law;
+#  - never state the outcome. The model is given the subject, never the
+#    result, and the card already shows "Aprovada" / "Rebutjada" next to
+#    this text. A summary that says "se aprueba" is wrong half the time.
+_PROMPT_ES_VOTE = """Eres un redactor que explica en lenguaje llano, en CASTELLANO, QUÉ SE
+DECIDÍA en una votación del Congreso de los Diputados.
+
+Recibirás el epígrafe de la votación y el asunto concreto que se votaba.
+La mayoría son decisiones de procedimiento. Estas son las más frecuentes y
+cómo nombrarlas:
+
+- "Convalidación o derogación de Reales Decretos-leyes" → el Congreso
+  decide si mantiene en vigor un decreto que el Gobierno ya aplicó.
+  Nómbralo: "Convalidación del decreto ley que…".
+- "Tramitación como Proyecto de Ley" → decide si ese decreto, además, se
+  abre a enmiendas y sigue como ley. Nómbralo: "Tramitación como proyecto
+  de ley del decreto que…".
+- "Toma en consideración de Proposiciones de Ley" → decide si una
+  propuesta de ley empieza su recorrido. Nómbralo: "Toma en consideración
+  de la proposición que…".
+- "Mociones consecuencia de interpelación urgente" → el Congreso fija una
+  posición y pide algo al Gobierno. Nómbralo: "Moción que pide al Gobierno
+  que…".
+- Enmiendas, vetos del Senado, dictámenes de comisión, avocaciones:
+  nómbralos por lo que son.
+
+FORMATO, 2-3 frases:
+
+1. Una primera frase que NOMBRE LA DECISIÓN y diga de qué va el texto.
+2. Una o dos frases más con lo que hace o pide ese texto: las medidas
+   concretas, con las cifras, los plazos y los colectivos que aparezcan
+   en el texto. Prefiere siempre el dato concreto a la abstracción: "300
+   millones para los afectados por la DANA" dice algo; "medidas de apoyo
+   económico" no dice nada.
+
+REGLAS:
+
+- NUNCA digas si se aprobó o se rechazó, ni "se vota si": no lo sabes, y
+  el resultado ya se muestra al lado de tu texto.
+- Describe QUÉ cambia o QUÉ se pide, no si es bueno o malo.
+- Sin valoraciones ("polémica", "necesaria", "criticada", "relevante").
+- Sin especular sobre intenciones políticas ni efectos futuros.
+- Sin ejemplos hipotéticos que no aparezcan en el texto.
+- No copies el lenguaje jurídico: "en aras de la consecución de" es
+  "para"; "a los efectos previstos en el artículo" no hace falta.
+- Si el texto es tan genérico que no puedes decir NADA concreto (sólo
+  "Proposición no de Ley" sin asunto), responde exactamente
+  ``[INSUFICIENT]``.
+
+EJEMPLOS de respuestas adecuadas:
+
+- "Convalidación del decreto ley que da ayudas a la isla de La Palma tras
+  la erupción volcánica. Incluye exenciones fiscales para los afectados y
+  permite a las comunidades con superávit usarlo en inversiones."
+- "Tramitación como proyecto de ley del decreto de medidas para el
+  transporte. Abrirlo a enmiendas permite a los grupos cambiar su
+  contenido antes de que sea ley definitiva."
+- "Moción que pide al Gobierno un plan estatal de vivienda asequible. Pide
+  movilizar suelo público, ampliar el parque de alquiler social y publicar
+  cada año cuántas viviendas se han entregado."
+
+Devuelve SÓLO el resumen en castellano, sin prólogo y sin disclaimer.
+"""
+
+_PROMPT_CA_VOTE = """Ets un redactor que explica en llenguatge planer, en CATALÀ, QUÈ ES
+DECIDIA en una votació del Congrés dels Diputats.
+
+Rebràs l'epígraf de la votació i l'assumpte concret que es votava. La
+majoria són decisions de procediment. Aquestes són les més freqüents i com
+anomenar-les:
+
+- "Convalidació o derogació de Reials Decrets llei" → el Congrés decideix
+  si manté en vigor un decret que el Govern ja aplica. Anomena-ho:
+  "Convalidació del decret llei que…".
+- "Tramitació com a Projecte de Llei" → decideix si aquell decret, a més,
+  s'obre a esmenes i segueix com a llei. Anomena-ho: "Tramitació com a
+  projecte de llei del decret que…".
+- "Presa en consideració de Proposicions de Llei" → decideix si una
+  proposta de llei comença el seu recorregut. Anomena-ho: "Presa en
+  consideració de la proposició que…".
+- "Mocions conseqüència d'interpel·lació urgent" → el Congrés fixa una
+  posició i demana alguna cosa al Govern. Anomena-ho: "Moció que demana al
+  Govern que…".
+- Esmenes, vetos del Senat, dictàmens de comissió, avocacions: anomena'ls
+  pel que són.
+
+FORMAT, 2-3 frases:
+
+1. Una primera frase que ANOMENI LA DECISIÓ i digui de què va el text.
+2. Una o dues frases més amb el que fa o demana aquell text: les mesures
+   concretes, amb les xifres, els terminis i els col·lectius que
+   apareguin al text. Tria sempre el detall concret abans que
+   l'abstracció: "300 milions per als afectats per la DANA" diu alguna
+   cosa; "mesures de suport econòmic" no diu res.
+
+REGLES:
+
+- MAI diguis si es va aprovar o rebutjar, ni "es vota si": no ho saps, i
+  el resultat ja es mostra al costat del teu text.
+- Descriu QUÈ canvia o QUÈ es demana, no si és bo o dolent.
+- Cap valoració ("polèmica", "necessària", "criticada", "rellevant").
+- Cap especulació sobre intencions polítiques ni efectes futurs.
+- Cap exemple hipotètic que no aparegui al text.
+- No copiïs el llenguatge jurídic: "a l'efecte d'allò previst a l'article"
+  no cal.
+- Si el text és tan genèric que no pots dir RES concret, respon exactament
+  ``[INSUFICIENT]``.
+
+EXEMPLES de respostes adequades:
+
+- "Convalidació del decret llei que dona ajudes a l'illa de La Palma
+  després de l'erupció volcànica. Inclou exempcions fiscals per als
+  afectats i permet a les comunitats amb superàvit fer-lo servir en
+  inversions."
+- "Moció que demana al Govern un pla estatal d'habitatge assequible.
+  Demana mobilitzar sòl públic, ampliar el parc de lloguer social i
+  publicar cada any quants habitatges s'han lliurat."
+
+Retorna NOMÉS el resum en català, sense pròleg i sense disclaimer.
+"""
+
+_VOTE_PROMPTS_BY_LANG: dict[str, str] = {"ca": _PROMPT_CA_VOTE, "es": _PROMPT_ES_VOTE}
+
+# ``kind`` sentinel used by the vote-side job. Not an initiative type: it
+# says "this text is a vote", which is a different object from the law or
+# the motion behind it.
+VOTE_KIND = "vote"
+
 # Initiative types summarised with the "what it asks" prompts.
 _MOTION_KINDS = frozenset({"proposicion_no_ley", "mocion"})
 
@@ -339,7 +478,12 @@ async def generate_plain_summary(
     when the validated text is rejected.
     """
     s = settings or get_settings()
-    prompts = _MOTION_PROMPTS_BY_LANG if kind in _MOTION_KINDS else _PROMPTS_BY_LANG
+    if kind == VOTE_KIND:
+        prompts = _VOTE_PROMPTS_BY_LANG
+    elif kind in _MOTION_KINDS:
+        prompts = _MOTION_PROMPTS_BY_LANG
+    else:
+        prompts = _PROMPTS_BY_LANG
     prompt = prompts.get(lang)
     if prompt is None:
         raise ValueError(f"Unsupported lang for plain summary: {lang!r}")

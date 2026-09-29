@@ -970,7 +970,7 @@ async def generate_vote_plain_summaries(
     from sqlalchemy import select as _select
 
     from app.models import Vote
-    from app.services.plain_summary import generate_plain_summary
+    from app.services.plain_summary import VOTE_KIND, generate_plain_summary
 
     target_col_name = f"plain_summary_{lang}"
     if not hasattr(Vote, target_col_name):
@@ -998,7 +998,14 @@ async def generate_vote_plain_summaries(
                 async with AsyncSessionLocal() as inner:
                     row = (await inner.execute(_select(Vote).where(Vote.id == vid))).scalar_one()
                     result = await generate_plain_summary(
-                        title=row.title, body=row.description, lang=lang
+                        title=row.title,
+                        body=row.description,
+                        lang=lang,
+                        # A vote is not the law behind it. Without this the
+                        # law prompt was used and the model wrote "Modifica
+                        # la ley…" about a vote that decided whether to keep
+                        # a decree alive.
+                        kind=VOTE_KIND,
                     )
                     setattr(row, target_col_name, result.text)
                     # Match the initiative-side rule: refresh the audit
