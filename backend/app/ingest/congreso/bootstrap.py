@@ -20,6 +20,7 @@ is deferred — see ``docs/STATUS.md``.
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from dataclasses import asdict, dataclass
 from datetime import UTC
@@ -936,7 +937,17 @@ _VOTE_DESCRIPTION_MIN_LEN = 60
 # Inter-call pacing for the summary/translate batches — ~1 req/s keeps us
 # under Mistral's free-tier budget so a full run doesn't get throttled
 # into a retry-storm. Matches the classifier's own pacing.
-_LLM_INTER_CALL_DELAY_S = 1.0
+# Extra pause between rows, ON TOP of the process-wide spacing in
+# llm_http (``Settings.llm_min_interval_s``). It exists because the two were
+# written months apart; keeping it at 0 leaves ONE knob for the rate, which
+# is what a per-model limit needs:
+#
+#   ministral-14b       120 req/min   → 0.5 s
+#   mistral-small       100 req/min   → 0.65 s
+#   mistral-large        15 req/min   → 4.2 s
+#
+# Read from the environment so a bulk run can be paced without a deploy.
+_LLM_INTER_CALL_DELAY_S = float(os.environ.get("LLM_ROW_DELAY_S", "0"))
 
 
 async def generate_vote_plain_summaries(

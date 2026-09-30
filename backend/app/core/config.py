@@ -80,8 +80,17 @@ class Settings(BaseSettings):
     # ministral-14b is allowed (~30 requests/minute). Checked 2026-09-14.
     mistral_model: str = "ministral-14b-2512"
     # Minimum seconds between two LLM requests from one process (see
-    # app/services/llm_http.py). 2.1 s keeps us under ministral-14b's
-    # ~30 requests/minute on the free plan.
+    # app/services/llm_http.py). The limit is PER MODEL, and the API states
+    # it in its own headers (x-ratelimit-limit-req-minute):
+    #
+    #   ministral-14b     120/min  → 0.5 s
+    #   mistral-small     100/min  → 0.65 s
+    #   mistral-large      15/min  → 4.2 s   (a bulk run at 1/s gets 429 on
+    #                                         every call, which is what
+    #                                         happened on 2026-09-30)
+    #
+    # 2.1 s is a safe default for any of them; a bulk job sets
+    # LLM_MIN_INTERVAL_S to match the model it is running with.
     llm_min_interval_s: float = 2.1
 
     # Email (alerts and double opt-in)
