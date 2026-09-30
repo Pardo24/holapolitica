@@ -83,9 +83,10 @@ async def list_initiatives(
         description=(
             "Filter by the OUTCOME of the latest linked vote — what the row "
             "actually shows: 'approved', 'rejected', or 'pending' (no decisive "
-            "vote yet). Use this, not 'status', for the laws view: the portal's "
-            "imported lifecycle status is unreliable (an approved law often "
-            "still reads as 'in_debate')."
+            "vote yet), or a comma-separated list of them evaluated as OR. "
+            "Use this, not 'status', for the laws view: the portal's imported "
+            "lifecycle status is unreliable (an approved law often still reads "
+            "as 'in_debate')."
         ),
     ),
     topic_slug: str | None = Query(
@@ -156,7 +157,11 @@ async def list_initiatives(
     # that visibly show "Approved". We rank each initiative's votes by date and
     # match the most recent one (a bill voted in parts is judged by its final
     # vote); "pending" means no decisive vote has happened yet.
-    if result in ("approved", "rejected", "pending"):
+    # Several outcomes are OR-ed, like the topic and group filters: "approved
+    # or rejected" is a question ("what has the chamber actually settled?")
+    # and one chip at a time could not ask it.
+    results = [r for r in _split_csv(result) if r in ("approved", "rejected", "pending")]
+    if results:
         latest_sq = (
             select(
                 Vote.initiative_id.label("iid"),
@@ -171,14 +176,19 @@ async def list_initiatives(
             .where(Vote.initiative_id.is_not(None))
             .subquery()
         )
-        if result == "pending":
-            conditions.append(Initiative.id.not_in(select(latest_sq.c.iid)))
-        else:
-            conditions.append(
+        decided = [r for r in results if r != "pending"]
+        # Named apart from the audience block's `clauses` below: same name,
+        # different element type, and mypy fixes it on the first assignment.
+        outcome_clauses = []
+        if "pending" in results:
+            outcome_clauses.append(Initiative.id.not_in(select(latest_sq.c.iid)))
+        if decided:
+            outcome_clauses.append(
                 Initiative.id.in_(
-                    select(latest_sq.c.iid).where(latest_sq.c.rn == 1, latest_sq.c.res == result)
+                    select(latest_sq.c.iid).where(latest_sq.c.rn == 1, latest_sq.c.res.in_(decided))
                 )
             )
+        conditions.append(or_(*outcome_clauses) if len(outcome_clauses) > 1 else outcome_clauses[0])
     # Audience filter — "show me the laws that touch me". The tags live in a
     # JSON column ({"ca": [...], "es": [...]}), and we match the quoted tag
     # against the serialised column: exact on the whole tag (the quotes stop

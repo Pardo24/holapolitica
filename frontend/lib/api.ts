@@ -1073,7 +1073,8 @@ export const api = {
         status?: InitiativeStatus;
         /** Outcome of the latest linked vote — what the row shows. Use this
          *  (not status) for the laws view; status is an unreliable lifecycle. */
-        result?: 'approved' | 'rejected' | 'pending';
+        /** One outcome, or a comma-separated list the API evaluates as OR. */
+        result?: string;
         topic_slug?: string;
         proposing_group_slug?: string;
         /** Affected-audience tag(s), comma-separated, evaluated as OR. */

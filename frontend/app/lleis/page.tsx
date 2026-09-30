@@ -56,9 +56,10 @@ export default async function LleisPage({
   const tStats = await getTranslations('stats');
   const locale = await getLocale();
 
-  const resultFilter = RESULT_FILTERS.includes(sp.result as ResultFilter)
-    ? (sp.result as ResultFilter)
-    : undefined;
+  // Several outcomes at once: the API OR-s them, same as topics and groups.
+  const resultFilters = splitCsv(sp.result).filter((r): r is ResultFilter =>
+    RESULT_FILTERS.includes(r as ResultFilter),
+  );
   const topicSlugs = splitCsv(sp.topic_slug);
   const groupSlugs = splitCsv(sp.proposing_group_slug);
   const audienceTags = splitCsv(sp.audience);
@@ -69,7 +70,7 @@ export default async function LleisPage({
     api.initiatives.list({
       legislature_id: 1,
       creates_law: true,
-      result: resultFilter,
+      result: resultFilters.length ? resultFilters.join(',') : undefined,
       topic_slug: topicSlugs.length ? topicSlugs.join(',') : undefined,
       proposing_group_slug: groupSlugs.length ? groupSlugs.join(',') : undefined,
       audience: audienceTags.length ? audienceTags.join(',') : undefined,
@@ -95,7 +96,7 @@ export default async function LleisPage({
 
   const buildPageHref = (p: number): Route => {
     const qs = new URLSearchParams();
-    if (resultFilter) qs.set('result', resultFilter);
+    if (resultFilters.length) qs.set('result', resultFilters.join(','));
     if (topicSlugs.length) qs.set('topic_slug', topicSlugs.join(','));
     if (groupSlugs.length) qs.set('proposing_group_slug', groupSlugs.join(','));
     if (query) qs.set('q', query);
@@ -116,7 +117,7 @@ export default async function LleisPage({
         topics={topics}
         groups={groups}
         initialQ={query}
-        initialResult={resultFilter ?? ''}
+        initialResults={resultFilters}
         initialTopicSlugs={topicSlugs}
         initialGroupSlugs={groupSlugs}
         audiences={audiences}

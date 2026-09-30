@@ -54,7 +54,8 @@ interface Props {
   /** Audience tags in use, most common first; the row shows the top ones. */
   audiences: AudienceCount[];
   initialQ: string;
-  initialResult: string;
+  /** Comma-separated outcomes, OR-ed by the API. */
+  initialResults: string[];
   initialTopicSlugs: string[];
   initialGroupSlugs: string[];
   initialAudiences: string[];
@@ -72,7 +73,7 @@ export function LawsFilterBar({
   groups,
   audiences,
   initialQ,
-  initialResult,
+  initialResults,
   initialTopicSlugs,
   initialGroupSlugs,
   initialAudiences,
@@ -130,7 +131,11 @@ export function LawsFilterBar({
     [sp, pushUrl],
   );
 
-  const setStatus = (value: string | null) => setParam('result', value);
+  // Outcomes are multi-select: "approved or rejected" is one question
+  // ("what has the chamber actually settled?") that a single chip could not
+  // ask. "Any" clears them all.
+  const toggleStatus = (value: string) =>
+    updateMulti('result', initialResults, value, !initialResults.includes(value));
 
   const updateMulti = (key: string, current: string[], slug: string, add: boolean) => {
     if (!slug) return;
@@ -172,7 +177,7 @@ export function LawsFilterBar({
 
   const totalActive =
     (qDraft.trim() ? 1 : 0) +
-    (initialResult ? 1 : 0) +
+    initialResults.length +
     initialTopicSlugs.length +
     initialGroupSlugs.length +
     initialAudiences.length;
@@ -322,11 +327,18 @@ export function LawsFilterBar({
       {/* Outcome chips (did it pass) + the disclosure + clear. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <StatusChip active={!initialResult} onClick={() => setStatus(null)}>
+          <StatusChip
+            active={initialResults.length === 0}
+            onClick={() => setParam('result', null)}
+          >
             {labels.status_all}
           </StatusChip>
           {STATUS_OPTIONS.map((s) => (
-            <StatusChip key={s} active={initialResult === s} onClick={() => setStatus(s)}>
+            <StatusChip
+              key={s}
+              active={initialResults.includes(s)}
+              onClick={() => toggleStatus(s)}
+            >
               {statusLabel[s]}
             </StatusChip>
           ))}

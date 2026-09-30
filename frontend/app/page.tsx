@@ -169,17 +169,6 @@ export default async function HomePage() {
         sessApproved={sessApproved}
         sessRejected={sessRejected}
         sessTotal={sessTotal}
-        chamberMap={
-          hemicycle && hemicycle.seats.length > 0 ? (
-            <ChamberMap
-              layout={hemicycle}
-              eyebrow={t('chamber_eyebrow')}
-              caption={t('chamber_caption')}
-              cta={t('chamber_cta')}
-              ariaLabel={t('chamber_aria')}
-            />
-          ) : null
-        }
         partyBand={
           <PartyBand
             groups={allGroups}
@@ -762,7 +751,6 @@ function MobileDashboard({
   sessRejected,
   sessTotal,
   partyBand,
-  chamberMap,
   labels,
 }: {
   highlights: Highlight[];
@@ -772,8 +760,6 @@ function MobileDashboard({
   locale: string;
   /** Pre-rendered <PartyBand>, shared with the desktop layout. */
   partyBand: React.ReactNode;
-  /** Pre-rendered <ChamberMap>; null when the seat layout didn't load. */
-  chamberMap: React.ReactNode;
   sessApproved: number;
   sessRejected: number;
   sessTotal: number;
@@ -992,10 +978,10 @@ function MobileDashboard({
         </Link>
       )}
 
-      {/* The chamber, in colour, straight after what it just did. The
-          phone home was type and hairlines all the way down; this is the
-          one image that says "parliament" before a word is read. */}
-      {chamberMap && <div style={{ marginTop: 16 }}>{chamberMap}</div>}
+      {/* No chamber map here. It reads as an illustration on a phone, where
+          350 seats collapse to a smudge of colour and it pushes the day's
+          votes down; it stays on the wide layout, where the seats are
+          legible. That also stops the page shipping the SVG twice. */}
 
       {/* The landing's navigation proposals — where to go next: the
           map, the games, the topics, the data. Four equal tiles, each
