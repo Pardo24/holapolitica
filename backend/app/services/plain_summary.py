@@ -580,7 +580,29 @@ async def generate_plain_summary(
     try:
         assert_neutral_summary(cleaned)
     except ValueError as e:
-        log.warning("plain_summary.editorial_reject", reason=str(e), raw=raw[:200])
+        # One retry, naming the word. A single evaluative adjective the model
+        # picked up from the source ("de forma segura, ética y beneficiosa")
+        # used to cost the whole summary, and the row was then left with no
+        # explanation at all — a worse outcome than asking again.
+        log.info("plain_summary.editorial_retry", reason=str(e))
+        retry_raw = await _call_llm_for_text(
+            s,
+            system=prompt,
+            user=(
+                f"{user_prompt}\n\nEl resumen anterior fue rechazado por contener una "
+                f"valoración ({e}). Reescríbelo describiendo sólo qué cambia o qué se "
+                f"pide, sin adjetivos de valor."
+            ),
+        )
+        retry = _strip_markdown(retry_raw.strip())
+        if retry and not retry.upper().startswith(INSUFFICIENT):
+            try:
+                assert_neutral_summary(retry)
+                return PlainSummaryResult(text=retry, provider=provider_name, raw=retry_raw)
+            except ValueError as e2:
+                log.warning("plain_summary.editorial_reject", reason=str(e2), raw=retry_raw[:200])
+        else:
+            log.warning("plain_summary.editorial_reject", reason=str(e), raw=raw[:200])
         return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
 
     return PlainSummaryResult(text=cleaned, provider=provider_name, raw=raw)
@@ -608,8 +630,12 @@ Congreso. Escribe SU TITULAR: una sola línea de 8 a 16 palabras.
 - Sólo con lo que diga el resumen. No añadas ni una cifra, ni un organismo,
   ni un matiz que no esté ahí.
 - Sin dos puntos al final, sin enumerar, sin comillas, sin punto final.
-- No empieces por "El Congreso vota", "Se decide" ni "Propuesta de": ve al
-  asunto.
+- No empieces por "El Congreso vota" ni "Se decide": ve al asunto.
+- PERO si el resumen nombra un trámite (convalidación, tramitación como
+  proyecto de ley, toma en consideración, avocación, prórroga, suplicatorio,
+  dictamen), el titular tiene que conservarlo: lo que se decidía era el
+  trámite, no el asunto de fondo. "Avocación del proyecto de ley de
+  educación", no "Reforma educativa".
 - Nunca digas si se aprobó o se rechazó.
 - Sin valoraciones ("polémica", "necesaria", "criticada", "relevante") y sin
   copiar adjetivos de carga ("nefasta", "grave").
@@ -626,8 +652,12 @@ Congrés. Escriu-ne EL TITULAR: una sola línia de 8 a 16 paraules.
 - Només amb el que digui el resum. No hi afegeixis ni una xifra, ni un
   organisme, ni un matís que no hi sigui.
 - Sense dos punts al final, sense enumerar, sense cometes, sense punt final.
-- No comencis per "El Congrés vota", "Es decideix" ni "Proposta de": ves a
-  l'assumpte.
+- No comencis per "El Congrés vota" ni "Es decideix": ves a l'assumpte.
+- PERÒ si el resum anomena un tràmit (convalidació, tramitació com a
+  projecte de llei, presa en consideració, avocació, pròrroga, suplicatori,
+  dictamen), el titular l'ha de conservar: el que es decidia era el tràmit,
+  no l'assumpte de fons. "Avocació del projecte de llei d'educació", no pas
+  "Reforma educativa".
 - Mai diguis si es va aprovar o rebutjar.
 - Cap valoració ("polèmica", "necessària", "criticada", "rellevant") ni
   adjectius de càrrega copiats ("nefasta", "greu").

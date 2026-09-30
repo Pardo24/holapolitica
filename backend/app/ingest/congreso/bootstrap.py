@@ -1168,7 +1168,11 @@ async def generate_plain_titles(
                     result = await generate_plain_title(summary=source, lang=lang)
                     if result.text:
                         setattr(row, title_attr, result.text)
-                        row.plain_summary_generated_at = datetime.now(UTC)
+                        # The loop is generic over Initiative and Vote; mypy
+                        # only sees their common Base, which has no columns.
+                        row.plain_summary_generated_at = datetime.now(  # type: ignore[attr-defined]
+                            UTC
+                        )
                         await inner.commit()
                         totals["titled"] = int(totals["titled"]) + 1
                     else:
