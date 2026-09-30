@@ -126,7 +126,12 @@ Tu trabajo es **explicar QUÉ PIDE**, en **2-3 frases**, en castellano simple.
 
 - Empieza con "Pide al Gobierno que…" (o "Pide a…", "Pide que el Congreso…",
   según a quién se dirija).
-- Si pide varias cosas, resume las principales en una enumeración breve.
+- Si pide varias cosas, la PRIMERA FRASE tiene que resumir la petición
+  entera y sostenerse sola, porque es la que se lee como titular en los
+  listados: "Pide al Gobierno un plan estatal de vivienda asequible."
+  Nunca abras con un "Pide al Gobierno que:" vacío seguido de la lista.
+  Después, si hacen falta, enumera como mucho CUATRO puntos, uno por
+  línea, empezando por "1. ", y cada uno en una sola frase corta.
 - NUNCA digas que "modifica", "establece", "regula", "obliga" o "aprueba"
   algo: no es una ley.
 - Basa el resumen en la petición final ("insta al Gobierno a…"), no en la
@@ -164,7 +169,12 @@ La teva feina és **explicar QUÈ DEMANA**, en **2-3 frases**, en català simple
 
 - Comença amb "Demana al Govern que…" (o "Demana a…", "Demana que el
   Congrés…", segons a qui s'adreci).
-- Si demana diverses coses, resumeix les principals en una enumeració breu.
+- Si demana diverses coses, la PRIMERA FRASE ha de resumir la petició
+  sencera i aguantar-se sola, perquè és la que es llegeix com a titular
+  als llistats: "Demana al Govern un pla estatal d'habitatge assequible."
+  No obris mai amb un "Demana al Govern que:" buit seguit de la llista.
+  Després, si calen, enumera com a màxim QUATRE punts, un per línia,
+  començant per "1. ", i cadascun en una sola frase curta.
 - MAI no diguis que "modifica", "estableix", "regula", "obliga" o "aprova"
   res: no és una llei.
 - Basa el resum en la petició final ("insta el Govern a…"), no en
@@ -234,7 +244,9 @@ FORMATO, 2-3 frases:
 
 1. Una primera frase que NOMBRE LA DECISIÓN y diga de qué va el texto.
 2. Una o dos frases más con lo que hace o pide ese texto, SI EL TEXTO LO
-   DICE: las medidas concretas, con las cifras, los plazos y los
+   DICE. Si son varias peticiones, la primera frase ya tiene que resumir
+   el conjunto y sostenerse sola (es el titular del listado); los puntos,
+   como mucho cuatro, van después, uno por línea, empezando por "1. ": las medidas concretas, con las cifras, los plazos y los
    colectivos **que aparezcan literalmente en lo que has recibido**.
    Cuando el texto da el dato, prefiérelo siempre a la abstracción: "300
    millones para los afectados por la DANA" dice algo, "medidas de apoyo
@@ -320,7 +332,9 @@ FORMAT, 2-3 frases:
 
 1. Una primera frase que ANOMENI LA DECISIÓ i digui de què va el text.
 2. Una o dues frases més amb el que fa o demana aquell text, SI EL TEXT HO
-   DIU: les mesures concretes, amb les xifres, els terminis i els
+   DIU. Si són diverses peticions, la primera frase ja ha de resumir el
+   conjunt i aguantar-se sola (és el titular del llistat); els punts, com
+   a màxim quatre, van després, un per línia, començant per "1. ": les mesures concretes, amb les xifres, els terminis i els
    col·lectius **que apareguin literalment al que has rebut**. Quan el
    text dona la dada, tria-la sempre abans que l'abstracció: "300 milions
    per als afectats per la DANA" diu alguna cosa, "mesures de suport

@@ -292,6 +292,7 @@
     "card_votes_eyebrow": "Com s'ha votat",
     "card_ai_summary": "Resum del contingut fet amb IA",
     "card_no_summary": "Encara no hi ha resum: text oficial",
+    "card_more_points": "+{n} punts més",
     "card_in_favour": "A favor",
     "card_against": "En contra",
     "card_abstention": "Abstenció",

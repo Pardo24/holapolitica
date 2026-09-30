@@ -11,6 +11,7 @@ import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { Vote } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
+import { summaryHeadline, summaryRestCount } from '@/lib/plainSummary';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -30,7 +31,9 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
   const href = `/votes/${vote.id}` as Route;
   const subject = vote.description?.trim() || vote.title;
   const plainSummary = pickPlainSummary(vote, locale);
-  const headline = plainSummary ?? subject;
+  // Same as on a law card: the list becomes lead + first point, counted.
+  const headline = plainSummary ? summaryHeadline(plainSummary) : subject;
+  const morePoints = plainSummary ? summaryRestCount(plainSummary) : 0;
   const voteDate = new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' });
 
   return (
@@ -92,6 +95,26 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
           {headline}
         </Link>
       </h3>
+      {morePoints > 0 && (
+        // The points the headline leaves out. Counted, not run together:
+        // "+3 punts més" says there is a list without pretending the card
+        // can show it.
+        <span
+          style={{
+            display: 'inline-block',
+            marginTop: 6,
+            padding: '2px 9px',
+            borderRadius: 999,
+            border: '1px solid var(--rule-strong)',
+            background: 'var(--paper-2)',
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: 'var(--ink-3)',
+          }}
+        >
+          {t('card_more_points', { n: morePoints })}
+        </span>
+      )}
 
       <div
         style={{

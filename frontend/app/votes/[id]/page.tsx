@@ -42,6 +42,7 @@ import {
 import { NoBreakdownNotice, noBreakdownReason } from '@/components/NoBreakdownNotice';
 import { ResultPill } from '@/components/ResultPill';
 import { ShareButton } from '@/components/ShareButton';
+import { SummaryBody } from '@/components/SummaryBody';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { VoteDonut } from '@/components/VoteDonut';
 import {
@@ -53,6 +54,7 @@ import {
   type VoteHemicycleLayout,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { isStubLead, parseSummary } from '@/lib/plainSummary';
 import { pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
 
@@ -345,6 +347,10 @@ export default async function VoteDetailPage({
   const hasTotals = totalCast + vote.absent > 0;
   const margin = vote.ayes - vote.noes;
   const summary = pickPlainSummary(vote, locale);
+  // The headline is the lead sentence; the enumerated asks render as a list
+  // below it (see SummaryBody), because a list inside an <h1> is neither.
+  const summaryStub = isStubLead(summary);
+  const summaryLead = summary && !summaryStub ? parseSummary(summary).lead : subject;
   // No summary and none coming: 157 counted votes this legislature are pure
   // procedure, carry no initiative, and their description only restates the
   // title. We can't summarise what isn't there, but we CAN say what this kind
@@ -434,8 +440,21 @@ export default async function VoteDetailPage({
                 whiteSpace: 'pre-line',
               }}
             >
-              {summary}
+              {summaryLead}
             </h1>
+            {/* A motion asks for several things; here there is room to show
+                them as the list they are, instead of one long paragraph. */}
+            <SummaryBody
+              text={summary}
+              omitLead={!summaryStub}
+              style={{
+                margin: '0 0 12px',
+                fontSize: 15,
+                lineHeight: 1.55,
+                color: 'var(--ink-2)',
+                maxWidth: 860,
+              }}
+            />
             <p
               style={{
                 margin: '0 0 16px',

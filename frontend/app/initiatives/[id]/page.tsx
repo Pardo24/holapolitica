@@ -21,6 +21,7 @@ import {
 import { ResultPill } from '@/components/ResultPill';
 import { ShareButton } from '@/components/ShareButton';
 import { StackedBar } from '@/components/StackedBar';
+import { SummaryBody } from '@/components/SummaryBody';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import {
   api,
@@ -31,6 +32,7 @@ import {
 } from '@/lib/api';
 import { parseProposer, displayGroupShort } from '@/lib/groups';
 import { pickPlainSummary } from '@/lib/glossary';
+import { isStubLead, parseSummary } from '@/lib/plainSummary';
 import { pickTopicName } from '@/lib/topics';
 import { topicIcon } from '@/lib/topic_icons';
 
@@ -130,6 +132,12 @@ export default async function InitiativeDetailPage({
 
   const title = pickTitle(initiative, locale);
   const summary = pickPlainSummary(initiative, locale);
+  // Same split as on the vote page: lead as the headline, asks as a list.
+  // Except when the lead is the bare formula ("Demana al Govern que:"): that
+  // introduces the list fine and says nothing as a headline, so the official
+  // title takes the headline back and the whole summary renders below.
+  const summaryStub = isStubLead(summary);
+  const summaryLead = summary && !summaryStub ? parseSummary(summary).lead : null;
   const submittedDate = initiative.submitted_at
     ? new Date(initiative.submitted_at).toLocaleDateString(locale, { dateStyle: 'long' })
     : null;
@@ -206,7 +214,7 @@ export default async function InitiativeDetailPage({
               lineHeight: summary ? 1.35 : undefined,
             }}
           >
-            {summary ? summary : <AnnotatedText text={title} />}
+            {summaryLead ?? <AnnotatedText text={title} />}
           </h1>
           <div
             style={{
@@ -230,17 +238,35 @@ export default async function InitiativeDetailPage({
             checking the exact text, with the AI caveat the summary needs. */}
         {summary && (
           <>
-            <p
+            {/* The asks, as the list they are. A motion with six points read
+                as one paragraph under the headline. */}
+            <SummaryBody
+              text={summary}
+              omitLead={!summaryStub}
               style={{
-                margin: '10px 0 0',
-                fontSize: 13.5,
-                lineHeight: 1.5,
-                color: 'var(--ink-3)',
+                margin: '12px 0 0',
+                fontSize: 15,
+                lineHeight: 1.55,
+                color: 'var(--ink-2)',
                 maxWidth: 900,
               }}
-            >
-              <AnnotatedText text={title} />
-            </p>
+            />
+            {/* The official wording, under the summary. Skipped when the
+                summary's lead was a stub, because then the headline above
+                is already this title and it would print twice. */}
+            {!summaryStub && (
+              <p
+                style={{
+                  margin: '10px 0 0',
+                  fontSize: 13.5,
+                  lineHeight: 1.5,
+                  color: 'var(--ink-3)',
+                  maxWidth: 900,
+                }}
+              >
+                <AnnotatedText text={title} />
+              </p>
+            )}
             <p style={{ margin: '6px 0 0', fontSize: 11.5, color: 'var(--ink-3)', fontStyle: 'italic' }}>
               {tVotes('plain_summary_disclaimer')}{' '}
               ({tCommon('plain_summary_caveat', {

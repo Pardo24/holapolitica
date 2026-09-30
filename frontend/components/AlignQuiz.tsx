@@ -6,6 +6,8 @@ import type { Route } from 'next';
 
 import type { AlignQuestion } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { SummaryBody } from '@/components/SummaryBody';
+import { summaryHeadline } from '@/lib/plainSummary';
 import { pickTopicName } from '@/lib/topics';
 
 /**
@@ -344,10 +346,13 @@ export function AlignQuiz({
                     (p) => p.slug === results[0]!.slug,
                   )?.choice;
                   const same = theirs != null && theirs === mine;
-                  const text =
+                  // Two clamped lines per row: the lead reads as a title,
+                  // where "… que: 1. Obligui… 2. Simplifiqui…" did not.
+                  const text = summaryHeadline(
                     (locale.startsWith('es') ? q.plain_summary_es : q.plain_summary_ca) ||
-                    q.plain_summary_es ||
-                    q.title;
+                      q.plain_summary_es ||
+                      q.title,
+                  );
                   return (
                     <li key={q.vote_id}>
                       <Link
@@ -581,17 +586,18 @@ export function AlignQuiz({
                 margin: '0 0 12px',
                 lineHeight: 1.4,
                 color: 'var(--ink)',
-                ...(expanded
-                  ? null
-                  : {
-                      display: '-webkit-box',
-                      WebkitLineClamp: 5,
-                      WebkitBoxOrient: 'vertical' as const,
-                      overflow: 'hidden',
-                    }),
+                // Height, not -webkit-line-clamp: the summary can be a
+                // paragraph OR a lead plus a list, and line-clamp stops
+                // clamping once the box has block children. Five lines at
+                // the card's own line-height.
+                ...(expanded ? null : { maxHeight: 'calc(1.4em * 5)', overflow: 'hidden' }),
               }}
             >
-              {summary}
+              {/* A motion asks several things, and the question card is
+                  where the reader decides: the asks read as a list, not as
+                  a paragraph with "1." and "2." buried inside it. The clamp
+                  wraps both so the answer buttons stay on screen. */}
+              <SummaryBody text={summary} listStyle={{ fontWeight: 500, gap: 4 }} />
             </h2>
             {clipped && (
               <button

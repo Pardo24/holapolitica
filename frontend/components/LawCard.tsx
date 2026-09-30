@@ -13,6 +13,7 @@ import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
 import { pickPlainSummary } from '@/lib/glossary';
+import { summaryHeadline, summaryRestCount } from '@/lib/plainSummary';
 import { type ParsedProposer } from '@/lib/groups';
 import { STATUS_COLOR, STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
@@ -57,7 +58,11 @@ export async function LawCard({
 
   const href = `/initiatives/${initiative.id}` as Route;
   const plainSummary = pickPlainSummary(initiative, locale);
-  const headline = plainSummary ?? initiative.title_original;
+  // A motion's summary is a list of asks. As a card headline the list reads
+  // as "… que: 1. Obligui… 2. Simplifiqui…"; here it becomes the lead plus
+  // the first point, and the rest is counted beside it.
+  const headline = plainSummary ? summaryHeadline(plainSummary) : initiative.title_original;
+  const morePoints = plainSummary ? summaryRestCount(plainSummary) : 0;
 
   const statusKey = STATUS_KEY[initiative.status];
   const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
@@ -159,6 +164,26 @@ export async function LawCard({
           {headline}
         </Link>
       </h3>
+      {morePoints > 0 && (
+        // The points the headline leaves out. Counted, not run together:
+        // "+3 punts més" says there is a list without pretending the card
+        // can show it.
+        <span
+          style={{
+            display: 'inline-block',
+            marginTop: 6,
+            padding: '2px 9px',
+            borderRadius: 999,
+            border: '1px solid var(--rule-strong)',
+            background: 'var(--paper-2)',
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: 'var(--ink-3)',
+          }}
+        >
+          {t('card_more_points', { n: morePoints })}
+        </span>
+      )}
 
       {/* Who it affects — factual collectives, from the law's own text. */}
       {audiences && audiences.length > 0 && (
