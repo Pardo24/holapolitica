@@ -1127,6 +1127,86 @@ async def _translate_missing_summaries(model: type[Any], *, target_lang: str) ->
     }
 
 
+async def regenerate_initiative_summaries(
+    *, limit: int | None = None, lang_source: str = "es"
+) -> dict[str, int | str]:
+    """Rewrite summary, translation and both headlines for initiatives, in place.
+
+    A one-off for the day the model or the prompt changes: the daily jobs
+    only ever touch NULL columns, so nothing would otherwise revisit the
+    1.5k summaries written by an older model.
+
+    Every row is done end to end inside one transaction — Spanish summary,
+    Catalan translation, both headlines — so a reader never meets a law with
+    half its text missing. A row is only overwritten when the new summary
+    comes back valid; a rejection leaves the old one alone, because a worse
+    version is still better than an empty page.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative
+    from app.services.plain_summary import (
+        generate_plain_summary,
+        generate_plain_title,
+        translate_summary,
+    )
+
+    target_lang = "ca" if lang_source == "es" else "es"
+    stats: dict[str, int | str] = {"seen": 0, "rewritten": 0, "kept": 0, "errors": 0}
+
+    async with AsyncSessionLocal() as session:
+        stmt = (
+            _select(Initiative.id)
+            .where(
+                getattr(Initiative, f"plain_summary_{lang_source}").is_not(None),
+            )
+            .order_by(Initiative.id.desc())
+        )
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        ids = list((await session.execute(stmt)).scalars().all())
+
+    log.info("initiative_resummary.starting", count=len(ids))
+    for iid in ids:
+        stats["seen"] = int(stats["seen"]) + 1
+        try:
+            async with AsyncSessionLocal() as inner:
+                row = (
+                    await inner.execute(_select(Initiative).where(Initiative.id == iid))
+                ).scalar_one()
+                body = row.object_text or row.summary
+                fresh = await generate_plain_summary(
+                    title=row.title_original, body=body, lang=lang_source, kind=row.type
+                )
+                if not fresh.text:
+                    stats["kept"] = int(stats["kept"]) + 1
+                    continue
+
+                setattr(row, f"plain_summary_{lang_source}", fresh.text)
+                title = await generate_plain_title(summary=fresh.text, lang=lang_source)
+                setattr(row, f"plain_title_{lang_source}", title.text)
+
+                translated = await translate_summary(text=fresh.text, target_lang=target_lang)
+                if translated.text:
+                    setattr(row, f"plain_summary_{target_lang}", translated.text)
+                    other = await generate_plain_title(summary=translated.text, lang=target_lang)
+                    setattr(row, f"plain_title_{target_lang}", other.text)
+
+                row.plain_summary_provider = fresh.provider
+                row.plain_summary_generated_at = datetime.now(UTC)
+                await inner.commit()
+                stats["rewritten"] = int(stats["rewritten"]) + 1
+        except Exception as e:
+            stats["errors"] = int(stats["errors"]) + 1
+            log.warning("initiative_resummary.error", initiative_id=iid, error=str(e))
+        await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
+
+    log.info("initiative_resummary.done", **stats)
+    return stats
+
+
 async def generate_plain_titles(
     *, lang: str = "es", limit: int | None = None
 ) -> dict[str, int | str]:
