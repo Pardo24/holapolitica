@@ -1146,8 +1146,10 @@ async def regenerate_initiative_summaries(
 
     from sqlalchemy import select as _select
 
+    from app.core.config import get_settings
     from app.models import Initiative
     from app.services.plain_summary import (
+        _provider_name,
         generate_plain_summary,
         generate_plain_title,
         translate_summary,
@@ -1155,12 +1157,17 @@ async def regenerate_initiative_summaries(
 
     target_lang = "ca" if lang_source == "es" else "es"
     stats: dict[str, int | str] = {"seen": 0, "rewritten": 0, "kept": 0, "errors": 0}
+    # Rows this model has already rewritten are skipped, so the pass resumes
+    # where it stopped instead of paying for the same six hours twice.
+    provider = _provider_name(get_settings())
+    stats["provider"] = provider
 
     async with AsyncSessionLocal() as session:
         stmt = (
             _select(Initiative.id)
             .where(
                 getattr(Initiative, f"plain_summary_{lang_source}").is_not(None),
+                Initiative.plain_summary_provider.is_distinct_from(provider),
             )
             .order_by(Initiative.id.desc())
         )
