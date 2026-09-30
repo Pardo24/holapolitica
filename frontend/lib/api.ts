@@ -236,6 +236,8 @@ export interface Vote {
   /** Approved by assent (acclamation): no roll-call, no tally. Counts are
    *  all 0 — render a dedicated label instead of a 0-0-0 breakdown. */
   approved_by_assent?: boolean;
+  plain_title_ca: string | null;
+  plain_title_es: string | null;
   plain_summary_ca: string | null;
   plain_summary_es: string | null;
   plain_summary_provider: string | null;
@@ -666,6 +668,8 @@ export interface AlignTopic {
 export interface AlignQuestion {
   vote_id: number;
   title: string;
+  plain_title_ca: string | null;
+  plain_title_es: string | null;
   plain_summary_ca: string | null;
   plain_summary_es: string | null;
   topics: AlignTopic[];
@@ -714,6 +718,8 @@ export interface InitiativeMini {
   title_ca: string | null;
   status: string;
   submitted_at: string | null;
+  plain_title_ca?: string | null;
+  plain_title_es?: string | null;
   plain_summary_ca?: string | null;
   plain_summary_es?: string | null;
   plain_summary_provider?: string | null;
@@ -810,6 +816,8 @@ export interface Initiative {
   submitted_at: string | null;
   submitted_by: string | null;
   source_url: string | null;
+  plain_title_ca: string | null;
+  plain_title_es: string | null;
   plain_summary_ca: string | null;
   plain_summary_es: string | null;
   plain_summary_provider: string | null;

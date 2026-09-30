@@ -10,8 +10,8 @@ import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { Vote } from '@/lib/api';
-import { pickPlainSummary } from '@/lib/glossary';
-import { summaryHeadline, summaryRestCount } from '@/lib/plainSummary';
+import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
+import { summaryHeadline, summaryPointCount, summaryRestCount } from '@/lib/plainSummary';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -32,8 +32,15 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
   const subject = vote.description?.trim() || vote.title;
   const plainSummary = pickPlainSummary(vote, locale);
   // Same as on a law card: the list becomes lead + first point, counted.
-  const headline = plainSummary ? summaryHeadline(plainSummary) : subject;
-  const morePoints = plainSummary ? summaryRestCount(plainSummary) : 0;
+  const plainTitle = pickPlainTitle(vote, locale);
+  const headline = plainTitle ?? (plainSummary ? summaryHeadline(plainSummary) : subject);
+  // With a real headline none of the points are on the card, so the chip
+  // counts them all; without one the headline already showed the first.
+  const morePoints = !plainSummary
+    ? 0
+    : plainTitle
+      ? summaryPointCount(plainSummary)
+      : summaryRestCount(plainSummary);
   const voteDate = new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' });
 
   return (

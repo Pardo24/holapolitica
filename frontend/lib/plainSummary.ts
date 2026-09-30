@@ -95,7 +95,12 @@ export function isStubLead(text: string | null | undefined): boolean {
   return lead.endsWith(':') && words <= 8;
 }
 
-/** How many points the headline leaves out; 0 when nothing is hidden. */
+/** How many points the summary enumerates; 0 when it is prose. */
+export function summaryPointCount(text: string | null | undefined): number {
+  return parseSummary(text).items.length;
+}
+
+/** How many points a derived headline leaves out (it shows the first one). */
 export function summaryRestCount(text: string | null | undefined): number {
   const { items } = parseSummary(text);
   return items.length > 1 ? items.length - 1 : 0;

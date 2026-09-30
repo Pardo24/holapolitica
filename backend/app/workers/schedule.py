@@ -149,6 +149,14 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "15 7 * * *",
         jobs.repair_summary_language_gaps,
     ),
+    # The headline, once the summaries and their translations exist. Last in
+    # the morning block because it reads what the two jobs above wrote.
+    (
+        "monitor-plain-titles",
+        "ingest",
+        "20 7 * * *",
+        jobs.backfill_plain_titles,
+    ),
 ]
 
 

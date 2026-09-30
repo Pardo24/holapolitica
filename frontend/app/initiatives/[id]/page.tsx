@@ -31,7 +31,7 @@ import {
   type ParliamentaryGroupSummary,
 } from '@/lib/api';
 import { parseProposer, displayGroupShort } from '@/lib/groups';
-import { pickPlainSummary } from '@/lib/glossary';
+import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { isStubLead, parseSummary } from '@/lib/plainSummary';
 import { pickTopicName } from '@/lib/topics';
 import { topicIcon } from '@/lib/topic_icons';
@@ -136,8 +136,13 @@ export default async function InitiativeDetailPage({
   // Except when the lead is the bare formula ("Demana al Govern que:"): that
   // introduces the list fine and says nothing as a headline, so the official
   // title takes the headline back and the whole summary renders below.
+  const plainTitle = pickPlainTitle(initiative, locale);
+  // With a generated headline the whole summary renders below it; without
+  // one the lead does headline duty, unless it is the bare formula
+  // ("Demana al Govern que:"), when the official title takes over.
   const summaryStub = isStubLead(summary);
-  const summaryLead = summary && !summaryStub ? parseSummary(summary).lead : null;
+  const summaryLead =
+    plainTitle ?? (summary && !summaryStub ? parseSummary(summary).lead : null);
   const submittedDate = initiative.submitted_at
     ? new Date(initiative.submitted_at).toLocaleDateString(locale, { dateStyle: 'long' })
     : null;
@@ -242,7 +247,7 @@ export default async function InitiativeDetailPage({
                 as one paragraph under the headline. */}
             <SummaryBody
               text={summary}
-              omitLead={!summaryStub}
+              omitLead={!summaryStub && !plainTitle}
               style={{
                 margin: '12px 0 0',
                 fontSize: 15,
@@ -254,7 +259,7 @@ export default async function InitiativeDetailPage({
             {/* The official wording, under the summary. Skipped when the
                 summary's lead was a stub, because then the headline above
                 is already this title and it would print twice. */}
-            {!summaryStub && (
+            {!summaryStub && !plainTitle && (
               <p
                 style={{
                   margin: '10px 0 0',

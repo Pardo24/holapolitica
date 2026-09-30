@@ -12,8 +12,8 @@ import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
-import { pickPlainSummary } from '@/lib/glossary';
-import { summaryHeadline, summaryRestCount } from '@/lib/plainSummary';
+import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
+import { summaryHeadline, summaryPointCount, summaryRestCount } from '@/lib/plainSummary';
 import { type ParsedProposer } from '@/lib/groups';
 import { STATUS_COLOR, STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
@@ -61,8 +61,20 @@ export async function LawCard({
   // A motion's summary is a list of asks. As a card headline the list reads
   // as "… que: 1. Obligui… 2. Simplifiqui…"; here it becomes the lead plus
   // the first point, and the rest is counted beside it.
-  const headline = plainSummary ? summaryHeadline(plainSummary) : initiative.title_original;
-  const morePoints = plainSummary ? summaryRestCount(plainSummary) : 0;
+  // The generated headline when the row has one; otherwise the line derived
+  // from the summary, and the official title when there is no summary at all.
+  const plainTitle = pickPlainTitle(initiative, locale);
+  const headline =
+    plainTitle ?? (plainSummary ? summaryHeadline(plainSummary) : initiative.title_original);
+  // With a real headline the card shows the whole summary count; without one
+  // the headline already swallowed the first point.
+  // With a real headline none of the points are on the card, so the chip
+  // counts them all; without one the headline already showed the first.
+  const morePoints = !plainSummary
+    ? 0
+    : plainTitle
+      ? summaryPointCount(plainSummary)
+      : summaryRestCount(plainSummary);
 
   const statusKey = STATUS_KEY[initiative.status];
   const statusLabel = statusKey ? tStats(statusKey) : initiative.status;

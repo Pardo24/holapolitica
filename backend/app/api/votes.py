@@ -669,17 +669,26 @@ def _serialize_vote(
     summary_ca: str | None = vote.plain_summary_ca
     summary_es: str | None = vote.plain_summary_es
     summary_provider: str | None = vote.plain_summary_provider
+    # The headline follows its own summary: a vote-owned title goes with the
+    # vote-owned summary, and the initiative's title only stands in when the
+    # initiative's summary does.
+    title_ca: str | None = vote.plain_title_ca
+    title_es: str | None = vote.plain_title_es
     if vote.initiative_id is not None and vote.initiative is not None:
         if summary_ca is None:
             summary_ca = vote.initiative.plain_summary_ca
+            title_ca = vote.initiative.plain_title_ca
         if summary_es is None:
             summary_es = vote.initiative.plain_summary_es
+            title_es = vote.initiative.plain_title_es
         if summary_provider is None:
             summary_provider = vote.initiative.plain_summary_provider
     if summary_ca is not None or summary_es is not None or summary_provider is not None:
         update["plain_summary_ca"] = summary_ca
         update["plain_summary_es"] = summary_es
         update["plain_summary_provider"] = summary_provider
+        update["plain_title_ca"] = title_ca
+        update["plain_title_es"] = title_es
     # Topics attached to the linked Initiative — bulk-loaded by the
     # list handler. Translated to the InitiativeTopicSlug shape the
     # frontend already consumes on /initiatives/<id>.

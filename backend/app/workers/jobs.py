@@ -791,6 +791,27 @@ def summarise_pending_initiatives() -> dict[str, int]:
 _VOTE_SUMMARY_LIMIT_PER_RUN = 80
 
 
+_TITLE_LIMIT_PER_RUN = 150
+
+
+def backfill_plain_titles() -> dict[str, dict[str, int | str]]:
+    """RQ entrypoint: the one-line headline for summaries that lack one.
+
+    Runs after the summaries and the language repair, so a row summarised
+    this morning gets its headline the same morning, in both languages.
+    Cheap: the model reads our own summary, not the bill.
+    """
+    from app.ingest.congreso.bootstrap import generate_plain_titles
+
+    async def _run() -> dict[str, dict[str, int | str]]:
+        return {
+            "es": await generate_plain_titles(lang="es", limit=_TITLE_LIMIT_PER_RUN),
+            "ca": await generate_plain_titles(lang="ca", limit=_TITLE_LIMIT_PER_RUN),
+        }
+
+    return asyncio.run(_run())
+
+
 def summarise_pending_votes() -> dict[str, int | str]:
     """RQ entrypoint: plain summaries for votes that carry their own text.
 

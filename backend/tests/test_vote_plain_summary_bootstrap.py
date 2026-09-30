@@ -120,10 +120,14 @@ async def test_generate_vote_plain_summaries_populates_target_column(
     )
     monkeypatch.setattr(bootstrap_mod, "AsyncSessionLocal", factory)
 
-    async def fake_summary(*, title: str, body: str | None, lang: str) -> PlainSummaryResult:
+    async def fake_summary(
+        *, title: str, body: str | None, lang: str, kind: str | None = None
+    ) -> PlainSummaryResult:
         assert title == vote.title
         assert body == vote.description
         assert lang == "ca"
+        # A vote is summarised as a vote, not as the law behind it.
+        assert kind == "vote"
         return PlainSummaryResult(
             text="Modifica normes urgents del sector del transport.",
             provider="llm:mistral-small",
@@ -160,7 +164,9 @@ async def test_generate_vote_plain_summaries_is_idempotent_on_empty_candidate_li
 
     calls = {"count": 0}
 
-    async def fake_summary(*, title: str, body: str | None, lang: str) -> PlainSummaryResult:
+    async def fake_summary(
+        *, title: str, body: str | None, lang: str, kind: str | None = None
+    ) -> PlainSummaryResult:
         calls["count"] += 1
         return PlainSummaryResult(text="should not be called", provider="x", raw="x")
 

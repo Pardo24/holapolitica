@@ -219,6 +219,10 @@ class InitiativeRead(BaseModel):
     submitted_at: date | None = None
     submitted_by: str | None = None
     source_url: str | None = None
+    # The one-line headline. NULL for rows generated before the field
+    # existed; clients fall back to deriving one from the summary.
+    plain_title_ca: str | None = None
+    plain_title_es: str | None = None
     plain_summary_ca: str | None = None
     plain_summary_es: str | None = None
     plain_summary_provider: str | None = None
@@ -326,6 +330,8 @@ class VoteRead(BaseModel):
     # Plain-language summary, pulled from the linked Initiative when one
     # exists, per locale. NULL when the vote isn't initiative-linked yet,
     # or when the generator declined / hasn't run for that locale.
+    plain_title_ca: str | None = None
+    plain_title_es: str | None = None
     plain_summary_ca: str | None = None
     plain_summary_es: str | None = None
     plain_summary_provider: str | None = None

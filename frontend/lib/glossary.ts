@@ -335,6 +335,21 @@ export function pickPlainSummary(
 }
 
 /**
+ * The one-line headline, when the row has one.
+ *
+ * Same locale rule as the summary. Null for rows generated before the field
+ * existed; callers fall back to ``summaryHeadline()``, which derives a line
+ * from the summary itself.
+ */
+export function pickPlainTitle(
+  obj: { plain_title_ca?: string | null; plain_title_es?: string | null },
+  locale: string,
+): string | null {
+  if (locale === 'ca') return obj.plain_title_ca ?? obj.plain_title_es ?? null;
+  return obj.plain_title_es ?? null;
+}
+
+/**
  * Identify a purely procedural vote from its wording.
  *
  * 157 counted votes of this legislature carry no initiative and therefore

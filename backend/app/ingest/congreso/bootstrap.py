@@ -1116,6 +1116,72 @@ async def _translate_missing_summaries(model: type[Any], *, target_lang: str) ->
     }
 
 
+async def generate_plain_titles(
+    *, lang: str = "es", limit: int | None = None
+) -> dict[str, int | str]:
+    """Write the one-line headline for rows that have a summary but no title.
+
+    Separate from the summary generation on purpose: it is idempotent, it
+    catches the ~1.5k summaries written before the field existed, and it
+    costs almost nothing — the model reads our own short summary instead of
+    re-reading a 2.700-token bill.
+
+    Per-row try/except, newest first, capped like the summary job.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative, Vote
+    from app.services.plain_summary import generate_plain_title
+
+    summary_attr = f"plain_summary_{lang}"
+    title_attr = f"plain_title_{lang}"
+    totals: dict[str, int | str] = {"lang": lang, "titled": 0, "skipped": 0, "errors": 0}
+
+    for model, order_col in ((Vote, "voted_at"), (Initiative, "id")):
+        if not hasattr(model, title_attr):
+            raise ValueError(f"Unsupported lang for plain title: {lang!r}")
+        async with AsyncSessionLocal() as session:
+            stmt = (
+                _select(model.id)
+                .where(
+                    getattr(model, summary_attr).is_not(None),
+                    getattr(model, title_attr).is_(None),
+                )
+                .order_by(getattr(model, order_col).desc())
+            )
+            if limit is not None:
+                stmt = stmt.limit(limit)
+            ids = list((await session.execute(stmt)).scalars().all())
+
+        log.info("plain_title.starting", lang=lang, table=model.__tablename__, count=len(ids))
+        for row_id in ids:
+            try:
+                async with AsyncSessionLocal() as inner:
+                    row = (
+                        await inner.execute(_select(model).where(model.id == row_id))
+                    ).scalar_one()
+                    source = getattr(row, summary_attr)
+                    if not source:
+                        continue
+                    result = await generate_plain_title(summary=source, lang=lang)
+                    if result.text:
+                        setattr(row, title_attr, result.text)
+                        row.plain_summary_generated_at = datetime.now(UTC)
+                        await inner.commit()
+                        totals["titled"] = int(totals["titled"]) + 1
+                    else:
+                        totals["skipped"] = int(totals["skipped"]) + 1
+            except Exception as e:
+                totals["errors"] = int(totals["errors"]) + 1
+                log.warning("plain_title.error", row_id=row_id, lang=lang, error=str(e))
+            await asyncio.sleep(_LLM_INTER_CALL_DELAY_S)
+
+    log.info("plain_title.done", **totals)
+    return totals
+
+
 async def repair_summary_language_gaps() -> dict[str, dict[str, int]]:
     """Make every plain summary exist in both Catalan and Spanish.
 

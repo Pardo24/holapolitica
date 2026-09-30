@@ -55,7 +55,7 @@ import {
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { isStubLead, parseSummary } from '@/lib/plainSummary';
-import { pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
+import { pickPlainTitle, pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
 
 interface Params {
@@ -349,8 +349,10 @@ export default async function VoteDetailPage({
   const summary = pickPlainSummary(vote, locale);
   // The headline is the lead sentence; the enumerated asks render as a list
   // below it (see SummaryBody), because a list inside an <h1> is neither.
+  const plainTitle = pickPlainTitle(vote, locale);
   const summaryStub = isStubLead(summary);
-  const summaryLead = summary && !summaryStub ? parseSummary(summary).lead : subject;
+  const summaryLead =
+    plainTitle ?? (summary && !summaryStub ? parseSummary(summary).lead : subject);
   // No summary and none coming: 157 counted votes this legislature are pure
   // procedure, carry no initiative, and their description only restates the
   // title. We can't summarise what isn't there, but we CAN say what this kind
@@ -446,7 +448,7 @@ export default async function VoteDetailPage({
                 them as the list they are, instead of one long paragraph. */}
             <SummaryBody
               text={summary}
-              omitLead={!summaryStub}
+              omitLead={!summaryStub && !plainTitle}
               style={{
                 margin: '0 0 12px',
                 fontSize: 15,

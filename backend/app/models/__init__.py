@@ -437,6 +437,10 @@ class Initiative(Base, TimestampMixin):
     # Plain-language explanations produced by an LLM, per locale. May be
     # NULL when the generator returned [INSUFICIENT] or when generation
     # hasn't run yet. See ``app.services.plain_summary``.
+    # The headline: one line that stands alone in a list. Generated in the
+    # same call as the summary, because the input text is what costs.
+    plain_title_ca: Mapped[str | None] = mapped_column(Text)
+    plain_title_es: Mapped[str | None] = mapped_column(Text)
     plain_summary_ca: Mapped[str | None] = mapped_column(Text)
     plain_summary_es: Mapped[str | None] = mapped_column(Text)
     plain_summary_provider: Mapped[str | None] = mapped_column(String(64))
@@ -514,6 +518,10 @@ class Vote(Base, TimestampMixin):
     # API falls back to the corresponding fields on Initiative. See
     # migration ``0013_vote_plain_summary`` and
     # ``app.services.plain_summary``.
+    # The headline: one line that stands alone in a list. Generated in the
+    # same call as the summary, because the input text is what costs.
+    plain_title_ca: Mapped[str | None] = mapped_column(Text)
+    plain_title_es: Mapped[str | None] = mapped_column(Text)
     plain_summary_ca: Mapped[str | None] = mapped_column(Text)
     plain_summary_es: Mapped[str | None] = mapped_column(Text)
     plain_summary_provider: Mapped[str | None] = mapped_column(String(64))

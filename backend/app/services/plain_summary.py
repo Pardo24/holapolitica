@@ -586,6 +586,103 @@ async def generate_plain_summary(
     return PlainSummaryResult(text=cleaned, provider=provider_name, raw=raw)
 
 
+# ─── Headline ──────────────────────────────────────────────────────────────
+#
+# The summary and the headline are different texts. A headline has to stand
+# alone on one line of a list; an explanation of a motion that asks for eight
+# things wants to enumerate them. One field could not be both, and more than
+# half the summaries are lists, so half the cards were headlined "Demana al
+# Govern que: 1. Obligui… 2. Simplifiqui…".
+#
+# The headline is written FROM THE SUMMARY, not from the bill text. That is
+# the cheap half (a hundred-odd tokens instead of re-reading 2.700), and it
+# makes invention structurally impossible: the model can only compress text
+# we already generated and validated.
+
+_TITLE_PROMPT_ES = """Recibes un resumen en lenguaje llano de una iniciativa o una votación del
+Congreso. Escribe SU TITULAR: una sola línea de 8 a 16 palabras.
+
+- Tiene que sostenerse sola en un listado y nombrar el asunto: "Ley para
+  limitar el alquiler turístico en Baleares", "Plan estatal de vivienda
+  asequible y más alquiler social".
+- Sólo con lo que diga el resumen. No añadas ni una cifra, ni un organismo,
+  ni un matiz que no esté ahí.
+- Sin dos puntos al final, sin enumerar, sin comillas, sin punto final.
+- No empieces por "El Congreso vota", "Se decide" ni "Propuesta de": ve al
+  asunto.
+- Nunca digas si se aprobó o se rechazó.
+- Sin valoraciones ("polémica", "necesaria", "criticada", "relevante") y sin
+  copiar adjetivos de carga ("nefasta", "grave").
+
+Devuelve SÓLO el titular.
+"""
+
+_TITLE_PROMPT_CA = """Reps un resum en llenguatge planer d'una iniciativa o una votació del
+Congrés. Escriu-ne EL TITULAR: una sola línia de 8 a 16 paraules.
+
+- S'ha d'aguantar sola en un llistat i anomenar l'assumpte: "Llei per
+  limitar el lloguer turístic a les Balears", "Pla estatal d'habitatge
+  assequible i més lloguer social".
+- Només amb el que digui el resum. No hi afegeixis ni una xifra, ni un
+  organisme, ni un matís que no hi sigui.
+- Sense dos punts al final, sense enumerar, sense cometes, sense punt final.
+- No comencis per "El Congrés vota", "Es decideix" ni "Proposta de": ves a
+  l'assumpte.
+- Mai diguis si es va aprovar o rebutjar.
+- Cap valoració ("polèmica", "necessària", "criticada", "rellevant") ni
+  adjectius de càrrega copiats ("nefasta", "greu").
+
+Retorna NOMÉS el titular.
+"""
+
+_TITLE_PROMPTS_BY_LANG: dict[str, str] = {"ca": _TITLE_PROMPT_CA, "es": _TITLE_PROMPT_ES}
+
+# A headline that runs on is a summary; one that is three words is a label.
+_TITLE_MIN_CHARS = 25
+_TITLE_MAX_CHARS = 140
+
+
+async def generate_plain_title(
+    *,
+    summary: str,
+    lang: str = "es",
+    settings: Settings | None = None,
+) -> PlainSummaryResult:
+    """One-line headline for an existing plain-language summary.
+
+    Returns ``text=None`` when the model declines, when the neutrality guard
+    trips, or when the line comes back too short or too long to be a
+    headline; the caller persists NULL and the frontend falls back to
+    deriving a headline from the summary itself.
+    """
+    s = settings or get_settings()
+    prompt = _TITLE_PROMPTS_BY_LANG.get(lang)
+    if prompt is None:
+        raise ValueError(f"Unsupported lang for plain title: {lang!r}")
+
+    raw = await _call_llm_for_text(s, system=prompt, user=summary)
+    provider_name = _provider_name(s)
+
+    cleaned = _strip_markdown(raw.strip().strip('"').strip())
+    # Models sometimes answer with a label line first ("Titular: …").
+    cleaned = re.sub(r"^(titular|título|títol)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.splitlines()[0].strip().rstrip(".").strip() if cleaned else ""
+
+    if not cleaned or cleaned.upper().startswith(INSUFFICIENT):
+        return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
+    if not (_TITLE_MIN_CHARS <= len(cleaned) <= _TITLE_MAX_CHARS):
+        log.warning("plain_title.length_reject", length=len(cleaned), raw=raw[:200])
+        return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
+
+    try:
+        assert_neutral_summary(cleaned)
+    except ValueError as e:
+        log.warning("plain_title.editorial_reject", reason=str(e), raw=raw[:200])
+        return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
+
+    return PlainSummaryResult(text=cleaned, provider=provider_name, raw=raw)
+
+
 async def translate_summary(
     *,
     text: str,
