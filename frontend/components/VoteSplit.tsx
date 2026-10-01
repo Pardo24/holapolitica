@@ -1,3 +1,5 @@
+import { ChevronDown } from 'lucide-react';
+
 import { groupLogoUrl } from '@/lib/groupLogos';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -120,45 +122,63 @@ export function VoteSplit({
           {labels.noBreakdown}
         </p>
       ) : (
-        <details open={big} style={{ marginTop: 10 }}>
-          <summary
-            style={{ fontSize: 12, color: 'var(--ink-3)', cursor: 'pointer', listStyle: 'revert' }}
-          >
+        <details open={big} className="vote-split-details">
+          <summary className="vote-split-summary">
+            {/* A dot for each side that actually has groups behind it, in
+                the side colours, so the pill says what it opens. */}
+            <span aria-hidden="true" style={{ display: 'inline-flex', gap: 3, flex: 'none' }}>
+              {[
+                { color: 'var(--aye)', n: inFavour.length },
+                { color: 'var(--abst)', n: abstained.length },
+                { color: 'var(--no)', n: against.length },
+              ]
+                .filter((side) => side.n > 0)
+                .map((side) => (
+                  <Dot key={side.color} color={side.color} />
+                ))}
+            </span>
             {labels.detail}
+            <ChevronDown
+              size={14}
+              strokeWidth={2.25}
+              aria-hidden="true"
+              className="vote-split-caret"
+            />
           </summary>
-          {!big && (
-            <div style={{ marginTop: 10 }}>
-              <Ribbon zones={zones} groups={groups} height={13} />
-            </div>
-          )}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-              gap: 10,
-              marginTop: 10,
-            }}
-          >
-            <StanceColumn
-              label={labels.inFavour}
-              color="var(--aye)"
-              groups={inFavour}
-              emptyLabel={labels.sideEmpty}
-            />
-            <StanceColumn
-              label={labels.against}
-              color="var(--no)"
-              groups={against}
-              emptyLabel={labels.sideEmpty}
-            />
-            {abstained.length > 0 && (
+          <div className="vote-split-panel">
+            {!big && (
+              <div style={{ marginBottom: 12 }}>
+                <Ribbon zones={zones} groups={groups} height={13} />
+              </div>
+            )}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+                gap: 14,
+              }}
+            >
               <StanceColumn
-                label={labels.abstention}
-                color="var(--abst)"
-                groups={abstained}
+                label={labels.inFavour}
+                color="var(--aye)"
+                groups={inFavour}
                 emptyLabel={labels.sideEmpty}
               />
-            )}
+              <StanceColumn
+                label={labels.against}
+                color="var(--no)"
+                groups={against}
+                emptyLabel={labels.sideEmpty}
+              />
+              {abstained.length > 0 && (
+                <StanceColumn
+                  label={labels.abstention}
+                  color="var(--abst)"
+                  groups={abstained}
+                  emptyLabel={labels.sideEmpty}
+                />
+              )}
+            </div>
           </div>
         </details>
       )}
@@ -235,6 +255,15 @@ function Ribbon({
         );
       })}
     </div>
+  );
+}
+
+/** The side colours, small: used on the disclosure pill. */
+function Dot({ color }: { color: string }) {
+  return (
+    <span
+      style={{ width: 7, height: 7, borderRadius: 999, background: color, flex: 'none' }}
+    />
   );
 }
 

@@ -1717,3 +1717,53 @@ button {
 /* Spinner for buttons that wait on a round trip (following a law, …). */
 .spin { animation: hp-spin 0.9s linear infinite; }
 @keyframes hp-spin { to { transform: rotate(360deg); } }
+
+/* "Detall per grup": the disclosure that opens a vote's per-group breakdown.
+   It used to be the browser's default triangle beside 12px grey text, which
+   on a card full of real content read as a stray link rather than the one
+   control on the card. Now it is a pill with a caret that turns, and the
+   panel it opens is separated by a rule so the breakdown reads as its own
+   block instead of running into the tally above it. */
+.vote-split-details { margin-top: 12px; }
+.vote-split-summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  min-height: 34px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  user-select: none;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.vote-split-summary::-webkit-details-marker { display: none; }
+.vote-split-summary:hover {
+  background: var(--paper-2);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.vote-split-summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.vote-split-details[open] > .vote-split-summary {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+.vote-split-caret {
+  flex: none;
+  color: var(--ink-3);
+  transition: transform .18s ease;
+}
+.vote-split-details[open] > .vote-split-summary .vote-split-caret {
+  transform: rotate(180deg);
+  color: var(--ink-2);
+}
+.vote-split-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
