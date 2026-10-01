@@ -781,6 +781,11 @@ export interface InitiativeVoteSummary {
   absent: number;
   /** Approved by acclamation: no roll call, so the tally is all zeroes. */
   approved_by_assent?: boolean;
+  /** What this particular vote decided, for the chain on the law's page. */
+  title?: string | null;
+  description?: string | null;
+  plain_title_ca?: string | null;
+  plain_title_es?: string | null;
 }
 
 export interface InitiativeTopicSlug {

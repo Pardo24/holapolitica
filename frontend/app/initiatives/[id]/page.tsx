@@ -10,6 +10,7 @@ import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupVoteBreakdown } from '@/components/GroupVoteBreakdown';
 import { LawJourney } from '@/components/LawJourney';
+import { VoteChain } from '@/components/VoteChain';
 import { VoteSplit } from '@/components/VoteSplit';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import {
@@ -687,8 +688,18 @@ export default async function InitiativeDetailPage({
                     stanceLabels={stanceLabels}
                   />
                 )}
+                {/* The chain: every vote this law went through, in order,
+                    saying what each one decided. It used to be a collapsed
+                    list of dates, so a reader could see there were four
+                    votes and not how they related. */}
+                <div style={{ marginTop: 18 }}>
+                  <div className="eyebrow" style={{ marginBottom: 10 }}>
+                    {t('chain_title')}
+                  </div>
+                  <VoteChain votes={votes} locale={locale} />
+                </div>
                 {otherVotes.length > 0 && (
-                  <details style={{ marginTop: 12 }}>
+                  <details style={{ marginTop: 16 }}>
                     <summary
                       style={{
                         cursor: 'pointer',

@@ -259,6 +259,13 @@ class InitiativeVoteSummary(BaseModel):
     abstentions: int
     absent: int
     approved_by_assent: bool = False
+    # What this particular vote decided. A law is voted several times (the
+    # amendments, the whole text, the Senate's changes) and the page has to
+    # say which is which; without these the chain was a list of dates.
+    title: str | None = None
+    description: str | None = None
+    plain_title_ca: str | None = None
+    plain_title_es: str | None = None
 
 
 class InitiativeTopicSlug(BaseModel):

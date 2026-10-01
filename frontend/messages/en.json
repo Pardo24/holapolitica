@@ -334,6 +334,9 @@
     "related_title": "Other similar laws",
     "final_vote_label": "Final (decisive) vote",
     "other_votes_toggle": "See the other {n} votes (amendments, articles...)",
+    "chain_you_are_here": "You are here",
+    "chain_title": "This law's journey, vote by vote",
+    "chain_part_of": "This vote is part of",
     "affects_label": "Who it affects"
   },
   "law_journey": {

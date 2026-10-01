@@ -25,6 +25,7 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ExternalLink, FileText, User } from 'lucide-react';
@@ -43,6 +44,7 @@ import { NoBreakdownNotice, noBreakdownReason } from '@/components/NoBreakdownNo
 import { ResultPill } from '@/components/ResultPill';
 import { ShareButton } from '@/components/ShareButton';
 import { SummaryBody } from '@/components/SummaryBody';
+import { VoteChain } from '@/components/VoteChain';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { VoteDonut } from '@/components/VoteDonut';
 import {
@@ -508,6 +510,43 @@ export default async function VoteDetailPage({
           >
             {proceduralNote}
           </p>
+        )}
+
+        {/* Where this vote sits in its law. A bill is voted several times,
+            and from a single vote page there was no way to see the ones
+            before or after it. */}
+        {initiative && (initiative.votes?.length ?? 0) > 1 && (
+          <section
+            style={{
+              margin: '0 0 20px',
+              padding: '14px 16px',
+              borderRadius: 12,
+              border: '1px solid var(--rule)',
+              background: 'var(--paper-2)',
+              maxWidth: 860,
+            }}
+          >
+            <div className="eyebrow" style={{ marginBottom: 4 }}>
+              {tInitiative('chain_part_of')}
+            </div>
+            <Link
+              href={`/initiatives/${initiative.id}` as Route}
+              className="serif"
+              style={{
+                display: 'block',
+                fontSize: 15,
+                fontWeight: 600,
+                color: 'var(--ink)',
+                textDecoration: 'none',
+                marginBottom: 12,
+                lineHeight: 1.35,
+              }}
+            >
+              {pickPlainTitle(initiative, locale) ??
+                (initiative.title_ca ?? initiative.title_original)}
+            </Link>
+            <VoteChain votes={initiative.votes ?? []} locale={locale} currentVoteId={vote.id} />
+          </section>
         )}
 
         {/* Meta strip — dot-separated, low-chrome */}

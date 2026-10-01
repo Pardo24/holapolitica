@@ -334,6 +334,9 @@
     "related_title": "Altres lleis similars",
     "final_vote_label": "Votació final (decisiva)",
     "other_votes_toggle": "Veure les altres {n} votacions (esmenes, articles...)",
+    "chain_you_are_here": "Ets aquí",
+    "chain_title": "El recorregut d'aquesta llei, votació a votació",
+    "chain_part_of": "Aquesta votació forma part de",
     "affects_label": "A qui afecta"
   },
   "law_journey": {
