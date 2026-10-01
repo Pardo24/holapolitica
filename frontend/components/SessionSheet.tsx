@@ -23,7 +23,8 @@ import { Tooltip } from '@/components/Tooltip';
 import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { VoteSplit, type VoteSplitLabels } from '@/components/VoteSplit';
-import { pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
+import { pickPlainSummary, pickPlainTitle, proceduralExplainerKey } from '@/lib/glossary';
+import { summaryHeadline } from '@/lib/plainSummary';
 import {
   fateResult,
   fateVote,
@@ -1028,7 +1029,11 @@ function LawVoteGroup({
   const lead = votes[0]!;
   const subject = lead.description?.trim() || lead.title;
   const plainSummary = pickPlainSummary(lead, locale);
-  const headline = plainSummary ?? subject;
+  // The one-line headline: a plenary sheet is a list of what the chamber
+  // decided, and a three-sentence summary per row reads as a wall. The
+  // summary itself is one tap away, on the vote's own page.
+  const headline =
+    pickPlainTitle(lead, locale) ?? (plainSummary ? summaryHeadline(plainSummary) : subject);
   const topics: InitiativeTopicSlug[] = lead.topics ?? [];
   const ordered = [...votes].sort(
     (a, b) => (a.sequence_in_session ?? 0) - (b.sequence_in_session ?? 0),
@@ -1354,7 +1359,8 @@ function VoteRow({
   // title moves behind the inline "Text original" toggle. Falls back to the
   // title when no summary has been generated yet, so the row is never blank.
   const plainSummary = pickPlainSummary(vote, locale);
-  const headline = plainSummary ?? subject;
+  const headline =
+    pickPlainTitle(vote, locale) ?? (plainSummary ? summaryHeadline(plainSummary) : subject);
   const margin = Math.abs(vote.ayes - vote.noes);
   // The item outcome: inverted for a debate de totalidad (see stageOutcome).
   const outcome = stageOutcome(vote);

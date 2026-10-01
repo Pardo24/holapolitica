@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 
-import { CompactVoteRow } from '@/components/CompactVoteRow';
+import { VoteCard } from '@/components/VoteCard';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCompositionFilter } from '@/components/GroupCompositionFilter';
 import { TopicBars } from '@/components/TopicBars';
@@ -585,24 +585,21 @@ export default async function GroupDetailPage({
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('proposed_empty')}</p>
         ) : (
           <>
+            {/* The same card as /votacions and /lleis: a law should not
+                change shape depending on which page you meet it on. */}
             <ul
               className="votes-list"
-              style={{ listStyle: 'none', margin: 0, padding: '8px 0 0', display: 'grid', gap: 0 }}
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: '8px 0 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14,
+              }}
             >
               {proposedVotes.map((vote) => (
-                <CompactVoteRow
-                  key={vote.id}
-                  v={vote}
-                  locale={locale}
-                  labels={{
-                    ayes: tVotes('ayes'),
-                    noes: tVotes('noes'),
-                    abstentions: tVotes('abstentions'),
-                    proposed_by: tVotes('proposed_by'),
-                    proposed_by_government: tVotes('proposed_by_government'),
-                    result: tVotes(`result.${vote.result}` as 'result.approved'),
-                  }}
-                />
+                <VoteCard key={vote.id} vote={vote} locale={locale} />
               ))}
             </ul>
             <Link

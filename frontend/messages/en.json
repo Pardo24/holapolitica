@@ -339,6 +339,7 @@
   "law_journey": {
     "eyebrow": "Trajectory",
     "steps_count": "{done} of {total} stages",
+    "explain_cta": "How this journey works",
     "aria": "Path of the {type}",
     "type": {
       "proyecto_ley": "Government Bill",
@@ -1683,6 +1684,9 @@
     "title": "How a law is made in the Congress",
     "intro": "These are the eight stages a legislative initiative goes through in the Spanish Congress of Deputies. Each stage is defined in the Congress's Standing Orders; the votes you'll see on the site can correspond to any of them.",
     "caveat": "Steps 6 and 7 only apply to initiatives that reach the Senate. Non-binding motions (PNL) follow a shorter path: they go straight to the plenary for debate and a vote.",
+    "types_eyebrow": "The journeys, one by one",
+    "binding_yes": "Binding: if it passes, the law changes.",
+    "binding_no": "Not binding: it states a position or asks the Government for something it is not obliged to do.",
     "breadcrumb_votes": "Votes",
     "cta_votes": "Explore the votes",
     "cta_short": "A law's journey",

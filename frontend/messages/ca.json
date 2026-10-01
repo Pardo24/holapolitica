@@ -339,6 +339,7 @@
   "law_journey": {
     "eyebrow": "Trajectòria",
     "steps_count": "{done} de {total} etapes",
+    "explain_cta": "Com funciona aquest recorregut",
     "aria": "Recorregut de la {type}",
     "type": {
       "proyecto_ley": "Projecte de Llei",
@@ -1682,6 +1683,9 @@
     "title": "Com es fa una llei al Congrés",
     "intro": "Aquestes són les vuit etapes que segueix una iniciativa legislativa al Congrés dels Diputats. Cada etapa està definida al Reglament del Congrés; les votacions que veuràs al lloc poden correspondre a qualsevol d'elles.",
     "caveat": "Les passes 6 i 7 només s'apliquen a iniciatives que arriben al Senat. Les Proposicions no de Llei (PNL) tenen un recorregut més curt: van directament al Plenari per a debat i votació.",
+    "types_eyebrow": "Els recorreguts, un per un",
+    "binding_yes": "Vincula el Govern: si s'aprova, canvia la llei.",
+    "binding_no": "No vincula: fixa una posició o demana una cosa al Govern, que no està obligat a fer-la.",
     "breadcrumb_votes": "Votacions",
     "cta_votes": "Explora les votacions",
     "cta_short": "Recorregut d'una llei",

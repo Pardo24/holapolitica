@@ -1,6 +1,10 @@
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import type { InitiativeType, InitiativeStatus, VoteResult } from '@/lib/api';
+import { JOURNEY_STEPS } from '@/lib/lawJourney';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 
 /**
@@ -21,64 +25,13 @@ import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
  * initiative was Approved/Rejected.
  */
 
-interface JourneyStep {
-  key: string;
-  /** Whether a ``hint.<type>.<key>`` translation exists for this step. */
-  hint: boolean;
-}
-
-const STEPS: Record<InitiativeType, JourneyStep[]> = {
-  proyecto_ley: [
-    { key: 'presentation', hint: true },
-    { key: 'bocg', hint: true },
-    { key: 'committee', hint: true },
-    { key: 'floor', hint: true },
-    { key: 'senate', hint: true },
-    { key: 'boe', hint: true },
-  ],
-  proposicion_ley: [
-    { key: 'presentation', hint: true },
-    { key: 'taking', hint: true },
-    { key: 'committee', hint: true },
-    { key: 'floor', hint: true },
-    { key: 'senate', hint: true },
-    { key: 'boe', hint: true },
-  ],
-  proposicion_no_ley: [
-    { key: 'presentation', hint: true },
-    { key: 'amendments', hint: true },
-    { key: 'debate', hint: true },
-    { key: 'vote', hint: true },
-  ],
-  mocion: [
-    { key: 'interpellation', hint: true },
-    { key: 'motion', hint: true },
-    { key: 'debate', hint: true },
-    { key: 'vote', hint: true },
-  ],
-  real_decreto_ley: [
-    { key: 'rdl', hint: true },
-    { key: 'debate', hint: true },
-    { key: 'vote', hint: true },
-  ],
-  interpelacion: [
-    { key: 'presentation', hint: true },
-    { key: 'debate', hint: true },
-  ],
-  other: [
-    { key: 'presentation', hint: false },
-    { key: 'debate', hint: false },
-    { key: 'vote', hint: false },
-  ],
-};
-
 function deriveActiveIndex(
   type: InitiativeType,
   status: InitiativeStatus | null,
   hasBoe: boolean,
   voteResult: VoteResult | null,
 ): number {
-  const steps = STEPS[type] ?? STEPS.other;
+  const steps = JOURNEY_STEPS[type] ?? JOURNEY_STEPS.other;
   const last = steps.length - 1;
 
   if (type === 'proyecto_ley' || type === 'proposicion_ley') {
@@ -126,7 +79,7 @@ export async function LawJourney({
 }) {
   const t = await getTranslations('law_journey');
   const tType = await getTranslations('law_type');
-  const steps = STEPS[type] ?? STEPS.other;
+  const steps = JOURNEY_STEPS[type] ?? JOURNEY_STEPS.other;
   const binding = LAW_TYPE_BINDING[type];
   const bindingTag =
     binding === true
@@ -160,9 +113,15 @@ export async function LawJourney({
   const doneCount = activeIndex + 1;
 
   return (
-    <section
+    <Link
+      href={`/recorregut?type=${type}` as Route}
       aria-label={t('aria', { type: typeLabel })}
       className="law-journey"
+      style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
+    >
+    <section
+      aria-hidden="true"
+      className="law-journey-body"
       style={{
         background: 'var(--ink)',
         color: 'var(--paper)',
@@ -240,6 +199,24 @@ export async function LawJourney({
           >
             <span className="tabular">
               {t('steps_count', { done: doneCount, total: steps.length })}
+            </span>
+            {/* The banner is a link; say so. The page it opens explains this
+                procedure step by step and lets you read the others. */}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--paper)',
+                textDecoration: 'underline',
+                textUnderlineOffset: 3,
+                textDecorationColor: 'color-mix(in oklch, var(--paper) 45%, transparent)',
+              }}
+            >
+              {t('explain_cta')}
+              <ArrowRight size={12} strokeWidth={2} aria-hidden="true" />
             </span>
             {statusLabel && (
               <span
@@ -416,5 +393,6 @@ export async function LawJourney({
         }
       `}</style>
     </section>
+    </Link>
   );
 }

@@ -339,6 +339,7 @@
   "law_journey": {
     "eyebrow": "Trayectoria",
     "steps_count": "{done} de {total} etapas",
+    "explain_cta": "Cómo funciona este recorrido",
     "aria": "Recorrido de la {type}",
     "type": {
       "proyecto_ley": "Proyecto de Ley",
@@ -1683,6 +1684,9 @@
     "title": "Cómo se hace una ley en el Congreso",
     "intro": "Estas son las ocho etapas que sigue una iniciativa legislativa en el Congreso de los Diputados. Cada etapa está definida en el Reglamento del Congreso; las votaciones que verás en el sitio pueden corresponder a cualquiera de ellas.",
     "caveat": "Los pasos 6 y 7 solo se aplican a iniciativas que llegan al Senado. Las Proposiciones no de Ley (PNL) tienen un recorrido más corto: pasan directamente al Pleno para debate y votación.",
+    "types_eyebrow": "Los recorridos, uno a uno",
+    "binding_yes": "Vincula al Gobierno: si se aprueba, cambia la ley.",
+    "binding_no": "No vincula: fija una posición o pide algo al Gobierno, que no está obligado a hacerlo.",
     "breadcrumb_votes": "Votaciones",
     "cta_votes": "Explora las votaciones",
     "cta_short": "Recorrido de una ley",

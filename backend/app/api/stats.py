@@ -136,6 +136,10 @@ class InitiativeMini(BaseModel):
     title_ca: str | None
     status: InitiativeStatus
     submitted_at: str | None  # ISO date or None
+    # The one-line headline, so a phone list reads as laws and not as
+    # expedient titles.
+    plain_title_ca: str | None = None
+    plain_title_es: str | None = None
     plain_summary_ca: str | None = None
     plain_summary_es: str | None = None
     plain_summary_provider: str | None = None
@@ -678,6 +682,8 @@ def _initiative_mini(i: Initiative) -> InitiativeMini:
         title_ca=i.title_ca,
         status=i.status,
         submitted_at=i.submitted_at.isoformat() if i.submitted_at else None,
+        plain_title_ca=i.plain_title_ca,
+        plain_title_es=i.plain_title_es,
         plain_summary_ca=i.plain_summary_ca,
         plain_summary_es=i.plain_summary_es,
         plain_summary_provider=i.plain_summary_provider,

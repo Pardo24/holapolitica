@@ -30,7 +30,8 @@ import type {
   TopicProposers,
   TopicVoteStat,
 } from '@/lib/api';
-import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
+import { glossaryShort, pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
+import { summaryHeadline } from '@/lib/plainSummary';
 import { displayGroupShort } from '@/lib/groups';
 
 /**
@@ -1215,6 +1216,13 @@ function InitiativeListExpandable({
 
 function InitiativeRow({ ini, locale }: { ini: InitiativeMini; locale: string }) {
   const plainSummary = pickPlainSummary(ini, locale);
+  // The row shows what the law DOES, not its expedient title. It used to
+  // print the official wording with an (i) that revealed the summary on
+  // tap: the explanation was the thing worth reading, and it was the thing
+  // hidden behind a button.
+  const headline =
+    pickPlainTitle(ini, locale) ??
+    (plainSummary ? summaryHeadline(plainSummary) : (ini.title_ca ?? ini.title_original));
   return (
     <li
       style={{
@@ -1240,18 +1248,12 @@ function InitiativeRow({ ini, locale }: { ini: InitiativeMini; locale: string })
         {ini.submitted_at ?? '—'}
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>
-        <SummaryHover
-          summary={plainSummary}
-          provider={ini.plain_summary_provider}
-          visibleText={ini.title_ca ?? ini.title_original}
+        <Link
+          href={`/initiatives/${ini.id}` as Route}
+          style={{ color: 'var(--ink)', textDecoration: 'none', lineHeight: 1.3 }}
         >
-          <Link
-            href={`/initiatives/${ini.id}` as Route}
-            style={{ color: 'var(--ink)', textDecoration: 'none', lineHeight: 1.3 }}
-          >
-            <AnnotatedText text={ini.title_ca ?? ini.title_original} />
-          </Link>
-        </SummaryHover>
+          <AnnotatedText text={headline} />
+        </Link>
         <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 3 }}>
           {ini.official_id}
         </div>
