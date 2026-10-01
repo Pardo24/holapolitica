@@ -1767,3 +1767,38 @@ button {
   padding-top: 12px;
   border-top: 1px solid var(--rule);
 }
+
+/* The outcome, loud enough to be the outcome.
+   "Aprovada" / "Rebutjada" was an 11px soft tint with no edge, sitting in
+   a row of louder chips (the type chip has a border, the topic chips carry
+   party colour), so the single fact the card exists to deliver read as the
+   quietest thing on it. Same palette, more weight: a real border in the
+   result's own hue, a little more size and air. */
+.badge-aye,
+.badge-no,
+.badge-tie {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 11px;
+  letter-spacing: 0.01em;
+  border-width: 1px;
+  border-style: solid;
+}
+.badge-aye { color: oklch(0.30 0.11 152); border-color: color-mix(in oklch, var(--aye) 48%, transparent); }
+.badge-no  { color: oklch(0.30 0.14 26);  border-color: color-mix(in oklch, var(--no) 48%, transparent); }
+.badge-tie { color: oklch(0.30 0.12 82);  border-color: color-mix(in oklch, var(--abst) 52%, transparent); }
+
+/* The law-type tooltip, left-aligned.
+   Centred on its chip, a 260px bubble hung past the left edge of the card
+   that holds it; the chip is always the first thing on its line, so the
+   bubble lines up with it instead. */
+.term-tooltip:has(.law-type-chip) .term-tooltip__bubble {
+  left: 0;
+  transform: none;
+  width: 290px;
+  max-width: min(80vw, 290px);
+}
+.term-tooltip:has(.law-type-chip) .term-tooltip__bubble::after {
+  left: 22px;
+  transform: none;
+}

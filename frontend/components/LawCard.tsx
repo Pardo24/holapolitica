@@ -105,7 +105,9 @@ export async function LawCard({
         background: 'var(--paper)',
         boxShadow: 'var(--shadow-2)',
         padding: '18px 18px 16px',
-        overflow: 'hidden',
+        // No overflow clipping here: the law-type chip's tooltip rises out
+        // of the card, and "hidden" cut the explanation off entirely. The
+        // 18px padding already keeps every child clear of the radius.
       }}
     >
       {/* Line 1: what kind of law it is, what it touches, how it ended. */}
@@ -254,6 +256,7 @@ export async function LawCard({
             absent={vote.absent}
             groups={vote.groups}
             date={voteDate}
+            result={vote.result}
             labels={{
               eyebrow: t('card_votes_eyebrow'),
               inFavour: t('card_in_favour'),
@@ -262,6 +265,11 @@ export async function LawCard({
               detail: t('card_group_detail'),
               sideEmpty: t('card_side_empty'),
               noBreakdown: t('card_no_breakdown'),
+              results: {
+                approved: tVotes('result.approved'),
+                rejected: tVotes('result.rejected'),
+                tie: tVotes('result.tie'),
+              },
             }}
           />
         )}

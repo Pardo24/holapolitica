@@ -52,7 +52,7 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
         background: 'var(--paper)',
         boxShadow: 'var(--shadow-2)',
         padding: '18px 18px 16px',
-        overflow: 'hidden',
+        // See LawCard: clipping here swallowed the law-type tooltip.
       }}
     >
       <div
@@ -144,6 +144,7 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
             absent={vote.absent}
             groups={vote.groups ?? []}
             date={voteDate}
+            result={vote.result}
             labels={{
               eyebrow: t('card_votes_eyebrow'),
               inFavour: t('card_in_favour'),
@@ -152,6 +153,11 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
               detail: t('card_group_detail'),
               sideEmpty: t('card_side_empty'),
               noBreakdown: t('card_no_breakdown'),
+              results: {
+                approved: tVotes('result.approved'),
+                rejected: tVotes('result.rejected'),
+                tie: tVotes('result.tie'),
+              },
             }}
           />
         )}

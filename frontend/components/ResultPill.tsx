@@ -45,11 +45,9 @@ export function ResultPill({
   mobileVariant?: ResponsiveMobileVariant;
 }) {
   if (!responsive) {
-    return (
-      <span className={CLASS_BY_RESULT[result]} style={{ fontWeight: 600 }}>
-        {label}
-      </span>
-    );
+    // Weight and size live in the stylesheet (.badge-aye/-no/-tie), so
+    // the outcome can be made louder in one place.
+    return <span className={CLASS_BY_RESULT[result]}>{label}</span>;
   }
 
   const color = COLOR_VAR_BY_RESULT[result];
@@ -83,9 +81,7 @@ export function ResultPill({
         </span>
       )}
       {/* Desktop: existing labeled pill */}
-      <span className={`${CLASS_BY_RESULT[result]} hidden sm:inline-flex`} style={{ fontWeight: 600 }}>
-        {label}
-      </span>
+      <span className={`${CLASS_BY_RESULT[result]} hidden sm:inline-flex`}>{label}</span>
     </>
   );
 }

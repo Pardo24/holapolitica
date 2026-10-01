@@ -1,5 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 
+import { ResultPill } from '@/components/ResultPill';
+import type { VoteResult } from '@/lib/api';
 import { groupLogoUrl } from '@/lib/groupLogos';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -41,6 +43,8 @@ export interface VoteSplitLabels {
   detail: string;
   sideEmpty: string;
   noBreakdown: string;
+  /** "Aprovada" / "Rebutjada" / "Empat", keyed by result. */
+  results?: Record<VoteResult, string>;
 }
 
 export function VoteSplit({
@@ -54,6 +58,7 @@ export function VoteSplit({
   /** "lg" gives the detail open by default: on a law's own page the
    *  breakdown is the point, not an extra. */
   size = 'sm',
+  result = null,
 }: {
   ayes: number;
   noes: number;
@@ -63,6 +68,9 @@ export function VoteSplit({
   labels: VoteSplitLabels;
   date?: string | null;
   size?: 'sm' | 'lg';
+  /** How this vote ended. The tally alone asks the reader to compare two
+   *  numbers before learning whether it passed; the outcome says it. */
+  result?: VoteResult | null;
 }) {
   const inFavour = groups.filter((g) => g.choice === 'aye');
   const against = groups.filter((g) => g.choice === 'no');
@@ -81,13 +89,22 @@ export function VoteSplit({
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'baseline',
+          alignItems: 'center',
           gap: 10,
           flexWrap: 'wrap',
           marginBottom: 8,
         }}
       >
-        <span style={EYEBROW}>{labels.eyebrow}</span>
+        {/* The outcome sits with the numbers, not only in the card's
+            corner: this block is where a reader comes to find out how it
+            ended, and 155 against 179 is not an answer, it is arithmetic
+            homework. */}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+          <span style={EYEBROW}>{labels.eyebrow}</span>
+          {result && labels.results?.[result] && (
+            <ResultPill result={result} label={labels.results[result]} />
+          )}
+        </span>
         {date && (
           <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
             {date}
