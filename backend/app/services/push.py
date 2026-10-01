@@ -41,6 +41,7 @@ from app.models import (
     InitiativeTopic,
     ParliamentaryGroup,
     PushGroupInterest,
+    PushInitiativeInterest,
     PushSubscription,
     PushTopicInterest,
     Topic,
@@ -288,6 +289,7 @@ async def _subscriptions_interested_in(
     session: AsyncSession,
     topic_ids: list[int],
     group_ids: list[int] | None = None,
+    initiative_id: int | None = None,
 ) -> list[PushSubscription]:
     """Distinct subscriptions following ANY of ``topic_ids`` or
     ``group_ids`` (the union).
@@ -300,7 +302,7 @@ async def _subscriptions_interested_in(
     follow is a separate "send me alerts when…" rule.
     """
     group_ids = group_ids or []
-    if not topic_ids and not group_ids:
+    if not topic_ids and not group_ids and initiative_id is None:
         return []
     subs: dict[int, PushSubscription] = {}
     if topic_ids:
@@ -331,6 +333,26 @@ async def _subscriptions_interested_in(
                         PushGroupInterest.subscription_id == PushSubscription.id,
                     )
                     .where(PushGroupInterest.group_id.in_(group_ids))
+                    .distinct()
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for s in rows:
+            subs[s.id] = s
+    # The narrowest channel: whoever follows THIS law hears about it even
+    # when the law carries no topic and no known proposer.
+    if initiative_id is not None:
+        rows = (
+            (
+                await session.execute(
+                    select(PushSubscription)
+                    .join(
+                        PushInitiativeInterest,
+                        PushInitiativeInterest.subscription_id == PushSubscription.id,
+                    )
+                    .where(PushInitiativeInterest.initiative_id == initiative_id)
                     .distinct()
                 )
             )
@@ -370,9 +392,11 @@ async def fan_out_new_vote(
     group_ids: list[int] = []
     if vote.proposing_group_id is not None:
         group_ids = [vote.proposing_group_id]
-    if not topic_ids and not group_ids:
+    if not topic_ids and not group_ids and vote.initiative_id is None:
         return FanOutResult(vote_id=vote_id, sent=0, deleted=0, failed=0, skipped=1)
-    subs = await _subscriptions_interested_in(session, topic_ids, group_ids)
+    subs = await _subscriptions_interested_in(
+        session, topic_ids, group_ids, initiative_id=vote.initiative_id
+    )
     if not subs:
         return FanOutResult(vote_id=vote_id, sent=0, deleted=0, failed=0, skipped=0)
 
@@ -463,6 +487,88 @@ async def upsert_subscription(
     await _sync_group_interests(session, sub, group_slugs or [])
     await session.commit()
     return sub
+
+
+async def set_initiative_interest(
+    session: AsyncSession,
+    *,
+    endpoint: str,
+    initiative_id: int,
+    following: bool,
+) -> bool | None:
+    """Follow or unfollow ONE law for an existing push subscription.
+
+    Add/remove rather than replace-all: the UI is a toggle on a law's page,
+    and a reader following forty laws should not have to send forty ids to
+    change one of them.
+
+    Returns the new state, or None when the endpoint is unknown (the browser
+    lost its subscription, so the caller should re-subscribe first).
+    """
+    from app.models import Initiative
+
+    sub = (
+        await session.execute(select(PushSubscription).where(PushSubscription.endpoint == endpoint))
+    ).scalar_one_or_none()
+    if sub is None:
+        return None
+
+    exists = (
+        await session.execute(select(Initiative.id).where(Initiative.id == initiative_id))
+    ).scalar_one_or_none()
+    if exists is None:
+        return None
+
+    if following:
+        already = (
+            await session.execute(
+                select(PushInitiativeInterest).where(
+                    PushInitiativeInterest.subscription_id == sub.id,
+                    PushInitiativeInterest.initiative_id == initiative_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if already is None:
+            session.add(PushInitiativeInterest(subscription_id=sub.id, initiative_id=initiative_id))
+    else:
+        await session.execute(
+            delete(PushInitiativeInterest).where(
+                PushInitiativeInterest.subscription_id == sub.id,
+                PushInitiativeInterest.initiative_id == initiative_id,
+            )
+        )
+    await session.commit()
+    return following
+
+
+async def followed_initiatives(
+    session: AsyncSession, *, endpoint: str, initiative_ids: list[int]
+) -> list[int]:
+    """Which of ``initiative_ids`` this endpoint already follows.
+
+    Asked by POST rather than GET so the endpoint URL — which identifies a
+    browser — stays out of query strings and server logs.
+    """
+    if not initiative_ids:
+        return []
+    rows = (
+        (
+            await session.execute(
+                select(PushInitiativeInterest.initiative_id)
+                .join(
+                    PushSubscription,
+                    PushSubscription.id == PushInitiativeInterest.subscription_id,
+                )
+                .where(
+                    PushSubscription.endpoint == endpoint,
+                    PushInitiativeInterest.initiative_id.in_(initiative_ids),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [int(r) for r in rows]
 
 
 async def _sync_group_interests(

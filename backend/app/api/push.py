@@ -37,6 +37,8 @@ from app.services.native_push import (
 )
 from app.services.push import (
     delete_subscription,
+    followed_initiatives,
+    set_initiative_interest,
     update_interests,
     upsert_subscription,
 )
@@ -82,6 +84,21 @@ class InterestsRequest(BaseModel):
     # (None semantics). Pass an empty list explicitly to clear all
     # group interests.
     group_slugs: list[str] | None = None
+
+
+class FollowInitiativeRequest(BaseModel):
+    endpoint: str = Field(..., min_length=1)
+    initiative_id: int = Field(..., gt=0)
+    following: bool
+
+
+class FollowingRequest(BaseModel):
+    endpoint: str = Field(..., min_length=1)
+    initiative_ids: list[int] = Field(default_factory=list, max_length=200)
+
+
+class FollowingResponse(BaseModel):
+    following: list[int]
 
 
 class UnsubscribeRequest(BaseModel):
@@ -205,6 +222,48 @@ async def patch_interests(
         topic_slugs=list(payload.topic_slugs),
         group_slugs=list(payload.group_slugs) if payload.group_slugs is not None else [],
     )
+
+
+@router.post("/follow-initiative", response_model=FollowingResponse)
+@limiter.limit("60/minute")
+async def follow_initiative(
+    request: Request,
+    payload: FollowInitiativeRequest,
+    session: AsyncSession = Depends(get_session),
+) -> FollowingResponse:
+    """Follow or unfollow one law, for a browser that is already subscribed.
+
+    404 when the endpoint is unknown: the browser's subscription expired or
+    was never registered, and the client has to subscribe before it can
+    follow anything.
+    """
+    state = await set_initiative_interest(
+        session,
+        endpoint=payload.endpoint,
+        initiative_id=payload.initiative_id,
+        following=payload.following,
+    )
+    if state is None:
+        raise HTTPException(status_code=404, detail="Subscription or initiative not found.")
+    return FollowingResponse(following=[payload.initiative_id] if state else [])
+
+
+@router.post("/following", response_model=FollowingResponse)
+@limiter.limit("60/minute")
+async def following(
+    request: Request,
+    payload: FollowingRequest,
+    session: AsyncSession = Depends(get_session),
+) -> FollowingResponse:
+    """Which of these laws does this browser already follow?
+
+    A POST, not a GET: the push endpoint identifies a browser, and query
+    strings end up in logs and referrers.
+    """
+    ids = await followed_initiatives(
+        session, endpoint=payload.endpoint, initiative_ids=payload.initiative_ids
+    )
+    return FollowingResponse(following=ids)
 
 
 @router.post("/unsubscribe", response_model=StatusResponse)

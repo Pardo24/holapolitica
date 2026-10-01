@@ -337,6 +337,8 @@
     "chain_you_are_here": "Ets aquí",
     "chain_title": "El recorregut d'aquesta llei, votació a votació",
     "chain_part_of": "Aquesta votació forma part de",
+    "follow_off": "Segueix aquesta llei",
+    "follow_on": "La segueixes",
     "affects_label": "A qui afecta"
   },
   "law_journey": {

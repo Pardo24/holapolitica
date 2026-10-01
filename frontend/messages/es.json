@@ -337,6 +337,8 @@
     "chain_you_are_here": "Estás aquí",
     "chain_title": "El recorrido de esta ley, votación a votación",
     "chain_part_of": "Esta votación forma parte de",
+    "follow_off": "Sigue esta ley",
+    "follow_on": "La sigues",
     "affects_label": "A quién afecta"
   },
   "law_journey": {

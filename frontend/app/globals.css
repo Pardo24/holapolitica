@@ -1713,3 +1713,7 @@ button {
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 34px, #000 calc(100% - 34px), transparent 100%);
 }
+
+/* Spinner for buttons that wait on a round trip (following a law, …). */
+.spin { animation: hp-spin 0.9s linear infinite; }
+@keyframes hp-spin { to { transform: rotate(360deg); } }

@@ -1277,6 +1277,23 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    /** Follow or unfollow one law for a browser that is already subscribed. */
+    followInitiative: (body: {
+      endpoint: string;
+      initiative_id: number;
+      following: boolean;
+    }) =>
+      request<{ following: number[] }>('/push/follow-initiative', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    /** Which of these laws does this browser follow? POST, so the endpoint
+     *  (which identifies a browser) stays out of query strings and logs. */
+    following: (body: { endpoint: string; initiative_ids: number[] }) =>
+      request<{ following: number[] }>('/push/following', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
     updateInterests: (body: {
       endpoint: string;
       topic_slugs: string[];

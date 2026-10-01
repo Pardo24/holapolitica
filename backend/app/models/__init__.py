@@ -681,6 +681,11 @@ class PushSubscription(Base, TimestampMixin):
         back_populates="subscription",
         cascade="all, delete-orphan",
     )
+    initiative_interests: Mapped[list[PushInitiativeInterest]] = relationship(
+        "PushInitiativeInterest",
+        back_populates="subscription",
+        cascade="all, delete-orphan",
+    )
 
 
 class PushTopicInterest(Base, TimestampMixin):
@@ -734,6 +739,40 @@ class PushGroupInterest(Base, TimestampMixin):
 
     subscription: Mapped[PushSubscription] = relationship(
         "PushSubscription", back_populates="group_interests"
+    )
+
+
+class PushInitiativeInterest(Base, TimestampMixin):
+    """Junction: which individual laws a push subscription follows.
+
+    The third interest channel, and the narrowest: topic and group answer
+    "tell me about this subject / this party", this one answers "tell me how
+    THIS law ends". A bill is voted several times over months, so without it
+    the only way to find out was to come back and look.
+
+    Unioned with the other two by the fan-out, so a reader following a law
+    hears about every vote on it even when the law carries no topic.
+    """
+
+    __tablename__ = "push_initiative_interests"
+    __table_args__ = (
+        UniqueConstraint("subscription_id", "initiative_id", name="uq_push_initiative_interest"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    subscription_id: Mapped[int] = mapped_column(
+        ForeignKey("push_subscriptions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    initiative_id: Mapped[int] = mapped_column(
+        ForeignKey("initiatives.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    subscription: Mapped[PushSubscription] = relationship(
+        "PushSubscription", back_populates="initiative_interests"
     )
 
 

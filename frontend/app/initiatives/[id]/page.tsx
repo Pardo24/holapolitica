@@ -20,6 +20,7 @@ import {
   type StanceLabels,
 } from '@/components/PartyStanceRow';
 import { ResultPill } from '@/components/ResultPill';
+import { FollowLawButton } from '@/components/FollowLawButton';
 import { ShareButton } from '@/components/ShareButton';
 import { StackedBar } from '@/components/StackedBar';
 import { SummaryBody } from '@/components/SummaryBody';
@@ -394,6 +395,9 @@ export default async function InitiativeDetailPage({
             <RouteIcon size={12} aria-hidden="true" />
             {tLifecycle('cta_short')}
           </Link>
+          {/* "Tell me how this one ends": a law is voted several times over
+              months, and the only way to find out was to come back. */}
+          <FollowLawButton initiativeId={initiative.id} />
           <ShareButton url={`/initiatives/${initiative.id}`} title={title} size="sm" label={tVotes('share_cta')} />
         </div>
       </header>

@@ -337,6 +337,8 @@
     "chain_you_are_here": "You are here",
     "chain_title": "This law's journey, vote by vote",
     "chain_part_of": "This vote is part of",
+    "follow_off": "Follow this law",
+    "follow_on": "Following",
     "affects_label": "Who it affects"
   },
   "law_journey": {
