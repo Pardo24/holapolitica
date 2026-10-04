@@ -764,10 +764,15 @@ function ProfileStatCard({
                   display: '-webkit-box',
                   WebkitBoxOrient: 'vertical',
                   WebkitLineClamp: 2,
-                  // The clamp alone left the box 2.74 lines tall in current
-                  // Chrome, so a third line showed with its lower half sliced
-                  // off. An explicit two-line ceiling cuts on a line boundary
-                  // whether or not the clamp takes effect.
+                  // A two-line ceiling that cuts on a line boundary whether
+                  // or not -webkit-line-clamp takes effect (current Chrome
+                  // blockifies -webkit-box and the clamp stopped holding).
+                  // content-box because the tap-target rule in globals.css
+                  // adds 6px of padding to `li > a` on coarse pointers:
+                  // measured border-box, those 12px came out of the text's own
+                  // allowance and sliced the second line in half on phones
+                  // while desktop looked fine.
+                  boxSizing: 'content-box',
                   maxHeight: 'calc(1.35em * 2)',
                   overflow: 'hidden',
                 }}
