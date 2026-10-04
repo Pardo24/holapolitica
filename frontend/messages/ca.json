@@ -618,10 +618,10 @@
     "scope_label": "Àmbit",
     "website": "Web oficial",
     "wikipedia": "Wikipedia",
-    "civic_mark_caption": "Identificador visual neutral. No utilitzem el logo oficial.",
+    "civic_mark_caption": "Logotip oficial del partit, reproduït només per identificar-lo. Els grups sense logotip a l'arxiu surten amb el seu color.",
     "breadcrumb_groups": "Grups",
     "group_eyebrow": "Grup parlamentari",
-    "civic_mark_eyebrow": "Marca cívica",
+    "civic_mark_eyebrow": "Logotip",
     "color_identifier_label": "Color identificatiu",
     "vote_by_topic_title": "Vot per tema",
     "vote_by_topic_subtitle": "Per cada tema, percentatge de vots emesos pels membres del grup en sentit afirmatiu o negatiu. Denominador: vots emesos (Sí + No + Abst.).",
@@ -1191,7 +1191,9 @@
     "hub_subscribe_eyebrow": "Segueix aquest tema",
     "hub_subscribe_title": "Rep al teu correu què passa amb {topic}",
     "hub_subscribe_body": "Configura una subscripció per tema i et farem arribar un resum quan hi hagi votacions o iniciatives noves classificades sota {topic}.",
-    "hub_subscribe_cta": "Activa les notificacions"
+    "hub_subscribe_cta": "Activa les notificacions",
+    "kpi_other": "Altres",
+    "kpi_withdrawn_or_expired": "retirades o caducades"
   },
   "stats": {
     "title": "Dades",
@@ -1316,7 +1318,9 @@
     "headline_approved_label": "iniciatives aprovades",
     "headline_approved_note": "De {total} registrades. La resta segueixen en tràmit, s'han rebutjat o han decaigut.",
     "headline_classified_label": "classificades per tema",
-    "headline_classified_note": "Proporció d'iniciatives amb tema assignat automàticament, que és el que permet filtrar."
+    "headline_classified_note": "Proporció d'iniciatives amb tema assignat automàticament, que és el que permet filtrar.",
+    "cohesion_short": "Cohesió",
+    "attendance_short": "Vots emesos"
   },
   "quiz": {
     "meta_title": "Joc cívic · Hola Política",
@@ -1483,7 +1487,10 @@
     "Convalidación": "Aprovació pel Congrés d'un Reial Decret-llei del Govern, donant-li valor de llei vigent.",
     "Derogació": "Anul·lació pel Congrés d'un Reial Decret-llei del Govern dins dels 30 dies posteriors a la seva entrada en vigor.",
     "Derogación": "Anul·lació pel Congrés d'un Reial Decret-llei del Govern dins dels 30 dies posteriors a la seva entrada en vigor.",
-    "Vots emesos": "Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. Veure /about/data per a la metodologia completa."
+    "Vots emesos": "Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. Veure /about/data per a la metodologia completa.",
+    "approval_rate": "% d'iniciatives aprovades sobre les que han arribat a votació final (aprovades + rebutjades). Les que estan en tràmit no compten.",
+    "data_source": "Dades del portal d'Open Data del Congrés (congreso.es). Actualitzem cada 4 hores. La classificació temàtica és automàtica via LLM.",
+    "cohesion": "% de membres del grup que voten igual. Cohesió 100% = disciplina total; números més baixos = més votacions creuades."
   },
   "newsletter": {
     "signup_eyebrow": "Newsletter setmanal",

@@ -1802,3 +1802,16 @@ button {
   left: 22px;
   transform: none;
 }
+
+/* The counts at the top of a topic. Four cells across a phone gave each one
+   about 85px, so a two-word label wrapped to three lines beside a one-word
+   label that didn't, and the row read as rubble. Two up on a phone, all of
+   them in a row once there is width for it. */
+.topic-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+}
+@media (min-width: 620px) {
+  .topic-kpi-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; }
+}

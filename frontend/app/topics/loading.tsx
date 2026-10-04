@@ -1,12 +1,15 @@
+import { getTranslations } from 'next-intl/server';
+
 /**
  * Skeleton for /topics during SSR revalidation. Mirrors the grid of
  * topic cards in the live page.
  */
-export default function TopicsLoading() {
+export default async function TopicsLoading() {
+  const t = await getTranslations('common');
   return (
     <div
       aria-busy="true"
-      aria-label="Carregant temes…"
+      aria-label={t('loading')}
       style={{
         paddingTop: 18,
         paddingBottom: 32,

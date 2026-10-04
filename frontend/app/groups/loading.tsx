@@ -1,12 +1,15 @@
+import { getTranslations } from 'next-intl/server';
+
 /**
  * Skeleton for /groups during SSR revalidation. Mirrors the live
  * page's structure: heading + a grid of group cards.
  */
-export default function GroupsLoading() {
+export default async function GroupsLoading() {
+  const t = await getTranslations('common');
   return (
     <div
       aria-busy="true"
-      aria-label="Carregant grups parlamentaris…"
+      aria-label={t('loading')}
       style={{
         paddingTop: 18,
         paddingBottom: 32,

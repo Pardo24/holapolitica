@@ -618,10 +618,10 @@
     "scope_label": "Ámbito",
     "website": "Web oficial",
     "wikipedia": "Wikipedia",
-    "civic_mark_caption": "Identificador visual neutral. No utilizamos el logo oficial.",
+    "civic_mark_caption": "Logotipo oficial del partido, reproducido solo para identificarlo. Los grupos sin logotipo en el archivo se muestran con su color.",
     "breadcrumb_groups": "Grupos",
     "group_eyebrow": "Grupo parlamentario",
-    "civic_mark_eyebrow": "Marca cívica",
+    "civic_mark_eyebrow": "Logotipo",
     "color_identifier_label": "Color identificativo",
     "vote_by_topic_title": "Voto por tema",
     "vote_by_topic_subtitle": "Por cada tema, porcentaje de votos emitidos por los miembros del grupo en sentido afirmativo o negativo. Denominador: votos emitidos (Sí + No + Abst.).",
@@ -1191,7 +1191,9 @@
     "hub_subscribe_eyebrow": "Sigue este tema",
     "hub_subscribe_title": "Recibe en tu correo qué pasa con {topic}",
     "hub_subscribe_body": "Configura una suscripción por tema y te enviaremos un resumen cuando haya votaciones o iniciativas nuevas clasificadas bajo {topic}.",
-    "hub_subscribe_cta": "Activa las notificaciones"
+    "hub_subscribe_cta": "Activa las notificaciones",
+    "kpi_other": "Otras",
+    "kpi_withdrawn_or_expired": "retiradas o caducadas"
   },
   "stats": {
     "title": "Datos",
@@ -1316,7 +1318,9 @@
     "headline_approved_label": "iniciativas aprobadas",
     "headline_approved_note": "De {total} registradas. El resto siguen en trámite, se han rechazado o han decaído.",
     "headline_classified_label": "clasificadas por tema",
-    "headline_classified_note": "Proporción de iniciativas con tema asignado automáticamente, que es lo que permite filtrar."
+    "headline_classified_note": "Proporción de iniciativas con tema asignado automáticamente, que es lo que permite filtrar.",
+    "cohesion_short": "Cohesión",
+    "attendance_short": "Votos emitidos"
   },
   "quiz": {
     "meta_title": "Juego cívico · Hola Política",
@@ -1484,7 +1488,10 @@
     "Derogació": "Anulación por el Congreso de un Real Decreto-ley del Gobierno dentro de los 30 días posteriores a su entrada en vigor.",
     "Derogación": "Anulación por el Congreso de un Real Decreto-ley del Gobierno dentro de los 30 días posteriores a su entrada en vigor.",
     "Vots emesos": "Porcentaje de votaciones en que el diputado emitió un voto (Sí, No o Abstención) sobre el total de votaciones de su mandato. No incluye ausencias justificadas (baja médica, permiso parental). Las votaciones realizadas como ministro o miembro del Gobierno se cuentan según la convención parlamentaria. Véase /about/data para la metodología completa.",
-    "Votos emitidos": "Porcentaje de votaciones en que el diputado emitió un voto (Sí, No o Abstención) sobre el total de votaciones de su mandato. No incluye ausencias justificadas (baja médica, permiso parental). Las votaciones realizadas como ministro o miembro del Gobierno se cuentan según la convención parlamentaria. Véase /about/data para la metodología completa."
+    "Votos emitidos": "Porcentaje de votaciones en que el diputado emitió un voto (Sí, No o Abstención) sobre el total de votaciones de su mandato. No incluye ausencias justificadas (baja médica, permiso parental). Las votaciones realizadas como ministro o miembro del Gobierno se cuentan según la convención parlamentaria. Véase /about/data para la metodología completa.",
+    "approval_rate": "% de iniciativas aprobadas sobre las que han llegado a votación final (aprobadas + rechazadas). Las que están en tramitación no cuentan.",
+    "data_source": "Datos del portal de Open Data del Congreso (congreso.es). Actualizamos cada 4 horas. La clasificación temática es automática mediante LLM.",
+    "cohesion": "% de miembros del grupo que votan igual. Cohesión 100% = disciplina total; números más bajos = más votaciones cruzadas."
   },
   "newsletter": {
     "signup_eyebrow": "Newsletter semanal",

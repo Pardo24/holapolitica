@@ -30,7 +30,7 @@ import type {
   TopicProposers,
   TopicVoteStat,
 } from '@/lib/api';
-import { glossaryShort, pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
+import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -103,6 +103,7 @@ export async function MobileStatsDashboard({
   locale: string;
 }) {
   const t = await getTranslations('dashboard');
+  const tGlossary = await getTranslations('glossary');
   const hasTopic = selectedTopic !== 'all';
   const focusedTopic = hasTopic
     ? topics.find((tt) => tt.topic_slug === selectedTopic) ?? null
@@ -203,6 +204,7 @@ export async function MobileStatsDashboard({
               labels={{
                 eyebrow: t('stance_eyebrow'),
                 minVotes: t('stance_min_votes'),
+                minVotesHelp: tGlossary('approval_rate'),
                 supports: t('stance_supports'),
                 rejects: t('stance_rejects'),
                 votesEmitted: (count: number) =>
@@ -1280,6 +1282,8 @@ interface GroupStance {
 interface StanceLabels {
   eyebrow: string;
   minVotes: string;
+  /** What the approval rate counts. Was Catalan in every locale. */
+  minVotesHelp: string;
   supports: string;
   rejects: string;
   votesEmitted: (count: number) => string;
@@ -1391,7 +1395,7 @@ function PerTopicCoincidenceBody({
             />
           </div>
           <p style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 10 }}>
-            <span title={glossaryShort('approval_rate')}>{labels.minVotes}</span>
+            <span title={labels.minVotesHelp}>{labels.minVotes}</span>
           </p>
         </>
       )}

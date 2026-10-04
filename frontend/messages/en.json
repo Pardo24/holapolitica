@@ -618,10 +618,10 @@
     "scope_label": "Scope",
     "website": "Official site",
     "wikipedia": "Wikipedia",
-    "civic_mark_caption": "Neutral civic identifier. We don't use the official party logo.",
+    "civic_mark_caption": "The party's official logo, reproduced for identification only. Groups with no logo on file show their colour instead.",
     "breadcrumb_groups": "Groups",
     "group_eyebrow": "Parliamentary group",
-    "civic_mark_eyebrow": "Civic mark",
+    "civic_mark_eyebrow": "Logo",
     "color_identifier_label": "Identifier colour",
     "vote_by_topic_title": "Voting by topic",
     "vote_by_topic_subtitle": "For each topic, the percentage of votes cast by the group's members in favour or against. Denominator: votes cast (Aye + No + Abstain).",
@@ -1191,7 +1191,9 @@
     "hub_subscribe_eyebrow": "Follow this topic",
     "hub_subscribe_title": "Get email updates on {topic}",
     "hub_subscribe_body": "Subscribe to per-topic emails and we'll send a digest whenever new votes or initiatives are classified under {topic}.",
-    "hub_subscribe_cta": "Enable notifications"
+    "hub_subscribe_cta": "Enable notifications",
+    "kpi_other": "Other",
+    "kpi_withdrawn_or_expired": "withdrawn or expired"
   },
   "stats": {
     "title": "Data",
@@ -1316,7 +1318,9 @@
     "headline_approved_label": "initiatives approved",
     "headline_approved_note": "Out of {total} recorded. The rest are still in progress, rejected or lapsed.",
     "headline_classified_label": "classified by topic",
-    "headline_classified_note": "Share of initiatives with a topic assigned automatically, which is what makes filtering possible."
+    "headline_classified_note": "Share of initiatives with a topic assigned automatically, which is what makes filtering possible.",
+    "cohesion_short": "Cohesion",
+    "attendance_short": "Votes cast"
   },
   "quiz": {
     "meta_title": "Civic quiz · Hola Política",
@@ -1484,7 +1488,10 @@
     "Derogació": "Repeal by Congress of a government Real Decreto-ley within the 30 days following its entry into force.",
     "Derogación": "Repeal by Congress of a government Real Decreto-ley within the 30 days following its entry into force.",
     "Vots emesos": "Share of votes in which the MP cast a ballot (Yes, No or Abstain) out of the total votes during their term. Excludes justified absences (medical leave, parental leave). Votes cast as a minister or government member are counted according to parliamentary convention. See /about/data for the full methodology.",
-    "Votes cast": "Share of votes in which the MP cast a ballot (Yes, No or Abstain) out of the total votes during their term. Excludes justified absences (medical leave, parental leave). Votes cast as a minister or government member are counted according to parliamentary convention. See /about/data for the full methodology."
+    "Votes cast": "Share of votes in which the MP cast a ballot (Yes, No or Abstain) out of the total votes during their term. Excludes justified absences (medical leave, parental leave). Votes cast as a minister or government member are counted according to parliamentary convention. See /about/data for the full methodology.",
+    "approval_rate": "Share of initiatives approved out of those that reached a final vote (approved + rejected). Those still in the pipeline don't count.",
+    "data_source": "Data from the Congress Open Data portal (congreso.es). Refreshed every 4 hours. Topic classification is automatic, via an LLM.",
+    "cohesion": "Share of group members voting the same way. 100% cohesion = full discipline; lower numbers = more split votes."
   },
   "newsletter": {
     "signup_eyebrow": "Weekly newsletter",

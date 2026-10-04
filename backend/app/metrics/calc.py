@@ -1014,6 +1014,10 @@ class StanceExampleRow:
     title: str
     voted_at: date
     result: str
+    # The generated headline, so the example reads as a sentence about the
+    # law instead of as the expedient's official wording.
+    plain_title_ca: str | None = None
+    plain_title_es: str | None = None
 
 
 async def example_votes_by_group_stance(
@@ -1036,7 +1040,15 @@ async def example_votes_by_group_stance(
     aye = func.sum(case((VoteRecord.choice == VoteChoice.AYE, 1), else_=0))
     no = func.sum(case((VoteRecord.choice == VoteChoice.NO, 1), else_=0))
     stmt = (
-        select(Vote.id, Vote.title, Vote.description, Vote.voted_at, Vote.result)
+        select(
+            Vote.id,
+            Vote.title,
+            Vote.description,
+            Vote.voted_at,
+            Vote.result,
+            Vote.plain_title_ca,
+            Vote.plain_title_es,
+        )
         .select_from(Vote)
         .join(Initiative, Initiative.id == Vote.initiative_id)
         .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
@@ -1045,7 +1057,15 @@ async def example_votes_by_group_stance(
             VoteRecord,
             and_(VoteRecord.vote_id == Vote.id, VoteRecord.group_id_at_time == group_id),
         )
-        .group_by(Vote.id, Vote.title, Vote.description, Vote.voted_at, Vote.result)
+        .group_by(
+            Vote.id,
+            Vote.title,
+            Vote.description,
+            Vote.voted_at,
+            Vote.result,
+            Vote.plain_title_ca,
+            Vote.plain_title_es,
+        )
         .having(aye > no if stance == "aye" else no > aye)
         .order_by(Vote.voted_at.desc())
         .limit(limit)
@@ -1057,8 +1077,18 @@ async def example_votes_by_group_stance(
             title=(description or title or "").strip(),
             voted_at=voted_at,
             result=str(result),
+            plain_title_ca=plain_title_ca,
+            plain_title_es=plain_title_es,
         )
-        for vote_id, title, description, voted_at, result in rows
+        for (
+            vote_id,
+            title,
+            description,
+            voted_at,
+            result,
+            plain_title_ca,
+            plain_title_es,
+        ) in rows
     ]
 
 

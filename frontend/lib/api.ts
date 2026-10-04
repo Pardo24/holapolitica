@@ -555,6 +555,8 @@ export interface GroupStanceExample {
   title: string;
   voted_at: string;
   result: VoteResult;
+  plain_title_ca?: string | null;
+  plain_title_es?: string | null;
 }
 
 export interface TopicGlobalStat {

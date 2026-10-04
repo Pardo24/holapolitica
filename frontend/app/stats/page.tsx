@@ -32,7 +32,7 @@ import {
   type TopicVoteStat,
 } from '@/lib/api';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
-import { glossaryShort, pickPlainSummary } from '@/lib/glossary';
+import { pickPlainSummary } from '@/lib/glossary';
 import { displayGroupShort } from '@/lib/groups';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
 import { pickTopicName, resolveTopicName } from '@/lib/topics';
@@ -80,6 +80,7 @@ export default async function StatsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations('stats');
+  const tGlossary = await getTranslations('glossary');
   const locale = await getLocale();
   const params = await searchParams;
   const selectedTopic = params.topic ?? 'all';
@@ -462,7 +463,7 @@ export default async function StatsPage({
                   topic={focusedTopic}
                   fallbackName={focusedTopicName}
                   locale={locale}
-                  labels={approvalRateLabels(t)}
+                  labels={approvalRateLabels(t, tGlossary)}
                 />
               </Section>
 
@@ -573,7 +574,7 @@ export default async function StatsPage({
                   topic={focusedTopic}
                   fallbackName={focusedTopicName}
                   locale={locale}
-                  labels={approvalRateLabels(t)}
+                  labels={approvalRateLabels(t, tGlossary)}
                 />
               </Section>
 
@@ -669,6 +670,9 @@ export default async function StatsPage({
                         t('attendance_members_counted', { count }),
                       members_active: t('members_active_label'),
                       at_consultation: t('at_consultation_moment'),
+                      cohesion: t('cohesion_short'),
+                      cohesion_help: tGlossary('cohesion'),
+                      attendance: t('attendance_short'),
                     }}
                   />
                 </Section>
@@ -695,6 +699,10 @@ export default async function StatsPage({
 }
 
 type StatsT = Awaited<ReturnType<typeof getTranslations<'stats'>>>;
+/** The ``glossary`` namespace: the tooltip definitions, per locale.
+ *  These used to come from a Catalan-only table in lib/glossary.ts, so a
+ *  Spanish reader tapping "Índice de aprobación" got Catalan. */
+type GlossaryT = Awaited<ReturnType<typeof getTranslations<'glossary'>>>;
 
 function kpiLabels(t: StatsT): KpiLabels {
   return {
@@ -817,6 +825,7 @@ async function FilterBar({
   selectedGroup: string;
 }) {
   const t = await getTranslations('stats');
+  const tGlossary = await getTranslations('glossary');
   const tStatsFilter = await getTranslations('stats_filter');
   const hasAny = selectedTopic !== 'all' || selectedGroup !== 'all';
   return (
@@ -1306,9 +1315,11 @@ interface ApprovalRateLabels {
   status_rejected: string;
   status_in_debate: string;
   status_other: string;
+  /** What the rate counts, for the tooltip on the label. */
+  approval_rate_help: string;
 }
 
-function approvalRateLabels(t: StatsT): ApprovalRateLabels {
+function approvalRateLabels(t: StatsT, tGloss: GlossaryT): ApprovalRateLabels {
   return {
     topic_selected: t('topic_selected'),
     global_view: t('global_view'),
@@ -1321,6 +1332,7 @@ function approvalRateLabels(t: StatsT): ApprovalRateLabels {
     status_rejected: t('status_plural_rejected'),
     status_in_debate: t('status_plural_in_debate'),
     status_other: t('status_other_short'),
+    approval_rate_help: tGloss('approval_rate'),
   };
 }
 
@@ -1405,10 +1417,7 @@ function ApprovalRateWidget({
       >
         <div>
           <div className="eyebrow" style={{ fontSize: 9 }}>
-            <Tooltip
-              term={labels.approval_rate}
-              explanation={glossaryShort('approval_rate')}
-            />
+            <Tooltip term={labels.approval_rate} explanation={labels.approval_rate_help} />
           </div>
           <div
             className="tabular"
@@ -1757,6 +1766,10 @@ interface GroupOwnLabels {
   attendance_members_counted: (count: number) => string;
   members_active: string;
   at_consultation: string;
+  /** "Cohesió" / "Cohesión" / "Cohesion", and what it means. */
+  cohesion: string;
+  cohesion_help: string;
+  attendance: string;
 }
 
 function GroupOwnMetrics({
@@ -1778,13 +1791,13 @@ function GroupOwnMetrics({
       }}
     >
       <MetricCard
-        label={<Tooltip term="Cohesió" explanation={glossaryShort('cohesion')} />}
+        label={<Tooltip term={labels.cohesion} explanation={labels.cohesion_help} />}
         value={cohesionPct}
         sub={labels.cohesion_votes_counted(row.cohesion_votes_counted)}
         color={row.group_color_hex ?? 'var(--ink)'}
       />
       <MetricCard
-        label={<GlossaryTerm term="Vots emesos">Vots emesos</GlossaryTerm>}
+        label={<GlossaryTerm term="Vots emesos">{labels.attendance}</GlossaryTerm>}
         value={attendancePct}
         sub={labels.attendance_members_counted(row.attendance_member_count)}
         color="var(--accent)"

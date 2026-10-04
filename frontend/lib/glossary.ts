@@ -3,89 +3,18 @@
  * concise (<200 chars) — they appear in tooltips, not paragraphs. The
  * full glossary on /about gets the longer explanations.
  *
- * Two kinds of entries live here:
+ * The definitions themselves live in ``messages/<locale>.json`` under
+ * ``glossary``, keyed by the canonical Catalan label, so every locale gets
+ * its own wording. This module keeps the Catalan copy as a last-resort
+ * fallback plus the machinery that finds those terms inside free text.
  *
- * 1. Stat keys (``cohesion``, ``attendance``, ``approval_rate``,
- *    ``data_source``) and initiative-type codes (``proyecto_ley``…) used
- *    by the existing CSS-only ``<Tooltip>`` component via
- *    ``glossaryShort(key)``.
- *
- * 2. Parliamentary terms keyed by their *human label* (e.g. ``"Cohesió
- *    de grup"``), used by the ``<GlossaryTerm>`` component. These appear
- *    verbatim in section headers and KPI labels around the app; keep the
- *    keys identical to the visible text so authors can apply the
- *    component without an indirection.
+ * There used to be a second, Catalan-only table here that fed the stat
+ * tooltips (``approval_rate``, ``data_source``, ``cohesion``) through a
+ * ``glossaryShort()`` helper. It had no locale parameter, so Spanish and
+ * English readers were shown Catalan help text on /stats and on every
+ * topic page. Those call sites now translate like everything else; don't
+ * reintroduce a lookup that can't see the locale.
  */
-
-export interface GlossaryEntry {
-  /** What shows on hover. */
-  short: string;
-  /** Initiative type code or stat-key from the backend. */
-  key: string;
-}
-
-const ENTRIES: Record<string, GlossaryEntry> = {
-  proyecto_ley: {
-    key: 'proyecto_ley',
-    short:
-      'Llei proposada pel Govern. Si s\'aprova, esdevé llei vigent.',
-  },
-  proposicion_ley: {
-    key: 'proposicion_ley',
-    short:
-      'Llei proposada per un grup parlamentari (no pel Govern). Si s\'aprova, esdevé llei vigent.',
-  },
-  proposicion_no_ley: {
-    key: 'proposicion_no_ley',
-    short:
-      'Proposta NO vinculant. Demana al Govern fer alguna cosa, però no canvia la llei. Són les votacions més freqüents al ple.',
-  },
-  real_decreto_ley: {
-    key: 'real_decreto_ley',
-    short:
-      'Norma amb força de llei dictada pel Govern per urgència. El Congrés ha de convalidar-la o derogar-la en 30 dies.',
-  },
-  mocion: {
-    key: 'mocion',
-    short:
-      'Després d\'una pregunta urgent al Govern (interpel·lació), un grup pot presentar una moció demanant una posició concreta.',
-  },
-  interpelacion: {
-    key: 'interpelacion',
-    short:
-      'Pregunta urgent feta pel Congrés al Govern sobre una qüestió política concreta.',
-  },
-  reforma_estatuto: {
-    key: 'reforma_estatuto',
-    short:
-      'Modificació d\'un Estatut d\'autonomia. Tramitació especial.',
-  },
-  cohesion: {
-    key: 'cohesion',
-    short:
-      '% de membres del grup que voten igual. Cohesió 100% = disciplina total; números més baixos = més votacions creuades.',
-  },
-  attendance: {
-    key: 'attendance',
-    short:
-      '% de vots Sí/No/Abstenció emesos respecte el total convocat. No comptem absents per malaltia o permís.',
-  },
-  approval_rate: {
-    key: 'approval_rate',
-    short:
-      '% d\'iniciatives aprovades sobre les que han arribat a votació final (aprovades + rebutjades). Les que estan en tràmit no compten.',
-  },
-  data_source: {
-    key: 'data_source',
-    short:
-      'Dades del portal d\'Open Data del Congrés (congreso.es). Actualitzem cada 4 hores. La classificació temàtica és automàtica via LLM.',
-  },
-};
-
-/** Look up the short tooltip text by key. Returns the key itself if missing. */
-export function glossaryShort(key: string): string {
-  return ENTRIES[key]?.short ?? '';
-}
 
 /**
  * Definitions of parliamentary terms, keyed by their Catalan label as it

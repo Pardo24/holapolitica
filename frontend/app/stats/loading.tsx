@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server';
+
 /**
  * Skeleton for /stats while Next.js (re)renders the page on the server.
  *
@@ -10,11 +12,12 @@
  * Visual budget: cheap CSS-only shimmering rectangles in the same
  * vertical rhythm as the real sections, no client JS, no fetches.
  */
-export default function StatsLoading() {
+export default async function StatsLoading() {
+  const t = await getTranslations('common');
   return (
     <div
       aria-busy="true"
-      aria-label="Carregant estadístiques…"
+      aria-label={t('loading')}
       style={{ paddingTop: 18, paddingBottom: 32, animation: 'pulse 1.6s ease-in-out infinite' }}
     >
       {/* Page header skeleton */}

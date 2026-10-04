@@ -21,6 +21,7 @@ import {
   type TopicVoteStat,
   type Vote,
 } from '@/lib/api';
+import { pickPlainTitle } from '@/lib/glossary';
 import { displayGroupFullName, groupAbbreviation, groupInfo } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -138,12 +139,23 @@ export default async function GroupDetailPage({
           .catch(() => [] as GroupStanceExample[])
       : Promise.resolve([] as GroupStanceExample[]),
   ]);
+  // The generated headline where there is one. These three lists are the
+  // only place on the site that still showed a reader the expedient's
+  // official wording ("Moción consecuencia de interpelación urgente del
+  // Grupo Parlamentario Republicano, sobre el impacto en…") as an example
+  // of what a party works on.
   const proposeExamples = proposeRaw.map((v) => ({
     id: v.id,
-    title: v.description?.trim() || v.title,
+    title: pickPlainTitle(v, locale) ?? (v.description?.trim() || v.title),
   }));
-  const yesExamples = yesRaw.map((e) => ({ id: e.vote_id, title: e.title }));
-  const noExamples = noRaw.map((e) => ({ id: e.vote_id, title: e.title }));
+  const yesExamples = yesRaw.map((e) => ({
+    id: e.vote_id,
+    title: pickPlainTitle(e, locale) ?? e.title,
+  }));
+  const noExamples = noRaw.map((e) => ({
+    id: e.vote_id,
+    title: pickPlainTitle(e, locale) ?? e.title,
+  }));
 
   const hasProfile = topPropose !== null || topYes !== null || topNo !== null;
 
@@ -752,6 +764,11 @@ function ProfileStatCard({
                   display: '-webkit-box',
                   WebkitBoxOrient: 'vertical',
                   WebkitLineClamp: 2,
+                  // The clamp alone left the box 2.74 lines tall in current
+                  // Chrome, so a third line showed with its lower half sliced
+                  // off. An explicit two-line ceiling cuts on a line boundary
+                  // whether or not the clamp takes effect.
+                  maxHeight: 'calc(1.35em * 2)',
                   overflow: 'hidden',
                 }}
               >

@@ -18,8 +18,9 @@ import {
   type TopicNewsItem,
   type Vote,
 } from '@/lib/api';
-import { glossaryShort } from '@/lib/glossary';
 import { parseProposer, type ParsedProposer } from '@/lib/groups';
+import { effectiveResult, lawBucket } from '@/lib/lawStatus';
+import { pickPlainTitle } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
 
 interface Params {
@@ -56,9 +57,6 @@ function normalizeForSearch(value: string): string {
     .trim();
 }
 
-const PENDING_STATUSES = new Set(['submitted', 'in_debate']);
-const VOTED_STATUSES = new Set(['approved', 'rejected']);
-const OTHER_STATUSES = new Set(['withdrawn', 'expired']);
 
 type Subset = 'pending' | 'voted' | 'other';
 
@@ -72,6 +70,9 @@ export default async function TopicDetailPage({
   const { slug } = await params;
   const sp = await searchParams;
   const t = await getTranslations('topic');
+  // The tooltip definitions, per locale. They used to come from a
+  // Catalan-only table, so a Spanish reader got Catalan help text.
+  const tGlossary = await getTranslations('glossary');
   const locale = await getLocale();
 
   // URL-bound UI state. Each defaults to a safe value so a bare URL still
@@ -149,19 +150,32 @@ export default async function TopicDetailPage({
   const matchesAllFilters = (init: Initiative): boolean =>
     matchesGroupFilter(init) && matchesQueryFilter(init);
 
-  const pendingAll = initiatives.filter((i) => PENDING_STATUSES.has(i.status));
-  const votedAll = initiatives.filter((i) => VOTED_STATUSES.has(i.status));
-  // Terminal-but-not-decided bucket: withdrawn / expired initiatives. These
-  // never reached an aye/no result but are no longer in flight either —
-  // exposing them under their own "Altres" tab keeps the row visible without
-  // mixing it into the active subsets above.
-  const otherAll = initiatives.filter((i) => OTHER_STATUSES.has(i.status));
+  // Buckets come from ``lawBucket``, the same rule the card's own result
+  // chip uses. Splitting on the raw status put a row the card had already
+  // marked "Aprovada" inside the "Per votar" tab, because the portal leaves
+  // decree-laws at "submitted" long after the chamber has voted them. The
+  // "Altres" bucket is withdrawn / expired: over, but never decided.
+  const pendingAll = initiatives.filter(
+    (i) => lawBucket(i.status, i.latest_vote_result) === 'pending',
+  );
+  const votedAll = initiatives.filter(
+    (i) => lawBucket(i.status, i.latest_vote_result) === 'voted',
+  );
+  const otherAll = initiatives.filter(
+    (i) => lawBucket(i.status, i.latest_vote_result) === 'other',
+  );
   const pending = pendingAll.filter(matchesAllFilters);
   const voted = votedAll.filter(matchesAllFilters);
   const otherFiltered = otherAll.filter(matchesAllFilters);
 
-  const approved = initiatives.filter((i) => i.status === 'approved').length;
-  const rejected = initiatives.filter((i) => i.status === 'rejected').length;
+  // Counted the same way as the tabs, so the rate's denominator is exactly
+  // the "Votades" list and the reader can check our arithmetic.
+  const approved = initiatives.filter(
+    (i) => effectiveResult(i.status, i.latest_vote_result) === 'approved',
+  ).length;
+  const rejected = initiatives.filter(
+    (i) => effectiveResult(i.status, i.latest_vote_result) === 'rejected',
+  ).length;
   const decided = approved + rejected;
   const approvalRate = decided > 0 ? Math.round((approved / decided) * 100) : null;
 
@@ -275,13 +289,14 @@ export default async function TopicDetailPage({
         >
           {topic.name_es} · {topic.name_en}
         </p>
+        {/* The parts must add up to the total standing next to them. The
+            withdrawn/expired bucket used to be left out of this row and only
+            surfaced much further down as a tab, so a reader who added 104 and
+            7 against a total of 119 found eight initiatives missing and no
+            way to account for them. */}
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            borderTop: '1px solid var(--rule)',
-            marginTop: 18,
-          }}
+          className="topic-kpi-row"
+          style={{ borderTop: '1px solid var(--rule)', marginTop: 18 }}
         >
           <div className="kpi">
             <span className="label">{t('kpi_total_initiatives')}</span>
@@ -298,6 +313,13 @@ export default async function TopicDetailPage({
             <span className="value tabular">{votedAll.length}</span>
             <span className="sub">{t('kpi_approved_or_rejected')}</span>
           </div>
+          {otherAll.length > 0 && (
+            <div className="kpi">
+              <span className="label">{t('kpi_other')}</span>
+              <span className="value tabular">{otherAll.length}</span>
+              <span className="sub">{t('kpi_withdrawn_or_expired')}</span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -364,7 +386,7 @@ export default async function TopicDetailPage({
             <div className="eyebrow" style={{ fontSize: 9, marginBottom: 4 }}>
               <Tooltip
                 term={t('approval_rate_label')}
-                explanation={glossaryShort('approval_rate')}
+                explanation={tGlossary('approval_rate')}
               />
             </div>
             <div
@@ -497,7 +519,7 @@ export default async function TopicDetailPage({
             <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 8 }}>
               <Tooltip
                 term={t('data_source_term')}
-                explanation={glossaryShort('data_source')}
+                explanation={tGlossary('data_source')}
               />
             </div>
           </div>
@@ -863,7 +885,11 @@ function TopicLastVoteCard({
       </div>
     );
   }
-  const subject = vote.description?.trim() || vote.title;
+  // The most prominent card on a topic page: it used to carry the
+  // expedient's official wording, truncated mid-sentence, when a generated
+  // headline for this very vote already existed.
+  const subject =
+    pickPlainTitle(vote, locale) ?? (vote.description?.trim() || vote.title);
   const voteDate = new Date(vote.voted_at);
   const dateLabel = voteDate.toLocaleDateString(locale, {
     day: 'numeric',
@@ -927,6 +953,7 @@ function TopicLastVoteCard({
           display: '-webkit-box',
           WebkitBoxOrient: 'vertical',
           WebkitLineClamp: 3,
+          maxHeight: 'calc(1.4em * 3)',
           overflow: 'hidden',
         }}
       >
@@ -994,6 +1021,7 @@ function TopicNextAgendaCard({
           display: '-webkit-box',
           WebkitBoxOrient: 'vertical',
           WebkitLineClamp: 3,
+          maxHeight: 'calc(1.4em * 3)',
           overflow: 'hidden',
         }}
       >
@@ -1088,6 +1116,7 @@ function NewsRow({
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
               WebkitLineClamp: 2,
+              maxHeight: 'calc(1.4em * 2)',
               overflow: 'hidden',
               wordBreak: 'break-word',
             }}

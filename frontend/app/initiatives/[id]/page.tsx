@@ -35,6 +35,7 @@ import {
 import { parseProposer, displayGroupShort } from '@/lib/groups';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { isStubLead, parseSummary } from '@/lib/plainSummary';
+import { effectiveResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
 import { topicIcon } from '@/lib/topic_icons';
 
@@ -148,8 +149,6 @@ export default async function InitiativeDetailPage({
   const submittedDate = initiative.submitted_at
     ? new Date(initiative.submitted_at).toLocaleDateString(locale, { dateStyle: 'long' })
     : null;
-  const statusLabel = resolveStatusLabel(initiative.status);
-  const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
   const parsedProposer = parseProposer(initiative.submitted_by, groups);
   const votes = initiative.votes ?? [];
   const primaryVote = votes[0] ?? null;
@@ -174,6 +173,17 @@ export default async function InitiativeDetailPage({
     votes.length > 0
       ? [...votes].sort((a, b) => a.voted_at.localeCompare(b.voted_at))[votes.length - 1]!
       : null;
+  // The chip the page leads with. The portal's lifecycle status goes stale
+  // (a decree-law stays "submitted" long after the chamber convalidated it),
+  // so a page could open with "Presentada" directly above a vote block that
+  // said "Aprovada". When a roll call has happened it decides the chip, the
+  // same rule the cards in every list already follow.
+  const outcome = effectiveResult(initiative.status, finalVote?.result ?? null);
+  const chipStatus = outcome ?? initiative.status;
+  const statusLabel =
+    outcome === 'tie' ? tVotes('result.tie') : resolveStatusLabel(chipStatus);
+  const statusColor =
+    outcome === 'tie' ? 'var(--abst)' : (STATUS_COLOR[chipStatus] ?? 'var(--ink-3)');
   // The amendment / article votes (everything but the decisive final one),
   // shown collapsed since the final vote is what decides the law.
   const otherVotes = finalVote
@@ -450,6 +460,11 @@ export default async function InitiativeDetailPage({
         type={initiative.type}
         status={initiative.status}
         hasBoe={!!initiative.boe_url}
+        // Without this the banner read "Presentada, 1 de 4 etapes" under a
+        // vote block announcing the result. It already knows how to prefer
+        // the roll call for single-vote procedures; it was never told one
+        // had happened.
+        voteResult={finalVote?.result ?? null}
       />
 
       {/* Two-column layout: plain summary + vote box */}

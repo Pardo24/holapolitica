@@ -371,12 +371,19 @@ export async function LawJourney({
       </div>
       <style>{`
         @media (max-width: 720px) {
+          /* Full-bleed edge-to-edge on mobile — escape the page's horizontal
+             padding so the dark strip touches both sides. */
           .law-journey {
-            padding: 14px 16px !important;
-            /* Full-bleed edge-to-edge on mobile — escape the page's
-               horizontal padding so the dark strip touches both sides. */
             margin-left: calc(50% - 50vw) !important;
             margin-right: calc(50% - 50vw) !important;
+          }
+          /* The tighter inner padding belongs to the dark band, not to the
+             transparent link around it. Setting it on .law-journey pushed the
+             band 16px back in from each edge (so it was never full-bleed) and
+             added that to the band's own 24px, leaving the steps starting 40px
+             into a 375px screen. */
+          .law-journey-body {
+            padding: 14px 16px !important;
           }
           .law-journey-inner {
             grid-template-columns: 1fr !important;
@@ -386,6 +393,12 @@ export async function LawJourney({
             overflow-x: auto;
             grid-template-columns: repeat(${steps.length}, minmax(120px, 1fr)) !important;
             scroll-snap-type: x proximity;
+            /* This box is only as tall as one dot plus two short lines, and a
+               horizontal scrollbar is drawn inside it — straight across the
+               step sub-labels, which also lost their last fraction of a pixel
+               to the scroll container's rounding. Give the bar its own lane. */
+            padding-bottom: 12px;
+            scrollbar-width: thin;
           }
           .law-journey-steps > li {
             scroll-snap-align: start;

@@ -1,12 +1,15 @@
+import { getTranslations } from 'next-intl/server';
+
 /**
  * Skeleton for /initiatives/[id] during SSR revalidation. Mirrors the
  * detail-page header + two-column body so the layout doesn't shift.
  */
-export default function InitiativeLoading() {
+export default async function InitiativeLoading() {
+  const t = await getTranslations('common');
   return (
     <div
       aria-busy="true"
-      aria-label="Carregant iniciativa…"
+      aria-label={t('loading')}
       style={{
         paddingTop: 18,
         paddingBottom: 32,

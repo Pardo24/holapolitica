@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server';
+
 /**
  * Skeleton for /persons during SSR revalidation.
  *
@@ -5,11 +7,12 @@
  * person-row placeholders so the page mass is recognisable from the
  * first frame.
  */
-export default function PersonsLoading() {
+export default async function PersonsLoading() {
+  const t = await getTranslations('common');
   return (
     <div
       aria-busy="true"
-      aria-label="Carregant diputats…"
+      aria-label={t('loading')}
       style={{
         paddingTop: 18,
         paddingBottom: 32,

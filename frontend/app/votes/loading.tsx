@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server';
+
 /**
  * Skeleton for /votes while the SSR page renders.
  *
@@ -9,11 +11,12 @@
  * It mirrors the real chrome: header, one filter card, then the vote cards.
  * A skeleton that promises a different layout is worse than none.
  */
-export default function VotesLoading() {
+export default async function VotesLoading() {
+  const t = await getTranslations('common');
   return (
     <div
       aria-busy="true"
-      aria-label="Carregant votacions…"
+      aria-label={t('loading')}
       style={{ paddingTop: 16, paddingBottom: 32, animation: 'pulse 1.6s ease-in-out infinite' }}
     >
       {/* Eyebrow + title */}
