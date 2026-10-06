@@ -485,6 +485,38 @@ _BANNED_TERMS = (
 
 INSUFFICIENT = "[INSUFICIENT]"
 
+# The decline marker, however the model spells it.
+#
+# The guard used to be ``cleaned.upper().startswith(INSUFFICIENT)``, which
+# three real shapes walked straight past:
+#
+#   * ``[INSUFICIENTE]`` — the Spanish spelling, one letter longer, so the
+#     prefix test failed on the closing bracket and the marker was stored
+#     and served as if it were the summary. One of those rows turned up as
+#     a question in the alignment quiz, where the reader was asked to take
+#     a position on "[INSUFICIENTE]".
+#   * a real summary with the marker appended: "Impulsar la adaptación de
+#     la biodiversidad frente al cambio climático. [INSUFICIENT]".
+#   * a real summary, a blank line, then the marker on its own.
+#
+# Anywhere in the output means decline. The model only emits it when the
+# source did not let it summarise honestly, and a summary it felt the need
+# to flag is not one this site should print: the row falls back to the
+# official text, which says less but says it truthfully.
+# Bracketed anywhere, or standing alone on its own line. NOT a bare
+# occurrence mid-sentence: "financiación insuficiente" is ordinary prose and
+# must not cost a row its summary.
+_INSUFFICIENT_RE = re.compile(
+    r"[\[\(]\s*INSUFICIENTE?\s*[\]\)]"
+    r"|(?:^|\n)\s*INSUFICIENTE?\s*\.?\s*(?:\n|$)",
+    re.IGNORECASE,
+)
+
+
+def looks_insufficient(text: str) -> bool:
+    """Whether the model declined to summarise, in any of its spellings."""
+    return bool(_INSUFFICIENT_RE.search(_fold(text)))
+
 
 @dataclass(frozen=True, slots=True)
 class PlainSummaryResult:
@@ -574,7 +606,7 @@ async def generate_plain_summary(
             cleaned = cleaned.split("\n", 1)[1].strip()
     cleaned = _strip_markdown(cleaned)
 
-    if cleaned.upper().startswith(INSUFFICIENT) or not cleaned:
+    if looks_insufficient(cleaned) or not cleaned:
         return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
 
     try:
@@ -595,7 +627,7 @@ async def generate_plain_summary(
             ),
         )
         retry = _strip_markdown(retry_raw.strip())
-        if retry and not retry.upper().startswith(INSUFFICIENT):
+        if retry and not looks_insufficient(retry):
             try:
                 assert_neutral_summary(retry)
                 return PlainSummaryResult(text=retry, provider=provider_name, raw=retry_raw)

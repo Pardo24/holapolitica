@@ -15,6 +15,7 @@ the vote's own title / plain-language summary, with no editorial framing.
 from __future__ import annotations
 
 import random
+import re
 from collections import Counter, defaultdict
 from typing import NamedTuple
 
@@ -40,8 +41,45 @@ from app.models import (
     Session as SessionRow,
 )
 from app.services.cache import cached
+from app.services.plain_summary import looks_insufficient
 
 router = APIRouter(prefix="/align", tags=["align"])
+
+# Votes that are about procedure, not about anything a citizen holds a view
+# on. The chamber spends a lot of its roll calls ratifying treaties and
+# settling how a bill will be handled, and those made genuinely unanswerable
+# questions: "Acuerdo entre el Reino de España y la República de Uzbekistán
+# sobre exención de visados para pasaportes diplomáticos" is a real vote and
+# a fair thing to publish, but asking a reader to be for or against it tells
+# neither of us anything.
+#
+# Anchored at the start, so a law that merely mentions a treaty is unaffected.
+_PROCEDURAL_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
+    re.compile(p, re.IGNORECASE)
+    for p in (
+        r"^\s*(tratado|convenci[oó]n|convenio|protocolo|canje de notas|acuerdo"
+        r"|enmienda al acuerdo)\b",
+        r"tramitaci[oó]n directa y en lectura [uú]nica",
+        r"reforma del reglamento",
+        r"informe de la (sub)?comisi[oó]n|informe de la ponencia",
+        r"(comisi[oó]n del )?estatuto de los diputados",
+        r"tribunal de cuentas",
+        r"creaci[oó]n de\s+(una\s+)?(sub)?comisi[oó]n",
+        r"solicitudes? de avocaci[oó]n",
+        r"pr[oó]rroga del plazo",
+    )
+)
+
+
+def _is_procedural(*texts: str | None) -> bool:
+    """Whether any of ``texts`` reads as a procedural vote."""
+    for text in texts:
+        if not text:
+            continue
+        stripped = text.strip()
+        if any(p.search(stripped) for p in _PROCEDURAL_PATTERNS):
+            return True
+    return False
 
 # The three stances a citizen can take — and the only group positions we
 # compare against. ABSENT / NO_VOTE_RECORDED are not opinions, so they can't
@@ -154,6 +192,12 @@ async def align_questions(
                 # initiative carries that topic. Votes with no initiative have
                 # no topic either, so they drop out, which is correct: an
                 # unclassified vote can't be said to be about anything.
+                # A question needs a subject. "Play on housing" narrows to
+                # one topic; with no topic chosen we still require SOME
+                # classification, because a vote nothing has been able to
+                # classify is not a vote a reader can be asked to take a side
+                # on. It also drops the treaty ratifications, which carry no
+                # initiative and therefore no topic at all.
                 .where(
                     Initiative.id.in_(
                         select(InitiativeTopic.initiative_id)
@@ -161,7 +205,7 @@ async def align_questions(
                         .where(Topic.slug == topic_slug)
                     )
                     if topic_slug
-                    else sa_true()
+                    else Initiative.id.in_(select(InitiativeTopic.initiative_id))
                 )
                 .where(
                     or_(
@@ -183,13 +227,28 @@ async def align_questions(
                 if init_id in seen_initiatives:
                     continue
                 seen_initiatives.add(init_id)
+            # Procedure is not an opinion.
+            if _is_procedural(title, desc):
+                continue
+            # The summariser's decline marker was being stored as if it were
+            # the summary, so a reader was once asked to take a position on
+            # "[INSUFICIENTE]". The generator no longer writes it and the
+            # stored rows are cleaned, but a question is the worst possible
+            # place to meet one, so the endpoint checks too.
+            summary_ca, summary_es = vca or ica, ves or ies
+            if summary_ca and looks_insufficient(summary_ca):
+                summary_ca = None
+            if summary_es and looks_insufficient(summary_es):
+                summary_es = None
+            if not summary_ca and not summary_es:
+                continue
             chosen.append(
                 _Chosen(
                     vote_id=vid,
                     initiative_id=init_id,
                     title=(desc or title or "").strip(),
-                    plain_summary_ca=vca or ica,
-                    plain_summary_es=ves or ies,
+                    plain_summary_ca=summary_ca,
+                    plain_summary_es=summary_es,
                 )
             )
             # Take the whole deduped pool; the final assembly applies the

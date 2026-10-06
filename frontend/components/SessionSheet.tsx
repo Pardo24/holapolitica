@@ -675,6 +675,16 @@ export async function SessionSheet({
             padding-bottom: 18px !important;
           }
         }
+        /* Above the phone breakpoint the row keeps its right-hand panel of
+           figures, which is where the eye runs down a twenty-row session.
+           The vote block's own tally then says the same three numbers again
+           in small text a few pixels to the left, so it stands down and
+           leaves the block its ribbon and its per-group breakdown. */
+        @media (min-width: 601px) {
+          .session-vote-row .vote-split-tally {
+            display: none !important;
+          }
+        }
       `}</style>
     </article>
   );

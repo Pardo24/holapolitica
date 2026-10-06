@@ -110,7 +110,7 @@ export function VoteSplit({
       {big && <Ribbon zones={zones} groups={groups} height={18} />}
 
       <div
-        className="tabular"
+        className="tabular vote-split-tally"
         style={{
           display: 'flex',
           gap: 14,
