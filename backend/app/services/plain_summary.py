@@ -556,6 +556,26 @@ def _strip_markdown(text: str) -> str:
     return _MD_EMPHASIS.sub(_keep_inner, text).replace("`", "")
 
 
+_OPEN_QUOTES = "\"“«‘"
+_CLOSE_QUOTES = "\"”»’"
+
+
+def _strip_wrapping_quotes(text: str) -> str:
+    """Drop the quote marks a model sometimes wraps its whole answer in.
+
+    Production had eleven summaries that opened with a double quote and
+    never closed it, so the card began with a stray mark. Only a quote that
+    wraps the WHOLE answer is removed; a quotation inside the text is the
+    text's own and stays.
+    """
+    t = text.strip()
+    if len(t) >= 2 and t[0] in _OPEN_QUOTES and t[-1] in _CLOSE_QUOTES:
+        return t[1:-1].strip()
+    if t[:1] in _OPEN_QUOTES and not any(q in t[1:] for q in _CLOSE_QUOTES):
+        return t[1:].strip()
+    return t
+
+
 async def generate_plain_summary(
     *,
     title: str,
@@ -604,7 +624,7 @@ async def generate_plain_summary(
         cleaned = cleaned.strip("`").strip()
         if "\n" in cleaned:
             cleaned = cleaned.split("\n", 1)[1].strip()
-    cleaned = _strip_markdown(cleaned)
+    cleaned = _strip_wrapping_quotes(_strip_markdown(cleaned))
 
     if looks_insufficient(cleaned) or not cleaned:
         return PlainSummaryResult(text=None, provider=provider_name, raw=raw)
