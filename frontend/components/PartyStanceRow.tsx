@@ -100,13 +100,18 @@ export function PartyStanceMini({
         return (
           <span
             key={key}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
+            // Top-aligned, not centred: on a phone a unanimous vote puts
+            // nine marks in one cluster, which wraps to two rows, and a
+            // centred glyph floated down beside the SECOND row, reading as
+            // if only those parties had taken that position. The 5px offset
+            // centres the 12px glyph against the 22px mark beside it.
+            style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 5 }}
           >
             <Icon
               size={12}
               strokeWidth={3}
               aria-label={stanceWord(key)}
-              style={{ color, flex: 'none' }}
+              style={{ color, flex: 'none', marginTop: 5 }}
             />
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
               {members.map((p) => {
