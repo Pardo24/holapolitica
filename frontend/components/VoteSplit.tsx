@@ -68,8 +68,12 @@ export function VoteSplit({
   labels: VoteSplitLabels;
   date?: string | null;
   size?: 'sm' | 'lg';
-  /** How this vote ended. The tally alone asks the reader to compare two
-   *  numbers before learning whether it passed; the outcome says it. */
+  /** How this vote ended. Shown only at ``size="lg"``: on a law's own page
+   *  the block is the content and the page's own chip is screens away, so
+   *  the tally would otherwise ask the reader to compare two numbers to
+   *  find out whether it passed. In a list the card already carries the
+   *  result a few lines above, and printing it twice in one card reads as
+   *  a stutter rather than as emphasis. */
   result?: VoteResult | null;
 }) {
   const inFavour = groups.filter((g) => g.choice === 'aye');
@@ -95,13 +99,12 @@ export function VoteSplit({
           marginBottom: 8,
         }}
       >
-        {/* The outcome sits with the numbers, not only in the card's
-            corner: this block is where a reader comes to find out how it
-            ended, and 155 against 179 is not an answer, it is arithmetic
-            homework. */}
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+        <span
+          className="vote-split-eyebrow"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}
+        >
           <span style={EYEBROW}>{labels.eyebrow}</span>
-          {result && labels.results?.[result] && (
+          {big && result && labels.results?.[result] && (
             <ResultPill result={result} label={labels.results[result]} />
           )}
         </span>

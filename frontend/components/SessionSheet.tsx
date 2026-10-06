@@ -549,7 +549,10 @@ export async function SessionSheet({
               />
             );
             const list = (
-              <ul style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}>
+              <ul
+                className="session-vote-list"
+                style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}
+              >
                 {buildSessionEntries(kindVotes).map((entry) => renderEntry(entry, kind))}
               </ul>
             );
@@ -642,27 +645,39 @@ export async function SessionSheet({
         }
         .session-topic-summary:hover h2 { color: var(--accent); }
         @media (max-width: 600px) {
-          /* On narrow viewports the 28px sequence gutter + auto-width
-             count panel were squeezing the title into 4-word lines.
-             Stack: gutter collapses (sequence + counts go inline above
-             the title), title takes full width, count panel drops
-             below the title block. Padding tightened so each row
-             stays scannable when the screen is short. */
+          /* A phone gets ONE of everything.
+
+             The desktop row is three columns: a sequence gutter, the law,
+             and a panel of big figures pinned right. Stacked on a phone
+             that panel stopped being a figure beside the prose and became
+             a second copy of it, so one vote arrived as: verdict, verdict
+             again, 342 / 5 / 0 as text, then 342 / 5 / 0 as numerals, a
+             bar, and the margin. Six blocks saying three things, twenty
+             times down the page.
+
+             What survives is the block the reader already knows from
+             /lleis: the verdict and the margin on one line under the
+             headline, the tally, and the per-group breakdown a tap away.
+             The count panel goes, the sequence gutter goes, and the
+             block's own eyebrow goes with them (the row is plainly a
+             vote, and the verdict is right above). */
           .session-vote-row {
             grid-template-columns: 1fr !important;
             row-gap: 8px !important;
             column-gap: 0 !important;
           }
-          .session-vote-row > *:first-child {
+          .session-vote-row > *:first-child,
+          .session-vote-row > div:nth-child(3) {
             display: none !important;
           }
-          .session-vote-row > div:nth-child(3) {
-            align-items: flex-start !important;
-            min-width: 0 !important;
-            flex-direction: row !important;
-            flex-wrap: wrap !important;
-            justify-content: flex-start !important;
-            gap: 14px !important;
+          .session-vote-row .vote-split-eyebrow {
+            display: none !important;
+          }
+          /* With a third of the row gone, the rows need the air back to
+             stay legible as separate items. */
+          .session-vote-list > li {
+            padding-top: 18px !important;
+            padding-bottom: 18px !important;
           }
         }
       `}</style>
@@ -1070,7 +1085,10 @@ function LawVoteGroup({
       data-topics={topicSlugs}
       style={{ padding: '14px 0', borderBottom: '1px solid var(--rule)' }}
     >
+      {/* Same class as a single-vote row, so a phone treats the two the
+          same way: no sequence gutter, no vote-block eyebrow. */}
       <div
+        className="session-vote-row"
         style={{
           display: 'grid',
           gridTemplateColumns: '28px minmax(0, 1fr)',
@@ -1479,8 +1497,25 @@ function VoteRow({
                 {headline}
               </Link>
             </h3>
-            <span style={{ flex: 'none' }}>
+            <span
+              style={{
+                flex: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                flexWrap: 'wrap',
+              }}
+            >
               <ResultPill result={outcome} label={resultLabel} />
+              {/* "per 337 vots" rides with the verdict, as it does on a
+                  multi-vote item. It used to live at the foot of the count
+                  panel, which a phone never shows. */}
+              <span
+                className="tabular"
+                style={{ fontSize: 11, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}
+              >
+                {marginLabel(margin)}
+              </span>
             </span>
           </div>
           {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
@@ -1669,17 +1704,6 @@ function VoteRow({
               height={5}
             />
           </div>
-          <span
-            className="tabular"
-            style={{
-              fontSize: 10,
-              color: 'var(--ink-3)',
-              marginTop: 4,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {marginLabel(margin)}
-          </span>
         </div>
       </div>
     </li>
