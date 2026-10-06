@@ -313,6 +313,8 @@ async def align_questions(
                     select(InitiativeTopic.initiative_id, Topic)
                     .join(Topic, Topic.id == InitiativeTopic.topic_id)
                     .where(InitiativeTopic.initiative_id.in_(init_ids))
+                    # Themes only, as everywhere else a chip is printed.
+                    .where(Topic.kind == "theme")
                 )
             ).all()
             for initiative_id, topic in topic_rows:

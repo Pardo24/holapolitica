@@ -849,7 +849,9 @@
     "hero_eyebrow": "El juego de Hola Política",
     "hero_sub": "Ponte a prueba con votaciones reales y conocimiento político. Gira la ruleta, acierta y gana quesitos. El reto del día es igual para todos: compite con quien quieras.",
     "hero_daily": "Reto del día",
-    "hero_play": "Juego libre"
+    "hero_play": "Juego libre",
+    "topic_picker": "Tema",
+    "topic_any": "Cualquier tema"
   },
   "daily": {
     "eyebrow": "La pregunta del día",

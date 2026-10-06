@@ -976,6 +976,7 @@ export const api = {
       legislatureId?: number,
       lang?: string,
       category?: string,
+      topicSlug?: string,
     ) => {
       const qs = new URLSearchParams({ n: String(n) });
       if (seed != null) qs.set('seed', String(seed));
@@ -986,6 +987,8 @@ export const api = {
       // The duel fetches one pool per category so the roulette always has a
       // question of the colour it lands on.
       if (category) qs.set('category', category);
+      // "Play on housing": the same narrowing the alignment quiz offers.
+      if (topicSlug) qs.set('topic_slug', topicSlug);
       // No revalidate: each round should be a fresh draw (unless seeded).
       return request<GameQuestion[]>(`/game/questions?${qs.toString()}`, { revalidate: 0 });
     },

@@ -1,13 +1,10 @@
-import Link from 'next/link';
-import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Scale } from 'lucide-react';
 
 import { AlignQuiz } from '@/components/AlignQuiz';
-import { EdgeFadeRow } from '@/components/EdgeFadeRow';
 import { PageHeader } from '@/components/PageHeader';
+import { TopicPickRow } from '@/components/TopicPickRow';
 import { api, type AlignQuestion, type Topic } from '@/lib/api';
-import { pickTopicName } from '@/lib/topics';
 
 // Questions rotate with the data; a short ISR window keeps them fresh without
 // hammering the backend (the payload is also cached server-side).
@@ -36,9 +33,6 @@ export default async function ComEtRepresentenPage({
     api.align.questions(10, undefined, seedNumber, topicSlug).catch(() => [] as AlignQuestion[]),
     api.topics.list().catch(() => [] as Topic[]),
   ]);
-  // Only offer topics the questionnaire can actually fill, so a chip never
-  // leads to an empty round.
-  const themeTopics = allTopics.filter((tp) => tp.kind !== 'sdg');
 
   return (
     <div style={{ maxWidth: 680, marginInline: 'auto' }}>
@@ -52,39 +46,18 @@ export default async function ComEtRepresentenPage({
           plenary can feel arbitrary; ten on housing are ten a reader has an
           opinion about. Server-rendered links, so a chosen topic is in the
           URL and can be shared. */}
-      {themeTopics.length > 0 && (
-        <div style={{ paddingTop: 18 }}>
-          <span
-            style={{
-              display: 'block',
-              fontSize: 11,
-              letterSpacing: '0.07em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              color: 'var(--ink-3)',
-              marginBottom: 6,
-            }}
-          >
-            {t('topic_picker')}
-          </span>
-          {/* Fourteen topics don't fit a phone; the fade says the row
-              carries on past the edge. */}
-          <EdgeFadeRow ariaLabel={t('topic_picker')}>
-            <TopicPick href={'/com-et-representen' as Route} active={!topicSlug}>
-              {t('topic_any')}
-            </TopicPick>
-            {themeTopics.map((tp) => (
-              <TopicPick
-                key={tp.slug}
-                href={`/com-et-representen?tema=${tp.slug}` as Route}
-                active={topicSlug === tp.slug}
-              >
-                {pickTopicName(tp, locale)}
-              </TopicPick>
-            ))}
-          </EdgeFadeRow>
-        </div>
-      )}
+      {/* Pick the subject before answering. Ten votes drawn from the whole
+          plenary can feel arbitrary; ten on housing are ten a reader has an
+          opinion about. Shared with the trivia round, so the two games offer
+          the subject the same way. */}
+      <TopicPickRow
+        topics={allTopics}
+        locale={locale}
+        basePath="/com-et-representen"
+        activeSlug={topicSlug}
+        label={t('topic_picker')}
+        anyLabel={t('topic_any')}
+      />
 
       <div style={{ paddingTop: 22 }}>
         {questions.length === 0 ? (
@@ -135,36 +108,5 @@ export default async function ComEtRepresentenPage({
         )}
       </div>
     </div>
-  );
-}
-
-/** One subject chip. A link, not a button: the choice lives in the URL. */
-function TopicPick({
-  href,
-  active,
-  children,
-}: {
-  href: Route;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      style={{
-        flex: 'none',
-        whiteSpace: 'nowrap',
-        padding: '5px 11px',
-        borderRadius: 999,
-        border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
-        background: active ? 'var(--ink)' : 'var(--paper)',
-        color: active ? 'var(--paper)' : 'var(--ink-2)',
-        fontSize: 12.5,
-        fontWeight: active ? 600 : 400,
-        textDecoration: 'none',
-      }}
-    >
-      {children}
-    </Link>
   );
 }

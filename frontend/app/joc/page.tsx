@@ -4,8 +4,9 @@ import { Gamepad2 } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TriviaGame, type RivalResult } from '@/components/TriviaGame';
+import { TopicPickRow } from '@/components/TopicPickRow';
 import { TriviaStart } from '@/components/TriviaStart';
-import { api, type GameQuestion } from '@/lib/api';
+import { api, type GameQuestion, type Topic } from '@/lib/api';
 import { bankQuestions, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
 
 /**
@@ -32,6 +33,8 @@ interface SearchParams {
   rq?: string;
   ru?: string;
   solo?: string;
+  /** Play the round on one subject, as the alignment quiz already allows. */
+  tema?: string;
 }
 
 export default async function JocPage({
@@ -41,7 +44,8 @@ export default async function JocPage({
 }) {
   const t = await getTranslations('game');
   const locale = await getLocale();
-  const { repte, rq, ru, solo } = await searchParams;
+  const { repte, rq, ru, solo, tema } = await searchParams;
+  const topicSlug = tema && /^[a-z0-9-]+$/.test(tema) ? tema : undefined;
 
   const hasRepte = Boolean(repte && /^\d+$/.test(repte));
   // Show the start screen unless we're entering an actual round (solo or a seed).
@@ -57,11 +61,23 @@ export default async function JocPage({
   );
 
   if (showStart) {
+    // Only offer subjects the bank can actually fill, so a chip never leads
+    // to an empty round.
+    const allTopics = await api.topics.list().catch(() => [] as Topic[]);
     return (
       <div style={{ maxWidth: 620, marginInline: 'auto' }}>
         {header}
+        <TopicPickRow
+          topics={allTopics}
+          locale={locale}
+          basePath="/joc"
+          activeSlug={topicSlug}
+          label={t('topic_picker')}
+          anyLabel={t('topic_any')}
+        />
         <div style={{ paddingTop: 22 }}>
           <TriviaStart
+            topicSlug={topicSlug ?? null}
             labels={{
               solo_title: t('start_solo_title'),
               solo_sub: t('start_solo_sub'),
@@ -90,7 +106,9 @@ export default async function JocPage({
   const empty: GameQuestion[] = [];
   const [lleisApi, partitsApi] = await Promise.all(
     (['lleis', 'partits'] as const).map((cat) =>
-      api.game.questions(POOL_PER_CATEGORY, seed, undefined, locale, cat).catch(() => empty),
+      api.game
+        .questions(POOL_PER_CATEGORY, seed, undefined, locale, cat, topicSlug)
+        .catch(() => empty),
     ),
   );
 

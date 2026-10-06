@@ -19,6 +19,7 @@ from typing import NamedTuple, TypedDict
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import or_, select
+from sqlalchemy import true as sa_true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -182,6 +183,13 @@ async def game_questions(
     category: str | None = Query(
         None, description="Restrict to one category: 'lleis', 'partits' or 'temes'."
     ),
+    topic_slug: str | None = Query(
+        None,
+        description=(
+            "Only laws classified under this topic, so a player can take the "
+            "round on the subject they care about."
+        ),
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> list[GameQuestion]:
     """Return ``n`` shuffled, explanation-led trivia questions.
@@ -209,6 +217,9 @@ async def game_questions(
     # initiative with a plain summary AND a classified topic. We read the
     # summary as the card's lead text, so a procedural orphan vote (no summary)
     # never shows up.
+    # Editorial themes only: the SDG taxonomy has no page of its own, and a
+    # "which topic is this law about?" question whose answer is "Educación de
+    # calidad" when "Educación" is also on the list has no right answer.
     topic_sq = (
         select(
             InitiativeTopic.initiative_id,
@@ -216,6 +227,7 @@ async def game_questions(
             Topic.name_es.label("tname_es"),
         )
         .join(Topic, Topic.id == InitiativeTopic.topic_id)
+        .where(Topic.kind == "theme")
         .subquery()
     )
     pool_rows = (
@@ -240,6 +252,16 @@ async def game_questions(
             .where(SessionRow.legislature_id == leg_id)
             .where(Vote.approved_by_assent.is_(False))
             .where(Vote.result.in_(["approved", "rejected"]))
+            # "Play on housing": the same narrowing the alignment quiz offers.
+            .where(
+                Initiative.id.in_(
+                    select(InitiativeTopic.initiative_id)
+                    .join(Topic, Topic.id == InitiativeTopic.topic_id)
+                    .where(Topic.slug == topic_slug)
+                )
+                if topic_slug
+                else sa_true()
+            )
             .where(
                 or_(
                     Initiative.plain_summary_ca.is_not(None),

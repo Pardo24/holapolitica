@@ -25,7 +25,14 @@ export interface TriviaStartLabels {
   start: string;
 }
 
-export function TriviaStart({ labels }: { labels: TriviaStartLabels }) {
+export function TriviaStart({
+  labels,
+  topicSlug = null,
+}: {
+  labels: TriviaStartLabels;
+  /** The subject the player picked, carried into the round and the invite. */
+  topicSlug?: string | null;
+}) {
   const [seed, setSeed] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -34,7 +41,11 @@ export function TriviaStart({ labels }: { labels: TriviaStartLabels }) {
     setCopied(false);
   }
 
-  const link = seed != null ? `${typeof window !== 'undefined' ? window.location.origin : ''}/joc?repte=${seed}` : '';
+  const topicQuery = topicSlug ? `&tema=${topicSlug}` : '';
+  const link =
+    seed != null
+      ? `${typeof window !== 'undefined' ? window.location.origin : ''}/joc?repte=${seed}${topicQuery}`
+      : '';
 
   async function copy() {
     try {
@@ -57,7 +68,7 @@ export function TriviaStart({ labels }: { labels: TriviaStartLabels }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Solo */}
       <Link
-        href={'/joc?solo=1' as Route}
+        href={`/joc?solo=1${topicQuery}` as Route}
         className="trivia-start-card"
         style={cardStyle}
       >
@@ -121,7 +132,7 @@ export function TriviaStart({ labels }: { labels: TriviaStartLabels }) {
               </button>
             </div>
             <Link
-              href={`/joc?repte=${seed}` as Route}
+              href={`/joc?repte=${seed}${topicQuery}` as Route}
               className="btn-ink"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 12 }}
             >

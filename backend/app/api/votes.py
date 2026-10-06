@@ -278,6 +278,12 @@ async def _load_topics_by_initiative(
             select(InitiativeTopic.initiative_id, Topic)
             .join(Topic, Topic.id == InitiativeTopic.topic_id)
             .where(InitiativeTopic.initiative_id.in_(initiative_ids))
+            # Editorial themes only. The SDG taxonomy has no page of its own
+            # (``/agenda-2030`` redirects to ``/topics``), so an SDG chip was
+            # a label with nowhere to go, and it sat next to the theme that
+            # says the same thing: "Educación de calidad" beside "Educación".
+            # The rows stay in the database for when that lens ships.
+            .where(Topic.kind == "theme")
         )
     ).all()
     by_id: dict[int, list[Topic]] = {iid: [] for iid in initiative_ids}

@@ -163,7 +163,11 @@ async def _seed_rich_vote(session: AsyncSession) -> Legislature:
 
 async def test_game_questions_are_well_formed(db_session: AsyncSession) -> None:
     leg = await _seed_rich_vote(db_session)
-    questions = await game_questions(n=5, legislature_id=leg.id, session=db_session)
+    # Every Query-defaulted parameter passed explicitly: called directly (not
+    # over HTTP) the FastAPI Query object itself would arrive as the value.
+    questions = await game_questions(
+        n=5, legislature_id=leg.id, seed=None, category=None, topic_slug=None, session=db_session
+    )
 
     assert len(questions) >= 1
     for q in questions:
@@ -179,5 +183,7 @@ async def test_game_questions_are_well_formed(db_session: AsyncSession) -> None:
 
 async def test_game_questions_empty_without_data(db_session: AsyncSession) -> None:
     # No active legislature / no votes → no questions, no error.
-    questions = await game_questions(n=5, legislature_id=None, session=db_session)
+    questions = await game_questions(
+        n=5, legislature_id=None, seed=None, category=None, topic_slug=None, session=db_session
+    )
     assert questions == []

@@ -574,8 +574,12 @@ export default async function GroupDetailPage({
             cards. Cards whose topic has manifesto commitments carry a
             collapsed "Programa electoral · N" block with the literal
             quotes — closed by default so the voting record leads. */}
+        {/* Themes only. The ranking used to open with "Vida submarina" and
+            "Fin de la pobreza", SDG labels sitting above the themes a reader
+            came to read, measured on a different denominator and leading to a
+            lens the site does not publish yet. */}
         <TopicBars
-          rows={topicStats}
+          rows={topicStats.filter((r) => themeSlugs.has(r.topic_slug))}
           emptyHint={t('vote_by_topic_empty_hint')}
           groupSlug={group.slug}
           allTopics={allTopics}
