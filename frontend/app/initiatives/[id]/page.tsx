@@ -433,7 +433,6 @@ export default async function InitiativeDetailPage({
             absent={finalVote.absent}
             groups={stanceByVote.get(finalVote.id) ?? []}
             date={new Date(finalVote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })}
-            result={finalVote.result}
             size="lg"
             labels={{
               eyebrow: tLleis('card_votes_eyebrow'),
@@ -443,11 +442,6 @@ export default async function InitiativeDetailPage({
               detail: tLleis('card_group_detail'),
               sideEmpty: tLleis('card_side_empty'),
               noBreakdown: tLleis('card_no_breakdown'),
-              results: {
-                approved: tVotes('result.approved'),
-                rejected: tVotes('result.rejected'),
-                tie: tVotes('result.tie'),
-              },
             }}
           />
         </section>

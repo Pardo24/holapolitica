@@ -89,11 +89,6 @@ export async function SessionSheet({
     detail: tLleis('card_group_detail'),
     sideEmpty: tLleis('card_side_empty'),
     noBreakdown: tLleis('card_no_breakdown'),
-    results: {
-      approved: tVotes('result.approved'),
-      rejected: tVotes('result.rejected'),
-      tie: tVotes('result.tie'),
-    },
   };
 
   // Resolve the per-group ``logo_url`` so each VoteRow can render a
@@ -1160,7 +1155,6 @@ function LawVoteGroup({
                 absent={decider.absent}
                 groups={deciderStance}
                 labels={splitLabels}
-                result={decider.result}
               />
             ) : (
               <NoBreakdownFor vote={decider} labels={noBreakLabels} />
@@ -1541,7 +1535,6 @@ function VoteRow({
               absent={vote.absent}
               groups={stance}
               labels={splitLabels}
-              result={vote.result}
             />
           ) : (
             <NoBreakdownFor vote={vote} labels={noBreakLabels} />

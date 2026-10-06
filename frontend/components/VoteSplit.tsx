@@ -1,7 +1,5 @@
 import { ChevronDown } from 'lucide-react';
 
-import { ResultPill } from '@/components/ResultPill';
-import type { VoteResult } from '@/lib/api';
 import { groupLogoUrl } from '@/lib/groupLogos';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -43,8 +41,6 @@ export interface VoteSplitLabels {
   detail: string;
   sideEmpty: string;
   noBreakdown: string;
-  /** "Aprovada" / "Rebutjada" / "Empat", keyed by result. */
-  results?: Record<VoteResult, string>;
 }
 
 export function VoteSplit({
@@ -58,7 +54,6 @@ export function VoteSplit({
   /** "lg" gives the detail open by default: on a law's own page the
    *  breakdown is the point, not an extra. */
   size = 'sm',
-  result = null,
 }: {
   ayes: number;
   noes: number;
@@ -68,13 +63,6 @@ export function VoteSplit({
   labels: VoteSplitLabels;
   date?: string | null;
   size?: 'sm' | 'lg';
-  /** How this vote ended. Shown only at ``size="lg"``: on a law's own page
-   *  the block is the content and the page's own chip is screens away, so
-   *  the tally would otherwise ask the reader to compare two numbers to
-   *  find out whether it passed. In a list the card already carries the
-   *  result a few lines above, and printing it twice in one card reads as
-   *  a stutter rather than as emphasis. */
-  result?: VoteResult | null;
 }) {
   const inFavour = groups.filter((g) => g.choice === 'aye');
   const against = groups.filter((g) => g.choice === 'no');
@@ -99,14 +87,12 @@ export function VoteSplit({
           marginBottom: 8,
         }}
       >
-        <span
-          className="vote-split-eyebrow"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}
-        >
-          <span style={EYEBROW}>{labels.eyebrow}</span>
-          {big && result && labels.results?.[result] && (
-            <ResultPill result={result} label={labels.results[result]} />
-          )}
+        {/* The verdict is NOT repeated here. Every surface that renders
+            this block already carries it above: the card's own pill, the
+            row's pill, the law page's status chip. Saying it twice inside
+            one card read as a stutter, not as emphasis. */}
+        <span className="vote-split-eyebrow" style={EYEBROW}>
+          {labels.eyebrow}
         </span>
         {date && (
           <span className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)' }}>

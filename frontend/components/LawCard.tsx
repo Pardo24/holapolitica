@@ -256,7 +256,6 @@ export async function LawCard({
             absent={vote.absent}
             groups={vote.groups}
             date={voteDate}
-            result={vote.result}
             labels={{
               eyebrow: t('card_votes_eyebrow'),
               inFavour: t('card_in_favour'),
@@ -265,11 +264,6 @@ export async function LawCard({
               detail: t('card_group_detail'),
               sideEmpty: t('card_side_empty'),
               noBreakdown: t('card_no_breakdown'),
-              results: {
-                approved: tVotes('result.approved'),
-                rejected: tVotes('result.rejected'),
-                tie: tVotes('result.tie'),
-              },
             }}
           />
         )}
