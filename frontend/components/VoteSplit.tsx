@@ -1,5 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 
+import { PartyStanceMini } from '@/components/PartyStanceRow';
+
 import { groupLogoUrl } from '@/lib/groupLogos';
 import { displayGroupShort } from '@/lib/groups';
 
@@ -157,9 +159,29 @@ export function VoteSplit({
                 <Ribbon zones={zones} groups={groups} height={13} />
               </div>
             )}
+            {/* A phone gets the strip, not the columns.
+
+                Three stacked sections, each with its own heading line and a
+                full-width pill per group, came to about 300px on a 375px
+                screen: a third of the display to answer "who voted what" on
+                one vote. The strip says the same thing in two rows, because
+                a party is recognised by its emblem and the position rides
+                WITH the emblem as a coloured ring instead of being a heading
+                three lines above it. Nothing is dropped: the deputy counts
+                travel under each mark wherever the source carries them. */}
+            <div className="sm:hidden">
+              <PartyStanceMini
+                parties={groups}
+                labels={{
+                  aye: labels.inFavour,
+                  no: labels.against,
+                  abstention: labels.abstention,
+                }}
+              />
+            </div>
             <div
+              className="hidden sm:grid"
               style={{
-                display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
                 gap: 14,
               }}

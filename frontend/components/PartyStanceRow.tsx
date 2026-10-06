@@ -17,6 +17,10 @@ export interface PartyStance {
   name_short: string;
   color_hex: string | null;
   choice: string;
+  /** How many of the group's deputies backed that choice, when the source
+   *  carries it. The per-vote group-choices endpoint does not; the laws
+   *  list does. */
+  deputies?: number;
 }
 
 export interface StanceLabels {
@@ -69,7 +73,8 @@ export function PartyStanceMini({
   labels,
 }: {
   parties: PartyStance[];
-  labels: StanceLabels;
+  /** Only the three positions are ever printed; absent groups are omitted. */
+  labels: Pick<StanceLabels, 'aye' | 'no' | 'abstention'>;
 }) {
   if (parties.length === 0) return null;
   const stanceWord = (c: string): string =>
@@ -161,7 +166,7 @@ export function PartyStanceMini({
                       display: 'inline-flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: 6,
+                      gap: 5,
                       minWidth: 26,
                     }}
                   >
@@ -177,6 +182,22 @@ export function PartyStanceMini({
                     >
                       {stanceLabel(p)}
                     </span>
+                    {/* How many deputies of that group, when the source
+                        knows. Keeps the compact strip as informative as the
+                        three columns it replaces on a phone. */}
+                    {p.deputies != null && (
+                      <span
+                        className="tabular"
+                        style={{
+                          fontSize: 9,
+                          lineHeight: 1,
+                          color: 'var(--ink-3)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {p.deputies}
+                      </span>
+                    )}
                   </span>
                 );
               })}
