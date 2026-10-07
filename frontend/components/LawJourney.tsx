@@ -113,14 +113,8 @@ export async function LawJourney({
   const doneCount = activeIndex + 1;
 
   return (
-    <Link
-      href={`/recorregut?type=${type}` as Route}
-      aria-label={t('aria', { type: typeLabel })}
-      className="law-journey"
-      style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}
-    >
+    <div className="law-journey">
     <section
-      aria-hidden="true"
       className="law-journey-body"
       style={{
         background: 'var(--ink)',
@@ -200,13 +194,19 @@ export async function LawJourney({
             <span className="tabular">
               {t('steps_count', { done: doneCount, total: steps.length })}
             </span>
-            {/* The banner is a link; say so. The page it opens explains this
-                procedure step by step and lets you read the others. */}
-            <span
+            {/* The way out of the banner, and the only link in it. The
+                whole banner used to be the anchor, which put a horizontally
+                scrollable row of steps inside a link: on a touch screen a tap
+                that drifts while the finger is over the scroller is read as a
+                drag and never fires. */}
+            <Link
+              href={`/recorregut?type=${type}` as Route}
+              aria-label={t('aria', { type: typeLabel })}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 4,
+                padding: '5px 2px',
                 fontSize: 11,
                 fontWeight: 600,
                 color: 'var(--paper)',
@@ -217,7 +217,7 @@ export async function LawJourney({
             >
               {t('explain_cta')}
               <ArrowRight size={12} strokeWidth={2} aria-hidden="true" />
-            </span>
+            </Link>
             {statusLabel && (
               <span
                 style={{
@@ -406,6 +406,6 @@ export async function LawJourney({
         }
       `}</style>
     </section>
-    </Link>
+    </div>
   );
 }

@@ -24,7 +24,13 @@ export default async function LifecyclePage({
   // ?type comes from the dark banner on a law's page, so the reader lands on
   // the procedure they were looking at; the chips switch to the others.
   const { type } = await searchParams;
-  const selected = isJourneyType(type) ? type : 'proyecto_ley';
+  // Arriving from a law's banner, the reader asked about THAT procedure.
+  // The page led with the eight stages of a bill regardless, so someone
+  // who clicked through from a motion landed on the wrong journey and had
+  // to scroll past it to find theirs. With no type the generic explainer
+  // is still the right lead: that reader asked "how is a law made".
+  const asked = isJourneyType(type);
+  const selected = asked ? type : 'proyecto_ley';
   return (
     <div style={{ paddingTop: 28, paddingBottom: 48 }}>
       <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>
@@ -34,8 +40,17 @@ export default async function LifecyclePage({
         {' / '}
         <span>{t('eyebrow')}</span>
       </div>
-      <LifecycleDiagram />
-      <JourneyDetail type={selected} />
+      {asked ? (
+        <>
+          <JourneyDetail type={selected} />
+          <LifecycleDiagram />
+        </>
+      ) : (
+        <>
+          <LifecycleDiagram />
+          <JourneyDetail type={selected} />
+        </>
+      )}
       <div style={{ marginTop: 28, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
         <Link href="/votes" className="btn-ink">
           {t('cta_votes')} <ArrowRight size={14} aria-hidden="true" />

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Check } from 'lucide-react';
 
 import type { InitiativeType } from '@/lib/api';
 import { JOURNEY_STEPS, JOURNEY_TYPES } from '@/lib/lawJourney';
@@ -129,26 +128,6 @@ export async function JourneyDetail({ type }: { type: InitiativeType }) {
           </li>
         ))}
       </ol>
-
-      <p
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 8,
-          margin: '22px 0 0',
-          padding: '10px 13px',
-          borderRadius: 10,
-          background: 'var(--paper-2)',
-          border: '1px solid var(--rule)',
-          fontSize: 12.5,
-          color: 'var(--ink-2)',
-          lineHeight: 1.55,
-          maxWidth: 680,
-        }}
-      >
-        <Check size={14} strokeWidth={2} aria-hidden="true" style={{ flex: 'none', marginTop: 2 }} />
-        {tLife('caveat')}
-      </p>
     </section>
   );
 }
