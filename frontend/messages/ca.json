@@ -335,7 +335,10 @@
     "sort_voted": "Últimes votades",
     "sort_close": "Més ajustades",
     "sort_aria": "Ordena",
-    "results_count_sorted": "{count} iniciatives votades · {sort}"
+    "results_count_sorted": "{count} iniciatives votades · {sort}",
+    "card_votes_eyebrow_totality": "Esmenes a la totalitat",
+    "card_votes_eyebrow_taking": "Presa en consideració",
+    "card_votes_eyebrow_convalidation": "Convalidació del decret"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -1480,7 +1483,7 @@
     "h1": "Eines llestes per a periodistes",
     "intro": "Quatre maneres d'incorporar el que vota el Congrés en una peça: widgets responsius, cards socials, API REST i descàrregues directes. Tot CC-BY 4.0 — només cal citar <em>Hola Política</em> i la font original (Congreso de los Diputados).",
     "widgets_section_title": "Widgets per a articles",
-    "widgets_intro": "Cada widget és un <code>iframe</code> de menys d'un segon de càrrega, sense cookies de tercers, amb enllaç a la font original. Copia el fragment i enganxa'l al CMS. Cinc widgets, ordenats per utilitat editorial.",
+    "widgets_intro": "Cada widget és un <code>iframe</code> de menys d'un segon de càrrega, sense cookies de tercers, amb enllaç a la font original. Copia el fragment i enganxa'l al CMS.",
     "widget_dossier_title": "Fitxa completa d'una llei (dossier)",
     "widget_dossier_desc": "Un sol iframe amb tot el que un article sobre una llei sol voler al costat: el títol, el resum en llenguatge planer, els temes classificats, el resultat de la votació final i els enllaços a BOE + data d'entrada en vigor. Pensat per a la peça monogràfica sobre UNA llei.",
     "widget_explorer_title": "Explorador filtrat (la URL és l'estat)",

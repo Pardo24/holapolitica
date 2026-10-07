@@ -16,7 +16,7 @@ from collections import Counter, defaultdict
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import ColumnElement, String, and_, desc, func, or_, select
+from sqlalchemy import ColumnElement, String, and_, case, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
@@ -58,6 +58,48 @@ def _split_csv(value: str | None) -> list[str]:
     if value is None:
         return []
     return [token.strip() for token in value.split(",") if token.strip()]
+
+
+def _vote_stage(title: str | None) -> str:
+    """Where in its procedure a vote sits, from the Congreso's subject line.
+
+    Mirrors ``voteStage`` in frontend/lib/sessionSummary.ts. Two stages
+    change what the vote's result means for the INITIATIVE:
+
+    - ``taking`` (toma en consideración): approving it only lets the bill
+      start its passage. It is not a law; it is in progress.
+    - ``totality`` (debate de totalidad): the vote is on amendments to the
+      whole text. Rejecting them means the bill goes on; approving them
+      sends it back, which ends it.
+    """
+    t = (title or "").strip().lower()
+    if t.startswith("toma en consideración"):
+        return "taking"
+    if t.startswith("debate de totalidad") or t.startswith("debates de totalidad"):
+        return "totality"
+    if t.startswith("convalidación o derogación"):
+        return "convalidation"
+    return "other"
+
+
+def _initiative_verdict(stage: str, result: str | None) -> str | None:
+    """What a latest vote means for its initiative.
+
+    ``approved`` / ``rejected`` / ``tie`` when the initiative's fate was
+    decided, ``None`` while it is still in progress. Reading the raw vote
+    result instead put "Rejected" on bills whose amendments to the whole
+    text were rejected (they go on), "Approved" on bills those amendments
+    sent back (they ended), and "Approved" on bills that had only been
+    admitted for consideration.
+    """
+    if stage == "totality":
+        if result == "rejected":
+            return None
+        if result == "approved":
+            return "rejected"
+    if stage == "taking" and result == "approved":
+        return None
+    return result
 
 
 @router.get("", response_model=dict)
@@ -186,10 +228,22 @@ async def list_initiatives(
     # and one chip at a time could not ask it.
     results = [r for r in _split_csv(result) if r in ("approved", "rejected", "pending")]
     if results:
+        title_lc = func.lower(func.coalesce(Vote.title, ""))
+        is_totality = or_(
+            title_lc.like("debate de totalidad%"), title_lc.like("debates de totalidad%")
+        )
+        is_taking = title_lc.like("toma en consideraci%")
+        # The SQL twin of _initiative_verdict: NULL = still in progress.
+        verdict = case(
+            (and_(is_totality, Vote.result == "rejected"), None),
+            (and_(is_totality, Vote.result == "approved"), "rejected"),
+            (and_(is_taking, Vote.result == "approved"), None),
+            else_=func.cast(Vote.result, String),
+        )
         latest_sq = (
             select(
                 Vote.initiative_id.label("iid"),
-                Vote.result.label("res"),
+                verdict.label("res"),
                 func.row_number()
                 .over(
                     partition_by=Vote.initiative_id,
@@ -205,7 +259,14 @@ async def list_initiatives(
         # different element type, and mypy fixes it on the first assignment.
         outcome_clauses = []
         if "pending" in results:
+            # In progress: never voted, or its latest vote kept it alive
+            # (admitted for consideration, amendments to the whole rejected).
             outcome_clauses.append(Initiative.id.not_in(select(latest_sq.c.iid)))
+            outcome_clauses.append(
+                Initiative.id.in_(
+                    select(latest_sq.c.iid).where(latest_sq.c.rn == 1, latest_sq.c.res.is_(None))
+                )
+            )
         if decided:
             outcome_clauses.append(
                 Initiative.id.in_(
@@ -354,7 +415,10 @@ async def list_initiatives(
         "items": [
             {
                 **InitiativeRead.model_validate(i).model_dump(mode="json"),
-                "latest_vote_result": (latest_vote_by_initiative.get(i.id) or {}).get("result"),
+                # The initiative's verdict from its latest vote, not the
+                # vote's raw result (see _initiative_verdict). None while
+                # the initiative is still in progress.
+                "latest_vote_result": (latest_vote_by_initiative.get(i.id) or {}).get("verdict"),
                 # The whole decisive vote, so a list row can show who voted
                 # what without opening the initiative. None until it is voted.
                 "latest_vote": latest_vote_by_initiative.get(i.id),
@@ -421,6 +485,7 @@ async def _load_latest_vote(
                 Vote.id,
                 Vote.initiative_id,
                 Vote.result,
+                Vote.title,
                 Vote.voted_at,
                 Vote.ayes,
                 Vote.noes,
@@ -434,10 +499,29 @@ async def _load_latest_vote(
     ).all()
 
     latest: dict[int, dict[str, Any]] = {}
-    for vote_id, initiative_id, result, voted_at, ayes, noes, abst, absent, by_assent in rows:
+    for (
+        vote_id,
+        initiative_id,
+        result,
+        title,
+        voted_at,
+        ayes,
+        noes,
+        abst,
+        absent,
+        by_assent,
+    ) in rows:
         if initiative_id is None or initiative_id in latest:
             continue  # ordered latest-first, so the first row wins
+        stage = _vote_stage(title)
+        raw = str(result) if result is not None else None
         latest[initiative_id] = {
+            # The procedural stage of this vote, so a card can say what
+            # was voted ("amendments to the whole text") next to a verdict
+            # that is not the vote's own result.
+            "stage": stage,
+            # What it means for the initiative; None = still in progress.
+            "verdict": _initiative_verdict(stage, raw),
             "vote_id": vote_id,
             # ``VoteResult`` is a StrEnum, so the row value is already a
             # plain string; ``str(...)`` normalises it for the JSON body.

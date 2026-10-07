@@ -213,7 +213,17 @@ export async function LawCard({
             groups={vote.groups}
             date={voteDate}
             labels={{
-              eyebrow: t('card_votes_eyebrow'),
+              // Say what was voted when it was a step, not the law: the
+              // card's verdict above can differ from this vote's result
+              // (amendments to the whole text rejected = the law goes on).
+              eyebrow:
+                vote.stage === 'totality'
+                  ? t('card_votes_eyebrow_totality')
+                  : vote.stage === 'taking'
+                    ? t('card_votes_eyebrow_taking')
+                    : vote.stage === 'convalidation'
+                      ? t('card_votes_eyebrow_convalidation')
+                      : t('card_votes_eyebrow'),
               inFavour: t('card_in_favour'),
               against: t('card_against'),
               abstention: t('card_abstention'),

@@ -140,7 +140,7 @@ async def list_topic_initiatives(
     return [
         {
             **InitiativeRead.model_validate(i).model_dump(mode="json"),
-            "latest_vote_result": (latest_vote_by_initiative.get(i.id) or {}).get("result"),
+            "latest_vote_result": (latest_vote_by_initiative.get(i.id) or {}).get("verdict"),
             "latest_vote": latest_vote_by_initiative.get(i.id),
             "topics": [
                 InitiativeTopicSlug.model_validate(tp).model_dump(mode="json")

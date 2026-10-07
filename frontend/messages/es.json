@@ -335,7 +335,10 @@
     "sort_voted": "Últimas votadas",
     "sort_close": "Más ajustadas",
     "sort_aria": "Ordenar",
-    "results_count_sorted": "{count} iniciativas votadas · {sort}"
+    "results_count_sorted": "{count} iniciativas votadas · {sort}",
+    "card_votes_eyebrow_totality": "Enmiendas a la totalidad",
+    "card_votes_eyebrow_taking": "Toma en consideración",
+    "card_votes_eyebrow_convalidation": "Convalidación del decreto"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -1480,7 +1483,7 @@
     "h1": "Herramientas listas para periodistas",
     "intro": "Cuatro formas de incorporar lo que vota el Congreso en una pieza: widgets responsivos, cards sociales, API REST y descargas directas. Todo CC-BY 4.0 — basta con citar a <em>Hola Política</em> y la fuente original (Congreso de los Diputados).",
     "widgets_section_title": "Widgets para artículos",
-    "widgets_intro": "Cada widget es un <code>iframe</code> de menos de un segundo de carga, sin cookies de terceros, con enlace a la fuente original. Copia el fragmento y pégalo en el CMS. Cinco widgets, ordenados por utilidad editorial.",
+    "widgets_intro": "Cada widget es un <code>iframe</code> de menos de un segundo de carga, sin cookies de terceros, con enlace a la fuente original. Copia el fragmento y pégalo en el CMS.",
     "widget_dossier_title": "Ficha completa de una ley (dossier)",
     "widget_dossier_desc": "Un solo iframe con todo lo que un artículo sobre una ley suele querer al lado: el título, el resumen en lenguaje claro, los temas clasificados, el resultado de la votación final y los enlaces al BOE + fecha de entrada en vigor. Pensado para la pieza monográfica sobre UNA ley.",
     "widget_explorer_title": "Explorador filtrado (la URL es el estado)",

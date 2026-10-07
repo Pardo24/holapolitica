@@ -891,9 +891,15 @@ export interface LawLatestVote {
   absent: number;
   approved_by_assent: boolean;
   groups: LawVoteGroupStance[];
+  /** Procedural stage of this vote: what was actually voted. */
+  stage?: 'taking' | 'totality' | 'convalidation' | 'other';
+  /** What it means for the initiative; null while it is in progress. */
+  verdict?: VoteResult | null;
 }
 
 export interface InitiativeListItem extends Initiative {
+  /** The initiative's verdict from its latest vote (a rejected amendment
+   *  to the whole text is NOT a rejected law); null while in progress. */
   latest_vote_result: VoteResult | null;
   latest_vote?: LawLatestVote | null;
 }
