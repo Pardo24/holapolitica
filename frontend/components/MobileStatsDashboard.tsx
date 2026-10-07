@@ -1,19 +1,16 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ChevronDown, ArrowRight, X } from 'lucide-react';
+import { ChevronDown, ArrowRight, Landmark, Tags, X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
+import { BottomSheet } from '@/components/BottomSheet';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
 import {
   PairCoincidenceClient,
   PairCoincidenceEyebrow,
 } from '@/components/PairCoincidenceClient';
-import {
-  StatsGroupFilter,
-  StatsTopicFilter,
-} from '@/components/StatsFilterClient';
 import { SummaryHover } from '@/components/SummaryHover';
 import { Tooltip } from '@/components/Tooltip';
 import type {
@@ -33,6 +30,8 @@ import type {
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
 import { displayGroupShort } from '@/lib/groups';
+import { topicIcon } from '@/lib/topic_icons';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * Mobile-only dashboard for /stats. Shown via ``sm:hidden`` on ≤640px while
@@ -190,6 +189,9 @@ export async function MobileStatsDashboard({
                 t('state_top_proposers_topic', { topic }),
               groupProposes: (group: string) =>
                 t('state_group_proposes', { group }),
+              allTopics: t('state_all_topics'),
+              allGroups: t('state_all_groups'),
+              close: t('picker_close'),
             }}
             statusLabels={statusLabels}
             governmentShort={governmentShort}
@@ -419,6 +421,9 @@ interface StateLabels {
   topProposersPlenary: string;
   topProposersTopic: (topic: string) => string;
   groupProposes: (group: string) => string;
+  allTopics: string;
+  allGroups: string;
+  close: string;
 }
 
 /** Inline body of the "initiatives state" widget — renders the topic-scoped
@@ -517,113 +522,100 @@ function InitiativesStateBody({
           </span>
         </div>
 
-        {/* Topic filter — combobox is directly visible (no extra unfold tap).
-            Picking a topic updates ``?topic=…`` in place via router.replace
-            with scroll preservation; no form submit, no scroll jump. */}
-        <div
-          style={{
-            margin: '0 0 16px',
-            padding: '10px 12px',
-            border: '1px solid var(--rule)',
-            borderRadius: 10,
-            background: 'var(--paper)',
-            display: 'grid',
-            gap: 8,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 9,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-3)',
-              fontWeight: 600,
-            }}
+        {/* Topic and group pickers: two chips that open a sheet of
+            choices, the phone's way of picking from a list. They replaced
+            two web dropdowns in a bordered box, each with its own label
+            and clear button. A chosen value shows on its chip; "all" at the
+            top of each sheet clears it. */}
+        <div className="stats-pickers">
+          <BottomSheet
+            trigger={
+              <>
+                <Tags size={15} strokeWidth={2} aria-hidden="true" />
+                <span>{hasTopic ? focusedTopicName : labels.topicValue}</span>
+                <ChevronDown size={14} strokeWidth={2.2} aria-hidden="true" />
+              </>
+            }
+            triggerClassName={hasTopic ? 'stats-picker stats-picker--on' : 'stats-picker'}
+            title={labels.filterByTopic}
+            closeLabel={labels.close}
           >
-            {hasTopic ? labels.topicValue : labels.filterByTopic}
-          </div>
-          {/* When a topic is active, the X to clear sits INLINE next
-              to the dropdown — same line, same visual rhythm — so
-              users don't hunt for a separate "Treure filtre" link
-              below. The X is a real <Link> so it works without JS. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <StatsTopicFilter allTopics={allTopics} selectedTopic={selectedTopic} />
-            </div>
-            {hasTopic && (
-              <Link
-                href={
-                  selectedGroup && selectedGroup !== 'all'
-                    ? (`/stats?group=${encodeURIComponent(selectedGroup)}` as Route)
-                    : ('/stats' as Route)
-                }
-                scroll={false}
-                aria-label={labels.clearTopic}
-                title={labels.clearTopic}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 36,
-                  height: 36,
-                  color: 'var(--ink-2)',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--rule)',
-                  borderRadius: 999,
-                  flex: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                <X size={16} aria-hidden="true" />
-              </Link>
-            )}
-          </div>
-          {/* Group filter — same in-place ?group=… update as the topic
-              picker. Lets the phone user scope the view to one group. */}
-          <div
-            style={{
-              fontSize: 9,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-3)',
-              fontWeight: 600,
-              marginTop: 2,
-            }}
+            <ul className="sheet-list">
+              <li>
+                <Link
+                  href={statsHref('all', selectedGroup)}
+                  scroll={false}
+                  aria-current={!hasTopic ? 'page' : undefined}
+                >
+                  <span className="sheet-row__label">{labels.allTopics}</span>
+                </Link>
+              </li>
+              {allTopics
+                .filter((tp) => tp.kind !== 'sdg')
+                .map((tp) => {
+                  const Icon = topicIcon(tp.icon);
+                  return (
+                    <li key={tp.slug}>
+                      <Link
+                        href={statsHref(tp.slug, selectedGroup)}
+                        scroll={false}
+                        aria-current={tp.slug === selectedTopic ? 'page' : undefined}
+                      >
+                        <span
+                          className="sheet-row__icon"
+                          aria-hidden="true"
+                          style={{
+                            background: `color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 16%, var(--paper))`,
+                            color: tp.color_hex ?? 'var(--ink-2)',
+                          }}
+                        >
+                          <Icon size={17} strokeWidth={1.9} />
+                        </span>
+                        <span className="sheet-row__label">{pickTopicName(tp, locale)}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+            </ul>
+          </BottomSheet>
+          <BottomSheet
+            trigger={
+              <>
+                <Landmark size={15} strokeWidth={2} aria-hidden="true" />
+                <span>{hasGroup ? focusedGroupName : labels.groupValue}</span>
+                <ChevronDown size={14} strokeWidth={2.2} aria-hidden="true" />
+              </>
+            }
+            triggerClassName={hasGroup ? 'stats-picker stats-picker--on' : 'stats-picker'}
+            title={labels.filterByGroup}
+            closeLabel={labels.close}
           >
-            {hasGroup ? labels.groupValue : labels.filterByGroup}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <StatsGroupFilter allGroups={allGroups} selectedGroup={selectedGroup} />
-            </div>
-            {hasGroup && (
-              <Link
-                href={
-                  hasTopic
-                    ? (`/stats?topic=${encodeURIComponent(selectedTopic)}` as Route)
-                    : ('/stats' as Route)
-                }
-                scroll={false}
-                aria-label={labels.clearGroup}
-                title={labels.clearGroup}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 36,
-                  height: 36,
-                  color: 'var(--ink-2)',
-                  background: 'var(--paper)',
-                  border: '1px solid var(--rule)',
-                  borderRadius: 999,
-                  flex: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                <X size={16} aria-hidden="true" />
-              </Link>
-            )}
-          </div>
+            <ul className="sheet-list">
+              <li>
+                <Link
+                  href={statsHref(selectedTopic, 'all')}
+                  scroll={false}
+                  aria-current={!hasGroup ? 'page' : undefined}
+                >
+                  <span className="sheet-row__label">{labels.allGroups}</span>
+                </Link>
+              </li>
+              {allGroups.map((g) => (
+                <li key={g.slug}>
+                  <Link
+                    href={statsHref(selectedTopic, g.slug)}
+                    scroll={false}
+                    aria-current={g.slug === selectedGroup ? 'page' : undefined}
+                  >
+                    <span style={{ flex: 'none', display: 'inline-flex', width: 34, justifyContent: 'center' }}>
+                      <GroupBadge slug={g.slug} color={g.color_hex} logoUrl={g.logo_url} size="sm" link={false} />
+                    </span>
+                    <span className="sheet-row__label">{displayGroupShort(g.name_short)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </BottomSheet>
         </div>
 
         {/* Stacked horizontal bar with inline % labels */}
@@ -742,6 +734,15 @@ function InitiativesStateBody({
         )}
     </>
   );
+}
+
+/** /stats with a topic and a group; "all" drops the parameter. */
+function statsHref(topic: string, group: string): Route {
+  const qs = new URLSearchParams();
+  if (topic && topic !== 'all') qs.set('topic', topic);
+  if (group && group !== 'all') qs.set('group', group);
+  const q = qs.toString();
+  return (q ? `/stats?${q}` : '/stats') as Route;
 }
 
 /** One "what this group proposes" row: topic dot + name + bar + count.

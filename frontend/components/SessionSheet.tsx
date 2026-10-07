@@ -1,9 +1,19 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
+import {
+  LAW_CARD_LIST_STYLE,
+  LawCardFooter,
+  LawCardFrame,
+  LawCardHeadline,
+  LawCardTopLine,
+  LawCardVoteBox,
+} from '@/components/LawCardParts';
+import { LawTypeChip } from '@/components/LawTypeChip';
+import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import {
   PartyStanceMini,
@@ -18,7 +28,6 @@ import {
 } from '@/components/NoBreakdownNotice';
 import { ResultPill } from '@/components/ResultPill';
 import { SessionVoteFilter, type TopicOption } from '@/components/SessionVoteFilter';
-import { StackedBar } from '@/components/StackedBar';
 import { Tooltip } from '@/components/Tooltip';
 import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
@@ -178,6 +187,12 @@ export async function SessionSheet({
     whyPoints: t('points_why'),
     finalTag: t('law_vote_final_tag'),
   };
+  const cardLabels: CardLabels = {
+    aiSummary: tLleis('card_ai_summary'),
+    noSummary: tLleis('card_no_summary'),
+    openLaw: tLleis('card_open'),
+    openVote: tVotes('see_vote'),
+  };
   const topicSlugsOf = (v: Vote): string => (v.topics ?? []).map((tp) => tp.slug).join(' ');
   // Procedural votes carry no initiative and so never get a summary; their
   // description only restates the title. Say what the procedure does instead
@@ -197,6 +212,7 @@ export async function SessionSheet({
       return (
         <LawVoteGroup
           key={`law-${entry.key}`}
+          cardLabels={cardLabels}
           splitLabels={splitLabels}
           votes={entry.votes}
           kind={kind}
@@ -222,6 +238,7 @@ export async function SessionSheet({
     return (
       <VoteRow
         key={v.id}
+        cardLabels={cardLabels}
         splitLabels={splitLabels}
         vote={v}
         locale={locale}
@@ -395,8 +412,56 @@ export async function SessionSheet({
             )}
           </div>
         )}
+        {/* A phone gets the day as figures, not as a paragraph: three
+            numbers a thumb can read at a glance, the topics as chips.
+            The sentence below says the same in words on a wider screen. */}
+        <div className="session-lede-tiles sm:hidden">
+          <div className="session-lede-figs">
+            <span>
+              <strong className="tabular">{counts.laws}</strong>
+              {t('tile_items', { n: counts.laws })}
+            </span>
+            <span style={{ color: 'var(--aye)' }}>
+              <strong className="tabular">{counts.approved}</strong>
+              {t('tile_approved', { n: counts.approved })}
+            </span>
+            <span style={{ color: 'var(--no)' }}>
+              <strong className="tabular">{counts.rejected}</strong>
+              {t('tile_rejected', { n: counts.rejected })}
+            </span>
+            {counts.tie > 0 && (
+              <span style={{ color: 'var(--abst)' }}>
+                <strong className="tabular">{counts.tie}</strong>
+                {t('tile_tie', { n: counts.tie })}
+              </span>
+            )}
+          </div>
+          {(() => {
+            const topTopics = groupVotesByTopic(ordered, locale)
+              .filter((g) => g.key !== '__unclassified' && g.topic != null)
+              .slice(0, 4);
+            if (topTopics.length === 0) return null;
+            return (
+              <div className="session-lede-topics">
+                {topTopics.map((g) => (
+                  <a
+                    key={g.key}
+                    href={`#tema-${g.topic!.slug}`}
+                    style={{ ['--topic' as string]: g.topic!.color_hex ?? 'var(--accent)' }}
+                  >
+                    {pickTopicName(g.topic!, locale)}
+                    <span className="tabular">{summariseLaws(g.votes).laws}</span>
+                  </a>
+                ))}
+              </div>
+            );
+          })()}
+          {ordered.length > counts.laws && (
+            <p className="session-lede-note">{t('tile_votes_note', { votes: ordered.length })}</p>
+          )}
+        </div>
         <p
-          className="serif"
+          className="serif hidden sm:block"
           style={{
             margin: 0,
             fontSize: 'clamp(17px, 1.7vw, 19px)',
@@ -544,10 +609,7 @@ export async function SessionSheet({
               />
             );
             const list = (
-              <ul
-                className="session-vote-list"
-                style={{ listStyle: 'none', margin: '0 0 8px', padding: 0 }}
-              >
+              <ul className="session-vote-list" style={{ ...LAW_CARD_LIST_STYLE, marginBottom: 8 }}>
                 {buildSessionEntries(kindVotes).map((entry) => renderEntry(entry, kind))}
               </ul>
             );
@@ -639,52 +701,6 @@ export async function SessionSheet({
           transform: rotate(90deg);
         }
         .session-topic-summary:hover h2 { color: var(--accent); }
-        @media (max-width: 600px) {
-          /* A phone gets ONE of everything.
-
-             The desktop row is three columns: a sequence gutter, the law,
-             and a panel of big figures pinned right. Stacked on a phone
-             that panel stopped being a figure beside the prose and became
-             a second copy of it, so one vote arrived as: verdict, verdict
-             again, 342 / 5 / 0 as text, then 342 / 5 / 0 as numerals, a
-             bar, and the margin. Six blocks saying three things, twenty
-             times down the page.
-
-             What survives is the block the reader already knows from
-             /lleis: the verdict and the margin on one line under the
-             headline, the tally, and the per-group breakdown a tap away.
-             The count panel goes, the sequence gutter goes, and the
-             block's own eyebrow goes with them (the row is plainly a
-             vote, and the verdict is right above). */
-          .session-vote-row {
-            grid-template-columns: 1fr !important;
-            row-gap: 8px !important;
-            column-gap: 0 !important;
-          }
-          .session-vote-row > *:first-child,
-          .session-vote-row > div:nth-child(3) {
-            display: none !important;
-          }
-          .session-vote-row .vote-split-eyebrow {
-            display: none !important;
-          }
-          /* With a third of the row gone, the rows need the air back to
-             stay legible as separate items. */
-          .session-vote-list > li {
-            padding-top: 18px !important;
-            padding-bottom: 18px !important;
-          }
-        }
-        /* Above the phone breakpoint the row keeps its right-hand panel of
-           figures, which is where the eye runs down a twenty-row session.
-           The vote block's own tally then says the same three numbers again
-           in small text a few pixels to the left, so it stands down and
-           leaves the block its ribbon and its per-group breakdown. */
-        @media (min-width: 601px) {
-          .session-vote-row .vote-split-tally {
-            display: none !important;
-          }
-        }
       `}</style>
     </article>
   );
@@ -892,103 +908,64 @@ function proposerOf(vote: Vote, logoUrl: string | null, governmentLabel: string)
     : null;
 }
 
-/** Proposer, first topic (+N) and the "Texto original" toggle: context,
- *  shown under the outcome and the parties rather than before them. */
-function MetaStrip({
-  proposer,
-  topics,
-  locale,
-  plainSummary,
-  subject,
-  provider,
-}: {
-  proposer: Proposer;
-  topics: InitiativeTopicSlug[];
-  locale: string;
-  plainSummary: string | null;
-  subject: string;
-  provider: string | null;
-}) {
-  if (!proposer && topics.length === 0 && !plainSummary) return null;
+interface CardLabels {
+  aiSummary: string;
+  noSummary: string;
+  openLaw: string;
+  openVote: string;
+}
+
+/** Who tabled it: the group's emblem and short name, or the Government. */
+function ProposerChip({ proposer }: { proposer: Proposer }) {
+  if (!proposer) return null;
+  if (proposer.kind === 'group') {
+    if (!proposer.slug) return null;
+    return (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '2px 10px 2px 2px',
+          borderRadius: 999,
+          background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
+          border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
+          fontSize: 11,
+          fontWeight: 600,
+          color: 'var(--ink)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <GroupBadge
+          slug={proposer.slug}
+          color={proposer.color}
+          size="xs"
+          link={false}
+          logoUrl={proposer.logoUrl}
+        />
+        {proposer.short}
+      </span>
+    );
+  }
   return (
-    <div
+    <span
       style={{
-        display: 'flex',
+        display: 'inline-flex',
         alignItems: 'center',
-        gap: 8,
-        marginTop: 8,
-        flexWrap: 'wrap',
-        minWidth: 0,
+        gap: 6,
+        padding: '3px 10px',
+        borderRadius: 999,
+        background: 'var(--paper-2)',
+        border: '1px solid var(--rule-strong)',
+        fontSize: 11,
+        fontWeight: 600,
+        color: 'var(--ink)',
+        whiteSpace: 'nowrap',
       }}
     >
-      {proposer && proposer.kind === 'group' && proposer.slug && (
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '2px 10px 2px 2px',
-            borderRadius: 999,
-            background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
-            border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--ink)',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <GroupBadge
-            slug={proposer.slug}
-            color={proposer.color}
-            size="xs"
-            link={false}
-            logoUrl={proposer.logoUrl}
-          />
-          {proposer.short}
-        </span>
-      )}
-      {proposer && proposer.kind === 'government' && (
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '3px 10px',
-            borderRadius: 999,
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule-strong)',
-            fontSize: 11,
-            fontWeight: 600,
-            color: 'var(--ink)',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{ width: 8, height: 8, borderRadius: 999, background: proposer.color }}
-          />
-          {proposer.short}
-        </span>
-      )}
-      {/* One topic chip only — the extra topics collapse into a quiet
-          "+N" so the line doesn't turn into a badge wall. */}
-      {topics.slice(0, 1).map((tp) => (
-        <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
-      ))}
-      {topics.length > 1 && (
-        <span
-          className="tabular"
-          title={topics
-            .slice(1)
-            .map((tp) => pickTopicName(tp, locale))
-            .join(' · ')}
-          style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-3)' }}
-        >
-          +{topics.length - 1}
-        </span>
-      )}
-      {plainSummary && <LawOriginalToggle original={subject} provider={provider} />}
-    </div>
+      <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 999, background: proposer.color }} />
+      {proposer.short}
+    </span>
   );
 }
 
@@ -1017,6 +994,7 @@ interface GroupLabels {
  *   data doesn't publish the text of each point.
  */
 function LawVoteGroup({
+  cardLabels,
   votes,
   kind,
   locale,
@@ -1033,6 +1011,7 @@ function LawVoteGroup({
   proceduralNote,
   topicSlugs,
 }: {
+  cardLabels: CardLabels;
   votes: Vote[];
   kind: VoteKind;
   locale: string;
@@ -1082,163 +1061,99 @@ function LawVoteGroup({
     textDecoration: 'none',
   };
 
+  const lawHref = lead.initiative_id != null ? (`/initiatives/${lead.initiative_id}` as Route) : null;
+
   return (
     // Filtered by the ITEM's outcome (fateResult), not by its inner votes:
     // a bill that passed after its amendments were voted down is approved.
-    <li
-      data-result={outcome}
-      data-topics={topicSlugs}
-      style={{ padding: '14px 0', borderBottom: '1px solid var(--rule)' }}
-    >
-      {/* Same class as a single-vote row, so a phone treats the two the
-          same way: no sequence gutter, no vote-block eyebrow. */}
-      <div
-        className="session-vote-row"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '28px minmax(0, 1fr)',
-          columnGap: 16,
-          rowGap: 6,
-          alignItems: 'start',
-        }}
-      >
-        {/* Gutter glyph signals "one item, several votes". */}
-        <span aria-hidden="true" style={{ paddingTop: 3, color: 'var(--ink-3)' }}>
-          <Layers size={14} strokeWidth={1.9} />
-        </span>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-            {lead.initiative_id != null ? (
-              <Link
-                href={`/initiatives/${lead.initiative_id}` as Route}
-                className="serif"
-                style={headlineStyle}
-              >
-                {headline}
-              </Link>
-            ) : (
-              <span className="serif" style={headlineStyle}>
-                {headline}
-              </span>
-            )}
-            <span
-              style={{
-                flex: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                flexWrap: 'wrap',
-              }}
-            >
-              {byPoints ? (
-                <ResultPill
-                  result={outcome}
-                  label={labels.pointsSummary(approvedPoints, ordered.length)}
-                />
-              ) : (
-                <>
-                  <ResultPill result={outcome} label={outcomeLabelFor(decider)} />
-                  <span
-                    className="tabular"
-                    style={{ fontSize: 11, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}
-                  >
-                    {marginLabel(Math.abs(decider.ayes - decider.noes))}
-                  </span>
-                </>
-              )}
-            </span>
-          </div>
-          {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
-          {proceduralNote && (
-            <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
-              {proceduralNote}
-            </p>
-          )}
-          {/* Who voted what comes before the metadata: it is the answer the
-              reader came for. Point-by-point motions show it per point. */}
-          {!byPoints &&
-            (deciderStance && deciderStance.length > 0 ? (
-              <VoteSplit
-                ayes={decider.ayes}
-                noes={decider.noes}
-                abstentions={decider.abstentions}
-                absent={decider.absent}
-                groups={deciderStance}
-                labels={splitLabels}
-              />
-            ) : (
-              <NoBreakdownFor vote={decider} labels={noBreakLabels} />
-            ))}
-          <MetaStrip
-            proposer={proposer}
-            topics={topics}
-            locale={locale}
-            plainSummary={plainSummary}
-            subject={subject}
-            provider={lead.plain_summary_provider}
+    // The same card as /lleis (LawCardParts), so one law looks the same
+    // whether you meet it in the list or in the day it was voted.
+    <LawCardFrame data={{ 'data-result': outcome, 'data-topics': topicSlugs }}>
+      <LawCardTopLine
+        outcome={
+          <ResultPill
+            result={outcome}
+            label={
+              byPoints
+                ? labels.pointsSummary(approvedPoints, ordered.length)
+                : outcomeLabelFor(decider)
+            }
           />
-          <div style={{ marginTop: 10 }}>
-            <details>
-              <summary
-                style={{
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: 'var(--ink-2)',
-                }}
-              >
-                {byPoints
-                  ? labels.pointsToggle(ordered.length)
-                  : labels.votesToggle(ordered.length)}
-                {/* Educational note: why one item is voted several times. */}
-                <Tooltip
-                  term={
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 13,
-                        height: 13,
-                        borderRadius: 999,
-                        border: '1px solid var(--rule-strong)',
-                        fontSize: 8,
-                        color: 'var(--ink-3)',
-                        fontStyle: 'italic',
-                        fontWeight: 700,
-                      }}
-                    >
-                      i
-                    </span>
-                  }
-                  explanation={byPoints ? labels.whyPoints : labels.whyMultiple}
-                />
-              </summary>
-              <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>
-                {ordered.map((v, i) => (
-                  <SubVote
-                    key={v.id}
-                    vote={v}
-                    label={byPoints ? labels.pointLabel(i + 1) : null}
-                    ayesLabel={labels.ayes}
-                    noesLabel={labels.noes}
-                    resultLabel={outcomeLabelFor(v)}
-                    marginLabel={marginLabel}
-                    tag={!byPoints && v.id === decider.id ? labels.finalTag : null}
-                    stance={byPoints ? stanceByVote.get(v.id) : undefined}
-                    stanceLabels={stanceLabels}
-                  />
-                ))}
-              </ul>
-            </details>
-          </div>
-        </div>
-      </div>
-    </li>
+        }
+      >
+        {lead.initiative_type && <LawTypeChip type={lead.initiative_type} />}
+        {topics.slice(0, 2).map((tp) => (
+          <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+        ))}
+      </LawCardTopLine>
+      <SummaryProvenance
+        kind={plainSummary ? 'ai' : 'none'}
+        label={plainSummary ? cardLabels.aiSummary : cardLabels.noSummary}
+      />
+      <LawCardHeadline href={lawHref}>{headline}</LawCardHeadline>
+      {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
+      {proceduralNote && (
+        <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+          {proceduralNote}
+        </p>
+      )}
+      {/* Point-by-point motions show who voted what per point, below. */}
+      {!byPoints && (
+        <LawCardVoteBox>
+          {deciderStance && deciderStance.length > 0 ? (
+            <VoteSplit
+              ayes={decider.ayes}
+              noes={decider.noes}
+              abstentions={decider.abstentions}
+              absent={decider.absent}
+              groups={deciderStance}
+              labels={splitLabels}
+            />
+          ) : (
+            <NoBreakdownFor vote={decider} labels={noBreakLabels} />
+          )}
+        </LawCardVoteBox>
+      )}
+      <details className="law-card-votes">
+        <summary>
+          {byPoints ? labels.pointsToggle(ordered.length) : labels.votesToggle(ordered.length)}
+          {/* Educational note: why one item is voted several times. */}
+          <Tooltip
+            term={
+              <span aria-hidden="true" className="law-card-votes__i">
+                i
+              </span>
+            }
+            explanation={byPoints ? labels.whyPoints : labels.whyMultiple}
+          />
+        </summary>
+        <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>
+          {ordered.map((v, i) => (
+            <SubVote
+              key={v.id}
+              vote={v}
+              label={byPoints ? labels.pointLabel(i + 1) : null}
+              ayesLabel={labels.ayes}
+              noesLabel={labels.noes}
+              resultLabel={outcomeLabelFor(v)}
+              marginLabel={marginLabel}
+              tag={!byPoints && v.id === decider.id ? labels.finalTag : null}
+              stance={byPoints ? stanceByVote.get(v.id) : undefined}
+              stanceLabels={stanceLabels}
+            />
+          ))}
+        </ul>
+      </details>
+      <LawCardFooter href={lawHref} openLabel={cardLabels.openLaw}>
+        <ProposerChip proposer={proposer} />
+        {lead.expediente_raw && (
+          <span className="mono" style={{ fontSize: 10, wordBreak: 'break-all' }}>
+            {lead.expediente_raw}
+          </span>
+        )}
+        {plainSummary && <LawOriginalToggle original={subject} provider={lead.plain_summary_provider} />}
+      </LawCardFooter>
+    </LawCardFrame>
   );
 }
 
@@ -1336,6 +1251,7 @@ function SubVote({
 }
 
 function VoteRow({
+  cardLabels,
   vote,
   locale,
   proposerLogoUrl,
@@ -1354,6 +1270,7 @@ function VoteRow({
   topicSlugs,
   seeVoteLabel,
 }: {
+  cardLabels: CardLabels;
   vote: Vote;
   locale: string;
   /**
@@ -1417,351 +1334,63 @@ function VoteRow({
           logoUrl: null,
         }
       : null;
+  const voteHref = `/votes/${vote.id}` as Route;
+
   return (
-    <li
-      data-result={outcome}
-      data-topics={topicSlugs}
-      style={{
-        padding: '14px 0',
-        borderBottom: '1px solid var(--rule)',
-      }}
-    >
-      {/* A plain grid, NOT a link. The whole row used to be one <a>, so the
-          "detail by group" disclosure inside it could never open: the click
-          went to the vote page instead (and interactive content inside an
-          anchor is invalid HTML). The headline and an explicit link at the
-          foot carry the navigation now. */}
-      <div
-        className="session-vote-row"
-        style={{
-          display: 'grid',
-          // Three columns: a narrow sequence-number gutter, a wide
-          // title+meta column that flexes, and a fixed-width count
-          // panel pinned to the right. Counts visually anchor the
-          // row's right edge so the eye scans down them without
-          // hopping inside the metadata line.
-          gridTemplateColumns: '28px minmax(0, 1fr) auto',
-          columnGap: 16,
-          rowGap: 6,
-          color: 'inherit',
-          alignItems: 'start',
-        }}
-      >
-        {/* Sequence number — quiet anchor in the left gutter. */}
-        <span
-          className="tabular"
-          aria-hidden="true"
-          style={{
-            fontSize: 11,
-            color: 'var(--ink-3)',
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            paddingTop: 4,
-          }}
-        >
-          {vote.sequence_in_session != null
-            ? String(vote.sequence_in_session).padStart(2, '0')
-            : '—'}
-        </span>
-
-        {/* Title + result pill + proposing-group chip stack. The
-            result pill sits on the top-right of the title block (not
-            in its own grid column) so it visually associates with
-            the headline; the proposer chip sits BELOW the title so
-            attribution reads "the law, who tabled it" without
-            interrupting the headline. */}
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <h3
-              style={{
-                margin: 0,
-                flex: '1 1 280px',
-                minWidth: 0,
-              }}
-            >
-              <Link
-                href={`/votes/${vote.id}` as Route}
-                className="serif"
-                style={{
-                  fontSize: 'clamp(14px, 1.4vw, 15px)',
-                  fontWeight: 400,
-                  color: 'var(--ink)',
-                  lineHeight: 1.35,
-                  letterSpacing: '-0.005em',
-                  textDecoration: 'none',
-                }}
-              >
-                {headline}
-              </Link>
-            </h3>
-            <span
-              style={{
-                flex: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                flexWrap: 'wrap',
-              }}
-            >
-              <ResultPill result={outcome} label={resultLabel} />
-              {/* "per 337 vots" rides with the verdict, as it does on a
-                  multi-vote item. It used to live at the foot of the count
-                  panel, which a phone never shows. */}
-              <span
-                className="tabular"
-                style={{ fontSize: 11, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}
-              >
-                {marginLabel(margin)}
-              </span>
-            </span>
-          </div>
-          {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
-          {proceduralNote && (
-            <p
-              style={{
-                margin: '6px 0 0',
-                fontSize: 12.5,
-                lineHeight: 1.5,
-                color: 'var(--ink-2)',
-              }}
-            >
-              {proceduralNote}
-            </p>
-          )}
-          {/* Who voted what comes before the metadata: it is the answer
-              the reader came for. */}
-          {stance && stance.length > 0 ? (
-            <VoteSplit
-              ayes={vote.ayes}
-              noes={vote.noes}
-              abstentions={vote.abstentions}
-              absent={vote.absent}
-              groups={stance}
-              labels={splitLabels}
-            />
-          ) : (
-            <NoBreakdownFor vote={vote} labels={noBreakLabels} />
-          )}
-          {/* Metadata strip — proposer badge (with logo when available)
-              and topic chips. Both sit on the same line so the vote
-              row reads "the law, who tabled it, what theme(s) it
-              touches" without breaking into multiple stacked rows. On
-              narrow viewports the strip flex-wraps. */}
-          {(proposer || topics.length > 0 || plainSummary) && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                marginTop: 8,
-                flexWrap: 'wrap',
-                minWidth: 0,
-              }}
-            >
-              {proposer && proposer.kind === 'group' && proposer.slug && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '2px 10px 2px 2px',
-                    borderRadius: 999,
-                    background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
-                    border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <GroupBadge
-                    slug={proposer.slug}
-                    color={proposer.color}
-                    size="xs"
-                    link={false}
-                    logoUrl={proposer.logoUrl}
-                  />
-                  {proposer.short}
-                </span>
-              )}
-              {proposer && proposer.kind === 'government' && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '3px 10px',
-                    borderRadius: 999,
-                    background: 'var(--paper-2)',
-                    border: '1px solid var(--rule-strong)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 999,
-                      background: proposer.color,
-                    }}
-                  />
-                  {proposer.short}
-                </span>
-              )}
-              {/* Same one-chip cap as the law rows above. */}
-              {topics.slice(0, 1).map((tp) => (
-                <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
-              ))}
-              {topics.length > 1 && (
-                <span
-                  className="tabular"
-                  title={topics
-                    .slice(1)
-                    .map((tp) => pickTopicName(tp, locale))
-                    .join(' · ')}
-                  style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink-3)' }}
-                >
-                  +{topics.length - 1}
-                </span>
-              )}
-              {plainSummary && (
-                <LawOriginalToggle
-                  original={subject}
-                  provider={vote.plain_summary_provider}
-                />
-              )}
-            </div>
-          )}
-          {/* The way into the vote, now that the row isn't one big click
-              target. Same wording as the cards on /votacions. */}
-          <Link
-            href={`/votes/${vote.id}` as Route}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-              marginTop: 8,
-              fontSize: 11.5,
-              fontWeight: 600,
-              color: 'var(--ink-2)',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {seeVoteLabel}
-            <ArrowRight size={12} strokeWidth={2} aria-hidden="true" />
-          </Link>
-        </div>
-
-        {/* Count panel — right-aligned column. The three figures stack
-            vertically so the digits sit on a tight tabular grid
-            (185 / 152 / 11 etc.) and the labels match in width. */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: 2,
-            minWidth: 110,
-            paddingTop: 2,
-          }}
-        >
-          <CountRow
-            label={ayesLabel}
-            value={vote.ayes}
-            color="var(--aye, #16A34A)"
+    // The same card as /lleis (LawCardParts). It used to be a three-column
+    // row with a panel of figures on the right, a 15px headline and the
+    // margin beside the verdict: a second visual language for the same
+    // thing. The figures live in the vote box's tally now, as on /lleis.
+    <LawCardFrame data={{ 'data-result': outcome, 'data-topics': topicSlugs }}>
+      <LawCardTopLine outcome={<ResultPill result={outcome} label={resultLabel} />}>
+        {vote.initiative_type && <LawTypeChip type={vote.initiative_type} />}
+        {topics.slice(0, 2).map((tp) => (
+          <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+        ))}
+      </LawCardTopLine>
+      <SummaryProvenance
+        kind={plainSummary ? 'ai' : 'none'}
+        label={plainSummary ? cardLabels.aiSummary : cardLabels.noSummary}
+      />
+      <LawCardHeadline href={voteHref}>{headline}</LawCardHeadline>
+      {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
+      {proceduralNote && (
+        <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+          {proceduralNote}
+        </p>
+      )}
+      <LawCardVoteBox>
+        {stance && stance.length > 0 ? (
+          <VoteSplit
+            ayes={vote.ayes}
+            noes={vote.noes}
+            abstentions={vote.abstentions}
+            absent={vote.absent}
+            groups={stance}
+            labels={splitLabels}
           />
-          <CountRow
-            label={noesLabel}
-            value={vote.noes}
-            color="var(--no, #DC2626)"
-          />
-          <CountRow
-            label={abstLabel}
-            value={vote.abstentions}
-            color="var(--abst, #CA8A04)"
-          />
-          {/* Micro stacked bar — visual companion to the count column.
-              Lets the eye perceive the proportion (a 200-50 vote and a
-              140-130 vote both show 3 lines of numbers; the bar
-              distinguishes them at a glance). */}
-          <div style={{ width: 110, marginTop: 6 }}>
-            <StackedBar
-              d={{
-                aye: vote.ayes,
-                no: vote.noes,
-                abst: vote.abstentions,
-                nv: vote.absent,
-              }}
-              height={5}
-            />
-          </div>
-        </div>
-      </div>
-    </li>
-  );
-}
-
-/**
- * One row of the right-aligned count panel — "Sí 187" / "No 152" /
- * "Abst. 11". The numeric value is bold + tinted (green / red /
- * amber) and the label sits to its right in a muted weight so the
- * digits anchor the eye, the label disambiguates.
- */
-function CountRow({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'baseline',
-        gap: 6,
-      }}
-    >
-      <strong
-        className="tabular"
-        style={{
-          fontSize: 16,
-          fontWeight: 700,
-          color,
-          letterSpacing: '-0.01em',
-          minWidth: 36,
-          textAlign: 'right',
-          display: 'inline-block',
-        }}
-      >
-        {value}
-      </strong>
-      <span
-        style={{
-          fontSize: 11,
-          color: 'var(--ink-3)',
-          minWidth: 32,
-          textAlign: 'left',
-          display: 'inline-block',
-        }}
-      >
-        {label}
-      </span>
-    </span>
+        ) : (
+          <NoBreakdownFor vote={vote} labels={noBreakLabels} />
+        )}
+      </LawCardVoteBox>
+      <LawCardFooter href={voteHref} openLabel={cardLabels.openVote}>
+        <ProposerChip
+          proposer={
+            proposer
+              ? proposer.kind === 'group'
+                ? proposer
+                : { kind: 'government', short: proposer.short, color: proposer.color }
+              : null
+          }
+        />
+        {vote.expediente_raw && (
+          <span className="mono" style={{ fontSize: 10, wordBreak: 'break-all' }}>
+            {vote.expediente_raw}
+          </span>
+        )}
+        {plainSummary && <LawOriginalToggle original={subject} provider={vote.plain_summary_provider} />}
+      </LawCardFooter>
+    </LawCardFrame>
   );
 }
 

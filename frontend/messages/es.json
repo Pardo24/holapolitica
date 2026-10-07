@@ -166,7 +166,12 @@
     "points_why": "Se votó por puntos: cada punto se aprueba o se rechaza por separado. Los datos abiertos del Congreso no publican el texto de cada punto; está en el Diario de Sesiones.",
     "topic_filter_eyebrow": "Tema",
     "topic_filter_all": "Todos",
-    "filter_empty": "Ninguna votación coincide con estos filtros."
+    "filter_empty": "Ninguna votación coincide con estos filtros.",
+    "tile_items": "{n, plural, one {iniciativa} other {iniciativas}}",
+    "tile_approved": "{n, plural, one {aprobada} other {aprobadas}}",
+    "tile_rejected": "{n, plural, one {rechazada} other {rechazadas}}",
+    "tile_tie": "{n, plural, one {empate} other {empates}}",
+    "tile_votes_note": "{votes} votaciones en total, contando enmiendas y puntos por separado."
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -637,7 +642,30 @@
         "term": "Coincidencia entre grupos",
         "definition": "% de votaciones donde dos grupos votaron el mismo sentido (Sí, No o Abstención)."
       }
-    ]
+    ],
+    "toc_title": "En esta página",
+    "toc_why": "Por qué",
+    "toc_mission": "Qué es",
+    "toc_principle": "Espejo, no megáfono",
+    "toc_ai": "La IA",
+    "toc_sources": "Los datos",
+    "toc_lifecycle": "Cómo se hace una ley",
+    "toc_glossary": "Glosario",
+    "toc_coverage": "Cobertura",
+    "toc_api": "API",
+    "toc_licence": "Licencia",
+    "ai_title": "Cómo usamos la IA",
+    "ai_intro": "Los textos oficiales del Congreso son largos y técnicos. Para que se puedan leer, un modelo de lenguaje hace tres tareas, y ninguna consiste en decidir nada:",
+    "ai_point_summary": "Resume cada iniciativa en lenguaje llano y le pone un titular.",
+    "ai_point_topics": "La clasifica por temas (vivienda, sanidad, empleo…), que es como la puedes filtrar.",
+    "ai_point_audience": "Extrae a quién afecta a partir del propio texto de la ley (inquilinos, autónomos, jóvenes…).",
+    "ai_marked": "Todo lo que hace la IA va marcado como «hecho con IA», y el texto oficial está siempre a un toque, en el botón «Texto original». Puede equivocarse: la fuente autorizada es el texto legal.",
+    "ai_not_votes": "Los resultados de las votaciones y quién ha votado qué no pasan por ninguna IA: salen directamente de los datos oficiales del Congreso.",
+    "sources_title": "De dónde salen los datos",
+    "sources_body": "De los datos abiertos que publica el Congreso de los Diputados en congreso.es: las votaciones del pleno con el voto de cada diputado, las iniciativas y su recorrido, la composición de los grupos y el calendario de sesiones. Los importamos automáticamente.",
+    "sources_untouched": "No los retocamos. Si un dato falta en el origen, aquí también falta, y lo decimos: por ejemplo, una votación por asentimiento no tiene voto nominal y la tarjeta lo indica.",
+    "sources_legal_link": "Datos personales y RGPD",
+    "lifecycle_more": "Los recorridos, uno a uno"
   },
   "groups": {
     "title": "Grupos parlamentarios",
@@ -1513,7 +1541,8 @@
     "procedural_committee_report": "Informe de comisión: el Pleno vota las conclusiones de un grupo de trabajo parlamentario.",
     "procedural_treaty": "Tratado internacional: el Congreso autoriza (o no) que España se comprometa con este acuerdo con otros estados u organismos.",
     "procedural_constitutional_reform": "Reforma constitucional: propuesta para cambiar un artículo de la Constitución, que exige mayorías reforzadas.",
-    "procedural_government_submission": "El Gobierno remite un documento a las Cortes para que el Congreso se pronuncie sobre él."
+    "procedural_government_submission": "El Gobierno remite un documento a las Cortes para que el Congreso se pronuncie sobre él.",
+    "how_we_use_ai": "Cómo usamos la IA →"
   },
   "glossary": {
     "Proposició de Llei": "Iniciativa legislativa que presentan grupos parlamentarios del Congreso.",
@@ -1586,7 +1615,9 @@
     "planned_label": "Sesión plenaria prevista (orden del día pendiente)",
     "items_count": "{count, plural, =1 {1 punto} other {# puntos}} en el orden del día",
     "session_number": "sesión {n}",
-    "status_planned": "previsto"
+    "status_planned": "previsto",
+    "none_convened_title": "No hay ningún pleno convocado.",
+    "none_convened_body": "El Congreso ha retirado del calendario {n, plural, one {el pleno que tenía previsto} other {los # plenos que tenía previstos}}. Es lo que ocurre cuando se disuelven las Cortes para convocar elecciones: no hay plenos hasta que se constituye el nuevo Congreso."
   },
   "footer": {
     "license_code": "Código bajo licencia EUPL-1.2",
@@ -1668,7 +1699,10 @@
     "state_filter_by_group": "Filtrar por grupo",
     "state_group_value": "Grupo",
     "state_clear_group": "Quitar filtro de grupo",
-    "state_group_proposes": "Lo que más propone {group}"
+    "state_group_proposes": "Lo que más propone {group}",
+    "state_all_topics": "Todos los temas",
+    "state_all_groups": "Todos los grupos",
+    "picker_close": "Cerrar"
   },
   "topic_bars": {
     "empty_default": "Aún no hay suficientes datos clasificados para mostrar esta vista.",

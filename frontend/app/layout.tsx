@@ -105,7 +105,7 @@ export default async function RootLayout({
 
               <footer className="site-footer" style={{ marginTop: 48, paddingTop: 18, borderTop: '1px solid var(--ink)', fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.6 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span>{tFooter('principle')}</span>
+                  <Link href={'/about#principi' as Route} style={{ color: 'inherit' }}>{tFooter('principle')}</Link>
                   <span>
                     <Link href={'/avui' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                       {tFooter('avui_link')}

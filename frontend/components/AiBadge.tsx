@@ -7,9 +7,11 @@ import { Sparkles } from 'lucide-react';
  * model (Mistral) and reviewed against the official text, never hand-
  * written editorial. Neutral, factual labelling — no value claim.
  */
-export function AiBadge({ label }: { label: string }) {
+export function AiBadge({ label, href }: { label: string; /** Where the AI is explained. */ href?: string }) {
+  const Tag = href ? 'a' : 'span';
   return (
-    <span
+    <Tag
+      href={href}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -26,10 +28,11 @@ export function AiBadge({ label }: { label: string }) {
         whiteSpace: 'nowrap',
         verticalAlign: 'middle',
         flex: 'none',
+        textDecoration: 'none',
       }}
     >
       <Sparkles size={11} strokeWidth={2} aria-hidden="true" />
       {label}
-    </span>
+    </Tag>
   );
 }

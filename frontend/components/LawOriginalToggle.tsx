@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, Sparkles } from 'lucide-react';
@@ -121,7 +122,12 @@ export function LawOriginalToggle({
                 fontStyle: 'italic',
               }}
             >
-              {tc('plain_summary_caveat', { provider })}
+              {tc('plain_summary_caveat', { provider })}{' '}
+              {/* The reader asking for the original is asking how far to
+                  trust the summary: the answer is one tap away. */}
+              <Link href="/about#ia" style={{ color: 'var(--ink-2)', fontStyle: 'normal', fontWeight: 600 }}>
+                {tc('how_we_use_ai')}
+              </Link>
             </p>
           )}
         </div>

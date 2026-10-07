@@ -166,7 +166,12 @@
     "points_why": "Voted point by point: each point passes or fails on its own. Congress's open data doesn't publish each point's text; it is in the Diario de Sesiones.",
     "topic_filter_eyebrow": "Topic",
     "topic_filter_all": "All",
-    "filter_empty": "No votes match these filters."
+    "filter_empty": "No votes match these filters.",
+    "tile_items": "{n, plural, one {item} other {items}}",
+    "tile_approved": "approved",
+    "tile_rejected": "rejected",
+    "tile_tie": "{n, plural, one {tie} other {ties}}",
+    "tile_votes_note": "{votes} votes in all, counting amendments and points separately."
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -637,7 +642,30 @@
         "term": "Cross-group coincidence",
         "definition": "% of votes where two groups voted the same way (Aye, No or Abstain)."
       }
-    ]
+    ],
+    "toc_title": "On this page",
+    "toc_why": "Why",
+    "toc_mission": "What it is",
+    "toc_principle": "Mirror, not megaphone",
+    "toc_ai": "AI",
+    "toc_sources": "The data",
+    "toc_lifecycle": "How a law is made",
+    "toc_glossary": "Glossary",
+    "toc_coverage": "Coverage",
+    "toc_api": "API",
+    "toc_licence": "Licence",
+    "ai_title": "How we use AI",
+    "ai_intro": "The official texts of Congress are long and technical. To make them readable, a language model does three jobs, and none of them is deciding anything:",
+    "ai_point_summary": "It summarises each initiative in plain language and gives it a headline.",
+    "ai_point_topics": "It sorts it into topics (housing, health, jobs…), which is how you can filter it.",
+    "ai_point_audience": "It picks out who it affects from the text of the law itself (tenants, self-employed, young people…).",
+    "ai_marked": "Everything the AI produces is marked \"made with AI\", and the official text is always one tap away under \"Original text\". It can be wrong: the legal text is the authority.",
+    "ai_not_votes": "Vote results and who voted what never go through AI: they come straight from the official Congress data.",
+    "sources_title": "Where the data comes from",
+    "sources_body": "From the open data the Congress of Deputies publishes at congreso.es: plenary votes with each deputy's vote, initiatives and their passage, the make-up of the groups and the sitting calendar. We import it automatically.",
+    "sources_untouched": "We don't touch it up. If something is missing at the source it is missing here too, and we say so: a vote carried by assent, for instance, has no roll call, and the card says that.",
+    "sources_legal_link": "Personal data and GDPR",
+    "lifecycle_more": "Each procedure, step by step"
   },
   "groups": {
     "title": "Parliamentary groups",
@@ -1513,7 +1541,8 @@
     "procedural_committee_report": "Committee report: the plenary votes on the conclusions of a parliamentary working group.",
     "procedural_treaty": "International treaty: Congress authorises (or refuses) Spain binding itself to this agreement with other states or bodies.",
     "procedural_constitutional_reform": "Constitutional reform: a proposal to change an article of the Constitution, which requires reinforced majorities.",
-    "procedural_government_submission": "The government submits a document to the Cortes for Congress to rule on."
+    "procedural_government_submission": "The government submits a document to the Cortes for Congress to rule on.",
+    "how_we_use_ai": "How we use AI →"
   },
   "glossary": {
     "Proposició de Llei": "Legislative initiative filed by parliamentary groups in the Congress.",
@@ -1586,7 +1615,9 @@
     "planned_label": "Plenary session expected (agenda pending)",
     "items_count": "{count, plural, =1 {1 item} other {# items}} on the agenda",
     "session_number": "session {n}",
-    "status_planned": "expected"
+    "status_planned": "expected",
+    "none_convened_title": "No plenary sitting is scheduled.",
+    "none_convened_body": "Congress has withdrawn {n, plural, one {the sitting it had planned} other {the # sittings it had planned}} from its calendar. This is what happens when the Cortes are dissolved for an election: there are no sittings until the new Congress is constituted."
   },
   "footer": {
     "license_code": "Code under EUPL-1.2",
@@ -1668,7 +1699,10 @@
     "state_filter_by_group": "Filter by group",
     "state_group_value": "Group",
     "state_clear_group": "Clear group filter",
-    "state_group_proposes": "What {group} proposes most"
+    "state_group_proposes": "What {group} proposes most",
+    "state_all_topics": "All topics",
+    "state_all_groups": "All groups",
+    "picker_close": "Close"
   },
   "topic_bars": {
     "empty_default": "Not enough classified data yet to show this view.",

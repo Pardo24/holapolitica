@@ -1,368 +1,201 @@
-import { getTranslations, getMessages } from 'next-intl/server';
-import { Info } from 'lucide-react';
+import type { Route } from 'next';
+import Link from 'next/link';
+import { getMessages, getTranslations } from 'next-intl/server';
+import { ArrowRight, Info } from 'lucide-react';
 
 import { LifecycleDiagram } from '@/components/LifecycleDiagram';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
+import { PageToc } from '@/components/PageToc';
+
+/**
+ * About: what this is, how it works, and the reference material.
+ *
+ * It was one column of sections run together, with nothing to tell you
+ * where you were or what came next, and on a phone it was a long wall.
+ * Now every section has an id and a place in the index (a sticky column
+ * beside the text on a desktop, a sticky chip row on a phone), so the
+ * rest of the site can send a reader straight to the part that answers
+ * their question: the "made with AI" label to #ia, a parliamentary term
+ * to #glossari, "how it works" to #que-es.
+ *
+ * Those ids are links from elsewhere; keep them stable.
+ */
 
 interface GlossaryTerm {
   term: string;
   definition: string;
 }
 
-// Base URL of the public backend. Surfaced to the browser via the
-// standard NEXT_PUBLIC_API_URL env, with a localhost fallback for dev
-// builds where the env isn't wired. The API section embeds this in the
-// curl examples so the reader can copy/paste against the real host.
-const PUBLIC_API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+// Base URL of the public backend, for the copy-paste curl examples.
+const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
 export default async function AboutPage() {
   const t = await getTranslations('about');
-  // Glossary lives in the messages file as a typed array — getTranslations
-  // returns strings, so we read the raw messages object for the array.
   const messages = (await getMessages()) as Record<string, unknown>;
   const aboutMessages = (messages.about ?? {}) as Record<string, unknown>;
   const glossary: GlossaryTerm[] = Array.isArray(aboutMessages.glossary_terms)
     ? (aboutMessages.glossary_terms as GlossaryTerm[])
     : [];
+
+  const toc = [
+    { id: 'per-que', label: t('toc_why') },
+    { id: 'que-es', label: t('toc_mission') },
+    { id: 'principi', label: t('toc_principle') },
+    { id: 'ia', label: t('toc_ai') },
+    { id: 'dades', label: t('toc_sources') },
+    { id: 'recorregut', label: t('toc_lifecycle') },
+    { id: 'glossari', label: t('toc_glossary') },
+    { id: 'cobertura', label: t('toc_coverage') },
+    { id: 'api', label: t('toc_api') },
+    { id: 'llicencia', label: t('toc_licence') },
+  ];
+
+  const dumps = [
+    { path: '/dump/deputies?legislature_id=1', label: t('api_dump_deputies') },
+    { path: '/dump/votes?legislature_id=1&from=2024-01-01&to=2024-12-31', label: t('api_dump_votes') },
+    { path: '/dump/vote-records?vote_id=42', label: t('api_dump_vote_records') },
+    { path: '/dump/initiatives?legislature_id=1', label: t('api_dump_initiatives') },
+  ];
+
   return (
-    <article style={{ maxWidth: 760 }}>
+    <article className="about">
       <PageHeader
         title={t('title')}
         subtitle={t('page_eyebrow')}
         icon={<Info size={20} strokeWidth={1.8} aria-hidden="true" />}
-        style={{ paddingBottom: 24 }}
       />
 
-      <Section title={t('why_title')} accent>{t('why_body')}</Section>
-      <Section title={t('mission_title')}>{t('mission_body')}</Section>
-      <Section title={t('principle_title')} accent>{t('principle_body')}</Section>
+      <div className="about-grid">
+        <PageToc items={toc} title={t('toc_title')} />
 
-      {/* Public API section — documented surface + bulk dumps. */}
-      <ApiSection
-        baseUrl={PUBLIC_API_URL}
-        title={t('api_title')}
-        intro={t('api_intro')}
-        docsLabel={t('api_docs_label')}
-        redocLabel={t('api_redoc_label')}
-        openapiLabel={t('api_openapi_label')}
-        dumpTitle={t('api_dump_title')}
-        dumpIntro={t('api_dump_intro')}
-        dumpDeputies={t('api_dump_deputies')}
-        dumpVotes={t('api_dump_votes')}
-        dumpVoteRecords={t('api_dump_vote_records')}
-        dumpInitiatives={t('api_dump_initiatives')}
-        rateLimitTitle={t('api_rate_limit_title')}
-        rateLimitBody={t('api_rate_limit_body')}
-      />
+        <div className="about-body">
+          <Section id="per-que" n={1} title={t('why_title')} lead>
+            <p>{t('why_body')}</p>
+          </Section>
 
-      <h2 className="h-title" style={{ marginTop: 32, marginBottom: 8 }}>
-        {t('coverage_title')}
-      </h2>
-      <ul
-        style={{
-          listStyle: 'none',
-          margin: 0,
-          padding: 0,
-          borderTop: '1px solid var(--ink)',
-        }}
-      >
-        {[t('coverage_phase1'), t('coverage_phase2'), t('coverage_phase3')].map((line, i) => (
-          <li
-            key={i}
-            style={{
-              padding: '12px 0',
-              borderBottom: '1px solid var(--rule)',
-              fontSize: 14,
-              color: 'var(--ink-2)',
-            }}
-          >
-            {line}
-          </li>
-        ))}
-      </ul>
+          <Section id="que-es" n={2} title={t('mission_title')}>
+            <p>{t('mission_body')}</p>
+          </Section>
 
-      {/* Lifecycle diagram: educational static infographic of how a
-          legislative initiative travels through the Spanish Congress.
-          Sits next to the glossary because both are reference material —
-          the glossary defines terms, the diagram defines the process. */}
-      <LifecycleDiagram />
+          <Section id="principi" n={3} title={t('principle_title')} lead>
+            <p>{t('principle_body')}</p>
+          </Section>
 
-      <h2 className="h-title" style={{ marginTop: 32, marginBottom: 8 }}>
-        {t('glossary_title')}
-      </h2>
-      <p style={{ color: 'var(--ink-3)', fontSize: 13, marginTop: 0, marginBottom: 12 }}>
-        {t('glossary_intro')}
-      </p>
-      <dl style={{ borderTop: '1px solid var(--ink)', margin: 0 }}>
-        {glossary.map((g) => (
-          <div
-            key={g.term}
-            style={{
-              padding: '14px 0',
-              borderBottom: '1px solid var(--rule)',
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 200px) 1fr',
-              gap: 18,
-              alignItems: 'baseline',
-            }}
-            className="glossary-row"
-          >
-            <dt style={{ fontWeight: 600, color: 'var(--ink)', fontSize: 14 }}>
-              {g.term}
-            </dt>
-            <dd style={{ margin: 0, color: 'var(--ink-2)', fontSize: 14, lineHeight: 1.5 }}>
-              {g.definition}
-            </dd>
+          <Section id="ia" n={4} title={t('ai_title')}>
+            <p>{t('ai_intro')}</p>
+            <ul className="about-points">
+              <li>{t('ai_point_summary')}</li>
+              <li>{t('ai_point_topics')}</li>
+              <li>{t('ai_point_audience')}</li>
+            </ul>
+            <p>{t('ai_marked')}</p>
+            <p className="about-callout">{t('ai_not_votes')}</p>
+          </Section>
+
+          <Section id="dades" n={5} title={t('sources_title')}>
+            <p>{t('sources_body')}</p>
+            <p>{t('sources_untouched')}</p>
+            <Link href={'/about/data' as Route} className="about-more">
+              {t('sources_legal_link')} <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </Section>
+
+          {/* The diagram carries its own heading. */}
+          <div id="recorregut" className="about-section about-section--embed">
+            <LifecycleDiagram />
+            <Link href={'/recorregut' as Route} className="about-more">
+              {t('lifecycle_more')} <ArrowRight size={14} aria-hidden="true" />
+            </Link>
           </div>
-        ))}
-      </dl>
 
-      <Section title={t('licence_title')}>{t('licence_body')}</Section>
+          <Section id="glossari" n={7} title={t('glossary_title')}>
+            <p>{t('glossary_intro')}</p>
+            <dl className="about-glossary">
+              {glossary.map((g) => (
+                <div key={g.term}>
+                  <dt>{g.term}</dt>
+                  <dd>{g.definition}</dd>
+                </div>
+              ))}
+            </dl>
+          </Section>
 
-      {/* Newsletter signup — closing CTA on the about page. Visitors
-          who reach this section are the ones most likely to want
-          weekly updates. */}
-      <NewsletterSignup />
+          <Section id="cobertura" n={8} title={t('coverage_title')}>
+            <ul className="about-coverage">
+              {[t('coverage_phase1'), t('coverage_phase2'), t('coverage_phase3')].map((line, i) => (
+                <li key={line} data-live={i === 0 ? 'true' : undefined}>
+                  <span aria-hidden="true" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </Section>
+
+          <Section id="api" n={9} title={t('api_title')}>
+            <p>{t('api_intro')}</p>
+            <ul className="about-api-links">
+              {[
+                { path: '/docs', label: t('api_docs_label') },
+                { path: '/redoc', label: t('api_redoc_label') },
+                { path: '/openapi.json', label: t('api_openapi_label') },
+              ].map((l) => (
+                <li key={l.path}>
+                  <a href={`${PUBLIC_API_URL}${l.path}`} target="_blank" rel="noopener noreferrer">
+                    <code>GET {l.path}</code>
+                    <span>{l.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <h3>{t('api_dump_title')}</h3>
+            <p>{t('api_dump_intro')}</p>
+            <ul className="about-dumps">
+              {dumps.map((d) => (
+                <li key={d.path}>
+                  <p>{d.label}</p>
+                  <pre>{`curl '${PUBLIC_API_URL}${d.path}'`}</pre>
+                </li>
+              ))}
+            </ul>
+            <h3>{t('api_rate_limit_title')}</h3>
+            <p>{t('api_rate_limit_body')}</p>
+          </Section>
+
+          <Section id="llicencia" n={10} title={t('licence_title')}>
+            <p>{t('licence_body')}</p>
+          </Section>
+
+          <div className="about-section">
+            <NewsletterSignup />
+          </div>
+        </div>
+      </div>
     </article>
   );
 }
 
 function Section({
+  id,
+  n,
   title,
+  lead,
   children,
-  accent,
 }: {
+  id: string;
+  n: number;
   title: string;
+  /** A tinted panel, for the three paragraphs that say what this is. */
+  lead?: boolean;
   children: React.ReactNode;
-  accent?: boolean;
 }) {
   return (
-    <section
-      style={{
-        marginTop: 24,
-        padding: accent ? '20px 24px' : 0,
-        background: accent ? 'var(--paper-2)' : 'transparent',
-        borderLeft: accent ? '3px solid var(--accent)' : 'none',
-      }}
-    >
-      <h2 className="h-title" style={{ marginTop: 0, marginBottom: 8 }}>
-        {title}
-      </h2>
-      <p style={{ color: 'var(--ink-2)', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
-        {children}
-      </p>
-    </section>
-  );
-}
-
-interface ApiSectionProps {
-  baseUrl: string;
-  title: string;
-  intro: string;
-  docsLabel: string;
-  redocLabel: string;
-  openapiLabel: string;
-  dumpTitle: string;
-  dumpIntro: string;
-  dumpDeputies: string;
-  dumpVotes: string;
-  dumpVoteRecords: string;
-  dumpInitiatives: string;
-  rateLimitTitle: string;
-  rateLimitBody: string;
-}
-
-/**
- * Renders the "Public API" section on the About page.
- *
- * Three sub-blocks:
- *  1. Three documented entry points (Swagger UI, ReDoc, OpenAPI JSON)
- *     linked directly to the live backend.
- *  2. The four bulk JSON dump endpoints, each with a sample curl call
- *     so journalists / researchers can copy and run them as-is.
- *  3. A short "be reasonable, contact us for bulk" rate-limit note.
- */
-function ApiSection({
-  baseUrl,
-  title,
-  intro,
-  docsLabel,
-  redocLabel,
-  openapiLabel,
-  dumpTitle,
-  dumpIntro,
-  dumpDeputies,
-  dumpVotes,
-  dumpVoteRecords,
-  dumpInitiatives,
-  rateLimitTitle,
-  rateLimitBody,
-}: ApiSectionProps) {
-  const dumps: { path: string; label: string; curl: string }[] = [
-    {
-      path: '/dump/deputies?legislature_id=1',
-      label: dumpDeputies,
-      curl: `curl '${baseUrl}/dump/deputies?legislature_id=1'`,
-    },
-    {
-      path: '/dump/votes?legislature_id=1&from=2024-01-01&to=2024-12-31',
-      label: dumpVotes,
-      curl: `curl '${baseUrl}/dump/votes?legislature_id=1&from=2024-01-01&to=2024-12-31'`,
-    },
-    {
-      path: '/dump/vote-records?vote_id=42',
-      label: dumpVoteRecords,
-      curl: `curl '${baseUrl}/dump/vote-records?vote_id=42'`,
-    },
-    {
-      path: '/dump/initiatives?legislature_id=1',
-      label: dumpInitiatives,
-      curl: `curl '${baseUrl}/dump/initiatives?legislature_id=1'`,
-    },
-  ];
-
-  return (
-    <section style={{ marginTop: 32 }}>
-      <h2 className="h-title" style={{ marginTop: 0, marginBottom: 8 }}>
-        {title}
-      </h2>
-      <p
-        style={{
-          color: 'var(--ink-2)',
-          fontSize: 15,
-          lineHeight: 1.6,
-          margin: '0 0 14px',
-        }}
-      >
-        {intro}
-      </p>
-
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-        <ApiLink href={`${baseUrl}/docs`} path="/docs" label={docsLabel} />
-        <ApiLink href={`${baseUrl}/redoc`} path="/redoc" label={redocLabel} />
-        <ApiLink
-          href={`${baseUrl}/openapi.json`}
-          path="/openapi.json"
-          label={openapiLabel}
-        />
-      </ul>
-
-      <h3
-        className="h-title"
-        style={{ marginTop: 22, marginBottom: 6, fontSize: 16 }}
-      >
-        {dumpTitle}
-      </h3>
-      <p
-        style={{
-          color: 'var(--ink-2)',
-          fontSize: 14,
-          lineHeight: 1.6,
-          margin: '0 0 10px',
-        }}
-      >
-        {dumpIntro}
-      </p>
-
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-        {dumps.map((d) => (
-          <li
-            key={d.path}
-            style={{
-              padding: '10px 0',
-              borderBottom: '1px solid var(--rule)',
-            }}
-          >
-            <code
-              style={{
-                fontSize: 13,
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, Menlo, monospace',
-                color: 'var(--ink)',
-              }}
-            >
-              GET {d.path}
-            </code>
-            <div
-              style={{
-                color: 'var(--ink-2)',
-                fontSize: 13,
-                lineHeight: 1.5,
-                marginTop: 3,
-              }}
-            >
-              {d.label}
-            </div>
-            <pre
-              style={{
-                margin: '6px 0 0',
-                padding: '8px 10px',
-                background: 'var(--paper-2)',
-                borderRadius: 4,
-                fontSize: 12,
-                lineHeight: 1.4,
-                overflowX: 'auto',
-                color: 'var(--ink)',
-              }}
-            >
-              {d.curl}
-            </pre>
-          </li>
-        ))}
-      </ul>
-
-      <h3
-        className="h-title"
-        style={{ marginTop: 22, marginBottom: 6, fontSize: 16 }}
-      >
-        {rateLimitTitle}
-      </h3>
-      <p style={{ color: 'var(--ink-2)', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-        {rateLimitBody}
-      </p>
-    </section>
-  );
-}
-
-function ApiLink({
-  href,
-  path,
-  label,
-}: {
-  href: string;
-  path: string;
-  label: string;
-}) {
-  return (
-    <li
-      style={{
-        padding: '8px 0',
-        borderBottom: '1px solid var(--rule)',
-        display: 'flex',
-        gap: 12,
-        alignItems: 'baseline',
-        flexWrap: 'wrap',
-      }}
-    >
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          fontSize: 13,
-          fontFamily:
-            'ui-monospace, SFMono-Regular, Menlo, monospace',
-          color: 'var(--accent)',
-          textDecoration: 'none',
-        }}
-      >
-        GET {path}
-      </a>
-      <span style={{ color: 'var(--ink-2)', fontSize: 13, lineHeight: 1.5 }}>
-        {label}
+    <section id={id} className={lead ? 'about-section about-section--lead' : 'about-section'}>
+      <span className="about-section__n tabular" aria-hidden="true">
+        {String(n).padStart(2, '0')}
       </span>
-    </li>
+      <h2>{title}</h2>
+      <div className="about-section__body">{children}</div>
+    </section>
   );
 }

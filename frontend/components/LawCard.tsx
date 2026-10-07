@@ -1,9 +1,14 @@
 import type { Route } from 'next';
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight } from 'lucide-react';
 
 import { ProposerBadges } from '@/components/InitiativeRow';
+import {
+  LawCardFooter,
+  LawCardFrame,
+  LawCardHeadline,
+  LawCardTopLine,
+  LawCardVoteBox,
+} from '@/components/LawCardParts';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
@@ -97,54 +102,36 @@ export async function LawCard({
     : null;
 
   return (
-    <li
-      style={{
-        listStyle: 'none',
-        border: '1px solid var(--rule)',
-        borderRadius: 16,
-        background: 'var(--paper)',
-        boxShadow: 'var(--shadow-2)',
-        padding: '18px 18px 16px',
-        // No overflow clipping here: the law-type chip's tooltip rises out
-        // of the card, and "hidden" cut the explanation off entirely. The
-        // 18px padding already keeps every child clear of the radius.
-      }}
-    >
+    <LawCardFrame>
       {/* Line 1: what kind of law it is, what it touches, how it ended. */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          flexWrap: 'wrap',
-          marginBottom: 10,
-        }}
+      <LawCardTopLine
+        outcome={
+          showVoteResult && initiative.latest_vote_result ? (
+            <ResultPill
+              result={initiative.latest_vote_result}
+              label={tVotes(`result.${initiative.latest_vote_result}` as 'result.approved')}
+            />
+          ) : (
+            <span
+              className="badge"
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: statusColor,
+                borderColor: 'color-mix(in oklch, currentColor 35%, var(--paper))',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {statusLabel}
+            </span>
+          )
+        }
       >
         <LawTypeChip type={initiative.type} />
         {(initiative.topics ?? []).slice(0, 2).map((tp) => (
           <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
         ))}
-        <span style={{ flex: 1 }} />
-        {showVoteResult && initiative.latest_vote_result ? (
-          <ResultPill
-            result={initiative.latest_vote_result}
-            label={tVotes(`result.${initiative.latest_vote_result}` as 'result.approved')}
-          />
-        ) : (
-          <span
-            className="badge"
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: statusColor,
-              borderColor: 'color-mix(in oklch, currentColor 35%, var(--paper))',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {statusLabel}
-          </span>
-        )}
-      </div>
+      </LawCardTopLine>
 
       {/* Line 2: what it does, in plain language — and who wrote that
           line. When no summary exists the card used to show the official
@@ -154,30 +141,7 @@ export async function LawCard({
         kind={plainSummary ? 'ai' : 'none'}
         label={plainSummary ? t('card_ai_summary') : t('card_no_summary')}
       />
-      <h3 style={{ margin: 0 }}>
-        <Link
-          href={href}
-          className="serif"
-          style={{
-            fontSize: 'clamp(16px, 2.1vw, 19px)',
-            fontWeight: 600,
-            lineHeight: 1.4,
-            color: 'var(--ink)',
-            textDecoration: 'none',
-            letterSpacing: '-0.01em',
-            // Summaries are 2-3 lines, but a law with none falls back to its
-            // official title, which can run 70 words and swallow the card.
-            // Three lines keep every card scannable; the full text is one
-            // click away (and behind the "original" toggle below).
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {headline}
-        </Link>
-      </h3>
+      <LawCardHeadline href={href}>{headline}</LawCardHeadline>
       {morePoints > 0 && (
         // The points the headline leaves out. Counted, not run together:
         // "+3 punts més" says there is a list without pretending the card
@@ -230,15 +194,7 @@ export async function LawCard({
       )}
 
       {/* The vote itself. */}
-      <div
-        style={{
-          marginTop: 14,
-          padding: '12px 13px',
-          borderRadius: 12,
-          border: '1px solid var(--rule)',
-          background: 'var(--paper-2)',
-        }}
-      >
+      <LawCardVoteBox>
         {vote === null ? (
           <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-3)' }}>
             {t('card_not_voted_yet')}
@@ -267,20 +223,10 @@ export async function LawCard({
             }}
           />
         )}
-      </div>
+      </LawCardVoteBox>
 
       {/* Footer: who tabled it, its file number, and the way in. */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          flexWrap: 'wrap',
-          marginTop: 12,
-          fontSize: 12,
-          color: 'var(--ink-3)',
-        }}
-      >
+      <LawCardFooter href={href} openLabel={t('card_open')}>
         {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
           <ProposerBadges
             parsed={parsed}
@@ -298,25 +244,8 @@ export async function LawCard({
             provider={initiative.plain_summary_provider}
           />
         )}
-        <span style={{ flex: 1 }} />
-        <Link
-          href={href}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            fontSize: 12.5,
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {t('card_open')}
-          <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
-        </Link>
-      </div>
-    </li>
+      </LawCardFooter>
+    </LawCardFrame>
   );
 }
 

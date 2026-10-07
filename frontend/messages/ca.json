@@ -166,7 +166,12 @@
     "points_why": "Es va votar per punts: cada punt s'aprova o es rebutja per separat. Les dades obertes del Congrés no publiquen el text de cada punt; és al Diari de Sessions.",
     "topic_filter_eyebrow": "Tema",
     "topic_filter_all": "Tots",
-    "filter_empty": "Cap votació no coincideix amb aquests filtres."
+    "filter_empty": "Cap votació no coincideix amb aquests filtres.",
+    "tile_items": "{n, plural, one {iniciativa} other {iniciatives}}",
+    "tile_approved": "{n, plural, one {aprovada} other {aprovades}}",
+    "tile_rejected": "{n, plural, one {rebutjada} other {rebutjades}}",
+    "tile_tie": "{n, plural, one {empat} other {empats}}",
+    "tile_votes_note": "{votes} votacions en total, comptant esmenes i punts per separat."
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -637,7 +642,30 @@
         "term": "Coincidència entre grups",
         "definition": "% de votacions on dos grups van votar el mateix sentit (Sí, No o Abstenció)."
       }
-    ]
+    ],
+    "toc_title": "En aquesta pàgina",
+    "toc_why": "Per què",
+    "toc_mission": "Què és",
+    "toc_principle": "Mirall, no megàfon",
+    "toc_ai": "La IA",
+    "toc_sources": "Les dades",
+    "toc_lifecycle": "Com es fa una llei",
+    "toc_glossary": "Glossari",
+    "toc_coverage": "Cobertura",
+    "toc_api": "API",
+    "toc_licence": "Llicència",
+    "ai_title": "Com fem servir la IA",
+    "ai_intro": "Els textos oficials del Congrés són llargs i tècnics. Perquè es puguin llegir, un model de llenguatge fa tres feines, i cap d'elles és decidir res:",
+    "ai_point_summary": "Resumeix cada iniciativa en llenguatge planer i hi posa un titular.",
+    "ai_point_topics": "La classifica per temes (habitatge, sanitat, feina…), que és com la pots filtrar.",
+    "ai_point_audience": "Extreu a qui afecta a partir del mateix text de la llei (llogaters, autònoms, joves…).",
+    "ai_marked": "Tot el que fa la IA va marcat com a «fet amb IA», i el text oficial és sempre a un toc, al botó «Text original». Pot equivocar-se: la font autoritzada és el text legal.",
+    "ai_not_votes": "Els resultats de les votacions i qui ha votat què no passen per cap IA: surten directament de les dades oficials del Congrés.",
+    "sources_title": "D'on surten les dades",
+    "sources_body": "De les dades obertes que publica el Congrés dels Diputats a congreso.es: les votacions del ple amb el vot de cada diputat, les iniciatives i el seu recorregut, la composició dels grups i el calendari de sessions. Les importem automàticament.",
+    "sources_untouched": "No les retoquem. Si una dada falta a l'origen, aquí també falta, i ho diem: per exemple, una votació per assentiment no té vot nominal i la targeta ho indica.",
+    "sources_legal_link": "Dades personals i RGPD",
+    "lifecycle_more": "Els recorreguts, un per un"
   },
   "groups": {
     "title": "Grups parlamentaris",
@@ -1513,7 +1541,8 @@
     "procedural_committee_report": "Informe de comissió: el Ple vota les conclusions d'un grup de treball parlamentari.",
     "procedural_treaty": "Tractat internacional: el Congrés autoritza (o no) que Espanya es comprometi amb aquest acord amb altres estats o organismes.",
     "procedural_constitutional_reform": "Reforma constitucional: proposta per canviar un article de la Constitució, que exigeix majories reforçades.",
-    "procedural_government_submission": "El Govern trasllada un document a les Corts perquè el Congrés s'hi pronunciï."
+    "procedural_government_submission": "El Govern trasllada un document a les Corts perquè el Congrés s'hi pronunciï.",
+    "how_we_use_ai": "Com fem servir la IA →"
   },
   "glossary": {
     "Proposició de Llei": "Iniciativa legislativa que presenten grups parlamentaris del Congrés. Si s'aprova, esdevé llei vigent.",
@@ -1585,7 +1614,9 @@
     "planned_label": "Sessió plenària prevista (ordre del dia pendent)",
     "items_count": "{count, plural, =1 {1 punt} other {# punts}} a l'ordre del dia",
     "session_number": "sessió {n}",
-    "status_planned": "previst"
+    "status_planned": "previst",
+    "none_convened_title": "No hi ha cap ple convocat.",
+    "none_convened_body": "El Congrés ha retirat del calendari {n, plural, one {el ple que tenia previst} other {els # plens que tenia previstos}}. És el que passa quan es dissolen les Corts per convocar eleccions: no hi ha plens fins que es constitueix el nou Congrés."
   },
   "footer": {
     "license_code": "Codi sota llicència EUPL-1.2",
@@ -1667,7 +1698,10 @@
     "state_filter_by_group": "Filtra per grup",
     "state_group_value": "Grup",
     "state_clear_group": "Treure filtre de grup",
-    "state_group_proposes": "El que més proposa {group}"
+    "state_group_proposes": "El que més proposa {group}",
+    "state_all_topics": "Tots els temes",
+    "state_all_groups": "Tots els grups",
+    "picker_close": "Tanca"
   },
   "topic_bars": {
     "empty_default": "Encara no hi ha prou dades classificades per mostrar aquesta vista.",

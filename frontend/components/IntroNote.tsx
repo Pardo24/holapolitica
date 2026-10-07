@@ -80,7 +80,7 @@ export function IntroNote() {
         {t('slide1_body')}
       </p>
       <Link
-        href={'/about' as Route}
+        href={'/about#que-es' as Route}
         style={{
           display: 'inline-flex',
           alignItems: 'center',

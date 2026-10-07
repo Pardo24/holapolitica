@@ -3,7 +3,10 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import type { ScheduledSession } from '@/lib/api';
 
 interface UpcomingAgendaProps {
+  /** Sessions still on the calendar (withdrawn ones already removed). */
   sessions: ScheduledSession[];
+  /** How many upcoming sessions the Congress withdrew from its calendar. */
+  withdrawn?: number;
 }
 
 /**
@@ -19,7 +22,7 @@ interface UpcomingAgendaProps {
  *    + `min-width: 0` so nothing pushes the page horizontally on mobile.
  *  - No links to a detail route yet — no `/sessions/[id]` page exists.
  */
-export async function UpcomingAgenda({ sessions }: UpcomingAgendaProps) {
+export async function UpcomingAgenda({ sessions, withdrawn = 0 }: UpcomingAgendaProps) {
   const t = await getTranslations('upcoming');
   const locale = await getLocale();
 
@@ -85,7 +88,14 @@ export async function UpcomingAgenda({ sessions }: UpcomingAgendaProps) {
                 wordBreak: 'break-word',
               }}
             >
-              {t('empty')}
+              {withdrawn > 0 ? (
+                <>
+                  <strong style={{ color: 'var(--ink)' }}>{t('none_convened_title')}</strong>{' '}
+                  {t('none_convened_body', { n: withdrawn })}
+                </>
+              ) : (
+                t('empty')
+              )}
             </p>
             <p
               style={{
@@ -166,7 +176,9 @@ function HomeRow({
 }) {
   const dateStr = formatDate(session.date, locale);
   const itemCount = session.items.length;
-  const isPlanned = session.status === 'planned';
+  // "planned" rows come from the yearly calendar and carry a synthetic,
+  // negative session number; any session with no items yet reads the same.
+  const isPlanned = session.status === 'planned' || session.items.length === 0;
   const firstItem = session.items[0];
   return (
     <li

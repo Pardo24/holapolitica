@@ -429,7 +429,7 @@ export default async function VoteDetailPage({
         {summary ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <AiBadge label={t('plain_summary_ai_badge')} />
+              <AiBadge label={t('plain_summary_ai_badge')} href="/about#ia" />
             </div>
             <h1
               className="serif"

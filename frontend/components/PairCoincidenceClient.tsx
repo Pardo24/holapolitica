@@ -23,7 +23,6 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupBadge } from '@/components/GroupBadge';
-import { GroupCombobox } from '@/components/GroupCombobox';
 import type {
   CoincidenceCell,
   ParliamentaryGroupSummary,
@@ -71,8 +70,16 @@ export function PairCoincidenceClient({
   const sp = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const [pairA, setPairA] = useState(initialPairA);
-  const [pairB, setPairB] = useState(initialPairB);
+  // Open on a real comparison instead of two empty pickers: the two
+  // largest groups, by seats. A rule of arithmetic, not a choice of ours,
+  // and the reader changes either side with one tap.
+  const bySize = [...allGroups].sort((x, y) => y.members_active - x.members_active);
+  const [pairA, setPairA] = useState(
+    initialPairA && initialPairA !== 'all' ? initialPairA : (bySize[0]?.slug ?? ''),
+  );
+  const [pairB, setPairB] = useState(
+    initialPairB && initialPairB !== 'all' ? initialPairB : (bySize[1]?.slug ?? ''),
+  );
 
   const hasBoth = pairA && pairB && pairA !== 'all' && pairB !== 'all';
   const sameGroup = hasBoth && pairA === pairB;
@@ -104,41 +111,47 @@ export function PairCoincidenceClient({
 
   return (
     <div>
-      <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
-        <label style={pickerLabel}>
-          <span style={pickerLabelText}>{tFilter('pair_group_a')}</span>
-          <GroupCombobox
-            name="pair_a"
-            value={pairA && pairA !== 'all' ? pairA : ''}
-            onChange={(slug) => {
-              setPairA(slug);
-              syncUrl(slug, pairB);
-            }}
-            groups={allGroups}
-            emptyValue=""
-            clearLabel="—"
-            placeholder={tFilter('pair_pick_first_placeholder')}
-            ariaLabel={tFilter('pair_pick_first_aria')}
-          />
-        </label>
-        <label style={pickerLabel}>
-          <span style={pickerLabelText}>{tFilter('pair_group_b')}</span>
-          <GroupCombobox
-            name="pair_b"
-            value={pairB && pairB !== 'all' ? pairB : ''}
-            onChange={(slug) => {
-              setPairB(slug);
-              syncUrl(pairA, slug);
-            }}
-            groups={allGroups}
-            emptyValue=""
-            clearLabel="—"
-            placeholder={tFilter('pair_pick_second_placeholder')}
-            ariaLabel={tFilter('pair_pick_second_aria')}
-          />
-        </label>
+      {/* Two rows of party marks, one per side: a tap picks, the way a
+          phone app picks from a short known set. The dropdowns this
+          replaced needed two taps each and hid the choices. */}
+      <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
+        {(
+          [
+            { side: 'a', label: tFilter('pair_group_a'), value: pairA, other: pairB },
+            { side: 'b', label: tFilter('pair_group_b'), value: pairB, other: pairA },
+          ] as const
+        ).map((row) => (
+          <div key={row.side} role="group" aria-label={row.label}>
+            <span style={pickerLabelText}>{row.label}</span>
+            <div className="pair-chips no-scrollbar">
+              {bySize.map((g) => {
+                const on = g.slug === row.value;
+                return (
+                  <button
+                    key={g.slug}
+                    type="button"
+                    className="pair-chip no-touch-pad"
+                    aria-pressed={on}
+                    disabled={g.slug === row.other}
+                    onClick={() => {
+                      if (row.side === 'a') {
+                        setPairA(g.slug);
+                        syncUrl(g.slug, pairB);
+                      } else {
+                        setPairB(g.slug);
+                        syncUrl(pairA, g.slug);
+                      }
+                    }}
+                  >
+                    <GroupBadge slug={g.slug} color={g.color_hex} size="xs" link={false} logoUrl={g.logo_url} />
+                    {displayGroupShort(g.name_short)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
-
       {!hasBoth && <p style={emptyHint}>{t('pair_hint_pick')}</p>}
       {sameGroup && (
         <p style={emptyHint}>
@@ -247,12 +260,9 @@ export function PairCoincidenceEyebrow({ suffix }: { suffix: string }) {
   );
 }
 
-const pickerLabel: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-};
 const pickerLabelText: React.CSSProperties = {
+  display: 'block',
+  marginBottom: 6,
   fontSize: 10,
   letterSpacing: '0.14em',
   textTransform: 'uppercase',

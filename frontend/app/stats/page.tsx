@@ -304,6 +304,7 @@ export default async function StatsPage({
           what the atlas is built from and what each number means. */}
       <section
         aria-label={t('headline_aria')}
+        className="stats-headline"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
@@ -2464,6 +2465,7 @@ function HeadlineFigure({
 }) {
   return (
     <div
+      className="stats-headline-fig"
       style={{
         border: '1px solid var(--rule)',
         borderRadius: 12,
@@ -2488,7 +2490,9 @@ function HeadlineFigure({
         {value}
       </span>
       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
-      <span style={{ fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.45 }}>{note}</span>
+      <span className="stats-headline-note" style={{ fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.45 }}>
+        {note}
+      </span>
     </div>
   );
 }

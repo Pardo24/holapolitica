@@ -65,6 +65,7 @@ export default async function HomePage() {
   const tHub = await getTranslations('hub');
   const tNav = await getTranslations('nav');
   const tDaily = await getTranslations('daily');
+  const tUpcoming = await getTranslations('upcoming');
   const locale = await getLocale();
 
   let summary: Awaited<ReturnType<typeof api.stats.summary>> | null = null;
@@ -97,7 +98,6 @@ export default async function HomePage() {
         }),
       api.agenda
         .sessions({ legislature_id: 1, upcoming_only: true })
-        .then((rows) => rows.slice(0, 4))
         .catch(() => [] as ScheduledSession[]),
       api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
       // Powers locale-aware topic names inside HighlightsCarousel.
@@ -145,6 +145,13 @@ export default async function HomePage() {
   const sessRejected = sessOutcome.rejected;
   const sessTotal = sessionVotes.length;
 
+  // A session the Congress withdrew from its calendar is not an upcoming
+  // session. Shown as one, it read "14 oct. —": a date with nothing on it.
+  // When EVERY upcoming session was withdrawn (what a dissolution looks
+  // like in the data) the home says so instead of going quiet.
+  const withdrawnSessions = upcomingSessions.filter((s) => s.status === 'cancelled').length;
+  upcomingSessions = upcomingSessions.filter((s) => s.status !== 'cancelled').slice(0, 4);
+
   // Split the hero title so the second line can be tinted with the accent.
   const heroTitleLines = t('hero_title').split('\n');
 
@@ -169,6 +176,10 @@ export default async function HomePage() {
         sessApproved={sessApproved}
         sessRejected={sessRejected}
         sessTotal={sessTotal}
+        withdrawnSessions={withdrawnSessions}
+        noPlenaryTitle={tUpcoming('none_convened_title')}
+        noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
+        plannedLabel={tUpcoming('planned_label')}
         partyBand={
           <PartyBand
             groups={allGroups}
@@ -576,7 +587,9 @@ export default async function HomePage() {
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           shown only when there's something scheduled, so an empty agenda
           doesn't add a blank section to the home. */}
-      {upcomingSessions.length > 0 && <UpcomingAgenda sessions={upcomingSessions} />}
+      {(upcomingSessions.length > 0 || withdrawnSessions > 0) && (
+        <UpcomingAgenda sessions={upcomingSessions} withdrawn={withdrawnSessions} />
+      )}
 
       {/* Latest votes — below the fold by design (the hero owns the
           first viewport); a wide top margin + its own hairline mark the
@@ -750,6 +763,10 @@ function MobileDashboard({
   sessApproved,
   sessRejected,
   sessTotal,
+  withdrawnSessions,
+  noPlenaryTitle,
+  noPlenaryBody,
+  plannedLabel,
   partyBand,
   labels,
 }: {
@@ -763,6 +780,10 @@ function MobileDashboard({
   sessApproved: number;
   sessRejected: number;
   sessTotal: number;
+  withdrawnSessions: number;
+  noPlenaryTitle: string;
+  noPlenaryBody: string;
+  plannedLabel: string;
   labels: MobileDashboardLabels;
 }) {
   // Show only the next 2 upcoming sessions on the dashboard.
@@ -794,18 +815,21 @@ function MobileDashboard({
         {/* The mark and the name live in the app bar now, one line up;
             repeating them here put "Hola Política" twice on one screen.
             The motto stays: it is the one line that says what this is. */}
-        <div
+        <Link
+          href={'/about#principi' as Route}
           style={{
+            display: 'block',
             fontFamily: 'var(--font-serif)',
             fontStyle: 'italic',
             fontSize: 15,
             color: 'var(--ink-2)',
             lineHeight: 1.25,
             marginBottom: 6,
+            textDecoration: 'none',
           }}
         >
           {labels.motto}
-        </div>
+        </Link>
 
         <div
           className="tabular"
@@ -981,6 +1005,16 @@ function MobileDashboard({
           screen and smooth-scrolls to the party grid below. */}
       <ScrollDownCue targetId="mobile-parties" label={labels.investigateParties} />
 
+      {/* No plenary convened: every planned session was withdrawn. */}
+      {upcomingTwo.length === 0 && withdrawnSessions > 0 && (
+        <DashboardSection title={labels.sectionUpcoming}>
+          <div className="no-plenary">
+            <strong>{noPlenaryTitle}</strong>
+            <p>{noPlenaryBody}</p>
+          </div>
+        </DashboardSection>
+      )}
+
       {/* Upcoming sessions — only when something is scheduled. */}
       {upcomingTwo.length > 0 && (
         <DashboardSection title={labels.sectionUpcoming}>
@@ -1023,7 +1057,7 @@ function MobileDashboard({
                   {new Date(s.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                 </span>
                 <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {s.items.length > 0 ? `${s.items.length} · ${s.items[0]?.subject ?? ''}` : '—'}
+                  {s.items.length > 0 ? `${s.items.length} · ${s.items[0]?.subject ?? ''}` : plannedLabel}
                 </span>
               </li>
             ))}
