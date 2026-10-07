@@ -16,7 +16,7 @@ from collections import Counter, defaultdict
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import String, and_, desc, func, or_, select
+from sqlalchemy import ColumnElement, String, and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
@@ -156,7 +156,7 @@ async def list_initiatives(
     base_stmt = select(Initiative)
     count_stmt = select(func.count(func.distinct(Initiative.id))).select_from(Initiative)
 
-    conditions = []
+    conditions: list[ColumnElement[bool]] = []
     wanted_ids = (
         [int(tok) for tok in _split_csv(ids) if tok.isdigit()] if isinstance(ids, str) else []
     )
