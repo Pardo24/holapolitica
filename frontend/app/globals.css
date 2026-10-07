@@ -2869,3 +2869,47 @@ button {
 }
 .stats-picker > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .stats-picker--on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* ─── Phone pass: app-feel fixes that apply across pages ──────────────── */
+@media (max-width: 640px) {
+  /* "Lleis / 173/000194": the app bar's back button already does this
+     job, and a 16px-tall link is no tap target. */
+  .crumbs { display: none !important; }
+
+  /* Labels set at 9-10.5px inline read as decoration on a phone, held at
+     arm's length. One step up, everywhere, without touching each of the
+     hundred call sites (React writes inline sizes as "font-size: Npx"). */
+  [style*="font-size: 9px"],
+  [style*="font-size: 9.5px"] { font-size: 10.5px !important; }
+  [style*="font-size: 10px"],
+  [style*="font-size: 10.5px"] { font-size: 11px !important; }
+  .kpi .label { font-size: 10.5px !important; }
+}
+@media (max-width: 640px) {
+  /* Card "see the law / the vote" links and segmented chips: past the
+     touch floor, without changing how they look. */
+  .card-open-link { min-height: 40px; padding-left: 6px; }
+  [role="tablist"] > [role="tab"],
+  [role="radiogroup"] > [role="radio"],
+  [role="radio"][aria-checked],
+  button[aria-pressed]:not(.no-touch-pad) { min-height: 36px; }
+
+  /* Group page: the mark and the links, not notes about the logo. */
+  .group-civic-caption,
+  .group-color-row { display: none !important; }
+}
+.topic-see-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.topic-see-all:active { background: var(--paper-2); }

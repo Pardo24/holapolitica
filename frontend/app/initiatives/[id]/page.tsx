@@ -231,7 +231,7 @@ export default async function InitiativeDetailPage({
     <article>
 
       {/* Breadcrumb */}
-      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 6 }}>
+      <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 6 }}>
         <Link href="/votes" style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_root')}
         </Link>

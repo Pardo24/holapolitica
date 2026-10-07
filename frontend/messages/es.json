@@ -1276,7 +1276,8 @@
     "hub_subscribe_cta": "Activa las notificaciones",
     "kpi_other": "Otras",
     "kpi_withdrawn_or_expired": "retiradas o caducadas",
-    "proposer_unknown": "Sin origen registrado"
+    "proposer_unknown": "Sin origen registrado",
+    "see_all_in_laws": "Ver {count} más en Leyes"
   },
   "stats": {
     "title": "Datos",

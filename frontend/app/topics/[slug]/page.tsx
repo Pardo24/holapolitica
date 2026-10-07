@@ -60,6 +60,9 @@ function normalizeForSearch(value: string): string {
 
 type Subset = 'pending' | 'voted' | 'other';
 
+/** Cards shown inline; the rest is one tap away on /lleis. */
+const TOPIC_LIST_LIMIT = 10;
+
 export default async function TopicDetailPage({
   params,
   searchParams,
@@ -213,6 +216,18 @@ export default async function TopicDetailPage({
   // declarative and avoids repeating the branching in three places.
   const activeList =
     subset === 'voted' ? voted : subset === 'other' ? otherFiltered : pending;
+  // The same scope on /lleis, for "see the rest".
+  const lawsHref = (() => {
+    const qs = new URLSearchParams({ topic_slug: slug });
+    if (subset === 'pending') qs.set('result', 'pending');
+    if (subset === 'voted') {
+      qs.set('result', 'approved,rejected');
+      qs.set('sort', 'voted');
+    }
+    if (groupFilter) qs.set('proposing_group_slug', groupFilter);
+    if (rawQuery) qs.set('q', rawQuery);
+    return `/lleis?${qs.toString()}` as Route;
+  })();
   const totalForSubset =
     subset === 'voted'
       ? votedAll.length
@@ -259,7 +274,7 @@ export default async function TopicDetailPage({
 
   return (
     <article className="topic-article">
-      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
+      <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/topics" style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_topics')}
         </Link>
@@ -680,7 +695,7 @@ export default async function TopicDetailPage({
               gap: 14,
             }}
           >
-            {activeList.slice(0, 30).map((i) => (
+            {activeList.slice(0, TOPIC_LIST_LIMIT).map((i) => (
               <LawCard
                 key={i.id}
                 initiative={i}
@@ -688,15 +703,24 @@ export default async function TopicDetailPage({
                 locale={locale}
               />
             ))}
-            {activeList.length > 30 && (
-              <li style={{ padding: '12px 0', fontSize: 12, color: 'var(--ink-3)' }}>
-                {/* Pending and "altres" point at the same overflow copy
-                    (they're both lists of records we don't expand inline
-                    past 30); voted uses the slightly different
-                    ``more_initiatives`` phrasing. */}
-                {subset === 'voted'
-                  ? t('more_initiatives', { count: activeList.length - 30 })
-                  : t('more_via_api', { count: activeList.length - 30 })}
+            {activeList.length > TOPIC_LIST_LIMIT && (
+              <li style={{ listStyle: 'none', paddingTop: 4 }}>
+                {/* The rest lives on /lleis, scoped the same way, where the
+                    reader can sort by date or margin and filter further.
+                    Thirty full cards here made the page 13,000px tall on a
+                    phone and ended on "more via the API". "Altres"
+                    (withdrawn / expired) has no lens there, so it keeps
+                    the count. */}
+                {subset === 'other' ? (
+                  <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+                    {t('more_via_api', { count: activeList.length - TOPIC_LIST_LIMIT })}
+                  </span>
+                ) : (
+                  <Link href={lawsHref} className="topic-see-all">
+                    {t('see_all_in_laws', { count: activeList.length - TOPIC_LIST_LIMIT })}
+                    <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
+                  </Link>
+                )}
               </li>
             )}
           </ul>

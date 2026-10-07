@@ -33,7 +33,7 @@ export default async function LifecyclePage({
   const selected = asked ? type : 'proyecto_ley';
   return (
     <div style={{ paddingTop: 28, paddingBottom: 48 }}>
-      <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+      <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
         <Link href="/votes" style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_votes')}
         </Link>

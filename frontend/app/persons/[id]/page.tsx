@@ -124,7 +124,7 @@ export default async function PersonDetailPage({
   return (
     <article>
       {/* Breadcrumb */}
-      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
+      <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/el-teu-diputat?tab=tots" style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_persons')}
         </Link>

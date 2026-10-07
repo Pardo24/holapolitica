@@ -1276,7 +1276,8 @@
     "hub_subscribe_cta": "Activa les notificacions",
     "kpi_other": "Altres",
     "kpi_withdrawn_or_expired": "retirades o caducades",
-    "proposer_unknown": "Sense origen registrat"
+    "proposer_unknown": "Sense origen registrat",
+    "see_all_in_laws": "Veure'n {count} més a Lleis"
   },
   "stats": {
     "title": "Dades",

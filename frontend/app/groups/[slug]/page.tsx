@@ -204,7 +204,7 @@ export default async function GroupDetailPage({
   return (
     <article>
       {/* Breadcrumb */}
-      <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
+      <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/groups" style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_groups')}
         </Link>
@@ -288,7 +288,10 @@ export default async function GroupDetailPage({
             {/* Official party logo (falls back to the colour disc for
                 groups without one, e.g. GP Mixto). */}
             <GroupBadge slug={group.slug} color={group.color_hex} size="lg" link={false} />
-            <div>
+            {/* What the logo is and the colour's hex code are reference
+                notes for a desktop's side panel; on a phone the mark and
+                the links are what matter. */}
+            <div className="group-civic-caption">
               <div className="eyebrow">{t('civic_mark_eyebrow')}</div>
               <div
                 style={{
@@ -331,7 +334,7 @@ export default async function GroupDetailPage({
               </FactRow>
             )}
             {group.color_hex && (
-              <FactRow label={t('color_identifier_label')}>
+              <FactRow label={t('color_identifier_label')} className="group-color-row">
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <span
                     className="gdot"
@@ -670,12 +673,15 @@ export default async function GroupDetailPage({
 function FactRow({
   label,
   children,
+  className,
 }: {
   label: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <div
+      className={className}
       style={{
         display: 'grid',
         gridTemplateColumns: '110px minmax(0, 1fr)',

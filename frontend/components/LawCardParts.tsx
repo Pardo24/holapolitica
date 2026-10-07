@@ -133,6 +133,7 @@ export function LawCardFooter({
       {href && (
         <Link
           href={href}
+          className="card-open-link"
           style={{
             display: 'inline-flex',
             alignItems: 'center',

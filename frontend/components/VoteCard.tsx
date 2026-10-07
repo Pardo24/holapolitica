@@ -184,6 +184,7 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
         <span style={{ flex: 1 }} />
         <Link
           href={href}
+          className="card-open-link"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
