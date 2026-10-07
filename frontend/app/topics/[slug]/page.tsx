@@ -18,7 +18,7 @@ import {
   type TopicNewsItem,
   type Vote,
 } from '@/lib/api';
-import { parseProposer, type ParsedProposer } from '@/lib/groups';
+import { displayGroupShort, parseProposer, type ParsedProposer } from '@/lib/groups';
 import { effectiveResult, lawBucket } from '@/lib/lawStatus';
 import { pickPlainTitle } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
@@ -182,10 +182,21 @@ export default async function TopicDetailPage({
   // Top proposers — aggregate the submitted_by free-text field. The strings
   // come from the Congreso feed verbatim ("Grupo Parlamentario VOX",
   // "Gobierno", etc.); we just count and sort. Keep top 4.
+  // Short names, as everywhere else. The Congreso publishes the procedural
+  // name ("Grupo Parlamentario Plurinacional SUMAR"), and in a 150px column on
+  // a phone every row came out as "Grupo Parlamentario Plurinacional S…":
+  // eleven identical words of prefix and the one word that identifies the
+  // group cut off.
   const proposerCounts = new Map<string, number>();
   for (const it of initiatives) {
-    const k = (it.submitted_by ?? 'Sense origen registrat').trim();
-    proposerCounts.set(k, (proposerCounts.get(k) ?? 0) + 1);
+    const raw = (it.submitted_by ?? '').trim();
+    const parsedProposer = parseProposer(raw, groups);
+    const label = parsedProposer.isGovernment
+      ? t('proposer_government_label')
+      : parsedProposer.groups.length > 0
+        ? parsedProposer.groups.map((g) => displayGroupShort(g.name_short)).join(' + ')
+        : raw || t('proposer_unknown');
+    proposerCounts.set(label, (proposerCounts.get(label) ?? 0) + 1);
   }
   const topProposers = Array.from(proposerCounts.entries())
     .sort((a, b) => b[1] - a[1])
@@ -247,7 +258,7 @@ export default async function TopicDetailPage({
         : `/topics/${slug}`) as Route;
 
   return (
-    <article>
+    <article className="topic-article">
       <div style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/topics" style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_topics')}
@@ -329,7 +340,7 @@ export default async function TopicDetailPage({
           votes yet / nothing on the next agenda) and we render an honest
           empty-state copy rather than hiding the section, so the page
           structure stays predictable across topics. */}
-      <section style={{ paddingTop: 28 }} aria-labelledby="topic-whats-now">
+      <section className="topic-sec-now" style={{ paddingTop: 28 }} aria-labelledby="topic-whats-now">
         <h2
           id="topic-whats-now"
           className="eyebrow"
@@ -365,7 +376,7 @@ export default async function TopicDetailPage({
       </section>
 
       {/* Stats widget for this topic */}
-      <section style={{ paddingTop: 28 }}>
+      <section className="topic-sec-stats" style={{ paddingTop: 28 }}>
         <div className="eyebrow" style={{ marginBottom: 8 }}>
           {t('topic_stats_eyebrow')}
         </div>
@@ -534,7 +545,7 @@ export default async function TopicDetailPage({
 
       {/* Initiatives — unified section with a subset segmented control and
           a group-proposer filter. Replaces the two static lists. */}
-      <section style={{ paddingTop: 32 }}>
+      <section className="topic-sec-list" style={{ paddingTop: 32 }}>
         <div className="eyebrow" style={{ marginBottom: 24 }}>
           {t('initiatives_section_title')}
         </div>
@@ -697,7 +708,7 @@ export default async function TopicDetailPage({
           returned at least one item; an empty feed means either Google
           had no recent results or the request failed, and either way the
           hub reads cleaner without an empty section. */}
-      <section style={{ paddingTop: 36 }} aria-labelledby="topic-news-title">
+      <section className="topic-sec-news" style={{ paddingTop: 36 }} aria-labelledby="topic-news-title">
         <div
           style={{
             display: 'flex',
@@ -755,6 +766,7 @@ export default async function TopicDetailPage({
           Phrased around the topic name so the user sees what they're
           subscribing to in their own language. */}
       <section
+        className="topic-sec-tail"
         style={{ paddingTop: 36, paddingBottom: 16 }}
         aria-labelledby="topic-subscribe-title"
       >

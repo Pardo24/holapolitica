@@ -1815,3 +1815,19 @@ button {
 @media (min-width: 620px) {
   .topic-kpi-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; }
 }
+
+/* A topic on a phone: the initiatives before the charts.
+   You arrive to read what Congress has done on housing, and the page made
+   you scroll past the hero, three counters, two cards, an approval index and
+   a proposer ranking to reach the list. On a wide screen those sit above the
+   fold together and read as a summary; stacked on a phone they are four
+   screens of preamble. Order only, so the markup still reads top to bottom
+   for a screen reader and the desktop layout is untouched. */
+@media (max-width: 720px) {
+  .topic-article { display: flex; flex-direction: column; }
+  .topic-sec-now { order: 1; }
+  .topic-sec-list { order: 2; }
+  .topic-sec-stats { order: 3; }
+  .topic-sec-news { order: 4; }
+  .topic-sec-tail { order: 5; }
+}

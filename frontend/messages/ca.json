@@ -1197,7 +1197,8 @@
     "hub_subscribe_body": "Configura una subscripció per tema i et farem arribar un resum quan hi hagi votacions o iniciatives noves classificades sota {topic}.",
     "hub_subscribe_cta": "Activa les notificacions",
     "kpi_other": "Altres",
-    "kpi_withdrawn_or_expired": "retirades o caducades"
+    "kpi_withdrawn_or_expired": "retirades o caducades",
+    "proposer_unknown": "Sense origen registrat"
   },
   "stats": {
     "title": "Dades",
