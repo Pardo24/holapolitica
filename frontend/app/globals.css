@@ -100,8 +100,13 @@ html, body {
      navbar. One colour treatment per screen: the hero owns it. */
   /* Mobile-app feel — never let the page scroll horizontally; subtle tap
      highlight tinted to the brand accent instead of the default grey
-     rectangle; smooth in-page anchor scrolling. */
+     rectangle; smooth in-page anchor scrolling.
+     `clip`, not `hidden`: on html + body, `hidden` turns <body> into a
+     scroll container that never scrolls, and every position: sticky
+     inside it (the phone's app bar) silently stops sticking. `hidden`
+     stays first as the fallback for browsers without `clip`. */
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-tap-highlight-color: color-mix(in oklch, var(--accent) 20%, transparent);
 }
 html { scroll-behavior: smooth; }
@@ -1985,7 +1990,9 @@ button {
   padding: 0;
 }
 .sheet-list > li + li { border-top: 1px solid var(--rule); }
-.sheet-list a,
+/* Doubled class: the coarse-pointer tap-target rule (li > a:not(...))
+   would otherwise turn these rows into inline blocks. */
+.sheet-list.sheet-list > li > a,
 .sheet-list button.sheet-row {
   display: flex;
   align-items: center;
@@ -2001,9 +2008,9 @@ button {
   text-align: left;
   font-family: inherit;
 }
-.sheet-list a:active,
+.sheet-list.sheet-list > li > a:active,
 .sheet-list button.sheet-row:active { background: var(--paper-2); }
-.sheet-list a[aria-current="page"] { font-weight: 700; }
+.sheet-list > li > a[aria-current="page"] { font-weight: 700; }
 .sheet-row__icon {
   display: inline-flex;
   align-items: center;
@@ -2470,4 +2477,7 @@ button {
     font-weight: 500 !important;
     line-height: 1.4 !important;
   }
+  .page-header-sub::before { display: none !important; }
 }
+.prov-hero__manual > span,
+.prov-bar__change > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }

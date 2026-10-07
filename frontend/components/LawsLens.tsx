@@ -323,7 +323,9 @@ export function LawsLens({
       )}
 
       <div className={compact ? 'lens-row no-scrollbar' : 'lens-grid'}>
-        {lenses.map((l) => {
+        {/* In the chip row the chosen lenses lead: a chosen topic sitting
+            past the right edge reads as "nothing chosen". */}
+        {(compact ? [...lenses].sort((x, y) => Number(y.on) - Number(x.on)) : lenses).map((l) => {
           const cls = `lens-tile${compact ? ' lens-tile--chip' : ''}${l.on ? ' lens-tile--on' : ''}`;
           return 'to' in l ? (
             <Link key={l.key} href={l.to} className={cls} aria-current={l.on ? 'true' : undefined}>
