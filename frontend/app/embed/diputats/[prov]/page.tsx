@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { ChevronRight, User } from 'lucide-react';
 
@@ -93,7 +93,7 @@ export default async function EmbedDeputiesPage({ params }: { params: Promise<{ 
           ))}
         </div>
       </article>
-      <EmbedFooter href={`/el-teu-diputat?prov=${encodeURIComponent(prov)}`} label={t('open_deputies')} />
+      <EmbedFooter href={`/el-teu-diputat?prov=${encodeURIComponent(prov)}` as Route} label={t('open_deputies')} />
     </div>
   );
 }

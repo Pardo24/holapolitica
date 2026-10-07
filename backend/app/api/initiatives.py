@@ -157,7 +157,9 @@ async def list_initiatives(
     count_stmt = select(func.count(func.distinct(Initiative.id))).select_from(Initiative)
 
     conditions = []
-    wanted_ids = [int(tok) for tok in _split_csv(ids) if tok.isdigit()] if isinstance(ids, str) else []
+    wanted_ids = (
+        [int(tok) for tok in _split_csv(ids) if tok.isdigit()] if isinstance(ids, str) else []
+    )
     if wanted_ids:
         conditions.append(Initiative.id.in_(wanted_ids))
     if legislature_id is not None:

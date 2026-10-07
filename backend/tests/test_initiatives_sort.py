@@ -150,4 +150,6 @@ async def test_ids_returns_just_those(session: AsyncSession) -> None:
         session=session,
     )
     assert {item["id"] for item in page["items"]} == {2, 3}
-    assert page["items"][0]["latest_vote"] is not None or page["items"][1]["latest_vote"] is not None
+    assert (
+        page["items"][0]["latest_vote"] is not None or page["items"][1]["latest_vote"] is not None
+    )

@@ -507,8 +507,7 @@ INSUFFICIENT = "[INSUFICIENT]"
 # occurrence mid-sentence: "financiación insuficiente" is ordinary prose and
 # must not cost a row its summary.
 _INSUFFICIENT_RE = re.compile(
-    r"[\[\(]\s*INSUFICIENTE?\s*[\]\)]"
-    r"|(?:^|\n)\s*INSUFICIENTE?\s*\.?\s*(?:\n|$)",
+    r"[\[\(]\s*INSUFICIENTE?\s*[\]\)]" r"|(?:^|\n)\s*INSUFICIENTE?\s*\.?\s*(?:\n|$)",
     re.IGNORECASE,
 )
 
@@ -556,8 +555,8 @@ def _strip_markdown(text: str) -> str:
     return _MD_EMPHASIS.sub(_keep_inner, text).replace("`", "")
 
 
-_OPEN_QUOTES = "\"“«‘"
-_CLOSE_QUOTES = "\"”»’"
+_OPEN_QUOTES = '"“«‘'
+_CLOSE_QUOTES = '"”»’'
 
 
 def _strip_wrapping_quotes(text: str) -> str:

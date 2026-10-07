@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { EmbedFooter } from '@/components/EmbedFooter';
@@ -47,7 +47,7 @@ export default async function EmbedLawPage({ params }: { params: Promise<{ id: s
       <ul style={LAW_CARD_LIST_STYLE}>
         <LawCard initiative={initiative} parsed={parseProposer(initiative.submitted_by, groups)} locale={locale} />
       </ul>
-      <EmbedFooter href={`/initiatives/${initiative.id}`} label={t('open_law')} />
+      <EmbedFooter href={`/initiatives/${initiative.id}` as Route} label={t('open_law')} />
     </div>
   );
 }

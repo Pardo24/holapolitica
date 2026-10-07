@@ -22,7 +22,6 @@ from typing import NamedTuple
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import or_, select
-from sqlalchemy import true as sa_true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -80,6 +79,7 @@ def _is_procedural(*texts: str | None) -> bool:
         if any(p.search(stripped) for p in _PROCEDURAL_PATTERNS):
             return True
     return False
+
 
 # The three stances a citizen can take — and the only group positions we
 # compare against. ABSENT / NO_VOTE_RECORDED are not opinions, so they can't

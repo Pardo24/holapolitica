@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { EmbedFooter } from '@/components/EmbedFooter';
@@ -129,7 +129,7 @@ export default async function EmbedSessionPage({ params }: { params: Promise<{ d
           <p className="embed-more">{t('session_more', { n: items.length - MAX_ROWS })}</p>
         )}
       </article>
-      <EmbedFooter href={`/avui/${date}`} label={t('open_session')} />
+      <EmbedFooter href={`/avui/${date}` as Route} label={t('open_session')} />
     </div>
   );
 }

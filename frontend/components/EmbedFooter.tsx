@@ -1,3 +1,5 @@
+import type { Route } from 'next';
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ArrowUpRight } from 'lucide-react';
 
@@ -8,16 +10,16 @@ import { ArrowUpRight } from 'lucide-react';
  * should be able to see where the figures come from without leaving it:
  * the Congress's open data, through Hola Política.
  */
-export async function EmbedFooter({ href, label }: { href: string; label: string }) {
+export async function EmbedFooter({ href, label }: { href: Route; label: string }) {
   const t = await getTranslations('embed_widgets');
   return (
     <footer className="embed-foot">
-      <a href={href}>
+      <Link href={href}>
         {label}
         <ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />
-      </a>
+      </Link>
       <span>
-        {t('source')} <a href="/">Hola Política</a> · {t('licence')}
+        {t('source')} <Link href="/">Hola Política</Link> · {t('licence')}
       </span>
     </footer>
   );
