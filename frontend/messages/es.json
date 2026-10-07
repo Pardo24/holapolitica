@@ -315,7 +315,20 @@
     "grid_aria": "Cuadrícula de los 17 Objetivos de Desarrollo Sostenible",
     "count_iniciatives_label": "iniciativas",
     "count_empty_label": "sin datos todavía",
-    "attribution": "Definiciones, números y colores oficiales de Naciones Unidas. Hola Política aplica la clasificación de forma automática y descriptiva, sin valoración."
+    "attribution": "Definiciones, números y colores oficiales de Naciones Unidas. Hola Política aplica la clasificación de forma automática y descriptiva, sin valoración.",
+    "facts_eyebrow": "Qué es, exactamente",
+    "fact_what_title": "Una declaración de la ONU, de 2015",
+    "fact_what_body": "La Asamblea General de las Naciones Unidas la aprobó por consenso el 25 de septiembre de 2015 (resolución 70/1). Fija 17 objetivos y 169 metas con el horizonte de 2030.",
+    "fact_binding_title": "No es un tratado ni una ley",
+    "fact_binding_body": "No crea ninguna obligación jurídica. Ningún estado puede ser sancionado por no cumplirla: cada país decide su nivel de ambición e informa de su progreso de forma voluntaria.",
+    "fact_who_title": "Los objetivos los fijaron los estados",
+    "fact_who_body": "Los negociaron los 193 estados miembros entre 2013 y 2015, España incluida. No los impone ningún organismo ni ningún gobierno por encima de los demás.",
+    "fact_read_title": "El texto es público",
+    "fact_read_body": "Cualquiera puede leer la Agenda entera, en español y en los demás idiomas oficiales, en la web de las Naciones Unidas.",
+    "fact_read_cta": "Leer el texto oficial",
+    "scope_title": "Qué hace esta página, y qué no",
+    "scope_body": "Clasificamos automáticamente las iniciativas del Congreso bajo los objetivos que tocan, con un modelo de lenguaje. Eso significa que la clasificación puede tener errores y que no es exhaustiva. No puntuamos el cumplimiento de España, no evaluamos la Agenda y no decimos si un objetivo es bueno o malo: solo mostramos qué se ha presentado y qué se ha votado bajo cada uno.",
+    "goals_eyebrow": "Los 17 objetivos en el Congreso"
   },
   "initiative_detail": {
     "breadcrumb_root": "Leyes",
@@ -534,7 +547,10 @@
     "follow_banner_eyebrow": "Sigue los temas",
     "follow_banner_title": "Elige los temas que te importan y recibe avisos",
     "follow_banner_body": "Cada tema agrupa votaciones, iniciativas y noticias relacionadas. Suscríbete y te enviaremos un correo semanal — solo los temas que tú elijas, sin seguimiento.",
-    "follow_banner_cta": "Configura las notificaciones"
+    "follow_banner_cta": "Configura las notificaciones",
+    "sdg_banner_title": "Agenda 2030",
+    "sdg_banner_body": "Otra manera de mirar lo mismo: los 17 Objetivos de Desarrollo Sostenible de la ONU, qué son exactamente y qué se ha votado bajo cada uno.",
+    "sdg_banner_cta": "Ver la Agenda 2030"
   },
   "about": {
     "title": "Sobre el proyecto",

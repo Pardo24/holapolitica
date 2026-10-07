@@ -1,17 +1,16 @@
 import Link from 'next/link';
-import { ArrowRight, Bell, Layers } from 'lucide-react';
+import { ArrowRight, Bell, Globe2, Layers } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TopicListPanel } from '@/components/TopicListPanel';
 
 /*
- * The SDG (Agenda 2030) taxonomy is disabled for the public launch
- * because no initiative has been classified against it yet by the
- * auto-classifier. Stripped the ``?kind=sdg`` branch + searchParams
- * handling; the editorial-theme taxonomy is the only one rendered.
- * To re-enable, restore the kind switching from git history once the
- * SDG classifier ships.
+ * The editorial themes are how this site navigates: one taxonomy, on the
+ * page a reader lands on. The UN's Sustainable Development Goals are a
+ * second lens over the same initiatives, and they have their own page at
+ * /agenda-2030 rather than a tab here, because most of what that page owes
+ * a reader is an explanation of what the Agenda is, not another grid.
  */
 
 export default async function TopicsPage() {
@@ -31,6 +30,43 @@ export default async function TopicsPage() {
       </PageHeader>
 
       <TopicListPanel />
+
+      {/* The second lens, one click away. The goals used to leak into the
+          chips on every list with nowhere to send the reader; now they have
+          a page, and this is the only place that points at it. */}
+      <Link
+        href="/agenda-2030"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          marginTop: 26,
+          padding: '14px 16px',
+          borderRadius: 14,
+          border: '1px solid var(--rule)',
+          background: 'var(--paper)',
+          textDecoration: 'none',
+          color: 'inherit',
+        }}
+      >
+        <Globe2
+          size={20}
+          strokeWidth={1.8}
+          aria-hidden="true"
+          style={{ color: 'var(--accent)', flex: 'none' }}
+        />
+        <span style={{ minWidth: 0, flex: 1 }}>
+          <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+            {t('sdg_banner_title')}
+          </span>
+          <span
+            style={{ display: 'block', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-3)' }}
+          >
+            {t('sdg_banner_body')}
+          </span>
+        </span>
+        <ArrowRight size={16} strokeWidth={2} aria-hidden="true" style={{ flex: 'none' }} />
+      </Link>
 
 
       {/* Follow-topics banner. It offers to email a reader when a topic

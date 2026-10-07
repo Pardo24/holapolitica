@@ -315,7 +315,20 @@
     "grid_aria": "Quadrícula dels 17 Objectius de Desenvolupament Sostenible",
     "count_iniciatives_label": "iniciatives",
     "count_empty_label": "sense dades encara",
-    "attribution": "Definicions, números i colors oficials de Nacions Unides. Hola Política aplica la classificació de manera automàtica i descriptiva, sense valoració."
+    "attribution": "Definicions, números i colors oficials de Nacions Unides. Hola Política aplica la classificació de manera automàtica i descriptiva, sense valoració.",
+    "facts_eyebrow": "Què és, exactament",
+    "fact_what_title": "Una declaració de l'ONU, de 2015",
+    "fact_what_body": "L'Assemblea General de les Nacions Unides la va aprovar per consens el 25 de setembre de 2015 (resolució 70/1). Fixa 17 objectius i 169 fites amb l'horitzó del 2030.",
+    "fact_binding_title": "No és un tractat ni una llei",
+    "fact_binding_body": "No crea cap obligació jurídica. Cap estat pot ser sancionat per no complir-la: cada país decideix el seu nivell d'ambició i informa del seu progrés de manera voluntària.",
+    "fact_who_title": "Els objectius els van fixar els estats",
+    "fact_who_body": "Els van negociar els 193 estats membres entre 2013 i 2015, Espanya inclosa. No els imposa cap organisme ni cap govern per damunt dels altres.",
+    "fact_read_title": "El text és públic",
+    "fact_read_body": "Qualsevol pot llegir l'Agenda sencera, en castellà i en altres idiomes oficials, al web de les Nacions Unides.",
+    "fact_read_cta": "Llegir el text oficial",
+    "scope_title": "Què fa aquesta pàgina, i què no",
+    "scope_body": "Classifiquem automàticament les iniciatives del Congrés sota els objectius que toquen, amb un model de llenguatge. Això vol dir que la classificació pot tenir errors i que no és exhaustiva. No puntuem el compliment d'Espanya, no avaluem l'Agenda i no diem si un objectiu és bo o dolent: només ensenyem què s'ha presentat i què s'ha votat sota cadascun.",
+    "goals_eyebrow": "Els 17 objectius al Congrés"
   },
   "initiative_detail": {
     "breadcrumb_root": "Lleis",
@@ -534,7 +547,10 @@
     "follow_banner_eyebrow": "Segueix els temes",
     "follow_banner_title": "Tria els temes que t'importen i rep avisos",
     "follow_banner_body": "Cada tema agrupa votacions, iniciatives i notícies relacionades. Subscriu-te i et farem arribar un correu setmanal — només els temes que tu triïs, sense seguiment.",
-    "follow_banner_cta": "Configura les notificacions"
+    "follow_banner_cta": "Configura les notificacions",
+    "sdg_banner_title": "Agenda 2030",
+    "sdg_banner_body": "Una altra manera de mirar el mateix: els 17 Objectius de Desenvolupament Sostenible de l'ONU, què són exactament i què s'ha votat sota cadascun.",
+    "sdg_banner_cta": "Veure l'Agenda 2030"
   },
   "about": {
     "title": "Sobre el projecte",

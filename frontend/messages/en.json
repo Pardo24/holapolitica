@@ -315,7 +315,20 @@
     "grid_aria": "Grid of the 17 Sustainable Development Goals",
     "count_iniciatives_label": "initiatives",
     "count_empty_label": "no data yet",
-    "attribution": "Official UN numbering, definitions and colours. Hola Política applies the classification automatically and descriptively, without judgement."
+    "attribution": "Official UN numbering, definitions and colours. Hola Política applies the classification automatically and descriptively, without judgement.",
+    "facts_eyebrow": "What it is, exactly",
+    "fact_what_title": "A UN declaration, from 2015",
+    "fact_what_body": "The United Nations General Assembly adopted it by consensus on 25 September 2015 (resolution 70/1). It sets 17 goals and 169 targets with 2030 as the horizon.",
+    "fact_binding_title": "Not a treaty, not a law",
+    "fact_binding_body": "It creates no legal obligation. No state can be sanctioned for failing to meet it: each country sets its own level of ambition and reports on its progress voluntarily.",
+    "fact_who_title": "The states set the goals themselves",
+    "fact_who_body": "All 193 member states negotiated them between 2013 and 2015, Spain among them. No body and no government imposed them on the rest.",
+    "fact_read_title": "The text is public",
+    "fact_read_body": "Anyone can read the whole Agenda, in English and the other official languages, on the United Nations website.",
+    "fact_read_cta": "Read the official text",
+    "scope_title": "What this page does, and what it doesn't",
+    "scope_body": "We classify the Congress's initiatives under the goals they touch automatically, with a language model. That means the classification can be wrong and is not exhaustive. We don't score Spain's compliance, we don't evaluate the Agenda and we don't say whether a goal is good or bad: we only show what was tabled and how it was voted under each one.",
+    "goals_eyebrow": "The 17 goals in Congress"
   },
   "initiative_detail": {
     "breadcrumb_root": "Laws",
@@ -534,7 +547,10 @@
     "follow_banner_eyebrow": "Follow topics",
     "follow_banner_title": "Pick the topics that matter to you and get alerts",
     "follow_banner_body": "Each topic groups related votes, initiatives and press mentions. Subscribe and you'll get a weekly email — only the topics you choose, no tracking.",
-    "follow_banner_cta": "Configure notifications"
+    "follow_banner_cta": "Configure notifications",
+    "sdg_banner_title": "Agenda 2030",
+    "sdg_banner_body": "Another way of looking at the same record: the UN's 17 Sustainable Development Goals, what they actually are, and what was voted under each.",
+    "sdg_banner_cta": "See Agenda 2030"
   },
   "about": {
     "title": "About the project",
