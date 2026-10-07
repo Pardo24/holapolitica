@@ -15,6 +15,11 @@ import { ArrowRight, X } from 'lucide-react';
  * this strip sits above them, saying what the site is in one sentence,
  * with the full explanation one click away.
  *
+ * On a phone it floats instead: a card over the bottom of the screen,
+ * above the tab bar, so the home underneath starts where it always starts
+ * and nothing jumps when it is dismissed. On a wider screen it stays a
+ * strip at the top of the page, where there is room for it.
+ *
  * Same storage key as the old modal, so anyone who already dismissed that
  * never sees this. Storage can throw (private windows): if it does, the
  * strip simply doesn't render, exactly as the modal used to behave.
@@ -51,6 +56,7 @@ export function IntroNote() {
   return (
     <aside
       aria-label={t('slide1_eyebrow')}
+      className="intro-note"
       style={{
         position: 'relative',
         display: 'flex',
@@ -95,6 +101,10 @@ export function IntroNote() {
         {t('more')}
         <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
       </Link>
+      {/* Phone only: a clear way to say "got it", beside the X. */}
+      <button type="button" onClick={dismiss} className="intro-note__ok no-touch-pad">
+        {t('done')}
+      </button>
       <button
         type="button"
         onClick={dismiss}

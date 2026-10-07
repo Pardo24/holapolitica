@@ -125,11 +125,11 @@ export default async function LleisPage({
 
   return (
     <div>
-      <PageHeader title={t('title')} icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.4, maxWidth: 760 }}>
-          {t('subtitle')}
-        </p>
-      </PageHeader>
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}
+      />
 
       <LawsLens
         state={{

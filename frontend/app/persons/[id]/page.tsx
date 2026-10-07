@@ -185,12 +185,6 @@ export default async function PersonDetailPage({
             <h1 className="h-headline" style={{ margin: 0 }}>
               {person.full_name}
             </h1>
-            <span
-              className="eyebrow"
-              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
-            >
-              {t('person_eyebrow')}
-            </span>
           </div>
           <div
             style={{

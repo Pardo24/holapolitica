@@ -171,7 +171,11 @@
     "tile_approved": "{n, plural, one {aprobada} other {aprobadas}}",
     "tile_rejected": "{n, plural, one {rechazada} other {rechazadas}}",
     "tile_tie": "{n, plural, one {empate} other {empates}}",
-    "tile_votes_note": "{votes} votaciones en total, contando enmiendas y puntos por separado."
+    "tile_votes_note": "{votes} votaciones en total, contando enmiendas y puntos por separado.",
+    "filter_button": "Filtros",
+    "filter_close": "Cerrar",
+    "filter_done": "Hecho",
+    "filter_clear": "Quitar el filtro"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -269,7 +273,7 @@
   },
   "lleis": {
     "title": "Leyes",
-    "subtitle": "Las votaciones que de verdad crean ley: proyectos y proposiciones de ley y reales decretos ley. El resto (mociones, proposiciones no de ley) son posicionamientos, accesibles aparte.",
+    "subtitle": "Las votaciones que hacen o cambian leyes.",
     "lens_aria": "Filtrar por tipo",
     "lens_laws": "Leyes",
     "lens_positions": "Posicionamientos",
@@ -334,7 +338,7 @@
     "results_count_sorted": "{count} iniciativas votadas · {sort}"
   },
   "agenda_2030": {
-    "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",
+    "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
     "title": "Qué hace el Congreso por la Agenda 2030",
     "intro": "Cada iniciativa legislativa clasificada bajo uno de los 17 Objetivos de Desarrollo Sostenible adoptados por Naciones Unidas en 2015. La clasificación la realiza Mistral sobre el texto de cada iniciativa; toca un objetivo para ver su desglose.",
     "stat_iniciatives": "Iniciativas clasificadas",
@@ -503,7 +507,7 @@
     }
   },
   "notifications": {
-    "eyebrow": "Newsletter semanal",
+    "eyebrow": "Elige temas y recibe solo lo que se vota.",
     "title": "Newsletter, temas que sigues",
     "lede": "Elige las áreas que te interesan y recibirás cada viernes un correo solo con las votaciones del Congreso relacionadas con esos temas. Sin valoraciones, solo datos.",
     "lede_legacy_push": "Recibe un aviso en tu navegador (o móvil con la web instalada) cada vez que llegue un nuevo voto relacionado con un tema que sigues. Solo datos factuales: título del voto y enlace a la ficha. Ninguna valoración.",
@@ -566,7 +570,7 @@
   },
   "topics": {
     "title": "Temas",
-    "eyebrow": "Clasificación automática",
+    "eyebrow": "Todo lo que vota el Congreso, ordenado por temas.",
     "subtitle": "Cada iniciativa se clasifica automáticamente en uno o varios temas. Toca un tema para ver sus iniciativas y votaciones.",
     "card_eyebrow": "Tema",
     "card_count": "{n, plural, =1 {# iniciativa} other {# iniciativas}}",
@@ -608,7 +612,7 @@
     "api_rate_limit_body": "Sin límites duros hoy. Pedimos a los consumidores mantener un ritmo razonable. Para cargas masivas recurrentes o uso académico intensivo, contáctanos para coordinar copias de volcados periódicos.",
     "glossary_title": "Qué significa cada cosa",
     "glossary_intro": "El lenguaje parlamentario es técnico. Aquí tienes los términos que verás más a menudo, en lenguaje llano.",
-    "page_eyebrow": "Documentación · principios · cobertura",
+    "page_eyebrow": "Qué es, cómo funciona y de dónde salen los datos.",
     "glossary_terms": [
       {
         "term": "Proyecto de Ley",
@@ -833,7 +837,7 @@
   },
   "deputy": {
     "title": "Diputados y partidos",
-    "subtitle": "Los nueve grupos del Congreso y los 350 diputados. Toca un partido para ver qué propone y cómo vota, o elige tu provincia para saber quién te representa.",
+    "subtitle": "Quién te representa en el Congreso y cómo vota.",
     "picker_label": "Tu circunscripción:",
     "picker_placeholder": "Elige una provincia…",
     "pick_prompt": "Elige tu provincia (o usa tu ubicación) y verás a los diputados que te representan, agrupados por partido.",
@@ -874,7 +878,7 @@
     "meta_title": "Trivia · Hola Política",
     "meta_description": "Pon a prueba lo que sabes de la política española con datos reales del Congreso.",
     "title": "Trivia",
-    "subtitle": "Un trivial con datos reales del Congreso. Acierta y aprende qué se ha votado, quién lo propone y cómo votan los partidos.",
+    "subtitle": "Acierta qué se votó y quién lo propuso.",
     "progress": "{n}/{total}",
     "category_partits": "Partidos",
     "category_lleis": "Leyes",
@@ -951,16 +955,16 @@
     "answered_today_short": "Ya has respondido hoy. ¡Vuelve mañana!",
     "dismiss": "Descartar",
     "page_title": "La pregunta del día",
-    "page_subtitle": "Una pregunta nueva cada día, igual para todos. Responde, descubre cuánta gente acierta y aprende con la explicación."
+    "page_subtitle": "Una pregunta al día, la misma para todos."
   },
   "jocs": {
     "title": "Juegos",
-    "subtitle": "Ponte a prueba y descubre el Congreso jugando.",
+    "subtitle": "Descubre el Congreso jugando.",
     "daily_sub": "Una pregunta nueva cada día, igual para todos"
   },
   "align": {
     "title": "¿Cómo te representan?",
-    "subtitle": "Responde a votaciones reales del Congreso y descubre con qué grupos coincides más. El criterio lo pones tú: esto no es una recomendación.",
+    "subtitle": "Vota leyes reales y mira con qué grupos coincides. No es ninguna recomendación.",
     "unavailable": "Ahora mismo no hay suficientes votaciones para generar el cuestionario.",
     "progress": "Pregunta {n} de {total}",
     "stance_aye": "Sí",
@@ -1009,7 +1013,7 @@
   },
   "map": {
     "title": "El Mapa",
-    "subtitle": "Dónde se sitúa cada partido en el eje izquierda-derecha (economía) y en el eje social, según la encuesta de expertos CHES.",
+    "subtitle": "Dónde se sitúa cada partido, según la encuesta de expertos CHES.",
     "unavailable": "Todavía no hay suficientes datos de votación para dibujar el mapa de esta legislatura.",
     "note": "La posición sale de comparar cómo vota cada grupo: cuanto más parecidos son sus votos, más cerca quedan. No es un eje izquierda-derecha ni una recomendación.",
     "size_note": "El tamaño del círculo es proporcional a los escaños.",
@@ -1027,7 +1031,7 @@
   },
   "legislatures": {
     "title": "Las legislaturas",
-    "subtitle": "Compara la actividad de cada legislatura del Congreso (2011-2026): volumen de votaciones, tasa de aprobación y aprobaciones por asentimiento.",
+    "subtitle": "Cómo ha cambiado el Congreso desde 2011.",
     "legislature_n": "{number} legislatura",
     "status_active": "Actual",
     "status_concluded": "Concluida",
@@ -1281,7 +1285,7 @@
   },
   "stats": {
     "title": "Datos",
-    "eyebrow": "Atlas · agregados descriptivos · ninguna métrica unilateral",
+    "eyebrow": "El Congreso en cifras.",
     "intro": "Recuento de iniciativas y votaciones registradas en la XV legislatura. La clasificación temática es automática (LLM neutro), cada cifra muestra la N bruta. La cobertura histórica todavía está en construcción.",
     "global_view": "Visión global",
     "global_view_open_hint": "Métricas globales · abiertas por defecto cuando no hay filtro",

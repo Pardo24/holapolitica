@@ -171,7 +171,11 @@
     "tile_approved": "{n, plural, one {aprovada} other {aprovades}}",
     "tile_rejected": "{n, plural, one {rebutjada} other {rebutjades}}",
     "tile_tie": "{n, plural, one {empat} other {empats}}",
-    "tile_votes_note": "{votes} votacions en total, comptant esmenes i punts per separat."
+    "tile_votes_note": "{votes} votacions en total, comptant esmenes i punts per separat.",
+    "filter_button": "Filtres",
+    "filter_close": "Tanca",
+    "filter_done": "Fet",
+    "filter_clear": "Treu el filtre"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -269,7 +273,7 @@
   },
   "lleis": {
     "title": "Lleis",
-    "subtitle": "Les votacions que realment creen llei: projectes i proposicions de llei i reials decrets llei. La resta (mocions, proposicions no de llei) són posicionaments, accessibles a part.",
+    "subtitle": "Les votacions que fan o canvien lleis.",
     "lens_aria": "Filtra per tipus",
     "lens_laws": "Lleis",
     "lens_positions": "Posicionaments",
@@ -334,7 +338,7 @@
     "results_count_sorted": "{count} iniciatives votades · {sort}"
   },
   "agenda_2030": {
-    "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",
+    "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
     "title": "Què fa el Congrés per l'Agenda 2030",
     "intro": "Cada iniciativa legislativa classificada sota un dels 17 Objectius de Desenvolupament Sostenible adoptats per Nacions Unides el 2015. La classificació la fa Mistral sobre el text de cada iniciativa; toca un objectiu per veure'n el desglossament.",
     "stat_iniciatives": "Iniciatives classificades",
@@ -503,7 +507,7 @@
     }
   },
   "notifications": {
-    "eyebrow": "Newsletter setmanal",
+    "eyebrow": "Tria temes i rep només el que s'hi vota.",
     "title": "Newsletter, temes que segueixes",
     "lede": "Tria les àrees que t'interessen i rebràs cada divendres un correu només amb les votacions del Congrés relacionades amb aquests temes. Sense valoracions, només dades.",
     "lede_legacy_push": "Rep un avís al teu navegador (o mòbil amb la web instal·lada) cada cop que arribi un nou vot relacionat amb un tema que segueixes. Només dades factuals: títol del vot i enllaç a la fitxa. Cap valoració.",
@@ -566,7 +570,7 @@
   },
   "topics": {
     "title": "Temes",
-    "eyebrow": "Classificació automàtica",
+    "eyebrow": "Tot el que vota el Congrés, ordenat per temes.",
     "subtitle": "Cada iniciativa es classifica automàticament en un o més temes. Toca un tema per veure'n les iniciatives i les votacions.",
     "card_eyebrow": "Tema",
     "card_count": "{n, plural, =1 {# iniciativa} other {# iniciatives}}",
@@ -608,7 +612,7 @@
     "api_rate_limit_body": "Sense límits durs avui. Demanem que els consumidors mantinguin un ritme raonable. Per a càrregues massives recurrents o ús acadèmic intensiu, contacteu-nos per coordinar còpies dels dumps periòdics.",
     "glossary_title": "Què vol dir cada cosa",
     "glossary_intro": "El llenguatge parlamentari és tècnic. Aquí tens els termes que veuràs més sovint, en un llenguatge planer.",
-    "page_eyebrow": "Documentació · principis · cobertura",
+    "page_eyebrow": "Què és, com funciona i d'on surten les dades.",
     "glossary_terms": [
       {
         "term": "Proyecto de Ley",
@@ -833,7 +837,7 @@
   },
   "deputy": {
     "title": "Diputats i partits",
-    "subtitle": "Els nou grups del Congrés i els 350 diputats. Toca un partit per veure què proposa i com vota, o tria la teva província per saber qui et representa.",
+    "subtitle": "Qui et representa al Congrés i com vota.",
     "picker_label": "La teva circumscripció:",
     "picker_placeholder": "Tria una província…",
     "pick_prompt": "Tria la teva província (o fes servir la teva ubicació) i veuràs els diputats que t'hi representen, agrupats per partit.",
@@ -874,7 +878,7 @@
     "meta_title": "Trivia · Hola Política",
     "meta_description": "Posa a prova el que saps de la política espanyola amb dades reals del Congrés.",
     "title": "Trivia",
-    "subtitle": "Un trivial amb dades reals del Congrés. Encerta i aprèn què s'ha votat, qui ho proposa i com voten els partits.",
+    "subtitle": "Encerta què s'ha votat i qui ho ha proposat.",
     "progress": "{n}/{total}",
     "category_partits": "Partits",
     "category_lleis": "Lleis",
@@ -951,16 +955,16 @@
     "answered_today_short": "Ja has respost avui. Torna demà!",
     "dismiss": "Descarta",
     "page_title": "La pregunta del dia",
-    "page_subtitle": "Una pregunta nova cada dia, igual per a tothom. Respon, descobreix quanta gent l'encerta i aprèn amb l'explicació."
+    "page_subtitle": "Una pregunta al dia, la mateixa per a tothom."
   },
   "jocs": {
     "title": "Jocs",
-    "subtitle": "Posa't a prova i descobreix el Congrés jugant.",
+    "subtitle": "Descobreix el Congrés jugant.",
     "daily_sub": "Una pregunta nova cada dia, igual per a tothom"
   },
   "align": {
     "title": "Com et representen?",
-    "subtitle": "Respon a votacions reals del Congrés i descobreix amb quins grups coincideixes més. El criteri el poses tu: això no és cap recomanació.",
+    "subtitle": "Vota lleis reals i mira amb quins grups coincideixes. No és cap recomanació.",
     "unavailable": "Ara mateix no hi ha prou votacions per generar el qüestionari.",
     "progress": "Pregunta {n} de {total}",
     "stance_aye": "Sí",
@@ -1009,7 +1013,7 @@
   },
   "map": {
     "title": "El Mapa",
-    "subtitle": "On se situa cada partit en l'eix esquerra-dreta (economia) i en l'eix social, segons l'enquesta d'experts CHES.",
+    "subtitle": "On se situa cada partit, segons l'enquesta d'experts CHES.",
     "unavailable": "Encara no hi ha prou dades de votació per dibuixar el mapa d'aquesta legislatura.",
     "note": "La posició surt de comparar com vota cada grup: com més semblants són els seus vots, més a prop queden. No és un eix esquerra-dreta ni cap recomanació.",
     "size_note": "La mida del cercle és proporcional als escons.",
@@ -1027,7 +1031,7 @@
   },
   "legislatures": {
     "title": "Les legislatures",
-    "subtitle": "Compara l'activitat de cada legislatura del Congrés (2011-2026): volum de votacions, taxa d'aprovació i aprovacions per assentiment.",
+    "subtitle": "Com ha canviat el Congrés des del 2011.",
     "legislature_n": "{number} legislatura",
     "status_active": "Actual",
     "status_concluded": "Conclosa",
@@ -1281,7 +1285,7 @@
   },
   "stats": {
     "title": "Dades",
-    "eyebrow": "Atles · agregats descriptius · cap mètrica unilateral",
+    "eyebrow": "El Congrés en xifres.",
     "intro": "Recompte d'iniciatives i votacions registrades en la XV legislatura. La classificació temàtica és automàtica (LLM neutre), cada xifra mostra la N bruta. Cobertura històrica encara en construcció.",
     "global_view": "Visió global",
     "global_view_open_hint": "Mètriques globals · obertes per defecte quan no hi ha filtre",

@@ -591,6 +591,10 @@ export async function SessionSheet({
             topicEyebrow: t('topic_filter_eyebrow'),
             topicAll: t('topic_filter_all'),
             empty: t('filter_empty'),
+            filters: t('filter_button'),
+            close: t('filter_close'),
+            done: t('filter_done'),
+            clear: t('filter_clear'),
           }}
           topics={sessionTopicOptions(ordered, locale)}
         >
@@ -858,7 +862,10 @@ function KindHeading({
           {counts.filter(Boolean).join(' · ')}
         </span>
       </div>
-      <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.45 }}>
+      {/* What a law / a motion / a procedure is: a desktop aside. On a
+          phone the heading and its counts say enough, and the cards are
+          what the reader scrolls for. */}
+      <p className="hidden sm:block" style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.45 }}>
         {description}
       </p>
     </div>

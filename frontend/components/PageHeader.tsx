@@ -3,21 +3,20 @@ import type { CSSProperties, ReactNode } from 'react';
 /**
  * Page-level header used at the top of every primary route.
  *
- * Layout: the **title is the anchor** of the row. The eyebrow/subtitle
- * sits on the **right**, small and muted, on viewports ≥ 640px. On
- * narrower screens the row wraps and the subtitle reflows underneath
- * the title, still right-aligned (the title is the longer string most
- * of the time, so it carries the leftmost column).
+ * The title, and under it one short sentence that says what the page is
+ * for. That sentence used to be a grey all-caps eyebrow set beside the
+ * title ("ATLES · AGREGATS DESCRIPTIUS · CAP MÈTRICA UNILATERAL"): it read
+ * as a label rather than as language, it explained more than anyone asked,
+ * and in capitals at 11px it made every page open on something dull. Now
+ * it is plain sentence case at reading size, directly under the title, so
+ * the page opens the way an app screen does: what this is, in a line.
  *
- * Previously every page started with a small all-caps eyebrow ABOVE
- * the title — that read as label-before-headline and pushed the
- * H1 visually to second place. Inverting it puts the page name first
- * and demotes the contextual eyebrow to a captionable label.
+ * Keep subtitles to one line of plain words. The detail belongs in the
+ * page, or on /about.
  *
- * Optional `cta` slot accepts a button/link rendered after the
- * subtitle on desktop; useful for "Recorregut d'una llei →" style
- * actions. `children` renders below the header row (e.g. a lede
- * paragraph or a metadata strip).
+ * Optional `cta` slot renders to the right of the title on desktop (under
+ * it on a phone); `children` render below the subtitle (filters, a meta
+ * strip).
  */
 export function PageHeader({
   title,
@@ -48,15 +47,15 @@ export function PageHeader({
       className={['page-header', className].filter(Boolean).join(' ')}
       style={{
         paddingTop: 28,
-        paddingBottom: children ? 18 : 14,
-        borderBottom: bordered ? '1px solid var(--ink)' : undefined,
+        paddingBottom: 18,
+        borderBottom: bordered ? '1px solid var(--rule)' : undefined,
         ...style,
       }}
     >
       <div
         style={{
           display: 'flex',
-          alignItems: 'baseline',
+          alignItems: 'center',
           justifyContent: 'space-between',
           gap: 12,
           flexWrap: 'wrap',
@@ -64,7 +63,7 @@ export function PageHeader({
       >
         <h1
           className={headingClassName}
-          style={{ margin: 0, minWidth: 0, display: 'inline-flex', alignItems: 'baseline', gap: 12 }}
+          style={{ margin: 0, minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 12 }}
         >
           {icon && (
             <span
@@ -75,11 +74,10 @@ export function PageHeader({
                 justifyContent: 'center',
                 flex: 'none',
                 color: 'var(--accent)',
-                width: 36,
-                height: 36,
-                borderRadius: 10,
+                width: 38,
+                height: 38,
+                borderRadius: 11,
                 background: 'color-mix(in oklch, var(--accent) 12%, var(--paper))',
-                transform: 'translateY(4px)',
               }}
             >
               {icon}
@@ -87,36 +85,10 @@ export function PageHeader({
           )}
           <span style={{ minWidth: 0 }}>{title}</span>
         </h1>
-        {(subtitle || cta) && (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              flexWrap: 'wrap',
-              minWidth: 0,
-            }}
-          >
-            {subtitle && (
-              <span
-                className="eyebrow page-header-sub"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--ink-3)',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  lineHeight: 1.3,
-                }}
-              >
-                {subtitle}
-              </span>
-            )}
-            {cta}
-          </div>
-        )}
+        {cta}
       </div>
-      {children && <div style={{ marginTop: 10 }}>{children}</div>}
+      {subtitle && <p className="page-header-sub">{subtitle}</p>}
+      {children && <div style={{ marginTop: 12 }}>{children}</div>}
     </header>
   );
 }

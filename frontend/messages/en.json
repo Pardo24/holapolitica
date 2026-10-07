@@ -171,7 +171,11 @@
     "tile_approved": "approved",
     "tile_rejected": "rejected",
     "tile_tie": "{n, plural, one {tie} other {ties}}",
-    "tile_votes_note": "{votes} votes in all, counting amendments and points separately."
+    "tile_votes_note": "{votes} votes in all, counting amendments and points separately.",
+    "filter_button": "Filters",
+    "filter_close": "Close",
+    "filter_done": "Done",
+    "filter_clear": "Clear filter"
   },
   "avui_og": {
     "brand": "Hola Política",
@@ -269,7 +273,7 @@
   },
   "lleis": {
     "title": "Laws",
-    "subtitle": "The votes that actually create law: government and private bills and royal decree-laws. The rest (motions, non-binding proposals) are positions, available separately.",
+    "subtitle": "The votes that make or change laws.",
     "lens_aria": "Filter by type",
     "lens_laws": "Laws",
     "lens_positions": "Positions",
@@ -334,7 +338,7 @@
     "results_count_sorted": "{count} voted initiatives · {sort}"
   },
   "agenda_2030": {
-    "eyebrow": "2030 Agenda · Sustainable Development Goals",
+    "eyebrow": "What it is, what it isn't, and what Congress has voted.",
     "title": "What Congress is doing on the 2030 Agenda",
     "intro": "Every legislative initiative classified under one of the 17 Sustainable Development Goals adopted by the United Nations in 2015. The classification is run by Mistral on each initiative's text; pick a goal to see its breakdown.",
     "stat_iniciatives": "Classified initiatives",
@@ -503,7 +507,7 @@
     }
   },
   "notifications": {
-    "eyebrow": "Weekly newsletter",
+    "eyebrow": "Pick topics and get only the votes on them.",
     "title": "Newsletter, topics you follow",
     "lede": "Pick the areas you care about and we will email you every Friday with only the Congreso votes related to those topics. No opinion, just data.",
     "lede_legacy_push": "Get a notification in your browser (or mobile, with the site installed) every time a new vote on a topic you follow lands. Factual data only: vote title and a link to its page. No opinion.",
@@ -566,7 +570,7 @@
   },
   "topics": {
     "title": "Topics",
-    "eyebrow": "Automatic classification",
+    "eyebrow": "Everything Congress votes on, sorted by topic.",
     "subtitle": "Every initiative is automatically classified into one or more topics. Tap a topic to see its initiatives and votes.",
     "card_eyebrow": "Topic",
     "card_count": "{n, plural, =1 {# initiative} other {# initiatives}}",
@@ -608,7 +612,7 @@
     "api_rate_limit_body": "No hard limits today. We ask consumers to keep a reasonable pace. For recurring bulk loads or intensive academic use, contact us to coordinate periodic dataset copies.",
     "glossary_title": "What each term means",
     "glossary_intro": "Parliamentary language is technical. Here are the terms you'll encounter most often, in plain language.",
-    "page_eyebrow": "Documentation · principles · coverage",
+    "page_eyebrow": "What it is, how it works and where the data comes from.",
     "glossary_terms": [
       {
         "term": "Proyecto de Ley (Government bill)",
@@ -833,7 +837,7 @@
   },
   "deputy": {
     "title": "Deputies & parties",
-    "subtitle": "The nine groups in Congress and all 350 deputies. Tap a party to see what it proposes and how it votes, or pick your province to find who represents you.",
+    "subtitle": "Who represents you in Congress and how they vote.",
     "picker_label": "Your constituency:",
     "picker_placeholder": "Pick a province…",
     "pick_prompt": "Pick your province (or use your location) and you'll see the deputies who represent you, grouped by party.",
@@ -874,7 +878,7 @@
     "meta_title": "Trivia · Hola Política",
     "meta_description": "Test what you know about Spanish politics with real data from the Congreso.",
     "title": "Trivia",
-    "subtitle": "A trivia game built from real Congreso data. Guess and learn what was voted, who proposes it and how the parties vote.",
+    "subtitle": "Guess what was voted and who proposed it.",
     "progress": "{n}/{total}",
     "category_partits": "Parties",
     "category_lleis": "Laws",
@@ -951,16 +955,16 @@
     "answered_today_short": "Answered today. Come back tomorrow!",
     "dismiss": "Dismiss",
     "page_title": "Question of the day",
-    "page_subtitle": "A new question every day, the same for everyone. Answer, see how many get it right, and learn from the explanation."
+    "page_subtitle": "One question a day, the same for everyone."
   },
   "jocs": {
     "title": "Games",
-    "subtitle": "Test yourself and discover Congress by playing.",
+    "subtitle": "Get to know Congress by playing.",
     "daily_sub": "A new question every day, the same for everyone"
   },
   "align": {
     "title": "How do they represent you?",
-    "subtitle": "Answer real Congreso votes and find out which groups you coincide with most. The criterion is yours: this is not a recommendation.",
+    "subtitle": "Vote on real bills and see which groups you match. It is not a recommendation.",
     "unavailable": "There aren't enough votes to build the questionnaire right now.",
     "progress": "Question {n} of {total}",
     "stance_aye": "Yes",
@@ -1009,7 +1013,7 @@
   },
   "map": {
     "title": "The Map",
-    "subtitle": "Where each party sits on the economic left-right and the social axis, per the CHES expert survey.",
+    "subtitle": "Where each party sits, according to the CHES expert survey.",
     "unavailable": "There isn't enough voting data yet to draw this legislature's map.",
     "note": "Positions come from comparing how each group votes: the more alike their votes, the closer they sit. It's not a left-right axis or a recommendation.",
     "size_note": "Circle size is proportional to seats.",
@@ -1027,7 +1031,7 @@
   },
   "legislatures": {
     "title": "The legislatures",
-    "subtitle": "Compare each Congreso legislature (2011-2026): vote volume, approval rate and approvals by assent.",
+    "subtitle": "How Congress has changed since 2011.",
     "legislature_n": "{number} legislature",
     "status_active": "Current",
     "status_concluded": "Concluded",
@@ -1281,7 +1285,7 @@
   },
   "stats": {
     "title": "Data",
-    "eyebrow": "Atlas · descriptive aggregates · no one-sided metric",
+    "eyebrow": "Congress in numbers.",
     "intro": "Counts of initiatives and votes recorded in the 15th legislature. Topic classification is automatic (neutral LLM), every figure shows the raw N. Historical coverage still under construction.",
     "global_view": "Global view",
     "global_view_open_hint": "Global metrics · open by default when no filter is set",

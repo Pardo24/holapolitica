@@ -121,7 +121,9 @@ export function PairCoincidenceClient({
             { side: 'b', label: tFilter('pair_group_b'), value: pairB, other: pairA },
           ] as const
         ).map((row) => (
-          <div key={row.side} role="group" aria-label={row.label}>
+          // minWidth 0: a grid item otherwise grows to its content, and the
+          // row of marks pushed out of the card instead of scrolling.
+          <div key={row.side} role="group" aria-label={row.label} style={{ minWidth: 0 }}>
             <span style={pickerLabelText}>{row.label}</span>
             <div className="pair-chips no-scrollbar">
               {bySize.map((g) => {

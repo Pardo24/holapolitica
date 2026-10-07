@@ -232,12 +232,6 @@ export default async function GroupDetailPage({
             >
               {fullName}
             </h1>
-            <span
-              className="eyebrow"
-              style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
-            >
-              {t('group_eyebrow')}
-            </span>
           </div>
           {/* Long-form name sits BELOW the H1 as a soft descriptive line.
               Matches the demoted-subtitle pattern used across other page

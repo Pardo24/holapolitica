@@ -1,7 +1,10 @@
 'use client';
 
+import { SlidersHorizontal, X } from 'lucide-react';
+
 import { useEffect, useRef, useState } from 'react';
 
+import { BottomSheet } from '@/components/BottomSheet';
 import { useEdgeFade } from '@/lib/useEdgeFade';
 
 type ResultFilter = 'all' | 'approved' | 'rejected';
@@ -38,6 +41,11 @@ export function SessionVoteFilter({
     topicEyebrow: string;
     topicAll: string;
     empty: string;
+    /** Phone only: the button that opens the filters, and its sheet. */
+    filters: string;
+    close: string;
+    done: string;
+    clear: string;
   };
   topics: TopicOption[];
   children: React.ReactNode;
@@ -125,6 +133,9 @@ export function SessionVoteFilter({
     </button>
   );
 
+  const activeTopic = topic ? (topics.find((tp) => tp.slug === topic) ?? null) : null;
+  const activeCount = (result !== 'all' ? 1 : 0) + (activeTopic ? 1 : 0);
+
   const rowStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
@@ -140,50 +151,82 @@ export function SessionVoteFilter({
 
   return (
     <section ref={sectionRef} style={{ marginBottom: 8, scrollMarginTop: 64 }}>
-      <div role="group" aria-label={labels.eyebrow} style={{ ...rowStyle, flexWrap: 'wrap' }}>
-        <span className="eyebrow" style={eyebrowStyle}>
-          {labels.eyebrow}
-        </span>
-        {chip('all', result === 'all', () => setResult('all'), labels.all)}
-        {chip(
-          'approved',
-          result === 'approved',
-          () => setResult('approved'),
-          labels.approved,
-          'var(--aye, #16A34A)',
+      {/* On a phone the filters are optional, as on /lleis: one button
+          that opens them in a sheet, and the active ones shown as chips
+          you can clear. On a wider screen the same rows sit in place. */}
+      <div className="session-filter-bar">
+        <BottomSheet
+          inlineOnDesktop
+          trigger={
+            <>
+              <SlidersHorizontal size={15} strokeWidth={2} aria-hidden="true" />
+              {labels.filters}
+              {activeCount > 0 && <span className="laws-filter-count tabular">{activeCount}</span>}
+            </>
+          }
+          triggerClassName="laws-filter-trigger"
+          title={labels.filters}
+          closeLabel={labels.close}
+          doneLabel={labels.done}
+        >
+          <div role="group" aria-label={labels.eyebrow} className="session-filter-row" style={{ ...rowStyle, flexWrap: 'wrap' }}>
+            <span className="eyebrow" style={eyebrowStyle}>
+              {labels.eyebrow}
+            </span>
+            {chip('all', result === 'all', () => setResult('all'), labels.all)}
+            {chip(
+              'approved',
+              result === 'approved',
+              () => setResult('approved'),
+              labels.approved,
+              'var(--aye, #16A34A)',
+            )}
+            {chip(
+              'rejected',
+              result === 'rejected',
+              () => setResult('rejected'),
+              labels.rejected,
+              'var(--no, #DC2626)',
+            )}
+          </div>
+          {topics.length > 1 && (
+            // One swipeable line on phones rather than a wall of wrapped chips.
+            <div
+              ref={topicScroller.ref}
+              role="group"
+              aria-label={labels.topicEyebrow}
+              className={`session-filter-row session-filter-row--topics no-scrollbar ${topicScroller.className}`}
+              style={{ ...rowStyle, overflowX: 'auto', marginBottom: 4 }}
+            >
+              <span className="eyebrow" style={eyebrowStyle}>
+                {labels.topicEyebrow}
+              </span>
+              {chip('topic-all', topic == null, () => setTopic(null), labels.topicAll)}
+              {topics.map((tp) =>
+                chip(
+                  `topic-${tp.slug}`,
+                  topic === tp.slug,
+                  () => setTopic(topic === tp.slug ? null : tp.slug),
+                  tp.name,
+                  tp.color,
+                ),
+              )}
+            </div>
+          )}
+        </BottomSheet>
+        {result !== 'all' && (
+          <button type="button" className="session-filter-active no-touch-pad" onClick={() => setResult('all')}>
+            {result === 'approved' ? labels.approved : labels.rejected}
+            <X size={13} strokeWidth={2.4} aria-label={labels.clear} />
+          </button>
         )}
-        {chip(
-          'rejected',
-          result === 'rejected',
-          () => setResult('rejected'),
-          labels.rejected,
-          'var(--no, #DC2626)',
+        {activeTopic && (
+          <button type="button" className="session-filter-active no-touch-pad" onClick={() => setTopic(null)}>
+            {activeTopic.name}
+            <X size={13} strokeWidth={2.4} aria-label={labels.clear} />
+          </button>
         )}
       </div>
-      {topics.length > 1 && (
-        // One swipeable line on phones rather than a wall of wrapped chips.
-        <div
-          ref={topicScroller.ref}
-          role="group"
-          aria-label={labels.topicEyebrow}
-          className={`no-scrollbar ${topicScroller.className}`}
-          style={{ ...rowStyle, overflowX: 'auto', marginBottom: 4 }}
-        >
-          <span className="eyebrow" style={eyebrowStyle}>
-            {labels.topicEyebrow}
-          </span>
-          {chip('topic-all', topic == null, () => setTopic(null), labels.topicAll)}
-          {topics.map((tp) =>
-            chip(
-              `topic-${tp.slug}`,
-              topic === tp.slug,
-              () => setTopic(topic === tp.slug ? null : tp.slug),
-              tp.name,
-              tp.color,
-            ),
-          )}
-        </div>
-      )}
       <div ref={listRef}>{children}</div>
       {empty && (
         <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '12px 0 20px' }}>
