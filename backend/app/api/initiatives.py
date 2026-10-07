@@ -120,6 +120,16 @@ async def list_initiatives(
             "Postgres."
         ),
     ),
+    sort: str = Query(
+        "recent",
+        description=(
+            "'recent' (default): most recently tabled first. 'voted': most "
+            "recently VOTED first. 'close': narrowest margin between ayes and "
+            "noes on the latest vote first. 'voted' and 'close' keep only "
+            "initiatives that have been voted; 'close' also drops votes "
+            "carried by assent, which have no tally to compare."
+        ),
+    ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
@@ -132,7 +142,8 @@ async def list_initiatives(
     ``latest_vote_result`` so the view can show a credible outcome even for
     series (e.g. Reial Decret Llei) whose imported ``status`` is unreliable.
 
-    Order: most recent first by ``submitted_at`` (NULLs last), then id.
+    Order: most recent first by ``submitted_at`` (NULLs last), then id,
+    unless ``sort`` asks for the latest vote's date or margin.
     """
     base_stmt = select(Initiative)
     count_stmt = select(func.count(func.distinct(Initiative.id))).select_from(Initiative)
@@ -267,6 +278,44 @@ async def list_initiatives(
             )
             conditions.append(Initiative.id.in_(vote_subq))
 
+    # Orderings by the latest vote. Joined against a one-row-per-initiative
+    # subquery (rn == 1), so the join can't duplicate rows, and it doubles
+    # as the "has been voted" filter these orderings imply.
+    sort_mode = sort if sort in ("voted", "close") else "recent"
+    vote_order: list[Any] = []
+    if sort_mode != "recent":
+        last_vote = (
+            select(
+                Vote.initiative_id.label("iid"),
+                Vote.voted_at.label("voted_at"),
+                Vote.ayes.label("ayes"),
+                Vote.noes.label("noes"),
+                Vote.approved_by_assent.label("by_assent"),
+                func.row_number()
+                .over(
+                    partition_by=Vote.initiative_id,
+                    order_by=(Vote.voted_at.desc(), Vote.id.desc()),
+                )
+                .label("rn"),
+            )
+            .where(Vote.initiative_id.is_not(None))
+            .subquery()
+        )
+        on_last = and_(last_vote.c.iid == Initiative.id, last_vote.c.rn == 1)
+        base_stmt = base_stmt.join(last_vote, on_last)
+        count_stmt = count_stmt.join(last_vote, on_last)
+        if sort_mode == "close":
+            # A vote carried by assent has no tally; "close" would put it
+            # first with a margin of 0, which is the opposite of true.
+            conditions.append(last_vote.c.by_assent.is_not(True))
+            conditions.append((last_vote.c.ayes + last_vote.c.noes) > 0)
+            vote_order = [
+                func.abs(last_vote.c.ayes - last_vote.c.noes).asc(),
+                last_vote.c.voted_at.desc(),
+            ]
+        else:
+            vote_order = [last_vote.c.voted_at.desc()]
+
     if conditions:
         base_stmt = base_stmt.where(and_(*conditions))
         count_stmt = count_stmt.where(and_(*conditions))
@@ -274,11 +323,10 @@ async def list_initiatives(
     total = (await session.execute(count_stmt)).scalar_one()
     # When searching, order by relevance first; otherwise most-recent first.
     recency = (Initiative.submitted_at.desc().nullslast(), Initiative.id.desc())
-    base_ordered = (
-        base_stmt.order_by(fts_rank.desc(), *recency)
-        if fts_rank is not None
-        else base_stmt.order_by(*recency)
-    )
+    # An explicit sort is the reader's question and wins over relevance;
+    # relevance then breaks its ties.
+    rank = [fts_rank.desc()] if fts_rank is not None else []
+    base_ordered = base_stmt.order_by(*vote_order, *rank, *recency)
     stmt = base_ordered.offset((page - 1) * page_size).limit(page_size)
     items = list((await session.execute(stmt)).scalars().unique().all())
 
