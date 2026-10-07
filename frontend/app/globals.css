@@ -1831,3 +1831,643 @@ button {
   .topic-sec-news { order: 4; }
   .topic-sec-tail { order: 5; }
 }
+
+/* ─── Bottom sheet (components/BottomSheet.tsx) ──────────────────────────
+   Rises from the bottom edge over a dimmed page. Closed sheets stay in the
+   DOM (so an inline-on-desktop sheet is the same tree at every width) but
+   are hidden from the tab order with a delayed visibility flip, so the
+   slide-out still animates. */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  background: rgba(15, 18, 30, 0.42);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, visibility 0s linear .2s;
+}
+.sheet-backdrop--open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .2s ease;
+}
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  max-height: 86dvh;
+  background: var(--paper);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -12px 40px -16px rgba(15, 23, 42, 0.35);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .26s;
+  outline: none;
+}
+.sheet--open {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1);
+}
+.sheet__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 12px 10px 20px;
+  border-bottom: 1px solid var(--rule);
+  touch-action: none;
+}
+.sheet__grabber {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 38px;
+  height: 4px;
+  margin-left: -19px;
+  border-radius: 999px;
+  background: var(--rule-strong);
+}
+.sheet__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sheet__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--paper-2);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.sheet__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 20px 18px;
+}
+.sheet__foot {
+  padding: 10px 20px 12px;
+  border-top: 1px solid var(--rule);
+}
+.sheet__done {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+/* Filters: a sheet on a phone, in place everywhere else. */
+@media (min-width: 641px) {
+  .sheet-trigger--mobile { display: none !important; }
+  .sheet--inline-desktop {
+    position: static;
+    transform: none;
+    visibility: visible;
+    max-height: none;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    transition: none;
+  }
+  .sheet--inline-desktop .sheet__head,
+  .sheet--inline-desktop .sheet__foot { display: none; }
+  .sheet--inline-desktop .sheet__body { overflow: visible; padding: 0; }
+  .sheet-backdrop--inline { display: none; }
+  /* Pickers on a wide screen: a centred dialog. */
+  .sheet:not(.sheet--inline-desktop) {
+    left: 50%;
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    width: min(520px, calc(100vw - 48px));
+    max-height: min(680px, calc(100dvh - 80px));
+    border-radius: 20px;
+    padding-bottom: 0;
+    opacity: 0;
+    transform: translate(-50%, -46%);
+    transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+  }
+  .sheet:not(.sheet--inline-desktop).sheet--open {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .sheet:not(.sheet--inline-desktop) .sheet__grabber { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet, .sheet--open, .sheet-backdrop, .sheet-backdrop--open { transition: none; }
+}
+
+/* Rows inside a sheet: big, quiet, one per line, like a native list. */
+.sheet-list {
+  list-style: none;
+  margin: 0 -20px;
+  padding: 0;
+}
+.sheet-list > li + li { border-top: 1px solid var(--rule); }
+.sheet-list a,
+.sheet-list button.sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 20px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 15px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font-family: inherit;
+}
+.sheet-list a:active,
+.sheet-list button.sheet-row:active { background: var(--paper-2); }
+.sheet-list a[aria-current="page"] { font-weight: 700; }
+.sheet-row__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--paper-2);
+  color: var(--ink-2);
+}
+.sheet-row__label { flex: 1; min-width: 0; }
+.sheet-row__meta {
+  flex: none;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Mobile app bar (components/MobileAppBar.tsx) ───────────────────────
+   Sticky on every page at phone width. Bleeds to the screen edges through
+   the page gutter, and the page loses its top padding so the bar sits
+   flush under the status bar. */
+.appbar { display: none; }
+@media (max-width: 640px) {
+  .page { padding-top: 0 !important; }
+  .appbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 0 -20px 14px;
+    padding: calc(env(safe-area-inset-top, 0px) + 6px) 10px 6px 12px;
+    min-height: calc(env(safe-area-inset-top, 0px) + 54px);
+    background: color-mix(in oklch, var(--paper) 90%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--rule);
+  }
+  /* The web footer is a website's furniture. In the app its links live
+     in the "Més" sheet, one tap from every screen. */
+  .site-footer { display: none; }
+}
+.appbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding-left: 4px;
+  color: var(--ink);
+  text-decoration: none;
+  min-width: 0;
+}
+.appbar__mark {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  position: relative;
+}
+.appbar__mark::before,
+.appbar__mark::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-top: 1.5px solid var(--ink);
+}
+.appbar__mark::before { top: 6px; }
+.appbar__mark::after { top: 12px; }
+.appbar__name {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+.appbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 10px 0 2px;
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.appbar__back:active { background: var(--paper-2); }
+.appbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+.appbar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.appbar__icon:active { background: var(--paper-2); }
+.appbar__icon--on {
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 12%, var(--paper));
+}
+.appbar-lang {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--paper-2);
+}
+.appbar-lang form { display: contents; }
+.appbar-lang button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.appbar-lang button[aria-pressed="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Laws lens (components/LawsLens.tsx) ─────────────────────────────── */
+.lens-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  min-height: 46px;
+  border-radius: 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+}
+.lens-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  padding: 0 !important;
+}
+.lens-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (min-width: 641px) {
+  .laws-lens { margin-top: 18px; }
+  .laws-lens .lens-search { display: none; }
+  .laws-lens > .eyebrow { margin-top: 0 !important; }
+  .lens-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .lens-row { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; }
+  .lens-tile:hover { border-color: var(--ink-3); }
+  .lens-tile--on:hover { border-color: var(--ink); }
+}
+.lens-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 12px -20px 0;
+  padding: 0 20px 2px;
+  scroll-padding-inline: 20px;
+}
+.lens-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.lens-tile:active { background: var(--paper-2); }
+.lens-tile__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--hue-lleis) 14%, var(--paper));
+  color: var(--hue-lleis);
+}
+.lens-tile__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lens-tile__title {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lens-tile__sub { font-size: 11.5px; line-height: 1.25; color: var(--ink-3); }
+/* Compact: once a lens is chosen the tiles become a chip row. */
+.lens-tile--chip {
+  flex: none;
+  min-height: 40px;
+  padding: 4px 13px 4px 5px;
+  border-radius: 999px;
+  gap: 7px;
+}
+.lens-tile--chip .lens-tile__icon { width: 30px; height: 30px; border-radius: 999px; }
+.lens-tile--chip .lens-tile__title { font-size: 13px; font-weight: 600; white-space: nowrap; max-width: 180px; }
+.lens-tile--on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.lens-tile--on:active { background: var(--ink); }
+.lens-tile--on .lens-tile__icon {
+  background: color-mix(in oklch, var(--paper) 16%, var(--ink));
+  color: var(--paper);
+}
+.lens-tile--on .lens-tile__sub { color: color-mix(in oklch, var(--paper) 70%, var(--ink)); }
+.lens-tile--clear { padding-left: 13px; color: var(--ink-2); }
+.lens-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  text-decoration: none;
+}
+.lens-tag[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* The filter toolbar inside its phone sheet: the lens already has the
+   search box, and the sheet is the card. */
+@media (max-width: 640px) {
+  .sheet .laws-filter-search { display: none !important; }
+  .sheet .laws-filter-card { margin-top: 0 !important; padding: 0 !important; border: 0 !important; }
+  .laws-filter-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--rule-strong);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+}
+
+/* ─── Province picker (components/ProvincePicker.tsx) ─────────────────── */
+.prov-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  margin: 16px 0 26px;
+  padding: 24px 20px 20px;
+  border-radius: 20px;
+  background: color-mix(in oklch, var(--hue-partits, var(--accent)) 7%, var(--paper));
+  border: 1px solid color-mix(in oklch, var(--hue-partits, var(--accent)) 22%, var(--paper));
+  max-width: 560px;
+}
+.prov-hero__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--hue-partits, var(--accent));
+  box-shadow: 0 2px 10px -4px rgba(15, 23, 42, 0.25);
+}
+.prov-hero__title {
+  margin: 4px 0 0;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.prov-hero__body {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.prov-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  max-width: 360px;
+  min-height: 52px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.prov-hero__cta:disabled { opacity: .85; cursor: progress; }
+.prov-hero__error { margin: 0; font-size: 13px; color: var(--no); max-width: 36ch; }
+.prov-hero__manual,
+.prov-bar__change {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+/* The real <select> sits on top, invisible, so a tap anywhere on the
+   label opens the system picker. */
+.prov-hero__manual select,
+.prov-bar__change select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+  appearance: none;
+}
+.prov-hero__privacy { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-3); max-width: 40ch; }
+.prov-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 18px;
+  padding: 8px 8px 8px 12px;
+  border-radius: 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+}
+.prov-bar__pin { display: inline-flex; color: var(--hue-partits, var(--accent)); flex: none; }
+.prov-bar__text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.prov-bar__text strong { font-size: 15px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prov-bar__text span { font-size: 12px; color: var(--ink-3); }
+.prov-bar__change { flex: none; padding: 0 8px; font-size: 12.5px; font-weight: 500; color: var(--ink-3); }
+.prov-bar__change u { color: var(--ink-2); font-weight: 600; text-underline-offset: 3px; }
+
+/* Deputies of one party as a grouped list on a phone: one card, hairline
+   rows, the way a native contacts list reads. */
+@media (max-width: 640px) {
+  .dep-group-grid {
+    display: block !important;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .dep-group-grid > .deputy-card {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    min-height: 60px;
+  }
+  .dep-group-grid > .deputy-card + .deputy-card { border-top: 1px solid var(--rule) !important; }
+}
+
+/* Hub tabs: an underline strip on a desktop, a segmented control on a
+   phone (the shape every native app uses for "views of the same thing"). */
+.hub-tab-short { display: none; }
+@media (max-width: 640px) {
+  .hub-tabs {
+    margin-top: 12px !important;
+    padding: 3px;
+    gap: 2px !important;
+    border-radius: 12px;
+    background: var(--paper-2);
+    box-shadow: none !important;
+  }
+  .hub-tabs .hub-tab {
+    flex: 1 1 0 !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 6px 8px !important;
+    border-radius: 9px;
+    box-shadow: none !important;
+  }
+  .hub-tabs .hub-tab[aria-current="page"] {
+    background: var(--paper);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14) !important;
+  }
+  .hub-tab-long { display: none; }
+  .hub-tab-short { display: inline; }
+}
+
+/* Page headers on a phone: an app's large title, not a web page's
+   masthead. The uppercase eyebrow subtitle becomes a plain two-line
+   caption. */
+@media (max-width: 640px) {
+  .page-header { padding-top: 2px !important; }
+  .page-header h1 { font-size: 27px !important; line-height: 1.12; }
+  .page-header-sub {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+  }
+}

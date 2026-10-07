@@ -65,6 +65,8 @@ export const PROVINCE_CENTROIDS: Record<string, [number, number]> = {
 
 /** Nearest constituency name to a GPS position, or null if none is in range.
  *  Distance weights longitude by cos(lat) so it's roughly metric. */
+const MAX_SQ_DEGREES = 4;
+
 export function nearestProvince(lat: number, lng: number): string | null {
   let best: string | null = null;
   let bestD = Infinity;
@@ -78,5 +80,8 @@ export function nearestProvince(lat: number, lng: number): string | null {
       best = name;
     }
   }
-  return best;
+  // Nearest-centroid always has an answer, even in Paris. Beyond about
+  // 2 degrees (~200 km) from every centroid the reader is not in Spain,
+  // and "your deputies are Girona's" would be a confident wrong answer.
+  return bestD <= MAX_SQ_DEGREES ? best : null;
 }

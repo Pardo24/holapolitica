@@ -37,7 +37,9 @@ export function HubTabs({
   tabs,
   ariaLabel,
 }: {
-  tabs: { href: Route; label: string; active: boolean; sublabel?: string }[];
+  /** ``shortLabel`` replaces the label on a phone, where the strip is a
+   *  segmented control and three long labels would not fit. */
+  tabs: { href: Route; label: string; active: boolean; sublabel?: string; shortLabel?: string }[];
   ariaLabel: string;
 }) {
   return (
@@ -85,8 +87,16 @@ export function HubTabs({
             touchAction: 'manipulation',
           }}
           aria-current={t.active ? 'page' : undefined}
+          className="hub-tab"
         >
-          <span style={{ fontSize: 14 }}>{t.label}</span>
+          {t.shortLabel ? (
+            <>
+              <span className="hub-tab-long" style={{ fontSize: 14 }}>{t.label}</span>
+              <span className="hub-tab-short" style={{ fontSize: 14 }}>{t.shortLabel}</span>
+            </>
+          ) : (
+            <span style={{ fontSize: 14 }}>{t.label}</span>
+          )}
           {t.sublabel && (
             <span
               className="tabular"

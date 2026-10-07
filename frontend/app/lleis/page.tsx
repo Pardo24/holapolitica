@@ -1,10 +1,12 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowRight, ChevronLeft, ChevronRight, MessagesSquare, Scale } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, MessagesSquare, Scale, SlidersHorizontal } from 'lucide-react';
 
+import { BottomSheet } from '@/components/BottomSheet';
 import { LawCard } from '@/components/LawCard';
 import { LawsFilterBar } from '@/components/LawsFilterBar';
+import { LawsLens } from '@/components/LawsLens';
 import { PageHeader } from '@/components/PageHeader';
 import {
   api,
@@ -32,6 +34,8 @@ interface SearchParams {
   /** Affected-audience tags, comma-separated: "laws that affect me". */
   audience?: string;
   q?: string;
+  /** recent (default) | voted | close */
+  sort?: string;
   page?: string;
 }
 
@@ -40,6 +44,8 @@ const PAGE_SIZE = 30;
 // portal's unreliable Initiative.status. "pending" = no decisive vote yet.
 const RESULT_FILTERS = ['approved', 'rejected', 'pending'] as const;
 type ResultFilter = (typeof RESULT_FILTERS)[number];
+const SORTS = ['recent', 'voted', 'close'] as const;
+type Sort = (typeof SORTS)[number];
 
 function splitCsv(value: string | undefined): string[] {
   if (!value) return [];
@@ -65,6 +71,7 @@ export default async function LleisPage({
   const audienceTags = splitCsv(sp.audience);
   const query = (sp.q ?? '').trim();
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
+  const sort: Sort = SORTS.includes(sp.sort as Sort) ? (sp.sort as Sort) : 'recent';
 
   const [data, groups, topics, audiences] = await Promise.all([
     api.initiatives.list({
@@ -75,6 +82,7 @@ export default async function LleisPage({
       proposing_group_slug: groupSlugs.length ? groupSlugs.join(',') : undefined,
       audience: audienceTags.length ? audienceTags.join(',') : undefined,
       q: query || undefined,
+      sort: sort === 'recent' ? undefined : sort,
       page,
       page_size: PAGE_SIZE,
     }),
@@ -94,15 +102,25 @@ export default async function LleisPage({
 
   const lastPage = Math.max(1, Math.ceil(data.total / PAGE_SIZE));
 
-  const buildPageHref = (p: number): Route => {
+  const buildHref = ({ p = 1, sortTo = sort }: { p?: number; sortTo?: Sort }): Route => {
     const qs = new URLSearchParams();
     if (resultFilters.length) qs.set('result', resultFilters.join(','));
     if (topicSlugs.length) qs.set('topic_slug', topicSlugs.join(','));
     if (groupSlugs.length) qs.set('proposing_group_slug', groupSlugs.join(','));
+    if (audienceTags.length) qs.set('audience', audienceTags.join(','));
     if (query) qs.set('q', query);
+    if (sortTo !== 'recent') qs.set('sort', sortTo);
     if (p !== 1) qs.set('page', String(p));
     const s = qs.toString();
     return (s ? `/lleis?${s}` : '/lleis') as Route;
+  };
+  const buildPageHref = (p: number) => buildHref({ p });
+  const activeFilters =
+    resultFilters.length + topicSlugs.length + groupSlugs.length + audienceTags.length;
+  const sortLabel: Record<Sort, string> = {
+    recent: t('sort_recent'),
+    voted: t('sort_voted'),
+    close: t('sort_close'),
   };
 
   return (
@@ -113,37 +131,105 @@ export default async function LleisPage({
         </p>
       </PageHeader>
 
-      <LawsFilterBar
+      <LawsLens
+        state={{
+          sort,
+          results: resultFilters,
+          topicSlugs,
+          groupSlugs,
+          audiences: audienceTags,
+          q: query,
+        }}
         topics={topics}
         groups={groups}
-        initialQ={query}
-        initialResults={resultFilters}
-        initialTopicSlugs={topicSlugs}
-        initialGroupSlugs={groupSlugs}
         audiences={audiences}
-        initialAudiences={audienceTags}
         locale={locale}
         labels={{
           search_placeholder: t('search_placeholder'),
-          status_all: t('status_all'),
-          status_approved: tStats('status_singular_approved'),
-          status_rejected: tStats('status_singular_rejected'),
-          status_in_debate: tStats('status_singular_in_debate'),
-          topic_label: t('topic_label'),
-          topic_placeholder: t('topic_placeholder'),
-          group_label: t('group_label'),
-          group_placeholder: t('group_placeholder'),
-          group_government: t('group_government'),
-          more_filters: t('more_filters'),
-          clear_all: t('clear_all'),
-          remove_label: t('remove_label'),
-          audience_label: t('card_audience_filter'),
+          search_submit: t('lens_search_submit'),
+          eyebrow: t('lens_eyebrow'),
+          voted_title: t('lens_voted_title'),
+          voted_sub: t('lens_voted_sub'),
+          close_title: t('lens_close_title'),
+          close_sub: t('lens_close_sub'),
+          topic_title: t('lens_topic_title'),
+          topic_sub: t('lens_topic_sub'),
+          party_title: t('lens_party_title'),
+          party_sub: t('lens_party_sub'),
+          pending_title: t('lens_pending_title'),
+          pending_sub: t('lens_pending_sub'),
+          audience_title: t('lens_audience_title'),
+          audience_sub: t('lens_audience_sub'),
+          government: t('group_government'),
+          clear: t('clear_all'),
+          close: t('lens_close'),
         }}
       />
 
-      <p style={{ fontSize: 12, color: 'var(--ink-3)', margin: '16px 0 4px' }}>
-        {t('results_count', { count: data.total })}
-      </p>
+      {/* One toolbar, two shapes: in place on a desktop, in a sheet behind
+          the "Filtres" button on a phone, where the lens above already
+          answers the common questions and the full toolbar is the rest. */}
+      <div className="laws-results-row">
+        <p className="laws-results-count">
+          {sort === 'recent'
+            ? t('results_count', { count: data.total })
+            : t('results_count_sorted', { count: data.total, sort: sortLabel[sort].toLowerCase() })}
+        </p>
+        <nav className="laws-sort" aria-label={t('sort_aria')}>
+          {SORTS.map((key) => (
+            <Link
+              key={key}
+              href={buildHref({ sortTo: key })}
+              aria-current={key === sort ? 'true' : undefined}
+              scroll={false}
+            >
+              {sortLabel[key]}
+            </Link>
+          ))}
+        </nav>
+        <BottomSheet
+          inlineOnDesktop
+          trigger={
+            <>
+              <SlidersHorizontal size={15} strokeWidth={2} aria-hidden="true" />
+              {t('lens_filters')}
+              {activeFilters > 0 && <span className="laws-filter-count tabular">{activeFilters}</span>}
+            </>
+          }
+          triggerClassName="laws-filter-trigger"
+          title={t('lens_filters')}
+          closeLabel={t('lens_close')}
+          doneLabel={t('lens_done', { count: data.total })}
+        >
+          <LawsFilterBar
+            topics={topics}
+            groups={groups}
+            initialQ={query}
+            initialResults={resultFilters}
+            initialTopicSlugs={topicSlugs}
+            initialGroupSlugs={groupSlugs}
+            audiences={audiences}
+            initialAudiences={audienceTags}
+            locale={locale}
+            labels={{
+              search_placeholder: t('search_placeholder'),
+              status_all: t('status_all'),
+              status_approved: tStats('status_singular_approved'),
+              status_rejected: tStats('status_singular_rejected'),
+              status_in_debate: tStats('status_singular_in_debate'),
+              topic_label: t('topic_label'),
+              topic_placeholder: t('topic_placeholder'),
+              group_label: t('group_label'),
+              group_placeholder: t('group_placeholder'),
+              group_government: t('group_government'),
+              more_filters: t('more_filters'),
+              clear_all: t('clear_all'),
+              remove_label: t('remove_label'),
+              audience_label: t('card_audience_filter'),
+            }}
+          />
+        </BottomSheet>
+      </div>
 
       {data.items.length === 0 ? (
         <p style={{ fontSize: 13, color: 'var(--ink-3)', paddingTop: 12 }}>{t('empty')}</p>
@@ -251,6 +337,46 @@ export default async function LleisPage({
       </section>
 
       <style>{`
+        .laws-results-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px 14px;
+          margin: 16px 0 10px;
+        }
+        .laws-results-count { margin: 0; font-size: 12px; color: var(--ink-3); }
+        .laws-sort { display: inline-flex; gap: 4px; font-size: 12.5px; }
+        .laws-sort a {
+          padding: 4px 10px;
+          border-radius: 999px;
+          color: var(--ink-2);
+          text-decoration: none;
+        }
+        .laws-sort a[aria-current="true"] { background: var(--ink); color: var(--paper); font-weight: 600; }
+        .laws-filter-count {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 19px;
+          height: 19px;
+          padding: 0 5px;
+          border-radius: 999px;
+          background: var(--ink);
+          color: var(--paper);
+          font-size: 11px;
+          font-weight: 700;
+        }
+        /* Desktop: the toolbar renders first, full width, then the count
+           and the sort switch on one line under it. */
+        @media (min-width: 641px) {
+          .laws-results-row > .sheet--inline-desktop { order: -1; width: 100%; }
+        }
+        /* Phone: the lens owns sorting; the row is count + Filtres. */
+        @media (max-width: 640px) {
+          .laws-sort { display: none; }
+          .laws-results-row { margin-top: 14px; }
+        }
         @media (max-width: 720px) {
           .lleis-nonlaw-cta {
             grid-template-columns: minmax(0, 1fr) !important;

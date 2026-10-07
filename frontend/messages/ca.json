@@ -258,7 +258,7 @@
     "partits": "Partits",
     "tab_inici": "Inici",
     "tab_lleis": "Lleis",
-    "tab_partits": "Partits",
+    "tab_partits": "Diputats",
     "tab_dades": "Dades",
     "primary_aria": "Navegació principal"
   },
@@ -304,7 +304,29 @@
     "card_group_detail": "Detall per grup",
     "card_audience_filter": "A qui afecta",
     "card_audience_all": "Qualsevol",
-    "card_ai_title_from_vote": "Titular fet amb IA a partir de la votació"
+    "card_ai_title_from_vote": "Titular fet amb IA a partir de la votació",
+    "lens_search_submit": "Cerca",
+    "lens_eyebrow": "Per on vols començar?",
+    "lens_voted_title": "Últimes votades",
+    "lens_voted_sub": "El que s'acaba de decidir",
+    "lens_close_title": "Més ajustades",
+    "lens_close_sub": "Menys vots de diferència",
+    "lens_topic_title": "Per tema",
+    "lens_topic_sub": "Habitatge, sanitat, feina…",
+    "lens_party_title": "Per qui la proposa",
+    "lens_party_sub": "Govern o grup parlamentari",
+    "lens_pending_title": "En tràmit",
+    "lens_pending_sub": "Encara sense votació final",
+    "lens_audience_title": "A qui afecta",
+    "lens_audience_sub": "Llogaters, autònoms, joves…",
+    "lens_close": "Tanca",
+    "lens_filters": "Filtres",
+    "lens_done": "Mostra {count, plural, one {# resultat} other {# resultats}}",
+    "sort_recent": "Presentades fa poc",
+    "sort_voted": "Últimes votades",
+    "sort_close": "Més ajustades",
+    "sort_aria": "Ordena",
+    "results_count_sorted": "{count} iniciatives votades · {sort}"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",
@@ -806,7 +828,19 @@
     "tabs_aria": "Vistes de representants",
     "tab_mine": "Els meus diputats",
     "tab_all": "Tots els diputats",
-    "tab_groups": "Grups"
+    "tab_groups": "Grups",
+    "tab_mine_short": "Els meus",
+    "tab_all_short": "Tots",
+    "tab_groups_short": "Grups",
+    "locate_body": "Toca el botó i et mostrem els diputats que ha escollit la teva província.",
+    "locate_cta": "Troba els meus diputats",
+    "locate_manual": "o tria la província a mà",
+    "locate_privacy": "La ubicació només es fa servir al teu dispositiu per saber la província; no s'envia enlloc.",
+    "bar_change": "Canvia",
+    "bar_not_yours": "No és la teva?",
+    "bar_counts": "{n, plural, one {# diputat} other {# diputats}} · {g, plural, one {# grup} other {# grups}}",
+    "geolocate_denied": "No tenim permís per saber on ets. Tria la província a mà.",
+    "geolocate_outside": "Sembla que no ets a Espanya. Tria la província a mà."
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -1917,5 +1951,15 @@
     "source_label": "Font:",
     "not_found": "Tema no trobat",
     "no_data": "Encara no hi ha vots registrats en aquest tema."
+  },
+  "app_bar": {
+    "more": "Més",
+    "close": "Tanca",
+    "language": "Idioma",
+    "about": "Com funciona Hola Política",
+    "agenda": "Agenda 2030",
+    "map": "El Mapa",
+    "home_aria": "Hola Política, inici",
+    "actions_aria": "Accessos"
   }
 }

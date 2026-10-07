@@ -258,7 +258,7 @@
     "partits": "Partidos",
     "tab_inici": "Inicio",
     "tab_lleis": "Leyes",
-    "tab_partits": "Partidos",
+    "tab_partits": "Diputados",
     "tab_dades": "Datos",
     "primary_aria": "Navegación principal"
   },
@@ -304,7 +304,29 @@
     "card_group_detail": "Detalle por grupo",
     "card_audience_filter": "A quién afecta",
     "card_audience_all": "Cualquiera",
-    "card_ai_title_from_vote": "Titular hecho con IA a partir de la votación"
+    "card_ai_title_from_vote": "Titular hecho con IA a partir de la votación",
+    "lens_search_submit": "Buscar",
+    "lens_eyebrow": "¿Por dónde quieres empezar?",
+    "lens_voted_title": "Últimas votadas",
+    "lens_voted_sub": "Lo que se acaba de decidir",
+    "lens_close_title": "Más ajustadas",
+    "lens_close_sub": "Menos votos de diferencia",
+    "lens_topic_title": "Por tema",
+    "lens_topic_sub": "Vivienda, sanidad, empleo…",
+    "lens_party_title": "Por quién la propone",
+    "lens_party_sub": "Gobierno o grupo parlamentario",
+    "lens_pending_title": "En trámite",
+    "lens_pending_sub": "Aún sin votación final",
+    "lens_audience_title": "A quién afecta",
+    "lens_audience_sub": "Inquilinos, autónomos, jóvenes…",
+    "lens_close": "Cerrar",
+    "lens_filters": "Filtros",
+    "lens_done": "Mostrar {count, plural, one {# resultado} other {# resultados}}",
+    "sort_recent": "Presentadas hace poco",
+    "sort_voted": "Últimas votadas",
+    "sort_close": "Más ajustadas",
+    "sort_aria": "Ordenar",
+    "results_count_sorted": "{count} iniciativas votadas · {sort}"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",
@@ -806,7 +828,19 @@
     "tabs_aria": "Vistas de representantes",
     "tab_mine": "Mis diputados",
     "tab_all": "Todos los diputados",
-    "tab_groups": "Grupos"
+    "tab_groups": "Grupos",
+    "tab_mine_short": "Los míos",
+    "tab_all_short": "Todos",
+    "tab_groups_short": "Grupos",
+    "locate_body": "Toca el botón y te mostramos los diputados que ha elegido tu provincia.",
+    "locate_cta": "Encuentra a mis diputados",
+    "locate_manual": "o elige la provincia a mano",
+    "locate_privacy": "La ubicación solo se usa en tu dispositivo para saber la provincia; no se envía a ningún sitio.",
+    "bar_change": "Cambiar",
+    "bar_not_yours": "¿No es la tuya?",
+    "bar_counts": "{n, plural, one {# diputado} other {# diputados}} · {g, plural, one {# grupo} other {# grupos}}",
+    "geolocate_denied": "No tenemos permiso para saber dónde estás. Elige la provincia a mano.",
+    "geolocate_outside": "Parece que no estás en España. Elige la provincia a mano."
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -1918,5 +1952,15 @@
     "source_label": "Fuente:",
     "not_found": "Tema no encontrado",
     "no_data": "Aún no hay votos registrados en este tema."
+  },
+  "app_bar": {
+    "more": "Más",
+    "close": "Cerrar",
+    "language": "Idioma",
+    "about": "Cómo funciona Hola Política",
+    "agenda": "Agenda 2030",
+    "map": "El Mapa",
+    "home_aria": "Hola Política, inicio",
+    "actions_aria": "Accesos"
   }
 }

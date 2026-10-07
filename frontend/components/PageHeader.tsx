@@ -45,7 +45,7 @@ export function PageHeader({
 }) {
   return (
     <header
-      className={className}
+      className={['page-header', className].filter(Boolean).join(' ')}
       style={{
         paddingTop: 28,
         paddingBottom: children ? 18 : 14,
@@ -99,7 +99,7 @@ export function PageHeader({
           >
             {subtitle && (
               <span
-                className="eyebrow"
+                className="eyebrow page-header-sub"
                 style={{
                   fontSize: 11,
                   color: 'var(--ink-3)',

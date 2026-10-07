@@ -258,7 +258,7 @@
     "partits": "Parties",
     "tab_inici": "Home",
     "tab_lleis": "Laws",
-    "tab_partits": "Parties",
+    "tab_partits": "Deputies",
     "tab_dades": "Data",
     "primary_aria": "Primary navigation"
   },
@@ -304,7 +304,29 @@
     "card_group_detail": "Detail by group",
     "card_audience_filter": "Who it affects",
     "card_audience_all": "Anyone",
-    "card_ai_title_from_vote": "Headline written by AI from the vote"
+    "card_ai_title_from_vote": "Headline written by AI from the vote",
+    "lens_search_submit": "Search",
+    "lens_eyebrow": "Where do you want to start?",
+    "lens_voted_title": "Latest voted",
+    "lens_voted_sub": "What was just decided",
+    "lens_close_title": "Closest votes",
+    "lens_close_sub": "Smallest margin",
+    "lens_topic_title": "By topic",
+    "lens_topic_sub": "Housing, health, jobs…",
+    "lens_party_title": "By who proposed it",
+    "lens_party_sub": "Government or a group",
+    "lens_pending_title": "In progress",
+    "lens_pending_sub": "No final vote yet",
+    "lens_audience_title": "Who it affects",
+    "lens_audience_sub": "Tenants, self-employed, young people…",
+    "lens_close": "Close",
+    "lens_filters": "Filters",
+    "lens_done": "Show {count, plural, one {# result} other {# results}}",
+    "sort_recent": "Recently tabled",
+    "sort_voted": "Latest voted",
+    "sort_close": "Closest votes",
+    "sort_aria": "Sort",
+    "results_count_sorted": "{count} voted initiatives · {sort}"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",
@@ -806,7 +828,19 @@
     "tabs_aria": "Representative views",
     "tab_mine": "My deputies",
     "tab_all": "All deputies",
-    "tab_groups": "Groups"
+    "tab_groups": "Groups",
+    "tab_mine_short": "Mine",
+    "tab_all_short": "All",
+    "tab_groups_short": "Groups",
+    "locate_body": "Tap the button and we'll show you the deputies your province elected.",
+    "locate_cta": "Find my deputies",
+    "locate_manual": "or pick your province",
+    "locate_privacy": "Your location is only used on your device to work out the province; it is never sent anywhere.",
+    "bar_change": "Change",
+    "bar_not_yours": "Not yours?",
+    "bar_counts": "{n, plural, one {# deputy} other {# deputies}} · {g, plural, one {# group} other {# groups}}",
+    "geolocate_denied": "We don't have permission to see your location. Pick your province instead.",
+    "geolocate_outside": "You don't seem to be in Spain. Pick your province instead."
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -1918,5 +1952,15 @@
     "source_label": "Source:",
     "not_found": "Topic not found",
     "no_data": "No votes recorded on this topic yet."
+  },
+  "app_bar": {
+    "more": "More",
+    "close": "Close",
+    "language": "Language",
+    "about": "How Hola Política works",
+    "agenda": "2030 Agenda",
+    "map": "The Map",
+    "home_aria": "Hola Política, home",
+    "actions_aria": "Shortcuts"
   }
 }

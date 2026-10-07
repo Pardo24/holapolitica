@@ -156,7 +156,7 @@ export function LawsFilterBar({
 
   const clearAll = () => {
     const next = new URLSearchParams(sp.toString());
-    ['q', 'result', 'topic_slug', 'proposing_group_slug', 'audience', 'page'].forEach((k) =>
+    ['q', 'result', 'topic_slug', 'proposing_group_slug', 'audience', 'sort', 'page'].forEach((k) =>
       next.delete(k),
     );
     pushUrl(next);
@@ -191,6 +191,7 @@ export function LawsFilterBar({
   return (
     <section
       aria-label={labels.search_placeholder}
+      className="laws-filter-card"
       style={{
         marginTop: 18,
         padding: 14,
@@ -200,6 +201,7 @@ export function LawsFilterBar({
       }}
     >
       <label
+        className="laws-filter-search"
         style={{
           display: 'flex',
           alignItems: 'center',

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { BarChart3, Building2, Home, Scale } from 'lucide-react';
+import { BarChart3, Home, Scale, Users } from 'lucide-react';
 
 /**
  * Persistent bottom tab bar — the spine of the mobile navigation.
@@ -18,7 +18,7 @@ import { BarChart3, Building2, Home, Scale } from 'lucide-react';
  *
  * Four tabs, matching the mission and the desktop top nav:
  *   Inici (the chamber today) · Lleis (the record) ·
- *   Partits (who + where) · Dades (the analysis).
+ *   Diputats (who represents you, and the parties) · Dades (the analysis).
  *
  * Games and tools are deliberately NOT here — they live in context, not
  * as peers of the parliamentary record.
@@ -47,7 +47,7 @@ const TABS: Tab[] = [
     href: '/el-teu-diputat' as Route,
     labelKey: 'tab_partits',
     hue: 'var(--hue-partits)',
-    Icon: Building2,
+    Icon: Users,
   },
   { key: 'dades', href: '/stats' as Route, labelKey: 'tab_dades', hue: 'var(--hue-dades)', Icon: BarChart3 },
 ];

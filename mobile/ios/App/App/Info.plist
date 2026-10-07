@@ -77,6 +77,10 @@
         <key>NSAllowsArbitraryLoads</key>
         <false/>
     </dict>
+    <!-- WKWebView geolocation ("Find my deputies") fails silently without
+         a usage string. Shown by iOS in the permission prompt. -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Hola Política uses your location only on your device to find your province and show the deputies who represent you. It is never sent anywhere.</string>
     <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>https</string>

@@ -1,16 +1,17 @@
 import Link from 'next/link';
 import type { Route } from 'next';
+import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronRight, MapPin, User } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
-import { ConstituencySelect } from '@/components/ConstituencySelect';
 import { GroupBadge } from '@/components/GroupBadge';
 import { DeputiesList } from '@/components/DeputiesList';
 import { GroupListPanel } from '@/components/GroupListPanel';
 import { Hemicycle } from '@/components/Hemicycle';
 import { HubTabs } from '@/components/HubTabs';
 import { PartyBand } from '@/components/PartyBand';
+import { ProvincePicker, type ProvincePickerLabels } from '@/components/ProvincePicker';
 import {
   api,
   type ConstituencyRow,
@@ -63,7 +64,12 @@ export default async function ElTeuDiputatPage({
     api.legislatures.hemicycle(1).catch(() => null),
     api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
   ]);
-  const selected = prov && constituencies.some((c) => c.name === prov) ? prov : null;
+  // The URL wins (a shared link shows what was shared); otherwise the
+  // province this reader picked last time, so the tab opens on their
+  // deputies instead of asking again.
+  const remembered = (await cookies()).get('hp_prov')?.value;
+  const wanted = prov ?? (remembered ? safeDecode(remembered) : undefined);
+  const selected = wanted && constituencies.some((c) => c.name === wanted) ? wanted : null;
 
   const deputies: DeputyCard[] = selected
     ? await api.persons.byConstituency(selected).catch(() => [] as DeputyCard[])
@@ -88,15 +94,22 @@ export default async function ElTeuDiputatPage({
     <HubTabs
       ariaLabel={t('tabs_aria')}
       tabs={[
-        { href: '/el-teu-diputat' as Route, label: t('tab_mine'), active: activeTab === 'meus' },
+        {
+          href: '/el-teu-diputat' as Route,
+          label: t('tab_mine'),
+          shortLabel: t('tab_mine_short'),
+          active: activeTab === 'meus',
+        },
         {
           href: '/el-teu-diputat?tab=tots' as Route,
           label: t('tab_all'),
+          shortLabel: t('tab_all_short'),
           active: activeTab === 'tots',
         },
         {
           href: '/el-teu-diputat?tab=grups' as Route,
           label: t('tab_groups'),
+          shortLabel: t('tab_groups_short'),
           active: activeTab === 'grups',
         },
       ]}
@@ -122,6 +135,21 @@ export default async function ElTeuDiputatPage({
     );
   }
 
+  const pickerLabels: ProvincePickerLabels = {
+    title: t('empty_title'),
+    body: t('locate_body'),
+    cta: t('locate_cta'),
+    detecting: t('detecting'),
+    manual: t('locate_manual'),
+    privacy: t('locate_privacy'),
+    placeholder: t('picker_placeholder'),
+    change: t('bar_change'),
+    notYours: t('bar_not_yours'),
+    errorGeneric: t('geolocate_error'),
+    errorDenied: t('geolocate_denied'),
+    errorOutside: t('geolocate_outside'),
+  };
+
   return (
     <div>
       <PageHeader
@@ -132,21 +160,66 @@ export default async function ElTeuDiputatPage({
       />
       {tabs}
 
-      <div style={{ paddingTop: 18, marginBottom: selected ? 18 : 0 }}>
-        <ConstituencySelect
-          constituencies={constituencies}
-          selected={selected}
-          label={t('picker_label')}
-          placeholder={t('picker_placeholder')}
-          geolocateLabel={t('geolocate')}
-          detectingLabel={t('detecting')}
-          geolocateError={t('geolocate_error')}
-        />
-      </div>
+      {/* The answer first. Before, the reader's own deputies came after
+          the chamber map, the nine party cards and the map link: on a
+          phone, three screens down from the question they came with. */}
+      {!selected ? (
+        <ProvincePicker variant="hero" constituencies={constituencies} selected={null} labels={pickerLabels} />
+      ) : (
+        <>
+          <ProvincePicker
+            variant="bar"
+            constituencies={constituencies}
+            selected={selected}
+            counts={t('bar_counts', { n: deputies.length, g: parties.length })}
+            labels={pickerLabels}
+          />
+          {deputies.length === 0 ? (
+            <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>{t('empty')}</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22, marginBottom: 30 }}>
+              {parties.map((p) => (
+                <section key={p.slug || 'none'}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    {p.slug ? <GroupBadge slug={p.slug} color={p.color} size="sm" link={false} /> : null}
+                    <span className="serif" style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>
+                      {p.short ? displayGroupShort(p.short) : '—'}
+                    </span>
+                    <span
+                      className="tabular"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--ink-3)',
+                        background: 'var(--paper-3)',
+                        borderRadius: 999,
+                        padding: '2px 9px',
+                      }}
+                    >
+                      {p.deputies.length}
+                    </span>
+                  </div>
+                  <div
+                    className="dep-group-grid"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(248px, 1fr))',
+                      gap: 10,
+                    }}
+                  >
+                    {p.deputies.map((d) => (
+                      <DeputyCardView key={d.person_id} d={d} locale={locale} labels={t} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-      {/* The chamber, on open. Every seat is a deputy you can hover/tap;
-          picking (or detecting) a province lights up just its seats so you
-          see where your representatives sit. */}
+      {/* The chamber. Every seat is a deputy you can tap; a chosen
+          province lights up just its seats. */}
       {hemicycle && hemicycle.seats.length > 0 && (
         <section style={{ marginBottom: 24, maxWidth: 920 }}>
           <div className="eyebrow" style={{ marginBottom: 4 }}>
@@ -155,20 +228,14 @@ export default async function ElTeuDiputatPage({
           <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '0 0 10px', lineHeight: 1.5 }}>
             {selected ? t('hemicycle_hint_selected', { prov: selected }) : t('hemicycle_hint')}
           </p>
-          {/* Chart + clickable group legend (the legend doubles as the
-              gateway to the party profile pages). Side padding keeps
-              the seats off the screen edges on mobile. */}
           <div style={{ margin: '0 auto', paddingInline: 'clamp(10px, 3vw, 20px)' }}>
             <Hemicycle layout={hemicycle} highlightConstituency={selected} showLegend />
           </div>
         </section>
       )}
 
-      {/* The parties themselves, absorbed from the old standalone /groups
-          page. One card per group, each a large tap target straight into
-          that party's profile — on a phone this is the primary way in,
-          which is why it sits directly under the chamber map rather than
-          behind a "see the parties" gateway card as it used to. */}
+      {/* The parties themselves: one card per group, each a large tap
+          target straight into that party's profile. */}
       <PartyBand
         groups={allGroups}
         variant="plain"
@@ -177,148 +244,44 @@ export default async function ElTeuDiputatPage({
         seatsLabel={(n) => tHome('parties_seats', { n })}
       />
 
-      {/* Remaining gateway: the map. The party gateway is gone — the
-          parties are on this page now. */}
-      <section
+      <Link
+        href={'/mapa' as Route}
+        className="deputy-card"
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           gap: 12,
+          padding: '14px 18px',
           marginBottom: 28,
           maxWidth: 760,
+          background: 'var(--paper-2)',
+          border: '1px solid var(--rule)',
+          borderRadius: 12,
+          textDecoration: 'none',
+          color: 'inherit',
         }}
       >
-        {[
-          {
-            href: '/mapa' as Route,
-            title: t('map_cta_title'),
-            sub: t('map_cta_sub'),
-          },
-        ].map((c) => (
-          <Link
-            key={c.href}
-            href={c.href}
-            className="deputy-card"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              padding: '14px 18px',
-              background: 'var(--paper-2)',
-              border: '1px solid var(--rule)',
-              borderRadius: 12,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <span style={{ minWidth: 0 }}>
-              <span
-                className="serif"
-                style={{ display: 'block', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}
-              >
-                {c.title}
-              </span>
-              <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-3)', marginTop: 2 }}>
-                {c.sub}
-              </span>
-            </span>
-            <ChevronRight
-              size={17}
-              strokeWidth={2}
-              aria-hidden="true"
-              style={{ color: 'var(--ink-3)', flex: 'none' }}
-            />
-          </Link>
-        ))}
-      </section>
-
-      {!selected ? (
-        <EmptyState title={t('empty_title')} body={t('pick_prompt')} />
-      ) : deputies.length === 0 ? (
-        <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>{t('empty')}</p>
-      ) : (
-        <div>
-          <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 18px', lineHeight: 1.5 }}>
-            {t('summary', { prov: selected, n: deputies.length, g: parties.length })}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {parties.map((p) => (
-              <section key={p.slug || 'none'}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  {p.slug ? <GroupBadge slug={p.slug} color={p.color} size="sm" link={false} /> : null}
-                  <span className="serif" style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>
-                    {p.short ? displayGroupShort(p.short) : '—'}
-                  </span>
-                  <span
-                    className="tabular"
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'var(--ink-3)',
-                      background: 'var(--paper-3)',
-                      borderRadius: 999,
-                      padding: '2px 9px',
-                    }}
-                  >
-                    {p.deputies.length}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(248px, 1fr))',
-                    gap: 10,
-                  }}
-                >
-                  {p.deputies.map((d) => (
-                    <DeputyCardView key={d.person_id} d={d} locale={locale} labels={t} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </div>
-      )}
+        <span style={{ minWidth: 0 }}>
+          <span className="serif" style={{ display: 'block', fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>
+            {t('map_cta_title')}
+          </span>
+          <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-3)', marginTop: 2 }}>
+            {t('map_cta_sub')}
+          </span>
+        </span>
+        <ChevronRight size={17} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--ink-3)', flex: 'none' }} />
+      </Link>
     </div>
   );
 }
 
-function EmptyState({ title, body }: { title: string; body: string }) {
-  return (
-    <div
-      style={{
-        marginTop: 20,
-        padding: '28px 24px',
-        borderRadius: 16,
-        border: '1px dashed var(--rule-strong)',
-        background: 'var(--paper-2)',
-        textAlign: 'center',
-        maxWidth: 520,
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 52,
-          height: 52,
-          borderRadius: 14,
-          background: 'color-mix(in srgb, var(--accent) 14%, var(--paper))',
-          color: 'var(--accent)',
-          marginBottom: 12,
-        }}
-      >
-        <MapPin size={26} strokeWidth={1.8} />
-      </span>
-      <div className="serif" style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>
-        {title}
-      </div>
-      <p style={{ fontSize: 14, color: 'var(--ink-3)', lineHeight: 1.55, margin: 0 }}>{body}</p>
-    </div>
-  );
+function safeDecode(value: string): string | undefined {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return undefined;
+  }
 }
 
 function DeputyCardView({

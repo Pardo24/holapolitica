@@ -791,44 +791,20 @@ function MobileDashboard({
           borderBottom: '1px solid var(--rule)',
         }}
       >
+        {/* The mark and the name live in the app bar now, one line up;
+            repeating them here put "Hola Política" twice on one screen.
+            The motto stays: it is the one line that says what this is. */}
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            marginBottom: 12,
+            fontFamily: 'var(--font-serif)',
+            fontStyle: 'italic',
+            fontSize: 15,
+            color: 'var(--ink-2)',
+            lineHeight: 1.25,
+            marginBottom: 6,
           }}
         >
-          <span
-            aria-hidden="true"
-            className="mobile-home-mark"
-          />
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 22,
-                fontWeight: 700,
-                letterSpacing: '-0.015em',
-                lineHeight: 1.05,
-                color: 'var(--ink)',
-              }}
-            >
-              {labels.brand}
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontStyle: 'italic',
-                fontSize: 13,
-                color: 'var(--ink-3)',
-                marginTop: 3,
-                lineHeight: 1.2,
-              }}
-            >
-              {labels.motto}
-            </div>
-          </div>
+          {labels.motto}
         </div>
 
         <div
@@ -852,31 +828,6 @@ function MobileDashboard({
         )}
       </header>
 
-      <style>{`
-        /* Bigger sibling of .topnav .brand-mark — same ballot/lines
-           glyph, scaled for the mobile home identity block. Lives
-           here (not globals.css) because it's bound to this single
-           surface; a future redesign should be free to rip it out. */
-        .mobile-home-mark {
-          width: 30px;
-          height: 30px;
-          flex: none;
-          align-self: center;
-          border: 1.75px solid var(--ink);
-          position: relative;
-          border-radius: 4px;
-        }
-        .mobile-home-mark::before,
-        .mobile-home-mark::after {
-          content: "";
-          position: absolute;
-          left: 4px;
-          right: 4px;
-          border-top: 1.5px solid var(--ink);
-        }
-        .mobile-home-mark::before { top: 9px; }
-        .mobile-home-mark::after  { top: 17px; }
-      `}</style>
 
       {/* The home is now CONTENT, not a menu. The four primary
           destinations moved to the persistent bottom tab bar

@@ -49,4 +49,11 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- "Find my deputies": the web page calls navigator.geolocation and
+         Capacitor's WebChromeClient asks for these at that moment, never
+         at launch. Only the province is derived, on the device; coarse is
+         enough and Android 12+ lets the user grant just that. Both must be
+         declared or the WebView's request is refused silently. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 </manifest>

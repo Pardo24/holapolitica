@@ -1090,6 +1090,10 @@ export const api = {
         /** Affected-audience tag(s), comma-separated, evaluated as OR. */
         audience?: string;
         q?: string;
+        /** 'recent' (tabled, default) | 'voted' (latest vote first) |
+         *  'close' (narrowest final-vote margin first). The last two keep
+         *  only initiatives that have been voted. */
+        sort?: 'recent' | 'voted' | 'close';
         page?: number;
         page_size?: number;
       } = {},
