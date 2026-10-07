@@ -1479,9 +1479,6 @@
     "eyebrow": "Para redacciones",
     "h1": "Herramientas listas para periodistas",
     "intro": "Cuatro formas de incorporar lo que vota el Congreso en una pieza: widgets responsivos, cards sociales, API REST y descargas directas. Todo CC-BY 4.0 — basta con citar a <em>Hola Política</em> y la fuente original (Congreso de los Diputados).",
-    "live_example_title": "Verlo hecho",
-    "live_example_body": "La portada <link>/avui</link> es una composición automática de estos mismos widgets. Cada 30 minutos se regenera con los datos más recientes.",
-    "live_example_cta": "Ir a /avui →",
     "widgets_section_title": "Widgets para artículos",
     "widgets_intro": "Cada widget es un <code>iframe</code> de menos de un segundo de carga, sin cookies de terceros, con enlace a la fuente original. Copia el fragmento y pégalo en el CMS. Cinco widgets, ordenados por utilidad editorial.",
     "widget_dossier_title": "Ficha completa de una ley (dossier)",
@@ -1525,7 +1522,21 @@
     "picker_topic_label": "Elige un tema:",
     "widget_topic_parties_title": "Quién vota a favor y en contra de un tema",
     "widget_topic_parties_desc": "Para una pieza centrada en un tema: cada grupo ordenado según su proporción de votos a favor y en contra. Elige el tema y copia el código.",
-    "iframe_title_topic_parties": "Votos por grupo en un tema - Hola Política"
+    "iframe_title_topic_parties": "Votos por grupo en un tema - Hola Política",
+    "subtitle": "Widgets, imágenes y datos para usar lo que vota el Congreso en una pieza.",
+    "widget_law_title": "Una ley",
+    "widget_law_desc": "La misma tarjeta que en la web: qué hace en lenguaje llano, a quién afecta, cómo acabó y qué votó cada grupo. Cambia el número por el identificador de la ley (el de la dirección /initiatives/…).",
+    "widget_session_title": "El pleno de un día",
+    "widget_session_desc": "Qué ha decidido el Congreso en una sesión: las cifras, los temas y cada ley con su resultado. Con «darrer» se actualiza solo con el último pleno.",
+    "session_params_comment": "Para un pleno concreto: /embed/ple/2026-09-30",
+    "widget_deputies_title": "Quién representa a una provincia",
+    "widget_deputies_desc": "Los diputados que ha elegido cada circunscripción, por partido. Pensado para la prensa local en campaña: un widget por provincia.",
+    "picker_province_label": "Provincia",
+    "iframe_title_law": "Una ley del Congreso · Hola Política",
+    "iframe_title_session": "El pleno del Congreso · Hola Política",
+    "iframe_title_deputies": "Diputados por provincia · Hola Política",
+    "more_widgets_title": "Otros widgets",
+    "more_widgets_desc": "Votaciones sueltas, grupos, temas y un explorador filtrable. Siguen funcionando con las mismas direcciones."
   },
   "common": {
     "loading": "Cargando…",
@@ -2001,5 +2012,20 @@
     "map": "El Mapa",
     "home_aria": "Hola Política, inicio",
     "actions_aria": "Accesos"
+  },
+  "embed_widgets": {
+    "source": "Fuente:",
+    "licence": "datos del Congreso, CC-BY 4.0",
+    "not_found": "No hemos encontrado estos datos.",
+    "open_law": "Ver la ley completa",
+    "open_session": "Ver el pleno completo",
+    "open_deputies": "Verlo en Hola Política",
+    "law_meta_title": "Ley · widget",
+    "session_meta_title": "Pleno · widget",
+    "deputies_meta_title": "Diputados · widget",
+    "session_eyebrow": "El pleno del Congreso",
+    "session_more": "Y {n, plural, one {# iniciativa más} other {# iniciativas más}}.",
+    "deputies_eyebrow": "Quién te representa",
+    "deputies_title": "Los diputados de {prov}"
   }
 }

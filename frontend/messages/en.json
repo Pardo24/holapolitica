@@ -1479,9 +1479,6 @@
     "eyebrow": "For newsrooms",
     "h1": "Ready-made tools for journalists",
     "intro": "Four ways to bring Spanish Congress votes into your story: responsive widgets, social cards, REST API and direct downloads. All CC-BY 4.0 — just cite <em>Hola Política</em> and the original source (Congreso de los Diputados).",
-    "live_example_title": "See it in action",
-    "live_example_body": "The <link>/avui</link> front page is an automatic composition of these same widgets. It regenerates every 30 minutes with the latest data.",
-    "live_example_cta": "Go to /avui →",
     "widgets_section_title": "Widgets for articles",
     "widgets_intro": "Every widget is an <code>iframe</code> that loads in under a second, no third-party cookies, with a link back to the source. Copy the snippet, paste in your CMS. Five widgets, ordered by editorial usefulness.",
     "widget_dossier_title": "Full dossier of a law",
@@ -1525,7 +1522,21 @@
     "picker_topic_label": "Pick a topic:",
     "widget_topic_parties_title": "Who votes for and against a topic",
     "widget_topic_parties_desc": "For a topic-focused piece: every group ranked by its share of votes in favour and against. Pick the topic and copy the code.",
-    "iframe_title_topic_parties": "Votes by group on a topic - Hola Política"
+    "iframe_title_topic_parties": "Votes by group on a topic - Hola Política",
+    "subtitle": "Widgets, images and data to use what Congress votes on in a story.",
+    "widget_law_title": "One law",
+    "widget_law_desc": "The same card as on the site: what it does in plain language, who it affects, how it ended and how every group voted. Swap the number for the law id (the one in its /initiatives/… address).",
+    "widget_session_title": "One plenary sitting",
+    "widget_session_desc": "What Congress decided in one sitting: the figures, the topics and every law with its result. With \"darrer\" it updates itself to the latest sitting.",
+    "session_params_comment": "For a given sitting: /embed/ple/2026-09-30",
+    "widget_deputies_title": "Who represents a province",
+    "widget_deputies_desc": "The deputies each constituency elected, by party. Built for local press in a campaign: one widget per province.",
+    "picker_province_label": "Province",
+    "iframe_title_law": "A law in Congress · Hola Política",
+    "iframe_title_session": "The Congress plenary · Hola Política",
+    "iframe_title_deputies": "Deputies by province · Hola Política",
+    "more_widgets_title": "More widgets",
+    "more_widgets_desc": "Single votes, groups, topics and a filterable explorer. They keep working at the same addresses."
   },
   "common": {
     "loading": "Loading…",
@@ -2001,5 +2012,20 @@
     "map": "The Map",
     "home_aria": "Hola Política, home",
     "actions_aria": "Shortcuts"
+  },
+  "embed_widgets": {
+    "source": "Source:",
+    "licence": "Congress data, CC-BY 4.0",
+    "not_found": "We couldn't find this data.",
+    "open_law": "See the full law",
+    "open_session": "See the full sitting",
+    "open_deputies": "See it on Hola Política",
+    "law_meta_title": "Law · widget",
+    "session_meta_title": "Sitting · widget",
+    "deputies_meta_title": "Deputies · widget",
+    "session_eyebrow": "The Congress plenary",
+    "session_more": "And {n, plural, one {# more item} other {# more items}}.",
+    "deputies_eyebrow": "Who represents you",
+    "deputies_title": "The deputies for {prov}"
   }
 }

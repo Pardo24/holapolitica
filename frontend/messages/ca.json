@@ -1479,9 +1479,6 @@
     "eyebrow": "Per a redaccions",
     "h1": "Eines llestes per a periodistes",
     "intro": "Quatre maneres d'incorporar el que vota el Congrés en una peça: widgets responsius, cards socials, API REST i descàrregues directes. Tot CC-BY 4.0 — només cal citar <em>Hola Política</em> i la font original (Congreso de los Diputados).",
-    "live_example_title": "Veure-ho fet",
-    "live_example_body": "La portada <link>/avui</link> és una composició automàtica d'aquests mateixos widgets. Cada 30 minuts es regenera amb les dades més recents.",
-    "live_example_cta": "Anar a /avui →",
     "widgets_section_title": "Widgets per a articles",
     "widgets_intro": "Cada widget és un <code>iframe</code> de menys d'un segon de càrrega, sense cookies de tercers, amb enllaç a la font original. Copia el fragment i enganxa'l al CMS. Cinc widgets, ordenats per utilitat editorial.",
     "widget_dossier_title": "Fitxa completa d'una llei (dossier)",
@@ -1525,7 +1522,21 @@
     "picker_topic_label": "Tria un tema:",
     "widget_topic_parties_title": "Qui vota a favor i en contra d'un tema",
     "widget_topic_parties_desc": "Per a una peça centrada en un tema: cada grup ordenat segons la proporció de vots a favor i en contra. Tria el tema i copia el codi.",
-    "iframe_title_topic_parties": "Vots per grup en un tema - Hola Política"
+    "iframe_title_topic_parties": "Vots per grup en un tema - Hola Política",
+    "subtitle": "Widgets, imatges i dades per fer servir el que vota el Congrés en una peça.",
+    "widget_law_title": "Una llei",
+    "widget_law_desc": "La mateixa targeta que a la web: què fa en llenguatge planer, a qui afecta, com ha acabat i què ha votat cada grup. Canvia el número per l'identificador de la llei (el de l'adreça /initiatives/…).",
+    "widget_session_title": "El ple d'un dia",
+    "widget_session_desc": "Què ha decidit el Congrés en una sessió: les xifres, els temes i cada llei amb el resultat. Amb «darrer» s'actualitza sol amb l'últim ple.",
+    "session_params_comment": "Per a un ple concret: /embed/ple/2026-09-30",
+    "widget_deputies_title": "Qui representa una província",
+    "widget_deputies_desc": "Els diputats que ha escollit cada circumscripció, per partit. Pensat per a la premsa local en campanya: un widget per província.",
+    "picker_province_label": "Província",
+    "iframe_title_law": "Una llei del Congrés · Hola Política",
+    "iframe_title_session": "El ple del Congrés · Hola Política",
+    "iframe_title_deputies": "Diputats per província · Hola Política",
+    "more_widgets_title": "Altres widgets",
+    "more_widgets_desc": "Votacions soltes, grups, temes i un explorador filtrable. Segueixen funcionant amb les mateixes adreces."
   },
   "common": {
     "loading": "Carregant…",
@@ -2000,5 +2011,20 @@
     "map": "El Mapa",
     "home_aria": "Hola Política, inici",
     "actions_aria": "Accessos"
+  },
+  "embed_widgets": {
+    "source": "Font:",
+    "licence": "dades del Congrés, CC-BY 4.0",
+    "not_found": "No hem trobat aquestes dades.",
+    "open_law": "Veure la llei sencera",
+    "open_session": "Veure el ple sencer",
+    "open_deputies": "Veure-ho a Hola Política",
+    "law_meta_title": "Llei · widget",
+    "session_meta_title": "Ple · widget",
+    "deputies_meta_title": "Diputats · widget",
+    "session_eyebrow": "El ple del Congrés",
+    "session_more": "I {n, plural, one {# iniciativa més} other {# iniciatives més}}.",
+    "deputies_eyebrow": "Qui et representa",
+    "deputies_title": "Els diputats de {prov}"
   }
 }

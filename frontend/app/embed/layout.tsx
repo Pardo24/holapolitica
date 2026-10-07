@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { EmbedAutoHeight } from '@/components/EmbedAutoHeight';
+import { EmbedLinks } from '@/components/EmbedLinks';
 
 /**
  * Layout shared by every /embed/* route. The root layout already strips
@@ -12,6 +13,7 @@ export default function EmbedLayout({ children }: { children: ReactNode }) {
     <>
       {children}
       <EmbedAutoHeight />
+      <EmbedLinks />
     </>
   );
 }

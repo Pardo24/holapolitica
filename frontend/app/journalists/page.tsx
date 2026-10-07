@@ -3,9 +3,10 @@ import Link from 'next/link';
 import { ArrowUpRight, Newspaper } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+import { PageHeader } from '@/components/PageHeader';
 import { ResizingIframe } from '@/components/ResizingIframe';
 import { EmbedPicker, type EmbedPickerOption } from '@/components/EmbedPicker';
-import { api } from '@/lib/api';
+import { api, type ConstituencyRow } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 
 export const revalidate = 600;
@@ -69,116 +70,42 @@ export default async function JournalistsPage() {
     ? 'habitatge'
     : (topicOptions[0]?.value ?? 'habitatge');
 
+  // Provinces for the "who represents" widget. The value is URL-encoded
+  // because names like "Balears (Illes)" and "Valencia/València" go into
+  // the path as they are.
+  const provinces = await api.persons.constituencies().catch(() => [] as ConstituencyRow[]);
+  const provinceOptions: EmbedPickerOption[] = provinces.map((c) => ({
+    value: encodeURIComponent(c.name),
+    label: c.name,
+  }));
+  const defaultProvince = encodeURIComponent(
+    provinces.some((c) => c.name === 'Barcelona') ? 'Barcelona' : (provinces[0]?.name ?? 'Madrid'),
+  );
+
   // Canonical host: the apex redirects (307) to www, so a snippet built on
   // it would make every embedded iframe pay a redirect on the host's page.
   const embedOrigin = 'https://www.holapolitica.org';
 
   return (
     <article style={{ maxWidth: 880, paddingTop: 24, paddingBottom: 64 }}>
-      <div className="eyebrow" style={{ marginBottom: 8 }}>
-        {t('eyebrow')}
-      </div>
-      <h1
-        className="h-headline"
-        style={{
-          margin: '6px 0 14px',
-          display: 'inline-flex',
-          alignItems: 'baseline',
-          gap: 12,
-        }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: 'color-mix(in oklch, var(--accent) 12%, var(--paper))',
-            color: 'var(--accent)',
-            flex: 'none',
-            transform: 'translateY(4px)',
-          }}
-        >
-          <Newspaper size={20} strokeWidth={1.8} aria-hidden="true" />
-        </span>
-        <span>{t('h1')}</span>
-      </h1>
-      <p style={{ fontSize: 16, color: 'var(--ink-2)', lineHeight: 1.6, margin: '0 0 22px' }}>
-        {t.rich('intro', {
-          em: (chunks) => <em>{chunks}</em>,
-        })}
-      </p>
-
-      {/* Live-example callout — points the reader at /avui as a real
-          composed page using exactly these widgets, so the abstract
-          "compose your own piece" claim has a working precedent. */}
-      <aside
-        style={{
-          margin: '0 0 32px',
-          padding: '14px 16px',
-          background: 'var(--paper-2)',
-          border: '1px solid var(--rule-strong)',
-          borderRadius: 12,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-          flexWrap: 'wrap',
-        }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            background: 'var(--ink)',
-            color: 'var(--paper)',
-            fontWeight: 700,
-            fontSize: 14,
-            fontFamily: 'var(--font-serif)',
-            flex: 'none',
-          }}
-        >
-          A
-        </span>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
-            {t('live_example_title')}
-          </div>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.5 }}>
-            {t.rich('live_example_body', {
-              link: (chunks) => (
-                <Link href={'/avui' as Route} style={{ color: 'var(--accent)' }}>
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
-        </div>
-        <Link
-          href={'/avui' as Route}
-          style={{
-            display: 'inline-block',
-            padding: '8px 14px',
-            border: '1px solid var(--ink)',
-            borderRadius: 999,
-            background: 'var(--paper)',
-            color: 'var(--ink)',
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: 'none',
-            flex: 'none',
-          }}
-        >
-          {t('live_example_cta')}
-        </Link>
-      </aside>
+      <style>{`
+        .journalists-more { margin: 8px 0 24px; border-top: 1px solid var(--rule); padding-top: 12px; }
+        .journalists-more > summary {
+          cursor: pointer;
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--ink);
+          min-height: 40px;
+          display: flex;
+          align-items: center;
+        }
+      `}</style>
+      <PageHeader
+        title={t('h1')}
+        subtitle={t('subtitle')}
+        icon={<Newspaper size={20} strokeWidth={1.8} aria-hidden="true" />}
+        style={{ paddingTop: 0 }}
+      />
 
       <Section title={t('widgets_section_title')}>
         <p>
@@ -191,69 +118,87 @@ export default async function JournalistsPage() {
           })}
         </p>
 
-        {/* Dossier FIRST — Daniel: 'el primer widget sigui Fitxa
-            completa d'una llei'. This is the most newsroom-ready
-            widget: drop it into an article about ONE law and you're
-            done. */}
+        {/* The three widgets built from the site's current design: the law
+            card readers know from /lleis, the plenary day as figures, and
+            the deputies of a province (the campaign one). */}
         <EmbedExample
-          title={t('widget_dossier_title')}
-          description={t('widget_dossier_desc')}
-          src={`/embed/initiatives/${sampleInitiativeId}`}
+          title={t('widget_law_title')}
+          description={t('widget_law_desc')}
+          src={`/embed/llei/${sampleInitiativeId}`}
+          height={620}
+          snippet={`<iframe\n  src="${embedOrigin}/embed/llei/${sampleInitiativeId}"\n  width="100%" height="620" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_law')}"\n></iframe>`}
+        />
+
+        <EmbedExample
+          title={t('widget_session_title')}
+          description={t('widget_session_desc')}
+          src="/embed/ple/darrer"
           height={560}
-          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/initiatives/${sampleInitiativeId}"\n  width="100%" height="560" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_dossier')}"\n></iframe>`}
-        />
-
-        <EmbedExample
-          title={t('widget_explorer_title')}
-          description={t('widget_explorer_desc')}
-          src="/embed/explorer?topic=habitatge&result=approved&limit=6"
-          height={640}
-          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="640" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_explorer')}"\n></iframe>\n<!-- ${t('explorer_params_comment')} -->`}
-        />
-
-        <EmbedExample
-          title={t('widget_vote_title')}
-          description={t('widget_vote_desc')}
-          src={`/embed/votes/${sampleVoteId}`}
-          height={520}
-          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/votes/${sampleVoteId}"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
+          snippet={`<iframe\n  src="${embedOrigin}/embed/ple/darrer"\n  width="100%" height="560" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_session')}"\n></iframe>\n<!-- ${t('session_params_comment')} -->`}
         />
 
         <EmbedPicker
-          title={t('widget_group_title')}
-          description={t('widget_group_desc')}
-          pickerLabel={t('picker_group_label')}
-          options={groupOptions}
-          defaultValue={defaultGroup}
-          srcPrefix="/embed/groups/"
+          title={t('widget_deputies_title')}
+          description={t('widget_deputies_desc')}
+          pickerLabel={t('picker_province_label')}
+          options={provinceOptions}
+          defaultValue={defaultProvince}
+          srcPrefix="/embed/diputats/"
           srcSuffix=""
-          height={320}
-          iframeTitle={t('iframe_title_group')}
+          height={760}
+          iframeTitle={t('iframe_title_deputies')}
           origin={embedOrigin}
           snippetSummary={t('snippet_summary')}
         />
 
-        <EmbedPicker
-          title={t('widget_topic_parties_title')}
-          description={t('widget_topic_parties_desc')}
-          pickerLabel={t('picker_topic_label')}
-          options={topicOptions}
-          defaultValue={defaultTopic}
-          srcPrefix="/embed/topics/"
-          srcSuffix="/parties"
-          height={420}
-          iframeTitle={t('iframe_title_topic_parties')}
-          origin={embedOrigin}
-          snippetSummary={t('snippet_summary')}
-        />
+        <details className="journalists-more">
+          <summary>{t('more_widgets_title')}</summary>
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: '8px 0 0' }}>{t('more_widgets_desc')}</p>
 
-        <EmbedExample
-          title={t('widget_topic_title')}
-          description={t('widget_topic_desc')}
-          src="/embed/topics/habitatge"
-          height={280}
-          snippet={`<iframe\n  src="https://www.holapolitica.org/embed/topics/<slug>"\n  width="100%" height="280" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_topic')}"\n></iframe>`}
-        />
+          <EmbedExample
+            title={t('widget_explorer_title')}
+            description={t('widget_explorer_desc')}
+            src="/embed/explorer?topic=habitatge&result=approved&limit=6"
+            height={640}
+            snippet={`<iframe\n  src="${embedOrigin}/embed/explorer?topic=habitatge&result=approved&limit=6"\n  width="100%" height="640" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_explorer')}"\n></iframe>\n<!-- ${t('explorer_params_comment')} -->`}
+          />
+
+          <EmbedExample
+            title={t('widget_vote_title')}
+            description={t('widget_vote_desc')}
+            src={`/embed/votes/${sampleVoteId}`}
+            height={520}
+            snippet={`<iframe\n  src="${embedOrigin}/embed/votes/${sampleVoteId}"\n  width="100%" height="520" frameborder="0"\n  loading="lazy"\n  title="${t('iframe_title_vote')}"\n></iframe>`}
+          />
+
+          <EmbedPicker
+            title={t('widget_group_title')}
+            description={t('widget_group_desc')}
+            pickerLabel={t('picker_group_label')}
+            options={groupOptions}
+            defaultValue={defaultGroup}
+            srcPrefix="/embed/groups/"
+            srcSuffix=""
+            height={320}
+            iframeTitle={t('iframe_title_group')}
+            origin={embedOrigin}
+            snippetSummary={t('snippet_summary')}
+          />
+
+          <EmbedPicker
+            title={t('widget_topic_parties_title')}
+            description={t('widget_topic_parties_desc')}
+            pickerLabel={t('picker_topic_label')}
+            options={topicOptions}
+            defaultValue={defaultTopic}
+            srcPrefix="/embed/topics/"
+            srcSuffix="/parties"
+            height={420}
+            iframeTitle={t('iframe_title_topic_parties')}
+            origin={embedOrigin}
+            snippetSummary={t('snippet_summary')}
+          />
+        </details>
 
         <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>
           {t.rich('ids_explainer', {

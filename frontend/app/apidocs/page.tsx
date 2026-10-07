@@ -106,6 +106,9 @@ export default function ApiDocsPage() {
             </tr>
           </thead>
           <tbody>
+            <RowEmbed path="/embed/llei/{id}" desc="Una llei amb el disseny del web: titular planer, a qui afecta, resultat i vot de cada grup." h="620px" />
+            <RowEmbed path="/embed/ple/{data|darrer}" desc="El ple d'un dia: xifres, temes i cada llei amb el resultat. «darrer» = l'últim ple." h="560px" />
+            <RowEmbed path="/embed/diputats/{província}" desc="Els diputats d'una circumscripció, per partit (nom tal com l'escriu el Congrés, codificat a l'URL)." h="760px" />
             <RowEmbed path="/embed/votes/{id}" desc="Resultat d'una votació: totals, qui ho proposa, barra apilada." h="320px" />
             <RowEmbed path="/embed/groups/{slug}" desc="Cohesió mitjana, assistència mitjana, mida del grup." h="220px" />
             <RowEmbed path="/embed/topics/{slug}" desc="Distribució d'iniciatives sobre el tema (aprovades, rebutjades, en tràmit)." h="220px" />

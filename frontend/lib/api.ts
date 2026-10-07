@@ -1094,6 +1094,8 @@ export const api = {
          *  'close' (narrowest final-vote margin first). The last two keep
          *  only initiatives that have been voted. */
         sort?: 'recent' | 'voted' | 'close';
+        /** Comma-separated ids: those rows, in the list shape. */
+        ids?: string;
         page?: number;
         page_size?: number;
       } = {},
