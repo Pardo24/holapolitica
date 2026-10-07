@@ -109,6 +109,7 @@ async def _ids(session: AsyncSession, sort: str) -> list[int]:
         proposing_group_slug=None,
         audience=None,
         q=None,
+        ids=None,
         sort=sort,
         page=1,
         page_size=50,
@@ -128,3 +129,25 @@ async def test_close_is_narrowest_margin_first_without_assent(session: AsyncSess
 async def test_recent_and_junk_keep_everything(session: AsyncSession) -> None:
     assert set(await _ids(session, "recent")) == {1, 2, 3, 4}
     assert set(await _ids(session, "sandwich")) == {1, 2, 3, 4}
+
+
+async def test_ids_returns_just_those(session: AsyncSession) -> None:
+    page = await list_initiatives(
+        legislature_id=None,
+        chamber_id=None,
+        creates_law=None,
+        initiative_type=None,
+        status_filter=None,
+        result=None,
+        topic_slug=None,
+        proposing_group_slug=None,
+        audience=None,
+        q=None,
+        ids="2,3,x",
+        sort="recent",
+        page=1,
+        page_size=50,
+        session=session,
+    )
+    assert {item["id"] for item in page["items"]} == {2, 3}
+    assert page["items"][0]["latest_vote"] is not None or page["items"][1]["latest_vote"] is not None

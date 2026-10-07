@@ -120,6 +120,14 @@ async def list_initiatives(
             "Postgres."
         ),
     ),
+    ids: str | None = Query(
+        None,
+        description=(
+            "Comma-separated initiative ids. Returns those rows in the list "
+            "shape (latest vote with each group's stance, topics), which is "
+            "what the embeddable law card renders."
+        ),
+    ),
     sort: str = Query(
         "recent",
         description=(
@@ -149,6 +157,9 @@ async def list_initiatives(
     count_stmt = select(func.count(func.distinct(Initiative.id))).select_from(Initiative)
 
     conditions = []
+    wanted_ids = [int(tok) for tok in _split_csv(ids) if tok.isdigit()] if isinstance(ids, str) else []
+    if wanted_ids:
+        conditions.append(Initiative.id.in_(wanted_ids))
     if legislature_id is not None:
         conditions.append(Initiative.legislature_id == legislature_id)
     if chamber_id is not None:
