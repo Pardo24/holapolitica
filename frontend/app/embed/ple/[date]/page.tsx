@@ -6,7 +6,7 @@ import { ResultPill } from '@/components/ResultPill';
 import { api, type InitiativeTopicSlug, type Vote } from '@/lib/api';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
-import { fateResult, initiativeKey, summariseLaws, voteKind } from '@/lib/sessionSummary';
+import { fateResult, fateVote, initiativeKey, summariseLaws, voteKind, voteStage } from '@/lib/sessionSummary';
 import { pickTopicName } from '@/lib/topics';
 
 /**
@@ -34,7 +34,6 @@ export default async function EmbedSessionPage({ params }: { params: Promise<{ d
   const { date: raw } = await params;
   const t = await getTranslations('embed_widgets');
   const tSheet = await getTranslations('session_sheet');
-  const tVotes = await getTranslations('votes');
   const locale = await getLocale();
 
   const date = DATE_RE.test(raw)
@@ -59,7 +58,7 @@ export default async function EmbedSessionPage({ params }: { params: Promise<{ d
     byItem.set(key, [...(byItem.get(key) ?? []), v]);
   }
   const items = [...byItem.values()]
-    .map((vs) => ({ lead: vs[0]!, outcome: fateResult(vs), kind: voteKind(vs[0]!) }))
+    .map((vs) => ({ lead: vs[0]!, decider: fateVote(vs), outcome: fateResult(vs), kind: voteKind(vs[0]!) }))
     .sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'laws' ? -1 : 1));
 
   // Topics of the day, by number of initiatives.
@@ -111,7 +110,15 @@ export default async function EmbedSessionPage({ params }: { params: Promise<{ d
         )}
 
         <ul className="embed-rows">
-          {items.slice(0, MAX_ROWS).map(({ lead, outcome }) => {
+          {items.slice(0, MAX_ROWS).map(({ lead, decider, outcome }) => {
+            // Worded for the procedural stage, as on the plenary page: a
+            // rejected amendment to the whole bill means the bill goes on,
+            // and "Aprovada" next to it read as the opposite.
+            const stage = voteStage(decider);
+            const label =
+              stage === 'other' || outcome === 'tie'
+                ? tSheet(`result_${outcome}` as 'result_approved')
+                : tSheet(`outcome_${stage}_${outcome}` as 'result_approved');
             const plain = pickPlainSummary(lead, locale);
             const headline =
               pickPlainTitle(lead, locale) ??
@@ -120,7 +127,7 @@ export default async function EmbedSessionPage({ params }: { params: Promise<{ d
             return (
               <li key={lead.id}>
                 <a href={href}>{headline}</a>
-                <ResultPill result={outcome} label={tVotes(`result.${outcome}` as 'result.approved')} />
+                <ResultPill result={outcome} label={label} />
               </li>
             );
           })}

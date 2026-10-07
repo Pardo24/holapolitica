@@ -3017,7 +3017,7 @@ button {
   padding: 10px 0;
   border-bottom: 1px solid var(--rule);
 }
-.embed-rows a {
+.embed-rows.embed-rows > li > a {
   font-family: var(--font-serif);
   font-size: 15px;
   font-weight: 600;
@@ -3039,7 +3039,7 @@ button {
 }
 .embed-people { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
 .embed-people li + li { border-top: 1px solid var(--rule); }
-.embed-people a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: var(--ink-3); text-decoration: none; }
+.embed-people.embed-people > li > a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: var(--ink-3); text-decoration: none; }
 .embed-avatar {
   width: 36px;
   height: 36px;
@@ -3067,3 +3067,12 @@ button {
 }
 .embed-foot a { color: var(--ink); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
 .embed-empty { margin: 0; padding: 18px; font-size: 14px; color: var(--ink-3); text-align: center; }
+.embed-rows.embed-rows > li > a {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.embed-rows li > :last-child { flex: none; }
+/* The widget's own footer already links to the full page. */
+.embed-widget .card-open-link { display: none !important; }

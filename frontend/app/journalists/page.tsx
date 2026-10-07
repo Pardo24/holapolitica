@@ -47,7 +47,12 @@ export default async function JournalistsPage() {
     .list({ page: 1, page_size: 1 })
     .catch(() => null);
   const sampleVoteId = latest?.items[0]?.id ?? 1;
-  const sampleInitiativeId = 6;
+  // The law-card example is the most recently voted law, so the demo
+  // shows something current (and a final vote, not an amendment round).
+  const latestLaw = await api.initiatives
+    .list({ legislature_id: 1, creates_law: true, result: 'approved,rejected', sort: 'voted', page_size: 1 })
+    .catch(() => null);
+  const sampleInitiativeId = latestLaw?.items[0]?.id ?? 6;
 
   // Options for the interactive pickers (group snapshot + topic→parties).
   // Both degrade gracefully: an empty list just renders the picker with a
