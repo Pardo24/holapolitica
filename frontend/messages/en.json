@@ -303,7 +303,8 @@
     "card_open": "View the law",
     "card_group_detail": "Detail by group",
     "card_audience_filter": "Who it affects",
-    "card_audience_all": "Anyone"
+    "card_audience_all": "Anyone",
+    "card_ai_title_from_vote": "Headline written by AI from the vote"
   },
   "agenda_2030": {
     "eyebrow": "2030 Agenda · Sustainable Development Goals",
@@ -339,7 +340,8 @@
     "chain_part_of": "This vote is part of",
     "follow_off": "Follow this law",
     "follow_on": "Following",
-    "affects_label": "Who it affects"
+    "affects_label": "Who it affects",
+    "points_title": "The points, one by one"
   },
   "law_journey": {
     "eyebrow": "Trajectory",

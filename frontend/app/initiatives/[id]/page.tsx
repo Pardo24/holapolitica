@@ -52,6 +52,9 @@ const STATUS_COLOR: Record<string, string> = {
   expired: 'var(--nv)',
 };
 
+/** Procedures voted point by point, where each point stands on its own. */
+const MOTION_TYPES = new Set(['mocion', 'proposicion_no_ley', 'interpelacion']);
+
 const STATUS_KEY: Record<string, string> = {
   approved: 'status_singular_approved',
   rejected: 'status_singular_rejected',
@@ -173,17 +176,48 @@ export default async function InitiativeDetailPage({
     votes.length > 0
       ? [...votes].sort((a, b) => a.voted_at.localeCompare(b.voted_at))[votes.length - 1]!
       : null;
+  // Motions and PNLs are often split into numbered points, each voted on
+  // its own, so there is no "final, decisive" vote to lead with: the last
+  // one by id is simply the last one. The plenary sheet already says "X de N
+  // punts aprovats" for these; this page said "Votació final (decisiva)" and
+  // picked one arbitrarily. Same rule as ``fateResult`` in lib/sessionSummary
+  // so the two surfaces cannot disagree about how a motion ended.
+  const byPoints = MOTION_TYPES.has(initiative.type) && votes.length > 1;
+  const approvedPoints = votes.filter((v) => v.result === 'approved').length;
+  const pointsOutcome: 'approved' | 'rejected' | 'tie' | null = !byPoints
+    ? null
+    : votes.some((v) => v.result === 'approved')
+      ? 'approved'
+      : votes.every((v) => v.result === 'tie')
+        ? 'tie'
+        : 'rejected';
   // The chip the page leads with. The portal's lifecycle status goes stale
   // (a decree-law stays "submitted" long after the chamber convalidated it),
   // so a page could open with "Presentada" directly above a vote block that
   // said "Aprovada". When a roll call has happened it decides the chip, the
   // same rule the cards in every list already follow.
-  const outcome = effectiveResult(initiative.status, finalVote?.result ?? null);
+  const outcome = effectiveResult(initiative.status, pointsOutcome ?? finalVote?.result ?? null);
   const chipStatus = outcome ?? initiative.status;
   const statusLabel =
     outcome === 'tie' ? tVotes('result.tie') : resolveStatusLabel(chipStatus);
   const statusColor =
     outcome === 'tie' ? 'var(--abst)' : (STATUS_COLOR[chipStatus] ?? 'var(--ink-3)');
+  // A law with no summary of its own fell back to its official title, and
+  // for a motion that title is the proposing group's own wording. This page
+  // opened with "sobre la nefasta política educativa de su Gobierno" set in
+  // display serif, which reads as the site saying it rather than quoting it.
+  // The votes on the very same text carry generated headlines, so the
+  // earliest one leads instead and the official wording keeps its place
+  // below, labelled for anyone checking the exact words.
+  const borrowedHeadline = summaryLead
+    ? null
+    : ([...votes]
+        .sort((a, b) => a.voted_at.localeCompare(b.voted_at) || a.id - b.id)
+        .map((v) => pickPlainTitle(v, locale))
+        .find((candidate): candidate is string => Boolean(candidate)) ?? null);
+  const headline = summaryLead ?? borrowedHeadline;
+  // The official wording shows below whenever it is not already the headline.
+  const showOfficialBelow = Boolean(borrowedHeadline) || Boolean(summary && !summaryStub && !plainTitle);
   // The amendment / article votes (everything but the decisive final one),
   // shown collapsed since the final vote is what decides the law.
   const otherVotes = finalVote
@@ -212,8 +246,14 @@ export default async function InitiativeDetailPage({
             thing that separates "we have no summary yet" from "this is how
             we write". */}
         <SummaryProvenance
-          kind={summary ? 'ai' : 'none'}
-          label={summary ? tLleis('card_ai_summary') : tLleis('card_no_summary')}
+          kind={summary || borrowedHeadline ? 'ai' : 'none'}
+          label={
+            summary
+              ? tLleis('card_ai_summary')
+              : borrowedHeadline
+                ? tLleis('card_ai_title_from_vote')
+                : tLleis('card_no_summary')
+          }
         />
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
           {/* The plain summary leads. The official title used to be the
@@ -231,7 +271,7 @@ export default async function InitiativeDetailPage({
               lineHeight: summary ? 1.35 : undefined,
             }}
           >
-            {summaryLead ?? <AnnotatedText text={title} />}
+            {headline ?? <AnnotatedText text={title} />}
           </h1>
           <div
             style={{
@@ -268,22 +308,6 @@ export default async function InitiativeDetailPage({
                 maxWidth: 900,
               }}
             />
-            {/* The official wording, under the summary. Skipped when the
-                summary's lead was a stub, because then the headline above
-                is already this title and it would print twice. */}
-            {!summaryStub && !plainTitle && (
-              <p
-                style={{
-                  margin: '10px 0 0',
-                  fontSize: 13.5,
-                  lineHeight: 1.5,
-                  color: 'var(--ink-3)',
-                  maxWidth: 900,
-                }}
-              >
-                <AnnotatedText text={title} />
-              </p>
-            )}
             <p style={{ margin: '6px 0 0', fontSize: 11.5, color: 'var(--ink-3)', fontStyle: 'italic' }}>
               {tVotes('plain_summary_disclaimer')}{' '}
               ({tCommon('plain_summary_caveat', {
@@ -291,6 +315,24 @@ export default async function InitiativeDetailPage({
               })})
             </p>
           </>
+        )}
+
+        {/* The official wording, whenever the headline above is not already
+            it: under a summary, or under a headline borrowed from a vote.
+            Skipped when the summary's lead was a stub, because then the
+            headline IS this title and it would print twice. */}
+        {showOfficialBelow && (
+          <p
+            style={{
+              margin: '10px 0 0',
+              fontSize: 13.5,
+              lineHeight: 1.5,
+              color: 'var(--ink-3)',
+              maxWidth: 900,
+            }}
+          >
+            <AnnotatedText text={title} />
+          </p>
         )}
 
         <div
@@ -416,7 +458,7 @@ export default async function InitiativeDetailPage({
           to sit some 400 lines below, so the page answered "what is this"
           long before "who backed it". Same component as the laws list,
           with the breakdown open: on a law's own page it is the point. */}
-      {finalVote && !finalVote.approved_by_assent && (
+      {finalVote && !byPoints && !finalVote.approved_by_assent && (
         <section
           style={{
             marginTop: 18,
@@ -677,7 +719,9 @@ export default async function InitiativeDetailPage({
         <div>
           {votes.length > 1 && (
             <div className="eyebrow" style={{ marginBottom: 8 }}>
-              {t('vote_box_title_multipart', { n: votes.length })}
+              {byPoints
+                ? tSession('points_summary', { approved: approvedPoints, total: votes.length })
+                : t('vote_box_title_multipart', { n: votes.length })}
             </div>
           )}
           {primaryVote ? (
@@ -690,34 +734,56 @@ export default async function InitiativeDetailPage({
               <>
                 {/* The decisive vote leads — the whole-text vote after the
                     amendments. It carries the outcome and who voted; the rest
-                    are collapsed below. */}
-                <div
-                  className="eyebrow"
-                  style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 6 }}
-                >
-                  {t('final_vote_label')}
-                </div>
-                {finalVote && (
-                  <VoteCardBig
-                    vote={finalVote}
-                    locale={locale}
-                    t={t}
-                    tVotes={tVotes}
-                    stance={stanceByVote.get(finalVote.id)}
-                    stanceLabels={stanceLabels}
-                  />
+                    are collapsed below. A motion voted by points has no such
+                    vote: every point is its own question, so the list of
+                    points below IS the answer. */}
+                {!byPoints && (
+                  <>
+                    <div
+                      className="eyebrow"
+                      style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 6 }}
+                    >
+                      {t('final_vote_label')}
+                    </div>
+                    {finalVote && (
+                      <VoteCardBig
+                        vote={finalVote}
+                        locale={locale}
+                        t={t}
+                        tVotes={tVotes}
+                        stance={stanceByVote.get(finalVote.id)}
+                        stanceLabels={stanceLabels}
+                      />
+                    )}
+                  </>
+                )}
+                {byPoints && (
+                  <p
+                    style={{
+                      margin: '0 0 14px',
+                      fontSize: 12.5,
+                      lineHeight: 1.55,
+                      color: 'var(--ink-2)',
+                    }}
+                  >
+                    {tSession('points_why')}
+                  </p>
                 )}
                 {/* The chain: every vote this law went through, in order,
                     saying what each one decided. It used to be a collapsed
                     list of dates, so a reader could see there were four
                     votes and not how they related. */}
-                <div style={{ marginTop: 18 }}>
+                <div style={{ marginTop: byPoints ? 0 : 18 }}>
                   <div className="eyebrow" style={{ marginBottom: 10 }}>
-                    {t('chain_title')}
+                    {byPoints ? t('points_title') : t('chain_title')}
                   </div>
-                  <VoteChain votes={votes} locale={locale} />
+                  <VoteChain
+                    votes={votes}
+                    locale={locale}
+                    pointLabel={byPoints ? (n) => tSession('point_label', { n }) : undefined}
+                  />
                 </div>
-                {otherVotes.length > 0 && (
+                {!byPoints && otherVotes.length > 0 && (
                   <details style={{ marginTop: 16 }}>
                     <summary
                       style={{
@@ -759,7 +825,7 @@ export default async function InitiativeDetailPage({
                 )}
                 {/* How each group voted on the decisive (final) vote —
                     grouped by stance, clearer than a per-vote table. */}
-                {finalVote && (stanceByVote.get(finalVote.id)?.length ?? 0) > 0 && (
+                {!byPoints && finalVote && (stanceByVote.get(finalVote.id)?.length ?? 0) > 0 && (
                   <div style={{ marginTop: 18 }}>
                     <div className="eyebrow" style={{ marginBottom: 10 }}>
                       {tVotes('group_stance_title')}

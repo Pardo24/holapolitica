@@ -303,7 +303,8 @@
     "card_open": "Ver la ley",
     "card_group_detail": "Detalle por grupo",
     "card_audience_filter": "A quién afecta",
-    "card_audience_all": "Cualquiera"
+    "card_audience_all": "Cualquiera",
+    "card_ai_title_from_vote": "Titular hecho con IA a partir de la votación"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objetivos de Desarrollo Sostenible",
@@ -339,7 +340,8 @@
     "chain_part_of": "Esta votación forma parte de",
     "follow_off": "Sigue esta ley",
     "follow_on": "La sigues",
-    "affects_label": "A quién afecta"
+    "affects_label": "A quién afecta",
+    "points_title": "Los puntos, uno a uno"
   },
   "law_journey": {
     "eyebrow": "Trayectoria",

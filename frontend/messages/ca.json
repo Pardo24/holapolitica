@@ -303,7 +303,8 @@
     "card_open": "Veure la llei",
     "card_group_detail": "Detall per grup",
     "card_audience_filter": "A qui afecta",
-    "card_audience_all": "Qualsevol"
+    "card_audience_all": "Qualsevol",
+    "card_ai_title_from_vote": "Titular fet amb IA a partir de la votació"
   },
   "agenda_2030": {
     "eyebrow": "Agenda 2030 · Objectius de Desenvolupament Sostenible",
@@ -339,7 +340,8 @@
     "chain_part_of": "Aquesta votació forma part de",
     "follow_off": "Segueix aquesta llei",
     "follow_on": "La segueixes",
-    "affects_label": "A qui afecta"
+    "affects_label": "A qui afecta",
+    "points_title": "Els punts, un a un"
   },
   "law_journey": {
     "eyebrow": "Trajectòria",

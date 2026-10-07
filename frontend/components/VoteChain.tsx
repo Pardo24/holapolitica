@@ -24,11 +24,17 @@ export async function VoteChain({
   votes,
   locale,
   currentVoteId = null,
+  pointLabel,
 }: {
   votes: InitiativeVoteSummary[];
   locale: string;
   /** Marks the vote you are already reading, and stops it linking to itself. */
   currentVoteId?: number | null;
+  /** Numbers the entries ("Punt 1", "Punt 2") for a motion voted point by
+   *  point. Those points are separate questions, and the generated headline
+   *  is often the same sentence for several of them, so without a number the
+   *  chain read as the same thing approved once and rejected twice. */
+  pointLabel?: (n: number) => string;
 }) {
   const t = await getTranslations('initiative_detail');
   const tVotes = await getTranslations('votes');
@@ -69,6 +75,14 @@ export async function VoteChain({
                 marginBottom: 2,
               }}
             >
+              {pointLabel && (
+                <span
+                  className="tabular"
+                  style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' }}
+                >
+                  {pointLabel(i + 1)}
+                </span>
+              )}
               <span className="tabular" style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>
                 {date}
               </span>
