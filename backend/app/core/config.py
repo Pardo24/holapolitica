@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     # 0 requests/minute limit and mistral-large with 403, while
     # ministral-14b is allowed (~30 requests/minute). Checked 2026-09-14.
     mistral_model: str = "ministral-14b-2512"
+    # The strict second reading of "what it changes" tags. The small model
+    # kept tags its own evidence contradicted ("autonomy for councils" as
+    # "expands rights"); a tag shown as a fact gets the large one.
+    law_text_verify_model: str = "mistral-large-latest"
     # Minimum seconds between two LLM requests from one process (see
     # app/services/llm_http.py). The limit is PER MODEL, and the API states
     # it in its own headers (x-ratelimit-limit-req-minute):

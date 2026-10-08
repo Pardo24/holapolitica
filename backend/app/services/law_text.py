@@ -270,7 +270,9 @@ async def verify_tags(
         {"titulo": title, "etiquetas": [{"tag": t, "pasaje": evidence.get(t, "")} for t in tags]},
         ensure_ascii=False,
     )
-    raw = await _call_json(settings, system=_VERIFY_PROMPT, user=user)
+    raw = await _call_json(
+        settings, system=_VERIFY_PROMPT, user=user, model=settings.law_text_verify_model
+    )
     return parse_verdict(raw, tags)
 
 
@@ -287,7 +289,9 @@ def parse_verdict(raw: str, tags: list[str]) -> list[str]:
     return [t for t in tags if t in kept]
 
 
-async def _call_json(settings: Settings, *, system: str, user: str) -> str:
+async def _call_json(
+    settings: Settings, *, system: str, user: str, model: str | None = None
+) -> str:
     """One JSON-mode completion. Long input, so a longer timeout than usual."""
     import httpx
 
@@ -302,7 +306,7 @@ async def _call_json(settings: Settings, *, system: str, user: str) -> str:
     if not settings.mistral_api_key:
         raise RuntimeError("MISTRAL_API_KEY is not configured")
     body = {
-        "model": settings.mistral_model,
+        "model": model or settings.mistral_model,
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
