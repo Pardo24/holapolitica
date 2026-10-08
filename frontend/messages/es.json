@@ -2242,5 +2242,22 @@
     "title_conductor": "Si conduces",
     "label_rural": "Vivo en el medio rural",
     "title_rural": "Si vives en el medio rural"
+  },
+  "whats_new": {
+    "kicker": "Novedades",
+    "title": "Hola Política, renovada",
+    "lede": "Lo que vota el Congreso, más fácil de entender antes de las elecciones. Esto es lo nuevo:",
+    "affects_title": "¿Y a ti, qué te afecta?",
+    "affects_body": "Elige tu situación y mira las leyes que te tocan y cómo votó cada grupo.",
+    "cards_title": "Leyes más claras",
+    "cards_body": "Tarjetas grandes: de qué va, a quién afecta, cómo ha acabado y qué ha votado cada partido.",
+    "text_title": "Qué dice el texto",
+    "text_body": "Leemos el texto oficial de cada ley: las medidas concretas y qué cambia, con el artículo.",
+    "games_title": "Juegos renovados",
+    "games_body": "La pregunta del día con rachas, y la Trivia con muchas más preguntas.",
+    "data_title": "Datos en cuatro preguntas",
+    "data_body": "Quién vota con quién, qué se aprueba, cómo de unidos votan y de qué habla cada grupo.",
+    "ok": "Vamos",
+    "close": "Cerrar"
   }
 }

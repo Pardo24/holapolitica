@@ -2241,5 +2241,22 @@
     "title_conductor": "Si condueixes",
     "label_rural": "Visc al món rural",
     "title_rural": "Si vius al món rural"
+  },
+  "whats_new": {
+    "kicker": "Novetats",
+    "title": "Hola Política, renovada",
+    "lede": "El que vota el Congrés, més fàcil d'entendre abans de les eleccions. Això és el que hi ha de nou:",
+    "affects_title": "I a tu, què t'afecta?",
+    "affects_body": "Tria la teva situació i mira les lleis que et toquen i com va votar cada grup.",
+    "cards_title": "Lleis més clares",
+    "cards_body": "Targetes grans: de què va, a qui afecta, com ha acabat i què ha votat cada partit.",
+    "text_title": "Què diu el text",
+    "text_body": "Llegim el text oficial de cada llei: les mesures concretes i què canvia, amb l'article.",
+    "games_title": "Jocs renovats",
+    "games_body": "La pregunta del dia amb ratxes, i la Trivia amb moltes més preguntes.",
+    "data_title": "Dades en quatre preguntes",
+    "data_body": "Qui vota amb qui, què s'aprova, com de units voten i de què parla cada grup.",
+    "ok": "Som-hi",
+    "close": "Tanca"
   }
 }

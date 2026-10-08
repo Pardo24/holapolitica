@@ -17,11 +17,11 @@ from __future__ import annotations
 import random
 import re
 from collections import Counter, defaultdict
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import or_, select
+from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -40,6 +40,7 @@ from app.models import (
     Session as SessionRow,
 )
 from app.services.cache import cached
+from app.services.game_pool import EVERYDAY_TOPICS, MIN_EVERYDAY_POOL, not_backwards
 from app.services.plain_summary import looks_insufficient
 
 router = APIRouter(prefix="/align", tags=["align"])
@@ -93,6 +94,8 @@ class _Chosen(NamedTuple):
     vote_id: int
     initiative_id: int | None
     title: str
+    plain_title_ca: str | None
+    plain_title_es: str | None
     plain_summary_ca: str | None
     plain_summary_es: str | None
 
@@ -117,6 +120,9 @@ class AlignGroupPosition(BaseModel):
 class AlignQuestion(BaseModel):
     vote_id: int
     title: str
+    # The law's short plain title, the question's headline.
+    plain_title_ca: str | None = None
+    plain_title_es: str | None = None
     plain_summary_ca: str | None = None
     plain_summary_es: str | None = None
     topics: list[AlignTopic] = []
@@ -170,10 +176,11 @@ async def align_questions(
         if leg_id is None:
             return []
 
-        # Eligible votes, most recent first, with a summary somewhere. Pull a
-        # pool larger than n so we can dedupe by initiative and still fill n.
-        pool_rows = (
-            await session.execute(
+        # Eligible votes, most recent first, with a summary somewhere. A pool
+        # well beyond n: everyday subjects, a "yes" that means yes, a plain
+        # title, then dedupe and drop unanimous votes.
+        def pool_query(everyday_only: bool) -> Select[Any]:
+            return (
                 select(
                     Vote.id,
                     Vote.initiative_id,
@@ -183,6 +190,8 @@ async def align_questions(
                     Vote.plain_summary_es,
                     Initiative.plain_summary_ca,
                     Initiative.plain_summary_es,
+                    Initiative.plain_title_ca,
+                    Initiative.plain_title_es,
                 )
                 .join(SessionRow, SessionRow.id == Vote.session_id)
                 .outerjoin(Initiative, Initiative.id == Vote.initiative_id)
@@ -205,7 +214,24 @@ async def align_questions(
                         .where(Topic.slug == topic_slug)
                     )
                     if topic_slug
-                    else Initiative.id.in_(select(InitiativeTopic.initiative_id))
+                    else (
+                        Initiative.id.in_(
+                            select(InitiativeTopic.initiative_id)
+                            .join(Topic, Topic.id == InitiativeTopic.topic_id)
+                            .where(Topic.slug.in_(EVERYDAY_TOPICS))
+                        )
+                        if everyday_only
+                        else Initiative.id.in_(select(InitiativeTopic.initiative_id))
+                    )
+                )
+                # "Sí" must mean yes to the law: no totality debates (where yes
+                # rejects the bill) and no amendment rounds.
+                .where(not_backwards(include_taking=True))
+                .where(
+                    or_(
+                        Initiative.plain_title_ca.is_not(None),
+                        Initiative.plain_title_es.is_not(None),
+                    )
                 )
                 .where(
                     or_(
@@ -216,13 +242,16 @@ async def align_questions(
                     )
                 )
                 .order_by(Vote.voted_at.desc(), Vote.id.desc())
-                .limit(n * 6)
+                .limit(500)
             )
-        ).all()
+
+        pool_rows = (await session.execute(pool_query(everyday_only=True))).all()
+        if not topic_slug and len(pool_rows) < MIN_EVERYDAY_POOL:
+            pool_rows = (await session.execute(pool_query(everyday_only=False))).all()
 
         chosen: list[_Chosen] = []
         seen_initiatives: set[int] = set()
-        for vid, init_id, title, desc, vca, ves, ica, ies in pool_rows:
+        for vid, init_id, title, desc, vca, ves, ica, ies, ptca, ptes in pool_rows:
             if init_id is not None:
                 if init_id in seen_initiatives:
                     continue
@@ -247,6 +276,8 @@ async def align_questions(
                     vote_id=vid,
                     initiative_id=init_id,
                     title=(desc or title or "").strip(),
+                    plain_title_ca=ptca,
+                    plain_title_es=ptes,
                     plain_summary_ca=summary_ca,
                     plain_summary_es=summary_es,
                 )
@@ -342,6 +373,8 @@ async def align_questions(
                 AlignQuestion(
                     vote_id=c.vote_id,
                     title=c.title,
+                    plain_title_ca=c.plain_title_ca,
+                    plain_title_es=c.plain_title_es,
                     plain_summary_ca=c.plain_summary_ca,
                     plain_summary_es=c.plain_summary_es,
                     topics=(
@@ -355,5 +388,5 @@ async def align_questions(
         return out
 
     return await cached(
-        f"align:questions:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
+        f"align:questions:v2:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
     )

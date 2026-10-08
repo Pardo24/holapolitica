@@ -14,11 +14,11 @@ from __future__ import annotations
 
 import random
 from collections import Counter, defaultdict
-from typing import NamedTuple, TypedDict
+from typing import Any, NamedTuple, TypedDict
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import or_, select
+from sqlalchemy import Select, or_, select
 from sqlalchemy import true as sa_true
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,6 +37,14 @@ from app.models import (
 from app.models import (
     Session as SessionRow,
 )
+from app.services.game_pool import (
+    EVERYDAY_TOPICS,
+    MIN_EVERYDAY_POOL,
+    not_backwards,
+    reads_like_original,
+    summary_lead,
+)
+from app.services.plain_summary import looks_insufficient
 
 router = APIRouter(prefix="/game", tags=["game"])
 
@@ -133,6 +141,8 @@ class GameQuestion(BaseModel):
     kind: str
     # The law in plain language — shown FIRST, as the context to reason about.
     law_summary: str
+    # Its short plain title, as a headline above the summary.
+    law_title: str | None = None
     # Short theme tag (e.g. "Habitatge") for a touch of colour. Optional.
     topic: str | None = None
     prompt: str
@@ -155,6 +165,7 @@ class _GroupMeta(NamedTuple):
 
 class _RichVote(NamedTuple):
     vote_id: int
+    title: str | None
     summary: str
     result: str
     ayes: int
@@ -230,10 +241,30 @@ async def game_questions(
         .where(Topic.kind == "theme")
         .subquery()
     )
-    pool_rows = (
-        await session.execute(
+
+    def pool_query(everyday_only: bool) -> Select[Any]:
+        topic_filter = (
+            Initiative.id.in_(
+                select(InitiativeTopic.initiative_id)
+                .join(Topic, Topic.id == InitiativeTopic.topic_id)
+                .where(Topic.slug == topic_slug)
+            )
+            if topic_slug
+            else (
+                Initiative.id.in_(
+                    select(InitiativeTopic.initiative_id)
+                    .join(Topic, Topic.id == InitiativeTopic.topic_id)
+                    .where(Topic.slug.in_(EVERYDAY_TOPICS))
+                )
+                if everyday_only
+                else sa_true()
+            )
+        )
+        return (
             select(
                 Vote.id,
+                Initiative.plain_title_ca,
+                Initiative.plain_title_es,
                 Initiative.plain_summary_ca,
                 Initiative.plain_summary_es,
                 Vote.result,
@@ -252,15 +283,16 @@ async def game_questions(
             .where(SessionRow.legislature_id == leg_id)
             .where(Vote.approved_by_assent.is_(False))
             .where(Vote.result.in_(["approved", "rejected"]))
-            # "Play on housing": the same narrowing the alignment quiz offers.
+            # "Did the Congress approve it?" must mean the law: no totality
+            # debates, amendment rounds or takings into consideration.
+            .where(not_backwards(include_taking=False))
+            .where(topic_filter)
+            # A plain title means the law has been put in plain words.
             .where(
-                Initiative.id.in_(
-                    select(InitiativeTopic.initiative_id)
-                    .join(Topic, Topic.id == InitiativeTopic.topic_id)
-                    .where(Topic.slug == topic_slug)
+                or_(
+                    Initiative.plain_title_ca.is_not(None),
+                    Initiative.plain_title_es.is_not(None),
                 )
-                if topic_slug
-                else sa_true()
             )
             .where(
                 or_(
@@ -269,22 +301,42 @@ async def game_questions(
                 )
             )
             .order_by(Vote.voted_at.desc())
-            .limit(400)
+            .limit(500)
         )
-    ).all()
+
+    # Everyday subjects first; the whole record only when they run short.
+    pool_rows = (await session.execute(pool_query(everyday_only=True))).all()
+    if not topic_slug and len({r[0] for r in pool_rows}) < MIN_EVERYDAY_POOL:
+        pool_rows = (await session.execute(pool_query(everyday_only=False))).all()
 
     by_vote: dict[int, _RichVote] = {}
-    for vid, sca, ses, result, ayes, noes, gshort, gslug, gcolor, tname, tname_es in pool_rows:
+    for (
+        vid,
+        tca,
+        tes,
+        sca,
+        ses,
+        result,
+        ayes,
+        noes,
+        gshort,
+        gslug,
+        gcolor,
+        tname,
+        tname_es,
+    ) in pool_rows:
         if vid in by_vote:
             continue
         # Lead with the summary in the player's language, falling back to the
         # other one so a card is never dropped just for a missing translation.
         summary = (((ses or sca) if lang_key == "es" else (sca or ses)) or "").strip()
-        if len(summary) < 30:  # too short to be a good card
+        if len(summary) < 30 or looks_insufficient(summary) or reads_like_original(summary):
             continue
+        title = (((tes or tca) if lang_key == "es" else (tca or tes)) or "").strip() or None
         by_vote[vid] = _RichVote(
             vote_id=vid,
-            summary=summary,
+            title=title,
+            summary=summary_lead(summary),
             result=result.value if hasattr(result, "value") else str(result),
             ayes=ayes or 0,
             noes=noes or 0,
@@ -444,6 +496,7 @@ async def game_questions(
                 category=category,
                 kind=kind,
                 law_summary=v.summary,
+                law_title=v.title,
                 # Don't surface the topic tag on a "which theme?" card — it
                 # would give the answer away. Shown for the other kinds.
                 topic=(

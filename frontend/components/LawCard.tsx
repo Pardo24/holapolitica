@@ -96,6 +96,12 @@ export async function LawCard({
 
   // The band: the first subject (a theme before an SDG) and the outcome.
   const outcomeKey = showVoteResult ? initiative.latest_vote_result : null;
+  // The colour follows the verdict wherever it comes from: the latest vote,
+  // or the initiative's own status when that is the verdict (a rejected
+  // proposición de ley carries it in its status).
+  const toneKey =
+    outcomeKey ??
+    (initiative.status === 'approved' || initiative.status === 'rejected' ? initiative.status : null);
   const outcomeLabel = outcomeKey
     ? tVotes(`result.${outcomeKey}` as 'result.approved')
     : statusLabel;
@@ -113,10 +119,10 @@ export async function LawCard({
   )?.filter(Boolean);
 
   return (
-    <LawCardFrame data={{ 'data-result': outcomeKey ?? 'pending' }}>
+    <LawCardFrame data={{ 'data-result': toneKey ?? 'pending' }}>
       {/* The band: what it is about, and how it ended, in the outcome's
           colour. One look says "housing, approved". */}
-      <LawCardBand topics={initiative.topics} outcome={outcomeKey} label={outcomeLabel} locale={locale} />
+      <LawCardBand topics={initiative.topics} outcome={toneKey} label={outcomeLabel} locale={locale} />
 
       {/* What kind of text, and when it was last voted (or tabled). */}
       <div className="law-card-meta">

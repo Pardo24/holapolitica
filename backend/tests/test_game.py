@@ -96,6 +96,7 @@ async def _seed_rich_vote(session: AsyncSession) -> Legislature:
         status=InitiativeStatus.APPROVED,
         submitted_at=date(2024, 1, 1),
         plain_summary_es="Una explicación sencilla de la ley.",
+        plain_title_es="Una ley sencilla",
     )
     session.add(ini)
     await session.flush()

@@ -2242,5 +2242,22 @@
     "title_conductor": "If you drive",
     "label_rural": "I live in the countryside",
     "title_rural": "If you live in the countryside"
+  },
+  "whats_new": {
+    "kicker": "What's new",
+    "title": "Hola Política, refreshed",
+    "lede": "What Congress votes, easier to follow before the election. Here is what's new:",
+    "affects_title": "And you, what affects you?",
+    "affects_body": "Pick your situation to see the laws that touch you and how each group voted.",
+    "cards_title": "Clearer laws",
+    "cards_body": "Big cards: what it is about, who it affects, how it ended and how each party voted.",
+    "text_title": "What the text says",
+    "text_body": "We read each law's official text: the concrete measures and what changes, with the article.",
+    "games_title": "Games, refreshed",
+    "games_body": "The daily question with streaks, and Trivia with many more questions.",
+    "data_title": "Data in four questions",
+    "data_body": "Who votes with whom, what passes, how united groups vote and what each talks about.",
+    "ok": "Let's go",
+    "close": "Close"
   }
 }

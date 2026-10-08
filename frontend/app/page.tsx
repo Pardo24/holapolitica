@@ -18,6 +18,7 @@ import { HomeQuickGrid } from '@/components/HomeQuickGrid';
 import { ProfilePicker } from '@/components/ProfilePicker';
 import { IntroNote } from '@/components/IntroNote';
 import { WelcomeWizard } from '@/components/WelcomeWizard';
+import { WhatsNew } from '@/components/WhatsNew';
 import { LawsThatMatter } from '@/components/LawsThatMatter';
 import { DailyTeaser } from '@/components/DailyTeaser';
 import { ChamberMap } from '@/components/ChamberMap';
@@ -182,6 +183,8 @@ export default async function HomePage() {
       <IntroNote />
       {/* First launch of the mobile app only: a short tour of the tabs. */}
       <WelcomeWizard />
+      {/* For returning visitors: what changed since they last came. */}
+      <WhatsNew />
 
       {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
           native-app-style entry point: brand strip, search, 2×2 tile grid,
