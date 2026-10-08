@@ -2281,7 +2281,10 @@
     "filter_all": "All",
     "filter_voted": "Already voted",
     "filter_pending": "In progress",
-    "filter_empty": "No laws in this state yet."
+    "filter_empty": "No laws in this state yet.",
+    "effects_title": "How it affects you",
+    "effects_more": "{n, plural, one {+# more situation} other {+# more situations}}",
+    "effects_ai": "Written by an AI from the law's text"
   },
   "whats_new": {
     "kicker": "What's new",

@@ -2281,7 +2281,10 @@
     "filter_all": "Todas",
     "filter_voted": "Ya votadas",
     "filter_pending": "En trámite",
-    "filter_empty": "Ninguna ley en este estado por ahora."
+    "filter_empty": "Ninguna ley en este estado por ahora.",
+    "effects_title": "Cómo te afecta",
+    "effects_more": "{n, plural, one {+# situación más} other {+# situaciones más}}",
+    "effects_ai": "Escrito por una IA a partir del texto de la ley"
   },
   "whats_new": {
     "kicker": "Novedades",

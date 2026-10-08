@@ -722,6 +722,14 @@ def _serialize_vote(
             title_es = vote.initiative.plain_title_es
         if summary_provider is None:
             summary_provider = vote.initiative.plain_summary_provider
+        # An amendment's card is not the law's: its effects would misstate
+        # what was voted.
+        if vote.initiative.profile_effects and base.stage not in (
+            "amendment",
+            "totality",
+            "senate_amendment",
+        ):
+            update["profile_effects"] = vote.initiative.profile_effects
     if summary_ca is not None or summary_es is not None or summary_provider is not None:
         update["plain_summary_ca"] = summary_ca
         update["plain_summary_es"] = summary_es

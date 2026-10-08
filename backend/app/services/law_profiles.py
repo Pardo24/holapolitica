@@ -27,7 +27,25 @@ from app.core.config import Settings, get_settings
 from app.services.law_text import _call_json, parse_verdict
 from app.services.plain_summary import _BANNED_TERMS, _fold, _provider_name
 
+
 # The situations a reader can pick. Order is the order shown.
+def effects_in(effects: object, lang: str) -> list[list[str]]:
+    """``[[profile_key, sentence], ...]`` in display order, in ``lang``
+    (``"es"`` or ``"ca"``, the other as fallback). Empty when the law has
+    none or has not been read yet."""
+    if not isinstance(effects, dict):
+        return []
+    out: list[list[str]] = []
+    for key in PROFILES:
+        e = effects.get(key)
+        if not isinstance(e, dict):
+            continue
+        text = (e.get("es") or e.get("ca")) if lang == "es" else (e.get("ca") or e.get("es"))
+        if isinstance(text, str) and text.strip():
+            out.append([key, text.strip()])
+    return out
+
+
 PROFILES: tuple[str, ...] = (
     "jove",
     "estudiant",

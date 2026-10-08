@@ -30,6 +30,8 @@ export interface DuelQuestion {
   lawSummary?: string;
   /** The law's short plain title, shown above the summary. */
   lawTitle?: string | null;
+  /** "Com t'afecta": [[profile_key, sentence]]. */
+  lawEffects?: string[][];
   topic?: string | null;
   options: DuelOption[];
   partySlug?: string | null;
@@ -56,6 +58,7 @@ export function fromGameQuestion(q: GameQuestion): DuelQuestion {
     prompt: q.prompt,
     lawSummary: q.law_summary,
     lawTitle: q.law_title ?? null,
+    lawEffects: q.law_effects ?? [],
     topic: q.topic,
     options: q.options.map((o) => ({
       text: o.text,

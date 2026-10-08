@@ -387,6 +387,9 @@ class VoteRead(BaseModel):
     # declined. The list_votes handler populates this in a single bulk
     # JOIN, so it costs one extra query per page, not N+1.
     topics: list[InitiativeTopicSlug] = []
+    # "Com t'afecta", from the linked initiative: what its text establishes
+    # for each everyday situation. Shown on every vote card of a law.
+    profile_effects: dict[str, dict[str, str]] | None = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property

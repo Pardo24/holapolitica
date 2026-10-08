@@ -132,6 +132,9 @@ class AlignQuestion(BaseModel):
     plain_summary_es: str | None = None
     topics: list[AlignTopic] = []
     group_positions: list[AlignGroupPosition] = []
+    # "Com t'afecta": {profile_key: {"ca", "es"}}, the plainest explanation
+    # of the law, shown under its title when it has one.
+    profile_effects: dict[str, dict[str, str]] | None = None
 
 
 @router.get("/questions", response_model=list[AlignQuestion])
@@ -356,6 +359,20 @@ async def align_questions(
                     )
                 )
 
+        effects_by_initiative: dict[int, Any] = {}
+        if init_ids:
+            effects_by_initiative = {
+                iid: eff
+                for iid, eff in (
+                    await session.execute(
+                        select(Initiative.id, Initiative.profile_effects).where(
+                            Initiative.id.in_(init_ids)
+                        )
+                    )
+                ).all()
+                if eff
+            }
+
         out: list[AlignQuestion] = []
         for c in chosen:
             if len(out) >= n:
@@ -380,10 +397,15 @@ async def align_questions(
                         else []
                     ),
                     group_positions=positions,
+                    profile_effects=(
+                        effects_by_initiative.get(c.initiative_id)
+                        if c.initiative_id is not None
+                        else None
+                    ),
                 )
             )
         return out
 
     return await cached(
-        f"align:questions:v3:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
+        f"align:questions:v4:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
     )

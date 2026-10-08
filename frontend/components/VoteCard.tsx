@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ResultPill } from '@/components/ResultPill';
+import { ProfileEffects } from '@/components/ProfileEffects';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
@@ -102,6 +103,12 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
           {headline}
         </Link>
       </h3>
+      <ProfileEffects
+        effects={vote.profile_effects}
+        locale={locale}
+        max={3}
+        moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : undefined}
+      />
       {morePoints > 0 && (
         // The points the headline leaves out. Counted, not run together:
         // "+3 punts més" says there is a list without pretending the card

@@ -12,6 +12,7 @@ import {
 } from '@/components/LawCardParts';
 import { DecreeLinkNote } from '@/components/DecreeLinkNote';
 import { LawTypeChip } from '@/components/LawTypeChip';
+import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
@@ -70,11 +71,10 @@ export async function LawCard({
   const changeEvidence =
     initiative.change_evidence?.[locale === 'ca' ? 'ca' : 'es'] ?? initiative.change_evidence?.es ?? {};
   const pdf = pdfUrl(initiative.source_url);
-  const tProfiles = await getTranslations('profiles');
-  const profileEffect = profileKey ? initiative.profile_effects?.[profileKey] : undefined;
-  const forYou = profileEffect
-    ? (locale === 'ca' ? profileEffect.ca : profileEffect.es) ?? profileEffect.es ?? profileEffect.ca
-    : undefined;
+  // "Com t'afecta": the plainest explanation we have, so when the law has
+  // it, it IS the card's explanation (the summary line and the audience
+  // list step aside); when it has none, the summary stays.
+  const hasEffects = effectsFor(initiative.profile_effects, locale).length > 0;
 
   const href = `/initiatives/${initiative.id}` as Route;
   const plainSummary = pickPlainSummary(initiative, locale);
@@ -145,10 +145,20 @@ export async function LawCard({
 
       {/* Three lines of the summary, under a headline of its own. When the
           headline is itself taken from the summary, this would repeat it. */}
-      {cardSummary && <p className="law-card-summary">{cardSummary}</p>}
+      {hasEffects ? (
+        <ProfileEffects
+          effects={initiative.profile_effects}
+          locale={locale}
+          max={3}
+          first={profileKey}
+          moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
+        />
+      ) : (
+        cardSummary && <p className="law-card-summary">{cardSummary}</p>
+      )}
 
       {/* Who it touches: the collectives named in the text itself. */}
-      {audiences && audiences.length > 0 && (
+      {!hasEffects && audiences && audiences.length > 0 && (
         <div className="law-card-affects">
           <span>{t('card_affects')}</span>
           {(() => {
@@ -156,14 +166,6 @@ export async function LawCard({
             return list.charAt(0).toLocaleUpperCase(locale) + list.slice(1);
           })()}
         </div>
-      )}
-
-      {/* What the text establishes for the reader's situation. */}
-      {forYou && (
-        <p className="law-card-for-you">
-          <span>{tProfiles('for_you')}</span>
-          {forYou}
-        </p>
       )}
 
       {/* What the text changes: symmetric facts read from the bill itself,

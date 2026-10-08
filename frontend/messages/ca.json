@@ -2280,7 +2280,10 @@
     "filter_all": "Totes",
     "filter_voted": "Ja votades",
     "filter_pending": "En tràmit",
-    "filter_empty": "Cap llei en aquest estat per ara."
+    "filter_empty": "Cap llei en aquest estat per ara.",
+    "effects_title": "Com t'afecta",
+    "effects_more": "{n, plural, one {+# situació més} other {+# situacions més}}",
+    "effects_ai": "Escrit per una IA a partir del text de la llei"
   },
   "whats_new": {
     "kicker": "Novetats",

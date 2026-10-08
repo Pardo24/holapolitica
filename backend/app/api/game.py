@@ -47,6 +47,7 @@ from app.services.game_pool import (
     reads_like_original,
     summary_lead,
 )
+from app.services.law_profiles import effects_in
 from app.services.plain_summary import looks_insufficient
 
 router = APIRouter(prefix="/game", tags=["game"])
@@ -146,6 +147,9 @@ class GameQuestion(BaseModel):
     law_summary: str
     # Its short plain title, as a headline above the summary.
     law_title: str | None = None
+    # "Com t'afecta": [[profile_key, sentence], ...], the plainest
+    # explanation of the law, shown under its title when it has one.
+    law_effects: list[list[str]] = []
     # Short theme tag (e.g. "Habitatge") for a touch of colour. Optional.
     topic: str | None = None
     prompt: str
@@ -179,6 +183,7 @@ class _RichVote(NamedTuple):
     topic_ca: str | None
     topic_es: str | None
     topic_slug: str | None = None
+    effects: list[list[str]] | None = None
 
 
 def _display_group(name_short: str) -> str:
@@ -277,6 +282,7 @@ async def game_questions(
                     Vote.result,
                     Vote.ayes,
                     Vote.noes,
+                    Initiative.profile_effects,
                     ParliamentaryGroup.name_short,
                     ParliamentaryGroup.slug,
                     ParliamentaryGroup.color_hex,
@@ -327,6 +333,7 @@ async def game_questions(
             result,
             ayes,
             noes,
+            effects,
             gshort,
             gslug,
             gcolor,
@@ -361,6 +368,7 @@ async def game_questions(
                 topic_ca=tname,
                 topic_es=tname_es,
                 topic_slug=tslug,
+                effects=effects_in(effects, lang_key),
             )
         if not by_vote:
             return {"pool": [], "meta": {}, "topics": [], "majorities": {}}
@@ -413,7 +421,7 @@ async def game_questions(
         }
 
     topic_key = topic_slug if isinstance(topic_slug, str) and topic_slug else "-"
-    payload = await cached(f"game:pool:v2:{leg_id}:{lang_key}:{topic_key}", 1800, build_pool)
+    payload = await cached(f"game:pool:v3:{leg_id}:{lang_key}:{topic_key}", 1800, build_pool)
     pool = [_RichVote(**row) for row in payload["pool"]]
     if not pool:
         return []
@@ -536,6 +544,7 @@ async def game_questions(
                 kind=kind,
                 law_summary=v.summary,
                 law_title=v.title,
+                law_effects=(v.effects or [])[:2],
                 # Don't surface the topic tag on a "which theme?" card — it
                 # would give the answer away. Shown for the other kinds.
                 topic=(

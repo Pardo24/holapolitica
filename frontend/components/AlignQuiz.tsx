@@ -8,6 +8,7 @@ import type { AlignQuestion } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { SummaryBody } from '@/components/SummaryBody';
 import { summaryHeadline } from '@/lib/plainSummary';
+import { ProfileEffectsClient, effectsItems } from '@/components/ProfileEffectsClient';
 import { pickTopicName } from '@/lib/topics';
 import { openShareSheet } from '@/lib/native';
 
@@ -531,6 +532,8 @@ export function AlignQuiz({
   const plainTitle =
     (locale.startsWith('es') ? q.plain_title_es : q.plain_title_ca) || q.plain_title_ca || q.plain_title_es;
   const pct = Math.round(((idx) / total) * 100);
+  // "Com t'afecta" explains the law best; the summary stands in without it.
+  const effects = plainTitle ? effectsItems(q.profile_effects, locale) : [];
 
   return (
     <div>
@@ -571,6 +574,11 @@ export function AlignQuiz({
           <>
             <p style={{ ...EYEBROW, marginBottom: 8 }}>{labels.question_label}</p>
             {plainTitle && <h2 className="serif align-card__title">{plainTitle}</h2>}
+            {effects.length > 0 ? (
+              <div style={{ margin: '0 0 12px' }}>
+                <ProfileEffectsClient items={effects} max={3} />
+              </div>
+            ) : (
             <div
               ref={summaryRef}
               className={plainTitle ? 'align-card__summary' : 'serif'}
@@ -602,7 +610,8 @@ export function AlignQuiz({
                   wraps both so the answer buttons stay on screen. */}
               <SummaryBody text={summary} listStyle={{ fontWeight: 500, gap: 4 }} />
             </div>
-            {clipped && (
+            )}
+            {effects.length === 0 && clipped && (
               <button
                 type="button"
                 onClick={() => setExpanded((v) => !v)}

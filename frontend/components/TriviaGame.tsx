@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { ProfileEffectsClient } from '@/components/ProfileEffectsClient';
 import { groupAbbreviation } from '@/lib/groups';
 import type { Cat, DuelQuestion } from '@/lib/triviaBank';
 import { recordResult, type TriviaStats } from '@/lib/triviaStats';
@@ -544,7 +545,13 @@ function QuestionCard({
           <div className="tg-law">
             {q.topic && <span className="tg-law__topic">{q.topic}</span>}
             {q.lawTitle && <p className="tg-law__title">{q.lawTitle}</p>}
-            <p className="tg-law__summary">{q.lawSummary}</p>
+            {/* "Com t'afecta" explains the law best; the summary stands in
+                when the law has none. */}
+            {q.lawEffects && q.lawEffects.length > 0 ? (
+              <ProfileEffectsClient items={q.lawEffects} />
+            ) : (
+              <p className="tg-law__summary">{q.lawSummary}</p>
+            )}
           </div>
         )}
 

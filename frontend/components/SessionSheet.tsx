@@ -14,6 +14,7 @@ import {
   LawCardVoteBox,
 } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
+import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
 import {
   PartyStanceMini,
   buildStanceByVote,
@@ -1066,6 +1067,8 @@ function LawVoteGroup({
   );
   const byPoints = kind === 'motions';
   const decider = fateVote(ordered);
+  // The law's "Com t'afecta" rides on its non-amendment votes.
+  const lawEffects = ordered.find((v) => v.profile_effects)?.profile_effects ?? null;
   const outcome = fateResult(ordered);
   const approvedPoints = ordered.filter((v) => v.result === 'approved').length;
   const hint = byPoints ? null : stageHintFor(decider);
@@ -1106,8 +1109,16 @@ function LawVoteGroup({
         {plainSummary && <AiMark label={cardLabels.aiSummary} />}
         {headline}
       </LawCardHeadline>
-      {pickPlainTitle(lead, locale) && plainSummary && (
-        <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+      {effectsFor(lawEffects, locale).length > 0 ? (
+        <ProfileEffects
+          effects={lawEffects}
+          locale={locale}
+          max={3}
+          moreHref={lawHref ? `${lawHref}#com-t-afecta` : undefined}
+        />
+      ) : (
+        pickPlainTitle(lead, locale) &&
+        plainSummary && <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
       )}
       {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
       {proceduralNote && (
@@ -1365,8 +1376,18 @@ function VoteRow({
         {plainSummary && <AiMark label={cardLabels.aiSummary} />}
         {headline}
       </LawCardHeadline>
-      {pickPlainTitle(vote, locale) && plainSummary && (
-        <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+      {effectsFor(vote.profile_effects, locale).length > 0 ? (
+        <ProfileEffects
+          effects={vote.profile_effects}
+          locale={locale}
+          max={3}
+          moreHref={
+            vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : voteHref
+          }
+        />
+      ) : (
+        pickPlainTitle(vote, locale) &&
+        plainSummary && <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
       )}
       {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
       {proceduralNote && (

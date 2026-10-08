@@ -21,6 +21,7 @@ import {
   type StanceLabels,
 } from '@/components/PartyStanceRow';
 import { DecreeLinkNote } from '@/components/DecreeLinkNote';
+import { ProfileEffects } from '@/components/ProfileEffects';
 import { ResultPill } from '@/components/ResultPill';
 import { FollowLawButton } from '@/components/FollowLawButton';
 import { ShareButton } from '@/components/ShareButton';
@@ -273,6 +274,10 @@ export default async function InitiativeDetailPage({
             </span>
           )}
         </div>
+
+        {/* How it affects you, every situation it touches, straight under
+            our headline: the plainest explanation of the law we have. */}
+        <ProfileEffects effects={initiative.profile_effects} locale={locale} id="com-t-afecta" />
 
         {initiative.decree_link && <DecreeLinkNote link={initiative.decree_link} />}
 

@@ -4817,3 +4817,55 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .seg-tabs > a > span { font-size: 11px; opacity: .65; }
 .seg-tabs > a.is-active { background: var(--ink); color: var(--paper); }
 .seg-tabs > a.is-active > span { opacity: .85; }
+
+/* "Com t'afecta" (components/ProfileEffects): one plain sentence per
+   everyday situation the law touches. On every law card under the
+   headline, in full on the law's page. */
+.effects {
+  margin-top: 12px;
+  padding: 12px 14px 12px;
+  border-radius: 14px;
+  background: var(--hue-lleis-soft);
+  border: 1px solid color-mix(in oklch, var(--hue-lleis) 18%, var(--paper));
+}
+.effects__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--hue-lleis-ink);
+}
+.effects__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.effects__list > li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; }
+.effects__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--hue-lleis-ink);
+  border: 1px solid color-mix(in oklch, var(--hue-lleis) 22%, var(--paper));
+}
+.effects__list p { margin: 3px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
+.effects__list strong { font-weight: 800; }
+.effects__list > li.is-first .effects__icon { background: var(--hue-lleis); color: #fff; border-color: var(--hue-lleis); }
+.effects__more {
+  display: inline-flex;
+  margin-top: 9px;
+  padding-left: 38px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--hue-lleis-ink);
+  text-decoration: none;
+}
+.effects__more:hover { text-decoration: underline; }
+/* On a game card the box sits inside an already-coloured card: a quieter
+   fill, the same reading. */
+.effects--game { margin-top: 8px; background: color-mix(in oklch, var(--hue-lleis) 7%, var(--paper)); }
+.effects--game .effects__list p { font-size: 14px; }

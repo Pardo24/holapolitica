@@ -235,6 +235,8 @@ export interface Vote {
   subgroup_title?: string | null;
   subgroup_text?: string | null;
   stage_groups?: StageGroup[];
+  /** "Com t'afecta", from the linked law (not on amendment votes). */
+  profile_effects?: Record<string, { ca?: string; es?: string }> | null;
   voted_at: string;
   result: VoteResult;
   ayes: number;
@@ -635,6 +637,8 @@ export interface GameQuestion {
   law_summary: string;
   /** The law's short plain title, as the card's headline. */
   law_title?: string | null;
+  /** "Com t'afecta": [[profile_key, sentence]], in the player's language. */
+  law_effects?: string[][];
   /** Short theme tag, e.g. "Habitatge". */
   topic: string | null;
   prompt: string;
@@ -693,6 +697,8 @@ export interface AlignQuestion {
   plain_summary_es: string | null;
   topics: AlignTopic[];
   group_positions: AlignGroupPosition[];
+  /** "Com t'afecta": {profile_key: {ca, es}}. */
+  profile_effects?: Record<string, { ca?: string; es?: string }> | null;
 }
 
 export interface LegislatureStat {
