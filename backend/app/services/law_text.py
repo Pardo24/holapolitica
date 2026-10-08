@@ -168,6 +168,10 @@ def _clean_point(item: Any) -> dict[str, str | None] | None:
     ref_s = str(ref).strip() if ref not in (None, "", "null") else None
     if ref_s and not _REF_RE.match(ref_s):
         ref_s = None
+    # The model often repeats the reference at the end of the sentence
+    # ("... custodia. Art. 92 CC"); it is shown on its own beside the point.
+    if ref_s and text.rstrip(" .").endswith(ref_s):
+        text = text.rstrip(" .")[: -len(ref_s)].rstrip(" .,;(") + "."
     return {"text": text, "ref": ref_s}
 
 

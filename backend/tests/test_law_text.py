@@ -72,3 +72,23 @@ def test_drops_editorial_points_and_misaligned_translation() -> None:
     assert [p["text"] for p in points["es"]] == ["Amplía el permiso de paternidad a 20 semanas."]
     # Lengths now match only because the editorial point went; still aligned.
     assert len(points["ca"]) == 1
+
+
+def test_reference_repeated_at_the_end_is_trimmed() -> None:
+    points, _, _ = parse_analysis(
+        _raw(
+            points_es=[
+                {
+                    "text": "Prohíbe la custodia compartida con indicios de violencia. Art. 94 CC",
+                    "ref": "Art. 94 CC",
+                }
+            ],
+            points_ca=[
+                {
+                    "text": "Prohibeix la custòdia compartida amb indicis de violència. Art. 94 CC",
+                    "ref": "Art. 94 CC",
+                }
+            ],
+        )
+    )
+    assert points["es"][0]["text"] == "Prohíbe la custodia compartida con indicios de violencia."
