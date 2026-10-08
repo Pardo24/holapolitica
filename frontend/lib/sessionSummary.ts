@@ -40,6 +40,9 @@ export function voteStage(v: Pick<Vote, 'title' | 'description'>): VoteStage {
  * rejecting them means the bill carries on.
  */
 export function stageOutcome(v: Vote): VoteResult {
+  // The Congress's vote on the Senate's changes is the law's last step:
+  // whichever changes it keeps, the law is approved.
+  if (v.stage === 'senate_amendment') return 'approved';
   if (voteStage(v) === 'totality' && v.result !== 'tie') {
     return v.result === 'approved' ? 'rejected' : 'approved';
   }

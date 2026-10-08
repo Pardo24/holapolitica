@@ -495,6 +495,12 @@ class Vote(Base, TimestampMixin):
     sequence_in_session: Mapped[int | None] = mapped_column(Integer)
     title: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
+    # Which part of the law this vote decided, verbatim from the XML's
+    # <TituloSubGrupo> / <TextoSubGrupo>: "Enmiendas presentadas por el Grupo
+    # Parlamentario X" / "Enmienda 26.", "Votación de conjunto.", "Punto 3.".
+    # See app/services/vote_stage.py.
+    subgroup_title: Mapped[str | None] = mapped_column(Text)
+    subgroup_text: Mapped[str | None] = mapped_column(Text)
     voted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
     result: Mapped[VoteResult] = mapped_column(String(20), nullable=False, index=True)
     ayes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

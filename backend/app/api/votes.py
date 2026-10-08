@@ -41,6 +41,7 @@ from app.models import (
 from app.schemas import InitiativeTopicSlug, VoteRead
 from app.services.cache import cached
 from app.services.proposing_group import resolve_proposing_group
+from app.services.vote_stage import stage_groups_for
 
 router = APIRouter(prefix="/votes", tags=["votes"])
 
@@ -690,6 +691,9 @@ def _serialize_vote(
         and vote.initiative_id in types_by_initiative
     ):
         update["initiative_type"] = types_by_initiative[vote.initiative_id]
+    signers = stage_groups_for(base.stage, vote.subgroup_title, vote.subgroup_text, groups)
+    if signers:
+        update["stage_groups"] = signers
     proposer = resolve_proposing_group(vote.description, groups)
     if proposer is not None:
         update["proposing_group_slug"] = proposer.slug

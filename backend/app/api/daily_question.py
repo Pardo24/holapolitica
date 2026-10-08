@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.models import DailyAnswerCount, Initiative, Vote
 from app.models import Session as SessionRow
+from app.services.game_pool import not_backwards
 
 router = APIRouter(prefix="/daily-question", tags=["daily-question"])
 
@@ -337,6 +338,9 @@ async def _vote_pool_ids(session: AsyncSession) -> list[int]:
             .join(Initiative, Initiative.id == Vote.initiative_id)
             .where(Vote.approved_by_assent.is_(False))
             .where(Vote.result.in_(["approved", "rejected"]))
+            # "What did the Congress decide?" must be about the law, not one
+            # of its amendments or a totality debate.
+            .where(not_backwards(include_taking=False))
             .where(
                 (Initiative.plain_summary_ca.is_not(None))
                 | (Initiative.plain_summary_es.is_not(None))

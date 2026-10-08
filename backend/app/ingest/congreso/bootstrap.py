@@ -548,7 +548,9 @@ async def classify_initiatives_by_sdg() -> dict[str, int | str]:
     return await _classify_all_initiatives_by_kind("sdg")
 
 
-async def backfill_legislature_xv(*, only_first_n: int | None = None) -> BackfillStats:
+async def backfill_legislature_xv(
+    *, only_first_n: int | None = None, refresh: bool = False
+) -> BackfillStats:
     """Backfill every plenary-vote session of legislature XV.
 
     Drives the votaciones portlet at
@@ -580,7 +582,23 @@ async def backfill_legislature_xv(*, only_first_n: int | None = None) -> Backfil
             legislature=legislature,
             legislature_id="XV",
             only_first_n=only_first_n,
+            skip_already_imported=not refresh,
         )
+
+
+async def refresh_votes_xv() -> BackfillStats:
+    """Re-import every XV sitting already in the DB, upserting in place.
+
+    For fields added to the importer after the sessions were first read
+    (e.g. the amendment subgroup, migration 0036). Idempotent; ~2 requests
+    per sitting at 1 req/s.
+    """
+    return await backfill_legislature_xv(refresh=True)
+
+
+async def refresh_votes_historical() -> list[BackfillStats]:
+    """The same re-import for legislatures X-XIV."""
+    return [await _backfill_historical(r, refresh=True) for r in ("XIV", "XIII", "XII", "XI", "X")]
 
 
 async def backfill_legislature_xv_smoke() -> BackfillStats:
@@ -684,7 +702,9 @@ _HISTORICAL_LEGISLATURES: dict[str, dict[str, str | None]] = {
 }
 
 
-async def _backfill_historical(roman: str, *, only_first_n: int | None = None) -> BackfillStats:
+async def _backfill_historical(
+    roman: str, *, only_first_n: int | None = None, refresh: bool = False
+) -> BackfillStats:
     """Generic historical-legislature backfill driver.
 
     Looks up (or creates) the Legislature row, then runs the same
@@ -719,6 +739,7 @@ async def _backfill_historical(roman: str, *, only_first_n: int | None = None) -
             legislature=leg,
             legislature_id=roman,
             only_first_n=only_first_n,
+            skip_already_imported=not refresh,
         )
 
 
@@ -1690,6 +1711,9 @@ _STEPS = {
     "backfill_xv": backfill_legislature_xv,
     "backfill_legislature_xv": backfill_legislature_xv,
     "backfill_xv_smoke": backfill_legislature_xv_smoke,
+    # Re-read sittings already imported (new importer fields, e.g. 0036).
+    "refresh_votes_xv": refresh_votes_xv,
+    "refresh_votes_historical": refresh_votes_historical,
     "backfill_xiv": backfill_legislature_xiv,
     "backfill_xiii": backfill_legislature_xiii,
     "backfill_xii": backfill_legislature_xii,

@@ -2276,7 +2276,12 @@
     "title_conductor": "If you drive",
     "label_rural": "I live in the countryside",
     "title_rural": "If you live in the countryside",
-    "see_all": "All situations ({n})"
+    "see_all": "All situations ({n})",
+    "filter_aria": "Filter by status",
+    "filter_all": "All",
+    "filter_voted": "Already voted",
+    "filter_pending": "In progress",
+    "filter_empty": "No laws in this state yet."
   },
   "whats_new": {
     "kicker": "What's new",
@@ -2294,5 +2299,29 @@
     "data_body": "Who votes with whom, what passes, how united groups vote and what each talks about.",
     "ok": "Let's go",
     "close": "Close"
+  },
+  "vote_stage": {
+    "consideration": "Taken into consideration",
+    "totality": "Amendment to the whole",
+    "amendment": "Amendment",
+    "senate_amendment": "Senate changes",
+    "final": "Final text vote",
+    "whole": "Whole-text vote",
+    "point": "Point",
+    "validation": "Validation",
+    "as_bill": "Process it as a bill",
+    "by_groups": "by {groups}",
+    "cluster_title": "{n} amendment votes",
+    "cluster_counts": "{approved} approved · {rejected} rejected",
+    "cluster_help": "Before the law itself, the chamber votes on the changes (amendments) the groups propose. A rejected amendment does not mean a rejected law: the final vote decides.",
+    "notice_title": "This vote is on an amendment, not on the law",
+    "notice_body": "It decided whether a change proposed by a group went into the text. Its result does not say whether the law passed.",
+    "notice_totality": "An amendment to the whole proposes sending the bill back or replacing its whole text. If it is rejected, the bill carries on.",
+    "notice_senate": "Congress decides whether to keep each change the Senate made. The law is approved either way.",
+    "law_final": "The law's final vote:",
+    "see_law": "See the law",
+    "whole_hint": "Organic laws need this second vote, by absolute majority (176 votes).",
+    "amendment_by": "Amendment by",
+    "on_law": "On the law:"
   }
 }

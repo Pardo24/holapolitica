@@ -50,6 +50,7 @@ from app.models import (
 )
 from app.services.cache import cached
 from app.services.groups import resolve_latest_group
+from app.services.vote_stage import is_amendment_sql, latest_first
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -275,10 +276,12 @@ async def initiatives_by_status(
                 Vote.initiative_id.label("iid"),
                 Vote.result.label("res"),
                 func.row_number()
-                .over(partition_by=Vote.initiative_id, order_by=Vote.voted_at.desc())
+                .over(partition_by=Vote.initiative_id, order_by=latest_first())
                 .label("rn"),
             )
             .where(Vote.initiative_id.is_not(None))
+            # A rejected amendment is not a rejected law.
+            .where(~is_amendment_sql())
             .subquery()
         )
         voted = (

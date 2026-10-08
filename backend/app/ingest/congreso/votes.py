@@ -117,6 +117,11 @@ class ParsedVote:
     abstentions: int
     no_votes: int  # "No vota" — present but didn't cast (or absent; the XML doesn't distinguish)
     records: list[ParsedVoteRecord]
+    # Which part of the law this vote decided (<TituloSubGrupo> /
+    # <TextoSubGrupo>): a group's amendments, the dictamen, the whole text,
+    # one point of a motion. Absent for a motion or PNL voted whole.
+    subgroup_title: str | None = None
+    subgroup_text: str | None = None
     # True for "votación por asentimiento": the chamber approved the item by
     # assent (acclamation), so the XML carries an <Asentimiento> marker and
     # NO numeric tally or per-deputy roll-call. All counts are 0 and
@@ -181,6 +186,8 @@ def parse_vote_xml(payload: bytes) -> ParsedVote:
             no_votes=0,
             records=[],
             approved_by_assent=True,
+            subgroup_title=(_text(info, "TituloSubGrupo") or "").strip() or None,
+            subgroup_text=(_text(info, "TextoSubGrupo") or "").strip() or None,
         )
 
     if items is None:
@@ -198,6 +205,8 @@ def parse_vote_xml(payload: bytes) -> ParsedVote:
         abstentions=_int(totals, "Abstenciones"),
         no_votes=_int(totals, "NoVotan"),
         records=[_parse_record(v) for v in items.findall("Votacion")],
+        subgroup_title=(_text(info, "TituloSubGrupo") or "").strip() or None,
+        subgroup_text=(_text(info, "TextoSubGrupo") or "").strip() or None,
     )
 
 
@@ -397,6 +406,8 @@ class VoteImporter:
                 sequence_in_session=parsed.vote_number,
                 title=parsed.title,
                 description=parsed.expediente_text,
+                subgroup_title=parsed.subgroup_title,
+                subgroup_text=parsed.subgroup_text,
                 voted_at=datetime.combine(parsed.voted_on, time(12, 0, tzinfo=UTC)),
                 result=parsed.result,
                 ayes=parsed.ayes,
@@ -422,6 +433,8 @@ class VoteImporter:
             # Refresh totals in case the portal republishes corrected numbers.
             vote.title = parsed.title
             vote.description = parsed.expediente_text
+            vote.subgroup_title = parsed.subgroup_title
+            vote.subgroup_text = parsed.subgroup_text
             vote.result = parsed.result
             vote.ayes = parsed.ayes
             vote.noes = parsed.noes

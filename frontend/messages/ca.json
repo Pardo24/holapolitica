@@ -2275,7 +2275,12 @@
     "title_conductor": "Si condueixes",
     "label_rural": "Visc al món rural",
     "title_rural": "Si vius al món rural",
-    "see_all": "Totes les situacions ({n})"
+    "see_all": "Totes les situacions ({n})",
+    "filter_aria": "Filtra per estat",
+    "filter_all": "Totes",
+    "filter_voted": "Ja votades",
+    "filter_pending": "En tràmit",
+    "filter_empty": "Cap llei en aquest estat per ara."
   },
   "whats_new": {
     "kicker": "Novetats",
@@ -2293,5 +2298,29 @@
     "data_body": "Qui vota amb qui, què s'aprova, com de units voten i de què parla cada grup.",
     "ok": "Som-hi",
     "close": "Tanca"
+  },
+  "vote_stage": {
+    "consideration": "Presa en consideració",
+    "totality": "Esmena a la totalitat",
+    "amendment": "Esmena",
+    "senate_amendment": "Canvis del Senat",
+    "final": "Votació del text final",
+    "whole": "Votació de conjunt",
+    "point": "Punt",
+    "validation": "Convalidació",
+    "as_bill": "Tramitar-lo com a llei",
+    "by_groups": "de {groups}",
+    "cluster_title": "{n} votacions d'esmenes",
+    "cluster_counts": "{approved} aprovades · {rejected} rebutjades",
+    "cluster_help": "Abans de votar la llei es voten els canvis (esmenes) que proposen els grups. Que una esmena es rebutgi no vol dir que la llei es rebutgi: ho decideix la votació final.",
+    "notice_title": "Aquesta votació és d'una esmena, no de la llei",
+    "notice_body": "Decidia si un canvi proposat per un grup entrava al text. El resultat no diu si la llei es va aprovar.",
+    "notice_totality": "Una esmena a la totalitat proposa retornar el projecte o canviar-ne tot el text. Si es rebutja, la llei continua el seu camí.",
+    "notice_senate": "El Congrés decideix si accepta cada canvi que hi va fer el Senat. La llei queda aprovada igualment.",
+    "law_final": "Votació final de la llei:",
+    "see_law": "Veure la llei",
+    "whole_hint": "Les lleis orgàniques necessiten aquesta segona votació, amb majoria absoluta (176 vots).",
+    "amendment_by": "Esmena de",
+    "on_law": "A la llei:"
   }
 }

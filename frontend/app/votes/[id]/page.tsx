@@ -59,6 +59,7 @@ import { displayGroupShort } from '@/lib/groups';
 import { isStubLead, parseSummary } from '@/lib/plainSummary';
 import { pickPlainTitle, pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
+import { isAmendmentStage, localizeSubgroupText } from '@/lib/voteStage';
 
 interface Params {
   id: string;
@@ -366,6 +367,22 @@ export default async function VoteDetailPage({
 
   const topics = vote.topics ?? initiative?.topics ?? [];
 
+  // A group's amendment, a totality amendment or the Senate's changes: a
+  // vote on a change TO the law. The law's own headline and summary would
+  // misstate what was decided here, so the page leads with the amendment
+  // and points to the law's final vote instead.
+  const tStage = await getTranslations('vote_stage');
+  const amendment = isAmendmentStage(vote.stage);
+  const amendmentDetail = localizeSubgroupText(vote.subgroup_text, locale);
+  const lawTitle = initiative
+    ? (pickPlainTitle(initiative, locale) ?? initiative.title_ca ?? initiative.title_original)
+    : null;
+  const lawFinalVote = amendment
+    ? [...(initiative?.votes ?? [])]
+        .filter((v) => v.stage === 'final' || v.stage === 'whole')
+        .sort((a, b) => b.voted_at.localeCompare(a.voted_at) || b.id - a.id)[0] ?? null
+    : null;
+
   return (
     <article>
       {/* Trajectory banner — same dark strip used on /initiatives/[id].
@@ -410,6 +427,11 @@ export default async function VoteDetailPage({
           }}
         >
           <Lbl style={{ fontWeight: 600, color: 'var(--ink-2)' }}>{vote.title}</Lbl>
+          {vote.stage && (
+            <span className="vote-stage-chip">
+              {vote.stage === 'point' && amendmentDetail ? amendmentDetail : tStage(vote.stage)}
+            </span>
+          )}
           {vote.expediente_raw && (
             <span className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
               EXP {vote.expediente_raw}
@@ -426,8 +448,55 @@ export default async function VoteDetailPage({
             summary keep the original subject as the headline. Sized
             down from the previous clamp(28,3.4vw,40): many subjects run
             3-4 lines and were eating half the viewport. */}
-        {summary ? (
+        {amendment ? (
+          <div className="vote-amend">
+            <h1 className="vote-amend__title">
+              {amendmentDetail ?? tStage(vote.stage ?? 'amendment')}
+            </h1>
+            {(vote.stage_groups?.length ?? 0) > 0 && (
+              <div className="vote-amend__by">
+                <span>{tStage('amendment_by')}</span>
+                {vote.stage_groups!.map((g) => (
+                  <GroupChip key={g.slug} slug={g.slug} short={g.name_short} color={g.color_hex} size="sm" />
+                ))}
+              </div>
+            )}
+            {lawTitle && initiative && (
+              <p className="vote-amend__law">
+                {tStage('on_law')}{' '}
+                <Link href={`/initiatives/${initiative.id}` as Route}>{lawTitle}</Link>
+              </p>
+            )}
+            <div className="vote-amend__notice">
+              <strong>{tStage('notice_title')}</strong>
+              <p>
+                {vote.stage === 'totality'
+                  ? tStage('notice_totality')
+                  : vote.stage === 'senate_amendment'
+                    ? tStage('notice_senate')
+                    : tStage('notice_body')}
+              </p>
+              {lawFinalVote && (
+                <Link href={`/votes/${lawFinalVote.id}` as Route} className="vote-amend__final">
+                  <span>{tStage('law_final')}</span>
+                  <ResultPill
+                    result={lawFinalVote.result}
+                    label={t(`result.${lawFinalVote.result}` as 'result.approved')}
+                  />
+                  <span className="tabular">
+                    {lawFinalVote.ayes}–{lawFinalVote.noes}
+                  </span>
+                </Link>
+              )}
+            </div>
+          </div>
+        ) : summary ? (
           <>
+            {vote.stage === 'whole' && (
+              <p className="vote-amend__hint">
+                <strong>{tStage('whole')}.</strong> {tStage('whole_hint')}
+              </p>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <AiBadge label={t('plain_summary_ai_badge')} href="/about#ia" />
             </div>
@@ -582,7 +651,7 @@ export default async function VoteDetailPage({
               </span>
             )}
           </div>
-          {(vote.proposing_group_short || vote.proposed_by_government) && (
+          {amendment && (vote.stage_groups?.length ?? 0) > 0 ? null : (vote.proposing_group_short || vote.proposed_by_government) && (
             <>
               <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--ink-3)', opacity: 0.6, display: 'inline-block' }} />
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -748,7 +817,7 @@ export default async function VoteDetailPage({
               legal text beneath it), so the old body section is gone —
               only its honesty caveat remains, as a footnote right under
               the header. */}
-          {summary && (
+          {summary && !amendment && (
             <p
               style={{
                 fontSize: 11,

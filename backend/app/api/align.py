@@ -40,7 +40,12 @@ from app.models import (
     Session as SessionRow,
 )
 from app.services.cache import cached
-from app.services.game_pool import EVERYDAY_TOPICS, MIN_EVERYDAY_POOL, not_backwards
+from app.services.game_pool import (
+    EVERYDAY_TOPICS,
+    MIN_EVERYDAY_POOL,
+    initiatives_about,
+    not_backwards,
+)
 from app.services.plain_summary import looks_insufficient
 
 router = APIRouter(prefix="/align", tags=["align"])
@@ -208,18 +213,10 @@ async def align_questions(
                 # on. It also drops the treaty ratifications, which carry no
                 # initiative and therefore no topic at all.
                 .where(
-                    Initiative.id.in_(
-                        select(InitiativeTopic.initiative_id)
-                        .join(Topic, Topic.id == InitiativeTopic.topic_id)
-                        .where(Topic.slug == topic_slug)
-                    )
+                    Initiative.id.in_(initiatives_about([topic_slug]))
                     if topic_slug
                     else (
-                        Initiative.id.in_(
-                            select(InitiativeTopic.initiative_id)
-                            .join(Topic, Topic.id == InitiativeTopic.topic_id)
-                            .where(Topic.slug.in_(EVERYDAY_TOPICS))
-                        )
+                        Initiative.id.in_(initiatives_about(EVERYDAY_TOPICS))
                         if everyday_only
                         else Initiative.id.in_(select(InitiativeTopic.initiative_id))
                     )
@@ -388,5 +385,5 @@ async def align_questions(
         return out
 
     return await cached(
-        f"align:questions:v2:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
+        f"align:questions:v3:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
     )

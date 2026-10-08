@@ -14,6 +14,16 @@ import { isProfileKey, profileIcon } from '@/lib/profiles';
 
 const PAGE_SIZE = 20;
 
+/** Which of the situation's laws to list: all, the ones the chamber has
+ *  already voted (approved or rejected), or the ones still in progress.
+ *  Same reading of "voted" as /lleis: by the law's latest decisive vote. */
+type Subset = 'all' | 'voted' | 'pending';
+const SUBSET_RESULT: Record<Subset, string | undefined> = {
+  all: undefined,
+  voted: 'approved,rejected',
+  pending: 'pending',
+};
+
 export async function generateMetadata({
   params,
 }: {
@@ -39,39 +49,82 @@ export default async function ProfilePage({
   searchParams,
 }: {
   params: Promise<{ profile: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; estat?: string }>;
 }) {
   const { profile } = await params;
   if (!isProfileKey(profile)) notFound();
   const sp = await searchParams;
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
+  const subset: Subset = sp.estat === 'votades' ? 'voted' : sp.estat === 'en-tramit' ? 'pending' : 'all';
   const t = await getTranslations('profiles');
   const locale = await getLocale();
   const Icon = profileIcon(profile);
 
-  const [data, groups, counts] = await Promise.all([
+  const countOf = (s: Subset) =>
     api.initiatives
-      .list({ profile, page, page_size: PAGE_SIZE })
+      .list({ profile, page: 1, page_size: 1, result: SUBSET_RESULT[s] })
+      .then((r) => r.total)
+      .catch(() => null);
+  const [data, groups, counts, allCount, votedCount, pendingCount] = await Promise.all([
+    api.initiatives
+      .list({ profile, page, page_size: PAGE_SIZE, result: SUBSET_RESULT[subset] })
       .catch(() => null),
     api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
     api.initiatives.profiles().catch(() => null),
+    countOf('all'),
+    countOf('voted'),
+    countOf('pending'),
   ]);
   const total = data?.total ?? 0;
   const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const pageHref = (p: number) =>
-    (p > 1 ? `/et-afecta/${profile}?page=${p}` : `/et-afecta/${profile}`) as Route;
+  const hrefFor = (s: Subset, p = 1) => {
+    const qs = new URLSearchParams();
+    const e = s === 'voted' ? 'votades' : s === 'pending' ? 'en-tramit' : null;
+    if (e) qs.set('estat', e);
+    if (p > 1) qs.set('page', String(p));
+    const q = qs.toString();
+    return (q ? `/et-afecta/${profile}?${q}` : `/et-afecta/${profile}`) as Route;
+  };
+  const pageHref = (p: number) => hrefFor(subset, p);
 
   return (
     <div>
       <PageHeader
         hue="var(--hue-lleis)"
         title={t(`title_${profile}` as 'title_jove')}
-        subtitle={total > 0 ? t('page_lede', { n: total }) : t('empty')}
+        subtitle={(allCount ?? total) > 0 ? t('page_lede', { n: allCount ?? total }) : t('empty')}
         icon={<Icon size={20} strokeWidth={1.8} aria-hidden="true" />}
       />
 
+      {(allCount ?? 0) > 0 && (
+        <div className="seg-tabs" role="tablist" aria-label={t('filter_aria')}>
+          {(
+            [
+              ['all', t('filter_all'), allCount],
+              ['voted', t('filter_voted'), votedCount],
+              ['pending', t('filter_pending'), pendingCount],
+            ] as const
+          ).map(([key, label, n]) => (
+            <Link
+              key={key}
+              href={hrefFor(key)}
+              role="tab"
+              aria-selected={subset === key}
+              className={subset === key ? 'is-active' : undefined}
+            >
+              {label}
+              {n != null && <span className="tabular">{n}</span>}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {data && data.items.length === 0 && (allCount ?? 0) > 0 && (
+        <p style={{ marginTop: 18, color: 'var(--ink-3)', fontSize: 14 }}>{t('filter_empty')}</p>
+      )}
+
       {data && data.items.length > 0 && (
-        <ul style={{ ...LAW_CARD_LIST_STYLE, marginTop: 18 }}>
+        <ul style={{ ...LAW_CARD_LIST_STYLE, marginTop: 14 }}>
           {data.items.map((i: InitiativeListItem) => (
             <LawCard
               key={i.id}

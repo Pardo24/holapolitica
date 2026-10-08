@@ -7,7 +7,7 @@ leak internal columns by accident.
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field
 
 from app.models import (
     ChamberLevel,
@@ -18,6 +18,7 @@ from app.models import (
     VoteChoice,
     VoteResult,
 )
+from app.services.vote_stage import vote_stage
 
 # ---------------------------------------------------------------------------
 # Common
@@ -253,6 +254,14 @@ class InitiativeRead(BaseModel):
     boe_entry_in_force: date | None = None
 
 
+class StageGroup(BaseModel):
+    """A group that signed the amendment a vote decided."""
+
+    slug: str
+    name_short: str
+    color_hex: str | None = None
+
+
 class InitiativeVoteSummary(BaseModel):
     """Compact vote row attached to the initiative detail response.
 
@@ -278,6 +287,17 @@ class InitiativeVoteSummary(BaseModel):
     description: str | None = None
     plain_title_ca: str | None = None
     plain_title_es: str | None = None
+    # Which part of the law it decided: a group's amendment, the final text…
+    # (verbatim from the XML; ``stage`` is derived, see vote_stage.py).
+    subgroup_title: str | None = None
+    subgroup_text: str | None = None
+    # The groups that signed the amendment, when ``stage`` is one.
+    stage_groups: list[StageGroup] = []
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def stage(self) -> str | None:
+        return vote_stage(self.title, self.description, self.subgroup_title, self.subgroup_text)
 
 
 class InitiativeTopicSlug(BaseModel):
@@ -328,6 +348,10 @@ class VoteRead(BaseModel):
     sequence_in_session: int | None = None
     title: str
     description: str | None = None
+    # See InitiativeVoteSummary: which part of the law this vote decided.
+    subgroup_title: str | None = None
+    subgroup_text: str | None = None
+    stage_groups: list[StageGroup] = []
     voted_at: datetime
     result: VoteResult
     ayes: int
@@ -363,6 +387,11 @@ class VoteRead(BaseModel):
     # declined. The list_votes handler populates this in a single bulk
     # JOIN, so it costs one extra query per page, not N+1.
     topics: list[InitiativeTopicSlug] = []
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def stage(self) -> str | None:
+        return vote_stage(self.title, self.description, self.subgroup_title, self.subgroup_text)
 
 
 class VoteRecordRead(BaseModel):

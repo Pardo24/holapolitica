@@ -43,6 +43,8 @@ import {
   type VoteKind,
 } from '@/lib/sessionSummary';
 import { pickTopicName } from '@/lib/topics';
+import { displayGroupShort } from '@/lib/groups';
+import { isAmendmentStage, localizeSubgroupText } from '@/lib/voteStage';
 
 /**
  * Plenary-session summary sheet — the canonical render for one day's
@@ -86,6 +88,7 @@ export async function SessionSheet({
   const tCommon = await getTranslations('common');
   const tLleis = await getTranslations('lleis');
   const tVotes = await getTranslations('votes');
+  const tStage = await getTranslations('vote_stage');
   // The same vote block as /lleis and the law page, so one vote reads the
   // same wherever it appears.
   const splitLabels: VoteSplitLabels = {
@@ -184,6 +187,19 @@ export async function SessionSheet({
     whyMultiple: t('law_why_multiple'),
     whyPoints: t('points_why'),
     finalTag: t('law_vote_final_tag'),
+    // Which part of the law each vote decided: "PP · Esmena 26", "Votació
+    // del text final". Without it, a law's six rejected amendments and its
+    // approved final vote were rows 01-08 with contradictory results.
+    stageLabel: (v) => {
+      if (!v.stage) return null;
+      const detail = localizeSubgroupText(v.subgroup_text, locale);
+      if (v.stage === 'point') return detail;
+      if (isAmendmentStage(v.stage)) {
+        const by = (v.stage_groups ?? []).map((g) => displayGroupShort(g.name_short)).join(', ');
+        return [by, detail ?? tStage(v.stage)].filter(Boolean).join(' · ');
+      }
+      return tStage(v.stage);
+    },
   };
   const cardLabels: CardLabels = {
     aiSummary: tLleis('card_ai_summary'),
@@ -981,6 +997,7 @@ interface GroupLabels {
   votesToggle: (n: number) => string;
   pointsToggle: (n: number) => string;
   pointLabel: (n: number) => string;
+  stageLabel: (v: Vote) => string | null;
   pointsSummary: (approved: number, total: number) => string;
   whyMultiple: string;
   whyPoints: string;
@@ -1134,7 +1151,7 @@ function LawVoteGroup({
             <SubVote
               key={v.id}
               vote={v}
-              label={byPoints ? labels.pointLabel(i + 1) : null}
+              label={byPoints ? labels.pointLabel(i + 1) : labels.stageLabel(v)}
               ayesLabel={labels.ayes}
               noesLabel={labels.noes}
               resultLabel={outcomeLabelFor(v)}

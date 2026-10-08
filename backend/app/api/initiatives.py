@@ -43,6 +43,12 @@ from app.services.affected import normalise_audience_tag
 from app.services.cache import cached
 from app.services.law_profiles import PROFILES
 from app.services.law_text import CHANGE_TAGS
+from app.services.vote_stage import (
+    is_amendment_sql,
+    latest_first,
+    stage_groups_for,
+    vote_stage,
+)
 
 router = APIRouter(prefix="/initiatives", tags=["initiatives"])
 
@@ -268,8 +274,11 @@ async def list_initiatives(
             title_lc.like("debate de totalidad%"), title_lc.like("debates de totalidad%")
         )
         is_taking = title_lc.like("toma en consideraci%")
-        # The SQL twin of _initiative_verdict: NULL = still in progress.
+        # The SQL twin of _initiative_verdict: NULL = still in progress. The
+        # vote on the Senate's changes is the law's last step: approved
+        # whichever changes it keeps.
         verdict = case(
+            (title_lc.like("enmiendas del senado%"), "approved"),
             (and_(is_totality, Vote.result == "rejected"), None),
             (and_(is_totality, Vote.result == "approved"), "rejected"),
             (and_(is_taking, Vote.result == "approved"), None),
@@ -280,13 +289,12 @@ async def list_initiatives(
                 Vote.initiative_id.label("iid"),
                 verdict.label("res"),
                 func.row_number()
-                .over(
-                    partition_by=Vote.initiative_id,
-                    order_by=Vote.voted_at.desc(),
-                )
+                .over(partition_by=Vote.initiative_id, order_by=latest_first())
                 .label("rn"),
             )
             .where(Vote.initiative_id.is_not(None))
+            # Amendments are votes on changes TO the law, not on the law.
+            .where(~is_amendment_sql())
             .subquery()
         )
         decided = [r for r in results if r != "pending"]
@@ -401,13 +409,11 @@ async def list_initiatives(
                 Vote.noes.label("noes"),
                 Vote.approved_by_assent.label("by_assent"),
                 func.row_number()
-                .over(
-                    partition_by=Vote.initiative_id,
-                    order_by=(Vote.voted_at.desc(), Vote.id.desc()),
-                )
+                .over(partition_by=Vote.initiative_id, order_by=latest_first())
                 .label("rn"),
             )
             .where(Vote.initiative_id.is_not(None))
+            .where(~is_amendment_sql())
             .subquery()
         )
         on_last = and_(last_vote.c.iid == Initiative.id, last_vote.c.rn == 1)
@@ -577,13 +583,39 @@ async def _load_latest_vote(
                 Vote.abstentions,
                 Vote.absent,
                 Vote.approved_by_assent,
+                Vote.description,
+                Vote.subgroup_title,
+                Vote.subgroup_text,
             )
             .where(Vote.initiative_id.in_(initiative_ids))
-            .order_by(Vote.voted_at.desc())
+            # Every vote of a sitting carries the same noon timestamp, so the
+            # order within the day is the session's own: sequence, then id.
+            # Ordering by the date alone picked an arbitrary vote of the day,
+            # often an amendment, as "the" vote of the law.
+            .order_by(*latest_first())
         )
     ).all()
 
     latest: dict[int, dict[str, Any]] = {}
+    chosen: dict[int, Any] = {}
+    newest_any: dict[int, Any] = {}
+    for row in rows:
+        initiative_id = row[1]
+        if initiative_id is None:
+            continue
+        newest_any.setdefault(initiative_id, row)
+        if initiative_id in chosen:
+            continue
+        # A group's amendment is a vote on a change TO the law, not on the
+        # law: its result says nothing about how the law ended. Skip them,
+        # unless they are all the law has (then the latest one stands).
+        if vote_stage(row[3], row[10], row[11], row[12]) == "amendment":
+            continue
+        chosen[initiative_id] = row
+    for initiative_id, row in newest_any.items():
+        chosen.setdefault(initiative_id, row)
+    picked = list(chosen.values())
+
     for (
         vote_id,
         initiative_id,
@@ -595,11 +627,16 @@ async def _load_latest_vote(
         abst,
         absent,
         by_assent,
-    ) in rows:
-        if initiative_id is None or initiative_id in latest:
-            continue  # ordered latest-first, so the first row wins
+        description,
+        subgroup_title,
+        subgroup_text,
+    ) in picked:
         stage = _vote_stage(title)
         raw = str(result) if result is not None else None
+        # The Congress's vote on the Senate's changes is the law's last step:
+        # whichever changes it keeps, the law is approved.
+        if vote_stage(title, description, subgroup_title, subgroup_text) == "senate_amendment":
+            raw = "approved"
         latest[initiative_id] = {
             # The procedural stage of this vote, so a card can say what
             # was voted ("amendments to the whole text") next to a verdict
@@ -818,9 +855,17 @@ async def get_initiative(
     # adding the joined collections. Pydantic builds the response model
     # from `model_validate` so the from_attributes config applies.
     base = InitiativeRead.model_validate(row)
+    all_groups = list((await session.execute(select(ParliamentaryGroup))).scalars().all())
+    vote_rows = []
+    for v in votes:
+        summary = InitiativeVoteSummary.model_validate(v)
+        signers = stage_groups_for(summary.stage, v.subgroup_title, v.subgroup_text, all_groups)
+        vote_rows.append(
+            summary.model_copy(update={"stage_groups": signers}) if signers else summary
+        )
     return InitiativeDetail(
         **base.model_dump(),
-        votes=[InitiativeVoteSummary.model_validate(v) for v in votes],
+        votes=vote_rows,
         topics=[InitiativeTopicSlug.model_validate(t) for t in topic_rows],
         decree_link=(await _load_decree_links(session, [row])).get(row.id),
     )

@@ -84,7 +84,7 @@ export async function HomeQuickGrid({
       {tiles.map(({ href, Icon, hue, title, sub }) => (
         <Link key={href} href={href as Route} className="home-grid__tile" style={{ ['--tile' as string]: hue }}>
           <span className="home-grid__icon" aria-hidden="true">
-            <Icon size={19} strokeWidth={1.9} />
+            <Icon size={22} strokeWidth={2.1} />
           </span>
           <span className="home-grid__title">{title}</span>
           <span className="home-grid__sub">{sub}</span>

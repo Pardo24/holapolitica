@@ -2276,7 +2276,12 @@
     "title_conductor": "Si conduces",
     "label_rural": "Vivo en el medio rural",
     "title_rural": "Si vives en el medio rural",
-    "see_all": "Todas las situaciones ({n})"
+    "see_all": "Todas las situaciones ({n})",
+    "filter_aria": "Filtrar por estado",
+    "filter_all": "Todas",
+    "filter_voted": "Ya votadas",
+    "filter_pending": "En trámite",
+    "filter_empty": "Ninguna ley en este estado por ahora."
   },
   "whats_new": {
     "kicker": "Novedades",
@@ -2294,5 +2299,29 @@
     "data_body": "Quién vota con quién, qué se aprueba, cómo de unidos votan y de qué habla cada grupo.",
     "ok": "Vamos",
     "close": "Cerrar"
+  },
+  "vote_stage": {
+    "consideration": "Toma en consideración",
+    "totality": "Enmienda a la totalidad",
+    "amendment": "Enmienda",
+    "senate_amendment": "Cambios del Senado",
+    "final": "Votación del texto final",
+    "whole": "Votación de conjunto",
+    "point": "Punto",
+    "validation": "Convalidación",
+    "as_bill": "Tramitarlo como ley",
+    "by_groups": "de {groups}",
+    "cluster_title": "{n} votaciones de enmiendas",
+    "cluster_counts": "{approved} aprobadas · {rejected} rechazadas",
+    "cluster_help": "Antes de votar la ley se votan los cambios (enmiendas) que proponen los grupos. Que una enmienda se rechace no significa que la ley se rechace: lo decide la votación final.",
+    "notice_title": "Esta votación es de una enmienda, no de la ley",
+    "notice_body": "Decidía si un cambio propuesto por un grupo entraba en el texto. El resultado no dice si la ley se aprobó.",
+    "notice_totality": "Una enmienda a la totalidad propone devolver el proyecto o cambiar todo su texto. Si se rechaza, la ley sigue su camino.",
+    "notice_senate": "El Congreso decide si acepta cada cambio que hizo el Senado. La ley queda aprobada igualmente.",
+    "law_final": "Votación final de la ley:",
+    "see_law": "Ver la ley",
+    "whole_hint": "Las leyes orgánicas necesitan esta segunda votación, con mayoría absoluta (176 votos).",
+    "amendment_by": "Enmienda de",
+    "on_law": "A la ley:"
   }
 }

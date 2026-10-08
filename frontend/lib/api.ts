@@ -230,6 +230,11 @@ export interface Vote {
   sequence_in_session: number | null;
   title: string;
   description: string | null;
+  /** Which part of the law this vote decided (see lib/voteStage.ts). */
+  stage?: VoteStageKey | null;
+  subgroup_title?: string | null;
+  subgroup_text?: string | null;
+  stage_groups?: StageGroup[];
   voted_at: string;
   result: VoteResult;
   ayes: number;
@@ -800,6 +805,32 @@ export interface InitiativeVoteSummary {
   description?: string | null;
   plain_title_ca?: string | null;
   plain_title_es?: string | null;
+  /** Which part of the law this vote decided (see lib/voteStage.ts). */
+  stage?: VoteStageKey | null;
+  subgroup_title?: string | null;
+  subgroup_text?: string | null;
+  stage_groups?: StageGroup[];
+}
+
+/** What a single vote decided within its law, derived server-side from the
+ *  vote XML's subgroup lines: a group's amendment, the final text, the
+ *  organic-law whole-text vote, one point of a motion… */
+export type VoteStageKey =
+  | 'consideration'
+  | 'totality'
+  | 'amendment'
+  | 'senate_amendment'
+  | 'final'
+  | 'whole'
+  | 'point'
+  | 'validation'
+  | 'as_bill';
+
+/** A group that signed the amendment a vote decided. */
+export interface StageGroup {
+  slug: string;
+  name_short: string;
+  color_hex: string | null;
 }
 
 export interface InitiativeTopicSlug {

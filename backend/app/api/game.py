@@ -41,6 +41,8 @@ from app.services.cache import cached
 from app.services.game_pool import (
     EVERYDAY_TOPICS,
     MIN_EVERYDAY_POOL,
+    TOPIC_MIN_CONFIDENCE,
+    initiatives_about,
     not_backwards,
     reads_like_original,
     summary_lead,
@@ -249,23 +251,18 @@ async def game_questions(
             )
             .join(Topic, Topic.id == InitiativeTopic.topic_id)
             .where(Topic.kind == "theme")
+            # Only what the law is mainly about: "which topic is this?" must
+            # not have a side measure as its answer.
+            .where(InitiativeTopic.confidence >= TOPIC_MIN_CONFIDENCE)
             .subquery()
         )
 
         def pool_query(everyday_only: bool) -> Select[Any]:
             topic_filter = (
-                Initiative.id.in_(
-                    select(InitiativeTopic.initiative_id)
-                    .join(Topic, Topic.id == InitiativeTopic.topic_id)
-                    .where(Topic.slug == topic_slug)
-                )
+                Initiative.id.in_(initiatives_about([topic_slug]))
                 if topic_slug
                 else (
-                    Initiative.id.in_(
-                        select(InitiativeTopic.initiative_id)
-                        .join(Topic, Topic.id == InitiativeTopic.topic_id)
-                        .where(Topic.slug.in_(EVERYDAY_TOPICS))
-                    )
+                    Initiative.id.in_(initiatives_about(EVERYDAY_TOPICS))
                     if everyday_only
                     else sa_true()
                 )
@@ -416,7 +413,7 @@ async def game_questions(
         }
 
     topic_key = topic_slug if isinstance(topic_slug, str) and topic_slug else "-"
-    payload = await cached(f"game:pool:v1:{leg_id}:{lang_key}:{topic_key}", 1800, build_pool)
+    payload = await cached(f"game:pool:v2:{leg_id}:{lang_key}:{topic_key}", 1800, build_pool)
     pool = [_RichVote(**row) for row in payload["pool"]]
     if not pool:
         return []
