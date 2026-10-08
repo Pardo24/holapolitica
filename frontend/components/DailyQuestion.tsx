@@ -136,7 +136,10 @@ export function DailyQuestion({ locale, labels }: { locale: string; labels: Dail
     }
   }
 
-  const today = new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  const todayRaw = new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  // Only the first letter up ("Dijous, 8 d'octubre"): a CSS capitalize
+  // also raised the d' of "d'octubre".
+  const today = todayRaw.charAt(0).toLocaleUpperCase(locale) + todayRaw.slice(1);
   const hero = (
     <header className="dq-hero">
       <span className="dq-hero__date">
