@@ -13,10 +13,11 @@ export interface TriviaStats {
 const KEY = 'hp_trivia_stats_v1';
 const EMPTY: TriviaStats = { best: 0, streak: 0, lastDaily: null };
 
-function ymd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate(),
-  ).padStart(2, '0')}`;
+/** The question's day, as the server counts it: the UTC date. The daily
+ *  question changes at midnight UTC (backend api/daily_question.py), so the
+ *  streak turns over at the same moment instead of at local midnight. */
+export function ymd(d: Date): string {
+  return d.toISOString().slice(0, 10);
 }
 
 export function readStats(): TriviaStats {

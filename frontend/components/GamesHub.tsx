@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { ArrowRight, CalendarDays, CheckCircle2, Flame, Play, Trophy, Users } from 'lucide-react';
 
-import { readStats } from '@/lib/triviaStats';
+import { readStats, ymd } from '@/lib/triviaStats';
 
 /**
  * The games hub: a place to come back to, not a list of links.
@@ -23,9 +23,6 @@ import { readStats } from '@/lib/triviaStats';
 /** The Trivia wheel's categories, in their game colours (TriviaGame). */
 const WHEEL = ['#1D9E75', '#7F77DD', '#378ADD', '#EF9F27', '#E0B341'];
 
-function ymd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 export function GamesHub() {
   const t = useTranslations('jocs');
