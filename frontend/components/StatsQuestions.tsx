@@ -29,6 +29,9 @@ import { pickTopicName } from '@/lib/topics';
  * size (seats), never by the score being shown, so no card reads as a
  * ranking of parties.
  */
+/** Initiatives a group must have tabled on a topic for it to define them. */
+const MIN_DISTINCTIVE = 5;
+
 const STATUS_ORDER = ['approved', 'rejected', 'in_debate', 'submitted', 'withdrawn', 'expired'];
 
 export async function StatsQuestions({
@@ -120,8 +123,9 @@ export async function StatsQuestions({
   // Q4: the subject each group tables more of than the chamber does, in
   // proportion: its share of a topic over the topic's share of everything
   // the current groups tabled. "Most proposed" alone said "economy" for
-  // nearly everyone. A topic needs a few initiatives to count, so one bill
-  // can't make a group's profile.
+  // nearly everyone. A topic needs MIN_DISTINCTIVE initiatives to count, so
+  // a handful of bills can't make a group's profile; a group with none that
+  // reaches it shows a dash rather than a guess.
   const themeSlugs = new Set(allTopics.filter((tp) => tp.kind !== 'sdg').map((tp) => tp.slug));
   const chamber = new Map<string, number>();
   let chamberTotal = 0;
@@ -138,7 +142,7 @@ export async function StatsQuestions({
     const own = rows.reduce((n, r) => n + r.count, 0);
     let best: { row: ProposesByTopicStat; score: number } | null = null;
     for (const r of rows) {
-      if (r.count < 3 || own === 0 || chamberTotal === 0) continue;
+      if (r.count < MIN_DISTINCTIVE || own === 0 || chamberTotal === 0) continue;
       const score = r.count / own / ((chamber.get(r.topic_slug) ?? 1) / chamberTotal);
       if (!best || score > best.score) best = { row: r, score };
     }
@@ -245,7 +249,9 @@ export async function StatsQuestions({
                         {name}
                       </span>
                     ) : (
-                      <span className="sq-row__value">-</span>
+                      <span className="sq-note" style={{ margin: 0, gridColumn: '3 / -1' }}>
+                        {t('q4_too_few')}
+                      </span>
                     )}
                   </Link>
                 </li>

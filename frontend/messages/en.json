@@ -2161,6 +2161,7 @@
     "explore_topic": "By topic",
     "explore_group": "By group",
     "close": "Close",
-    "q3_lede_bloc": "{n} of {total} groups vote as a bloc more than 99% of the time."
+    "q3_lede_bloc": "{n} of {total} groups vote as a bloc more than 99% of the time.",
+    "q4_too_few": "Too few initiatives to tell"
   }
 }

@@ -2161,6 +2161,7 @@
     "explore_topic": "Por tema",
     "explore_group": "Por grupo",
     "close": "Cerrar",
-    "q3_lede_bloc": "{n} de {total} grupos votan en bloque más del 99% de las veces."
+    "q3_lede_bloc": "{n} de {total} grupos votan en bloque más del 99% de las veces.",
+    "q4_too_few": "Demasiadas pocas iniciativas para decirlo"
   }
 }

@@ -2160,6 +2160,7 @@
     "explore_topic": "Per tema",
     "explore_group": "Per grup",
     "close": "Tanca",
-    "q3_lede_bloc": "{n} de {total} grups voten en bloc més del 99% de les vegades."
+    "q3_lede_bloc": "{n} de {total} grups voten en bloc més del 99% de les vegades.",
+    "q4_too_few": "Massa poques iniciatives per dir-ho"
   }
 }
