@@ -1,5 +1,12 @@
 # Publicar Hola Política a Google Play — runbook (Windows)
 
+> **Camí recomanat ara:** el workflow de GitHub Actions (vegeu
+> [store-submission.md](store-submission.md)), que fa l'AAB signat sense
+> necessitar Android Studio ni el JDK correcte en local. Aquesta guia queda
+> com a alternativa manual. Sigui com sigui, cal
+> `android/app/google-services.json`: sense ell la build de release es nega
+> a compilar (l'app petaria en activar les notificacions).
+
 Aquesta guia et porta de zero a l'app publicada a Play. L'app és una closca
 Capacitor que carrega `https://www.holapolitica.org` dins d'un WebView: **no hi ha
 UI duplicada**, i cada desplegament del web actualitza l'app sense passar per
@@ -7,7 +14,7 @@ revisió. Només empaquetes aquesta closca un cop.
 
 - **App id (permanent):** `org.holapolitica.app`
 - **Nom a la botiga:** Hola Política
-- **targetSdk:** 35 (exigit per Play)
+- **targetSdk:** 36 (exigit per Play des del 31/8/2026)
 
 > Cada pas marcat **[TU]** el fas tu; el codi ja està preparat al repo.
 

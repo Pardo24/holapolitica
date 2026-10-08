@@ -71,6 +71,17 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
+// A release without Firebase config crashes as soon as the site asks for
+// notifications (the push plugin's register() needs a FirebaseApp), so
+// refuse to build one. Debug builds still work without it.
+tasks.matching { it.name in ['bundleRelease', 'assembleRelease'] }.configureEach {
+    doFirst {
+        if (!file('google-services.json').exists()) {
+            throw new GradleException('mobile/android/app/google-services.json is missing: a release without it crashes on push registration. See mobile/docs/store-submission.md section 3.')
+        }
+    }
+}
+
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {

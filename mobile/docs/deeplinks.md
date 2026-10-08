@@ -30,7 +30,6 @@ the WebView loads them directly:
 ```xml
 <key>com.apple.developer.associated-domains</key>
 <array>
-  <string>applinks:holapolitica.org</string>
   <string>applinks:www.holapolitica.org</string>
 </array>
 ```
@@ -199,18 +198,13 @@ Two ways to decide this before submitting:
 
 ## Handling deep links in the WebView
 
-Capacitor's `@capacitor/app` plugin fires an `appUrlOpen` event when the
-OS hands us a URL. The wrapper just forwards it to the WebView:
+The WebView always boots at the home page; the OS only hands the URL to the
+App plugin. `onDeepLink()` in `frontend/lib/native.ts` (mounted through
+`NativePushBridge`) routes both the URL the app was cold-started with
+(`App.getLaunchUrl()`, once per app session) and links opened while it runs
+(`appUrlOpen`) to the matching page. It ignores any host other than
+`www.holapolitica.org` / `holapolitica.org`.
 
-```ts
-import { App } from '@capacitor/app';
-
-App.addListener('appUrlOpen', ({ url }) => {
-  // Strip the origin, push the path into the SPA router.
-  const u = new URL(url);
-  window.location.assign(u.pathname + u.search + u.hash);
-});
-```
-
-This snippet, like the push registration, lives in the **frontend** code
-behind a `Capacitor.isNativePlatform()` guard.
+The app now claims only `www.holapolitica.org` (entitlement and manifest):
+the apex redirects, so it can never verify, and on Android 11 and older one
+unverifiable host in an `autoVerify` filter makes the whole filter fail.
