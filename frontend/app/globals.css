@@ -3569,16 +3569,21 @@ summary.change-chip { cursor: pointer; }
 @media (max-width: 640px) {
   .home-grid {
     gap: 10px;
-    grid-auto-rows: clamp(
-      64px,
-      calc((100svh - 230px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 3),
-      124px
+    /* A floor from the screen height, but never a ceiling: a title that
+       wraps on a small phone makes its row a little taller rather than
+       cutting the line under it in half. */
+    grid-auto-rows: minmax(
+      clamp(
+        64px,
+        calc((100svh - 230px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 3),
+        124px
+      ),
+      auto
     );
   }
   .home-grid .home-grid__tile {
     justify-content: space-between;
     padding: 11px 12px 12px;
-    overflow: hidden;
   }
   .home-grid__icon { width: 34px; height: 34px; margin-bottom: 6px; }
   .home-grid__title { font-size: clamp(13.5px, 4vw, 15px); }
@@ -3615,3 +3620,17 @@ summary.change-chip { cursor: pointer; }
 }
 .appbar__brandtext { overflow: hidden; }
 .appbar__name, .appbar__motto { overflow: hidden; text-overflow: ellipsis; }
+
+/* Law card: the sparkle that marks a machine-written headline, inline
+   before its first word, in the accent so it reads as a mark, not a dot. */
+.law-card-ai {
+  display: inline-block;
+  vertical-align: -1px;
+  margin-right: 6px;
+  color: var(--accent);
+}
+
+/* Shorter phones: one line of subtitle, so the three rows keep fitting. */
+@media (max-width: 640px) and (max-height: 760px) {
+  .home-grid__sub { -webkit-line-clamp: 1; }
+}

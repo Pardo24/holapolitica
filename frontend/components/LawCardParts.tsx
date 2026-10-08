@@ -60,9 +60,9 @@ export function LawCardTopLine({ children, outcome }: { children: ReactNode; out
 /** The plain-language headline, clamped to three lines. */
 export function LawCardHeadline({ href, children }: { href: Route | null; children: ReactNode }) {
   const style: CSSProperties = {
-    fontSize: 'clamp(16px, 2.1vw, 19px)',
-    fontWeight: 600,
-    lineHeight: 1.4,
+    fontSize: 'clamp(17px, 2.2vw, 20px)',
+    fontWeight: 700,
+    lineHeight: 1.32,
     color: 'var(--ink)',
     textDecoration: 'none',
     letterSpacing: '-0.01em',
