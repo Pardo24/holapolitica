@@ -9,14 +9,17 @@
  * nothing on the web — it only lights up inside the iOS/Android shell.
  *
  * What it does inside the app:
- *   1. Requests notification permission and registers with APNs/FCM,
- *      caching the device token (see lib/native.ts).
+ *   1. If notifications were already allowed, registers with APNs/FCM and
+ *      caches the device token (see lib/native.ts). It never shows the OS
+ *      prompt at launch: the notifications page asks, in context.
  *   2. Posts the token to ``/push/devices`` so the backend can deliver
  *      native pushes to it. Interests start empty; the notifications
  *      page lets the user pick topics, which re-registers the same token
  *      with those interests (idempotent upsert).
  *   3. On a notification tap, navigates to the ``data.url`` the backend
  *      FCM sender attached — so tapping a vote push opens that vote.
+ *   4. Routes Universal Links / App Links (the URL the app was opened
+ *      with) to their page, since the WebView always boots at home.
  *
  * Renders nothing.
  */
@@ -25,7 +28,13 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { api } from '@/lib/api';
-import { isNativeApp, nativePlatform, onPushTap, registerForPush } from '@/lib/native';
+import {
+  isNativeApp,
+  nativePlatform,
+  onDeepLink,
+  onPushTap,
+  registerForPushIfGranted,
+} from '@/lib/native';
 
 export function NativePushBridge(): null {
   const router = useRouter();
@@ -39,7 +48,7 @@ export function NativePushBridge(): null {
     // start: the row exists and taps route correctly; the notifications
     // page fills in which topics should actually fire a push.
     void (async () => {
-      const token = await registerForPush();
+      const token = await registerForPushIfGranted();
       if (disposed || !token) return;
       try {
         await api.push.registerDevice({
@@ -64,9 +73,14 @@ export function NativePushBridge(): null {
       }
     });
 
+    const offLinks = onDeepLink((path) => {
+      router.push(path as Parameters<typeof router.push>[0]);
+    });
+
     return () => {
       disposed = true;
       off();
+      offLinks();
     };
   }, [router]);
 

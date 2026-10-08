@@ -2,16 +2,14 @@
 <!--
   iOS entitlements for Hola Política.
 
-  - aps-environment             enables APNs. Set to 'production' for App
-                                Store builds; Xcode auto-switches when
-                                building with a production provisioning
-                                profile.
-  - com.apple.developer.associated-domains
-                                enables Universal Links. The 'applinks:'
-                                prefix tells iOS to fetch
-                                https://holapolitica.org/.well-known/apple-app-site-association
-                                and route matching URLs to the app.
-                                See mobile/docs/deeplinks.md.
+  - aps-environment   enables APNs. Xcode rewrites it to 'production' when
+                      the archive is exported with the App Store profile.
+  - associated-domains
+                      Universal Links: iOS fetches
+                      https://www.holapolitica.org/.well-known/apple-app-site-association
+                      and opens matching links in the app. www only: the
+                      apex 307-redirects and Apple never follows redirects
+                      for this file. See mobile/docs/deeplinks.md.
 -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -20,7 +18,6 @@
     <string>development</string>
     <key>com.apple.developer.associated-domains</key>
     <array>
-        <string>applinks:holapolitica.org</string>
         <string>applinks:www.holapolitica.org</string>
     </array>
 </dict>

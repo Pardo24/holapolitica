@@ -26,10 +26,11 @@ const TARGET_URL = process.env.MOBILE_TARGET_URL ?? PRODUCTION_URL;
 const config: CapacitorConfig = {
   appId: 'org.holapolitica.app',
   appName: 'Hola Política',
-  // Capacitor still requires a webDir even when using a remote server.url;
-  // it is used as the fallback bundle when the network is unavailable.
+  // Capacitor still requires a webDir even when using a remote server.url.
+  // It ships inside the binary, so www/offline.html is what the app shows
+  // when the site can't be reached (no network, DNS, TLS, 5xx at launch)
+  // instead of a blank WebView. See server.errorPath below.
   webDir: 'www',
-  bundledWebRuntime: false,
 
   server: {
     url: TARGET_URL,
@@ -41,6 +42,9 @@ const config: CapacitorConfig = {
       'holapolitica.org',
       '*.holapolitica.org',
     ],
+    // Local file (relative to webDir) loaded when the main frame fails to
+    // load. Both platforms serve it from the bundled www/, never the network.
+    errorPath: 'offline.html',
   },
 
   ios: {
@@ -48,9 +52,11 @@ const config: CapacitorConfig = {
     // paper colour from frontend/public/icon.svg.
     backgroundColor: '#fbf9f4',
     contentInset: 'always',
-    // Disables the rubber-band bounce so the wrapper feels less "webby".
     scrollEnabled: true,
-    limitsNavigationsToAppBoundDomains: true,
+    // limitsNavigationsToAppBoundDomains is deliberately left off: with it
+    // on, WebKit refuses every domain not listed under WKAppBoundDomains and
+    // skips Capacitor's injected bridge there, which is a blank app at best.
+    // allowNavigation above already keeps navigation on our domain.
   },
 
   android: {

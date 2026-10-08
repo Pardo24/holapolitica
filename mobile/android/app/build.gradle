@@ -29,7 +29,9 @@ android {
         applicationId "org.holapolitica.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        // CI passes VERSION_CODE (the workflow run number) so every upload to
+        // Play gets a fresh, increasing code; local builds fall back to 1.
+        versionCode((System.getenv('VERSION_CODE') ?: '1') as Integer)
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

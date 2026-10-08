@@ -11,7 +11,9 @@
  * We talk to the bridge through `window.Capacitor` directly rather than
  * depending on the `@capacitor/*` npm packages, so the web build stays
  * free of native dependencies. The plugin API surface we use is tiny and
- * stable (PushNotifications: requestPermissions / register / addListener).
+ * stable: PushNotifications (permissions / register / listeners), App
+ * (appUrlOpen / getLaunchUrl, for Universal Links and App Links) and Share
+ * (the OS share sheet, which the Android WebView lacks as navigator.share).
  */
 
 interface CapacitorPluginResult {
@@ -29,10 +31,29 @@ interface PushPlugin {
     cb: (data: unknown) => void,
   ): Promise<{ remove: () => void }> | { remove: () => void };
 }
+interface AppPlugin {
+  addListener(
+    event: 'appUrlOpen',
+    cb: (data: { url?: string }) => void,
+  ): Promise<{ remove: () => void }> | { remove: () => void };
+  getLaunchUrl(): Promise<{ url?: string } | undefined>;
+}
+interface ShareOptions {
+  title?: string;
+  text?: string;
+  url?: string;
+}
+interface SharePlugin {
+  share(options: ShareOptions & { dialogTitle?: string }): Promise<unknown>;
+}
 interface CapacitorBridge {
   isNativePlatform?: () => boolean;
   getPlatform?: () => string;
-  Plugins?: { PushNotifications?: PushPlugin } & Record<string, unknown>;
+  Plugins?: {
+    PushNotifications?: PushPlugin;
+    App?: AppPlugin;
+    Share?: SharePlugin;
+  } & Record<string, unknown>;
 }
 
 declare global {
@@ -116,6 +137,23 @@ export function registerForPush(): Promise<string | null> {
 }
 
 /**
+ * Register silently at launch, but only if the user already granted
+ * notifications earlier. Never shows the OS prompt: that is asked in context,
+ * from the notifications page, when the user turns alerts on.
+ */
+export async function registerForPushIfGranted(): Promise<string | null> {
+  const plugin = pushPlugin();
+  if (!isNativeApp() || !plugin) return null;
+  try {
+    const perm = await plugin.checkPermissions();
+    if (perm.receive !== 'granted') return null;
+  } catch {
+    return null;
+  }
+  return registerForPush();
+}
+
+/**
  * Subscribe to notification taps. The callback receives the deep-link
  * URL carried in the notification's ``data.url`` (set by the backend
  * FCM sender), so a tap can route straight to the vote/topic. Returns a
@@ -132,6 +170,80 @@ export function onPushTap(cb: (url: string) => void): () => void {
   return () => {
     void Promise.resolve(handle).then((h) => h?.remove?.());
   };
+}
+
+// Universal Links / App Links. The OS opens the app with a site URL, but
+// the WebView always boots at the home page: the shell only reports the URL
+// (App plugin), so the page has to route to it.
+const SITE_HOSTS = new Set(['www.holapolitica.org', 'holapolitica.org']);
+const LAUNCH_URL_KEY = 'hp:launch-url-handled';
+
+function sitePath(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' || !SITE_HOSTS.has(u.hostname)) return null;
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Call ``cb`` with the in-site path of every link that opens the app: the
+ * one it was cold-started with (once per app session) and any opened while
+ * it runs. Returns a disposer; no-op off-native.
+ */
+export function onDeepLink(cb: (path: string) => void): () => void {
+  const plugin = bridge()?.Plugins?.App;
+  if (!isNativeApp() || !plugin) return () => {};
+
+  const go = (url: string | undefined) => {
+    const path = sitePath(url);
+    if (!path) return;
+    const here = window.location.pathname + window.location.search + window.location.hash;
+    if (path !== here) cb(path);
+  };
+
+  // The launch URL stays the same for the whole process, so only act on it
+  // the first time; a later full reload must not jump back to it.
+  let handled = false;
+  try {
+    handled = sessionStorage.getItem(LAUNCH_URL_KEY) === '1';
+    sessionStorage.setItem(LAUNCH_URL_KEY, '1');
+  } catch {
+    /* storage blocked: route it anyway */
+  }
+  if (!handled) {
+    void plugin
+      .getLaunchUrl()
+      .then((r) => go(r?.url))
+      .catch(() => {});
+  }
+
+  const handle = plugin.addListener('appUrlOpen', (data) => go(data?.url));
+  return () => {
+    void Promise.resolve(handle).then((h) => h?.remove?.());
+  };
+}
+
+/**
+ * Open the OS share sheet: the native one inside the app (Android's WebView
+ * has no navigator.share), the Web Share API in browsers that have it.
+ * Resolves false when neither exists so the caller can copy instead; rejects
+ * when the user dismisses the sheet, like navigator.share does.
+ */
+export async function openShareSheet(data: ShareOptions): Promise<boolean> {
+  const plugin = bridge()?.Plugins?.Share;
+  if (isNativeApp() && plugin) {
+    await plugin.share(data);
+    return true;
+  }
+  if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+    await navigator.share(data);
+    return true;
+  }
+  return false;
 }
 
 export type { CapacitorPluginResult };

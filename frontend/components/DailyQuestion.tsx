@@ -7,6 +7,7 @@ import { CalendarDays, Check, Flame, X } from 'lucide-react';
 
 import { api, type DailyAnswer, type DailyQuestion as DQ } from '@/lib/api';
 import { answeredDailyToday, readStats, recordDailyAnswered } from '@/lib/triviaStats';
+import { openShareSheet } from '@/lib/native';
 
 /**
  * "La pregunta del dia" — the site's flagship daily ritual, answerable right on
@@ -106,8 +107,7 @@ export function DailyQuestion({ locale, labels }: { locale: string; labels: Dail
   async function share() {
     const text = `${labels.share_text} ${window.location.origin}`;
     try {
-      if (navigator.share) await navigator.share({ text });
-      else {
+      if (!(await openShareSheet({ text }))) {
         await navigator.clipboard.writeText(text);
         setCopied(true);
       }

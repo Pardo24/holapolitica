@@ -5,6 +5,8 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { Copy, Play, Share2, UserPlus, User } from 'lucide-react';
 
+import { openShareSheet } from '@/lib/native';
+
 /**
  * Trivia's pre-game choice: play solo, or invite friends. "Invite" mints a
  * shared seed up front, so the link you send drops your friends onto the exact
@@ -57,8 +59,7 @@ export function TriviaStart({
   }
   async function share() {
     try {
-      if (navigator.share) await navigator.share({ text: link });
-      else await copy();
+      if (!(await openShareSheet({ text: link }))) await copy();
     } catch {
       /* dismissed */
     }
