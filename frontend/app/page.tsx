@@ -1,22 +1,19 @@
 import Link from 'next/link';
 import type { Route } from 'next';
+import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
-  CalendarDays,
   Code2,
-  Gamepad2,
-  Layers,
   LockKeyhole,
-  Map as MapIcon,
   ShieldCheck,
-  Users,
 } from 'lucide-react';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PartyBand } from '@/components/PartyBand';
+import { HomeQuickGrid } from '@/components/HomeQuickGrid';
 import { IntroNote } from '@/components/IntroNote';
 import { WelcomeWizard } from '@/components/WelcomeWizard';
 import { LawsThatMatter } from '@/components/LawsThatMatter';
@@ -36,20 +33,7 @@ import {
   type Vote,
 } from '@/lib/api';
 
-// Outlined secondary button + quiet text link used in the hero action row.
-const heroOutlineBtn: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 7,
-  padding: '9px 16px',
-  borderRadius: 999,
-  border: '1px solid var(--rule-strong)',
-  background: 'var(--paper)',
-  color: 'var(--ink)',
-  fontSize: 14,
-  fontWeight: 600,
-  textDecoration: 'none',
-};
+// Quiet text link used in the hero action row.
 const heroTextLink: React.CSSProperties = {
   fontSize: 13,
   color: 'var(--ink-2)',
@@ -160,6 +144,19 @@ export default async function HomePage() {
   const withdrawnSessions = upcomingSessions.filter((s) => s.status === 'cancelled').length;
   upcomingSessions = upcomingSessions.filter((s) => s.status !== 'cancelled').slice(0, 4);
 
+  // The reader's province, remembered by the deputies tab, so the home's
+  // deputies tile can name it. Decoding can throw on a mangled cookie.
+  const provCookie = (await cookies()).get('hp_prov')?.value;
+  let province: string | null = null;
+  try {
+    province = provCookie ? decodeURIComponent(provCookie) : null;
+  } catch {
+    province = null;
+  }
+  const quickGrid = (
+    <HomeQuickGrid province={province} nextSession={upcomingSessions[0]?.date?.slice(0, 10) ?? null} locale={locale} />
+  );
+
   // Split the hero title so the second line can be tinted with the accent.
   const heroTitleLines = t('hero_title').split('\n');
 
@@ -190,6 +187,7 @@ export default async function HomePage() {
         noPlenaryTitle={tUpcoming('none_convened_title')}
         noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
         plannedLabel={tUpcoming('planned_label')}
+        quickGrid={quickGrid}
         lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} foldChanges />}
         partyBand={
           <PartyBand
@@ -306,41 +304,8 @@ export default async function HomePage() {
             <Link href={'/lleis' as Route} className="btn-ink">
               {t('cta_explore')}
             </Link>
-            <Link
-              href={'/avui' as Route}
-              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-plens)' }}
-            >
-              <CalendarDays
-                size={15}
-                strokeWidth={1.9}
-                aria-hidden="true"
-                style={{ color: 'var(--hue-plens)' }}
-              />
-              {t('cta_plenary')}
-            </Link>
-            <Link
-              href={'/el-teu-diputat' as Route}
-              style={{ ...heroOutlineBtn, borderColor: 'var(--hue-partits)' }}
-            >
-              <Users
-                size={15}
-                strokeWidth={1.9}
-                aria-hidden="true"
-                style={{ color: 'var(--hue-partits)' }}
-              />
-              {t('cta_deputies')}
-            </Link>
-          </div>
-          <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link href={'/recorregut' as Route} style={heroTextLink}>
               {t('lifecycle_link')}
-            </Link>
-            <Link
-              href={'/jocs' as Route}
-              style={{ ...heroTextLink, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <Gamepad2 size={14} strokeWidth={1.9} aria-hidden="true" />
-              {t('cta_play')}
             </Link>
             {/* Press entry — surfaces the (otherwise footer-only) journalists
                 page from the hero, a credibility signal for newsrooms. */}
@@ -348,6 +313,10 @@ export default async function HomePage() {
               {t('journalists_link')}
             </Link>
           </div>
+          {/* Everything you can do here, one tap each: the game, the map,
+              your deputies. Many visitors come for one of these and
+              nothing else, so they sit on the cover, not further down. */}
+          <div style={{ marginTop: 24 }}>{quickGrid}</div>
           {/* Trust signals — three icon chips pinned to the bottom of the
               column. The licence chip ("EUPL-1.2 / CC-BY 4.0") is gone
               from the fold: cryptic to a first-time visitor, and the
@@ -594,7 +563,7 @@ export default async function HomePage() {
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           shown only when there's something scheduled, so an empty agenda
           doesn't add a blank section to the home. */}
-      <div style={{ marginTop: 40 }}>
+      <div id="lleis-que-importen" style={{ marginTop: 40, scrollMarginTop: 80 }}>
         <LawsThatMatter topics={allTopics} locale={locale} />
       </div>
 
@@ -775,6 +744,7 @@ function MobileDashboard({
   noPlenaryBody,
   plannedLabel,
   partyBand,
+  quickGrid,
   lawsThatMatter,
   labels,
 }: {
@@ -785,6 +755,8 @@ function MobileDashboard({
   locale: string;
   /** Pre-rendered <PartyBand>, shared with the desktop layout. */
   partyBand: React.ReactNode;
+  /** Pre-rendered quick-access tiles, shared with the desktop. */
+  quickGrid: React.ReactNode;
   /** Pre-rendered "laws that matter" block, shared with the desktop. */
   lawsThatMatter: React.ReactNode;
   sessApproved: number;
@@ -864,8 +836,12 @@ function MobileDashboard({
           row for the secondary surfaces. Nothing here duplicates the
           bottom bar. */}
 
-      {/* Lead: the latest plenary session, as a full card. This is the
-          one thing a returning visitor wants first — what happened. */}
+      {/* First: what you can do here. Many open the app for one thing
+          (the game, the map, their deputies); it is one tap away, before
+          the news. */}
+      <div style={{ margin: '14px 0 22px' }}>{quickGrid}</div>
+
+      {/* Then the latest plenary session, as a full card: what happened. */}
       {latestVotes[0]?.voted_at && (
         <Link
           href={`/avui/${latestVotes[0].voted_at.slice(0, 10)}` as Route}
@@ -957,40 +933,15 @@ function MobileDashboard({
 
       {/* Where to start when you don't know what to look for: everyday
           subjects, and what a law changes. */}
-      <div style={{ marginTop: 22 }}>{lawsThatMatter}</div>
+      <div id="lleis-que-importen" style={{ marginTop: 22, scrollMarginTop: 72 }}>
+        {lawsThatMatter}
+      </div>
 
       {/* No chamber map here. It reads as an illustration on a phone, where
           350 seats collapse to a smudge of colour and it pushes the day's
           votes down; it stays on the wide layout, where the seats are
           legible. That also stops the page shipping the SVG twice. */}
 
-      {/* The landing's navigation proposals — where to go next: the
-          map, the games, the topics, the data. Four equal tiles, each
-          with its own muted hue. Directly under the pleno hero so the
-          FIRST screen is exactly: what happened + where you can go.
-          All layout-critical styles are inline — same hardening as the
-          party cards, so no stylesheet mishap can break the grid. */}
-      {/* A quiet row, not four big tiles: the data has its own tab in the
-          bar, and the subjects are the grid just above, so what is left
-          (the map, the games, every topic) fits in one line of links. The
-          "start here ↓" scroll cue that followed is gone with them: the
-          first screen ends here, uncluttered. */}
-      <DashboardSection title={labels.sectionExplore}>
-        <nav aria-label={labels.sectionExplore} className="home-explore no-scrollbar">
-          <Link href={'/mapa' as Route} style={{ ['--tile' as string]: '#475189' }}>
-            <MapIcon size={17} strokeWidth={1.9} aria-hidden="true" />
-            {labels.tileMap}
-          </Link>
-          <Link href={'/jocs' as Route} style={{ ['--tile' as string]: '#6E4F8E' }}>
-            <Gamepad2 size={17} strokeWidth={1.9} aria-hidden="true" />
-            {labels.tileJoc}
-          </Link>
-          <Link href={'/topics' as Route} style={{ ['--tile' as string]: '#2F807A' }}>
-            <Layers size={17} strokeWidth={1.9} aria-hidden="true" />
-            {labels.tileTopics}
-          </Link>
-        </nav>
-      </DashboardSection>
 
       {/* No plenary convened: every planned session was withdrawn. */}
       {upcomingTwo.length === 0 && withdrawnSessions > 0 && (

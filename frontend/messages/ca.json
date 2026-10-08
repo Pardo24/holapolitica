@@ -2120,5 +2120,21 @@
     "topic_justicia": "Drets",
     "topic_energia": "Energia",
     "topic_igualtat": "Igualtat"
+  },
+  "home_grid": {
+    "aria": "Què vols fer?",
+    "play_title": "Juga",
+    "play_sub": "Trivia i la pregunta del dia",
+    "align_title": "Què votaries tu?",
+    "align_sub": "Amb quins partits coincideixes",
+    "deputies_title": "Els teus diputats",
+    "deputies_sub": "Qui et representa",
+    "map_title": "El mapa",
+    "map_sub": "On se situa cada partit",
+    "plens_title": "Plens",
+    "plens_sub": "Què es vota i com surt",
+    "plens_next": "Proper ple: {date}",
+    "laws_title": "Lleis que importen",
+    "laws_sub": "Habitatge, feina, impostos…"
   }
 }

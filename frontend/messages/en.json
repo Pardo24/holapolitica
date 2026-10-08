@@ -2121,5 +2121,21 @@
     "topic_justicia": "Rights",
     "topic_energia": "Energy",
     "topic_igualtat": "Equality"
+  },
+  "home_grid": {
+    "aria": "What do you want to do?",
+    "play_title": "Play",
+    "play_sub": "Trivia and the daily question",
+    "align_title": "How would you vote?",
+    "align_sub": "Which parties you agree with",
+    "deputies_title": "Your deputies",
+    "deputies_sub": "Who represents you",
+    "map_title": "The map",
+    "map_sub": "Where each party stands",
+    "plens_title": "Sittings",
+    "plens_sub": "What is voted, and the outcome",
+    "plens_next": "Next sitting: {date}",
+    "laws_title": "Laws that matter",
+    "laws_sub": "Housing, jobs, taxes…"
   }
 }

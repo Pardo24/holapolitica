@@ -2121,5 +2121,21 @@
     "topic_justicia": "Derechos",
     "topic_energia": "Energía",
     "topic_igualtat": "Igualdad"
+  },
+  "home_grid": {
+    "aria": "¿Qué quieres hacer?",
+    "play_title": "Juega",
+    "play_sub": "Trivia y la pregunta del día",
+    "align_title": "¿Qué votarías tú?",
+    "align_sub": "Con qué partidos coincides",
+    "deputies_title": "Tus diputados",
+    "deputies_sub": "Quién te representa",
+    "map_title": "El mapa",
+    "map_sub": "Dónde se sitúa cada partido",
+    "plens_title": "Plenos",
+    "plens_sub": "Qué se vota y cómo sale",
+    "plens_next": "Próximo pleno: {date}",
+    "laws_title": "Leyes que importan",
+    "laws_sub": "Vivienda, empleo, impuestos…"
   }
 }

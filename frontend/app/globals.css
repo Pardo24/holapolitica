@@ -3439,3 +3439,53 @@ summary.change-chip { cursor: pointer; }
   text-decoration-color: var(--rule-strong);
   text-underline-offset: 4px;
 }
+
+/* Home quick-access tiles (components/HomeQuickGrid). Two columns on a
+   phone, three on the desktop cover. Each tile carries its own place's hue
+   on the icon and a faint wash, so the grid reads as six places, not six
+   identical buttons. */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.home-grid .home-grid__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 13px 14px 14px;
+  border: 1px solid color-mix(in oklch, var(--tile) 22%, var(--rule));
+  border-radius: 16px;
+  background: color-mix(in oklch, var(--tile) 6%, var(--paper));
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.home-grid .home-grid__tile:hover { border-color: color-mix(in oklch, var(--tile) 45%, var(--rule)); }
+.home-grid .home-grid__tile:active { background: color-mix(in oklch, var(--tile) 13%, var(--paper)); }
+.home-grid__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 8px;
+  border-radius: 11px;
+  background: color-mix(in oklch, var(--tile) 16%, var(--paper));
+  color: var(--tile);
+}
+.home-grid__title { font-size: 15px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.home-grid__sub {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+@media (min-width: 641px) {
+  .home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 620px; }
+}
