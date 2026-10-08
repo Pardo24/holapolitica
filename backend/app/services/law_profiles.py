@@ -49,7 +49,7 @@ PROFILES: tuple[str, ...] = (
     "rural",
 )
 
-MAX_PROFILES = 5
+MAX_PROFILES = 4
 
 _PROMPT = """\
 Eres un analista legislativo NEUTRAL. Recibirás una ley española: su título,
@@ -59,27 +59,32 @@ Di a qué SITUACIONES de la vida afecta DIRECTAMENTE: solo cuando una medida
 concreta del texto se aplica a las personas en esa situación (un derecho,
 una obligación, una ayuda, un impuesto, un requisito, un plazo). No vale
 "afecta a toda la ciudadanía" ni un efecto indirecto o hipotético. Si no
-afecta directamente a ninguna, devuelve una lista vacía. Máximo 5.
+afecta directamente a ninguna, devuelve una lista vacía.
 
-Situaciones posibles (usa la clave exacta):
-- jove: personas jóvenes (aprox. 18 a 30 años)
-- estudiant: estudiantes
-- assalariat: trabajadores por cuenta ajena
-- autonom: autónomos y profesionales por cuenta propia
-- empresa: quien tiene o dirige una empresa
-- funcionari: personal de las administraciones públicas
-- aturat: personas en paro o buscando empleo
-- pensionista: jubilados y pensionistas
-- llogater: quien vive de alquiler
-- propietari: quien tiene vivienda en propiedad (o la alquila a otros)
-- families: familias con hijos o hijas
-- discapacitat: personas con discapacidad
-- cuidador: quien cuida a una persona dependiente
-- migrant: personas migrantes o extranjeras
-- dona: mujeres (medidas específicas para mujeres)
-- lgtbi: personas LGTBI
-- consumidor: consumidores y usuarios
-- rural: quien vive o trabaja en el medio rural o en el campo
+Situaciones posibles (usa la clave exacta) y CUÁNDO aplican, al pie de la letra:
+- jove: la medida usa un criterio de edad joven o se dirige expresamente a jóvenes.
+- estudiant: afecta a quien estudia (matrícula, becas, títulos, prácticas, requisitos de estudios).
+- assalariat: condiciones de trabajo por cuenta ajena (salario, contrato, jornada, despido, permisos, cotización del trabajador).
+- autonom: trabajadores autónomos o profesionales por cuenta propia (cuotas, prestaciones, obligaciones propias).
+- empresa: obligaciones, ayudas o impuestos de quien tiene o dirige una empresa.
+- funcionari: personal de las administraciones públicas (plazas, retribuciones, jubilación, régimen).
+- aturat: personas en paro o buscando empleo (prestaciones, subsidios, formación, contratación).
+- pensionista: jubilados y pensionistas (pensiones, jubilación, complementos).
+- llogater: quien vive de alquiler (contratos, rentas, desahucios, ayudas al alquiler).
+- propietari: SOLO medidas sobre la VIVIENDA de quien es propietario o la alquila a otros (hipoteca de la vivienda, IBI, arrendamiento como arrendador). NO: patrimonio en general, rentas, inversiones ni empresas.
+- families: quien tiene hijos o hijas a cargo (crianza, permisos, prestaciones por hijo, custodia, escolarización).
+- discapacitat: personas con discapacidad (derechos, accesibilidad, prestaciones).
+- cuidador: quien cuida a una persona dependiente (dependencia, permisos de cuidado, prestaciones).
+- migrant: personas migrantes o extranjeras (permisos, nacionalidad, asilo, protección).
+- dona: SOLO medidas dirigidas ESPECÍFICAMENTE a mujeres (violencia de género, maternidad, igualdad salarial). NO: medidas para todas las personas.
+- lgtbi: medidas dirigidas específicamente a personas LGTBI.
+- consumidor: derechos de consumidores y usuarios, precios regulados, servicios que contratan.
+- rural: medio rural, agricultura, ganadería, pesca, o zonas rurales concretas.
+
+Incluye una situación SOLO si una persona corriente en esa situación diría
+"esto va conmigo" al leer la medida. Ante la duda, NO la incluyas: mejor una
+o dos situaciones claras que cinco dudosas. Máximo 4. Si la medida solo se
+aplica a un territorio concreto, dilo en la frase.
 
 Para cada situación escribe UNA frase (máx. 35 palabras) que empiece por
 "Si" y diga qué establece el texto para esa persona, con cifras y plazos si
