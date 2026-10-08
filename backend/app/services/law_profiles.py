@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.core.config import Settings, get_settings
-from app.services.law_text import _call_json
+from app.services.law_text import _call_json, parse_verdict
 from app.services.plain_summary import _BANNED_TERMS, _fold, _provider_name
 
 # The situations a reader can pick. Order is the order shown.
@@ -46,6 +46,7 @@ PROFILES: tuple[str, ...] = (
     "dona",
     "lgtbi",
     "consumidor",
+    "conductor",
     "rural",
 )
 
@@ -78,7 +79,8 @@ Situaciones posibles (usa la clave exacta) y CUÁNDO aplican, al pie de la letra
 - migrant: personas migrantes o extranjeras (permisos, nacionalidad, asilo, protección).
 - dona: SOLO medidas dirigidas ESPECÍFICAMENTE a mujeres (violencia de género, maternidad, igualdad salarial). NO: medidas para todas las personas.
 - lgtbi: medidas dirigidas específicamente a personas LGTBI.
-- consumidor: derechos de consumidores y usuarios, precios regulados, servicios que contratan.
+- consumidor: derechos de consumidores y usuarios frente a quien les vende o presta un servicio (garantías, reclamaciones, precios regulados, contratos de suministro). NO: ayudas públicas ni trámites.
+- conductor: quien conduce un vehículo (normas de tráfico, carné, alcohol, seguros, peajes, ITV).
 - rural: medio rural, agricultura, ganadería, pesca, o zonas rurales concretas.
 
 Incluye una situación SOLO si una persona corriente en esa situación diría
@@ -94,6 +96,27 @@ misma frase traducida ("Si ets…", "Si tens…").
 
 Devuelve SOLO este JSON:
 {"profiles": [{"key": "jove", "es": "Si…", "ca": "Si…"}]}
+"""
+
+# Second pass, as for the change tags: a stricter reader checks each
+# situation against its sentence. The first pass alone put "home owner" on
+# income-tax deductions and "consumer" on free notary advice.
+_VERIFY_PROMPT = """Eres un verificador ESTRICTO. Recibirás el título de una ley y unas
+situaciones, cada una con la frase que dice qué establece la ley para ella.
+Conserva SOLO las situaciones en las que una persona corriente en esa
+situación, por el mero hecho de estar en ella, queda afectada por la medida
+descrita. Ante la duda, descártala.
+
+- propietari: SOLO medidas sobre la VIVIENDA en propiedad o alquilada a otros.
+  NO: patrimonio, rentas, deducciones generales, inversiones.
+- consumidor: SOLO derechos frente a quien vende o presta un servicio.
+  NO: ayudas públicas, trámites, asesoramiento de la administración.
+- dona / lgtbi / jove: SOLO medidas dirigidas específicamente a ese grupo.
+- empresa / autonom / assalariat / funcionari: la medida cambia algo de su
+  trabajo o actividad, no solo de un sector muy concreto si la frase no lo dice.
+- Una medida limitada a un territorio vale si la frase dice el territorio.
+
+Devuelve SOLO: {"keep": ["clave", ...]}
 """
 
 # Words that turn a fact into a verdict. On top of the summaries' list.
@@ -185,8 +208,26 @@ async def analyse_profiles(
     settings = settings or get_settings()
     user = profile_input(title=title, summary=summary, points=points)
     raw = await _call_json(settings, system=_PROMPT, user=user, model=settings.law_profiles_model)
-    return ProfileEffects(
-        effects=parse_profiles(raw),
-        provider=_provider_name(settings),
-        raw=raw,
+    effects = parse_profiles(raw)
+    if effects:
+        effects = await verify_profiles(title=title, effects=effects, settings=settings)
+    return ProfileEffects(effects=effects, provider=_provider_name(settings), raw=raw)
+
+
+async def verify_profiles(
+    *, title: str, effects: dict[str, dict[str, str]], settings: Settings | None = None
+) -> dict[str, dict[str, str]]:
+    """Keep only the situations a strict second reading confirms."""
+    settings = settings or get_settings()
+    user = json.dumps(
+        {
+            "titulo": title,
+            "situaciones": [{"clave": k, "frase": v["es"]} for k, v in effects.items()],
+        },
+        ensure_ascii=False,
     )
+    raw = await _call_json(
+        settings, system=_VERIFY_PROMPT, user=user, model=settings.law_profiles_model
+    )
+    kept = parse_verdict(raw, list(effects))
+    return {k: effects[k] for k in kept}
