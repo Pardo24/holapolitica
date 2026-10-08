@@ -34,7 +34,7 @@ const COPY: Record<'ca' | 'es' | 'en', Copy> = {
       {
         h: 'Qui en som responsables',
         p: [
-          `Hola Política, projecte cívic independent sense afany de lucre. No té cap vincle amb el Congrés, el Govern ni cap partit. Contacte per a qualsevol qüestió de privacitat: ${CONTACT}.`,
+          `Hola Política, projecte cívic independent sense afany de lucre. No té cap vincle amb el Congrés, el Govern ni cap partit. Contacte per a qualsevol qüestió de privacitat: ${CONTACT}. Si exerceixes algun dels teus drets o ho necessites per a qualsevol altra qüestió de protecció de dades, et facilitarem la identitat completa del responsable del tractament a la mateixa adreça.`,
         ],
       },
       {
@@ -99,7 +99,7 @@ const COPY: Record<'ca' | 'es' | 'en', Copy> = {
       {
         h: 'Quién es responsable',
         p: [
-          `Hola Política, proyecto cívico independiente sin ánimo de lucro. No tiene vínculo con el Congreso, el Gobierno ni ningún partido. Contacto para cualquier cuestión de privacidad: ${CONTACT}.`,
+          `Hola Política, proyecto cívico independiente sin ánimo de lucro. No tiene vínculo con el Congreso, el Gobierno ni ningún partido. Contacto para cualquier cuestión de privacidad: ${CONTACT}. Si ejerces alguno de tus derechos o lo necesitas para cualquier otra cuestión de protección de datos, te facilitaremos la identidad completa del responsable del tratamiento en la misma dirección.`,
         ],
       },
       {
@@ -164,7 +164,7 @@ const COPY: Record<'ca' | 'es' | 'en', Copy> = {
       {
         h: 'Who is responsible',
         p: [
-          `Hola Política, an independent, non-profit civic project. It has no ties to the Spanish Congress, the Government or any party. Privacy contact: ${CONTACT}.`,
+          `Hola Política, an independent, non-profit civic project. It has no ties to the Spanish Congress, the Government or any party. Privacy contact: ${CONTACT}. If you exercise any of your rights or need it for any other data protection matter, we will give you the full identity of the data controller at the same address.`,
         ],
       },
       {
