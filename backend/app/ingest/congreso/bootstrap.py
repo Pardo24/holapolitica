@@ -53,7 +53,7 @@ from app.ingest.congreso.series_search import (
     import_reforma_constitucional_xv,
 )
 from app.ingest.congreso.votes import VoteImporter, VoteImportStats
-from app.models import Chamber, Legislature
+from app.models import Chamber, Initiative, Legislature
 from app.models import Session as SessionRow
 
 configure_logging()
@@ -405,7 +405,7 @@ async def import_initiatives() -> dict[str, InitiativeImportStats]:
                 # over the open-data feed's ``summary`` field (which is
                 # almost always NULL): it gives the LLM a much richer
                 # input to distil down to 2-3 plain-language sentences.
-                body = row.object_text or row.summary
+                body = initiative_summary_body(row, "es")
                 es = await generate_plain_summary(
                     title=row.title_original, body=body, lang="es", kind=row.type
                 )
@@ -814,7 +814,7 @@ async def generate_all_plain_summaries(lang: str = "ca") -> dict[str, int | str]
                     # Prefer the bill's own preamble prose over the
                     # mostly-NULL ``summary`` field; see comment in
                     # ``import_initiatives``.
-                    body = row.object_text or row.summary
+                    body = initiative_summary_body(row, lang)
                     result = await generate_plain_summary(
                         title=row.title_original, body=body, lang=lang, kind=row.type
                     )
@@ -1127,6 +1127,61 @@ async def _translate_missing_summaries(model: type[Any], *, target_lang: str) ->
     }
 
 
+def initiative_summary_body(row: Initiative, lang: str = "es") -> str | None:
+    """What the summary model reads for ``row``: its text's measures first."""
+    from app.services.plain_summary import summary_input_body
+
+    return summary_input_body(
+        text_points=row.text_points, object_text=row.object_text, summary=row.summary, lang=lang
+    )
+
+
+async def rewrite_initiative_summary(row: Initiative, *, lang_source: str = "es") -> bool:
+    """Rewrite ``row``'s summary, its translation and both headlines, in place.
+
+    The input is :func:`initiative_summary_body`, so a bill whose text has
+    been read is summarised from its measures. Returns ``False`` and leaves
+    the row alone when the model declines or the neutrality guard rejects the
+    new summary: a worse version is still better than an empty page. When
+    only the translation fails, the other language's summary and headline
+    are cleared rather than left saying something the new one no longer
+    says; ``repair_summary_language_gaps`` and ``backfill_plain_titles``
+    fill them on their next run. The caller commits.
+    """
+    from datetime import datetime
+
+    from app.services.plain_summary import (
+        generate_plain_summary,
+        generate_plain_title,
+        translate_summary,
+    )
+
+    target_lang = "ca" if lang_source == "es" else "es"
+    fresh = await generate_plain_summary(
+        title=row.title_original,
+        body=initiative_summary_body(row, lang_source),
+        lang=lang_source,
+        kind=row.type,
+    )
+    if not fresh.text:
+        return False
+
+    setattr(row, f"plain_summary_{lang_source}", fresh.text)
+    title = await generate_plain_title(summary=fresh.text, lang=lang_source)
+    setattr(row, f"plain_title_{lang_source}", title.text)
+
+    translated = await translate_summary(text=fresh.text, target_lang=target_lang)
+    setattr(row, f"plain_summary_{target_lang}", translated.text)
+    other_title: str | None = None
+    if translated.text:
+        other_title = (await generate_plain_title(summary=translated.text, lang=target_lang)).text
+    setattr(row, f"plain_title_{target_lang}", other_title)
+
+    row.plain_summary_provider = fresh.provider
+    row.plain_summary_generated_at = datetime.now(UTC)
+    return True
+
+
 async def regenerate_initiative_summaries(
     *, limit: int | None = None, lang_source: str = "es"
 ) -> dict[str, int | str]:
@@ -1142,20 +1197,11 @@ async def regenerate_initiative_summaries(
     comes back valid; a rejection leaves the old one alone, because a worse
     version is still better than an empty page.
     """
-    from datetime import datetime
-
     from sqlalchemy import select as _select
 
     from app.core.config import get_settings
-    from app.models import Initiative
-    from app.services.plain_summary import (
-        _provider_name,
-        generate_plain_summary,
-        generate_plain_title,
-        translate_summary,
-    )
+    from app.services.plain_summary import _provider_name
 
-    target_lang = "ca" if lang_source == "es" else "es"
     stats: dict[str, int | str] = {"seen": 0, "rewritten": 0, "kept": 0, "errors": 0}
     # Rows this model has already rewritten are skipped, so the pass resumes
     # where it stopped instead of paying for the same six hours twice.
@@ -1183,26 +1229,9 @@ async def regenerate_initiative_summaries(
                 row = (
                     await inner.execute(_select(Initiative).where(Initiative.id == iid))
                 ).scalar_one()
-                body = row.object_text or row.summary
-                fresh = await generate_plain_summary(
-                    title=row.title_original, body=body, lang=lang_source, kind=row.type
-                )
-                if not fresh.text:
+                if not await rewrite_initiative_summary(row, lang_source=lang_source):
                     stats["kept"] = int(stats["kept"]) + 1
                     continue
-
-                setattr(row, f"plain_summary_{lang_source}", fresh.text)
-                title = await generate_plain_title(summary=fresh.text, lang=lang_source)
-                setattr(row, f"plain_title_{lang_source}", title.text)
-
-                translated = await translate_summary(text=fresh.text, target_lang=target_lang)
-                if translated.text:
-                    setattr(row, f"plain_summary_{target_lang}", translated.text)
-                    other = await generate_plain_title(summary=translated.text, lang=target_lang)
-                    setattr(row, f"plain_title_{target_lang}", other.text)
-
-                row.plain_summary_provider = fresh.provider
-                row.plain_summary_generated_at = datetime.now(UTC)
                 await inner.commit()
                 stats["rewritten"] = int(stats["rewritten"]) + 1
         except Exception as e:

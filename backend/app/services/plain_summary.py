@@ -23,6 +23,7 @@ contract. If you change the prompt, run the tests.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from app.classify.providers import ClassifierError
@@ -58,6 +59,10 @@ REGLES (importants però normals — pots fer la feina sense problemes):
   "necessària", "perjudicial", "criticada", "rellevant".
 - Cap especulació sobre intencions polítiques o efectes futurs.
 - Cap exemple hipotètic que no aparegui al text.
+- Si reps les MESURES del text, el resum surt d'aquí: les xifres, els
+  llindars, els terminis i els col·lectius, tal com hi apareixen. No hi
+  afegeixis cap xifra, percentatge, termini ni col·lectiu que no sigui al
+  que reps, encara que et sembli que el coneixes.
 - Si el títol és tan genèric que no es pot dir RES (per exemple, només
   "Proposición no de Ley" sense més), respon amb la cadena exacta
   ``[INSUFICIENT]``. Però per a la majoria d'iniciatives, FES el
@@ -95,6 +100,10 @@ problemas):
   "necesaria", "perjudicial", "criticada", "relevante".
 - Sin especular sobre intenciones políticas ni efectos futuros.
 - Sin ejemplos hipotéticos que no aparezcan en el texto.
+- Si recibes las MEDIDAS del texto, el resumen sale de ellas: las cifras,
+  los umbrales, los plazos y los colectivos, tal como aparecen ahí. No
+  añadas ninguna cifra, porcentaje, plazo ni colectivo que no esté en lo
+  que recibes, aunque creas conocerlo.
 - Si el título es tan genérico que no puedes decir NADA (por ejemplo,
   solo "Proposición no de Ley" sin más), responde con la cadena
   exacta ``[INSUFICIENT]``. Pero para la mayoría de iniciativas, HAZ
@@ -573,6 +582,43 @@ def _strip_wrapping_quotes(text: str) -> str:
     if t[:1] in _OPEN_QUOTES and not any(q in t[1:] for q in _CLOSE_QUOTES):
         return t[1:].strip()
     return t
+
+
+_POINTS_HEADER = {
+    "es": "Medidas que establece el texto de la iniciativa, tal como se presentó:",
+    "ca": "Mesures que estableix el text de la iniciativa, tal com es va presentar:",
+}
+
+
+def summary_input_body(
+    *,
+    text_points: Mapping[str, Sequence[Mapping[str, str | None]]] | None,
+    object_text: str | None,
+    summary: str | None,
+    lang: str = "es",
+) -> str | None:
+    """What the summary model reads besides the title.
+
+    The measures read from the bill's own text when there are any (see
+    :mod:`app.services.law_text`), one per line with their article: they
+    carry the figures and thresholds as the text states them. Without
+    them, the preamble prose, then the open-data feed's short summary.
+
+    Written from the title and the preamble, initiative 1566 said "fortunes
+    over 3 million" where its articles say 50 million.
+    """
+    points = (text_points or {}).get(lang) or (text_points or {}).get("es") or []
+    lines: list[str] = []
+    for point in points:
+        text = (point.get("text") or "").strip()
+        if not text:
+            continue
+        ref = (point.get("ref") or "").strip()
+        lines.append(f"- {text} ({ref})" if ref else f"- {text}")
+    if lines:
+        header = _POINTS_HEADER.get(lang, _POINTS_HEADER["es"])
+        return header + "\n" + "\n".join(lines)
+    return object_text or summary
 
 
 async def generate_plain_summary(
