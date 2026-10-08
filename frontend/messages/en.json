@@ -675,7 +675,7 @@
     "sources_untouched": "We don't touch it up. If something is missing at the source it is missing here too, and we say so: a vote carried by assent, for instance, has no roll call, and the card says that.",
     "sources_legal_link": "Personal data and GDPR",
     "lifecycle_more": "Each procedure, step by step",
-    "ai_point_text": "It reads each law's official text (the Congress PDF) to set out its concrete measures, with the article each comes from, and what it changes: taxes, rights, environment and how services are run, always in pairs. Every tag carries the passage behind it and is checked by a stricter second reading; if it cannot be justified, it is not shown."
+    "ai_point_text": "It reads each law's official text (the Congress PDF, or the BOE for Royal Decree-laws) to set out its concrete measures, with the article each comes from, and what it changes: taxes, rights, environment and how services are run, always in pairs. Every tag carries the passage behind it and is checked by a stricter second reading; if it cannot be justified, it is not shown."
   },
   "groups": {
     "title": "Parliamentary groups",
@@ -2059,6 +2059,10 @@
     "pdf_cta": "Read the official text (PDF)",
     "pdf_short": "Official text",
     "boe_cta": "Published in the BOE",
+    "not_read_yet_boe": "We haven't read this text yet. In the meantime, it is all in the BOE.",
+    "boe_text_cta": "Read the official text (BOE)",
+    "note_boe_full": "This is the text as published in the BOE. A Royal Decree-law is in force from publication; Congress then validates or repeals it.",
+    "note_boe_partial": "This is the text as published in the BOE, and it is very long: we read the explanatory statement and the first articles. A Royal Decree-law is in force from publication; Congress then validates or repeals it.",
     "note_full": "This is the text as tabled in Congress; it can change during its passage.",
     "note_partial": "This is the text as tabled in Congress, and it is very long: we read the explanatory statement and the first articles.",
     "how_ai": "How we use AI →"

@@ -1,0 +1,81 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20250709"
+   },
+   "diario": [
+    {
+     "numero": "164",
+     "sumario_diario": {
+      "identificador": "BOE-S-2025-164",
+      "url_pdf": {
+       "szBytes": "451868",
+       "szKBytes": "441",
+       "texto": "https://www.boe.es/boe/dias/2025/07/09/pdfs/BOE-S-2025-164.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "1",
+       "nombre": "I. Disposiciones generales",
+       "departamento": [
+        {
+         "codigo": "7723",
+         "nombre": "JEFATURA DEL ESTADO",
+         "epigrafe": [
+          {
+           "nombre": "Medidas urgentes",
+           "item": {
+            "identificador": "BOE-A-2025-14083",
+            "control": "2025/10886",
+            "titulo": "Real Decreto-ley 8/2025, de 8 de julio, por el que se declaran diversas iniciativas y programas como acontecimientos de excepcional interés público.",
+            "url_pdf": {
+             "szBytes": "246585",
+             "szKBytes": "241",
+             "pagina_inicial": "91229",
+             "pagina_final": "91237",
+             "texto": "https://www.boe.es/boe/dias/2025/07/09/pdfs/BOE-A-2025-14083.pdf"
+            },
+            "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14083",
+            "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14083"
+           }
+          }
+         ]
+        },
+        {
+         "codigo": "1410",
+         "nombre": "TRIBUNAL CONSTITUCIONAL",
+         "epigrafe": [
+          {
+           "nombre": "Recursos de inconstitucionalidad",
+           "item": {
+            "identificador": "BOE-A-2025-14084",
+            "control": "2025/10677",
+            "titulo": "Recurso de inconstitucionalidad n.º 1014-2025, en relación con la Ley 1/2024, de 8 de noviembre, de Derogación de la Ley de Cantabria 8/2021, de 17 de noviembre, de Memoria Histórica y Democrática de Cantabria.",
+            "url_pdf": {
+             "szBytes": "190319",
+             "szKBytes": "186",
+             "pagina_inicial": "91238",
+             "pagina_final": "91238",
+             "texto": "https://www.boe.es/boe/dias/2025/07/09/pdfs/BOE-A-2025-14084.pdf"
+            },
+            "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14084",
+            "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14084"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
