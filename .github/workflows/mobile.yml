@@ -93,7 +93,8 @@ jobs:
         if: env.RELEASE == 'true'
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > android/app/google-services.json
 
-      - run: npx cap sync android
+      # The assets folder only holds generated files, so git doesn't keep it.
+      - run: mkdir -p android/app/src/main/assets && npx cap sync android
 
       - name: Check build (debug APK)
         if: env.RELEASE != 'true'

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Download, X } from 'lucide-react';
 
+import { isNativeApp } from '@/lib/native';
+
 /**
  * Install-to-home-screen banner.
  *
@@ -28,7 +30,8 @@ import { Download, X } from 'lucide-react';
  * (e.g. after a major UX change worth re-announcing).
  *
  * Visibility rules:
- * - Hidden when running already INSIDE a PWA (display-mode standalone).
+ * - Hidden when running already INSIDE a PWA (display-mode standalone)
+ *   or inside the native Capacitor app.
  * - Hidden when the dismiss flag is set.
  * - Hidden on the very first visit (we want the onboarding modal
  *   to take that slot — banner appears on the second visit onward).
@@ -44,6 +47,9 @@ interface BeforeInstallPromptEvent extends Event {
 
 function isInStandalone(): boolean {
   if (typeof window === 'undefined') return false;
+  // Inside the iOS/Android app. Its WebView reports a Safari-like UA, so
+  // without this the "add to home screen" banner would show in the app.
+  if (isNativeApp()) return true;
   // Chrome / Android — official PWA media query.
   if (window.matchMedia?.('(display-mode: standalone)').matches) return true;
   // iOS Safari — exposes a navigator.standalone boolean on the home-
