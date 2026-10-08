@@ -9,7 +9,7 @@ this protects is the project's "mirror not megaphone": we surface
 WHO is talking about a topic, never WHAT is important about it.
 
 Source:
-  https://news.google.com/rss/search?q=<query>&hl=<lang>&gl=<country>
+  https://news.google.com/rss/search?q=<query>&hl=<lang>&gl=<country>&ceid=<country>:<lang>
 
 Parsing: Google News' RSS is stable, well-formed XML with one
 ``<item>`` per news article carrying ``<title>``, ``<link>``,
@@ -34,7 +34,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from typing import Final
-from urllib.parse import quote_plus
+from urllib.parse import urlencode
 from xml.etree import ElementTree as ET
 
 import httpx
@@ -54,13 +54,16 @@ NEWS_BASE_URL = "https://news.google.com/rss/search"
 # Google News quality degrades past the first page anyway.
 MAX_ITEMS: Final[int] = 8
 
-# Locale → (hl, gl) for Google News. ``ca-ES`` etc. give the
-# best content match. EN fallback uses ES-targeted English so an
-# English-speaking reader still sees Spanish-context coverage.
-_LOCALE_PARAMS: Final[dict[str, tuple[str, str]]] = {
-    "ca": ("ca", "ES"),
-    "es": ("es-419", "ES"),
-    "en": ("en-US", "ES"),
+# Locale → (hl, gl, ceid) for Google News. These must be the
+# canonical edition triples: any other combination (e.g. ``hl=ca``
+# without ``ceid``, or ``hl=es-419``) gets a 302 to the canonical
+# URL. Google has no Spain-targeted English edition — ``ceid=ES:en``
+# is bounced to ``US:en`` — so English uses the US edition; the
+# query itself still pins results to the Spanish Congress.
+_LOCALE_PARAMS: Final[dict[str, tuple[str, str, str]]] = {
+    "ca": ("ca-ES", "ES", "ES:ca"),
+    "es": ("es", "ES", "ES:es"),
+    "en": ("en-US", "US", "US:en"),
 }
 
 
@@ -85,6 +88,17 @@ def _build_query(topic_name: str) -> str:
     English-language coverage of the Spanish parliament.
     """
     return f"{topic_name} Congreso España"
+
+
+def _build_feed_url(topic_name: str, locale: str) -> str:
+    """Google News RSS search URL for ``topic_name`` in ``locale``.
+
+    Unknown locales fall back to Catalan, the project's default UI
+    language.
+    """
+    hl, gl, ceid = _LOCALE_PARAMS.get(locale, _LOCALE_PARAMS["ca"])
+    params = urlencode({"q": _build_query(topic_name), "hl": hl, "gl": gl, "ceid": ceid})
+    return f"{NEWS_BASE_URL}?{params}"
 
 
 def _parse_pubdate(raw: str | None) -> datetime | None:
@@ -167,12 +181,12 @@ async def fetch_topic_news(
     on this Topic Hub render" — same null-tolerant contract as the
     Wikidata / BOE enrichers.
     """
-    hl, gl = _LOCALE_PARAMS.get(locale, _LOCALE_PARAMS["ca"])
-    query = _build_query(topic_name)
-    url = f"{NEWS_BASE_URL}?q={quote_plus(query)}&hl={hl}&gl={gl}"
+    url = _build_feed_url(topic_name, locale)
 
     headers = {"User-Agent": USER_AGENT, "Accept": "application/rss+xml"}
-    async with httpx.AsyncClient(timeout=timeout, headers=headers) as client:
+    # Follow redirects as a safety net: Google canonicalises edition
+    # params with a 302, which httpx treats as an error by default.
+    async with httpx.AsyncClient(timeout=timeout, headers=headers, follow_redirects=True) as client:
         try:
             resp = await client.get(url)
             resp.raise_for_status()
