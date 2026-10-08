@@ -213,9 +213,11 @@ async def test_every_translation_uses_the_large_model(monkeypatch: pytest.Monkey
     from app.core.config import get_settings
 
     models: list[str] = []
+    systems: list[str] = []
 
     async def fake_llm(settings: object, *, system: str, user: str) -> str:
         models.append(str(getattr(settings, "mistral_model", "")))
+        systems.append(system)
         return "Modifica la Llei d'Enjudiciament Civil."
 
     monkeypatch.setattr(ps, "_call_llm_for_text", fake_llm)
@@ -223,4 +225,7 @@ async def test_every_translation_uses_the_large_model(monkeypatch: pytest.Monkey
         text="Modifica la Ley de Enjuiciamiento Civil.", target_lang="ca"
     )
     assert models == [get_settings().law_text_verify_model]
+    # Even the large model turned "Crea una ley" into "Proposa una llei"
+    # until the prompt pinned the opening verb's tense and mood.
+    assert "MATEIX temps i mode" in systems[0]
     assert result.text == "Modifica la Llei d'Enjudiciament Civil."

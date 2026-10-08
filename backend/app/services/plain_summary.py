@@ -424,6 +424,7 @@ REGLES:
 - No afegeixis ni treguis informació. No reescriguis ni interpretis.
 - No introdueixis cap valoració que no sigui a l'original.
 - Conserva els noms de lleis i institucions de manera natural en català.
+- El verb inicial es tradueix en el MATEIX temps i mode que l'original: "Crea" -> "Crea", "Modifica" -> "Modifica", "Cambia" -> "Canvia", "Establece" -> "Estableix", "Regula" -> "Regula". Mai el passis a subjuntiu ni el converteixis en "Proposa ..." si l'original no diu "Propone".
 - Català normatiu central. Subjuntiu correcte: "comparteixi", "exigeixi", \
 "garanteixi", "respecti", "convoqui", "dimiteixi" (mai "compartisci", \
 "exigisci", "respeti", "convoqua"). "Dimita" és "dimiteixi", no "dimensioni". \
