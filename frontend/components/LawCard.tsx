@@ -2,7 +2,14 @@ import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { ProposerBadges } from '@/components/InitiativeRow';
-import { LawCardFooter, LawCardFrame, LawCardHeadline, LawCardVoteBox } from '@/components/LawCardParts';
+import {
+  AiMark,
+  LawCardBand,
+  LawCardFooter,
+  LawCardFrame,
+  LawCardHeadline,
+  LawCardVoteBox,
+} from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
@@ -10,10 +17,9 @@ import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
 import { type ParsedProposer } from '@/lib/groups';
 import { STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
-import { topicIcon } from '@/lib/topic_icons';
 import { pickTopicName } from '@/lib/topics';
 import { changeTagIcon, isChangeTag, pdfUrl } from '@/lib/changeTags';
-import { FileText, Sparkles } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 /**
  * One LAW, as a full-width card — the /lleis surface.
@@ -92,10 +98,6 @@ export async function LawCard({
   const outcomeLabel = outcomeKey
     ? tVotes(`result.${outcomeKey}` as 'result.approved')
     : statusLabel;
-  const tone = outcomeKey === 'approved' ? 'aye' : outcomeKey === 'rejected' ? 'no' : 'neutral';
-  const topic =
-    (initiative.topics ?? []).find((tp) => tp.kind !== 'sdg') ?? initiative.topics?.[0] ?? null;
-  const TopicIcon = topic ? topicIcon(topic.icon) : null;
   const dateIso = vote?.voted_at ?? initiative.submitted_at;
   const dateLabel = dateIso
     ? new Date(dateIso).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
@@ -113,17 +115,7 @@ export async function LawCard({
     <LawCardFrame>
       {/* The band: what it is about, and how it ended, in the outcome's
           colour. One look says "housing, approved". */}
-      <div className={`law-card-band law-card-band--${tone}`}>
-        {topic ? (
-          <span className="law-card-band__topic" style={{ ['--topic' as string]: topic.color_hex ?? 'var(--ink-3)' }}>
-            {TopicIcon && <TopicIcon size={14} strokeWidth={2} aria-hidden="true" />}
-            {pickTopicName(topic, locale)}
-          </span>
-        ) : (
-          <span />
-        )}
-        <span className="law-card-band__verdict">{outcomeLabel}</span>
-      </div>
+      <LawCardBand topics={initiative.topics} outcome={outcomeKey} label={outcomeLabel} locale={locale} />
 
       {/* What kind of text, and when it was last voted (or tabled). */}
       <div className="law-card-meta">
@@ -134,17 +126,7 @@ export async function LawCard({
       {/* What it does, in plain language. A machine-written line carries a
           small sparkle (with its label for screen readers and on hover). */}
       <LawCardHeadline href={href} size="lg">
-        {plainSummary && (
-          <Sparkles
-            size={15}
-            strokeWidth={2}
-            aria-label={t('card_ai_summary')}
-            role="img"
-            className="law-card-ai"
-          >
-            <title>{t('card_ai_summary')}</title>
-          </Sparkles>
-        )}
+        {plainSummary && <AiMark label={t('card_ai_summary')} />}
         {headline}
       </LawCardHeadline>
 

@@ -7,14 +7,13 @@ import { GroupBadge } from '@/components/GroupBadge';
 import {
   LAW_CARD_LIST_STYLE,
   LawCardFooter,
+  AiMark,
+  LawCardBand,
   LawCardFrame,
   LawCardHeadline,
-  LawCardTopLine,
   LawCardVoteBox,
 } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
-import { SummaryProvenance } from '@/components/SummaryProvenance';
-import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import {
   PartyStanceMini,
   buildStanceByVote,
@@ -29,7 +28,6 @@ import {
 import { ResultPill } from '@/components/ResultPill';
 import { SessionVoteFilter, type TopicOption } from '@/components/SessionVoteFilter';
 import { Tooltip } from '@/components/Tooltip';
-import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
 import { VoteSplit, type VoteSplitLabels } from '@/components/VoteSplit';
 import { pickPlainSummary, pickPlainTitle, proceduralExplainerKey } from '@/lib/glossary';
@@ -1076,28 +1074,24 @@ function LawVoteGroup({
     // The same card as /lleis (LawCardParts), so one law looks the same
     // whether you meet it in the list or in the day it was voted.
     <LawCardFrame data={{ 'data-result': outcome, 'data-topics': topicSlugs }}>
-      <LawCardTopLine
-        outcome={
-          <ResultPill
-            result={outcome}
-            label={
-              byPoints
-                ? labels.pointsSummary(approvedPoints, ordered.length)
-                : outcomeLabelFor(decider)
-            }
-          />
-        }
-      >
-        {lead.initiative_type && <LawTypeChip type={lead.initiative_type} />}
-        {topics.slice(0, 2).map((tp) => (
-          <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
-        ))}
-      </LawCardTopLine>
-      <SummaryProvenance
-        kind={plainSummary ? 'ai' : 'none'}
-        label={plainSummary ? cardLabels.aiSummary : cardLabels.noSummary}
+      <LawCardBand
+        topics={topics}
+        outcome={outcome}
+        label={byPoints ? labels.pointsSummary(approvedPoints, ordered.length) : outcomeLabelFor(decider)}
+        locale={locale}
       />
-      <LawCardHeadline href={lawHref}>{headline}</LawCardHeadline>
+      {lead.initiative_type && (
+        <div className="law-card-meta">
+          <LawTypeChip type={lead.initiative_type} />
+        </div>
+      )}
+      <LawCardHeadline href={lawHref} size="lg">
+        {plainSummary && <AiMark label={cardLabels.aiSummary} />}
+        {headline}
+      </LawCardHeadline>
+      {pickPlainTitle(lead, locale) && plainSummary && (
+        <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+      )}
       {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
       {proceduralNote && (
         <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
@@ -1115,6 +1109,7 @@ function LawVoteGroup({
               absent={decider.absent}
               groups={deciderStance}
               labels={splitLabels}
+              bigTally
             />
           ) : (
             <NoBreakdownFor vote={decider} labels={noBreakLabels} />
@@ -1153,12 +1148,6 @@ function LawVoteGroup({
       </details>
       <LawCardFooter href={lawHref} openLabel={cardLabels.openLaw}>
         <ProposerChip proposer={proposer} />
-        {lead.expediente_raw && (
-          <span className="mono" style={{ fontSize: 10, wordBreak: 'break-all' }}>
-            {lead.expediente_raw}
-          </span>
-        )}
-        {plainSummary && <LawOriginalToggle original={subject} provider={lead.plain_summary_provider} />}
       </LawCardFooter>
     </LawCardFrame>
   );
@@ -1349,17 +1338,19 @@ function VoteRow({
     // margin beside the verdict: a second visual language for the same
     // thing. The figures live in the vote box's tally now, as on /lleis.
     <LawCardFrame data={{ 'data-result': outcome, 'data-topics': topicSlugs }}>
-      <LawCardTopLine outcome={<ResultPill result={outcome} label={resultLabel} />}>
-        {vote.initiative_type && <LawTypeChip type={vote.initiative_type} />}
-        {topics.slice(0, 2).map((tp) => (
-          <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
-        ))}
-      </LawCardTopLine>
-      <SummaryProvenance
-        kind={plainSummary ? 'ai' : 'none'}
-        label={plainSummary ? cardLabels.aiSummary : cardLabels.noSummary}
-      />
-      <LawCardHeadline href={voteHref}>{headline}</LawCardHeadline>
+      <LawCardBand topics={topics} outcome={outcome} label={resultLabel} locale={locale} />
+      {vote.initiative_type && (
+        <div className="law-card-meta">
+          <LawTypeChip type={vote.initiative_type} />
+        </div>
+      )}
+      <LawCardHeadline href={voteHref} size="lg">
+        {plainSummary && <AiMark label={cardLabels.aiSummary} />}
+        {headline}
+      </LawCardHeadline>
+      {pickPlainTitle(vote, locale) && plainSummary && (
+        <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+      )}
       {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
       {proceduralNote && (
         <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
@@ -1375,6 +1366,7 @@ function VoteRow({
             absent={vote.absent}
             groups={stance}
             labels={splitLabels}
+            bigTally
           />
         ) : (
           <NoBreakdownFor vote={vote} labels={noBreakLabels} />
@@ -1390,12 +1382,6 @@ function VoteRow({
               : null
           }
         />
-        {vote.expediente_raw && (
-          <span className="mono" style={{ fontSize: 10, wordBreak: 'break-all' }}>
-            {vote.expediente_raw}
-          </span>
-        )}
-        {plainSummary && <LawOriginalToggle original={subject} provider={vote.plain_summary_provider} />}
       </LawCardFooter>
     </LawCardFrame>
   );

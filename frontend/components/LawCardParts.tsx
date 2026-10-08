@@ -1,7 +1,11 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
+
+import type { InitiativeTopicSlug } from '@/lib/api';
+import { topicIcon } from '@/lib/topic_icons';
+import { pickTopicName } from '@/lib/topics';
 
 /**
  * The visual parts of a law card, shared by every list that shows one.
@@ -171,3 +175,43 @@ export const LAW_CARD_LIST_STYLE: CSSProperties = {
   flexDirection: 'column',
   gap: 14,
 };
+
+/** The band across the top of a big card: the subject, in its colour, and
+ *  the outcome, tinted green (approved), red (rejected) or neutral. */
+export function LawCardBand({
+  topics,
+  outcome,
+  label,
+  locale,
+}: {
+  topics: InitiativeTopicSlug[] | undefined | null;
+  outcome: string | null | undefined;
+  label: string;
+  locale: string;
+}) {
+  const topic = (topics ?? []).find((tp) => tp.kind !== 'sdg') ?? topics?.[0] ?? null;
+  const TopicIcon = topic ? topicIcon(topic.icon) : null;
+  const tone = outcome === 'approved' ? 'aye' : outcome === 'rejected' ? 'no' : 'neutral';
+  return (
+    <div className={`law-card-band law-card-band--${tone}`}>
+      {topic ? (
+        <span className="law-card-band__topic" style={{ ['--topic' as string]: topic.color_hex ?? 'var(--ink-3)' }}>
+          {TopicIcon && <TopicIcon size={14} strokeWidth={2} aria-hidden="true" />}
+          {pickTopicName(topic, locale)}
+        </span>
+      ) : (
+        <span />
+      )}
+      <span className="law-card-band__verdict">{label}</span>
+    </div>
+  );
+}
+
+/** The small sparkle before a machine-written headline. */
+export function AiMark({ label }: { label: string }) {
+  return (
+    <Sparkles size={15} strokeWidth={2} aria-label={label} role="img" className="law-card-ai">
+      <title>{label}</title>
+    </Sparkles>
+  );
+}

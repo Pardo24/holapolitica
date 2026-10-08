@@ -95,9 +95,9 @@ export function ChamberMap({
         display: 'block',
         padding: '18px 20px 16px',
         borderRadius: 16,
-        border: '1px solid var(--rule-strong)',
-        background:
-          'linear-gradient(180deg, var(--paper-2) 0%, color-mix(in oklch, var(--accent) 5%, var(--paper-2)) 100%)',
+        border: '1px solid var(--rule)',
+        background: 'var(--paper)',
+        boxShadow: 'var(--shadow-2)',
         color: 'inherit',
         textDecoration: 'none',
       }}
