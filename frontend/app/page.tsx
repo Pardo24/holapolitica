@@ -232,7 +232,7 @@ export default async function HomePage() {
           marginInline: 'calc(50% - 50vw)',
           paddingInline: 'calc(50vw - 50%)',
           marginTop: -32,
-          paddingTop: 72,
+          paddingTop: 56,
           paddingBottom: 36,
           // A very soft accent wash, fading back to paper at the fold —
           // the vertical breathing room reads as a designed cover, not

@@ -3481,11 +3481,28 @@ summary.change-chip { cursor: pointer; }
   font-size: 12.5px;
   line-height: 1.35;
   color: var(--ink-2);
+  /* Two lines at most: a phone tile is narrow, and a cut-off "Trivia i la
+     pregunta del..." says less than the full phrase on two lines. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 100%;
 }
 @media (min-width: 641px) {
-  .home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 620px; }
+  /* On the desktop cover the tiles lie flat (icon beside the text) so two
+     rows of three still fit in the first screen. */
+  .home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 660px; }
+  .home-grid .home-grid__tile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 11px;
+    row-gap: 2px;
+    align-items: center;
+    padding: 11px 12px;
+  }
+  .home-grid__icon { grid-row: 1 / span 2; margin-bottom: 0; }
+  .home-grid__title { align-self: end; font-size: 14.5px; }
+  .home-grid__sub { align-self: start; font-size: 12px; -webkit-line-clamp: 1; }
 }
