@@ -53,8 +53,14 @@ PROFILES: tuple[str, ...] = (
 MAX_PROFILES = 4
 
 _PROMPT = """\
-Eres un analista legislativo NEUTRAL. Recibirás una ley española: su título,
-un resumen y las medidas concretas que establece su texto.
+Eres un analista legislativo NEUTRAL. Recibirás una iniciativa del Congreso:
+una ley, o una proposición no de ley o moción. Su título, un resumen y, si
+las hay, las medidas concretas de su texto.
+
+Si la línea TIPO dice que NO es vinculante, la iniciativa no cambia ninguna
+norma: solo PIDE algo al Gobierno. Entonces la frase dice lo que pide ("Si
+vives de alquiler, la propuesta pide al Gobierno que…"), nunca que algo
+queda establecido.
 
 Di a qué SITUACIONES de la vida afecta DIRECTAMENTE: solo cuando una medida
 concreta del texto se aplica a las personas en esa situación (un derecho,
@@ -185,9 +191,19 @@ def profile_input(
     title: str,
     summary: str | None,
     points: list[dict[str, str | None]] | None,
+    binding: bool = True,
 ) -> str:
-    """What the model reads: title, summary and the measures, plainly."""
+    """What the model reads: title, summary and the measures, plainly.
+
+    A non-binding initiative (proposición no de ley, moción) says so, so
+    the sentence says what it asks for instead of what it establishes.
+    """
     lines = [f"TÍTULO: {title.strip()}"]
+    if not binding:
+        lines.append(
+            "TIPO: proposición no de ley o moción. NO es vinculante: pide al "
+            "Gobierno que actúe; no cambia ninguna norma."
+        )
     if summary:
         lines.append(f"RESUMEN: {summary.strip()}")
     measures = [str(p.get("text") or "").strip() for p in (points or []) if p.get("text")]
@@ -202,11 +218,12 @@ async def analyse_profiles(
     title: str,
     summary: str | None,
     points: list[dict[str, str | None]] | None,
+    binding: bool = True,
     settings: Settings | None = None,
 ) -> ProfileEffects:
     """Ask the model which situations the law touches, and how; validate."""
     settings = settings or get_settings()
-    user = profile_input(title=title, summary=summary, points=points)
+    user = profile_input(title=title, summary=summary, points=points, binding=binding)
     raw = await _call_json(settings, system=_PROMPT, user=user, model=settings.law_profiles_model)
     effects = parse_profiles(raw)
     if effects:

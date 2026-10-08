@@ -646,7 +646,8 @@ async def _load_group_stances(
 async def list_profiles(
     session: AsyncSession = Depends(get_session),
 ) -> list[dict[str, object]]:
-    """How many laws touch each everyday situation directly.
+    """How many initiatives (laws and non-binding positions) touch each
+    everyday situation directly.
 
     Every situation, in display order, with its count (zero included), for
     the "I a tu, que t'afecta?" picker. Aggregated in Python, as the
@@ -656,9 +657,7 @@ async def list_profiles(
     async def factory() -> list[dict[str, object]]:
         rows = (
             await session.execute(
-                select(Initiative.profile_effects).where(
-                    Initiative.profile_effects.is_not(None), Initiative.type.in_(_LAW_TYPES)
-                )
+                select(Initiative.profile_effects).where(Initiative.profile_effects.is_not(None))
             )
         ).all()
         counts: Counter[str] = Counter()

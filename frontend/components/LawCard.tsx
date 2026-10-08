@@ -11,6 +11,7 @@ import {
   LawCardVoteBox,
 } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
+import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
@@ -120,6 +121,9 @@ export async function LawCard({
       {/* What kind of text, and when it was last voted (or tabled). */}
       <div className="law-card-meta">
         <LawTypeChip type={initiative.type} />
+        {LAW_TYPE_BINDING[initiative.type] === false && (
+          <span className="law-card-nonbinding">{t('card_non_binding')}</span>
+        )}
         {dateLabel && <span className="tabular">{dateLabel}</span>}
       </div>
 

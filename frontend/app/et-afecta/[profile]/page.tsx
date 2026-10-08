@@ -51,7 +51,7 @@ export default async function ProfilePage({
 
   const [data, groups, counts] = await Promise.all([
     api.initiatives
-      .list({ profile, creates_law: true, page, page_size: PAGE_SIZE })
+      .list({ profile, page, page_size: PAGE_SIZE })
       .catch(() => null),
     api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
     api.initiatives.profiles().catch(() => null),

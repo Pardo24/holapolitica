@@ -227,6 +227,8 @@ export default async function HomePage() {
           highlightsSeeAll: t('highlights_see_all'),
           sessionApproved: t('session_approved', { n: sessApproved }),
           sessionRejected: t('session_rejected', { n: sessRejected }),
+          pleApproved: t('ple_approved', { n: sessApproved }),
+          pleRejected: t('ple_rejected', { n: sessRejected }),
         }}
       />
 
@@ -744,6 +746,8 @@ interface MobileDashboardLabels {
   highlightsSeeAll: string;
   sessionApproved: string;
   sessionRejected: string;
+  pleApproved: string;
+  pleRejected: string;
 }
 
 function MobileDashboard({
@@ -818,7 +822,10 @@ function MobileDashboard({
       {/* First: what you can do here. Many open the app for one thing
           (the game, the map, their deputies); it is one tap away, before
           the news. */}
-      <div style={{ margin: '0 0 10px' }}>{quickGrid}</div>
+      {/* The first screen, exactly: the six tiles and the latest plenary
+          fill the space between the bars, and nothing else peeks in. */}
+      <div className="home-first">
+      <div className="home-first__grid">{quickGrid}</div>
 
       {/* The latest plenary, compact: it shares the first screen with the
           tiles, so it is one dark strip (when, how it went, how fresh)
@@ -838,7 +845,6 @@ function MobileDashboard({
               })}
             </span>
             {sessTotal > 0 && (
-              <>
                 <span
                   className="home-ple__bar"
                   role="img"
@@ -847,16 +853,19 @@ function MobileDashboard({
                   {sessApproved > 0 && <span style={{ flexGrow: sessApproved, background: 'var(--aye)' }} />}
                   {sessRejected > 0 && <span style={{ flexGrow: sessRejected, background: 'var(--no)' }} />}
                 </span>
-                <span className="home-ple__counts tabular" aria-hidden="true">
-                  <b style={{ color: 'var(--aye)' }}>{sessApproved}</b>
-                  <b style={{ color: 'var(--no)' }}>{sessRejected}</b>
-                </span>
-              </>
             )}
             <ChevronRight size={18} aria-hidden="true" style={{ flex: 'none', opacity: 0.8 }} />
           </span>
+          {sessTotal > 0 && (
+            <span className="home-ple__counts tabular">
+              <b style={{ color: 'var(--aye)' }}>{labels.pleApproved}</b>
+              <span aria-hidden="true">·</span>
+              <b style={{ color: 'var(--no)' }}>{labels.pleRejected}</b>
+            </span>
+          )}
         </Link>
       )}
+      </div>
 
       {/* "I a tu, què t'afecta?": pick your situation. */}
       <div style={{ margin: '22px 0 26px' }}>{profilePicker}</div>

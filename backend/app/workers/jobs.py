@@ -510,13 +510,16 @@ def analyse_law_profiles_pending(batch_size: int = 60) -> dict[str, int]:
     from app.services.law_profiles import analyse_profiles
     from app.services.llm_http import LLMUnavailableError
 
+    # Laws, and the non-binding positions (PNL, motions): a motion about
+    # rents matters to someone renting even though it only asks.
     law_types = ("proyecto_ley", "proposicion_ley", "real_decreto_ley")
+    position_types = ("proposicion_no_ley", "mocion")
 
     async def _run() -> dict[str, int]:
         async with AsyncSessionLocal() as session:
             stmt = (
                 _select(Initiative.id)
-                .where(Initiative.type.in_(law_types))
+                .where(Initiative.type.in_(law_types + position_types))
                 .where(Initiative.profile_effects_generated_at.is_(None))
                 .where(
                     or_(
@@ -548,6 +551,7 @@ def analyse_law_profiles_pending(batch_size: int = 60) -> dict[str, int]:
                         title=initiative.plain_title_es or initiative.title_original,
                         summary=initiative.plain_summary_es,
                         points=points,
+                        binding=str(initiative.type) in law_types,
                     )
                     initiative.profile_effects = result.effects
                     initiative.profile_effects_generated_at = datetime.now(UTC)

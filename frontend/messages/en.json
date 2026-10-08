@@ -341,7 +341,8 @@
     "card_votes_eyebrow_convalidation": "Decree validation",
     "lens_change_title": "What it changes",
     "lens_change_sub": "Taxes, rights, environment…",
-    "all_votes_link": "All votes"
+    "all_votes_link": "All votes",
+    "card_non_binding": "Non-binding"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -844,7 +845,9 @@
     "mobile_section_explore": "Explore",
     "mobile_section_topics": "The latest sitting, by topic",
     "mobile_topic_laws": "{n, plural, =1 {1 law} other {# laws}}",
-    "mobile_investigate_parties": "Explore the parties"
+    "mobile_investigate_parties": "Explore the parties",
+    "ple_approved": "{n, plural, one {# initiative passed} other {# initiatives passed}}",
+    "ple_rejected": "{n, plural, one {# rejected} other {# rejected}}"
   },
   "deputy": {
     "title": "Deputies & parties",
@@ -2193,9 +2196,9 @@
     "section_title": "And you, what affects you?",
     "section_lede": "Pick your situation: the laws with concrete measures for you, and how each group voted.",
     "index_title": "What affects you?",
-    "count": "{n, plural, one {# law} other {# laws}}",
+    "count": "{n, plural, one {# initiative} other {# initiatives}}",
     "for_you": "For you",
-    "page_lede": "{n, plural, one {# law has} other {# laws have}} concrete measures for this situation. Each law's sentence was written by AI from the text; the official text is what counts.",
+    "page_lede": "{n, plural, one {# initiative has} other {# initiatives have}} concrete measures for this situation: laws and, marked non-binding, proposals that ask the Government to act. Each sentence was written by AI from the text; the official text is what counts.",
     "empty": "No laws read for this situation yet.",
     "other_profiles": "Other situations",
     "pager_prev": "Previous",

@@ -4100,3 +4100,28 @@ summary.change-chip { cursor: pointer; }
 .home-ple__bar { flex: 1; display: flex; gap: 2px; height: 7px; min-width: 40px; border-radius: 999px; overflow: hidden; background: color-mix(in oklch, var(--paper) 22%, transparent); }
 .home-ple__bar > span { display: block; }
 .home-ple__counts { flex: none; display: inline-flex; gap: 8px; font-size: 14px; }
+
+/* Phone home: the tiles and the latest plenary fill the first screen, from
+   under the app bar (57 + 14) to over the tab bar (58), inside the safe
+   areas; the three rows share the height. */
+@media (max-width: 640px) {
+  .home-first {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: calc(100svh - 57px - 14px - 58px - 12px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    margin-bottom: 26px;
+  }
+  .home-first__grid { flex: 1; display: flex; flex-direction: column; }
+  .home-first .home-grid { flex: 1; grid-template-rows: repeat(3, minmax(64px, 1fr)); grid-auto-rows: unset; }
+}
+.home-ple__counts { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12.5px; color: var(--paper-2); }
+.home-ple__counts b { font-weight: 700; }
+.law-card-nonbinding {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px dashed var(--rule-strong);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+}

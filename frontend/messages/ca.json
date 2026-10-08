@@ -341,7 +341,8 @@
     "card_votes_eyebrow_convalidation": "Convalidació del decret",
     "lens_change_title": "Què canvia",
     "lens_change_sub": "Impostos, drets, medi ambient…",
-    "all_votes_link": "Totes les votacions"
+    "all_votes_link": "Totes les votacions",
+    "card_non_binding": "No vinculant"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -844,7 +845,9 @@
     "mobile_section_explore": "Explora",
     "mobile_section_topics": "L'últim ple, per temes",
     "mobile_topic_laws": "{n, plural, =1 {1 llei} other {# lleis}}",
-    "mobile_investigate_parties": "Investiga els partits"
+    "mobile_investigate_parties": "Investiga els partits",
+    "ple_approved": "{n, plural, one {# iniciativa aprovada} other {# iniciatives aprovades}}",
+    "ple_rejected": "{n, plural, one {# rebutjada} other {# rebutjades}}"
   },
   "deputy": {
     "title": "Diputats i partits",
@@ -2192,9 +2195,9 @@
     "section_title": "I a tu, què t'afecta?",
     "section_lede": "Tria la teva situació: les lleis amb mesures concretes per a tu, i com va votar cada grup.",
     "index_title": "Què t'afecta?",
-    "count": "{n, plural, one {# llei} other {# lleis}}",
+    "count": "{n, plural, one {# iniciativa} other {# iniciatives}}",
     "for_you": "Per a tu",
-    "page_lede": "{n, plural, one {# llei té} other {# lleis tenen}} mesures concretes per a aquesta situació. La frase de cada llei l'ha escrit una IA a partir del text; el que val és el text oficial.",
+    "page_lede": "{n, plural, one {# iniciativa té} other {# iniciatives tenen}} mesures concretes per a aquesta situació: lleis i, marcades com a no vinculants, propostes que demanen coses al Govern. La frase de cada una l'ha escrit una IA a partir del text; el que val és el text oficial.",
     "empty": "Encara no tenim lleis llegides per a aquesta situació.",
     "other_profiles": "Altres situacions",
     "pager_prev": "Anterior",

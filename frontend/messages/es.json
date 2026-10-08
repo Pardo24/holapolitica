@@ -341,7 +341,8 @@
     "card_votes_eyebrow_convalidation": "Convalidación del decreto",
     "lens_change_title": "Qué cambia",
     "lens_change_sub": "Impuestos, derechos, medio ambiente…",
-    "all_votes_link": "Todas las votaciones"
+    "all_votes_link": "Todas las votaciones",
+    "card_non_binding": "No vinculante"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -844,7 +845,9 @@
     "mobile_section_explore": "Explora",
     "mobile_section_topics": "El último pleno, por temas",
     "mobile_topic_laws": "{n, plural, =1 {1 ley} other {# leyes}}",
-    "mobile_investigate_parties": "Investiga los partidos"
+    "mobile_investigate_parties": "Investiga los partidos",
+    "ple_approved": "{n, plural, one {# iniciativa aprobada} other {# iniciativas aprobadas}}",
+    "ple_rejected": "{n, plural, one {# rechazada} other {# rechazadas}}"
   },
   "deputy": {
     "title": "Diputados y partidos",
@@ -2193,9 +2196,9 @@
     "section_title": "¿Y a ti, qué te afecta?",
     "section_lede": "Elige tu situación: las leyes con medidas concretas para ti, y cómo votó cada grupo.",
     "index_title": "¿Qué te afecta?",
-    "count": "{n, plural, one {# ley} other {# leyes}}",
+    "count": "{n, plural, one {# iniciativa} other {# iniciativas}}",
     "for_you": "Para ti",
-    "page_lede": "{n, plural, one {# ley tiene} other {# leyes tienen}} medidas concretas para esta situación. La frase de cada ley la ha escrito una IA a partir del texto; lo que vale es el texto oficial.",
+    "page_lede": "{n, plural, one {# iniciativa tiene} other {# iniciativas tienen}} medidas concretas para esta situación: leyes y, marcadas como no vinculantes, propuestas que piden cosas al Gobierno. La frase de cada una la ha escrito una IA a partir del texto; lo que vale es el texto oficial.",
     "empty": "Aún no tenemos leyes leídas para esta situación.",
     "other_profiles": "Otras situaciones",
     "pager_prev": "Anterior",
