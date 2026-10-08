@@ -7,15 +7,18 @@ import { Bell, Landmark, Scale, Users, type LucideIcon } from 'lucide-react';
 import { isNativeApp } from '@/lib/native';
 
 /**
- * Welcome, the first time the mobile app opens.
+ * Welcome, the first time the app or the mobile site opens.
  *
  * Four short steps: what the app is, then one per tab of the bottom bar
  * (laws, deputies, data and following a law), so a new user knows what
  * each tab holds before tapping around. Skippable from the first step.
  *
- * App only. On the web a full-screen welcome was a barrier for a reader
- * arriving from a shared link (see IntroNote, which replaced one), but a
- * person who just installed the app expects to be shown around once.
+ * In the app and on a phone-sized screen (the layout with the bottom tab
+ * bar the steps describe). It is mounted on the home only, so a reader
+ * arriving from a shared link to a law or a vote lands on what they came
+ * for, not on a welcome. On the web a visitor who already dismissed the
+ * first-visit strip is not new, and doesn't get it either. On a wide
+ * screen the strip (IntroNote) stays the welcome.
  *
  * Shown once: finishing or skipping remembers it, and also marks the
  * first-visit strip as seen so the two never stack. Storage can throw
@@ -24,6 +27,15 @@ import { isNativeApp } from '@/lib/native';
 
 const STORAGE_KEY = 'holapolitica.welcome.v1';
 const INTRO_NOTE_KEY = 'holapolitica.onboarded.v1';
+
+/** Same breakpoint as the bottom tab bar and the mobile home. */
+const PHONE_QUERY = '(max-width: 640px)';
+
+/** Whether the welcome (rather than the first-visit strip) is this screen's. */
+export function welcomeApplies(): boolean {
+  if (isNativeApp()) return true;
+  return typeof window !== 'undefined' && window.matchMedia?.(PHONE_QUERY).matches === true;
+}
 
 type StepKey = 'what' | 'laws' | 'deputies' | 'follow';
 
@@ -42,9 +54,11 @@ export function WelcomeWizard() {
   const touchX = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isNativeApp()) return;
+    if (!welcomeApplies()) return;
     try {
-      if (!window.localStorage.getItem(STORAGE_KEY)) setOpen(true);
+      const seen = window.localStorage.getItem(STORAGE_KEY) != null;
+      const returning = !isNativeApp() && window.localStorage.getItem(INTRO_NOTE_KEY) != null;
+      if (!seen && !returning) setOpen(true);
     } catch {
       /* no storage: don't show */
     }

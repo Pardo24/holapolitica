@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, X } from 'lucide-react';
 
-import { isNativeApp } from '@/lib/native';
+import { welcomeApplies } from '@/components/WelcomeWizard';
 
 /**
  * First-visit explanation, as a strip inside the page.
@@ -17,10 +17,9 @@ import { isNativeApp } from '@/lib/native';
  * this strip sits above them, saying what the site is in one sentence,
  * with the full explanation one click away.
  *
- * On a phone it floats instead: a card over the bottom of the screen,
- * above the tab bar, so the home underneath starts where it always starts
- * and nothing jumps when it is dismissed. On a wider screen it stays a
- * strip at the top of the page, where there is room for it.
+ * Wide screens only now: in the app and on a phone the first visit gets
+ * the welcome wizard instead (WelcomeWizard), and this stays out of the
+ * way.
  *
  * Same storage key as the old modal, so anyone who already dismissed that
  * never sees this. Storage can throw (private windows): if it does, the
@@ -37,8 +36,8 @@ export function IntroNote() {
   const t = useTranslations('onboarding');
 
   useEffect(() => {
-    // Inside the app the welcome wizard does this job (WelcomeWizard).
-    if (isNativeApp()) return;
+    // In the app and on a phone the welcome wizard does this job.
+    if (welcomeApplies()) return;
     try {
       if (!window.localStorage.getItem(STORAGE_KEY)) setVisible(true);
     } catch {
