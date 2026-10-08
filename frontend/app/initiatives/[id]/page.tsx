@@ -245,12 +245,12 @@ export default async function InitiativeDetailPage({
         <span className="mono">{initiative.official_id}</span>
       </div>
 
-      {/* Header */}
-      <header style={{ paddingTop: 8, paddingBottom: 24, borderBottom: '1px solid var(--ink)' }}>
-        {/* Who wrote the headline below. With a summary the caveat under
-            the official title says the rest; without one, this is the only
-            thing that separates "we have no summary yet" from "this is how
-            we write". */}
+      {/* Header. Four plain layers, so a reader finds each thing without
+          reading the rest: the title (big, the one line to read); what kind
+          of text it is and when it was tabled (small); who proposed it and
+          how it ended; then the AI summary, quieter, in its own box, with
+          one short caveat. The actions close it. */}
+      <header className="law-head">
         <SummaryProvenance
           kind={summary || borrowedHeadline ? 'ai' : 'none'}
           label={
@@ -261,102 +261,19 @@ export default async function InitiativeDetailPage({
                 : tLleis('card_no_summary')
           }
         />
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
-          {/* The plain summary leads. The official title used to be the
-              headline here while the summary sat half a page below, so the
-              page opened with the legalese a reader came to avoid. Same
-              order as the laws list and the vote page now. */}
-          <h1
-            className="h-headline"
-            style={{
-              margin: 0,
-              fontSize: summary ? 'clamp(21px, 2.8vw, 31px)' : 'clamp(24px, 3.4vw, 36px)',
-              maxWidth: 980,
-              minWidth: 0,
-              flex: '1 1 auto',
-              lineHeight: summary ? 1.35 : undefined,
-            }}
-          >
-            {headline ?? <AnnotatedText text={title} />}
-          </h1>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              flex: 'none',
-            }}
-          >
-            <LawTypeChip type={initiative.type} size="md" />
-            <span
-              className="mono"
-              style={{ fontSize: 11, color: 'var(--ink-3)' }}
-            >
-              EXP {initiative.official_id}
+        <h1 className="h-headline law-head__title">{headline ?? <AnnotatedText text={title} />}</h1>
+
+        <div className="law-head__context">
+          <LawTypeChip type={initiative.type} size="md" />
+          <span className="mono">EXP {initiative.official_id}</span>
+          {submittedDate && (
+            <span>
+              {t('submitted_at_short')} <span className="tabular">{submittedDate}</span>
             </span>
-          </div>
+          )}
         </div>
 
-        {/* The official wording, kept right under the headline for anyone
-            checking the exact text, with the AI caveat the summary needs. */}
-        {summary && (
-          <>
-            {/* The asks, as the list they are. A motion with six points read
-                as one paragraph under the headline. */}
-            <SummaryBody
-              text={summary}
-              omitLead={!summaryStub && !plainTitle}
-              style={{
-                margin: '12px 0 0',
-                fontSize: 15,
-                lineHeight: 1.55,
-                color: 'var(--ink-2)',
-                maxWidth: 900,
-              }}
-            />
-            <p style={{ margin: '6px 0 0', fontSize: 11.5, color: 'var(--ink-3)', fontStyle: 'italic' }}>
-              {tVotes('plain_summary_disclaimer')}{' '}
-              ({tCommon('plain_summary_caveat', {
-                provider: initiative.plain_summary_provider ?? 'IA',
-              })})
-            </p>
-          </>
-        )}
-
-        {/* The official wording, whenever the headline above is not already
-            it: under a summary, or under a headline borrowed from a vote.
-            Skipped when the summary's lead was a stub, because then the
-            headline IS this title and it would print twice. */}
-        {showOfficialBelow && (
-          <p
-            style={{
-              margin: '10px 0 0',
-              fontSize: 13.5,
-              lineHeight: 1.5,
-              color: 'var(--ink-3)',
-              maxWidth: 900,
-            }}
-          >
-            <AnnotatedText text={title} />
-          </p>
-        )}
-
-        <div
-          className="initiative-meta-strip"
-          style={{
-            display: 'flex',
-            gap: 18,
-            alignItems: 'center',
-            marginTop: 18,
-            fontSize: 13,
-            color: 'var(--ink-2)',
-            flexWrap: 'wrap',
-          }}
-        >
-          {/* Proposer FIRST and BIG: logo badge (md) + name in bold —
-              "who is behind this" is the fact a citizen looks for.
-              Sentence-case grey prefix instead of the old blue
-              uppercase eyebrow columns. */}
+        <div className="law-head__who initiative-meta-strip">
           {(parsedProposer.isGovernment || parsedProposer.groups.length > 0) && (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
@@ -423,14 +340,30 @@ export default async function InitiativeDetailPage({
             />
             {statusLabel}
           </span>
-          {submittedDate && (
-            <span style={{ fontSize: 12.5, color: 'var(--ink-3)' }}>
-              {t('submitted_at')}{' '}
-              <span className="tabular" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>
-                {submittedDate}
-              </span>
-            </span>
-          )}
+        </div>
+
+        {summary && (
+          <div className="law-head__summary">
+            {/* The asks, as the list they are. A motion with six points read
+                as one paragraph under the headline. */}
+            <SummaryBody text={summary} omitLead={!summaryStub && !plainTitle} />
+            <p className="law-head__caveat" title={initiative.plain_summary_provider ?? undefined}>
+              {t('summary_caveat_short')} <Link href={'/about#ia' as Route}>{t('summary_caveat_how')}</Link>
+            </p>
+          </div>
+        )}
+
+        {/* The official wording, whenever the headline above is not already
+            it: under a summary, or under a headline borrowed from a vote.
+            Skipped when the summary's lead was a stub, because then the
+            headline IS this title and it would print twice. */}
+        {showOfficialBelow && (
+          <p className="law-head__official">
+            <span>{t('official_title_label')}</span> <AnnotatedText text={title} />
+          </p>
+        )}
+
+        <div className="law-head__actions">
           {/* The official text, at the top: many titles don't say what a
               law does, and the PDF used to sit far down the left column.
               A Real Decreto-ley has no PDF in Congress: its text is the
@@ -462,7 +395,6 @@ export default async function InitiativeDetailPage({
               fontWeight: 600,
               textDecoration: 'none',
               whiteSpace: 'nowrap',
-              marginLeft: 'auto',
             }}
           >
             <RouteIcon size={12} aria-hidden="true" />

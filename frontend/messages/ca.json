@@ -391,7 +391,11 @@
     "follow_off": "Segueix aquesta llei",
     "follow_on": "La segueixes",
     "affects_label": "A qui afecta",
-    "points_title": "Els punts, un a un"
+    "points_title": "Els punts, un a un",
+    "submitted_at_short": "Presentada el",
+    "summary_caveat_short": "Resum fet amb IA a partir del text. Pot tenir errors: el que val és el text oficial.",
+    "summary_caveat_how": "Com ho fem",
+    "official_title_label": "Títol oficial:"
   },
   "law_journey": {
     "eyebrow": "Trajectòria",

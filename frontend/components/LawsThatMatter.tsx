@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 import type { Topic } from '@/lib/api';
 import { CHANGE_PAIRS, changeTagIcon } from '@/lib/changeTags';
@@ -23,8 +23,8 @@ import { pickTopicName } from '@/lib/topics';
  * things a household budget, a job, a rent or a school is made of, not a
  * selection of laws.
  *
- * On a phone the home has to breathe: there the change pairs fold behind
- * one row (`foldChanges`), and the subjects alone fill the card.
+ * The change pairs are always open, on every screen: they are half of
+ * what the block is for, and a fold hid them behind a row few opened.
  */
 const EVERYDAY_TOPICS = [
   'habitatge',
@@ -41,11 +41,9 @@ const EVERYDAY_TOPICS = [
 export async function LawsThatMatter({
   topics,
   locale,
-  foldChanges = false,
 }: {
   topics: Topic[];
   locale: string;
-  foldChanges?: boolean;
 }) {
   const t = await getTranslations('laws_that_matter');
   const tTags = await getTranslations('change_tags');
@@ -101,24 +99,11 @@ export async function LawsThatMatter({
         })}
       </div>
 
-      {foldChanges ? (
-        <details className="ltm__fold">
-          <summary>
-            {t('changes_title')}
-            <ChevronDown size={16} aria-hidden="true" />
-          </summary>
-          <p className="ltm__changes-note">{t('changes_note')}</p>
-          {pairs}
-        </details>
-      ) : (
-        <>
-          <div className="ltm__changes-head">
-            <span className="eyebrow">{t('changes_title')}</span>
-            <span className="ltm__changes-note">{t('changes_note')}</span>
-          </div>
-          {pairs}
-        </>
-      )}
+      <div className="ltm__changes-head">
+        <h3>{t('changes_title')}</h3>
+        <span className="ltm__changes-note">{t('changes_note')}</span>
+      </div>
+      {pairs}
 
       <Link href={'/lleis' as Route} className="ltm__all">
         {t('all')} <ArrowRight size={14} aria-hidden="true" />

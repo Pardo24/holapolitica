@@ -391,7 +391,11 @@
     "follow_off": "Follow this law",
     "follow_on": "Following",
     "affects_label": "Who it affects",
-    "points_title": "The points, one by one"
+    "points_title": "The points, one by one",
+    "submitted_at_short": "Tabled on",
+    "summary_caveat_short": "Summary written by AI from the text. It can be wrong: the official text is what counts.",
+    "summary_caveat_how": "How we do it",
+    "official_title_label": "Official title:"
   },
   "law_journey": {
     "eyebrow": "Trajectory",

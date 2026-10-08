@@ -391,7 +391,11 @@
     "follow_off": "Sigue esta ley",
     "follow_on": "La sigues",
     "affects_label": "A quién afecta",
-    "points_title": "Los puntos, uno a uno"
+    "points_title": "Los puntos, uno a uno",
+    "submitted_at_short": "Presentada el",
+    "summary_caveat_short": "Resumen hecho con IA a partir del texto. Puede tener errores: lo que vale es el texto oficial.",
+    "summary_caveat_how": "Cómo lo hacemos",
+    "official_title_label": "Título oficial:"
   },
   "law_journey": {
     "eyebrow": "Trayectoria",

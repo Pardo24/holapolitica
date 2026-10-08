@@ -188,7 +188,7 @@ export default async function HomePage() {
         noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
         plannedLabel={tUpcoming('planned_label')}
         quickGrid={quickGrid}
-        lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} foldChanges />}
+        lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} />}
         partyBand={
           <PartyBand
             groups={allGroups}
@@ -563,7 +563,7 @@ export default async function HomePage() {
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           shown only when there's something scheduled, so an empty agenda
           doesn't add a blank section to the home. */}
-      <div id="lleis-que-importen" style={{ marginTop: 40, scrollMarginTop: 80 }}>
+      <div id="lleis-que-importen" style={{ marginTop: 40, marginBottom: 48, scrollMarginTop: 80 }}>
         <LawsThatMatter topics={allTopics} locale={locale} />
       </div>
 
@@ -933,7 +933,7 @@ function MobileDashboard({
 
       {/* Where to start when you don't know what to look for: everyday
           subjects, and what a law changes. */}
-      <div id="lleis-que-importen" style={{ marginTop: 22, scrollMarginTop: 72 }}>
+      <div id="lleis-que-importen" style={{ marginTop: 22, marginBottom: 34, scrollMarginTop: 72 }}>
         {lawsThatMatter}
       </div>
 
