@@ -976,7 +976,10 @@
     "answered_today_short": "Ya has respondido hoy. ¡Vuelve mañana!",
     "dismiss": "Descartar",
     "page_title": "La pregunta del día",
-    "page_subtitle": "Una pregunta al día, la misma para todos."
+    "page_subtitle": "Una pregunta al día, la misma para todos.",
+    "streak_days": "{n, plural, one {# día de racha} other {# días de racha}}",
+    "streak_start": "Empieza la racha hoy",
+    "next_in": "Pregunta nueva dentro de {h} h {m} min"
   },
   "jocs": {
     "title": "Juegos",

@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { CalendarDays, Check, Flame, X } from 'lucide-react';
+import { CalendarDays, Check, Clock, Flame, Gamepad2, Share2, X } from 'lucide-react';
 
 import { api, type DailyAnswer, type DailyQuestion as DQ } from '@/lib/api';
 import { answeredDailyToday, readStats, recordDailyAnswered } from '@/lib/triviaStats';
@@ -50,6 +51,15 @@ function readStored(): StoredResult | null {
   }
 }
 
+/** Minutes until the next question. The server picks it by the UTC day
+ *  (api/daily_question.py), so it changes at midnight UTC. */
+function minutesToNextQuestion(): number {
+  const now = Date.now();
+  const next = new Date(now);
+  next.setUTCHours(24, 0, 0, 0);
+  return Math.max(1, Math.round((next.getTime() - now) / 60000));
+}
+
 export function DailyQuestion({ locale, labels }: { locale: string; labels: DailyQuestionLabels }) {
   const [q, setQ] = useState<DQ | null | undefined>(undefined);
   const [chosen, setChosen] = useState<number | null>(null);
@@ -57,6 +67,16 @@ export function DailyQuestion({ locale, labels }: { locale: string; labels: Dail
   const [streak, setStreak] = useState(0);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [minutesLeft, setMinutesLeft] = useState<number | null>(null);
+  const tx = useTranslations('daily');
+
+  // The countdown to tomorrow's question, once today's is answered.
+  useEffect(() => {
+    if (!result) return;
+    setMinutesLeft(minutesToNextQuestion());
+    const id = setInterval(() => setMinutesLeft(minutesToNextQuestion()), 30_000);
+    return () => clearInterval(id);
+  }, [result]);
 
   useEffect(() => {
     let alive = true;
@@ -116,21 +136,30 @@ export function DailyQuestion({ locale, labels }: { locale: string; labels: Dail
     }
   }
 
+  const today = new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  const hero = (
+    <header className="dq-hero">
+      <span className="dq-hero__date">
+        <CalendarDays size={15} strokeWidth={2.2} aria-hidden="true" />
+        {today}
+      </span>
+      <h1 className="dq-hero__title">{labels.eyebrow}</h1>
+      <span className="dq-hero__streak">
+        <Flame size={16} strokeWidth={2.2} aria-hidden="true" />
+        {streak > 0 ? tx('streak_days', { n: streak }) : tx('streak_start')}
+      </span>
+    </header>
+  );
+
   // Loading / unavailable states keep the card from flashing empty.
-  if (q === undefined) {
+  if (q === undefined || q === null) {
     return (
-      <section style={cardStyle}>
-        <Eyebrow label={labels.eyebrow} />
-        <p style={{ color: 'var(--ink-3)', fontSize: 14, margin: '10px 0 0' }}>{labels.loading}</p>
-      </section>
-    );
-  }
-  if (q === null) {
-    return (
-      <section style={cardStyle}>
-        <Eyebrow label={labels.eyebrow} />
-        <p style={{ color: 'var(--ink-3)', fontSize: 14, margin: '10px 0 0' }}>{labels.unavailable}</p>
-      </section>
+      <div className="dq">
+        {hero}
+        <section className="dq-card">
+          <p className="dq-muted">{q === undefined ? labels.loading : labels.unavailable}</p>
+        </section>
+      </div>
     );
   }
 
@@ -138,166 +167,85 @@ export function DailyQuestion({ locale, labels }: { locale: string; labels: Dail
   const total = result?.total ?? 0;
   const pctCorrect =
     result && total > 0 ? Math.round(((result.counts[result.correct_index] ?? 0) / total) * 100) : 0;
+  const gotIt = answered && chosen === result?.correct_index;
+  const LETTERS = ['A', 'B', 'C', 'D', 'E'];
+  const hours = minutesLeft != null ? Math.floor(minutesLeft / 60) : 0;
+  const mins = minutesLeft != null ? minutesLeft % 60 : 0;
 
   return (
-    <section style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-        <Eyebrow label={labels.eyebrow} />
-        {streak > 0 && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--ink-3)' }}>
-            <Flame size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#EF9F27' }} />
-            {labels.streak.replace('{n}', String(streak))}
-          </span>
-        )}
-      </div>
+    <div className="dq">
+      {hero}
 
-      {q.context && (
-        <p
-          style={{
-            margin: '12px 0 0',
-            padding: '10px 12px',
-            borderRadius: 10,
-            background: 'var(--paper)',
-            border: '1px solid var(--rule)',
-            fontSize: 13.5,
-            color: 'var(--ink-2)',
-            lineHeight: 1.5,
-          }}
-        >
-          {q.context}
-        </p>
-      )}
+      <section className="dq-card">
+        {q.context && <p className="dq-context">{q.context}</p>}
+        <h2 className="serif dq-prompt">{q.prompt}</h2>
 
-      <h2 className="serif" style={{ margin: '12px 0 14px', fontSize: 20, fontWeight: 600, lineHeight: 1.3, color: 'var(--ink)' }}>
-        {q.prompt}
-      </h2>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {q.options.map((o, i) => {
-          const isCorrect = answered && i === result?.correct_index;
-          const isChosenWrong = answered && i === chosen && i !== result?.correct_index;
-          const pct = answered && total > 0 ? Math.round(((result?.counts[i] ?? 0) / total) * 100) : 0;
-          const border = isCorrect ? 'var(--aye)' : isChosenWrong ? 'var(--no)' : 'var(--rule-strong)';
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => pick(i)}
-              disabled={answered || busy}
-              style={{
-                position: 'relative',
-                overflow: 'hidden',
-                textAlign: 'left',
-                padding: '12px 14px',
-                borderRadius: 12,
-                border: `1.5px solid ${border}`,
-                background: 'var(--paper)',
-                color: 'var(--ink)',
-                fontSize: 15,
-                fontWeight: 500,
-                cursor: answered ? 'default' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              {/* Community distribution bar, revealed after answering */}
-              {answered && (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: `${pct}%`,
-                    background: isCorrect
-                      ? 'color-mix(in srgb, var(--aye) 16%, transparent)'
-                      : 'color-mix(in srgb, var(--ink) 7%, transparent)',
-                    transition: 'width 500ms ease',
-                  }}
-                />
-              )}
-              <span style={{ position: 'relative', flex: 1 }}>{o.text}</span>
-              {answered && (
-                <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  {isCorrect && <Check size={16} strokeWidth={2.5} style={{ color: 'var(--aye)' }} aria-hidden="true" />}
-                  {isChosenWrong && <X size={16} strokeWidth={2.5} style={{ color: 'var(--no)' }} aria-hidden="true" />}
-                  <span className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-3)' }}>
-                    {pct}%
-                  </span>
+        <div className="dq-opts">
+          {q.options.map((o, i) => {
+            const isCorrect = answered && i === result?.correct_index;
+            const isChosenWrong = answered && i === chosen && i !== result?.correct_index;
+            const pct = answered && total > 0 ? Math.round(((result?.counts[i] ?? 0) / total) * 100) : 0;
+            const cls = [
+              'dq-opt',
+              isCorrect ? 'dq-opt--correct' : '',
+              isChosenWrong ? 'dq-opt--wrong' : '',
+              answered && !isCorrect && !isChosenWrong ? 'dq-opt--dim' : '',
+            ]
+              .filter(Boolean)
+              .join(' ');
+            return (
+              <button key={i} type="button" onClick={() => pick(i)} disabled={answered || busy} className={cls}>
+                {/* How everyone answered, once you have. */}
+                {answered && <span className="dq-opt__bar" aria-hidden="true" style={{ width: `${pct}%` }} />}
+                <span className="dq-opt__key" aria-hidden="true">
+                  {isCorrect ? <Check size={15} strokeWidth={3} /> : isChosenWrong ? <X size={15} strokeWidth={3} /> : LETTERS[i]}
                 </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+                <span className="dq-opt__text">{o.text}</span>
+                {answered && <span className="dq-opt__pct tabular">{pct}%</span>}
+              </button>
+            );
+          })}
+        </div>
 
-      {answered && result && (
-        <div style={{ marginTop: 14 }}>
-          <p
-            style={{
-              fontSize: 13.5,
-              fontWeight: 700,
-              margin: '0 0 6px',
-              color: chosen === result.correct_index ? 'var(--aye)' : 'var(--no)',
-            }}
-          >
-            {chosen === result.correct_index ? labels.correct : labels.wrong}
-            {total > 0 && (
-              <span style={{ color: 'var(--ink-3)', fontWeight: 500 }}>
-                {' · '}
-                {labels.pct_correct.replace('{pct}', String(pctCorrect))}
+        {answered && result && (
+          <div className={`dq-verdict ${gotIt ? 'dq-verdict--ok' : 'dq-verdict--ko'}`}>
+            <p className="dq-verdict__title">
+              <span className="dq-verdict__icon" aria-hidden="true">
+                {gotIt ? <Check size={18} strokeWidth={3} /> : <X size={18} strokeWidth={3} />}
               </span>
-            )}
-          </p>
-          <p style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.55, margin: 0 }}>{result.explanation}</p>
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+              {gotIt ? labels.correct : labels.wrong}
+            </p>
+            {total > 0 && <p className="dq-verdict__pct">{labels.pct_correct.replace('{pct}', String(pctCorrect))}</p>}
+            <p className="dq-verdict__exp">{result.explanation}</p>
             {result.source_id != null && (
-              <Link href={`/votes/${result.source_id}` as Route} style={{ fontSize: 12.5, color: 'var(--ink)', fontWeight: 600 }}>
+              <Link href={`/votes/${result.source_id}` as Route} className="dq-verdict__link">
                 {labels.explore} →
               </Link>
             )}
-            <button
-              type="button"
-              onClick={share}
-              style={{ background: 'transparent', border: 0, padding: 0, cursor: 'pointer', fontSize: 12.5, color: 'var(--ink)', fontWeight: 600 }}
-            >
+          </div>
+        )}
+      </section>
+
+      {answered && (
+        <>
+          <div className="dq-actions">
+            <button type="button" onClick={share} className="dq-btn">
+              <Share2 size={17} strokeWidth={2.2} aria-hidden="true" />
               {copied ? labels.share_copied : labels.share}
             </button>
-            <Link href={'/joc' as Route} style={{ fontSize: 12.5, color: 'var(--ink-2)', fontWeight: 600, marginLeft: 'auto' }}>
-              {labels.play_cta} →
+            <Link href={'/joc' as Route} className="dq-btn dq-btn--ghost">
+              <Gamepad2 size={17} strokeWidth={2.2} aria-hidden="true" />
+              {labels.play_cta}
             </Link>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 10 }}>{labels.answered_today}</p>
-        </div>
+          {minutesLeft != null && (
+            <p className="dq-next">
+              <Clock size={15} strokeWidth={2.2} aria-hidden="true" />
+              {tx('next_in', { h: hours, m: mins })}
+            </p>
+          )}
+        </>
       )}
-    </section>
-  );
-}
-
-const cardStyle: React.CSSProperties = {
-  marginTop: 16,
-  borderRadius: 16,
-  background: 'var(--paper-2)',
-  border: '1px solid var(--rule-strong)',
-  padding: '18px 18px 16px',
-};
-
-function Eyebrow({ label }: { label: string }) {
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 7,
-        fontSize: 10,
-        letterSpacing: '0.14em',
-        textTransform: 'uppercase',
-        fontWeight: 700,
-        color: 'var(--accent)',
-      }}
-    >
-      <CalendarDays size={14} strokeWidth={2} aria-hidden="true" />
-      {label}
-    </span>
+    </div>
   );
 }

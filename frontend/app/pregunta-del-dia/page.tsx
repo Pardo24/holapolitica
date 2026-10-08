@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { CalendarDays } from 'lucide-react';
 
-import { PageHeader } from '@/components/PageHeader';
 import { DailyQuestion } from '@/components/DailyQuestion';
 
 /**
@@ -14,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('daily');
-  return { title: `${t('page_title')} · Hola Política`, description: t('page_subtitle') };
+  return { title: t('page_title'), description: t('page_subtitle') };
 }
 
 export default async function PreguntaDelDiaPage() {
@@ -23,13 +21,6 @@ export default async function PreguntaDelDiaPage() {
 
   return (
     <div style={{ maxWidth: 620, marginInline: 'auto' }}>
-      <PageHeader
-        hue="var(--hue-jocs)"
-        title={t('page_title')}
-        subtitle={t('page_subtitle')}
-        icon={<CalendarDays size={20} strokeWidth={1.8} aria-hidden="true" />}
-        bordered
-      />
       <DailyQuestion
         locale={locale}
         labels={{

@@ -976,7 +976,10 @@
     "answered_today_short": "Ja has respost avui. Torna demà!",
     "dismiss": "Descarta",
     "page_title": "La pregunta del dia",
-    "page_subtitle": "Una pregunta al dia, la mateixa per a tothom."
+    "page_subtitle": "Una pregunta al dia, la mateixa per a tothom.",
+    "streak_days": "{n, plural, one {# dia de ratxa} other {# dies de ratxa}}",
+    "streak_start": "Comença la ratxa avui",
+    "next_in": "Pregunta nova d'aquí a {h} h {m} min"
   },
   "jocs": {
     "title": "Jocs",

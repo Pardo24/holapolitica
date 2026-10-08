@@ -976,7 +976,10 @@
     "answered_today_short": "Answered today. Come back tomorrow!",
     "dismiss": "Dismiss",
     "page_title": "Question of the day",
-    "page_subtitle": "One question a day, the same for everyone."
+    "page_subtitle": "One question a day, the same for everyone.",
+    "streak_days": "{n, plural, one {# day streak} other {# day streak}}",
+    "streak_start": "Start your streak today",
+    "next_in": "New question in {h} h {m} min"
   },
   "jocs": {
     "title": "Games",
