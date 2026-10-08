@@ -4505,3 +4505,14 @@ summary.change-chip { cursor: pointer; }
 }
 .gstart-current strong { color: var(--ink); }
 .gstart-current a { font-weight: 800; color: var(--hue-alinea-ink); }
+
+/* "How would you vote?" question card (components/AlignQuiz). */
+.align-card {
+  padding: 18px 18px 16px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in oklch, var(--hue-alinea) 25%, var(--rule));
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+.align-card__title { margin: 0 0 8px; font-size: clamp(20px, 5.4vw, 24px); font-weight: 700; line-height: 1.22; letter-spacing: -0.015em; color: var(--ink); }
+.align-card__summary { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }

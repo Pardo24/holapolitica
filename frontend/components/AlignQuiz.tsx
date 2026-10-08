@@ -90,7 +90,7 @@ export function AlignQuiz({
   // wants the rest opens it in place; nothing is hidden without a way in.
   const [expanded, setExpanded] = useState(false);
   const [clipped, setClipped] = useState(false);
-  const summaryRef = useRef<HTMLHeadingElement | null>(null);
+  const summaryRef = useRef<HTMLDivElement | null>(null);
 
   const total = questions.length;
   const currentVoteId = questions[idx]?.vote_id;
@@ -527,6 +527,9 @@ export function AlignQuiz({
   const q = questions[idx];
   if (!q) return null;
   const summary = (locale.startsWith('es') ? q.plain_summary_es : q.plain_summary_ca) || q.plain_summary_ca || q.plain_summary_es;
+  // The law's short plain title leads; the summary explains it underneath.
+  const plainTitle =
+    (locale.startsWith('es') ? q.plain_title_es : q.plain_title_ca) || q.plain_title_ca || q.plain_title_es;
   const pct = Math.round(((idx) / total) * 100);
 
   return (
@@ -541,14 +544,7 @@ export function AlignQuiz({
         </div>
       </div>
 
-      <div
-        style={{
-          padding: '20px 22px',
-          border: '1px solid var(--rule)',
-          background: 'var(--paper-2)',
-          borderRadius: 14,
-        }}
-      >
+      <div className="align-card">
         {q.topics.length > 0 && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
             {q.topics.slice(0, 3).map((tp) => (
@@ -574,18 +570,23 @@ export function AlignQuiz({
         {summary ? (
           <>
             <p style={{ ...EYEBROW, marginBottom: 8 }}>{labels.question_label}</p>
-            <h2
+            {plainTitle && <h2 className="serif align-card__title">{plainTitle}</h2>}
+            <div
               ref={summaryRef}
-              className="serif"
+              className={plainTitle ? 'align-card__summary' : 'serif'}
               style={{
                 // Summaries run from 20 to 80 words. At a fixed 19px the long
                 // ones pushed the answer buttons a full screen below the fold
                 // on a phone, which is most of the traffic.
-                fontSize: 'clamp(16px, 4vw, 19px)',
-                fontWeight: 600,
+                ...(plainTitle
+                  ? null
+                  : {
+                      fontSize: 'clamp(16px, 4vw, 19px)',
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                      color: 'var(--ink)',
+                    }),
                 margin: '0 0 12px',
-                lineHeight: 1.4,
-                color: 'var(--ink)',
                 // Height, not -webkit-line-clamp: the summary can be a
                 // paragraph OR a lead plus a list, and line-clamp stops
                 // clamping once the box has block children. Five lines at
@@ -598,7 +599,7 @@ export function AlignQuiz({
                   a paragraph with "1." and "2." buried inside it. The clamp
                   wraps both so the answer buttons stay on screen. */}
               <SummaryBody text={summary} listStyle={{ fontWeight: 500, gap: 4 }} />
-            </h2>
+            </div>
             {clipped && (
               <button
                 type="button"
