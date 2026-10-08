@@ -22,6 +22,8 @@ import { summaryHeadline, summaryPointCount, summaryRestCount } from '@/lib/plai
 import { type ParsedProposer } from '@/lib/groups';
 import { STATUS_COLOR, STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
+import { changeTagIcon, isChangeTag, pdfUrl } from '@/lib/changeTags';
+import { FileText } from 'lucide-react';
 
 /**
  * One LAW, as a full-width card — the /lleis surface.
@@ -60,6 +62,12 @@ export async function LawCard({
   const tStats = await getTranslations('stats');
   const tTopic = await getTranslations('topic');
   const tVotes = await getTranslations('votes');
+  const tTags = await getTranslations('change_tags');
+  const tLawText = await getTranslations('law_text');
+  const changeTags = (initiative.change_tags ?? []).filter(isChangeTag);
+  const changeEvidence =
+    initiative.change_evidence?.[locale === 'ca' ? 'ca' : 'es'] ?? initiative.change_evidence?.es ?? {};
+  const pdf = pdfUrl(initiative.source_url);
 
   const href = `/initiatives/${initiative.id}` as Route;
   const plainSummary = pickPlainSummary(initiative, locale);
@@ -193,6 +201,24 @@ export async function LawCard({
         </div>
       )}
 
+      {/* What the text changes: symmetric facts read from the bill
+          itself, both sides of a pair drawn alike. The passage behind
+          each is on the law's page; the tooltip gives it here. */}
+      {changeTags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10, alignItems: 'center' }}>
+          <span style={EYEBROW}>{tLawText('changes_label')}</span>
+          {changeTags.map((tag) => {
+            const Icon = changeTagIcon(tag);
+            return (
+              <span key={tag} className="change-chip" title={changeEvidence[tag] ?? undefined}>
+                <Icon size={12} strokeWidth={2} aria-hidden="true" />
+                {tTags(tag)}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
       {/* The vote itself. */}
       <LawCardVoteBox>
         {vote === null ? (
@@ -253,6 +279,12 @@ export async function LawCard({
             original={initiative.title_original}
             provider={initiative.plain_summary_provider}
           />
+        )}
+        {pdf && (
+          <a href={pdf} target="_blank" rel="noopener noreferrer" className="card-pdf-link">
+            <FileText size={12} strokeWidth={2} aria-hidden="true" />
+            {tLawText('pdf_short')}
+          </a>
         )}
       </LawCardFooter>
     </LawCardFrame>

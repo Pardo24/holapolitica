@@ -20,6 +20,7 @@ import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PartyBand } from '@/components/PartyBand';
 import { ScrollDownCue } from '@/components/ScrollDownCue';
 import { IntroNote } from '@/components/IntroNote';
+import { LawsThatMatter } from '@/components/LawsThatMatter';
 import { DailyTeaser } from '@/components/DailyTeaser';
 import { ChamberMap } from '@/components/ChamberMap';
 import { ResultPill } from '@/components/ResultPill';
@@ -180,6 +181,7 @@ export default async function HomePage() {
         noPlenaryTitle={tUpcoming('none_convened_title')}
         noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
         plannedLabel={tUpcoming('planned_label')}
+        lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} />}
         partyBand={
           <PartyBand
             groups={allGroups}
@@ -587,6 +589,10 @@ export default async function HomePage() {
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           shown only when there's something scheduled, so an empty agenda
           doesn't add a blank section to the home. */}
+      <div style={{ marginTop: 40 }}>
+        <LawsThatMatter topics={allTopics} locale={locale} />
+      </div>
+
       {(upcomingSessions.length > 0 || withdrawnSessions > 0) && (
         <UpcomingAgenda sessions={upcomingSessions} withdrawn={withdrawnSessions} />
       )}
@@ -768,6 +774,7 @@ function MobileDashboard({
   noPlenaryBody,
   plannedLabel,
   partyBand,
+  lawsThatMatter,
   labels,
 }: {
   highlights: Highlight[];
@@ -777,6 +784,8 @@ function MobileDashboard({
   locale: string;
   /** Pre-rendered <PartyBand>, shared with the desktop layout. */
   partyBand: React.ReactNode;
+  /** Pre-rendered "laws that matter" block, shared with the desktop. */
+  lawsThatMatter: React.ReactNode;
   sessApproved: number;
   sessRejected: number;
   sessTotal: number;
@@ -952,6 +961,10 @@ function MobileDashboard({
           </div>
         </Link>
       )}
+
+      {/* Where to start when you don't know what to look for: everyday
+          subjects, and what a law changes. */}
+      <div style={{ marginTop: 22 }}>{lawsThatMatter}</div>
 
       {/* No chamber map here. It reads as an illustration on a phone, where
           350 seats collapse to a smudge of colour and it pushes the day's

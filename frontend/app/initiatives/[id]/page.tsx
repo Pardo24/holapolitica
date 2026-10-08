@@ -10,6 +10,7 @@ import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupVoteBreakdown } from '@/components/GroupVoteBreakdown';
 import { LawJourney } from '@/components/LawJourney';
+import { LawTextPanel } from '@/components/LawTextPanel';
 import { VoteChain } from '@/components/VoteChain';
 import { VoteSplit } from '@/components/VoteSplit';
 import { LawTypeChip } from '@/components/LawTypeChip';
@@ -38,6 +39,7 @@ import { isStubLead, parseSummary } from '@/lib/plainSummary';
 import { effectiveResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
 import { topicIcon } from '@/lib/topic_icons';
+import { pdfUrl } from '@/lib/changeTags';
 
 interface Params {
   id: string;
@@ -105,6 +107,7 @@ export default async function InitiativeDetailPage({
   const tLleis = await getTranslations('lleis');
   const tCommon = await getTranslations('common');
   const tLifecycle = await getTranslations('lifecycle');
+  const tLawText = await getTranslations('law_text');
   // Status labels live under the ``stats`` namespace; we look them up
   // via a small key map so the fallback to the raw enum string remains
   // graceful when an unexpected backend value lands.
@@ -425,6 +428,19 @@ export default async function InitiativeDetailPage({
               </span>
             </span>
           )}
+          {/* The official text, at the top: many titles don't say what a
+              law does, and the PDF used to sit far down the left column. */}
+          {pdfUrl(initiative.source_url) && (
+            <a
+              href={pdfUrl(initiative.source_url)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="law-pdf-top"
+            >
+              <FileText size={13} strokeWidth={2} aria-hidden="true" />
+              {tLawText('pdf_short')}
+            </a>
+          )}
           <Link
             href={'/recorregut' as Route}
             aria-label={tLifecycle('cta_short')}
@@ -488,6 +504,9 @@ export default async function InitiativeDetailPage({
           />
         </section>
       )}
+
+      {/* What the bill's own text says, article by article, and the PDF. */}
+      <LawTextPanel initiative={initiative} locale={locale} />
 
       {/* Where the law stands in its journey. It used to open the page,
           which spent the most valuable position on procedure; it now
@@ -584,61 +603,8 @@ export default async function InitiativeDetailPage({
               marginTop: 18,
             }}
           >
-            {initiative.source_url && (
-              <a
-                href={initiative.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="initiative-source-link"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 14px',
-                  border: '1px solid var(--rule-strong)',
-                  borderRadius: 10,
-                  background: 'var(--paper-2)',
-                  color: 'var(--ink)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                }}
-              >
-                <FileText size={14} aria-hidden="true" />
-                {t('source_pdf_cta')}
-                <ExternalLink size={12} aria-hidden="true" />
-              </a>
-            )}
-            {initiative.boe_url && initiative.boe_id && (
-              <a
-                href={initiative.boe_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={initiative.boe_id}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 14px',
-                  border: '1px solid var(--ink)',
-                  borderRadius: 10,
-                  background: 'var(--ink)',
-                  color: 'var(--paper)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                }}
-              >
-                {t('boe_cta')}
-                <span
-                  className="mono"
-                  style={{ fontSize: 11, opacity: 0.85, fontWeight: 500 }}
-                >
-                  {initiative.boe_id}
-                </span>
-                <ExternalLink size={12} aria-hidden="true" />
-              </a>
-            )}
+            {/* The PDF and the BOE now live in the "what the text says"
+                panel, and the PDF at the top of the page as well. */}
           </div>
           {initiative.boe_entry_in_force && (
             <div

@@ -338,7 +338,9 @@
     "results_count_sorted": "{count} iniciativas votadas · {sort}",
     "card_votes_eyebrow_totality": "Enmiendas a la totalidad",
     "card_votes_eyebrow_taking": "Toma en consideración",
-    "card_votes_eyebrow_convalidation": "Convalidación del decreto"
+    "card_votes_eyebrow_convalidation": "Convalidación del decreto",
+    "lens_change_title": "Qué cambia",
+    "lens_change_sub": "Impuestos, derechos, medio ambiente…"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -2030,5 +2032,41 @@
     "session_more": "Y {n, plural, one {# iniciativa más} other {# iniciativas más}}.",
     "deputies_eyebrow": "Quién te representa",
     "deputies_title": "Los diputados de {prov}"
+  },
+  "change_tags": {
+    "tax_up": "Sube impuestos",
+    "tax_down": "Baja impuestos",
+    "rights_expand": "Amplía derechos",
+    "rights_restrict": "Restringe derechos",
+    "env_strengthen": "Refuerza normas ambientales",
+    "env_relax": "Relaja normas ambientales",
+    "public_more": "Más gestión pública",
+    "private_more": "Más gestión privada",
+    "pair_tax": "Impuestos",
+    "pair_rights": "Derechos",
+    "pair_env": "Medio ambiente",
+    "pair_management": "Gestión de los servicios",
+    "sheet_intro": "Leído del texto de cada ley: solo cuando el texto lo hace de forma explícita, y siempre con el pasaje que lo demuestra. Siempre en parejas; qué lado te interesa lo decides tú."
+  },
+  "law_text": {
+    "title": "Qué dice el texto",
+    "ai_label": "Leído con IA del texto oficial",
+    "not_read_yet": "Aún no hemos leído este texto. Mientras tanto, lo tienes entero en el PDF.",
+    "no_pdf": "El Congreso no publica el texto de esta iniciativa en PDF.",
+    "changes_label": "Qué cambia",
+    "evidence_label": "Dónde lo dice:",
+    "pdf_cta": "Lee el texto oficial (PDF)",
+    "pdf_short": "Texto oficial",
+    "boe_cta": "Publicada en el BOE",
+    "note_full": "Es el texto tal como se presentó en el Congreso; puede cambiar durante la tramitación.",
+    "note_partial": "Es el texto tal como se presentó en el Congreso, y es muy largo: hemos leído la exposición de motivos y los primeros artículos.",
+    "how_ai": "Cómo usamos la IA →"
+  },
+  "laws_that_matter": {
+    "title": "Leyes que importan",
+    "subtitle": "Los temas del día a día, y qué cambia cada ley.",
+    "changes_title": "Qué cambia",
+    "changes_note": "Leído del texto de cada ley, siempre en parejas.",
+    "all": "Todas las leyes"
   }
 }

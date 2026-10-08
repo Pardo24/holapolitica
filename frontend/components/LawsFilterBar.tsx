@@ -156,7 +156,7 @@ export function LawsFilterBar({
 
   const clearAll = () => {
     const next = new URLSearchParams(sp.toString());
-    ['q', 'result', 'topic_slug', 'proposing_group_slug', 'audience', 'sort', 'page'].forEach((k) =>
+    ['q', 'result', 'topic_slug', 'proposing_group_slug', 'audience', 'sort', 'change', 'page'].forEach((k) =>
       next.delete(k),
     );
     pushUrl(next);

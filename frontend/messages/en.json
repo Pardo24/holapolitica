@@ -338,7 +338,9 @@
     "results_count_sorted": "{count} voted initiatives · {sort}",
     "card_votes_eyebrow_totality": "Amendments to the whole text",
     "card_votes_eyebrow_taking": "Taken into consideration",
-    "card_votes_eyebrow_convalidation": "Decree validation"
+    "card_votes_eyebrow_convalidation": "Decree validation",
+    "lens_change_title": "What it changes",
+    "lens_change_sub": "Taxes, rights, environment…"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -2030,5 +2032,41 @@
     "session_more": "And {n, plural, one {# more item} other {# more items}}.",
     "deputies_eyebrow": "Who represents you",
     "deputies_title": "The deputies for {prov}"
+  },
+  "change_tags": {
+    "tax_up": "Raises taxes",
+    "tax_down": "Lowers taxes",
+    "rights_expand": "Expands rights",
+    "rights_restrict": "Restricts rights",
+    "env_strengthen": "Tightens environmental rules",
+    "env_relax": "Loosens environmental rules",
+    "public_more": "More public management",
+    "private_more": "More private management",
+    "pair_tax": "Taxes",
+    "pair_rights": "Rights",
+    "pair_env": "Environment",
+    "pair_management": "Running of services",
+    "sheet_intro": "Read from each law's text: only when the text does it explicitly, always with the passage that shows it. Always in pairs; which side matters is up to you."
+  },
+  "law_text": {
+    "title": "What the text says",
+    "ai_label": "Read by AI from the official text",
+    "not_read_yet": "We haven't read this text yet. In the meantime, it is all in the PDF.",
+    "no_pdf": "Congress does not publish this initiative's text as a PDF.",
+    "changes_label": "What it changes",
+    "evidence_label": "Where it says so:",
+    "pdf_cta": "Read the official text (PDF)",
+    "pdf_short": "Official text",
+    "boe_cta": "Published in the BOE",
+    "note_full": "This is the text as tabled in Congress; it can change during its passage.",
+    "note_partial": "This is the text as tabled in Congress, and it is very long: we read the explanatory statement and the first articles.",
+    "how_ai": "How we use AI →"
+  },
+  "laws_that_matter": {
+    "title": "Laws that matter",
+    "subtitle": "Everyday subjects, and what each law changes.",
+    "changes_title": "What it changes",
+    "changes_note": "Read from each law's text, always in pairs.",
+    "all": "All laws"
   }
 }

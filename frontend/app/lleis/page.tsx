@@ -15,6 +15,7 @@ import {
   type ParliamentaryGroupSummary,
   type Topic,
 } from '@/lib/api';
+import { isChangeTag } from '@/lib/changeTags';
 import { parseProposer } from '@/lib/groups';
 
 /**
@@ -36,6 +37,8 @@ interface SearchParams {
   q?: string;
   /** recent (default) | voted | close */
   sort?: string;
+  /** "What the text changes" tags, comma-separated. */
+  change?: string;
   page?: string;
 }
 
@@ -69,6 +72,7 @@ export default async function LleisPage({
   const topicSlugs = splitCsv(sp.topic_slug);
   const groupSlugs = splitCsv(sp.proposing_group_slug);
   const audienceTags = splitCsv(sp.audience);
+  const changeTags = splitCsv(sp.change).filter(isChangeTag);
   const query = (sp.q ?? '').trim();
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
   const sort: Sort = SORTS.includes(sp.sort as Sort) ? (sp.sort as Sort) : 'recent';
@@ -83,6 +87,7 @@ export default async function LleisPage({
       audience: audienceTags.length ? audienceTags.join(',') : undefined,
       q: query || undefined,
       sort: sort === 'recent' ? undefined : sort,
+      change: changeTags.length ? changeTags.join(',') : undefined,
       page,
       page_size: PAGE_SIZE,
     }),
@@ -108,6 +113,7 @@ export default async function LleisPage({
     if (topicSlugs.length) qs.set('topic_slug', topicSlugs.join(','));
     if (groupSlugs.length) qs.set('proposing_group_slug', groupSlugs.join(','));
     if (audienceTags.length) qs.set('audience', audienceTags.join(','));
+    if (changeTags.length) qs.set('change', changeTags.join(','));
     if (query) qs.set('q', query);
     if (sortTo !== 'recent') qs.set('sort', sortTo);
     if (p !== 1) qs.set('page', String(p));
@@ -116,7 +122,7 @@ export default async function LleisPage({
   };
   const buildPageHref = (p: number) => buildHref({ p });
   const activeFilters =
-    resultFilters.length + topicSlugs.length + groupSlugs.length + audienceTags.length;
+    resultFilters.length + topicSlugs.length + groupSlugs.length + audienceTags.length + changeTags.length;
   const sortLabel: Record<Sort, string> = {
     recent: t('sort_recent'),
     voted: t('sort_voted'),
@@ -138,6 +144,7 @@ export default async function LleisPage({
           topicSlugs,
           groupSlugs,
           audiences: audienceTags,
+          changes: changeTags,
           q: query,
         }}
         topics={topics}
@@ -156,8 +163,8 @@ export default async function LleisPage({
           topic_sub: t('lens_topic_sub'),
           party_title: t('lens_party_title'),
           party_sub: t('lens_party_sub'),
-          pending_title: t('lens_pending_title'),
-          pending_sub: t('lens_pending_sub'),
+          change_title: t('lens_change_title'),
+          change_sub: t('lens_change_sub'),
           audience_title: t('lens_audience_title'),
           audience_sub: t('lens_audience_sub'),
           government: t('group_government'),

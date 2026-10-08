@@ -338,7 +338,9 @@
     "results_count_sorted": "{count} iniciatives votades · {sort}",
     "card_votes_eyebrow_totality": "Esmenes a la totalitat",
     "card_votes_eyebrow_taking": "Presa en consideració",
-    "card_votes_eyebrow_convalidation": "Convalidació del decret"
+    "card_votes_eyebrow_convalidation": "Convalidació del decret",
+    "lens_change_title": "Què canvia",
+    "lens_change_sub": "Impostos, drets, medi ambient…"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -2029,5 +2031,41 @@
     "session_more": "I {n, plural, one {# iniciativa més} other {# iniciatives més}}.",
     "deputies_eyebrow": "Qui et representa",
     "deputies_title": "Els diputats de {prov}"
+  },
+  "change_tags": {
+    "tax_up": "Puja impostos",
+    "tax_down": "Baixa impostos",
+    "rights_expand": "Amplia drets",
+    "rights_restrict": "Restringeix drets",
+    "env_strengthen": "Reforça normes ambientals",
+    "env_relax": "Relaxa normes ambientals",
+    "public_more": "Més gestió pública",
+    "private_more": "Més gestió privada",
+    "pair_tax": "Impostos",
+    "pair_rights": "Drets",
+    "pair_env": "Medi ambient",
+    "pair_management": "Gestió dels serveis",
+    "sheet_intro": "Llegit del text de cada llei: només quan el text ho fa de manera explícita, i sempre amb el passatge que ho demostra. Sempre en parelles; quina banda t'interessa ho decideixes tu."
+  },
+  "law_text": {
+    "title": "Què diu el text",
+    "ai_label": "Llegit amb IA del text oficial",
+    "not_read_yet": "Encara no hem llegit aquest text. Mentrestant, el tens sencer al PDF.",
+    "no_pdf": "El Congrés no publica el text d'aquesta iniciativa en PDF.",
+    "changes_label": "Què canvia",
+    "evidence_label": "On ho diu:",
+    "pdf_cta": "Llegeix el text oficial (PDF)",
+    "pdf_short": "Text oficial",
+    "boe_cta": "Publicada al BOE",
+    "note_full": "És el text tal com es va presentar al Congrés; pot canviar durant la tramitació.",
+    "note_partial": "És el text tal com es va presentar al Congrés, i és molt llarg: n'hem llegit l'exposició de motius i els primers articles.",
+    "how_ai": "Com fem servir la IA →"
+  },
+  "laws_that_matter": {
+    "title": "Lleis que importen",
+    "subtitle": "Els temes del dia a dia, i què canvia cada llei.",
+    "changes_title": "Què canvia",
+    "changes_note": "Llegit del text de cada llei, sempre en parelles.",
+    "all": "Totes les lleis"
   }
 }

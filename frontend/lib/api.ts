@@ -836,6 +836,14 @@ export interface Initiative {
    * couldn't name a concrete audience.
    */
   affected_audiences: { ca: string[]; es: string[] } | null;
+  /** What the bill's own text says: concrete measures with their article. */
+  text_points?: { ca?: { text: string; ref: string | null }[]; es?: { text: string; ref: string | null }[] } | null;
+  /** Symmetric "what it changes" tags read from the text. */
+  change_tags?: string[] | null;
+  /** The passage behind each tag, per language. */
+  change_evidence?: { ca?: Record<string, string>; es?: Record<string, string> } | null;
+  /** "full" | "partial" (too long: start of the text) | "empty". */
+  text_analysis_source?: string | null;
   // BOE link — populated by the nightly enrichment worker for
   // approved laws that have been formally published. NULL when the
   // initiative hasn't reached publication or the matcher couldn't
@@ -1102,6 +1110,8 @@ export const api = {
         sort?: 'recent' | 'voted' | 'close';
         /** Comma-separated ids: those rows, in the list shape. */
         ids?: string;
+        /** "What the text changes" tags, comma-separated, OR-ed. */
+        change?: string;
         page?: number;
         page_size?: number;
       } = {},

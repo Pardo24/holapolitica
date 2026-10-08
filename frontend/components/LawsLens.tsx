@@ -1,11 +1,12 @@
 import Form from 'next/form';
 import Link from 'next/link';
 import type { Route } from 'next';
+import { getTranslations } from 'next-intl/server';
 import {
+  ArrowLeftRight,
   CalendarClock,
   ChevronRight,
   Gauge,
-  Hourglass,
   Landmark,
   Search,
   Tags,
@@ -18,6 +19,7 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { GroupBadge } from '@/components/GroupBadge';
 import type { AudienceCount, ParliamentaryGroupSummary, Topic } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { CHANGE_PAIRS, changeTagIcon } from '@/lib/changeTags';
 import { topicIcon } from '@/lib/topic_icons';
 import { pickTopicName } from '@/lib/topics';
 
@@ -32,7 +34,7 @@ import { pickTopicName } from '@/lib/topics';
  *   which votes were close            -> sort=close
  *   laws about a subject              -> topic sheet
  *   what a party has tabled           -> proposer sheet
- *   what is still in progress         -> result=pending
+ *   what the law changes              -> change sheet (symmetric pairs)
  *   what affects people like me       -> audience sheet
  *
  * With nothing chosen, the six questions are a grid of tiles: the
@@ -55,6 +57,8 @@ export interface LawsLensState {
   topicSlugs: string[];
   groupSlugs: string[];
   audiences: string[];
+  /** "What the text changes" tags. */
+  changes: string[];
   q: string;
 }
 
@@ -70,8 +74,8 @@ export interface LawsLensLabels {
   topic_sub: string;
   party_title: string;
   party_sub: string;
-  pending_title: string;
-  pending_sub: string;
+  change_title: string;
+  change_sub: string;
   audience_title: string;
   audience_sub: string;
   government: string;
@@ -79,9 +83,11 @@ export interface LawsLensLabels {
   close: string;
 }
 
-type Patch = Partial<Record<'sort' | 'result' | 'topic_slug' | 'proposing_group_slug' | 'audience', string | null>>;
+type Patch = Partial<
+  Record<'sort' | 'result' | 'topic_slug' | 'proposing_group_slug' | 'audience' | 'change', string | null>
+>;
 
-export function LawsLens({
+export async function LawsLens({
   state,
   topics,
   groups,
@@ -102,6 +108,7 @@ export function LawsLens({
   if (state.topicSlugs.length) current.topic_slug = state.topicSlugs.join(',');
   if (state.groupSlugs.length) current.proposing_group_slug = state.groupSlugs.join(',');
   if (state.audiences.length) current.audience = state.audiences.join(',');
+  if (state.changes.length) current.change = state.changes.join(',');
   if (state.q) current.q = state.q;
 
   /** The current URL with some parameters replaced; page always resets. */
@@ -128,7 +135,7 @@ export function LawsLens({
   const named = (values: string[], name: (v: string) => string, fallback: string) =>
     values.length === 0 ? fallback : values.length === 1 ? name(values[0]!) : `${name(values[0]!)} +${values.length - 1}`;
 
-  const onlyPending = state.results.length === 1 && state.results[0] === 'pending';
+  const tTags = await getTranslations('change_tags');
   const anyActive = Object.keys(current).some((k) => k !== 'q');
   const compact = anyActive;
 
@@ -196,6 +203,38 @@ export function LawsLens({
     </ul>
   );
 
+  // Both sides of every pair, side by side and drawn alike: which one
+  // matters is the reader's question, not a choice we make for them.
+  const changeSheet = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--ink-3)' }}>{tTags('sheet_intro')}</p>
+      {CHANGE_PAIRS.map((pair) => (
+        <div key={pair.key}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>
+            {tTags(`pair_${pair.key}`)}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {pair.tags.map((tag) => {
+              const Icon = changeTagIcon(tag);
+              return (
+                <Link
+                  key={tag}
+                  href={href({ change: tag })}
+                  aria-current={state.changes.includes(tag) ? 'page' : undefined}
+                  className="lens-tag"
+                  style={{ justifyContent: 'center' }}
+                >
+                  <Icon size={14} strokeWidth={2} aria-hidden="true" />
+                  {tTags(tag)}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   const audienceSheet = (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {audiences.map((a) => {
@@ -258,12 +297,15 @@ export function LawsLens({
       sheetTitle: labels.party_title,
     },
     {
-      key: 'pending',
-      Icon: Hourglass,
-      title: labels.pending_title,
-      sub: labels.pending_sub,
-      on: onlyPending,
-      to: href({ result: onlyPending ? null : 'pending' }),
+      key: 'change',
+      Icon: ArrowLeftRight,
+      title: state.changes.length
+        ? named(state.changes, (c) => tTags(c as 'tax_up'), '')
+        : labels.change_title,
+      sub: labels.change_sub,
+      on: state.changes.length > 0,
+      sheet: changeSheet,
+      sheetTitle: labels.change_title,
     },
     ...(audiences.length
       ? [

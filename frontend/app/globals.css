@@ -3076,3 +3076,180 @@ button {
 .embed-rows li > :last-child { flex: none; }
 /* The widget's own footer already links to the full page. */
 .embed-widget .card-open-link { display: none !important; }
+
+/* ─── "What it changes" chips (lib/changeTags.ts) ─────────────────────────
+   Both sides of a pair are drawn alike on purpose: neutral ink, the pair's
+   icon, no valence colour. */
+.change-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  list-style: none;
+}
+.change-chip::-webkit-details-marker { display: none; }
+summary.change-chip { cursor: pointer; }
+.change-chip--link { text-decoration: none; min-height: 34px; padding: 4px 12px 4px 10px; font-size: 13px; }
+.change-chip--link:active { background: var(--paper-2); }
+
+/* ─── Law page: "what the text says" (components/LawTextPanel.tsx) ─────── */
+.law-text {
+  margin-top: 18px;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+.law-text__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.law-text__head h2 { margin: 0; font-family: var(--font-serif); font-size: 20px; color: var(--ink); }
+.law-text__ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.law-text__ai svg { color: var(--accent); }
+.law-text__points { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.law-text__points li { display: flex; gap: 12px; align-items: flex-start; }
+.law-text__n {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.law-text__body { font-size: 15px; line-height: 1.5; color: var(--ink); }
+.law-text__ref {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.law-text__empty { margin: 0; font-size: 14px; color: var(--ink-3); }
+.law-text__changes { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.law-text__label { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding-top: 6px; }
+.law-text__changes ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.law-text__changes summary { min-height: 30px; }
+.law-text__evidence { margin: 6px 0 0; max-width: 46ch; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.law-text__evidence span { font-weight: 700; color: var(--ink-3); }
+.law-text__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.law-text__pdf, .law-text__boe {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.law-text__pdf { background: var(--ink); color: var(--paper); }
+.law-text__boe { border: 1px solid var(--rule-strong); color: var(--ink); background: var(--paper); }
+.law-text__note { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-3); }
+.law-text__note a { color: var(--ink-2); font-weight: 600; }
+@media (max-width: 640px) {
+  .law-text { padding: 16px 14px 14px; }
+  .law-text__pdf { flex: 1 1 100%; justify-content: center; }
+}
+.law-pdf-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.card-pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+/* ─── Home: "laws that matter" (components/LawsThatMatter.tsx) ─────────── */
+.ltm {
+  padding: 18px 16px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+}
+.ltm__head h2 { margin: 0; font-family: var(--font-serif); font-size: 22px; color: var(--ink); }
+.ltm__head p { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
+.ltm__topics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+.ltm__topic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+.ltm__topic:active { background: var(--paper-2); }
+.ltm__topic-icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklch, var(--topic) 15%, var(--paper));
+  color: var(--topic);
+}
+.ltm__topic-name { font-size: 13.5px; font-weight: 600; line-height: 1.2; min-width: 0; }
+.ltm__changes-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 18px; }
+.ltm__changes-note { font-size: 12px; color: var(--ink-3); }
+.ltm__pairs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-top: 10px; }
+.ltm__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ltm__pair .change-chip { justify-content: center; white-space: normal; text-align: center; line-height: 1.2; }
+.ltm__all { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; }
+@media (max-width: 640px) {
+  .ltm__topics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ltm__pairs { grid-template-columns: minmax(0, 1fr); }
+}
