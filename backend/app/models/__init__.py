@@ -459,6 +459,12 @@ class Initiative(Base, TimestampMixin):
     text_analysis_source: Mapped[str | None] = mapped_column(String(16))
     text_analysis_provider: Mapped[str | None] = mapped_column(String(64))
     text_analysis_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Everyday situations the law applies to directly, with what the text
+    # establishes for each: {profile: {"ca": str, "es": str}}. {} = read,
+    # touches none; NULL = not read yet. See alembic 0035 and
+    # app/services/law_profiles.py.
+    profile_effects: Mapped[dict[str, dict[str, str]] | None] = mapped_column(JSON)
+    profile_effects_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Session(Base, TimestampMixin):

@@ -39,6 +39,7 @@ from app.schemas import (
 )
 from app.services.affected import normalise_audience_tag
 from app.services.cache import cached
+from app.services.law_profiles import PROFILES
 from app.services.law_text import CHANGE_TAGS
 
 router = APIRouter(prefix="/initiatives", tags=["initiatives"])
@@ -171,6 +172,14 @@ async def list_initiatives(
             "env_relax, public_more, private_more. Comma-separated, OR-ed."
         ),
     ),
+    profile: str | None = Query(
+        None,
+        description=(
+            "An everyday situation the law applies to directly ('jove', "
+            "'llogater', 'autonom'...; see GET /initiatives/profiles). Only "
+            "laws whose text has a measure for that situation."
+        ),
+    ),
     ids: str | None = Query(
         None,
         description=(
@@ -218,6 +227,11 @@ async def list_initiatives(
         conditions.append(
             or_(*(serialised_tags.contains(f'"{tag}"', autoescape=True) for tag in change_tags))
         )
+    # "What changes for you": the effects are a JSON object keyed by
+    # situation; match the quoted key in the serialised column.
+    if isinstance(profile, str) and profile in PROFILES:
+        serialised_effects = func.cast(Initiative.profile_effects, String)
+        conditions.append(serialised_effects.contains(f'"{profile}":', autoescape=True))
     wanted_ids = (
         [int(tok) for tok in _split_csv(ids) if tok.isdigit()] if isinstance(ids, str) else []
     )
@@ -626,6 +640,34 @@ async def _load_group_stances(
     for items in out.values():
         items.sort(key=lambda g: (-int(g["deputies"]), str(g["slug"])))
     return dict(out)
+
+
+@router.get("/profiles", response_model=list[dict[str, object]])
+async def list_profiles(
+    session: AsyncSession = Depends(get_session),
+) -> list[dict[str, object]]:
+    """How many laws touch each everyday situation directly.
+
+    Every situation, in display order, with its count (zero included), for
+    the "I a tu, que t'afecta?" picker. Aggregated in Python, as the
+    audiences are, so the SQLite tests run the same path.
+    """
+
+    async def factory() -> list[dict[str, object]]:
+        rows = (
+            await session.execute(
+                select(Initiative.profile_effects).where(
+                    Initiative.profile_effects.is_not(None), Initiative.type.in_(_LAW_TYPES)
+                )
+            )
+        ).all()
+        counts: Counter[str] = Counter()
+        for (effects,) in rows:
+            if isinstance(effects, dict):
+                counts.update(k for k in effects if k in PROFILES)
+        return [{"key": key, "count": counts.get(key, 0)} for key in PROFILES]
+
+    return await cached("initiatives:profiles", 3600, factory)
 
 
 @router.get("/audiences", response_model=list[dict[str, object]])

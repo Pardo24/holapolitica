@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     # kept tags its own evidence contradicted ("autonomy for councils" as
     # "expands rights"); a tag shown as a fact gets the large one.
     law_text_verify_model: str = "mistral-large-latest"
+    # "What changes for you" sentences per everyday situation: written in
+    # Spanish and Catalan at once, so the large model (as for translations).
+    law_profiles_model: str = "mistral-large-latest"
     # Minimum seconds between two LLM requests from one process (see
     # app/services/llm_http.py). The limit is PER MODEL, and the API states
     # it in its own headers (x-ratelimit-limit-req-minute):

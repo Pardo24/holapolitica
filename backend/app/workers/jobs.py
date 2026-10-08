@@ -491,6 +491,93 @@ def generate_affected_pending(batch_size: int = 200) -> dict[str, int]:
     return asyncio.run(_run())
 
 
+def analyse_law_profiles_pending(batch_size: int = 60) -> dict[str, int]:
+    """RQ entrypoint: which everyday situations each law touches, and how.
+
+    For law-making initiatives whose text has been read (or that at least
+    have a plain summary) and have no profile effects yet, newest first:
+    one call over the title, the summary and the measures, stored as
+    ``profile_effects`` (see :mod:`app.services.law_profiles`). A law that
+    touches no situation directly is stored as ``{}`` so it isn't asked
+    again. One commit per row; an unavailable LLM stops the batch.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import or_
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative
+    from app.services.law_profiles import analyse_profiles
+    from app.services.llm_http import LLMUnavailableError
+
+    law_types = ("proyecto_ley", "proposicion_ley", "real_decreto_ley")
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            stmt = (
+                _select(Initiative.id)
+                .where(Initiative.type.in_(law_types))
+                .where(Initiative.profile_effects_generated_at.is_(None))
+                .where(
+                    or_(
+                        Initiative.text_points.is_not(None),
+                        Initiative.plain_summary_es.is_not(None),
+                    )
+                )
+                .order_by(Initiative.id.desc())
+                .limit(batch_size)
+            )
+            ids = [int(i) for i in (await session.execute(stmt)).scalars().all()]
+        if not ids:
+            log.info("law_profiles.pending.empty")
+            return {"attempted": 0, "succeeded": 0, "none": 0, "failed": 0}
+
+        succeeded = none = failed = 0
+        for initiative_id in ids:
+            try:
+                async with AsyncSessionLocal() as session:
+                    initiative = (
+                        await session.execute(
+                            _select(Initiative).where(Initiative.id == initiative_id)
+                        )
+                    ).scalar_one_or_none()
+                    if initiative is None:
+                        continue
+                    points = (initiative.text_points or {}).get("es") or []
+                    result = await analyse_profiles(
+                        title=initiative.plain_title_es or initiative.title_original,
+                        summary=initiative.plain_summary_es,
+                        points=points,
+                    )
+                    initiative.profile_effects = result.effects
+                    initiative.profile_effects_generated_at = datetime.now(UTC)
+                    await session.commit()
+                    if result.effects:
+                        succeeded += 1
+                    else:
+                        none += 1
+            except LLMUnavailableError as exc:
+                log.error("law_profiles.pending.aborted", error=str(exc))
+                failed += 1
+                break
+            except Exception as exc:
+                log.warning(
+                    "law_profiles.pending.failed", initiative_id=initiative_id, error=str(exc)
+                )
+                failed += 1
+
+        log.info(
+            "law_profiles.pending.done",
+            attempted=len(ids),
+            succeeded=succeeded,
+            none=none,
+            failed=failed,
+        )
+        return {"attempted": len(ids), "succeeded": succeeded, "none": none, "failed": failed}
+
+    return asyncio.run(_run())
+
+
 def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
     """RQ entrypoint: read the text of law-making initiatives not yet analysed.
 

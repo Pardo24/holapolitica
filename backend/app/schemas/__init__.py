@@ -240,6 +240,9 @@ class InitiativeRead(BaseModel):
     text_analysis_source: str | None = None
     text_analysis_provider: str | None = None
     text_analysis_generated_at: datetime | None = None
+    # Everyday situations the law touches directly, each with what the
+    # text establishes for it; see app/services/law_profiles.py.
+    profile_effects: dict[str, dict[str, str]] | None = None
     # Boletín Oficial del Estado reference — populated by the worker
     # ``enrich_initiatives_boe`` for approved initiatives that have
     # been formally published as law. NULL otherwise. ``boe_id`` is

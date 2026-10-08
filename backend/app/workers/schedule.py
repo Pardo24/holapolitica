@@ -89,6 +89,14 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "55 */6 * * *",
         jobs.analyse_law_texts_pending,
     ),
+    # "What changes for you", per everyday situation: one short LLM call
+    # per law over what the text pass already read, so after it.
+    (
+        "monitor-law-profiles-pending",
+        "ingest",
+        "25 1-23/6 * * *",
+        jobs.analyse_law_profiles_pending,
+    ),
     # Upcoming agenda: daily at 08:00 (after the calendar publishes any
     # overnight Mesa decisions), plus an extra Monday 14:00 run because the
     # Mesa typically tweaks the week's pleno on Friday afternoon / Monday
