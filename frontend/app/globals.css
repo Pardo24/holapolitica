@@ -4557,3 +4557,8 @@ summary.change-chip { cursor: pointer; }
     min-height: calc(100svh - 57px - 6px - 58px - 6px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* Situation buttons: every button fills its grid row, so a short label
+   ("Soc jove") sits in a button as tall as its two-line neighbour. */
+.profiles__grid > li { display: flex; min-width: 0; }
+.profiles__grid.profiles__grid > li > a.profiles__item { flex: 1; min-width: 0; align-content: center; }
