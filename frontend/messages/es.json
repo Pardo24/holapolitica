@@ -2160,6 +2160,7 @@
     "explore_lede": "Elige un tema o un grupo y míralo en detalle.",
     "explore_topic": "Por tema",
     "explore_group": "Por grupo",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "q3_lede_bloc": "{n} de {total} grupos votan en bloque más del 99% de las veces."
   }
 }

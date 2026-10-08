@@ -2160,6 +2160,7 @@
     "explore_lede": "Pick a subject or a group to see the detail.",
     "explore_topic": "By topic",
     "explore_group": "By group",
-    "close": "Close"
+    "close": "Close",
+    "q3_lede_bloc": "{n} of {total} groups vote as a bloc more than 99% of the time."
   }
 }

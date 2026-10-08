@@ -67,8 +67,12 @@ export async function StatsQuestions({
   const total = statusRows.reduce((n, r) => n + r.count, 0);
   const approved = statusRows.find((r) => r.status === 'approved')?.count ?? 0;
 
-  // Q3: cohesion per group.
+  // Q3: cohesion per group. Most groups sit above 99%, so the figure has
+  // one decimal (100% for everyone said nothing) and the lede says what
+  // the column shows: how many vote as a bloc.
   const cohesion = new Map(groupSummary.map((r) => [r.group_slug, r.avg_cohesion] as const));
+  const withCohesion = bySeats.filter((g) => cohesion.get(g.slug) != null);
+  const blocs = withCohesion.filter((g) => (cohesion.get(g.slug) ?? 0) >= 0.99).length;
 
   const topicsSheet = (
     <ul className="sheet-list">
@@ -165,11 +169,13 @@ export async function StatsQuestions({
         {/* 3. How united each group votes. */}
         <section className="sq-card" aria-labelledby="sq-3">
           <h2 id="sq-3" className="sq-card__title">{t('q3_title')}</h2>
-          <p className="sq-card__lede">{t('q3_lede')}</p>
+          <p className="sq-card__lede">
+            {t('q3_lede_bloc', { n: blocs, total: withCohesion.length })} {t('q3_lede')}
+          </p>
           <ul className="sq-rows">
             {bySeats.map((g) => {
               const c = cohesion.get(g.slug);
-              const pct = c == null ? null : Math.round(c * 100);
+              const pct = c == null ? null : Math.round(c * 1000) / 10;
               return (
                 <li key={g.slug}>
                   <Link href={`/stats?group=${g.slug}` as Route} className="sq-row">
@@ -178,7 +184,9 @@ export async function StatsQuestions({
                     <span className="sq-meter" aria-hidden="true">
                       <span style={{ width: `${pct ?? 0}%`, background: g.color_hex ?? 'var(--ink-3)' }} />
                     </span>
-                    <span className="sq-row__value tabular">{pct == null ? '-' : `${pct}%`}</span>
+                    <span className="sq-row__value tabular">
+                      {pct == null ? '-' : `${pct.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
+                    </span>
                   </Link>
                 </li>
               );

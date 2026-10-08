@@ -191,21 +191,8 @@ function PairResult({
   const t = useTranslations('dashboard');
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          marginBottom: 12,
-        }}
-      >
-        <GroupBadge slug={groupA.slug} color={groupA.color_hex} size="sm" link={false} />
-        <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{t('pair_and')}</span>
-        <GroupBadge slug={groupB.slug} color={groupB.color_hex} size="sm" link={false} />
-        <span style={{ flex: 1, fontSize: 12, color: 'var(--ink-3)' }}>
-          {displayGroupShort(groupA.name_short)} · {displayGroupShort(groupB.name_short)}
-        </span>
-      </div>
+      {/* The pair is already lit up in the two rows of marks above; the
+          figure follows straight on. */}
       <div
         className="serif tabular"
         style={{
