@@ -37,6 +37,7 @@ from app.models import (
 from app.models import (
     Session as SessionRow,
 )
+from app.services.cache import cached
 from app.services.game_pool import (
     EVERYDAY_TOPICS,
     MIN_EVERYDAY_POOL,
@@ -225,179 +226,209 @@ async def game_questions(
     if leg_id is None:
         return []
 
-    # Pool of substantive, recognisable laws: counted votes, linked to an
-    # initiative with a plain summary AND a classified topic. We read the
-    # summary as the card's lead text, so a procedural orphan vote (no summary)
-    # never shows up.
-    # Editorial themes only: the SDG taxonomy has no page of its own, and a
-    # "which topic is this law about?" question whose answer is "Educación de
-    # calidad" when "Educación" is also on the list has no right answer.
-    topic_sq = (
-        select(
-            InitiativeTopic.initiative_id,
-            Topic.name_ca.label("tname"),
-            Topic.name_es.label("tname_es"),
-            Topic.slug.label("tslug"),
-        )
-        .join(Topic, Topic.id == InitiativeTopic.topic_id)
-        .where(Topic.kind == "theme")
-        .subquery()
-    )
-
-    def pool_query(everyday_only: bool) -> Select[Any]:
-        topic_filter = (
-            Initiative.id.in_(
-                select(InitiativeTopic.initiative_id)
-                .join(Topic, Topic.id == InitiativeTopic.topic_id)
-                .where(Topic.slug == topic_slug)
+    # The expensive part, shared by every round: the eligible votes, the
+    # groups, the topics and each group's majority on each vote (a scan of
+    # the individual votes of up to 500 roll calls). Built once per
+    # legislature, language and subject and kept for half an hour; a round
+    # then only shuffles and picks from it. Without this a busy evening of
+    # Trivia queued every page of the site behind the same heavy query.
+    async def build_pool() -> dict[str, Any]:
+        # Pool of substantive, recognisable laws: counted votes, linked to an
+        # initiative with a plain summary AND a classified topic. We read the
+        # summary as the card's lead text, so a procedural orphan vote (no summary)
+        # never shows up.
+        # Editorial themes only: the SDG taxonomy has no page of its own, and a
+        # "which topic is this law about?" question whose answer is "Educación de
+        # calidad" when "Educación" is also on the list has no right answer.
+        topic_sq = (
+            select(
+                InitiativeTopic.initiative_id,
+                Topic.name_ca.label("tname"),
+                Topic.name_es.label("tname_es"),
+                Topic.slug.label("tslug"),
             )
-            if topic_slug
-            else (
+            .join(Topic, Topic.id == InitiativeTopic.topic_id)
+            .where(Topic.kind == "theme")
+            .subquery()
+        )
+
+        def pool_query(everyday_only: bool) -> Select[Any]:
+            topic_filter = (
                 Initiative.id.in_(
                     select(InitiativeTopic.initiative_id)
                     .join(Topic, Topic.id == InitiativeTopic.topic_id)
-                    .where(Topic.slug.in_(EVERYDAY_TOPICS))
+                    .where(Topic.slug == topic_slug)
                 )
-                if everyday_only
-                else sa_true()
-            )
-        )
-        return (
-            select(
-                Vote.id,
-                Initiative.plain_title_ca,
-                Initiative.plain_title_es,
-                Initiative.plain_summary_ca,
-                Initiative.plain_summary_es,
-                Vote.result,
-                Vote.ayes,
-                Vote.noes,
-                ParliamentaryGroup.name_short,
-                ParliamentaryGroup.slug,
-                ParliamentaryGroup.color_hex,
-                topic_sq.c.tname,
-                topic_sq.c.tname_es,
-                topic_sq.c.tslug,
-            )
-            .join(SessionRow, SessionRow.id == Vote.session_id)
-            .join(Initiative, Initiative.id == Vote.initiative_id)
-            .outerjoin(ParliamentaryGroup, ParliamentaryGroup.id == Vote.proposing_group_id)
-            .join(topic_sq, topic_sq.c.initiative_id == Initiative.id)
-            .where(SessionRow.legislature_id == leg_id)
-            .where(Vote.approved_by_assent.is_(False))
-            .where(Vote.result.in_(["approved", "rejected"]))
-            # "Did the Congress approve it?" must mean the law: no totality
-            # debates, amendment rounds or takings into consideration.
-            .where(not_backwards(include_taking=False))
-            .where(topic_filter)
-            # A plain title means the law has been put in plain words.
-            .where(
-                or_(
-                    Initiative.plain_title_ca.is_not(None),
-                    Initiative.plain_title_es.is_not(None),
+                if topic_slug
+                else (
+                    Initiative.id.in_(
+                        select(InitiativeTopic.initiative_id)
+                        .join(Topic, Topic.id == InitiativeTopic.topic_id)
+                        .where(Topic.slug.in_(EVERYDAY_TOPICS))
+                    )
+                    if everyday_only
+                    else sa_true()
                 )
             )
-            .where(
-                or_(
-                    Initiative.plain_summary_ca.is_not(None),
-                    Initiative.plain_summary_es.is_not(None),
+            return (
+                select(
+                    Vote.id,
+                    Initiative.plain_title_ca,
+                    Initiative.plain_title_es,
+                    Initiative.plain_summary_ca,
+                    Initiative.plain_summary_es,
+                    Vote.result,
+                    Vote.ayes,
+                    Vote.noes,
+                    ParliamentaryGroup.name_short,
+                    ParliamentaryGroup.slug,
+                    ParliamentaryGroup.color_hex,
+                    topic_sq.c.tname,
+                    topic_sq.c.tname_es,
+                    topic_sq.c.tslug,
                 )
+                .join(SessionRow, SessionRow.id == Vote.session_id)
+                .join(Initiative, Initiative.id == Vote.initiative_id)
+                .outerjoin(ParliamentaryGroup, ParliamentaryGroup.id == Vote.proposing_group_id)
+                .join(topic_sq, topic_sq.c.initiative_id == Initiative.id)
+                .where(SessionRow.legislature_id == leg_id)
+                .where(Vote.approved_by_assent.is_(False))
+                .where(Vote.result.in_(["approved", "rejected"]))
+                # "Did the Congress approve it?" must mean the law: no totality
+                # debates, amendment rounds or takings into consideration.
+                .where(not_backwards(include_taking=False))
+                .where(topic_filter)
+                # A plain title means the law has been put in plain words.
+                .where(
+                    or_(
+                        Initiative.plain_title_ca.is_not(None),
+                        Initiative.plain_title_es.is_not(None),
+                    )
+                )
+                .where(
+                    or_(
+                        Initiative.plain_summary_ca.is_not(None),
+                        Initiative.plain_summary_es.is_not(None),
+                    )
+                )
+                .order_by(Vote.voted_at.desc())
+                .limit(500)
             )
-            .order_by(Vote.voted_at.desc())
-            .limit(500)
-        )
 
-    # Everyday subjects first; the whole record only when they run short.
-    pool_rows = (await session.execute(pool_query(everyday_only=True))).all()
-    if not topic_slug and len({r[0] for r in pool_rows}) < MIN_EVERYDAY_POOL:
-        pool_rows = (await session.execute(pool_query(everyday_only=False))).all()
+        # Everyday subjects first; the whole record only when they run short.
+        pool_rows = (await session.execute(pool_query(everyday_only=True))).all()
+        if not topic_slug and len({r[0] for r in pool_rows}) < MIN_EVERYDAY_POOL:
+            pool_rows = (await session.execute(pool_query(everyday_only=False))).all()
 
-    by_vote: dict[int, _RichVote] = {}
-    for (
-        vid,
-        tca,
-        tes,
-        sca,
-        ses,
-        result,
-        ayes,
-        noes,
-        gshort,
-        gslug,
-        gcolor,
-        tname,
-        tname_es,
-        tslug,
-    ) in pool_rows:
-        if vid in by_vote:
-            # One row per topic: the card's tag is an everyday one when the
-            # law has one ("housing" before "institutions").
-            if tslug in EVERYDAY_TOPICS and by_vote[vid].topic_slug not in EVERYDAY_TOPICS:
-                by_vote[vid] = by_vote[vid]._replace(
-                    topic_ca=tname, topic_es=tname_es, topic_slug=tslug
-                )
-            continue
-        # Lead with the summary in the player's language, falling back to the
-        # other one so a card is never dropped just for a missing translation.
-        summary = (((ses or sca) if lang_key == "es" else (sca or ses)) or "").strip()
-        if len(summary) < 30 or looks_insufficient(summary) or reads_like_original(summary):
-            continue
-        title = (((tes or tca) if lang_key == "es" else (tca or tes)) or "").strip() or None
-        by_vote[vid] = _RichVote(
-            vote_id=vid,
-            title=title,
-            summary=summary_lead(summary),
-            result=result.value if hasattr(result, "value") else str(result),
-            ayes=ayes or 0,
-            noes=noes or 0,
-            group_short=gshort,
-            group_slug=gslug,
-            group_color=gcolor,
-            topic_ca=tname,
-            topic_es=tname_es,
-            topic_slug=tslug,
-        )
-    pool = list(by_vote.values())
+        by_vote: dict[int, _RichVote] = {}
+        for (
+            vid,
+            tca,
+            tes,
+            sca,
+            ses,
+            result,
+            ayes,
+            noes,
+            gshort,
+            gslug,
+            gcolor,
+            tname,
+            tname_es,
+            tslug,
+        ) in pool_rows:
+            if vid in by_vote:
+                # One row per topic: the card's tag is an everyday one when the
+                # law has one ("housing" before "institutions").
+                if tslug in EVERYDAY_TOPICS and by_vote[vid].topic_slug not in EVERYDAY_TOPICS:
+                    by_vote[vid] = by_vote[vid]._replace(
+                        topic_ca=tname, topic_es=tname_es, topic_slug=tslug
+                    )
+                continue
+            # Lead with the summary in the player's language, falling back to the
+            # other one so a card is never dropped just for a missing translation.
+            summary = (((ses or sca) if lang_key == "es" else (sca or ses)) or "").strip()
+            if len(summary) < 30 or looks_insufficient(summary) or reads_like_original(summary):
+                continue
+            title = (((tes or tca) if lang_key == "es" else (tca or tes)) or "").strip() or None
+            by_vote[vid] = _RichVote(
+                vote_id=vid,
+                title=title,
+                summary=summary_lead(summary),
+                result=result.value if hasattr(result, "value") else str(result),
+                ayes=ayes or 0,
+                noes=noes or 0,
+                group_short=gshort,
+                group_slug=gslug,
+                group_color=gcolor,
+                topic_ca=tname,
+                topic_es=tname_es,
+                topic_slug=tslug,
+            )
+        if not by_vote:
+            return {"pool": [], "meta": {}, "topics": [], "majorities": {}}
+
+        # Group catalogue with identity, for badges + plausible proposer distractors.
+        meta_by_short: dict[str, _GroupMeta] = {}
+        for short, slug, color in (
+            await session.execute(
+                select(
+                    ParliamentaryGroup.name_short,
+                    ParliamentaryGroup.slug,
+                    ParliamentaryGroup.color_hex,
+                ).where(ParliamentaryGroup.legislature_id == leg_id)
+            )
+        ).all():
+            meta_by_short[short] = _GroupMeta(slug=slug, display=_display_group(short), color=color)
+
+        # Topic catalogue (localised) for the "which theme?" question's distractors.
+        all_topics = [
+            (tca if lang_key == "ca" else tes)
+            for tca, tes in (await session.execute(select(Topic.name_ca, Topic.name_es))).all()
+        ]
+        topic_pool = sorted({t for t in all_topics if t})
+
+        # Per-(vote, group) majority stance for the True/False generator.
+        majority_by_vote: dict[int, dict[str, VoteChoice]] = defaultdict(dict)
+        rec_rows = (
+            await session.execute(
+                select(VoteRecord.vote_id, ParliamentaryGroup.name_short, VoteRecord.choice)
+                .join(ParliamentaryGroup, ParliamentaryGroup.id == VoteRecord.group_id_at_time)
+                .where(VoteRecord.vote_id.in_(list(by_vote.keys())))
+            )
+        ).all()
+        counters: dict[tuple[int, str], Counter[VoteChoice]] = defaultdict(Counter)
+        for vote_id, gshort, choice in rec_rows:
+            counters[(vote_id, gshort)][choice] += 1
+        for (vote_id, gshort), counts in counters.items():
+            stance, count = max(((c, counts[c]) for c in _STANCES), key=lambda kv: kv[1])
+            if count > 0:
+                majority_by_vote[vote_id][gshort] = stance
+
+        return {
+            "pool": [v._asdict() for v in by_vote.values()],
+            "meta": {short: [m.slug, m.display, m.color] for short, m in meta_by_short.items()},
+            "topics": topic_pool,
+            "majorities": {
+                str(vid): {g: st.value for g, st in d.items()}
+                for vid, d in majority_by_vote.items()
+            },
+        }
+
+    topic_key = topic_slug if isinstance(topic_slug, str) and topic_slug else "-"
+    payload = await cached(f"game:pool:v1:{leg_id}:{lang_key}:{topic_key}", 1800, build_pool)
+    pool = [_RichVote(**row) for row in payload["pool"]]
     if not pool:
         return []
-
-    # Group catalogue with identity, for badges + plausible proposer distractors.
-    meta_by_short: dict[str, _GroupMeta] = {}
-    for short, slug, color in (
-        await session.execute(
-            select(
-                ParliamentaryGroup.name_short,
-                ParliamentaryGroup.slug,
-                ParliamentaryGroup.color_hex,
-            ).where(ParliamentaryGroup.legislature_id == leg_id)
-        )
-    ).all():
-        meta_by_short[short] = _GroupMeta(slug=slug, display=_display_group(short), color=color)
+    meta_by_short = {
+        short: _GroupMeta(slug=v[0], display=v[1], color=v[2])
+        for short, v in payload["meta"].items()
+    }
     distractor_metas = list(meta_by_short.values())
-
-    # Topic catalogue (localised) for the "which theme?" question's distractors.
-    all_topics = [
-        (tca if lang_key == "ca" else tes)
-        for tca, tes in (await session.execute(select(Topic.name_ca, Topic.name_es))).all()
-    ]
-    topic_pool = sorted({t for t in all_topics if t})
-
-    # Per-(vote, group) majority stance for the True/False generator.
-    majority_by_vote: dict[int, dict[str, VoteChoice]] = defaultdict(dict)
-    rec_rows = (
-        await session.execute(
-            select(VoteRecord.vote_id, ParliamentaryGroup.name_short, VoteRecord.choice)
-            .join(ParliamentaryGroup, ParliamentaryGroup.id == VoteRecord.group_id_at_time)
-            .where(VoteRecord.vote_id.in_(list(by_vote.keys())))
-        )
-    ).all()
-    counters: dict[tuple[int, str], Counter[VoteChoice]] = defaultdict(Counter)
-    for vote_id, gshort, choice in rec_rows:
-        counters[(vote_id, gshort)][choice] += 1
-    for (vote_id, gshort), counts in counters.items():
-        stance, count = max(((c, counts[c]) for c in _STANCES), key=lambda kv: kv[1])
-        if count > 0:
-            majority_by_vote[vote_id][gshort] = stance
+    topic_pool = list(payload["topics"])
+    majority_by_vote = {
+        int(k): {g: VoteChoice(st) for g, st in d.items()} for k, d in payload["majorities"].items()
+    }
 
     # ``isinstance`` guard mirrors ``_game_lang``: a direct call (unit tests)
     # leaves ``seed`` as the FastAPI Query sentinel, which random.Random rejects.

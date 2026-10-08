@@ -998,8 +998,8 @@ export interface Mandate {
 
 export const api = {
   chambers: {
-    list: () => request<Chamber[]>('/chambers'),
-    get: (slug: string) => request<Chamber>(`/chambers/${slug}`),
+    list: () => request<Chamber[]>('/chambers', { revalidate: AGG_REVALIDATE }),
+    get: (slug: string) => request<Chamber>(`/chambers/${slug}`, { revalidate: AGG_REVALIDATE }),
   },
   game: {
     questions: (
@@ -1052,9 +1052,9 @@ export const api = {
   },
   legislatures: {
     list: (chamberId?: number) =>
-      request<Legislature[]>(
-        chamberId ? `/legislatures?chamber_id=${chamberId}` : '/legislatures'
-      ),
+      request<Legislature[]>(chamberId ? `/legislatures?chamber_id=${chamberId}` : '/legislatures', {
+        revalidate: AGG_REVALIDATE,
+      }),
     hemicycle: (legislatureId: number) =>
       request<HemicycleLayout>(`/legislatures/${legislatureId}/hemicycle`, {
         revalidate: AGG_REVALIDATE,
