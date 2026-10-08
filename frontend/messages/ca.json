@@ -1084,7 +1084,9 @@
     "axes_note": "Aquesta vista situa cada partit segons enquestes d'experts, no segons els seus vots. L'eix horitzontal és esquerra-dreta en economia; el vertical, progressista-conservador en temes socials. Els grups amb diversos partits (Mixt, Plural) no s'hi col·loquen.",
     "axes_source": "Font: Chapel Hill Expert Survey (CHES) — Jolly et al. (2022), Electoral Studies. S'usa l'onada més propera a cada legislatura. Dades:",
     "axes_dataset_trend": "fitxer de tendència 1999-2019",
-    "axes_dataset_2024": "onada 2024"
+    "axes_dataset_2024": "onada 2024",
+    "mixed_suffix": "Grup Mixt",
+    "mixed_note": "El Grup Mixt aplega partits diferents i no té un sol punt: els seus partits amb puntuació a la CHES (Podemos, BNG, Coalició Canària i UPN) surten per separat. La resta de membres del grup no en tenen."
   },
   "legislatures": {
     "title": "Les legislatures",

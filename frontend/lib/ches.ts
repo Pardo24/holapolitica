@@ -73,6 +73,35 @@ function waveForYear(year: number): Wave {
   return '2024';
 }
 
+/**
+ * The parties inside the Grupo Mixto that CHES places on their own. The
+ * group as a whole has no single point, but its parties do: plotted apart,
+ * sized by their deputies, linked to the group. CHES 2024 (CHES_2024_final_v2,
+ * party means rounded to one decimal). Members of the group the survey does
+ * not score are not drawn.
+ */
+export interface ChesMixedParty extends ChesScore {
+  key: string;
+  name: string;
+  abbr: string;
+  color: string;
+  seats: number;
+}
+
+const MIXED: Partial<Record<Wave, ChesMixedParty[]>> = {
+  '2024': [
+    { key: 'podemos', name: 'Podemos', abbr: 'POD', color: '#6B2C91', seats: 4, lr: 1.6, gt: 1.4 },
+    { key: 'bng', name: 'BNG', abbr: 'BNG', color: '#5DADE2', seats: 1, lr: 2.7, gt: 2.5 },
+    { key: 'cc', name: 'Coalición Canaria', abbr: 'CC', color: '#E8B800', seats: 1, lr: 6.0, gt: 6.2 },
+    { key: 'upn', name: 'UPN', abbr: 'UPN', color: '#2A52BE', seats: 1, lr: 7.6, gt: 7.2 },
+  ],
+};
+
+/** The Mixto's parties with their own placement in the legislature's wave. */
+export function chesMixedParties(legislatureStartYear: number): ChesMixedParty[] {
+  return MIXED[waveForYear(legislatureStartYear)] ?? [];
+}
+
 /** Expert-survey position for a group in the legislature of the given start
  *  year, or null if that group has no single placement (e.g. Mixto, Plural). */
 export function chesScore(slug: string, legislatureStartYear: number): ChesScore | null {

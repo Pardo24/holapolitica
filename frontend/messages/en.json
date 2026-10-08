@@ -1084,7 +1084,9 @@
     "axes_note": "This view places each party from expert surveys, not from its votes. The horizontal axis is economic left-right; the vertical, progressive-conservative on social issues. Groups holding several parties (Mixto, Plural) aren't placed.",
     "axes_source": "Source: Chapel Hill Expert Survey (CHES) — Jolly et al. (2022), Electoral Studies. The wave closest to each legislature is used. Data:",
     "axes_dataset_trend": "1999-2019 trend file",
-    "axes_dataset_2024": "2024 wave"
+    "axes_dataset_2024": "2024 wave",
+    "mixed_suffix": "Mixed Group",
+    "mixed_note": "The Mixed Group brings together different parties and has no single point: its parties scored by CHES (Podemos, BNG, Coalición Canaria and UPN) appear separately. The group's other members are not scored."
   },
   "legislatures": {
     "title": "The legislatures",

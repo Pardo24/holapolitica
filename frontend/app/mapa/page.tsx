@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { LegislatureSelector } from '@/components/LegislatureSelector';
 import { api, type Legislature, type ParliamentaryGroupSummary } from '@/lib/api';
 import { displayGroupShort, groupAbbreviation } from '@/lib/groups';
-import { chesScore } from '@/lib/ches';
+import { chesMixedParties, chesScore } from '@/lib/ches';
 
 export const revalidate = 300;
 
@@ -18,7 +18,12 @@ const H = 480;
 
 /** A party rendered on the map: a colored disc with a label. */
 interface Node {
+  /** Unique key; the group slug, or the party key for a Mixto party. */
+  key: string;
   slug: string;
+  /** The disc's short text and full label. */
+  abbr: string;
+  label: string;
   nameShort: string;
   color: string;
   r: number;
@@ -108,7 +113,10 @@ export default async function MapaPage({
       const s = chesScore(g.slug, legYear);
       if (!s) return null;
       return {
+        key: g.slug,
         slug: g.slug,
+        abbr: groupAbbreviation(g.slug),
+        label: displayGroupShort(g.name_short),
         nameShort: g.name_short,
         color: g.color_hex ?? 'var(--ink-3)',
         r: discR(g),
@@ -117,6 +125,21 @@ export default async function MapaPage({
       } satisfies Node;
     })
     .filter((n): n is Node => n !== null);
+  // The Mixto's own parties (Podemos, BNG, CC, UPN), each where CHES places
+  // it, sized by its deputies, linked to the group they sit in.
+  for (const p of chesMixedParties(legYear)) {
+    nodes.push({
+      key: `mixto-${p.key}`,
+      slug: 'gp-mixto',
+      abbr: p.abbr,
+      label: `${p.name} · ${t('mixed_suffix')}`,
+      nameShort: p.name,
+      color: p.color,
+      r: 10 + 30 * Math.sqrt(p.seats / maxMembers),
+      cx: minX + (p.lr / 10) * (maxX - minX),
+      cy: minY + (p.gt / 10) * (maxY - minY),
+    });
+  }
   separate(nodes, minX, maxX, minY, maxY);
 
   return (
@@ -176,16 +199,16 @@ export default async function MapaPage({
                 // and the party cards use, so "tap a party, get the
                 // party" holds everywhere a party appears.
                 <a
-                  key={n.slug}
+                  key={n.key}
                   href={`/groups/${n.slug}`}
                   className="map-node"
-                  aria-label={displayGroupShort(n.nameShort)}
+                  aria-label={n.label}
                 >
                   {/* Native tooltip / touch fallback. */}
-                  <title>{displayGroupShort(n.nameShort)}</title>
+                  <title>{n.label}</title>
                   <circle cx={n.cx} cy={n.cy} r={n.r} fill={n.color} fillOpacity={0.82} />
                   <text x={n.cx} y={n.cy + 3} textAnchor="middle" fontSize={11} fontWeight={600} fill="#fff">
-                    {groupAbbreviation(n.slug)}
+                    {n.abbr}
                   </text>
                   {/* Full name — hidden until you hover the disc, so close discs
                       don't overlap their labels. The white halo (paint-order
@@ -203,7 +226,7 @@ export default async function MapaPage({
                     paintOrder="stroke"
                     strokeLinejoin="round"
                   >
-                    {displayGroupShort(n.nameShort)}
+                    {n.label}
                   </text>
                 </a>
               ))}
@@ -222,6 +245,9 @@ export default async function MapaPage({
           <p style={{ fontSize: 11.5, color: 'var(--ink-3)', marginTop: 4, fontStyle: 'italic' }}>
             {t('hover_hint')} {t('size_note')}
           </p>
+          {chesMixedParties(legYear).length > 0 && (
+            <p style={{ fontSize: 11.5, color: 'var(--ink-3)', marginTop: 4, lineHeight: 1.5 }}>{t('mixed_note')}</p>
+          )}
           {/* Precise attribution: the academic citation plus the two specific
               CHES datasets used (the 1999-2019 trend file and the 2024 wave). */}
           <p style={{ fontSize: 11.5, color: 'var(--ink-3)', marginTop: 4, lineHeight: 1.5 }}>
