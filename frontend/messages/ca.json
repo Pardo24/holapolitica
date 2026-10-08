@@ -2140,5 +2140,25 @@
     "plens_next": "Proper ple: {date}",
     "laws_title": "Lleis que importen",
     "laws_sub": "Habitatge, feina, impostos…"
+  },
+  "stats_q": {
+    "subtitle": "Quatre preguntes sobre com treballa el Congrés.",
+    "back": "Totes les dades",
+    "q1_title": "Qui vota amb qui?",
+    "q1_lede": "Tria dos grups: quantes vegades han votat el mateix.",
+    "q2_title": "Què s'aprova?",
+    "q2_of": "de {total}",
+    "q2_lede": "iniciatives aprovades, de totes les que han arribat al ple.",
+    "q2_link": "Veure les aprovades",
+    "q3_title": "Com de units voten els grups?",
+    "q3_lede": "Com més alt, més vota tot el grup el mateix.",
+    "q3_order_note": "Ordenats per nombre de diputats.",
+    "q4_title": "De què parla cada grup?",
+    "q4_lede": "El tema on cada grup proposa més iniciatives.",
+    "explore_title": "Vols anar més a fons?",
+    "explore_lede": "Tria un tema o un grup i mira-ho en detall.",
+    "explore_topic": "Per tema",
+    "explore_group": "Per grup",
+    "close": "Tanca"
   }
 }

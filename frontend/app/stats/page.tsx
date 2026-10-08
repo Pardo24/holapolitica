@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, X } from 'lucide-react';
+import { ArrowLeft, BarChart3, X } from 'lucide-react';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
@@ -10,6 +10,7 @@ import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
+import { StatsQuestions } from '@/components/StatsQuestions';
 import { StatsGroupFilter, StatsTopicFilter } from '@/components/StatsFilterClient';
 import { SummaryHover } from '@/components/SummaryHover';
 import { Tooltip } from '@/components/Tooltip';
@@ -163,6 +164,22 @@ export default async function StatsPage({
     topicStatsPerGroupPromise,
   ]);
 
+  // The four-questions page (nothing filtered): each group's most proposed
+  // topic, for "what each group talks about".
+  const snapshots = new Map(
+    anyFilter
+      ? []
+      : await Promise.all(
+          allGroups.map((g) =>
+            api.groups
+              .snapshot(g.slug)
+              .then((snap) => [g.slug, snap] as const)
+              .catch(() => [g.slug, null] as const),
+          ),
+        ),
+  );
+  const tQ = await getTranslations('stats_q');
+
   // Highlights carousel: ``buildHighlights`` is symmetric across groups;
   // we then filter to the active selection so the carousel only rotates
   // relevant cards (per CLAUDE.md "regla de simetria" we never hide a
@@ -237,99 +254,41 @@ export default async function StatsPage({
             className="h-headline"
             style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: 12 }}
           >
-            <span aria-hidden="true" className="page-header-icon-tile">
+            <span aria-hidden="true" className="page-header-icon-tile" style={{ ['--tile-hue' as string]: 'var(--hue-dades)' }}>
               <BarChart3 size={20} strokeWidth={1.8} aria-hidden="true" />
             </span>
             <span>{t('title')}</span>
           </h1>
-          <p className="page-header-sub">{t('eyebrow')}</p>
-          {/* Page intro paragraph — desktop only. The mobile dashboard
-              below this header opens straight onto the KPI grid + filters,
-              which is what a phone user came for. Keeping the 2-3 sentence
-              setup paragraph on mobile pushes the data below the fold. */}
-          <p
-            className="hidden sm:block"
-            style={{
-              fontSize: 13,
-              color: 'var(--ink-3)',
-              marginTop: 6,
-              maxWidth: 760,
-            }}
-          >
-            {t('intro')}
-          </p>
+          <p className="page-header-sub">{tQ('subtitle')}</p>
         </div>
-        {/* Top-right big-number — total votes registered. Hidden on mobile,
-            where the dashboard already surfaces the same figure inline. */}
-        {(
-          <div
-            className="hidden sm:flex"
-            style={{
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-              gap: 2,
-              minWidth: 0,
-            }}
-          >
-            <span
-              className="serif tabular"
-              style={{
-                fontSize: 44,
-                fontWeight: 600,
-                lineHeight: 1,
-                letterSpacing: '-0.02em',
-                color: 'var(--ink)',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {summary.votes_total.toLocaleString(locale)}
-            </span>
-            <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-              {t('votes_registered_caption')}
-            </span>
-          </div>
+        {anyFilter && (
+          <Link href={'/stats' as Route} className="sq-back">
+            <ArrowLeft size={14} aria-hidden="true" />
+            {tQ('back')}
+          </Link>
         )}
       </header>
 
-      {/* Three figures with a sentence each, before any chart. The page
-          used to open on a cohesion carousel: a reader met "100%" with no
-          way of knowing what it counted or whether it was good. These say
-          what the atlas is built from and what each number means. */}
-      <section
-        aria-label={t('headline_aria')}
-        className="stats-headline"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-          gap: 12,
-          marginTop: 18,
-        }}
-      >
-        <HeadlineFigure
-          value={summary.votes_total.toLocaleString(locale)}
-          label={t('headline_votes_label')}
-          note={t('headline_votes_note')}
+      {/* Nothing filtered: four questions, one card each (StatsQuestions).
+          A topic or a group picked: the detailed views below. The three
+          headline figures that used to open the page are gone: numbers
+          without a question are what made this page heavy. */}
+      {!anyFilter && (
+        <StatsQuestions
+          byStatus={byStatus}
+          groupSummary={groupSummary}
+          allGroups={allGroups}
+          allTopics={allTopics}
+          coincidence={coincidence}
+          snapshots={snapshots}
+          pairA={pairA}
+          pairB={pairB}
+          locale={locale}
         />
-        <HeadlineFigure
-          value={(
-            byStatus.find((s) => s.status === 'approved')?.count ?? 0
-          ).toLocaleString(locale)}
-          label={t('headline_approved_label')}
-          note={t('headline_approved_note', {
-            total: summary.initiatives_total.toLocaleString(locale),
-          })}
-        />
-        <HeadlineFigure
-          value={`${
-            summary.initiatives_total > 0
-              ? Math.round((summary.initiatives_classified / summary.initiatives_total) * 100)
-              : 0
-          }%`}
-          label={t('headline_classified_label')}
-          note={t('headline_classified_note')}
-        />
-      </section>
+      )}
 
+      {anyFilter && (
+      <>
       {/* Mobile-only dashboard (≤640px). Same data, denser layout — every
           key signal visible without scrolling through paragraphs. Hidden on
           ≥sm so the existing tabbed layout below survives unchanged. */}
@@ -682,6 +641,8 @@ export default async function StatsPage({
           )}
 
       </div>
+      </>
+      )}
 
       <style>{`
         @media (max-width: 860px) {

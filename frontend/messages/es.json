@@ -2141,5 +2141,25 @@
     "plens_next": "Próximo pleno: {date}",
     "laws_title": "Leyes que importan",
     "laws_sub": "Vivienda, empleo, impuestos…"
+  },
+  "stats_q": {
+    "subtitle": "Cuatro preguntas sobre cómo trabaja el Congreso.",
+    "back": "Todos los datos",
+    "q1_title": "¿Quién vota con quién?",
+    "q1_lede": "Elige dos grupos: cuántas veces han votado lo mismo.",
+    "q2_title": "¿Qué se aprueba?",
+    "q2_of": "de {total}",
+    "q2_lede": "iniciativas aprobadas, de todas las que han llegado al pleno.",
+    "q2_link": "Ver las aprobadas",
+    "q3_title": "¿Cómo de unidos votan los grupos?",
+    "q3_lede": "Cuanto más alto, más vota todo el grupo lo mismo.",
+    "q3_order_note": "Ordenados por número de diputados.",
+    "q4_title": "¿De qué habla cada grupo?",
+    "q4_lede": "El tema en el que cada grupo propone más iniciativas.",
+    "explore_title": "¿Quieres profundizar?",
+    "explore_lede": "Elige un tema o un grupo y míralo en detalle.",
+    "explore_topic": "Por tema",
+    "explore_group": "Por grupo",
+    "close": "Cerrar"
   }
 }

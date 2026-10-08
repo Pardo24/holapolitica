@@ -68,7 +68,7 @@ export default async function AvuiPage() {
           className="h-headline"
           style={{ margin: '0 0 12px', display: 'inline-flex', alignItems: 'baseline', gap: 12 }}
         >
-          <span aria-hidden="true" className="page-header-icon-tile">
+          <span aria-hidden="true" className="page-header-icon-tile" style={{ ['--tile-hue' as string]: 'var(--hue-plens)' }}>
             <CalendarDays size={20} strokeWidth={1.8} aria-hidden="true" />
           </span>
           <span>{t('title')}</span>

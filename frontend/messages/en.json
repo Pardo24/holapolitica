@@ -2141,5 +2141,25 @@
     "plens_next": "Next sitting: {date}",
     "laws_title": "Laws that matter",
     "laws_sub": "Housing, jobs, taxes…"
+  },
+  "stats_q": {
+    "subtitle": "Four questions about how the Congress works.",
+    "back": "All the data",
+    "q1_title": "Who votes with whom?",
+    "q1_lede": "Pick two groups: how often they voted the same way.",
+    "q2_title": "What gets approved?",
+    "q2_of": "of {total}",
+    "q2_lede": "initiatives approved, out of all that reached the floor.",
+    "q2_link": "See the approved ones",
+    "q3_title": "How united does each group vote?",
+    "q3_lede": "The higher, the more the whole group votes alike.",
+    "q3_order_note": "Ordered by number of deputies.",
+    "q4_title": "What does each group talk about?",
+    "q4_lede": "The subject each group tables most initiatives on.",
+    "explore_title": "Want to dig deeper?",
+    "explore_lede": "Pick a subject or a group to see the detail.",
+    "explore_topic": "By topic",
+    "explore_group": "By group",
+    "close": "Close"
   }
 }
