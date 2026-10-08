@@ -6,14 +6,17 @@ from the bill's text came later (:mod:`app.services.law_text`). Reading the
 text showed summaries that state a figure the text does not: initiative 1566
 said "fortunes over 3 million" where its articles say 50 million.
 
-This asks a model, cheaply, to compare the two and name each disagreement
-with both sides quoted, so a person can check it:
+This asks a model to compare the two and name each disagreement
+with both sides quoted, so a person can check it. A first prompt that only
+listed what counts flagged over half the summaries, mostly ones that were
+just vaguer than the text; the test is now "can both be true at once?":
 
 - ``contradiction``: the summary or headline says something the measures
   state differently (a figure, threshold, deadline, who is affected, or
   what is done).
-- ``unsupported``: the summary states a concrete figure, threshold or
-  deadline that appears neither in the official title nor in the measures.
+- ``unsupported``: the summary states a figure (amount, percentage, date,
+  age, deadline) that appears neither in the official title nor in the
+  measures.
   The measures are a selection of three to eight, so this one is weaker
   evidence; it is counted apart.
 
@@ -34,28 +37,35 @@ ISSUE_KINDS: tuple[str, ...] = ("contradiction", "unsupported")
 MAX_ISSUES = 3
 
 _CHECK_PROMPT = """Eres un verificador ESTRICTO. Recibirás el título oficial de una ley,
-el titular y el resumen en lenguaje llano que publicamos sobre ella, y las
-medidas que establece su texto (leídas del propio texto, con su artículo).
+el titular y el resumen en lenguaje llano que publicamos sobre ella, y
+algunas de las medidas que establece su texto (leídas del propio texto, con
+su artículo). Las medidas son una SELECCIÓN: el texto puede decir más.
 
-Tu única tarea: encontrar lo que el titular o el resumen dicen y el texto
-NO dice así. Dos tipos:
+Busca SOLO errores de hecho del titular o del resumen. Dos tipos:
 
-- "contradiction": el titular o el resumen dan una cifra, cuantía, umbral,
-  porcentaje o plazo DISTINTO del que dan las medidas (el resumen dice
-  "más de 3 millones" y el texto "50 millones"); o dicen que afecta u
-  obliga a otro colectivo; o que hace otra cosa (crea en vez de suprimir,
-  sube en vez de bajar, otro impuesto, otra ley).
-- "unsupported": el resumen da una cifra, umbral o plazo concreto que no
-  aparece ni en el título oficial ni en las medidas.
+- "contradiction": el resumen y el texto NO pueden ser verdad a la vez.
+  Un número distinto para la MISMA cosa ("más de 3 millones" frente a
+  "más de 50 millones"); un colectivo distinto ("todos los conductores"
+  frente a "solo los profesionales"); un alcance mayor que el del texto
+  ("todos los casos" cuando el texto lo limita a unos); la acción contraria
+  (sube / baja, crea / suprime); u otro asunto distinto.
+- "unsupported": el resumen da una CIFRA (número, importe, porcentaje,
+  fecha, edad, plazo) que no aparece ni en el título ni en las medidas.
 
-NO es un problema: que el resumen sea más corto, que omita medidas, que
-generalice, o que lo diga con otras palabras con el mismo sentido.
+Pregúntate siempre: ¿pueden ser verdad las dos cosas a la vez? Si pueden,
+NO es un error. En concreto, NO es un error:
+- que el resumen sea más vago o general que el texto ("descuentos para
+  jóvenes" frente a "90 % para jóvenes de 18 a 30 años");
+- que omita condiciones, matices, excepciones, plazos o medidas;
+- que lo diga con otras palabras, o con una palabra más llana;
+- que hable de algo que no está entre las medidas (son una selección),
+  salvo si es una cifra (eso es "unsupported").
 
 Devuelve SOLO un objeto JSON:
 {"issues": [{"kind": "contradiction", "summary_says": "...", "text_says": "..."}]}
-"summary_says": lo que dice el resumen (cita breve). "text_says": lo que
-dice el texto sobre lo mismo (cita breve, con su artículo), o null si es
-"unsupported". Máximo 3. Si todo cuadra: {"issues": []}.
+"summary_says": cita breve del resumen. "text_says": cita breve del texto
+sobre LO MISMO, con su artículo, o null si es "unsupported". Máximo 3. Lo
+normal es que no haya ninguno: {"issues": []}.
 """
 
 
@@ -157,5 +167,9 @@ async def check_summary(
     """Compare one summary with its text's measures. ``None`` if unreadable."""
     settings = settings or get_settings()
     user = build_check_input(title=title, plain_title=plain_title, summary=summary, points=points)
-    raw = await _call_json(settings, system=_CHECK_PROMPT, user=user)
+    # The large model: the small one, even with the "both true at once?"
+    # test, still flagged about half its sample for faithful restatements.
+    raw = await _call_json(
+        settings, system=_CHECK_PROMPT, user=user, model=settings.law_text_verify_model
+    )
     return parse_check(raw)
