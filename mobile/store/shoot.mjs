@@ -32,10 +32,11 @@ const LOCALES = (process.env.LOCALES ?? 'ca,es,en').split(',');
 const PAGES = JSON.parse(process.env.PAGES ?? 'null') ?? [
   ['01-inici', '/'],
   ['02-lleis', '/lleis'],
-  ['03-votacio', '/votes/17139'],
+  ['03-llei', '/initiatives/1578'],
   ['04-diputats', '/el-teu-diputat'],
   ['05-temes', '/topics'],
-  ['06-dades', '/stats'],
+  // All parties at once; avoid screens that put two parties up front.
+  ['06-mapa', '/mapa'],
 ];
 const SETTLE_MS = 3500;
 
