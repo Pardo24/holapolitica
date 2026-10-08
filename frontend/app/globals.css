@@ -4125,3 +4125,9 @@ summary.change-chip { cursor: pointer; }
   font-weight: 700;
   color: var(--ink-2);
 }
+
+/* Tall tiles: icon at the top, title and subtitle together at the foot. */
+@media (max-width: 640px) and (min-height: 641px) {
+  .home-first .home-grid .home-grid__tile { justify-content: flex-start; }
+  .home-first .home-grid__title { margin-top: auto; }
+}
