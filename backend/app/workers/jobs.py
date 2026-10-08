@@ -617,8 +617,9 @@ def check_summaries_against_text(
 ) -> dict[str, Any]:
     """One-off, read-only: which plain summaries disagree with their text's measures.
 
-    Walks law-making initiatives whose text has been read (source ``full``
-    or ``partial``) and that carry a Spanish summary, newest first, and asks
+    Walks law-making initiatives whose text has been read (any source but
+    ``empty``: the BOCG PDF or, for decree-laws, the BOE) and that carry a
+    Spanish summary, newest first, and asks
     :func:`app.services.summary_check.check_summary` about each. Writes
     nothing; returns the counts per verdict and every flagged row with the
     passages the model quoted, for a person to read before anything is
@@ -640,7 +641,8 @@ def check_summaries_against_text(
                     Initiative.plain_summary_es,
                     Initiative.text_points,
                 )
-                .where(Initiative.text_analysis_source.in_(("full", "partial")))
+                .where(Initiative.text_analysis_source.is_not(None))
+                .where(Initiative.text_analysis_source != "empty")
                 .where(Initiative.plain_summary_es.is_not(None))
                 .order_by(Initiative.id.desc())
             )
