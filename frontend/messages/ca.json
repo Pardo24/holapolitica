@@ -675,7 +675,7 @@
     "sources_untouched": "No les retoquem. Si una dada falta a l'origen, aquí també falta, i ho diem: per exemple, una votació per assentiment no té vot nominal i la targeta ho indica.",
     "sources_legal_link": "Dades personals i RGPD",
     "lifecycle_more": "Els recorreguts, un per un",
-    "ai_point_text": "Llegeix el text oficial de cada llei (el PDF del Congrés) per explicar-ne les mesures concretes, amb l'article on surt cada una, i què canvia: impostos, drets, medi ambient i gestió dels serveis, sempre en parelles. Cada etiqueta porta el passatge que la justifica i la revisa una segona lectura més estricta; si no es pot justificar, no es posa."
+    "ai_point_text": "Llegeix el text oficial de cada llei (el PDF del Congrés, o el BOE per als reials decrets-llei) per explicar-ne les mesures concretes, amb l'article on surt cada una, i què canvia: impostos, drets, medi ambient i gestió dels serveis, sempre en parelles. Cada etiqueta porta el passatge que la justifica i la revisa una segona lectura més estricta; si no es pot justificar, no es posa."
   },
   "groups": {
     "title": "Grups parlamentaris",
@@ -1479,6 +1479,26 @@
     "explore_free": "Explorar pel meu compte",
     "more": "Com funciona"
   },
+  "welcome": {
+    "skip": "Salta",
+    "back": "Enrere",
+    "next": "Següent",
+    "start": "Comença",
+    "steps_aria": "Passos de la benvinguda",
+    "step_aria": "Pas {n}",
+    "what_eyebrow": "Benvinguda",
+    "what_title": "El que vota el Congrés, explicat clar",
+    "what_body": "Cada votació del ple, qui la proposa i com vota cada grup. Només fets: sense opinions ni rànquings.",
+    "laws_eyebrow": "Pestanya Lleis",
+    "laws_title": "Cada llei, en paraules planeres",
+    "laws_body": "Què diu el text, què canvia i com ha acabat la votació. Filtra per tema, per partit o per allò que canvia la llei.",
+    "deputies_eyebrow": "Pestanya Diputats",
+    "deputies_title": "Qui et representa",
+    "deputies_body": "Tria la teva província i veuràs els teus diputats i com voten. També hi tens tots els grups parlamentaris.",
+    "follow_eyebrow": "Dades i avisos",
+    "follow_title": "Segueix el que t'importa",
+    "follow_body": "A Dades tens com vota cada grup, sempre amb totes les parts. I a cada llei pots tocar «Segueix aquesta llei» perquè t'avisem quan es voti."
+  },
   "journalists": {
     "meta_title": "Per a periodistes · Hola Política",
     "meta_description": "Eines llestes per a redaccions: widgets embedables, cards socials, API REST i datasets oberts del Congrés dels Diputats. Tot sota CC-BY 4.0 amb atribució.",
@@ -1647,6 +1667,7 @@
     "complementary": "Complementari a Civio.",
     "lifecycle_link": "Com es fa una llei",
     "legal_link": "Dades i RGPD",
+    "privacy_link": "Privacitat",
     "apidocs_link": "API i widgets",
     "journalists_link": "Per a periodistes",
     "avui_link": "Crònica del ple"
@@ -2058,6 +2079,10 @@
     "pdf_cta": "Llegeix el text oficial (PDF)",
     "pdf_short": "Text oficial",
     "boe_cta": "Publicada al BOE",
+    "not_read_yet_boe": "Encara no hem llegit aquest text. Mentrestant, el tens sencer al BOE.",
+    "boe_text_cta": "Llegeix el text oficial (BOE)",
+    "note_boe_full": "És el text tal com es va publicar al BOE. Un reial decret-llei és vigent des que es publica; després, el Congrés el convalida o el deroga.",
+    "note_boe_partial": "És el text tal com es va publicar al BOE, i és molt llarg: n'hem llegit l'exposició de motius i els primers articles. Un reial decret-llei és vigent des que es publica; després, el Congrés el convalida o el deroga.",
     "note_full": "És el text tal com es va presentar al Congrés; pot canviar durant la tramitació.",
     "note_partial": "És el text tal com es va presentar al Congrés, i és molt llarg: n'hem llegit l'exposició de motius i els primers articles.",
     "how_ai": "Com fem servir la IA →"

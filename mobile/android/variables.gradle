@@ -1,7 +1,9 @@
 ext {
     minSdkVersion = 22
-    compileSdkVersion = 35
-    targetSdkVersion = 35
+    // Play requires targetSdk 36 (Android 16) for new apps and updates
+    // since 31 Aug 2026.
+    compileSdkVersion = 36
+    targetSdkVersion = 36
     androidxActivityVersion = '1.8.0'
     androidxAppCompatVersion = '1.6.1'
     androidxCoordinatorLayoutVersion = '1.2.0'

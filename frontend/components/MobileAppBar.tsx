@@ -35,6 +35,7 @@ import {
   Menu,
   Newspaper,
   Route as RouteIcon,
+  Lock,
   ShieldCheck,
   Tags,
 } from 'lucide-react';
@@ -106,6 +107,7 @@ export function MobileAppBar() {
     { href: '/journalists', label: tFooter('journalists_link'), Icon: Newspaper },
     { href: '/apidocs', label: tFooter('apidocs_link'), Icon: Code2 },
     { href: '/about/data', label: tFooter('legal_link'), Icon: ShieldCheck },
+    { href: '/about/privacy', label: tFooter('privacy_link'), Icon: Lock },
   ];
 
   return (

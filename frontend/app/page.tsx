@@ -3,7 +3,6 @@ import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
-  BarChart3,
   CalendarDays,
   Code2,
   Gamepad2,
@@ -18,8 +17,8 @@ import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PartyBand } from '@/components/PartyBand';
-import { ScrollDownCue } from '@/components/ScrollDownCue';
 import { IntroNote } from '@/components/IntroNote';
+import { WelcomeWizard } from '@/components/WelcomeWizard';
 import { LawsThatMatter } from '@/components/LawsThatMatter';
 import { DailyTeaser } from '@/components/DailyTeaser';
 import { ChamberMap } from '@/components/ChamberMap';
@@ -77,66 +76,74 @@ export default async function HomePage() {
   // The chamber map in the hero. Optional: if the layout fails to load the
   // card simply doesn't render, and the rest of the page is unaffected.
   let hemicycle: HemicycleLayout | null = null;
-  try {
-    [summary, latestVotes, upcomingSessions, allGroups, allTopics, hemicycle] = await Promise.all([
-      api.stats.summary(),
-      // Over-fetch then dedupe: a law voted several times in one pleno
-      // (e.g. an RDL convalidation voted twice) produces multiple vote
-      // rows sharing an expediente, which read as the same law twice on
-      // the home list. Keep the most recent per expediente, trim to 5.
-      api.votes
-        .list({ page: 1, page_size: 12 })
-        .then((p) => {
-          const seen = new Set<string>();
-          return p.items
-            .filter((v) => {
-              const key = v.expediente_raw ?? `vote-${v.id}`;
-              if (seen.has(key)) return false;
-              seen.add(key);
-              return true;
-            })
-            .slice(0, 5);
-        }),
-      api.agenda
-        .sessions({ legislature_id: 1, upcoming_only: true })
-        .catch(() => [] as ScheduledSession[]),
-      api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]),
-      // Powers locale-aware topic names inside HighlightsCarousel.
-      api.topics.list().catch(() => [] as Topic[]),
-      api.legislatures.hemicycle(1).catch(() => null),
-    ]);
-  } catch {
-    /* backend not ready — render with zeros */
-  }
-
   // Highlights carousel — moved here from MobileStatsDashboard so it sits on
   // the home as a "what each group leans into" anchor below the agenda and
-  // above the latest votes. We fetch per-group topic stats in parallel and
-  // build a flat, symmetric (every group gets equal billing) Highlight list.
-  // Failures degrade silently — the carousel renders its own empty card.
+  // above the latest votes. Per-group topic stats, built into a flat,
+  // symmetric (every group gets equal billing) Highlight list. Failures
+  // degrade silently — the carousel renders its own empty card.
   let highlights: Highlight[] = [];
-  if (allGroups.length > 0) {
+  // Latest plenary session outcome for the home "último pleno" card — the
+  // full day's votes (not just the latest 5) so the aprovada/rebutjada split
+  // is accurate. Degrades to no split on failure.
+  let sessionVotes: Vote[] = [];
+
+  // Every call starts as soon as what it depends on arrives: the group
+  // stats when the group list is in, the day's votes when the latest votes
+  // are. They used to wait for the whole first batch, three round trips to
+  // the backend one after the other before the home could render.
+  const groupsP = api.groups.list().catch(() => [] as ParliamentaryGroupSummary[]);
+  // Over-fetch then dedupe: a law voted several times in one pleno
+  // (e.g. an RDL convalidation voted twice) produces multiple vote
+  // rows sharing an expediente, which read as the same law twice on
+  // the home list. Keep the most recent per expediente, trim to 5.
+  const latestVotesP = api.votes.list({ page: 1, page_size: 12 }).then((p) => {
+    const seen = new Set<string>();
+    return p.items
+      .filter((v) => {
+        const key = v.expediente_raw ?? `vote-${v.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 5);
+  });
+  const highlightsP = groupsP.then(async (groups) => {
+    if (groups.length === 0) return [] as Highlight[];
     const topicStatsPerGroup = await Promise.all(
-      allGroups.map((g) =>
+      groups.map((g) =>
         api.groups
           .topicStats(g.slug)
           .then((rows) => [g.slug, rows] as const)
           .catch(() => [g.slug, [] as TopicVoteStat[]] as const),
       ),
     );
-    highlights = buildHighlights(allGroups, new Map(topicStatsPerGroup));
+    return buildHighlights(groups, new Map(topicStatsPerGroup));
+  });
+  const sessionVotesP = latestVotesP
+    .then((votes) => {
+      const day = votes[0]?.voted_at?.slice(0, 10);
+      if (!day) return [] as Vote[];
+      return api.votes.list({ date_from: day, date_to: day, page_size: 100 }).then((p) => p.items);
+    })
+    .catch(() => [] as Vote[]);
+  try {
+    [summary, latestVotes, upcomingSessions, allGroups, allTopics, hemicycle, highlights, sessionVotes] =
+      await Promise.all([
+        api.stats.summary(),
+        latestVotesP,
+        api.agenda
+          .sessions({ legislature_id: 1, upcoming_only: true })
+          .catch(() => [] as ScheduledSession[]),
+        groupsP,
+        // Powers locale-aware topic names inside HighlightsCarousel.
+        api.topics.list().catch(() => [] as Topic[]),
+        api.legislatures.hemicycle(1).catch(() => null),
+        highlightsP,
+        sessionVotesP,
+      ]);
+  } catch {
+    /* backend not ready — render with zeros */
   }
-
-  // Latest plenary session outcome for the home "último pleno" card — the
-  // full day's votes (not just the latest 5) so the aprovada/rebutjada split
-  // is accurate. One extra cached call; degrades to no split on failure.
-  const latestSessionDate = latestVotes[0]?.voted_at?.slice(0, 10) ?? null;
-  const sessionVotes = latestSessionDate
-    ? await api.votes
-        .list({ date_from: latestSessionDate, date_to: latestSessionDate, page_size: 100 })
-        .then((p) => p.items)
-        .catch(() => [] as Vote[])
-    : [];
   // Approved / rejected are counted per INITIATIVE (its final vote), the
   // same way the pleno page counts: a bill's amendment votes are procedure,
   // and counting them made the card read "6 rechazadas" for laws that passed.
@@ -163,6 +170,8 @@ export default async function HomePage() {
           now a dismissible strip above the content, same storage flag, so
           the first thing a visitor sees is the chamber, not a barrier. */}
       <IntroNote />
+      {/* First launch of the mobile app only: a short tour of the tabs. */}
+      <WelcomeWizard />
 
       {/* Mobile-only dashboard (≤640px). Replaces the editorial home with a
           native-app-style entry point: brand strip, search, 2×2 tile grid,
@@ -181,7 +190,7 @@ export default async function HomePage() {
         noPlenaryTitle={tUpcoming('none_convened_title')}
         noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
         plannedLabel={tUpcoming('planned_label')}
-        lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} />}
+        lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} foldChanges />}
         partyBand={
           <PartyBand
             groups={allGroups}
@@ -194,23 +203,16 @@ export default async function HomePage() {
         labels={{
           brand: t('mobile_brand'),
           motto: tSite('motto'),
-          legislature: t('mobile_legislature'),
-          stats: t('mobile_stats_short', {
-            votes: (summary?.votes_total ?? 0).toLocaleString(locale),
-            deputies: 350,
-          }),
           lastUpdate: t('mobile_last_update'),
           sessionBannerEyebrow: t('mobile_session_banner_eyebrow'),
           sessionBannerCta: t('mobile_session_banner_cta'),
           tileJoc: tNav('jocs'),
           tileMap: tHub('map_title'),
           tileTopics: t('mobile_tile_topics'),
-          tileStats: t('mobile_tile_stats'),
           sectionHighlights: t('mobile_section_highlights'),
           sectionUpcoming: t('mobile_section_upcoming'),
           sectionExplore: t('mobile_section_explore'),
           highlightsSeeAll: t('highlights_see_all'),
-          investigateParties: t('mobile_investigate_parties'),
           sessionApproved: t('session_approved', { n: sessApproved }),
           sessionRejected: t('session_rejected', { n: sessRejected }),
         }}
@@ -742,20 +744,16 @@ export default async function HomePage() {
 interface MobileDashboardLabels {
   brand: string;
   motto: string;
-  legislature: string;
-  stats: string;
   lastUpdate: string;
   sessionBannerEyebrow: string;
   sessionBannerCta: string;
   tileJoc: string;
   tileMap: string;
   tileTopics: string;
-  tileStats: string;
   sectionHighlights: string;
   sectionUpcoming: string;
   sectionExplore: string;
   highlightsSeeAll: string;
-  investigateParties: string;
   sessionApproved: string;
   sessionRejected: string;
 }
@@ -840,18 +838,10 @@ function MobileDashboard({
           {labels.motto}
         </Link>
 
-        <div
-          className="tabular"
-          style={{
-            fontSize: 12,
-            color: 'var(--ink-2)',
-            lineHeight: 1.4,
-            marginBottom: latestVotes[0]?.voted_at ? 10 : 0,
-          }}
-        >
-          {labels.legislature} · {labels.stats}
-        </div>
-
+        {/* The legislature counters ("XV · 4.210 votacions · 350
+            diputats") used to sit here too: three numbers before anything
+            to read. They live on the Dades tab; the first screen keeps the
+            motto and how fresh the data is. */}
         {latestVotes[0]?.voted_at && (
           <FreshnessButton
             isoDate={latestVotes[0].voted_at}
@@ -977,46 +967,27 @@ function MobileDashboard({
           FIRST screen is exactly: what happened + where you can go.
           All layout-critical styles are inline — same hardening as the
           party cards, so no stylesheet mishap can break the grid. */}
+      {/* A quiet row, not four big tiles: the data has its own tab in the
+          bar, and the subjects are the grid just above, so what is left
+          (the map, the games, every topic) fits in one line of links. The
+          "start here ↓" scroll cue that followed is gone with them: the
+          first screen ends here, uncluttered. */}
       <DashboardSection title={labels.sectionExplore}>
-        <nav
-          aria-label={labels.sectionExplore}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gap: 10,
-          }}
-        >
-          <NavTile
-            href={'/mapa' as Route}
-            icon={<MapIcon size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileMap}
-            fg="#475189"
-          />
-          <NavTile
-            href={'/jocs' as Route}
-            icon={<Gamepad2 size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileJoc}
-            fg="#6E4F8E"
-          />
-          <NavTile
-            href="/topics"
-            icon={<Layers size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileTopics}
-            fg="#2F807A"
-          />
-          <NavTile
-            href="/stats"
-            icon={<BarChart3 size={24} strokeWidth={1.75} aria-hidden="true" />}
-            label={labels.tileStats}
-            fg="#9A6628"
-          />
+        <nav aria-label={labels.sectionExplore} className="home-explore no-scrollbar">
+          <Link href={'/mapa' as Route} style={{ ['--tile' as string]: '#475189' }}>
+            <MapIcon size={17} strokeWidth={1.9} aria-hidden="true" />
+            {labels.tileMap}
+          </Link>
+          <Link href={'/jocs' as Route} style={{ ['--tile' as string]: '#6E4F8E' }}>
+            <Gamepad2 size={17} strokeWidth={1.9} aria-hidden="true" />
+            {labels.tileJoc}
+          </Link>
+          <Link href={'/topics' as Route} style={{ ['--tile' as string]: '#2F807A' }}>
+            <Layers size={17} strokeWidth={1.9} aria-hidden="true" />
+            {labels.tileTopics}
+          </Link>
         </nav>
       </DashboardSection>
-
-      {/* "Start here ↓" — the invitation to scroll into the parties, in
-          place of the old daily-question toast. It closes the first
-          screen and smooth-scrolls to the party grid below. */}
-      <ScrollDownCue targetId="mobile-parties" label={labels.investigateParties} />
 
       {/* No plenary convened: every planned session was withdrawn. */}
       {upcomingTwo.length === 0 && withdrawnSessions > 0 && (
@@ -1101,73 +1072,6 @@ function MobileDashboard({
   );
 }
 
-
-function NavTile({
-  href,
-  icon,
-  label,
-  fg,
-}: {
-  href: React.ComponentProps<typeof Link>['href'];
-  icon: React.ReactNode;
-  label: string;
-  /** The tile's muted hue — drives the icon disc tint. */
-  fg: string;
-}) {
-  // Landing navigation tile. Everything load-bearing is inline (the
-  // party-card lesson): equal size, layout and tint survive any
-  // stylesheet loss.
-  return (
-    <Link
-      href={href}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: 10,
-        minHeight: 104,
-        minWidth: 0,
-        padding: 14,
-        borderRadius: 14,
-        border: '1px solid var(--rule-strong)',
-        background: 'var(--paper)',
-        color: 'var(--ink)',
-        textDecoration: 'none',
-        boxShadow: 'var(--shadow-2)',
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 42,
-          height: 42,
-          borderRadius: 12,
-          flex: 'none',
-          background: `color-mix(in oklch, ${fg} 13%, var(--paper))`,
-          color: fg,
-        }}
-      >
-        {icon}
-      </span>
-      <span
-        style={{
-          fontSize: 14.5,
-          fontWeight: 700,
-          letterSpacing: '-0.005em',
-          lineHeight: 1.2,
-          minWidth: 0,
-          overflowWrap: 'anywhere',
-        }}
-      >
-        {label}
-      </span>
-    </Link>
-  );
-}
 
 function FreshnessButton({
   isoDate,

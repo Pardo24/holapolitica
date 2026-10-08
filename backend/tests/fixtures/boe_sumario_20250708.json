@@ -1,0 +1,144 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20250708"
+   },
+   "diario": [
+    {
+     "numero": "163",
+     "sumario_diario": {
+      "identificador": "BOE-S-2025-163",
+      "url_pdf": {
+       "szBytes": "408196",
+       "szKBytes": "399",
+       "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-S-2025-163.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "2A",
+       "nombre": "II. Autoridades y personal. - A. Nombramientos, situaciones e incidencias",
+       "departamento": [
+        {
+         "codigo": "1820",
+         "nombre": "CONSEJO GENERAL DEL PODER JUDICIAL",
+         "epigrafe": [
+          {
+           "nombre": "Nombramientos",
+           "item": [
+            {
+             "identificador": "BOE-A-2025-14011",
+             "control": "2025/10805",
+             "titulo": "Real Decreto 598/2025, de 7 de julio, por el que se nombra Magistrada de la Sala de lo Civil y Penal del Tribunal Superior de Justicia de Castilla y León, por la vía del artículo 330.4 de la Ley Orgánica 6/1985, de 1 de julio, del Poder Judicial, a doña Isabel Durán Seco.",
+             "url_pdf": {
+              "szBytes": "193618",
+              "szKBytes": "189",
+              "pagina_inicial": "90789",
+              "pagina_final": "90789",
+              "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-A-2025-14011.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14011",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14011"
+            },
+            {
+             "identificador": "BOE-A-2025-14012",
+             "control": "2025/10806",
+             "titulo": "Real Decreto 599/2025, de 7 de julio, por el que se nombra Presidente de la Audiencia Provincial de Alicante a don Juan Carlos Cerón Hernández.",
+             "url_pdf": {
+              "szBytes": "191433",
+              "szKBytes": "187",
+              "pagina_inicial": "90790",
+              "pagina_final": "90790",
+              "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-A-2025-14012.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14012",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14012"
+            },
+            {
+             "identificador": "BOE-A-2025-14013",
+             "control": "2025/10807",
+             "titulo": "Real Decreto 600/2025, de 7 de julio, por el que se nombra Presidente de la Audiencia Provincial de Córdoba a don Miguel Ángel Pareja Vallejo.",
+             "url_pdf": {
+              "szBytes": "191568",
+              "szKBytes": "187",
+              "pagina_inicial": "90791",
+              "pagina_final": "90791",
+              "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-A-2025-14013.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14013",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14013"
+            },
+            {
+             "identificador": "BOE-A-2025-14014",
+             "control": "2025/10808",
+             "titulo": "Real Decreto 601/2025, de 7 de julio, por el que se nombra Presidenta de la Audiencia Provincial de Guadalajara a doña María Elena Mayor Rodrigo.",
+             "url_pdf": {
+              "szBytes": "191963",
+              "szKBytes": "187",
+              "pagina_inicial": "90792",
+              "pagina_final": "90792",
+              "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-A-2025-14014.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14014",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14014"
+            },
+            {
+             "identificador": "BOE-A-2025-14015",
+             "control": "2025/10809",
+             "titulo": "Real Decreto 602/2025, de 7 de julio, por el que se nombra Presidente de la Sala de lo Contencioso-Administrativo del Tribunal Superior de Justicia de Aragón a don Juan Carlos Zapata Híjar.",
+             "url_pdf": {
+              "szBytes": "192322",
+              "szKBytes": "188",
+              "pagina_inicial": "90793",
+              "pagina_final": "90793",
+              "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-A-2025-14015.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14015",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14015"
+            },
+            {
+             "identificador": "BOE-A-2025-14016",
+             "control": "2025/10810",
+             "titulo": "Real Decreto 603/2025, de 7 de julio, por el que se nombra Presidenta de la Sala de lo Social del Tribunal Superior de Justicia de Madrid a doña María Aurora de la Cueva Aleu.",
+             "url_pdf": {
+              "szBytes": "192304",
+              "szKBytes": "188",
+              "pagina_inicial": "90794",
+              "pagina_final": "90794",
+              "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-A-2025-14016.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14016",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14016"
+            },
+            {
+             "identificador": "BOE-A-2025-14017",
+             "control": "2025/10811",
+             "titulo": "Real Decreto 604/2025, de 7 de julio, por el que se nombra Decana de los Juzgados de Barakaldo a la Magistrada doña Silvia Martín Blanco.",
+             "url_pdf": {
+              "szBytes": "191960",
+              "szKBytes": "187",
+              "pagina_inicial": "90795",
+              "pagina_final": "90795",
+              "texto": "https://www.boe.es/boe/dias/2025/07/08/pdfs/BOE-A-2025-14017.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-14017",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-14017"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

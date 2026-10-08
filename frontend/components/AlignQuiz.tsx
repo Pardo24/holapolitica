@@ -9,6 +9,7 @@ import { displayGroupShort } from '@/lib/groups';
 import { SummaryBody } from '@/components/SummaryBody';
 import { summaryHeadline } from '@/lib/plainSummary';
 import { pickTopicName } from '@/lib/topics';
+import { openShareSheet } from '@/lib/native';
 
 /**
  * "Com et representen?" — the citizen answers real past votes (Sí / No /
@@ -249,8 +250,7 @@ export function AlignQuiz({
       .replace('{pct}', String(Math.round(top.pct * 100)))
       .replace('{compared}', String(top.compared))} ${window.location.origin}/com-et-representen`;
     try {
-      if (navigator.share) await navigator.share({ text });
-      else {
+      if (!(await openShareSheet({ text }))) {
         await navigator.clipboard.writeText(text);
         setCopied(true);
       }

@@ -1,0 +1,3 @@
+/* Catalan: system-presented strings (permission prompts, home screen). */
+"CFBundleDisplayName" = "Hola Política";
+"NSLocationWhenInUseUsageDescription" = "Hola Política fa servir la teva ubicació només al dispositiu, per trobar la teva província i mostrar-te els diputats que la representen. No s'envia enlloc.";

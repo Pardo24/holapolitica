@@ -29,7 +29,9 @@ android {
         applicationId "org.holapolitica.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        // CI passes VERSION_CODE (the workflow run number) so every upload to
+        // Play gets a fresh, increasing code; local builds fall back to 1.
+        versionCode((System.getenv('VERSION_CODE') ?: '1') as Integer)
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -68,6 +70,17 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// A release without Firebase config crashes as soon as the site asks for
+// notifications (the push plugin's register() needs a FirebaseApp), so
+// refuse to build one. Debug builds still work without it.
+tasks.matching { it.name in ['bundleRelease', 'assembleRelease'] }.configureEach {
+    doFirst {
+        if (!file('google-services.json').exists()) {
+            throw new GradleException('mobile/android/app/google-services.json is missing: a release without it crashes on push registration. See mobile/docs/store-submission.md section 3.')
+        }
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')

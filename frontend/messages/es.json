@@ -675,7 +675,7 @@
     "sources_untouched": "No los retocamos. Si un dato falta en el origen, aquí también falta, y lo decimos: por ejemplo, una votación por asentimiento no tiene voto nominal y la tarjeta lo indica.",
     "sources_legal_link": "Datos personales y RGPD",
     "lifecycle_more": "Los recorridos, uno a uno",
-    "ai_point_text": "Lee el texto oficial de cada ley (el PDF del Congreso) para explicar sus medidas concretas, con el artículo donde aparece cada una, y qué cambia: impuestos, derechos, medio ambiente y gestión de los servicios, siempre en parejas. Cada etiqueta lleva el pasaje que la justifica y la revisa una segunda lectura más estricta; si no se puede justificar, no se pone."
+    "ai_point_text": "Lee el texto oficial de cada ley (el PDF del Congreso, o el BOE para los reales decretos-ley) para explicar sus medidas concretas, con el artículo donde aparece cada una, y qué cambia: impuestos, derechos, medio ambiente y gestión de los servicios, siempre en parejas. Cada etiqueta lleva el pasaje que la justifica y la revisa una segunda lectura más estricta; si no se puede justificar, no se pone."
   },
   "groups": {
     "title": "Grupos parlamentarios",
@@ -1479,6 +1479,26 @@
     "explore_free": "Explorar por mi cuenta",
     "more": "Cómo funciona"
   },
+  "welcome": {
+    "skip": "Saltar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "start": "Empezar",
+    "steps_aria": "Pasos de la bienvenida",
+    "step_aria": "Paso {n}",
+    "what_eyebrow": "Bienvenida",
+    "what_title": "Lo que vota el Congreso, explicado claro",
+    "what_body": "Cada votación del pleno, quién la propone y cómo vota cada grupo. Solo hechos: sin opiniones ni rankings.",
+    "laws_eyebrow": "Pestaña Leyes",
+    "laws_title": "Cada ley, en palabras llanas",
+    "laws_body": "Qué dice el texto, qué cambia y cómo ha acabado la votación. Filtra por tema, por partido o por lo que cambia la ley.",
+    "deputies_eyebrow": "Pestaña Diputados",
+    "deputies_title": "Quién te representa",
+    "deputies_body": "Elige tu provincia y verás a tus diputados y cómo votan. También tienes todos los grupos parlamentarios.",
+    "follow_eyebrow": "Datos y avisos",
+    "follow_title": "Sigue lo que te importa",
+    "follow_body": "En Datos tienes cómo vota cada grupo, siempre con todas las partes. Y en cada ley puedes tocar «Sigue esta ley» para que te avisemos cuando se vote."
+  },
   "journalists": {
     "meta_title": "Para periodistas · Hola Política",
     "meta_description": "Herramientas listas para redacciones: widgets incrustables, cards sociales, API REST y datasets abiertos del Congreso de los Diputados. Todo bajo CC-BY 4.0 con atribución.",
@@ -1648,6 +1668,7 @@
     "complementary": "Complementario a Civio.",
     "lifecycle_link": "Cómo se hace una ley",
     "legal_link": "Datos y RGPD",
+    "privacy_link": "Privacidad",
     "apidocs_link": "API y widgets",
     "journalists_link": "Para periodistas",
     "avui_link": "Crónica del pleno"
@@ -2059,6 +2080,10 @@
     "pdf_cta": "Lee el texto oficial (PDF)",
     "pdf_short": "Texto oficial",
     "boe_cta": "Publicada en el BOE",
+    "not_read_yet_boe": "Aún no hemos leído este texto. Mientras tanto, lo tienes entero en el BOE.",
+    "boe_text_cta": "Lee el texto oficial (BOE)",
+    "note_boe_full": "Es el texto tal como se publicó en el BOE. Un real decreto-ley está en vigor desde que se publica; después, el Congreso lo convalida o lo deroga.",
+    "note_boe_partial": "Es el texto tal como se publicó en el BOE, y es muy largo: hemos leído la exposición de motivos y los primeros artículos. Un real decreto-ley está en vigor desde que se publica; después, el Congreso lo convalida o lo deroga.",
     "note_full": "Es el texto tal como se presentó en el Congreso; puede cambiar durante la tramitación.",
     "note_partial": "Es el texto tal como se presentó en el Congreso, y es muy largo: hemos leído la exposición de motivos y los primeros artículos.",
     "how_ai": "Cómo usamos la IA →"

@@ -4,8 +4,11 @@ import { useState } from 'react';
 import { ArrowUpRight, Check, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
+import { openShareSheet } from '@/lib/native';
+
 /**
- * One-tap sharing. On mobile uses the native share sheet (`navigator.share`);
+ * One-tap sharing. On mobile uses the native share sheet (the app's own,
+ * or `navigator.share` in browsers);
  * on desktop falls back to copying the URL to clipboard with a "copied"
  * confirmation that auto-dismisses.
  *
@@ -34,14 +37,11 @@ export function ShareButton({
         ? url
         : (typeof window !== 'undefined' ? window.location.origin : '') + url;
 
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-      try {
-        await navigator.share({ title, text: text ?? title, url: absUrl });
-        return;
-      } catch {
-        /* user cancelled — silent */
-        return;
-      }
+    try {
+      if (await openShareSheet({ title, text: text ?? title, url: absUrl })) return;
+    } catch {
+      /* user cancelled — silent */
+      return;
     }
     try {
       await navigator.clipboard.writeText(absUrl);

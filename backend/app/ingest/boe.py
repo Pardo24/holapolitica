@@ -38,6 +38,20 @@ Match acceptance:
   good against the XV legislature dataset. Below the bar we skip
   rather than guess; an un-matched row stays NULL.
 
+Reales Decretos-ley
+------------------
+An RDL is not a bill: the Government publishes it in the BOE, it is in
+force from then, and Congress only validates or repeals it within 30
+days. Its Congress record has no BOCG text, and its status says nothing
+about publication (every RDL is published before Congress sees it). So
+RDLs skip the title-overlap search and resolve by their number instead:
+the title always starts "Real Decreto-ley N/YYYY, de D de mes", which
+gives the ELI address of the published text
+(``/eli/es/rdl/YYYY/MM/DD/N/dof/spa/xml``). If that fails, the BOE
+daily summaries of the following days are searched for the same
+number. The XML carries the id, the dates and the text itself, which
+:mod:`app.services.law_text` then reads.
+
 Idempotent: re-running only touches rows whose ``boe_id`` is still
 NULL. Network and parse failures are caught and logged; a single
 bad row never aborts the batch.
@@ -45,8 +59,10 @@ bad row never aborts the batch.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any
@@ -82,6 +98,14 @@ PUBLISHABLE_TYPES = frozenset(
 )
 
 PUBLISHABLE_STATUSES = frozenset({InitiativeStatus.APPROVED})
+
+# BOE "rango" code of a Real Decreto-ley, as in the document metadata.
+RDL_RANK_CODE = "1320"
+# Pause between two requests to boe.es: one at a time, never a burst.
+BOE_MIN_INTERVAL_S = 1.0
+# Days after signature in which an RDL is looked for in the daily
+# summaries. They are published the next day almost always.
+_SUMMARY_WINDOW_DAYS = 5
 
 
 @dataclass(frozen=True, slots=True)
@@ -308,6 +332,274 @@ async def search_boe_for_initiative(
     return best
 
 
+_MONTHS = {
+    "enero": 1,
+    "febrero": 2,
+    "marzo": 3,
+    "abril": 4,
+    "mayo": 5,
+    "junio": 6,
+    "julio": 7,
+    "agosto": 8,
+    "septiembre": 9,
+    "setiembre": 9,
+    "octubre": 10,
+    "noviembre": 11,
+    "diciembre": 12,
+}
+
+_RDL_TITLE_RE = re.compile(
+    r"real\s+decreto[\s\-‐‑–]*ley\s+(\d{1,3})\s*/\s*(\d{4})\s*,?\s+de\s+(\d{1,2})\s*[ºo]?\s+de\s+([a-z]+)",
+    re.IGNORECASE,
+)
+
+
+@dataclass(frozen=True, slots=True)
+class RdlRef:
+    """A Real Decreto-ley as its title names it: number, year, signature date."""
+
+    number: int
+    year: int
+    signed: date
+
+    @property
+    def official_number(self) -> str:
+        """The BOE ``numero_oficial``: ``"8/2026"``."""
+        return f"{self.number}/{self.year}"
+
+    @property
+    def eli_xml_url(self) -> str:
+        """ELI address of the text as published, in XML."""
+        s = self.signed
+        return (
+            f"https://www.boe.es/eli/es/rdl/{s.year}/{s.month:02d}/{s.day:02d}/"
+            f"{self.number}/dof/spa/xml"
+        )
+
+
+def parse_rdl_title(title: str | None) -> RdlRef | None:
+    """``"Real Decreto-ley 8/2026, de 20 de marzo, …"`` → number, year, date.
+
+    None when the title does not name an RDL or the date is impossible.
+    The signature year is the number's year (an RDL is numbered within
+    the year it is signed).
+    """
+    if not title:
+        return None
+    m = _RDL_TITLE_RE.search(title)
+    if not m:
+        return None
+    month = _MONTHS.get(m.group(4).lower())
+    if month is None:
+        return None
+    number, year = int(m.group(1)), int(m.group(2))
+    try:
+        signed = date(year, month, int(m.group(3)))
+    except ValueError:
+        return None
+    return RdlRef(number=number, year=year, signed=signed)
+
+
+@dataclass(frozen=True, slots=True)
+class BoeDocument:
+    """A BOE document as published: metadata and its plain text."""
+
+    boe_id: str
+    title: str
+    rank_code: str
+    official_number: str
+    publication_date: date | None
+    entry_in_force: date | None
+    text: str
+
+    @property
+    def url(self) -> str:
+        """The text as published on boe.es: the one the analysis reads."""
+        return boe_text_url(self.boe_id)
+
+
+class BoeUnavailableError(RuntimeError):
+    """The BOE did not return a document that should be there."""
+
+
+def boe_text_url(boe_id: str) -> str:
+    return f"https://www.boe.es/diario_boe/txt.php?id={boe_id}"
+
+
+def boe_xml_url(boe_id: str) -> str:
+    return f"https://www.boe.es/diario_boe/xml.php?id={boe_id}"
+
+
+def parse_boe_document(xml_bytes: bytes) -> BoeDocument | None:
+    """Read a ``diario_boe/xml.php`` (or ELI ``…/xml``) document.
+
+    None when it is not a BOE document (ELI answers an unknown address
+    with a 200 HTML error page). The text is one line per block of
+    ``<texto>`` (paragraph, heading, table), signatures included.
+    """
+    try:
+        root = ET.fromstring(xml_bytes)
+    except ET.ParseError:
+        return None
+    meta = root.find("metadatos")
+    if root.tag != "documento" or meta is None:
+        return None
+
+    def field_text(name: str) -> str:
+        return (meta.findtext(name) or "").strip()
+
+    rank = meta.find("rango")
+    boe_id = field_text("identificador")
+    if not boe_id:
+        return None
+    blocks: list[str] = []
+    body = root.find("texto")
+    if body is not None:
+        for block in body:
+            line = " ".join("".join(block.itertext()).split())
+            if line:
+                blocks.append(line)
+    return BoeDocument(
+        boe_id=boe_id,
+        title=field_text("titulo"),
+        rank_code=(rank.get("codigo") or "") if rank is not None else "",
+        official_number=field_text("numero_oficial"),
+        publication_date=_parse_yyyymmdd(field_text("fecha_publicacion")),
+        entry_in_force=_parse_yyyymmdd(field_text("fecha_vigencia")),
+        text="\n".join(blocks),
+    )
+
+
+def _as_list(value: Any) -> list[Any]:
+    """The summary JSON gives one child as an object and several as a list."""
+    if value is None:
+        return []
+    return value if isinstance(value, list) else [value]
+
+
+def find_rdl_in_summary(payload: Any, ref: RdlRef) -> str | None:
+    """The BOE id of RDL ``ref`` in one daily summary, if it is there.
+
+    Only section I (general provisions) is searched, and the title must
+    start with the exact "Real Decreto-ley N/YYYY," so "… por el que se
+    modifica el Real Decreto-ley 8/2025" never matches.
+    """
+    prefix = f"real decreto-ley {ref.official_number},"
+    data = payload.get("data") if isinstance(payload, dict) else None
+    summary = data.get("sumario") if isinstance(data, dict) else None
+    if not isinstance(summary, dict):
+        return None
+    for issue in _as_list(summary.get("diario")):
+        for section in _as_list(issue.get("seccion") if isinstance(issue, dict) else None):
+            if not isinstance(section, dict) or section.get("codigo") != "1":
+                continue
+            for dept in _as_list(section.get("departamento")):
+                for heading in _as_list(dept.get("epigrafe") if isinstance(dept, dict) else None):
+                    items = heading.get("item") if isinstance(heading, dict) else None
+                    for item in _as_list(items):
+                        if not isinstance(item, dict):
+                            continue
+                        title = " ".join(str(item.get("titulo") or "").lower().split())
+                        if title.startswith(prefix) and item.get("identificador"):
+                            return str(item["identificador"])
+    return None
+
+
+class BoeClient:
+    """One polite connection to boe.es: project user agent, paced requests."""
+
+    def __init__(
+        self,
+        client: httpx.AsyncClient | None = None,
+        *,
+        min_interval_s: float = BOE_MIN_INTERVAL_S,
+    ) -> None:
+        self._client = client or httpx.AsyncClient(
+            timeout=30.0, headers={"User-Agent": USER_AGENT}, follow_redirects=True
+        )
+        self._min_interval_s = min_interval_s
+        self._last = 0.0
+
+    async def __aenter__(self) -> BoeClient:
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        await self._client.aclose()
+
+    async def get(self, url: str, *, accept: str = "application/xml") -> httpx.Response:
+        loop = asyncio.get_running_loop()
+        wait = self._last + self._min_interval_s - loop.time()
+        if wait > 0:
+            await asyncio.sleep(wait)
+        try:
+            return await self._client.get(url, headers={"Accept": accept})
+        finally:
+            self._last = loop.time()
+
+    async def document(self, url: str) -> BoeDocument | None:
+        """A BOE XML document, or None when the address has none."""
+        resp = await self.get(url)
+        if resp.status_code != 200:
+            return None
+        return parse_boe_document(resp.content)
+
+    async def summary(self, day: date) -> Any:
+        """The BOE daily summary as JSON, or None (no issue that day)."""
+        resp = await self.get(
+            f"https://www.boe.es/datosabiertos/api/boe/sumario/{day:%Y%m%d}",
+            accept="application/json",
+        )
+        if resp.status_code != 200:
+            return None
+        try:
+            return resp.json()
+        except ValueError:
+            return None
+
+
+def _is_rdl(doc: BoeDocument | None, ref: RdlRef) -> bool:
+    return (
+        doc is not None
+        and doc.rank_code == RDL_RANK_CODE
+        and doc.official_number == ref.official_number
+    )
+
+
+async def resolve_rdl(boe: BoeClient, ref: RdlRef) -> BoeDocument | None:
+    """The published RDL ``ref``: its ELI address first, then the summaries.
+
+    The document is only accepted when the BOE's own metadata confirm
+    the rank (Real Decreto-ley) and the number.
+    """
+    doc = await boe.document(ref.eli_xml_url)
+    if _is_rdl(doc, ref):
+        return doc
+    for offset in range(_SUMMARY_WINDOW_DAYS + 1):
+        payload = await boe.summary(ref.signed + timedelta(days=offset))
+        boe_id = find_rdl_in_summary(payload, ref) if payload is not None else None
+        if boe_id is None:
+            continue
+        doc = await boe.document(boe_xml_url(boe_id))
+        return doc if _is_rdl(doc, ref) else None
+    return None
+
+
+async def _match_rdl(boe: BoeClient, initiative: Initiative) -> BoeMatch | None:
+    ref = parse_rdl_title(initiative.title_original or initiative.title_es)
+    if ref is None:
+        return None
+    doc = await resolve_rdl(boe, ref)
+    if doc is None:
+        return None
+    return BoeMatch(
+        boe_id=doc.boe_id,
+        title=doc.title,
+        publication_date=doc.publication_date,
+        entry_in_force=doc.entry_in_force,
+        url=doc.url,
+    )
+
+
 async def enrich_initiatives_with_boe(session: AsyncSession) -> dict[str, int]:
     """Match approved publishable initiatives to their BOE entries.
 
@@ -322,7 +614,12 @@ async def enrich_initiatives_with_boe(session: AsyncSession) -> dict[str, int]:
             await session.execute(
                 select(Initiative).where(
                     Initiative.type.in_(PUBLISHABLE_TYPES),
-                    Initiative.status.in_(PUBLISHABLE_STATUSES),
+                    # Every RDL is published before Congress sees it,
+                    # whatever its status there.
+                    or_(
+                        Initiative.status.in_(PUBLISHABLE_STATUSES),
+                        Initiative.type == InitiativeType.REAL_DECRETO_LEY,
+                    ),
                     or_(Initiative.boe_id.is_(None), Initiative.boe_id == ""),
                 )
             )
@@ -333,28 +630,36 @@ async def enrich_initiatives_with_boe(session: AsyncSession) -> dict[str, int]:
 
     matched = 0
     skipped = 0
-    for initiative in rows:
-        try:
-            hit = await search_boe_for_initiative(initiative)
-        except Exception as e:
-            log.warning("boe.enrich.failed", initiative_id=initiative.id, error=str(e))
-            skipped += 1
-            continue
-        if hit is None:
-            skipped += 1
-            continue
-        initiative.boe_id = hit.boe_id
-        initiative.boe_url = hit.url
-        initiative.boe_entry_in_force = hit.entry_in_force
-        matched += 1
-        log.info(
-            "boe.matched",
-            initiative_id=initiative.id,
-            boe_id=hit.boe_id,
-            initiative_title=(initiative.title_ca or initiative.title_original)[:100],
-            boe_title=hit.title[:100],
-        )
+    async with BoeClient() as boe:
+        for initiative in rows:
+            try:
+                if initiative.type == InitiativeType.REAL_DECRETO_LEY:
+                    hit = await _match_rdl(boe, initiative)
+                else:
+                    hit = await search_boe_for_initiative(initiative)
+            except Exception as e:
+                log.warning("boe.enrich.failed", initiative_id=initiative.id, error=str(e))
+                skipped += 1
+                continue
+            if hit is None:
+                skipped += 1
+                continue
+            _apply_match(initiative, hit)
+            matched += 1
 
     await session.commit()
     log.info("boe.enriched", matched=matched, skipped=skipped, attempted=len(rows))
     return {"matched": matched, "skipped": skipped, "attempted": len(rows)}
+
+
+def _apply_match(initiative: Initiative, hit: BoeMatch) -> None:
+    initiative.boe_id = hit.boe_id
+    initiative.boe_url = hit.url
+    initiative.boe_entry_in_force = hit.entry_in_force
+    log.info(
+        "boe.matched",
+        initiative_id=initiative.id,
+        boe_id=hit.boe_id,
+        initiative_title=(initiative.title_ca or initiative.title_original)[:100],
+        boe_title=hit.title[:100],
+    )

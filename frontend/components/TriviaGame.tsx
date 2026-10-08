@@ -20,6 +20,7 @@ import {
 import { groupAbbreviation } from '@/lib/groups';
 import type { Cat, DuelQuestion } from '@/lib/triviaBank';
 import { recordResult, type TriviaStats } from '@/lib/triviaStats';
+import { openShareSheet } from '@/lib/native';
 
 /**
  * "Trivia" — an async 1v1 duel, Preguntados-style. On your turn you spin a
@@ -311,8 +312,7 @@ export function TriviaGame({
       .replace('{score}', String(collected.length))
       .replace('{total}', String(target))} ${url}`;
     try {
-      if (navigator.share) await navigator.share({ text });
-      else {
+      if (!(await openShareSheet({ text }))) {
         await navigator.clipboard.writeText(text);
         setCopied(true);
       }

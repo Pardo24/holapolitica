@@ -4,8 +4,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Capacitor generated bundle (we use server.url, but cap sync still writes here)
-www/
+# www/ is source: the bundled offline fallback (server.errorPath). cap sync
+# copies it into the native projects' public/ folders, ignored below.
 
 # iOS native
 ios/App/Pods/

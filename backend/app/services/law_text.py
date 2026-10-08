@@ -25,6 +25,11 @@ lowers another). The banned-terms guard runs on every point.
 
 The text is the bill AS TABLED. It can change in committee; the page says
 so next to the points.
+
+Reales Decretos-ley have no tabled text: the Government publishes them in
+the BOE and they are in force from that day. For them the text read is the
+one published in the BOE (see :mod:`app.ingest.boe`), and the stored source
+says so ("boe_full" / "boe_partial") so the page can say which text it is.
 """
 
 from __future__ import annotations
@@ -39,6 +44,7 @@ import pypdf
 
 from app.core.config import Settings, get_settings
 from app.core.logging import get_logger
+from app.ingest.boe import BoeClient, BoeUnavailableError, boe_xml_url
 from app.ingest.congreso.object_extractor import _collapse_whitespace, _strip_bocg_chrome
 from app.services.plain_summary import _BANNED_TERMS, _fold, _provider_name
 
@@ -60,9 +66,17 @@ CHANGE_TAGS: tuple[str, ...] = (
 MAX_CHARS = 60_000
 MAX_POINTS = 8
 
+# Where the text comes from, as the model is told. The rest of the prompt
+# is the same for both: the same measures, the same strict tags.
+_INTRO = {
+    "bocg": "Recibirás el texto de una iniciativa\n"
+    "legislativa española tal como se presentó en el Congreso (BOCG).",
+    "boe": "Recibirás el texto de un real decreto-ley\n"
+    "español tal como se publicó en el Boletín Oficial del Estado (BOE).",
+}
+
 _PROMPT = """\
-Eres un analista legislativo NEUTRAL. Recibirás el texto de una iniciativa
-legislativa española tal como se presentó en el Congreso (BOCG).
+Eres un analista legislativo NEUTRAL. {intro}
 
 Devuelve SOLO un objeto JSON con esta forma exacta:
 {
@@ -135,7 +149,7 @@ class LawTextAnalysis:
     points: dict[str, list[dict[str, str | None]]]
     tags: list[str]
     evidence: dict[str, dict[str, str]]
-    source: str  # "full" | "partial"
+    source: str  # "full" | "partial" | "boe_full" | "boe_partial"
     provider: str
     raw: str = field(repr=False, default="")
 
@@ -235,12 +249,30 @@ def parse_analysis(
     return points, tags, evidence
 
 
+def analysis_source(origin: str, truncated: bool) -> str:
+    """What is stored as ``text_analysis_source``: which text, and all of it?"""
+    extent = "partial" if truncated else "full"
+    return f"boe_{extent}" if origin == "boe" else extent
+
+
+def clip_text(text: str) -> tuple[str, bool]:
+    """A text already in plain form (the BOE's), cut to what the model reads."""
+    if len(text) > MAX_CHARS:
+        return text[:MAX_CHARS], True
+    return text, False
+
+
 async def analyse_law_text(
-    text: str, *, truncated: bool, settings: Settings | None = None
+    text: str, *, truncated: bool, origin: str = "bocg", settings: Settings | None = None
 ) -> LawTextAnalysis:
-    """Ask the model for points and tags over ``text``; validate the answer."""
+    """Ask the model for points and tags over ``text``; validate the answer.
+
+    ``origin`` says which text it is: "bocg" (a bill as tabled) or "boe"
+    (a Real Decreto-ley as published).
+    """
     settings = settings or get_settings()
-    raw = await _call_json(settings, system=_PROMPT, user=text)
+    system = _PROMPT.replace("{intro}", _INTRO["boe" if origin == "boe" else "bocg"])
+    raw = await _call_json(settings, system=system, user=text)
     points, tags, evidence = parse_analysis(raw)
     if tags:
         tags = await verify_tags(
@@ -253,10 +285,26 @@ async def analyse_law_text(
         points=points,
         tags=tags,
         evidence=evidence,
-        source="partial" if truncated else "full",
+        source=analysis_source(origin, truncated),
         provider=_provider_name(settings),
         raw=raw,
     )
+
+
+async def analyse_boe_text(boe: BoeClient, boe_id: str) -> LawTextAnalysis | None:
+    """Read a Real Decreto-ley as published in the BOE.
+
+    None when the document has too little text to read. Raises
+    :class:`BoeUnavailableError` when the BOE does not answer with it, so
+    the caller retries later instead of stamping the row as empty.
+    """
+    doc = await boe.document(boe_xml_url(boe_id))
+    if doc is None:
+        raise BoeUnavailableError(f"no BOE document for {boe_id}")
+    if len(doc.text) < 400:
+        return None
+    text, truncated = clip_text(f"{doc.title}\n\n{doc.text}")
+    return await analyse_law_text(text, truncated=truncated, origin="boe")
 
 
 async def verify_tags(

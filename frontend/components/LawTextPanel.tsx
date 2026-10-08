@@ -18,11 +18,21 @@ import { changeTagIcon, isChangeTag, pdfUrl } from '@/lib/changeTags';
  * Honest about its limits: it is the text as presented (committees can
  * change it), it was read by an AI, and for very long texts only the
  * explanatory statement and the first articles were read.
+ *
+ * A Real Decreto-ley has no tabled text: it is published in the BOE and in
+ * force from that day. Its text is read from the BOE, the official-text
+ * button points there, and the note says which text it is.
  */
 export async function LawTextPanel({ initiative, locale }: { initiative: Initiative; locale: string }) {
   const t = await getTranslations('law_text');
   const tTags = await getTranslations('change_tags');
   const pdf = pdfUrl(initiative.source_url);
+  const source = initiative.text_analysis_source ?? '';
+  // The RDL's official text is the BOE one; for a bill the BOE link only
+  // says it became law.
+  const boeText =
+    source.startsWith('boe') || (!pdf && initiative.type === 'real_decreto_ley' && !!initiative.boe_url);
+  const officialHref = pdf ?? (boeText ? initiative.boe_url ?? null : null);
   const lang = locale === 'ca' ? 'ca' : 'es';
   const points = initiative.text_points?.[lang]?.length
     ? initiative.text_points[lang]!
@@ -30,7 +40,7 @@ export async function LawTextPanel({ initiative, locale }: { initiative: Initiat
   const tags = (initiative.change_tags ?? []).filter(isChangeTag);
   const evidence = initiative.change_evidence?.[lang] ?? initiative.change_evidence?.es ?? {};
 
-  if (!pdf && points.length === 0 && !initiative.boe_url) return null;
+  if (!officialHref && points.length === 0 && !initiative.boe_url) return null;
 
   return (
     <section className="law-text" aria-labelledby="law-text-title">
@@ -59,7 +69,9 @@ export async function LawTextPanel({ initiative, locale }: { initiative: Initiat
           ))}
         </ol>
       ) : (
-        <p className="law-text__empty">{pdf ? t('not_read_yet') : t('no_pdf')}</p>
+        <p className="law-text__empty">
+          {pdf ? t('not_read_yet') : officialHref ? t('not_read_yet_boe') : t('no_pdf')}
+        </p>
       )}
 
       {tags.length > 0 && (
@@ -89,14 +101,14 @@ export async function LawTextPanel({ initiative, locale }: { initiative: Initiat
       )}
 
       <div className="law-text__actions">
-        {pdf && (
-          <a href={pdf} target="_blank" rel="noopener noreferrer" className="law-text__pdf">
+        {officialHref && (
+          <a href={officialHref} target="_blank" rel="noopener noreferrer" className="law-text__pdf">
             <FileText size={16} strokeWidth={2} aria-hidden="true" />
-            {t('pdf_cta')}
+            {pdf ? t('pdf_cta') : t('boe_text_cta')}
             <ExternalLink size={13} strokeWidth={2} aria-hidden="true" />
           </a>
         )}
-        {initiative.boe_url && (
+        {initiative.boe_url && officialHref !== initiative.boe_url && (
           <a href={initiative.boe_url} target="_blank" rel="noopener noreferrer" className="law-text__boe">
             {t('boe_cta')}
             <ExternalLink size={13} strokeWidth={2} aria-hidden="true" />
@@ -106,7 +118,9 @@ export async function LawTextPanel({ initiative, locale }: { initiative: Initiat
 
       {points.length > 0 && (
         <p className="law-text__note">
-          {initiative.text_analysis_source === 'partial' ? t('note_partial') : t('note_full')}{' '}
+          {source.endsWith('partial')
+            ? t(boeText ? 'note_boe_partial' : 'note_partial')
+            : t(boeText ? 'note_boe_full' : 'note_full')}{' '}
           <Link href="/about#ia">{t('how_ai')}</Link>
         </p>
       )}

@@ -6,6 +6,8 @@ import type { Route } from 'next';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, X } from 'lucide-react';
 
+import { isNativeApp } from '@/lib/native';
+
 /**
  * First-visit explanation, as a strip inside the page.
  *
@@ -35,6 +37,8 @@ export function IntroNote() {
   const t = useTranslations('onboarding');
 
   useEffect(() => {
+    // Inside the app the welcome wizard does this job (WelcomeWizard).
+    if (isNativeApp()) return;
     try {
       if (!window.localStorage.getItem(STORAGE_KEY)) setVisible(true);
     } catch {

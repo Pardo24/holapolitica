@@ -497,9 +497,12 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
     For each one with a BOCG PDF and no analysis yet, newest first: fetch
     the PDF, extract its text, and store the concrete measures (with their
     article) and the symmetric "what it changes" tags; see
-    :mod:`app.services.law_text`. A row whose text can't be read or yields
+    :mod:`app.services.law_text`. A Real Decreto-ley has no BOCG text: once
+    ``enrich_initiatives_boe`` has found it in the BOE, the text published
+    there is read instead. A row whose text can't be read or yields
     nothing is stamped anyway (source "empty") so the job doesn't retry it
-    every tick. One commit per row.
+    every tick; a BOE that does not answer is a failure, retried next time.
+    One commit per row.
 
     A row whose text yields measures then gets its plain summary, its
     translation and both headlines rewritten from those measures (see
@@ -510,12 +513,19 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
     """
     from datetime import datetime
 
+    from sqlalchemy import and_, or_
     from sqlalchemy import select as _select
 
+    from app.ingest.boe import BoeClient
     from app.ingest.congreso.bootstrap import rewrite_initiative_summary
     from app.ingest.congreso.client import CongresoClient
     from app.models import Initiative
-    from app.services.law_text import analyse_law_text, extract_pdf_text, pdf_url_from_source
+    from app.services.law_text import (
+        analyse_boe_text,
+        analyse_law_text,
+        extract_pdf_text,
+        pdf_url_from_source,
+    )
     from app.services.llm_http import LLMUnavailableError
 
     law_types = ("proyecto_ley", "proposicion_ley", "real_decreto_ley")
@@ -526,7 +536,16 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
                 _select(Initiative.id)
                 .where(Initiative.type.in_(law_types))
                 .where(Initiative.text_analysis_generated_at.is_(None))
-                .where(Initiative.source_url.ilike("%.pdf%"))
+                .where(
+                    or_(
+                        Initiative.source_url.ilike("%.pdf%"),
+                        and_(
+                            Initiative.type == "real_decreto_ley",
+                            Initiative.boe_id.is_not(None),
+                            Initiative.boe_id != "",
+                        ),
+                    )
+                )
                 .order_by(Initiative.id.desc())
                 .limit(batch_size)
             )
@@ -536,7 +555,7 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
             return {"attempted": 0, "succeeded": 0, "empty": 0, "failed": 0}
 
         succeeded = empty = failed = resummarised = 0
-        async with CongresoClient() as client:
+        async with CongresoClient() as client, BoeClient() as boe:
             for initiative_id in ids:
                 try:
                     async with AsyncSessionLocal() as session:
@@ -554,6 +573,8 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
                             text, truncated = extract_pdf_text(pdf_bytes, target[1])
                             if len(text) >= 400:
                                 result = await analyse_law_text(text, truncated=truncated)
+                        elif initiative.boe_id:
+                            result = await analyse_boe_text(boe, initiative.boe_id)
                         now = datetime.now(UTC)
                         if result is None or not result.points.get("es"):
                             initiative.text_analysis_source = "empty"
@@ -591,7 +612,7 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
                         "law_text.pending.failed", initiative_id=initiative_id, error=str(exc)
                     )
                     failed += 1
-                await asyncio.sleep(0.5)  # politeness towards congreso.es
+                await asyncio.sleep(0.5)  # politeness towards congreso.es (boe.es paces itself)
 
         log.info(
             "law_text.pending.done",

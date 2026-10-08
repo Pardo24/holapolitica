@@ -675,7 +675,7 @@
     "sources_untouched": "We don't touch it up. If something is missing at the source it is missing here too, and we say so: a vote carried by assent, for instance, has no roll call, and the card says that.",
     "sources_legal_link": "Personal data and GDPR",
     "lifecycle_more": "Each procedure, step by step",
-    "ai_point_text": "It reads each law's official text (the Congress PDF) to set out its concrete measures, with the article each comes from, and what it changes: taxes, rights, environment and how services are run, always in pairs. Every tag carries the passage behind it and is checked by a stricter second reading; if it cannot be justified, it is not shown."
+    "ai_point_text": "It reads each law's official text (the Congress PDF, or the BOE for Royal Decree-laws) to set out its concrete measures, with the article each comes from, and what it changes: taxes, rights, environment and how services are run, always in pairs. Every tag carries the passage behind it and is checked by a stricter second reading; if it cannot be justified, it is not shown."
   },
   "groups": {
     "title": "Parliamentary groups",
@@ -1479,6 +1479,26 @@
     "explore_free": "Explore on my own",
     "more": "How it works"
   },
+  "welcome": {
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "start": "Get started",
+    "steps_aria": "Welcome steps",
+    "step_aria": "Step {n}",
+    "what_eyebrow": "Welcome",
+    "what_title": "What Congress votes on, explained clearly",
+    "what_body": "Every plenary vote, who tabled it and how each group voted. Facts only: no opinions, no rankings.",
+    "laws_eyebrow": "Laws tab",
+    "laws_title": "Every law, in plain words",
+    "laws_body": "What the text says, what it changes and how the vote ended. Filter by topic, by party or by what the law changes.",
+    "deputies_eyebrow": "Deputies tab",
+    "deputies_title": "Who represents you",
+    "deputies_body": "Pick your province to see your deputies and how they vote. Every parliamentary group is there too.",
+    "follow_eyebrow": "Data and alerts",
+    "follow_title": "Follow what matters to you",
+    "follow_body": "The Data tab shows how each group votes, always with every side. And on any law you can tap \"Follow this law\" to be notified when it is voted."
+  },
   "journalists": {
     "meta_title": "For journalists · Hola Política",
     "meta_description": "Ready-made tools for newsrooms: embeddable widgets, social cards, REST API and open datasets from the Spanish Congress. All under CC-BY 4.0 with attribution.",
@@ -1648,6 +1668,7 @@
     "complementary": "Complementary to Civio.",
     "lifecycle_link": "How a law is made",
     "legal_link": "Data & GDPR",
+    "privacy_link": "Privacy",
     "apidocs_link": "API & widgets",
     "journalists_link": "For journalists",
     "avui_link": "Plenary chronicle"
@@ -2059,6 +2080,10 @@
     "pdf_cta": "Read the official text (PDF)",
     "pdf_short": "Official text",
     "boe_cta": "Published in the BOE",
+    "not_read_yet_boe": "We haven't read this text yet. In the meantime, it is all in the BOE.",
+    "boe_text_cta": "Read the official text (BOE)",
+    "note_boe_full": "This is the text as published in the BOE. A Royal Decree-law is in force from publication; Congress then validates or repeals it.",
+    "note_boe_partial": "This is the text as published in the BOE, and it is very long: we read the explanatory statement and the first articles. A Royal Decree-law is in force from publication; Congress then validates or repeals it.",
     "note_full": "This is the text as tabled in Congress; it can change during its passage.",
     "note_partial": "This is the text as tabled in Congress, and it is very long: we read the explanatory statement and the first articles.",
     "how_ai": "How we use AI →"

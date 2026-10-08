@@ -1,6 +1,6 @@
 {
   "name": "holapolitica-mobile",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Capacitor wrapper packaging the Hola Política Next.js web app as iOS and Android apps. The wrapper points at the production web URL — there is no duplicated UI.",
   "scripts": {
@@ -18,7 +18,6 @@
     "@capacitor/app": "^6.0.1",
     "@capacitor/core": "^6.1.2",
     "@capacitor/ios": "^6.1.2",
-    "@capacitor/preferences": "^6.0.2",
     "@capacitor/push-notifications": "^6.0.2",
     "@capacitor/share": "^6.0.2",
     "@capacitor/splash-screen": "^6.0.2",
@@ -34,6 +33,9 @@
   },
   "overrides": {
     "tar": "^7.5.18",
+    "@capacitor/cli": {
+      "tar": "^6.2.1"
+    },
     "sharp": "^0.35.4",
     "uuid": "^11.1.1",
     "@xmldom/xmldom": "^0.9.12"

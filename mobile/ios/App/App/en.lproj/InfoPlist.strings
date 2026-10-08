@@ -1,0 +1,3 @@
+/* English: system-presented strings (permission prompts, home screen). */
+"CFBundleDisplayName" = "Hola Política";
+"NSLocationWhenInUseUsageDescription" = "Hola Política uses your location only on your device, to find your province and show the deputies who represent it. It is never sent anywhere.";

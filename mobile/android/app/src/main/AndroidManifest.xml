@@ -21,15 +21,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Android App Links: https://holapolitica.org/<path> opens in
-                 the app once /.well-known/assetlinks.json is served with
+            <!-- Android App Links: https://www.holapolitica.org/<path> opens
+                 in the app once /.well-known/assetlinks.json is served with
                  this app's signing SHA-256 (see mobile/docs/deeplinks.md).
-                 autoVerify lets Android verify ownership at install time. -->
+                 autoVerify lets Android verify ownership at install time.
+                 Only www: the apex 307-redirects, Google never follows that
+                 redirect, and on Android 11 and older one host failing
+                 verification makes every host in the filter fail. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="holapolitica.org" />
                 <data android:scheme="https" android:host="www.holapolitica.org" />
             </intent-filter>
         </activity>

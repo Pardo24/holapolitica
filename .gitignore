@@ -125,4 +125,4 @@ mobile/ios/build/
 mobile/android/.gradle/
 mobile/android/build/
 mobile/android/app/build/
-mobile/www/
+# mobile/www/ is source (the bundled offline page), not a build output.

@@ -132,6 +132,15 @@ export async function LawsLens({
     const g = groups.find((x) => x.slug === slug);
     return g ? displayGroupShort(g.name_short) : slug;
   };
+  /**
+   * A sheet option's link: picks the value, or, when it is already on,
+   * takes it off again (tapping a chosen filter a second time unselects it).
+   */
+  const toggle = (key: keyof Patch, values: string[], value: string): Route => {
+    if (!values.includes(value)) return href({ [key]: value });
+    const rest = values.filter((v) => v !== value);
+    return href({ [key]: rest.length ? rest.join(',') : null });
+  };
   const named = (values: string[], name: (v: string) => string, fallback: string) =>
     values.length === 0 ? fallback : values.length === 1 ? name(values[0]!) : `${name(values[0]!)} +${values.length - 1}`;
 
@@ -147,7 +156,7 @@ export async function LawsLens({
         const on = state.topicSlugs.includes(tp.slug);
         return (
           <li key={tp.slug}>
-            <Link href={href({ topic_slug: tp.slug })} aria-current={on ? 'page' : undefined}>
+            <Link href={toggle('topic_slug', state.topicSlugs, tp.slug)} aria-current={on ? 'page' : undefined}>
               <span
                 className="sheet-row__icon"
                 aria-hidden="true"
@@ -171,7 +180,7 @@ export async function LawsLens({
     <ul className="sheet-list">
       <li>
         <Link
-          href={href({ proposing_group_slug: 'govern' })}
+          href={toggle('proposing_group_slug', state.groupSlugs, 'govern')}
           aria-current={state.groupSlugs.includes('govern') ? 'page' : undefined}
         >
           <span className="sheet-row__icon" aria-hidden="true">
@@ -184,7 +193,7 @@ export async function LawsLens({
       {groups.map((g) => (
         <li key={g.slug}>
           <Link
-            href={href({ proposing_group_slug: g.slug })}
+            href={toggle('proposing_group_slug', state.groupSlugs, g.slug)}
             aria-current={state.groupSlugs.includes(g.slug) ? 'page' : undefined}
           >
             <span style={{ flex: 'none', display: 'inline-flex', width: 34, justifyContent: 'center' }}>
@@ -219,7 +228,7 @@ export async function LawsLens({
               return (
                 <Link
                   key={tag}
-                  href={href({ change: tag })}
+                  href={toggle('change', state.changes, tag)}
                   aria-current={state.changes.includes(tag) ? 'page' : undefined}
                   className="lens-tag"
                   style={{ justifyContent: 'center' }}
@@ -242,7 +251,7 @@ export async function LawsLens({
         return (
           <Link
             key={a.tag}
-            href={href({ audience: a.tag })}
+            href={toggle('audience', state.audiences, a.tag)}
             aria-current={on ? 'page' : undefined}
             className="lens-tag"
           >
