@@ -163,6 +163,15 @@ export function VoteSplit({
         <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>
           {labels.noBreakdown}
         </p>
+      ) : bigTally ? (
+        // A big card has the room: every party and how it voted, always
+        // shown, no tap to open it.
+        <div className="vote-big__parties">
+          <PartyStanceMini
+            parties={groups}
+            labels={{ aye: labels.inFavour, no: labels.against, abstention: labels.abstention }}
+          />
+        </div>
       ) : (
         <details open={big} className="vote-split-details">
           <summary className="vote-split-summary">

@@ -3909,3 +3909,5 @@ summary.change-chip { cursor: pointer; }
 .vote-big__bar > span { display: block; min-width: 2px; }
 
 .vote-big__pair { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+
+.vote-big__parties { margin-top: 12px; }
