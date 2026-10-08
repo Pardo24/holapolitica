@@ -842,7 +842,10 @@ export interface Initiative {
   change_tags?: string[] | null;
   /** The passage behind each tag, per language. */
   change_evidence?: { ca?: Record<string, string>; es?: Record<string, string> } | null;
-  /** "full" | "partial" (too long: start of the text) | "empty". */
+  /**
+   * "full" | "partial" (too long: start of the text) | "empty"; prefixed
+   * "boe_" when the text read is a Real Decreto-ley as published in the BOE.
+   */
   text_analysis_source?: string | null;
   // BOE link — populated by the nightly enrichment worker for
   // approved laws that have been formally published. NULL when the

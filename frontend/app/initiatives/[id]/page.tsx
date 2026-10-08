@@ -152,6 +152,9 @@ export default async function InitiativeDetailPage({
   const summaryStub = isStubLead(summary);
   const summaryLead =
     plainTitle ?? (summary && !summaryStub ? parseSummary(summary).lead : null);
+  const officialTextUrl =
+    pdfUrl(initiative.source_url) ??
+    (initiative.type === 'real_decreto_ley' ? (initiative.boe_url ?? null) : null);
   const submittedDate = initiative.submitted_at
     ? new Date(initiative.submitted_at).toLocaleDateString(locale, { dateStyle: 'long' })
     : null;
@@ -429,10 +432,12 @@ export default async function InitiativeDetailPage({
             </span>
           )}
           {/* The official text, at the top: many titles don't say what a
-              law does, and the PDF used to sit far down the left column. */}
-          {pdfUrl(initiative.source_url) && (
+              law does, and the PDF used to sit far down the left column.
+              A Real Decreto-ley has no PDF in Congress: its text is the
+              BOE one. */}
+          {officialTextUrl && (
             <a
-              href={pdfUrl(initiative.source_url)!}
+              href={officialTextUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="law-pdf-top"
