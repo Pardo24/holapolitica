@@ -61,7 +61,12 @@ export async function LawsThatMatter({ topics, locale }: { topics: Topic[]; loca
               <span className="ltm__topic-icon" aria-hidden="true">
                 <Icon size={18} strokeWidth={1.9} />
               </span>
-              <span className="ltm__topic-name">{pickTopicName(tp, locale)}</span>
+              {/* The everyday word ("Feina"), not the taxonomy's full name
+                  ("Drets laborals i ocupació"): it is a door, and the full
+                  name is on the page it opens. */}
+              <span className="ltm__topic-name" title={pickTopicName(tp, locale)}>
+                {t(`topic_${tp.slug.replace(/-/g, '_')}` as 'title')}
+              </span>
             </Link>
           );
         })}

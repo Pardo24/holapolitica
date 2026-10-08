@@ -2067,6 +2067,15 @@
     "subtitle": "Everyday subjects, and what each law changes.",
     "changes_title": "What it changes",
     "changes_note": "Read from each law's text, always in pairs.",
-    "all": "All laws"
+    "all": "All laws",
+    "topic_habitatge": "Housing",
+    "topic_drets_laborals": "Work",
+    "topic_economia": "Taxes",
+    "topic_sanitat": "Health",
+    "topic_educacio": "Education",
+    "topic_medi_ambient": "Environment",
+    "topic_justicia": "Rights",
+    "topic_energia": "Energy",
+    "topic_igualtat": "Equality"
   }
 }

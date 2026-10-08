@@ -3250,6 +3250,9 @@ summary.change-chip { cursor: pointer; }
 .ltm__pair .change-chip { justify-content: center; white-space: normal; text-align: center; line-height: 1.2; }
 .ltm__all { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; }
 @media (max-width: 640px) {
-  .ltm__topics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Nine subjects, three by three: icon over a one-word label. */
+  .ltm__topics { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .ltm__topic { flex-direction: column; justify-content: center; gap: 6px; min-height: 76px; padding: 10px 4px; text-align: center; }
+  .ltm__topic-name { font-size: 12.5px; }
   .ltm__pairs { grid-template-columns: minmax(0, 1fr); }
 }

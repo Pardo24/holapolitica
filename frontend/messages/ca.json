@@ -2066,6 +2066,15 @@
     "subtitle": "Els temes del dia a dia, i què canvia cada llei.",
     "changes_title": "Què canvia",
     "changes_note": "Llegit del text de cada llei, sempre en parelles.",
-    "all": "Totes les lleis"
+    "all": "Totes les lleis",
+    "topic_habitatge": "Habitatge",
+    "topic_drets_laborals": "Feina",
+    "topic_economia": "Impostos",
+    "topic_sanitat": "Sanitat",
+    "topic_educacio": "Educació",
+    "topic_medi_ambient": "Medi ambient",
+    "topic_justicia": "Drets",
+    "topic_energia": "Energia",
+    "topic_igualtat": "Igualtat"
   }
 }
