@@ -3584,9 +3584,15 @@ summary.change-chip { cursor: pointer; }
   .home-grid__title { font-size: clamp(13.5px, 4vw, 15px); }
   .home-grid__sub { font-size: clamp(11.5px, 3.3vw, 12.5px); }
 }
-/* Short phones (old iPhone SE, landscape-ish webviews): the tile lies flat,
-   icon beside one line of title, so three rows still fit. */
-@media (max-width: 640px) and (max-height: 620px) {
+/* Narrow phones: a smaller icon and one line of subtitle, so a title that
+   wraps to two lines still leaves the tile tidy. */
+@media (max-width: 360px) {
+  .home-grid__icon { width: 30px; height: 30px; }
+  .home-grid__sub { -webkit-line-clamp: 1; }
+}
+/* Very short screens (landscape-ish webviews): the tile lies flat, icon
+   beside the text, so three rows still fit. */
+@media (max-width: 640px) and (max-height: 540px) {
   .home-grid .home-grid__tile {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -3598,3 +3604,14 @@ summary.change-chip { cursor: pointer; }
   .home-grid__icon { width: 30px; height: 30px; margin-bottom: 0; grid-row: 1 / span 2; }
   .home-grid__sub { -webkit-line-clamp: 1; }
 }
+
+/* Narrow phones: the brand (name + motto) and the four actions must share
+   320px. The mark goes, the name and the hit areas shrink a little. */
+@media (max-width: 360px) {
+  .appbar__mark { display: none; }
+  .appbar__name { font-size: 15.5px; }
+  .appbar__motto { font-size: 10.5px; }
+  .appbar__icon { width: 38px; }
+}
+.appbar__brandtext { overflow: hidden; }
+.appbar__name, .appbar__motto { overflow: hidden; text-overflow: ellipsis; }
