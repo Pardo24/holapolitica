@@ -24,6 +24,7 @@ import {
   type InitiativeMini,
   type InitiativeType,
   type ParliamentaryGroupSummary,
+  type ProposesByTopicStat,
   type ProposerCount,
   type StatsSummary,
   type Topic,
@@ -164,17 +165,17 @@ export default async function StatsPage({
     topicStatsPerGroupPromise,
   ]);
 
-  // The four-questions page (nothing filtered): each group's most proposed
+  // The four-questions page (nothing filtered): what each group tables per
   // topic, for "what each group talks about".
-  const snapshots = new Map(
+  const proposals = new Map(
     anyFilter
       ? []
       : await Promise.all(
           allGroups.map((g) =>
             api.groups
-              .snapshot(g.slug)
-              .then((snap) => [g.slug, snap] as const)
-              .catch(() => [g.slug, null] as const),
+              .proposesByTopic(g.slug)
+              .then((rows) => [g.slug, rows] as const)
+              .catch(() => [g.slug, [] as ProposesByTopicStat[]] as const),
           ),
         ),
   );
@@ -280,7 +281,7 @@ export default async function StatsPage({
           allGroups={allGroups}
           allTopics={allTopics}
           coincidence={coincidence}
-          snapshots={snapshots}
+          proposals={proposals}
           pairA={pairA}
           pairB={pairB}
           locale={locale}

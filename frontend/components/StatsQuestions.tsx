@@ -8,10 +8,10 @@ import { GroupBadge } from '@/components/GroupBadge';
 import { PairCoincidenceClient } from '@/components/PairCoincidenceClient';
 import type {
   CoincidenceCell,
-  GroupSnapshot,
   GroupSummaryRow,
   InitiativeStatusCount,
   ParliamentaryGroupSummary,
+  ProposesByTopicStat,
   Topic,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
@@ -37,7 +37,7 @@ export async function StatsQuestions({
   allGroups,
   allTopics,
   coincidence,
-  snapshots,
+  proposals,
   pairA,
   pairB,
   locale,
@@ -47,8 +47,8 @@ export async function StatsQuestions({
   allGroups: ParliamentaryGroupSummary[];
   allTopics: Topic[];
   coincidence: CoincidenceCell[];
-  /** group slug → its snapshot (most proposed topic), null on failure. */
-  snapshots: Map<string, GroupSnapshot | null>;
+  /** group slug → how many initiatives it tabled per topic. */
+  proposals: Map<string, ProposesByTopicStat[]>;
   pairA: string;
   pairB: string;
   locale: string;
@@ -116,6 +116,34 @@ export async function StatsQuestions({
       ))}
     </ul>
   );
+
+  // Q4: the subject each group tables more of than the chamber does, in
+  // proportion: its share of a topic over the topic's share of everything
+  // the current groups tabled. "Most proposed" alone said "economy" for
+  // nearly everyone. A topic needs a few initiatives to count, so one bill
+  // can't make a group's profile.
+  const themeSlugs = new Set(allTopics.filter((tp) => tp.kind !== 'sdg').map((tp) => tp.slug));
+  const chamber = new Map<string, number>();
+  let chamberTotal = 0;
+  for (const g of bySeats) {
+    for (const r of proposals.get(g.slug) ?? []) {
+      if (!themeSlugs.has(r.topic_slug)) continue;
+      chamber.set(r.topic_slug, (chamber.get(r.topic_slug) ?? 0) + r.count);
+      chamberTotal += r.count;
+    }
+  }
+  const distinctive = new Map<string, ProposesByTopicStat>();
+  for (const g of bySeats) {
+    const rows = (proposals.get(g.slug) ?? []).filter((r) => themeSlugs.has(r.topic_slug));
+    const own = rows.reduce((n, r) => n + r.count, 0);
+    let best: { row: ProposesByTopicStat; score: number } | null = null;
+    for (const r of rows) {
+      if (r.count < 3 || own === 0 || chamberTotal === 0) continue;
+      const score = r.count / own / ((chamber.get(r.topic_slug) ?? 1) / chamberTotal);
+      if (!best || score > best.score) best = { row: r, score };
+    }
+    if (best) distinctive.set(g.slug, best.row);
+  }
 
   return (
     <div className="sq">
@@ -201,7 +229,7 @@ export async function StatsQuestions({
           <p className="sq-card__lede">{t('q4_lede')}</p>
           <ul className="sq-rows">
             {bySeats.map((g) => {
-              const fact = snapshots.get(g.slug)?.most_proposed ?? null;
+              const fact = distinctive.get(g.slug) ?? null;
               const tp = fact ? topicBySlug.get(fact.topic_slug) : undefined;
               const name = tp ? pickTopicName(tp, locale) : fact?.topic_name_ca;
               return (
