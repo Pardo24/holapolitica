@@ -123,7 +123,7 @@ export default async function HomeOg() {
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             {SECTIONS.map((s) => (
               <span
                 key={s.key}
@@ -131,10 +131,10 @@ export default async function HomeOg() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '8px 16px',
+                  padding: '7px 13px',
                   borderRadius: 999,
                   background: 'rgba(255,255,255,0.1)',
-                  fontSize: 19,
+                  fontSize: 16.5,
                   fontWeight: 700,
                 }}
               >
