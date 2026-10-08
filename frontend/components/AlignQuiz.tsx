@@ -591,7 +591,9 @@ export function AlignQuiz({
                 // paragraph OR a lead plus a list, and line-clamp stops
                 // clamping once the box has block children. Five lines at
                 // the card's own line-height.
-                ...(expanded ? null : { maxHeight: 'calc(1.4em * 5)', overflow: 'hidden' }),
+                ...(expanded
+                  ? null
+                  : { maxHeight: plainTitle ? 'calc(1.5em * 4)' : 'calc(1.4em * 5)', overflow: 'hidden' }),
               }}
             >
               {/* A motion asks several things, and the question card is
