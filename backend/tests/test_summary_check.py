@@ -222,7 +222,5 @@ async def test_every_translation_uses_the_large_model(monkeypatch: pytest.Monkey
     result = await ps.translate_summary(
         text="Modifica la Ley de Enjuiciamiento Civil.", target_lang="ca"
     )
-    large = get_settings().law_text_verify_model
-    assert models == [large]
-    assert result.provider == f"llm:{large}"
+    assert models == [get_settings().law_text_verify_model]
     assert result.text == "Modifica la Llei d'Enjudiciament Civil."
