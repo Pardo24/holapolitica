@@ -2257,7 +2257,8 @@
     "label_conductor": "Conduzco",
     "title_conductor": "Si conduces",
     "label_rural": "Vivo en el medio rural",
-    "title_rural": "Si vives en el medio rural"
+    "title_rural": "Si vives en el medio rural",
+    "see_all": "Todas las situaciones ({n})"
   },
   "whats_new": {
     "kicker": "Novedades",

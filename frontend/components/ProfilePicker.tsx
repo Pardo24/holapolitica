@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { ArrowRight } from 'lucide-react';
 
 import { PROFILES } from '@/lib/profiles';
 
@@ -15,15 +16,21 @@ import { PROFILES } from '@/lib/profiles';
 export async function ProfilePicker({
   counts,
   heading = true,
+  featured,
 }: {
   /** profile key → how many laws touch it; null when unavailable. */
   counts: Map<string, number> | null;
   /** The section's own heading and lede (off on the index page). */
   heading?: boolean;
+  /** Only these situations (the home's most common ones), with a link to
+   *  all of them. */
+  featured?: readonly string[];
 }) {
   const t = await getTranslations('profiles');
-  const shown = counts ? PROFILES.filter((p) => (counts.get(p.key) ?? 0) > 0) : PROFILES;
+  const available = counts ? PROFILES.filter((p) => (counts.get(p.key) ?? 0) > 0) : [...PROFILES];
+  const shown = featured ? available.filter((p) => featured.includes(p.key)) : available;
   if (shown.length === 0) return null;
+  const moreCount = available.length - shown.length;
 
   return (
     <section className="profiles" aria-labelledby={heading ? 'profiles-title' : undefined}>
@@ -48,6 +55,12 @@ export async function ProfilePicker({
           </li>
         ))}
       </ul>
+      {featured && moreCount > 0 && (
+        <Link href={'/et-afecta' as Route} className="profiles__more">
+          {t('see_all', { n: available.length })}
+          <ArrowRight size={16} strokeWidth={2.4} aria-hidden="true" />
+        </Link>
+      )}
     </section>
   );
 }

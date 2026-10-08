@@ -2257,7 +2257,8 @@
     "label_conductor": "I drive",
     "title_conductor": "If you drive",
     "label_rural": "I live in the countryside",
-    "title_rural": "If you live in the countryside"
+    "title_rural": "If you live in the countryside",
+    "see_all": "All situations ({n})"
   },
   "whats_new": {
     "kicker": "What's new",

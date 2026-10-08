@@ -2256,7 +2256,8 @@
     "label_conductor": "Condueixo",
     "title_conductor": "Si condueixes",
     "label_rural": "Visc al món rural",
-    "title_rural": "Si vius al món rural"
+    "title_rural": "Si vius al món rural",
+    "see_all": "Totes les situacions ({n})"
   },
   "whats_new": {
     "kicker": "Novetats",

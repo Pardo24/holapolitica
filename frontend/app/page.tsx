@@ -45,6 +45,10 @@ const heroTextLink: React.CSSProperties = {
   textUnderlineOffset: 4,
 };
 
+// The situations most people are in, for the home's "what affects you":
+// the rest are one tap away on /et-afecta, so the home doesn't fill up.
+const HOME_PROFILES = ["assalariat", "jove", "pensionista", "llogater", "families", "autonom"] as const;
+
 export default async function HomePage() {
   const t = await getTranslations('home');
   const tSite = await getTranslations('site');
@@ -163,7 +167,7 @@ export default async function HomePage() {
     .catch(() => null);
   const profilePicker = (
     <div id="et-afecta" style={{ scrollMarginTop: 72 }}>
-      <ProfilePicker counts={profileCounts} />
+      <ProfilePicker counts={profileCounts} featured={HOME_PROFILES} />
     </div>
   );
 

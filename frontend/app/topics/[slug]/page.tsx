@@ -12,6 +12,7 @@ import {
   api,
   ApiError,
   type Initiative,
+  type InitiativeListItem,
   type ParliamentaryGroupSummary,
   type ScheduledAgendaItem,
   type Topic,
@@ -216,6 +217,20 @@ export default async function TopicDetailPage({
   // declarative and avoids repeating the branching in three places.
   const activeList =
     subset === 'voted' ? voted : subset === 'other' ? otherFiltered : pending;
+  // The topic endpoint lists rows without their latest vote; the ten shown
+  // come back from the laws list in its full shape (vote, each group's
+  // stance, who it affects), so the card is the same as on /lleis.
+  const shownIds = activeList.slice(0, TOPIC_LIST_LIMIT).map((i) => i.id);
+  const fullById = new Map(
+    shownIds.length
+      ? (
+          await api.initiatives
+            .list({ ids: shownIds.join(','), page_size: TOPIC_LIST_LIMIT })
+            .then((r) => r.items)
+            .catch(() => [] as InitiativeListItem[])
+        ).map((it) => [it.id, it] as const)
+      : [],
+  );
   // The same scope on /lleis, for "see the rest".
   const lawsHref = (() => {
     const qs = new URLSearchParams({ topic_slug: slug });
@@ -698,7 +713,7 @@ export default async function TopicDetailPage({
             {activeList.slice(0, TOPIC_LIST_LIMIT).map((i) => (
               <LawCard
                 key={i.id}
-                initiative={i}
+                initiative={fullById.get(i.id) ?? i}
                 parsed={parsedByInitiative.get(i.id) ?? { isGovernment: false, groups: [], raw: (i.submitted_by ?? '').trim() }}
                 locale={locale}
               />

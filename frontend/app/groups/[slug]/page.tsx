@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 
+import { LawCard } from '@/components/LawCard';
 import { VoteCard } from '@/components/VoteCard';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCompositionFilter } from '@/components/GroupCompositionFilter';
@@ -13,6 +14,7 @@ import {
   ApiError,
   type GroupComposition,
   type GroupMemberRow,
+  type InitiativeListItem,
   type GroupStanceExample,
   type ManifestoPoint,
   type ParliamentaryGroupSummary,
@@ -22,7 +24,7 @@ import {
   type Vote,
 } from '@/lib/api';
 import { pickPlainTitle } from '@/lib/glossary';
-import { displayGroupFullName, groupAbbreviation, groupInfo } from '@/lib/groups';
+import { displayGroupFullName, groupAbbreviation, groupInfo, parseProposer } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
 interface Params {
@@ -73,6 +75,17 @@ export default async function GroupDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+
+  // What the group tables, as the same big cards as /lleis: its latest
+  // voted initiatives (laws and, marked non-binding, motions), each with
+  // the vote and every group's stance.
+  const [proposedLaws, allGroups] = await Promise.all([
+    api.initiatives
+      .list({ proposing_group_slug: slug, sort: 'voted', page_size: 8 })
+      .then((r) => r.items)
+      .catch(() => [] as InitiativeListItem[]),
+    api.groups.list(1).catch(() => [] as ParliamentaryGroupSummary[]),
+  ]);
 
   // One row per initiative: a bill/motion generates many distinct votes
   // (amendments, sub-votes) that share an expediente, so the raw vote list
@@ -594,7 +607,7 @@ export default async function GroupDetailPage({
         <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
           {t('proposed_section_subtitle')}
         </p>
-        {proposedVotes.length === 0 ? (
+        {proposedVotes.length === 0 && proposedLaws.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('proposed_empty')}</p>
         ) : (
           <>
@@ -611,9 +624,16 @@ export default async function GroupDetailPage({
                 gap: 14,
               }}
             >
-              {proposedVotes.map((vote) => (
-                <VoteCard key={vote.id} vote={vote} locale={locale} />
-              ))}
+              {proposedLaws.length > 0
+                ? proposedLaws.map((it) => (
+                    <LawCard
+                      key={it.id}
+                      initiative={it}
+                      parsed={parseProposer(it.submitted_by, allGroups)}
+                      locale={locale}
+                    />
+                  ))
+                : proposedVotes.map((vote) => <VoteCard key={vote.id} vote={vote} locale={locale} />)}
             </ul>
             <Link
               href={`/votes?proposing_group_slug=${slug}` as Route}
