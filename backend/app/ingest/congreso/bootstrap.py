@@ -1148,14 +1148,11 @@ async def rewrite_initiative_summary(row: Initiative, *, lang_source: str = "es"
     says; ``repair_summary_language_gaps`` and ``backfill_plain_titles``
     fill them on their next run. The caller commits.
 
-    The translation runs on the large model. The small one turned "Modifica
-    la Ley…" into "Modifiqui la Llei…" or "Proposa modificar…" in two of
-    every five rows of the first text-based rewrite; the large one kept them
-    literal.
+    The translation runs on the large model, like every
+    :func:`translate_summary` call.
     """
     from datetime import datetime
 
-    from app.core.config import get_settings
     from app.services.plain_summary import (
         generate_plain_summary,
         generate_plain_title,
@@ -1176,11 +1173,7 @@ async def rewrite_initiative_summary(row: Initiative, *, lang_source: str = "es"
     title = await generate_plain_title(summary=fresh.text, lang=lang_source)
     setattr(row, f"plain_title_{lang_source}", title.text)
 
-    settings = get_settings()
-    translator = settings.model_copy(update={"mistral_model": settings.law_text_verify_model})
-    translated = await translate_summary(
-        text=fresh.text, target_lang=target_lang, settings=translator
-    )
+    translated = await translate_summary(text=fresh.text, target_lang=target_lang)
     setattr(row, f"plain_summary_{target_lang}", translated.text)
     other_title: str | None = None
     if translated.text:

@@ -205,3 +205,24 @@ async def test_rewrite_translates_with_the_large_model(monkeypatch: pytest.Monke
     assert ("summary", settings.mistral_model) in models
     assert ("translate", settings.law_text_verify_model) in models
     assert "50 milions" in row.plain_summary_ca  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
+async def test_every_translation_uses_the_large_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The import and repair paths call translate_summary without settings."""
+    from app.core.config import get_settings
+
+    models: list[str] = []
+
+    async def fake_llm(settings: object, *, system: str, user: str) -> str:
+        models.append(str(getattr(settings, "mistral_model", "")))
+        return "Modifica la Llei d'Enjudiciament Civil."
+
+    monkeypatch.setattr(ps, "_call_llm_for_text", fake_llm)
+    result = await ps.translate_summary(
+        text="Modifica la Ley de Enjuiciamiento Civil.", target_lang="ca"
+    )
+    large = get_settings().law_text_verify_model
+    assert models == [large]
+    assert result.provider == f"llm:{large}"
+    assert result.text == "Modifica la Llei d'Enjudiciament Civil."

@@ -826,8 +826,13 @@ async def translate_summary(
 
     Returns ``text=None`` when the model declines or the output trips the
     neutrality filter, so the caller persists ``NULL`` and retries later.
+
+    Always runs on the large model (``law_text_verify_model``): the small
+    one turned "Modifica la Ley…" into "Modifiqui la Llei…" or "Proposa
+    modificar…" in two of every five rows; the large one stays literal.
     """
-    s = settings or get_settings()
+    base = settings or get_settings()
+    s = base.model_copy(update={"mistral_model": base.law_text_verify_model})
     prompt = _TRANSLATE_PROMPTS_BY_LANG.get(target_lang)
     if prompt is None:
         raise ValueError(f"Unsupported target lang for translation: {target_lang!r}")
