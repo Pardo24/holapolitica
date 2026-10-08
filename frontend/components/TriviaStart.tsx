@@ -29,9 +29,12 @@ export interface TriviaStartLabels {
 
 export function TriviaStart({
   labels,
+  showSolo = true,
   topicSlug = null,
 }: {
   labels: TriviaStartLabels;
+  /** The solo card; off where subject tiles already start a solo round. */
+  showSolo?: boolean;
   /** The subject the player picked, carried into the round and the invite. */
   topicSlug?: string | null;
 }) {
@@ -67,7 +70,8 @@ export function TriviaStart({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* Solo */}
+      {/* Solo (the start screen's subject tiles do this now) */}
+      {showSolo && (
       <Link
         href={`/joc?solo=1${topicQuery}` as Route}
         className="trivia-start-card"
@@ -85,6 +89,7 @@ export function TriviaStart({
           {labels.solo_cta}
         </span>
       </Link>
+      )}
 
       {/* Invite */}
       <div className="trivia-start-card" style={{ ...cardStyle, flexDirection: 'column', alignItems: 'stretch', cursor: 'default' }}>

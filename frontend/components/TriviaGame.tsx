@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import {
+  Check,
   Clock,
   Crown,
   Flame,
@@ -15,6 +16,7 @@ import {
   Sword,
   ToggleLeft,
   Users,
+  X,
 } from 'lucide-react';
 
 import { groupAbbreviation } from '@/lib/groups';
@@ -336,148 +338,109 @@ export function TriviaGame({
       else duel = 'lose';
     }
     return (
-      <div style={{ textAlign: 'center', padding: '8px 0' }}>
+      <div className={`tg tg-over${wonAll ? ' tg-over--won' : ''}`}>
         <style>{TRIVIA_CSS}</style>
+        {wonAll && (
+          <div className="tg-confetti" aria-hidden="true">
+            {Array.from({ length: 18 }, (_, k) => (
+              <span key={k} style={{ ['--i' as string]: k, background: Object.values(CAT_COLOR)[k % 4] }} />
+            ))}
+          </div>
+        )}
         {daily && (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              marginBottom: 12,
-              padding: '4px 12px',
-              borderRadius: 999,
-              background: 'color-mix(in srgb, var(--accent) 14%, var(--paper))',
-              color: 'var(--ink)',
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-          >
+          <div className="tg-pill">
             <Sword size={14} strokeWidth={2} aria-hidden="true" />
             {labels.daily_badge}
           </div>
         )}
-        <div className="trivia-result" style={{ display: 'block' }}>
-          <CategoryQuesito collected={collected} cats={allCats} size={150} />
+        <div className="trivia-result tg-over__pie">
+          <CategoryQuesito collected={collected} cats={allCats} size={168} />
         </div>
-        <div className="eyebrow" style={{ color: 'var(--ink-3)', marginTop: 16 }}>
-          {wonAll ? labels.turn_won_title : labels.turn_over_title}
-        </div>
-        <div
-          className="serif tabular trivia-score"
-          style={{ fontSize: 44, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.1 }}
-        >
+        <p className="tg-over__kicker">{wonAll ? labels.turn_won_title : labels.turn_over_title}</p>
+        <div className="serif tabular trivia-score tg-over__score">
           {labels.quesitos_count.replace('{n}', String(collected.length)).replace('{total}', String(target))}
         </div>
 
         {stats && (stats.best > 0 || stats.streak > 0) && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 16,
-              justifyContent: 'center',
-              marginTop: 8,
-              fontSize: 13,
-              color: 'var(--ink-3)',
-            }}
-          >
+          <div className="tg-over__stats">
             {daily && stats.streak > 0 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Flame size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#EF9F27' }} />
+              <span>
+                <Flame size={15} strokeWidth={2.2} aria-hidden="true" style={{ color: '#EF9F27' }} />
                 {labels.streak_label.replace('{n}', String(stats.streak))}
               </span>
             )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Star size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#E0B341' }} />
+            <span>
+              <Star size={15} strokeWidth={2.2} aria-hidden="true" style={{ color: '#E0B341' }} />
               {labels.best_label.replace('{n}', String(stats.best))}
             </span>
           </div>
         )}
 
         {rival && duel && (
-          <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <div className="tg-duel">
             <DuelSide label={labels.duel_you} q={collected.length} total={target} highlight={duel === 'win'} />
             <DuelSide label={labels.duel_rival} q={rival.quesitos} total={target} highlight={duel === 'lose'} />
           </div>
         )}
         {duel && (
-          <div
-            style={{
-              marginTop: 12,
-              fontSize: 16,
-              fontWeight: 700,
-              color: duel === 'win' ? 'var(--aye)' : duel === 'lose' ? 'var(--no)' : 'var(--ink-2)',
-            }}
-          >
+          <div className={`tg-duel__verdict tg-duel__verdict--${duel}`}>
             {duel === 'win' ? labels.duel_win : duel === 'lose' ? labels.duel_lose : labels.duel_tie}
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 22, flexWrap: 'wrap' }}>
-          <button type="button" onClick={challenge} className="btn-ink">
-            {copied ? labels.challenge_copied : labels.challenge}
-          </button>
-          <button
-            type="button"
-            onClick={reset}
-            style={{
-              padding: '10px 18px',
-              borderRadius: 999,
-              border: '1px solid var(--rule-strong)',
-              background: 'var(--paper-2)',
-              color: 'var(--ink)',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
+        <div className="tg-over__actions">
+          <button type="button" onClick={reset} className="tg-btn">
             {labels.play_again}
+          </button>
+          <button type="button" onClick={challenge} className="tg-btn tg-btn--ghost">
+            <Users size={17} strokeWidth={2.2} aria-hidden="true" />
+            {copied ? labels.challenge_copied : labels.challenge}
           </button>
         </div>
       </div>
     );
   }
 
+  const stageColor = slot && phase !== 'spin' ? slotColor(slot) : '#7F77DD';
+
   return (
-    <div>
+    <div className="tg" style={{ ['--cat' as string]: stageColor }}>
       <style>{TRIVIA_CSS}</style>
 
-      {/* Status: quesitos + lives */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <CategoryQuesito collected={collected} cats={allCats} size={40} />
-          <span className="tabular" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+      {/* The scoreboard: the wedges won and the lives left. */}
+      <div className="tg-hud">
+        <div className="tg-hud__score">
+          <CategoryQuesito collected={collected} cats={allCats} size={38} />
+          <span className="tabular">
             {labels.quesitos_count.replace('{n}', String(collected.length)).replace('{total}', String(target))}
           </span>
         </div>
-        <div className={lostLife ? 'trivia-life-lost' : undefined} style={{ display: 'flex', gap: 5 }} aria-label={`${lives}/${LIVES}`}>
+        <div className={lostLife ? 'trivia-life-lost tg-hud__lives' : 'tg-hud__lives'} aria-label={`${lives}/${LIVES}`}>
           {Array.from({ length: LIVES }, (_, i) => (
             <Heart key={i} filled={i < lives} />
           ))}
         </div>
       </div>
 
-      {rival && (
-        <div
-          style={{
-            marginBottom: 16,
-            padding: '8px 12px',
-            borderRadius: 10,
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule)',
-            fontSize: 13,
-            color: 'var(--ink-2)',
-            textAlign: 'center',
-          }}
-        >
-          {labels.duel_intro.replace('{q}', String(rival.quesitos))}
-        </div>
-      )}
+      {rival && <div className="tg-rival">{labels.duel_intro.replace('{q}', String(rival.quesitos))}</div>}
 
       {phase === 'spin' && (
-        <div className="trivia-card" style={{ textAlign: 'center', padding: '8px 0' }}>
-          <Roulette slots={wheelSlots} angle={wheelAngle} slotColor={slotColor} onStopped={onWheelStopped} />
-          <button type="button" onClick={spin} disabled={spinning} className="btn-ink" style={{ marginTop: 18, minWidth: 180 }}>
+        <div className="trivia-card tg-spin">
+          <div className="tg-spin__wheel">
+            <Roulette slots={wheelSlots} angle={wheelAngle} slotColor={slotColor} onStopped={onWheelStopped} />
+          </div>
+          <div className="tg-spin__left" aria-hidden="true">
+            {remaining.map((c) => {
+              const Ic = CAT_ICON[c];
+              return (
+                <span key={c} style={{ ['--c' as string]: CAT_COLOR[c] }}>
+                  <Ic size={13} strokeWidth={2.2} />
+                  {catLabel(c)}
+                </span>
+              );
+            })}
+          </div>
+          <button type="button" onClick={spin} disabled={spinning} className="tg-btn tg-btn--spin">
             {labels.spin_cta}
           </button>
         </div>
@@ -562,234 +525,165 @@ function QuestionCard({
   const gotItRight = answered && selected !== null && selected >= 0 && !!q.options[selected]?.correct;
   const canFifty = comodins.fifty && q.options.length >= 4;
 
+  const twoWay = q.options.length === 2;
+  const LETTERS = ['A', 'B', 'C', 'D'];
+
   return (
-    <div className="trivia-card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 11,
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: '#fff',
-            background: color,
-            padding: '3px 10px',
-            borderRadius: 999,
-          }}
-        >
-          <Icon size={13} strokeWidth={2} aria-hidden="true" />
+    <div className="trivia-card tg-q" style={{ ['--cat' as string]: color }}>
+      <div className="tg-q__head">
+        <span className="tg-q__chip">
+          <Icon size={15} strokeWidth={2.2} aria-hidden="true" />
           {chip}
         </span>
+        {phase === 'question' && <TimerRing left={timeLeft} total={SECONDS} />}
+      </div>
+
+      <div className="tg-q__body">
+        {/* The law, in plain words: its title and the lead of its summary. */}
+        {q.lawSummary && (
+          <div className="tg-law">
+            {q.topic && <span className="tg-law__topic">{q.topic}</span>}
+            {q.lawTitle && <p className="tg-law__title">{q.lawTitle}</p>}
+            <p className="tg-law__summary">{q.lawSummary}</p>
+          </div>
+        )}
+
+        <h2 className="serif tg-q__prompt">
+          {q.partySlug && <PartyBadge slug={q.partySlug} color={q.partyColor ?? null} />}
+          {q.prompt}
+        </h2>
+
+        <div className={twoWay ? 'tg-opts tg-opts--two' : 'tg-opts'}>
+          {q.options.map((o, i) => {
+            const isHidden = hidden.includes(i);
+            let state = '';
+            let cls = 'trivia-opt tg-opt';
+            if (answered) {
+              if (o.correct) {
+                state = 'correct';
+                cls += ' trivia-opt--correct tg-opt--correct';
+              } else if (i === selected) {
+                state = 'wrong';
+                cls += ' trivia-opt--wrong tg-opt--wrong';
+              } else {
+                cls += ' tg-opt--dim';
+              }
+            }
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => onPick(i)}
+                disabled={answered || isHidden}
+                className={cls}
+                style={{ visibility: isHidden ? 'hidden' : 'visible' }}
+              >
+                {!twoWay && (
+                  <span className="tg-opt__key" aria-hidden="true">
+                    {state === 'correct' ? <Check size={15} strokeWidth={3} /> : state === 'wrong' ? <X size={15} strokeWidth={3} /> : LETTERS[i]}
+                  </span>
+                )}
+                {o.partySlug && <PartyBadge slug={o.partySlug} color={o.partyColor ?? null} />}
+                <span className="tg-opt__text">{o.text}</span>
+                {twoWay && state === 'correct' && <Check size={18} strokeWidth={3} aria-hidden="true" />}
+                {twoWay && state === 'wrong' && <X size={18} strokeWidth={3} aria-hidden="true" />}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Helpers, only while answering. */}
         {phase === 'question' && (
-          <span className="tabular" style={{ fontSize: 13, fontWeight: 700, color: timeLeft <= 5 ? 'var(--no)' : 'var(--ink-3)' }}>
-            {timeLeft}s
-          </span>
+          <div className="tg-helpers">
+            <Comodin label={labels.fifty} icon={<Scissors size={16} aria-hidden="true" />} disabled={!canFifty} onClick={onFifty} />
+            <Comodin label={labels.add_time} icon={<Clock size={16} aria-hidden="true" />} disabled={!comodins.addTime} onClick={onAddTime} />
+            <Comodin label={labels.skip} icon={<SkipForward size={16} aria-hidden="true" />} disabled={!comodins.skip} onClick={onSkip} />
+          </div>
+        )}
+
+        {/* Corona: pick which wedge to take. */}
+        {phase === 'corona-claim' && (
+          <div className="trivia-reveal tg-crown">
+            <p className="tg-crown__title">
+              <Crown size={18} strokeWidth={2.2} aria-hidden="true" />
+              {labels.corona_win}
+            </p>
+            <p className="tg-crown__sub">{labels.corona_pick}</p>
+            <div className="tg-crown__opts">
+              {missing.map((c) => {
+                const Ic = CatIcon[c];
+                return (
+                  <button key={c} type="button" onClick={() => onClaim(c)} className="trivia-opt tg-crown__opt" style={{ ['--c' as string]: slotColor(c) }}>
+                    <Ic size={16} aria-hidden="true" />
+                    {catLabel(c)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {phase === 'feedback' && (
+          <div className={`trivia-reveal tg-verdict ${gotItRight ? 'tg-verdict--ok' : 'tg-verdict--ko'}`}>
+            <p className="tg-verdict__title">
+              <span className="tg-verdict__icon" aria-hidden="true">
+                {gotItRight ? <Check size={18} strokeWidth={3} /> : <X size={18} strokeWidth={3} />}
+              </span>
+              {timedOut ? labels.time_up : gotItRight ? labels.correct : labels.wrong}
+            </p>
+            {q.reveal && <p className="tg-verdict__reveal">{q.reveal}</p>}
+            {q.sourceId != null && (
+              <Link href={`/votes/${q.sourceId}` as Route} className="tg-verdict__link">
+                {labels.explore} →
+              </Link>
+            )}
+          </div>
+        )}
+
+        {phase === 'feedback' && (
+          <button type="button" onClick={onProceed} className="tg-btn trivia-next" style={{ width: '100%', marginTop: 14 }}>
+            {labels.continue}
+          </button>
         )}
       </div>
-
-      {phase === 'question' && (
-        <div style={{ height: 4, borderRadius: 999, background: 'var(--paper-3)', overflow: 'hidden', marginBottom: 14 }}>
-          <div
-            style={{
-              width: `${Math.min(100, (timeLeft / SECONDS) * 100)}%`,
-              height: '100%',
-              background: timeLeft <= 5 ? 'var(--no)' : color,
-              transition: 'width 1s linear',
-            }}
-          />
-        </div>
-      )}
-
-      {/* Law context — only for vote-based cards. */}
-      {q.lawSummary && (
-        <div
-          style={{
-            padding: '14px 16px',
-            borderRadius: 12,
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule)',
-            borderLeft: `4px solid ${color}`,
-            marginBottom: 16,
-          }}
-        >
-          {q.topic && (
-            <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 6 }}>
-              {q.topic}
-            </div>
-          )}
-          <p style={{ fontSize: 15, color: 'var(--ink)', lineHeight: 1.6, margin: 0 }}>{q.lawSummary}</p>
-        </div>
-      )}
-
-      <h2
-        className="serif"
-        style={{
-          fontSize: 19,
-          fontWeight: 600,
-          margin: '0 0 14px',
-          lineHeight: 1.3,
-          color: 'var(--ink)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          flexWrap: 'wrap',
-        }}
-      >
-        {q.partySlug && <PartyBadge slug={q.partySlug} color={q.partyColor ?? null} />}
-        {q.prompt}
-      </h2>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {q.options.map((o, i) => {
-          const isHidden = hidden.includes(i);
-          let border = 'var(--rule-strong)';
-          let bg = 'var(--paper)';
-          let cls = 'trivia-opt';
-          if (answered) {
-            if (o.correct) {
-              border = 'var(--aye)';
-              bg = 'color-mix(in srgb, var(--aye) 12%, var(--paper))';
-              cls += ' trivia-opt--correct';
-            } else if (i === selected) {
-              border = 'var(--no)';
-              bg = 'color-mix(in srgb, var(--no) 12%, var(--paper))';
-              cls += ' trivia-opt--wrong';
-            }
-          }
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => onPick(i)}
-              disabled={answered || isHidden}
-              className={cls}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                textAlign: 'left',
-                padding: '13px 16px',
-                borderRadius: 12,
-                border: `1.5px solid ${border}`,
-                background: bg,
-                color: 'var(--ink)',
-                fontSize: 15,
-                fontWeight: 500,
-                cursor: answered ? 'default' : 'pointer',
-                opacity: isHidden ? 0.35 : 1,
-                visibility: isHidden ? 'hidden' : 'visible',
-              }}
-            >
-              {o.partySlug && <PartyBadge slug={o.partySlug} color={o.partyColor ?? null} />}
-              {o.text}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Comodins — only while answering */}
-      {phase === 'question' && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'center' }}>
-          <Comodin label={labels.fifty} icon={<Scissors size={15} aria-hidden="true" />} disabled={!canFifty} onClick={onFifty} />
-          <Comodin label={labels.add_time} icon={<Clock size={15} aria-hidden="true" />} disabled={!comodins.addTime} onClick={onAddTime} />
-          <Comodin label={labels.skip} icon={<SkipForward size={15} aria-hidden="true" />} disabled={!comodins.skip} onClick={onSkip} />
-        </div>
-      )}
-
-      {/* Corona claim: pick which quesito to take */}
-      {phase === 'corona-claim' && (
-        <div className="trivia-reveal" style={{ marginTop: 16 }}>
-          <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 8px', color: CORONA_COLOR }}>{labels.corona_win}</p>
-          <p style={{ fontSize: 13, color: 'var(--ink-2)', margin: '0 0 10px' }}>{labels.corona_pick}</p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {missing.map((c) => {
-              const Ic = CatIcon[c];
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => onClaim(c)}
-                  className="trivia-opt"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '10px 14px',
-                    borderRadius: 12,
-                    border: `1.5px solid ${slotColor(c)}`,
-                    background: `color-mix(in srgb, ${slotColor(c)} 12%, var(--paper))`,
-                    color: 'var(--ink)',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <Ic size={15} aria-hidden="true" style={{ color: slotColor(c) }} />
-                  {catLabel(c)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {phase === 'feedback' && (
-        <div
-          className="trivia-reveal"
-          style={{ marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'var(--paper-2)', border: '1px solid var(--rule)' }}
-        >
-          <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 4px', color: gotItRight ? 'var(--aye)' : 'var(--no)' }}>
-            {timedOut ? labels.time_up : gotItRight ? labels.correct : labels.wrong}
-          </p>
-          {q.reveal && <p style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.55, margin: 0 }}>{q.reveal}</p>}
-          {q.sourceId != null && (
-            <Link
-              href={`/votes/${q.sourceId}` as Route}
-              style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, color: 'var(--ink)', fontWeight: 600 }}
-            >
-              {labels.explore} →
-            </Link>
-          )}
-        </div>
-      )}
-
-      {phase === 'feedback' && (
-        <button type="button" onClick={onProceed} className="btn-ink trivia-next" style={{ marginTop: 16, width: '100%' }}>
-          {labels.continue}
-        </button>
-      )}
     </div>
+  );
+}
+
+/** The seconds left, as a ring that empties and turns red at the end. */
+function TimerRing({ left, total }: { left: number; total: number }) {
+  const r = 15;
+  const c = 2 * Math.PI * r;
+  const frac = Math.max(0, Math.min(1, left / total));
+  const urgent = left <= 5;
+  return (
+    <span className={urgent ? 'tg-timer tg-timer--urgent' : 'tg-timer'} role="timer" aria-label={`${left}s`}>
+      <svg viewBox="0 0 36 36" width="40" height="40" aria-hidden="true">
+        <circle cx="18" cy="18" r={r} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="3.5" />
+        <circle
+          cx="18"
+          cy="18"
+          r={r}
+          fill="none"
+          stroke="#fff"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - frac)}
+          transform="rotate(-90 18 18)"
+          style={{ transition: 'stroke-dashoffset 1s linear' }}
+        />
+      </svg>
+      <span className="tabular">{left}</span>
+    </span>
   );
 }
 
 function Comodin({ label, icon, disabled, onClick }: { label: string; icon: React.ReactNode; disabled: boolean; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="trivia-comodin"
-      title={label}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '7px 12px',
-        borderRadius: 999,
-        border: '1px solid var(--rule-strong)',
-        background: 'var(--paper-2)',
-        color: disabled ? 'var(--ink-3)' : 'var(--ink-2)',
-        fontSize: 12.5,
-        fontWeight: 600,
-        cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
+    <button type="button" onClick={onClick} disabled={disabled} className="trivia-comodin tg-helper" title={label}>
       {icon}
-      {label}
+      <span>{label}</span>
     </button>
   );
 }
@@ -823,7 +717,7 @@ function Roulette({
   };
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label="Ruleta de categories">
+    <svg viewBox={`0 0 ${size} ${size}`} className="tg-wheel" role="img" aria-label="Ruleta de categories">
       <g className="trivia-wheel-spin" style={{ transform: `rotate(${angle}deg)` }} onTransitionEnd={onStopped}>
         {slots.map((s, i) => (
           <path key={`${s}-${i}`} d={wedge(i)} fill={slotColor(s)} fillOpacity={s === 'corona' ? 1 : 0.92} stroke="var(--paper)" strokeWidth="2" />
@@ -930,18 +824,9 @@ function CategoryQuesito({ collected, cats, size }: { collected: Cat[]; cats: Ca
 
 function DuelSide({ label, q, total, highlight }: { label: string; q: number; total: number; highlight: boolean }) {
   return (
-    <div
-      style={{
-        flex: '1 1 0',
-        maxWidth: 130,
-        padding: '10px 12px',
-        borderRadius: 12,
-        border: `1.5px solid ${highlight ? 'var(--ink)' : 'var(--rule)'}`,
-        background: highlight ? 'var(--paper-2)' : 'var(--paper)',
-      }}
-    >
-      <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ink-3)' }}>{label}</div>
-      <div className="serif tabular" style={{ fontSize: 26, fontWeight: 600, color: 'var(--ink)' }}>
+    <div className={highlight ? 'tg-duel__side tg-duel__side--win' : 'tg-duel__side'}>
+      <div className="tg-duel__label">{label}</div>
+      <div className="serif tabular tg-duel__score">
         {q}/{total}
       </div>
     </div>

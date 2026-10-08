@@ -949,7 +949,14 @@
     "hero_daily": "Repte del dia",
     "hero_play": "Joc lliure",
     "topic_picker": "Tema",
-    "topic_any": "Qualsevol tema"
+    "topic_any": "Qualsevol tema",
+    "start_hook": "Fes girar la ruleta, encerta preguntes sobre lleis, partits i el món, i guanya els quatre quesitos.",
+    "start_meta_wedges": "4 quesitos",
+    "start_meta_lives": "3 vides",
+    "start_meta_time": "20 s per pregunta",
+    "start_pick": "Juga sobre un tema, o barreja-ho tot",
+    "start_any_title": "Tots els temes",
+    "start_any_sub": "Lleis de temes del dia a dia"
   },
   "daily": {
     "eyebrow": "La pregunta del dia",
@@ -1037,7 +1044,16 @@
     "results_same": "Igual que tu",
     "results_diff": "Diferent de tu",
     "see_results_one": "Veure resultats amb {n} resposta",
-    "see_results_other": "Veure resultats amb {n} respostes"
+    "see_results_other": "Veure resultats amb {n} respostes",
+    "start_hook": "Et mostrem votacions reals del Congrés. Tu votes Sí, No o Abstenció i, al final, veus amb quins grups coincideixes més.",
+    "start_meta_votes": "10 votacions reals",
+    "start_meta_time": "Uns 3 minuts",
+    "start_meta_private": "Res surt del teu mòbil",
+    "start_pick": "Sobre quin tema vols votar?",
+    "start_any_title": "Qualsevol tema",
+    "start_any_sub": "Una barreja de lleis del dia a dia",
+    "topic_label": "Tema",
+    "change_topic": "Canvia el tema"
   },
   "hub": {
     "joc_title": "Trivia",

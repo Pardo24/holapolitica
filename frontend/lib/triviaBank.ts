@@ -28,6 +28,8 @@ export interface DuelQuestion {
   prompt: string;
   /** Plain-language law context — only for vote-based cards. */
   lawSummary?: string;
+  /** The law's short plain title, shown above the summary. */
+  lawTitle?: string | null;
   topic?: string | null;
   options: DuelOption[];
   partySlug?: string | null;
@@ -53,6 +55,7 @@ export function fromGameQuestion(q: GameQuestion): DuelQuestion {
     category: q.category === 'partits' ? 'partits' : 'lleis',
     prompt: q.prompt,
     lawSummary: q.law_summary,
+    lawTitle: q.law_title ?? null,
     topic: q.topic,
     options: q.options.map((o) => ({
       text: o.text,

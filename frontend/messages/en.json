@@ -949,7 +949,14 @@
     "hero_daily": "Daily challenge",
     "hero_play": "Free play",
     "topic_picker": "Topic",
-    "topic_any": "Any topic"
+    "topic_any": "Any topic",
+    "start_hook": "Spin the wheel, answer questions on laws, parties and the world, and win all four wedges.",
+    "start_meta_wedges": "4 wedges",
+    "start_meta_lives": "3 lives",
+    "start_meta_time": "20 s a question",
+    "start_pick": "Play on one subject, or mix them all",
+    "start_any_title": "All subjects",
+    "start_any_sub": "Laws on everyday subjects"
   },
   "daily": {
     "eyebrow": "Question of the day",
@@ -1037,7 +1044,16 @@
     "results_same": "Same as you",
     "results_diff": "Different from you",
     "see_results_one": "See results with {n} answer",
-    "see_results_other": "See results with {n} answers"
+    "see_results_other": "See results with {n} answers",
+    "start_hook": "We show you real votes from Congress. You vote Yes, No or Abstain and, at the end, see which groups you agree with most.",
+    "start_meta_votes": "10 real votes",
+    "start_meta_time": "About 3 minutes",
+    "start_meta_private": "Nothing leaves your phone",
+    "start_pick": "Which subject do you want to vote on?",
+    "start_any_title": "Any subject",
+    "start_any_sub": "A mix of everyday laws",
+    "topic_label": "Subject",
+    "change_topic": "Change subject"
   },
   "hub": {
     "joc_title": "Trivia",

@@ -175,6 +175,7 @@ class _RichVote(NamedTuple):
     group_color: str | None
     topic_ca: str | None
     topic_es: str | None
+    topic_slug: str | None = None
 
 
 def _display_group(name_short: str) -> str:
@@ -236,6 +237,7 @@ async def game_questions(
             InitiativeTopic.initiative_id,
             Topic.name_ca.label("tname"),
             Topic.name_es.label("tname_es"),
+            Topic.slug.label("tslug"),
         )
         .join(Topic, Topic.id == InitiativeTopic.topic_id)
         .where(Topic.kind == "theme")
@@ -275,6 +277,7 @@ async def game_questions(
                 ParliamentaryGroup.color_hex,
                 topic_sq.c.tname,
                 topic_sq.c.tname_es,
+                topic_sq.c.tslug,
             )
             .join(SessionRow, SessionRow.id == Vote.session_id)
             .join(Initiative, Initiative.id == Vote.initiative_id)
@@ -324,8 +327,15 @@ async def game_questions(
         gcolor,
         tname,
         tname_es,
+        tslug,
     ) in pool_rows:
         if vid in by_vote:
+            # One row per topic: the card's tag is an everyday one when the
+            # law has one ("housing" before "institutions").
+            if tslug in EVERYDAY_TOPICS and by_vote[vid].topic_slug not in EVERYDAY_TOPICS:
+                by_vote[vid] = by_vote[vid]._replace(
+                    topic_ca=tname, topic_es=tname_es, topic_slug=tslug
+                )
             continue
         # Lead with the summary in the player's language, falling back to the
         # other one so a card is never dropped just for a missing translation.
@@ -345,6 +355,7 @@ async def game_questions(
             group_color=gcolor,
             topic_ca=tname,
             topic_es=tname_es,
+            topic_slug=tslug,
         )
     pool = list(by_vote.values())
     if not pool:

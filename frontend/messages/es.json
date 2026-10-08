@@ -949,7 +949,14 @@
     "hero_daily": "Reto del día",
     "hero_play": "Juego libre",
     "topic_picker": "Tema",
-    "topic_any": "Cualquier tema"
+    "topic_any": "Cualquier tema",
+    "start_hook": "Gira la ruleta, acierta preguntas sobre leyes, partidos y el mundo, y gana los cuatro quesitos.",
+    "start_meta_wedges": "4 quesitos",
+    "start_meta_lives": "3 vidas",
+    "start_meta_time": "20 s por pregunta",
+    "start_pick": "Juega sobre un tema, o mézclalo todo",
+    "start_any_title": "Todos los temas",
+    "start_any_sub": "Leyes de temas del día a día"
   },
   "daily": {
     "eyebrow": "La pregunta del día",
@@ -1037,7 +1044,16 @@
     "results_same": "Igual que tú",
     "results_diff": "Distinto a ti",
     "see_results_one": "Ver resultados con {n} respuesta",
-    "see_results_other": "Ver resultados con {n} respuestas"
+    "see_results_other": "Ver resultados con {n} respuestas",
+    "start_hook": "Te mostramos votaciones reales del Congreso. Tú votas Sí, No o Abstención y, al final, ves con qué grupos coincides más.",
+    "start_meta_votes": "10 votaciones reales",
+    "start_meta_time": "Unos 3 minutos",
+    "start_meta_private": "Nada sale de tu móvil",
+    "start_pick": "¿Sobre qué tema quieres votar?",
+    "start_any_title": "Cualquier tema",
+    "start_any_sub": "Una mezcla de leyes del día a día",
+    "topic_label": "Tema",
+    "change_topic": "Cambia el tema"
   },
   "hub": {
     "joc_title": "Trivia",

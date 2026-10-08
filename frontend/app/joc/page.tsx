@@ -4,7 +4,7 @@ import { Gamepad2 } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TriviaGame, type RivalResult } from '@/components/TriviaGame';
-import { TopicPickRow } from '@/components/TopicPickRow';
+import { GameTopicStart } from '@/components/GameTopicStart';
 import { TriviaStart } from '@/components/TriviaStart';
 import { api, type GameQuestion, type Topic } from '@/lib/api';
 import { bankQuestions, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
@@ -66,18 +66,22 @@ export default async function JocPage({
     // to an empty round.
     const allTopics = await api.topics.list().catch(() => [] as Topic[]);
     return (
-      <div style={{ maxWidth: 620, marginInline: 'auto' }}>
-        {header}
-        <TopicPickRow
-          topics={allTopics}
-          locale={locale}
-          basePath="/joc"
-          activeSlug={topicSlug}
-          label={t('topic_picker')}
-          anyLabel={t('topic_any')}
-        />
-        <div style={{ paddingTop: 22 }}>
+      <GameTopicStart
+        hue="var(--hue-jocs)"
+        icon={<Gamepad2 size={26} strokeWidth={2} />}
+        title={t('title')}
+        hook={t('start_hook')}
+        meta={[t('start_meta_wedges'), t('start_meta_lives'), t('start_meta_time')]}
+        pickLabel={t('start_pick')}
+        anyTitle={t('start_any_title')}
+        anySub={t('start_any_sub')}
+        topics={allTopics}
+        locale={locale}
+        hrefFor={(slug) => (slug ? `/joc?solo=1&tema=${slug}` : '/joc?solo=1')}
+      >
+        <div style={{ marginTop: 18 }}>
           <TriviaStart
+            showSolo={false}
             topicSlug={topicSlug ?? null}
             labels={{
               solo_title: t('start_solo_title'),
@@ -94,7 +98,7 @@ export default async function JocPage({
             }}
           />
         </div>
-      </div>
+      </GameTopicStart>
     );
   }
 

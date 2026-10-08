@@ -628,6 +628,8 @@ export interface GameQuestion {
   kind: string;
   /** The law explained in plain language — shown FIRST, the card's lead. */
   law_summary: string;
+  /** The law's short plain title, as the card's headline. */
+  law_title?: string | null;
   /** Short theme tag, e.g. "Habitatge". */
   topic: string | null;
   prompt: string;

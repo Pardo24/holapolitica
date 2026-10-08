@@ -1,9 +1,12 @@
+import Link from 'next/link';
+import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Scale } from 'lucide-react';
 
 import { AlignQuiz } from '@/components/AlignQuiz';
 import { PageHeader } from '@/components/PageHeader';
-import { TopicPickRow } from '@/components/TopicPickRow';
+import { GameTopicStart } from '@/components/GameTopicStart';
+import { pickTopicName } from '@/lib/topics';
 import { api, type AlignQuestion, type Topic } from '@/lib/api';
 
 // Questions rotate with the data; a short ISR window keeps them fresh without
@@ -18,21 +21,44 @@ export const revalidate = 300;
 export default async function ComEtRepresentenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seed?: string; tema?: string }>;
+  searchParams: Promise<{ seed?: string; tema?: string; go?: string }>;
 }) {
   const t = await getTranslations('align');
   const locale = await getLocale();
   // "Other questions" reshuffles the same eligible pool behind a seed, so a
   // reader who has answered these ten can keep going, and a shared link
   // always shows the same set. ``tema`` narrows the pool to one subject.
-  const { seed, tema } = await searchParams;
+  const { seed, tema, go } = await searchParams;
   const seedNumber = seed && /^\d+$/.test(seed) ? Number(seed) : undefined;
   const topicSlug = tema && /^[a-z0-9-]+$/.test(tema) ? tema : undefined;
+
+  // No subject chosen yet (and not a shared set): the door, with the
+  // subjects as big tiles. Any choice, "any subject" included, enters.
+  const atStart = go !== '1' && !topicSlug && seedNumber === undefined;
+  if (atStart) {
+    const allTopics = await api.topics.list().catch(() => [] as Topic[]);
+    return (
+      <GameTopicStart
+        hue="var(--hue-alinea)"
+        icon={<Scale size={26} strokeWidth={2} />}
+        title={t('title')}
+        hook={t('start_hook')}
+        meta={[t('start_meta_votes'), t('start_meta_time'), t('start_meta_private')]}
+        pickLabel={t('start_pick')}
+        anyTitle={t('start_any_title')}
+        anySub={t('start_any_sub')}
+        topics={allTopics}
+        locale={locale}
+        hrefFor={(slug) => (slug ? `/com-et-representen?tema=${slug}` : '/com-et-representen?go=1')}
+      />
+    );
+  }
 
   const [questions, allTopics] = await Promise.all([
     api.align.questions(10, undefined, seedNumber, topicSlug).catch(() => [] as AlignQuestion[]),
     api.topics.list().catch(() => [] as Topic[]),
   ]);
+  const chosen = topicSlug ? allTopics.find((tp) => tp.slug === topicSlug) : undefined;
 
   return (
     <div style={{ maxWidth: 680, marginInline: 'auto' }}>
@@ -51,14 +77,13 @@ export default async function ComEtRepresentenPage({
           plenary can feel arbitrary; ten on housing are ten a reader has an
           opinion about. Shared with the trivia round, so the two games offer
           the subject the same way. */}
-      <TopicPickRow
-        topics={allTopics}
-        locale={locale}
-        basePath="/com-et-representen"
-        activeSlug={topicSlug}
-        label={t('topic_picker')}
-        anyLabel={t('topic_any')}
-      />
+      {/* The subject being played, and the way back to choose another. */}
+      <div className="gstart-current">
+        <span>
+          {t('topic_label')}: <strong>{chosen ? pickTopicName(chosen, locale) : t('start_any_title')}</strong>
+        </span>
+        <Link href={'/com-et-representen' as Route}>{t('change_topic')}</Link>
+      </div>
 
       <div style={{ paddingTop: 22 }}>
         {questions.length === 0 ? (

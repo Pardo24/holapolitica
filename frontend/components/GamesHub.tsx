@@ -109,7 +109,7 @@ export function GamesHub() {
           <li>{t('trivia_meta_time')}</li>
         </ul>
         <div className="games-actions">
-          <Link href={'/joc?solo=1' as Route} className="games-play">
+          <Link href={'/joc' as Route} className="games-play">
             <Play size={18} strokeWidth={2.4} aria-hidden="true" fill="currentColor" />
             {t('trivia_play')}
           </Link>
