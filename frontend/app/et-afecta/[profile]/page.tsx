@@ -23,7 +23,7 @@ export async function generateMetadata({
   if (!isProfileKey(profile)) return {};
   const t = await getTranslations('profiles');
   return {
-    title: `${t(`title_${profile}` as 'title_jove')} · Hola Política`,
+    title: t(`title_${profile}` as 'title_jove'),
     description: t('section_lede'),
   };
 }

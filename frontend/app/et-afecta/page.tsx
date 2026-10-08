@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('profiles');
-  return { title: `${t('index_title')} · Hola Política`, description: t('section_lede') };
+  return { title: t('index_title'), description: t('section_lede') };
 }
 
 /** Every everyday situation, as the home's "I a tu, què t'afecta?" offers. */
