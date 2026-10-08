@@ -3256,3 +3256,158 @@ summary.change-chip { cursor: pointer; }
   .ltm__topic-name { font-size: 12.5px; }
   .ltm__pairs { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ─── Page skeleton (components/PageSkeleton.tsx) ───────────────────────── */
+.page-skeleton {
+  padding: 16px 0 32px;
+  animation: page-skeleton-pulse 1.6s ease-in-out infinite;
+}
+.page-skeleton__bar,
+.page-skeleton__box {
+  background: var(--paper-2);
+  border-radius: 6px;
+}
+.page-skeleton__box { border-radius: 12px; }
+.page-skeleton__row {
+  padding: 14px 0;
+  border-top: 1px solid var(--rule);
+}
+@keyframes page-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.62; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-skeleton { animation: none; }
+}
+
+/* ─── Mobile home: folded "what it changes" + the quiet explore row ────── */
+.ltm__fold { margin-top: 14px; border-top: 1px solid var(--rule); }
+.ltm__fold > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+.ltm__fold > summary::-webkit-details-marker { display: none; }
+.ltm__fold > summary svg { color: var(--ink-3); transition: transform 0.15s ease; }
+.ltm__fold[open] > summary svg { transform: rotate(180deg); }
+.ltm__fold > .ltm__changes-note { display: block; margin: 0 0 4px; }
+
+.home-explore {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+.home-explore a {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.home-explore a svg { color: var(--tile); }
+.home-explore a:active { background: var(--paper-2); }
+
+/* ─── Welcome wizard, first launch of the app (components/WelcomeWizard) ── */
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 24px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  background: var(--paper);
+  color: var(--ink);
+}
+.welcome__top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.welcome__count { font-size: 13px; color: var(--ink-3); }
+.welcome__skip {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.welcome__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+  animation: welcome-in 0.22s ease-out;
+}
+.welcome__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 8px;
+  border-radius: 22px;
+  background: color-mix(in oklch, var(--hue) 14%, var(--paper));
+  color: var(--hue);
+}
+.welcome__body h2 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -0.015em; }
+.welcome__body p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.welcome__dots { display: flex; justify-content: center; gap: 4px; margin: 20px 0; }
+.welcome__dot {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  position: relative;
+}
+.welcome__dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: var(--rule-strong, var(--rule));
+  transition: background 0.15s ease;
+}
+.welcome__dot--on::after { background: var(--ink); }
+.welcome__actions { display: flex; gap: 10px; max-width: 440px; width: 100%; margin: 0 auto; }
+.welcome__back,
+.welcome__next {
+  min-height: 52px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.welcome__back { flex: 0 0 auto; padding: 0 20px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); }
+.welcome__next { flex: 1; border: none; background: var(--ink); color: var(--paper); }
+@keyframes welcome-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome__body { animation: none; }
+}

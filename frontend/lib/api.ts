@@ -19,6 +19,16 @@ const BASE_URL =
  */
 const AGG_REVALIDATE = 300;
 
+/**
+ * Revalidation window (seconds) for the record itself: vote and law lists
+ * and their detail pages. They used to be fetched with no cache at all, so
+ * every tap on a tab waited on the backend from scratch (300-400 ms per
+ * list call, before any rendering). Votes ingest every 4 hours and readers
+ * never write to these, so two minutes of staleness costs nothing and
+ * turns most renders into cache hits.
+ */
+const LIST_REVALIDATE = 120;
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -1087,9 +1097,11 @@ export const api = {
     },
   },
   initiatives: {
-    get: (id: number) => request<Initiative>(`/initiatives/${id}`),
+    get: (id: number) => request<Initiative>(`/initiatives/${id}`, { revalidate: LIST_REVALIDATE }),
     related: (id: number, limit = 6) =>
-      request<Initiative[]>(`/initiatives/${id}/related?limit=${limit}`),
+      request<Initiative[]>(`/initiatives/${id}/related?limit=${limit}`, {
+        revalidate: LIST_REVALIDATE,
+      }),
     list: (
       params: {
         legislature_id?: number;
@@ -1124,7 +1136,9 @@ export const api = {
         if (v !== undefined && v !== '') qs.set(k, String(v));
       });
       const suffix = qs.toString() ? `?${qs.toString()}` : '';
-      return request<Paginated<InitiativeListItem>>(`/initiatives${suffix}`);
+      return request<Paginated<InitiativeListItem>>(`/initiatives${suffix}`, {
+        revalidate: LIST_REVALIDATE,
+      });
     },
     /** Affected-audience tags in use, most common first, for the filter. */
     audiences: (params: { legislature_id?: number; creates_law?: boolean; lang?: string; limit?: number } = {}) => {
@@ -1424,9 +1438,9 @@ export const api = {
         if (v !== undefined && v !== '' && v !== false) qs.set(k, String(v));
       });
       const suffix = qs.toString() ? `?${qs.toString()}` : '';
-      return request<Paginated<Vote>>(`/votes${suffix}`);
+      return request<Paginated<Vote>>(`/votes${suffix}`, { revalidate: LIST_REVALIDATE });
     },
-    get: (id: number) => request<Vote>(`/votes/${id}`),
+    get: (id: number) => request<Vote>(`/votes/${id}`, { revalidate: LIST_REVALIDATE }),
     /** Per-group majority stance across the given vote ids. Feeds the
      *  party-stance discs on the session sheet. */
     groupChoices: (ids: number[]) =>

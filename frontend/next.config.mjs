@@ -27,6 +27,15 @@ const COMMON_SECURITY_HEADERS = [
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  experimental: {
+    // Keep pages already visited in the client router cache for a while.
+    // Every page here is dynamic (the locale comes from a header), and the
+    // default for dynamic pages is 0 s: going back to a tab rendered it on
+    // the server again every time. With this, switching between the bottom
+    // tabs is instant after the first visit; the data underneath only
+    // changes every few hours anyway.
+    staleTimes: { dynamic: 60, static: 300 },
+  },
   async redirects() {
     return [
       // The deputies directory moved into /el-teu-diputat as a tab. Declared

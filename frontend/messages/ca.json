@@ -1479,6 +1479,26 @@
     "explore_free": "Explorar pel meu compte",
     "more": "Com funciona"
   },
+  "welcome": {
+    "skip": "Salta",
+    "back": "Enrere",
+    "next": "Següent",
+    "start": "Comença",
+    "steps_aria": "Passos de la benvinguda",
+    "step_aria": "Pas {n}",
+    "what_eyebrow": "Benvinguda",
+    "what_title": "El que vota el Congrés, explicat clar",
+    "what_body": "Cada votació del ple, qui la proposa i com vota cada grup. Només fets: sense opinions ni rànquings.",
+    "laws_eyebrow": "Pestanya Lleis",
+    "laws_title": "Cada llei, en paraules planeres",
+    "laws_body": "Què diu el text, què canvia i com ha acabat la votació. Filtra per tema, per partit o per allò que canvia la llei.",
+    "deputies_eyebrow": "Pestanya Diputats",
+    "deputies_title": "Qui et representa",
+    "deputies_body": "Tria la teva província i veuràs els teus diputats i com voten. També hi tens tots els grups parlamentaris.",
+    "follow_eyebrow": "Dades i avisos",
+    "follow_title": "Segueix el que t'importa",
+    "follow_body": "A Dades tens com vota cada grup, sempre amb totes les parts. I a cada llei pots tocar «Segueix aquesta llei» perquè t'avisem quan es voti."
+  },
   "journalists": {
     "meta_title": "Per a periodistes · Hola Política",
     "meta_description": "Eines llestes per a redaccions: widgets embedables, cards socials, API REST i datasets oberts del Congrés dels Diputats. Tot sota CC-BY 4.0 amb atribució.",

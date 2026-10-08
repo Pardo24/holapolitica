@@ -1479,6 +1479,26 @@
     "explore_free": "Explorar por mi cuenta",
     "more": "Cómo funciona"
   },
+  "welcome": {
+    "skip": "Saltar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "start": "Empezar",
+    "steps_aria": "Pasos de la bienvenida",
+    "step_aria": "Paso {n}",
+    "what_eyebrow": "Bienvenida",
+    "what_title": "Lo que vota el Congreso, explicado claro",
+    "what_body": "Cada votación del pleno, quién la propone y cómo vota cada grupo. Solo hechos: sin opiniones ni rankings.",
+    "laws_eyebrow": "Pestaña Leyes",
+    "laws_title": "Cada ley, en palabras llanas",
+    "laws_body": "Qué dice el texto, qué cambia y cómo ha acabado la votación. Filtra por tema, por partido o por lo que cambia la ley.",
+    "deputies_eyebrow": "Pestaña Diputados",
+    "deputies_title": "Quién te representa",
+    "deputies_body": "Elige tu provincia y verás a tus diputados y cómo votan. También tienes todos los grupos parlamentarios.",
+    "follow_eyebrow": "Datos y avisos",
+    "follow_title": "Sigue lo que te importa",
+    "follow_body": "En Datos tienes cómo vota cada grupo, siempre con todas las partes. Y en cada ley puedes tocar «Sigue esta ley» para que te avisemos cuando se vote."
+  },
   "journalists": {
     "meta_title": "Para periodistas · Hola Política",
     "meta_description": "Herramientas listas para redacciones: widgets incrustables, cards sociales, API REST y datasets abiertos del Congreso de los Diputados. Todo bajo CC-BY 4.0 con atribución.",
