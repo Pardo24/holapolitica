@@ -20,8 +20,25 @@ const SECTIONS: { key: string; color: string }[] = [
 ];
 const PARTY_DOTS = ['#1E88E5', '#E53935', '#43A047', '#8E24AA', '#00ACC1', '#FB8C00', '#7CB342', '#00897B'];
 
+/** Inter from Google Fonts as TTF (what the image renderer reads), or
+ *  nothing: the preview still renders, in the default face. */
+async function inter(weight: number): Promise<ArrayBuffer | null> {
+  try {
+    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=Inter:wght@${weight}`)).text();
+    const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
+    return url ? await (await fetch(url)).arrayBuffer() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function HomeOg() {
   const t = await getTranslations('og');
+  const [bold, regular] = await Promise.all([inter(800), inter(500)]);
+  const fonts = [
+    ...(bold ? [{ name: 'Inter', data: bold, weight: 800 as const, style: 'normal' as const }] : []),
+    ...(regular ? [{ name: 'Inter', data: regular, weight: 500 as const, style: 'normal' as const }] : []),
+  ];
   return new ImageResponse(
     (
       <div
@@ -30,7 +47,7 @@ export default async function HomeOg() {
           height: '100%',
           display: 'flex',
           padding: '56px 64px',
-          fontFamily: 'sans-serif',
+          fontFamily: fonts.length ? 'Inter' : 'sans-serif',
           color: '#fff',
           background: 'linear-gradient(135deg, #141A2B 0%, #1F2A5E 55%, #3D4FD1 100%)',
           position: 'relative',
@@ -204,6 +221,6 @@ export default async function HomeOg() {
         </span>
       </div>
     ),
-    { ...size },
+    { ...size, fonts },
   );
 }
