@@ -1426,6 +1426,10 @@ export const api = {
       proposing_group_slug?: string;
       result?: VoteResult;
       law_only?: boolean;
+      /** Only non-binding positions (PNL and motions). */
+      positions_only?: boolean;
+      /** 'recent' (default) | 'close' (narrowest margin first). */
+      sort?: 'recent' | 'close';
       date_from?: string;
       date_to?: string;
       q?: string;

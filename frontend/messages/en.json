@@ -340,7 +340,8 @@
     "card_votes_eyebrow_taking": "Taken into consideration",
     "card_votes_eyebrow_convalidation": "Decree validation",
     "lens_change_title": "What it changes",
-    "lens_change_sub": "Taxes, rights, environment…"
+    "lens_change_sub": "Taxes, rights, environment…",
+    "all_votes_link": "All votes"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -759,7 +760,7 @@
     "hero_subtitle": "A tool to understand how laws are made and who votes them: what's proposed, how each deputy and group votes, classified by topic. Open, neutral and downloadable.",
     "lifecycle_link": "How a law is made →",
     "journalists_link": "For journalists →",
-    "cta_explore": "Explore the votes →",
+    "cta_explore": "Explore the laws",
     "cta_latest": "Latest session",
     "cta_play": "Play",
     "week_see_session": "See the session",
@@ -1142,7 +1143,24 @@
     "nobreak_secret_body": "Opinions of the Committee on the Statute of Deputies are voted by secret ballot under the rules of the House. Congress publishes the totals but never the individual votes, so there is no per-group breakdown.",
     "nobreak_unavailable_title": "No breakdown published",
     "nobreak_unavailable_body": "We have the totals for this vote, but the Congress source did not provide each deputy's individual vote. This is a known gap in a handful of older votes.",
-    "see_vote": "View the vote"
+    "see_vote": "View the vote",
+    "lens_search_submit": "Search",
+    "lens_eyebrow": "Where do you want to start?",
+    "lens_close_title": "Closest votes",
+    "lens_close_sub": "Smallest margin",
+    "lens_topic_title": "By topic",
+    "lens_topic_sub": "Housing, health, jobs…",
+    "lens_party_title": "By who proposed it",
+    "lens_party_sub": "Government or a group",
+    "lens_laws_title": "Laws only",
+    "lens_laws_sub": "What makes or changes law",
+    "lens_positions_title": "Motions",
+    "lens_positions_sub": "Positions, not laws",
+    "lens_session_title": "The last sitting",
+    "lens_session_sub": "Everything voted",
+    "lens_close": "Close",
+    "lens_filters": "Filters",
+    "lens_done": "Done"
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",

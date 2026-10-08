@@ -135,6 +135,14 @@ export default async function LleisPage({
         title={t('title')}
         subtitle={t('subtitle')}
         icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}
+        cta={
+          // Secondary on purpose: the laws are the page; every vote of
+          // every kind (motions, procedures) is one quiet link away.
+          <Link href={'/votes' as Route} className="laws-all-votes">
+            {t('all_votes_link')}
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        }
       />
 
       <LawsLens

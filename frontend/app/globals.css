@@ -3411,3 +3411,31 @@ summary.change-chip { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .welcome__body { animation: none; }
 }
+
+/* Results row shared by /lleis and /votes: count (+ sort on desktop) and,
+   on a phone, the "Filtres" button; on a desktop the inline toolbar comes
+   first, full width. */
+.laws-results-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin: 16px 0 10px;
+}
+.laws-results-count { margin: 0; font-size: 12px; color: var(--ink-3); }
+@media (min-width: 641px) {
+  .laws-results-row > .sheet--inline-desktop { order: -1; width: 100%; }
+}
+.laws-all-votes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 4px;
+}

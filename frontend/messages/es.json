@@ -340,7 +340,8 @@
     "card_votes_eyebrow_taking": "Toma en consideración",
     "card_votes_eyebrow_convalidation": "Convalidación del decreto",
     "lens_change_title": "Qué cambia",
-    "lens_change_sub": "Impuestos, derechos, medio ambiente…"
+    "lens_change_sub": "Impuestos, derechos, medio ambiente…",
+    "all_votes_link": "Todas las votaciones"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -759,7 +760,7 @@
     "hero_subtitle": "Una herramienta para entender cómo se hacen las leyes y quién las vota: qué se propone, cómo vota cada diputado y grupo, clasificado por tema. En abierto, neutral y descargable.",
     "lifecycle_link": "Cómo se hace una ley →",
     "journalists_link": "¿Eres periodista? →",
-    "cta_explore": "Explora las votaciones →",
+    "cta_explore": "Explora las leyes",
     "cta_latest": "Última sesión",
     "cta_play": "Juega",
     "week_see_session": "Ver la sesión",
@@ -1142,7 +1143,24 @@
     "nobreak_secret_body": "Los dictámenes de la Comisión del Estatuto de los Diputados se votan en secreto por reglamento. El Congreso publica los totales, pero nunca el voto de cada diputado, así que no puede desglosarse por grupo.",
     "nobreak_unavailable_title": "Sin desglose publicado",
     "nobreak_unavailable_body": "Tenemos los totales de esta votación, pero la fuente del Congreso no nos facilitó el voto individual de cada diputado. Es un hueco conocido en un puñado de votaciones antiguas.",
-    "see_vote": "Ver la votación"
+    "see_vote": "Ver la votación",
+    "lens_search_submit": "Buscar",
+    "lens_eyebrow": "¿Por dónde quieres empezar?",
+    "lens_close_title": "Más ajustadas",
+    "lens_close_sub": "Menos votos de diferencia",
+    "lens_topic_title": "Por tema",
+    "lens_topic_sub": "Vivienda, sanidad, empleo…",
+    "lens_party_title": "Por quién la propone",
+    "lens_party_sub": "Gobierno o grupo parlamentario",
+    "lens_laws_title": "Solo leyes",
+    "lens_laws_sub": "Lo que crea o cambia leyes",
+    "lens_positions_title": "Mociones y PNL",
+    "lens_positions_sub": "Posicionamientos, no leyes",
+    "lens_session_title": "El último pleno",
+    "lens_session_sub": "Todo lo que se votó",
+    "lens_close": "Cerrar",
+    "lens_filters": "Filtros",
+    "lens_done": "Hecho"
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",

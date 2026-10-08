@@ -340,7 +340,8 @@
     "card_votes_eyebrow_taking": "Presa en consideració",
     "card_votes_eyebrow_convalidation": "Convalidació del decret",
     "lens_change_title": "Què canvia",
-    "lens_change_sub": "Impostos, drets, medi ambient…"
+    "lens_change_sub": "Impostos, drets, medi ambient…",
+    "all_votes_link": "Totes les votacions"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -759,7 +760,7 @@
     "hero_subtitle": "Una eina per entendre com es fan les lleis i qui les vota: què es proposa, com vota cada diputat i grup, classificat per tema. En obert, neutral i descarregable.",
     "lifecycle_link": "Com es fa una llei →",
     "journalists_link": "Ets periodista? →",
-    "cta_explore": "Explora les votacions →",
+    "cta_explore": "Explora les lleis",
     "cta_latest": "Última sessió",
     "cta_play": "Juga",
     "week_see_session": "Veure la sessió",
@@ -1142,7 +1143,24 @@
     "nobreak_secret_body": "Els dictàmens de la Comissió de l'Estatut dels Diputats es voten en secret per reglament. El Congrés en publica els totals, però mai el vot de cada diputat, així que no es pot desglossar per grup.",
     "nobreak_unavailable_title": "Sense desglossament publicat",
     "nobreak_unavailable_body": "Tenim els totals d'aquesta votació, però la font del Congrés no ens va facilitar el vot individual de cada diputat. És un forat conegut en un grapat de votacions antigues.",
-    "see_vote": "Veure la votació"
+    "see_vote": "Veure la votació",
+    "lens_search_submit": "Cerca",
+    "lens_eyebrow": "Per on vols començar?",
+    "lens_close_title": "Més ajustades",
+    "lens_close_sub": "Menys vots de diferència",
+    "lens_topic_title": "Per tema",
+    "lens_topic_sub": "Habitatge, sanitat, feina…",
+    "lens_party_title": "Per qui la proposa",
+    "lens_party_sub": "Govern o grup parlamentari",
+    "lens_laws_title": "Només lleis",
+    "lens_laws_sub": "El que crea o canvia lleis",
+    "lens_positions_title": "Mocions i PNL",
+    "lens_positions_sub": "Posicionaments, no lleis",
+    "lens_session_title": "El darrer ple",
+    "lens_session_sub": "Tot el que es va votar",
+    "lens_close": "Tanca",
+    "lens_filters": "Filtres",
+    "lens_done": "Fet"
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",

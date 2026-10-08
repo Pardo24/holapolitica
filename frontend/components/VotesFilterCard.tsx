@@ -219,7 +219,7 @@ export function VotesFilterCard({
   return (
     <section
       aria-label={labels.search}
-      className="votes-filter-card"
+      className="votes-filter-card laws-filter-card"
       style={{
         marginTop: 14,
         padding: 14,
@@ -228,8 +228,10 @@ export function VotesFilterCard({
         background: 'var(--paper)',
       }}
     >
-      {/* Hero: search. */}
+      {/* Hero: search. In the phone's sheet it is hidden: the lens above
+          already has the search box. */}
       <label
+        className="laws-filter-search"
         style={{
           display: 'flex',
           alignItems: 'center',

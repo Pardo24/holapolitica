@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, SearchX } from 'lucide-react';
+import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, SearchX, SlidersHorizontal } from 'lucide-react';
 
 import { VoteCard } from '@/components/VoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PageHeader } from '@/components/PageHeader';
+import { BottomSheet } from '@/components/BottomSheet';
+import { VotesLens } from '@/components/VotesLens';
 import { VotesFilterCard } from '@/components/VotesFilterCard';
 import { api, type Legislature, type VoteResult } from '@/lib/api';
 
@@ -42,6 +44,10 @@ interface SearchParams {
   legislature?: string;
   /** '1' → keep only law-creating votes (Proyecto/Proposición/RDL de Ley). */
   law?: string;
+  /** '1' → keep only positions (PNL and motions). */
+  positions?: string;
+  /** recent (default) | close */
+  sort?: string;
 }
 
 export default async function VotesPage({
@@ -138,6 +144,8 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         proposing_group_slug: params.proposing_group_slug,
         result: params.result,
         law_only: params.law === '1',
+        positions_only: params.positions === '1',
+        sort: params.sort === 'close' ? 'close' : undefined,
         q: params.q,
         date_from: params.date_from,
         date_to: params.date_to,
@@ -176,48 +184,112 @@ async function VotesListTab({ params }: { params: SearchParams }) {
     .filter(Boolean);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1;
+  // The latest sitting, for the "last plenary" lens.
+  const lastSessionDate =
+    (await api.votes.list({ page: 1, page_size: 1 }).catch(() => null))?.items[0]?.voted_at.slice(0, 10) ?? null;
 
   return (
     <div>
-      {/* One control surface: search, result, the laws lens and the
-          legislature switch all live in this card. They used to be three
-          stacked toolbars, which pushed the first vote below the fold. */}
-      <VotesFilterCard
+      <VotesLens
+        state={{
+          sort: params.sort === 'close' ? 'close' : 'recent',
+          topicSlugs,
+          groupSlugs,
+          lawOnly: params.law === '1',
+          positionsOnly: params.positions === '1',
+          date: activeDate,
+          q: params.q ?? '',
+          keep: {
+            ...(params.legislature ? { legislature: params.legislature } : {}),
+            ...(params.result ? { result: params.result } : {}),
+          },
+        }}
         topics={topics}
         groups={groups}
-        initialQ={params.q ?? ''}
-        initialTopicSlugs={topicSlugs}
-        initialGroupSlugs={groupSlugs}
-        initialResult={params.result ?? ''}
-        lawOnly={params.law === '1'}
-        activeDateLabel={activeDateLabel}
-        legislatures={legislatures}
-        activeLegId={activeLeg?.id ?? null}
-        selectedLegId={selectedLegId ?? null}
+        lastSessionDate={isHistorical ? null : lastSessionDate}
         locale={locale}
         labels={{
-          search: t('filters.search'),
           search_placeholder: t('filters.search'),
-          topics_label: t('filters.all_topics'),
-          topics_placeholder: t('filters.all_topics'),
-          topics_clear: t('filters.all_topics'),
-          groups_label: t('filters.proposing_group'),
-          groups_placeholder: t('filters.all_groups'),
-          groups_clear: t('filters.all_groups'),
-          group_government: t('filters.proposing_government'),
-          result_label: t('filters.result'),
-          result_all: t('filters.all_results'),
-          result_approved: t('result.approved'),
-          result_rejected: t('result.rejected'),
-          result_tie: t('result.tie'),
-          clear_all: t('filters_clear_all'),
-          remove_label: 'Treu',
-          more_filters: t('filters.more'),
-          law_only: t('law_only_label'),
-          legislature_label: t('legislature_label'),
-          legislature_current: t('legislature_current'),
+          search_submit: t('lens_search_submit'),
+          eyebrow: t('lens_eyebrow'),
+          close_title: t('lens_close_title'),
+          close_sub: t('lens_close_sub'),
+          topic_title: t('lens_topic_title'),
+          topic_sub: t('lens_topic_sub'),
+          party_title: t('lens_party_title'),
+          party_sub: t('lens_party_sub'),
+          laws_title: t('lens_laws_title'),
+          laws_sub: t('lens_laws_sub'),
+          positions_title: t('lens_positions_title'),
+          positions_sub: t('lens_positions_sub'),
+          session_title: t('lens_session_title'),
+          session_sub: t('lens_session_sub'),
+          government: t('filters.proposing_government'),
+          clear: t('filters_clear_all'),
+          close: t('lens_close'),
         }}
       />
+
+      {/* The full toolbar: in place on a desktop, behind "Filtres" in a
+          sheet on a phone, as on /lleis. */}
+      <div className="laws-results-row">
+        {data && (
+          <p className="laws-results-count tabular">
+            {t('records_count', { count: data.total.toLocaleString(locale) })}
+            {totalPages > 1 && ` · ${tCommon('page')} ${page}/${totalPages}`}
+          </p>
+        )}
+        <BottomSheet
+          inlineOnDesktop
+          trigger={
+            <>
+              <SlidersHorizontal size={15} strokeWidth={2} aria-hidden="true" />
+              {t('lens_filters')}
+            </>
+          }
+          triggerClassName="laws-filter-trigger"
+          title={t('lens_filters')}
+          closeLabel={t('lens_close')}
+          doneLabel={t('lens_done')}
+        >
+          <VotesFilterCard
+            topics={topics}
+            groups={groups}
+            initialQ={params.q ?? ''}
+            initialTopicSlugs={topicSlugs}
+            initialGroupSlugs={groupSlugs}
+            initialResult={params.result ?? ''}
+            lawOnly={params.law === '1'}
+            activeDateLabel={activeDateLabel}
+            legislatures={legislatures}
+            activeLegId={activeLeg?.id ?? null}
+            selectedLegId={selectedLegId ?? null}
+            locale={locale}
+            labels={{
+              search: t('filters.search'),
+              search_placeholder: t('filters.search'),
+              topics_label: t('filters.all_topics'),
+              topics_placeholder: t('filters.all_topics'),
+              topics_clear: t('filters.all_topics'),
+              groups_label: t('filters.proposing_group'),
+              groups_placeholder: t('filters.all_groups'),
+              groups_clear: t('filters.all_groups'),
+              group_government: t('filters.proposing_government'),
+              result_label: t('filters.result'),
+              result_all: t('filters.all_results'),
+              result_approved: t('result.approved'),
+              result_rejected: t('result.rejected'),
+              result_tie: t('result.tie'),
+              clear_all: t('filters_clear_all'),
+              remove_label: 'Treu',
+              more_filters: t('filters.more'),
+              law_only: t('law_only_label'),
+              legislature_label: t('legislature_label'),
+              legislature_current: t('legislature_current'),
+            }}
+          />
+        </BottomSheet>
+      </div>
 
       {isHistorical && selectedLeg && (
         <p
@@ -255,14 +327,6 @@ async function VotesListTab({ params }: { params: SearchParams }) {
         </div>
       )}
 
-      {/* How many results, right above them — where /lleis puts it, rather
-          than in a separate header row the eye has to come back to. */}
-      {data && (
-        <p className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', margin: '16px 0 4px' }}>
-          {t('records_count', { count: data.total.toLocaleString(locale) })}
-          {totalPages > 1 && ` · ${tCommon('page')} ${page}/${totalPages}`}
-        </p>
-      )}
 
       {data && data.items.length === 0 && (
         <div

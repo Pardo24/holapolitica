@@ -300,7 +300,10 @@ export default async function HomePage() {
               marginTop: 14,
             }}
           >
-            <Link href="/votes" className="btn-ink">
+            {/* The primary way in is the laws: what changes people's lives.
+                Every vote (motions, procedures) is a secondary door from
+                there, and from "see all" under the latest votes below. */}
+            <Link href={'/lleis' as Route} className="btn-ink">
               {t('cta_explore')}
             </Link>
             <Link
