@@ -664,7 +664,7 @@
     "toc_api": "API",
     "toc_licence": "Licence",
     "ai_title": "How we use AI",
-    "ai_intro": "The official texts of Congress are long and technical. To make them readable, a language model does three jobs, and none of them is deciding anything:",
+    "ai_intro": "The official texts of Congress are long and technical. To make them readable, a language model does four jobs, and none of them is deciding anything:",
     "ai_point_summary": "It summarises each initiative in plain language and gives it a headline.",
     "ai_point_topics": "It sorts it into topics (housing, health, jobs…), which is how you can filter it.",
     "ai_point_audience": "It picks out who it affects from the text of the law itself (tenants, self-employed, young people…).",
@@ -674,7 +674,8 @@
     "sources_body": "From the open data the Congress of Deputies publishes at congreso.es: plenary votes with each deputy's vote, initiatives and their passage, the make-up of the groups and the sitting calendar. We import it automatically.",
     "sources_untouched": "We don't touch it up. If something is missing at the source it is missing here too, and we say so: a vote carried by assent, for instance, has no roll call, and the card says that.",
     "sources_legal_link": "Personal data and GDPR",
-    "lifecycle_more": "Each procedure, step by step"
+    "lifecycle_more": "Each procedure, step by step",
+    "ai_point_text": "It reads each law's official text (the Congress PDF) to set out its concrete measures, with the article each comes from, and what it changes: taxes, rights, environment and how services are run, always in pairs. Every tag carries the passage behind it and is checked by a stricter second reading; if it cannot be justified, it is not shown."
   },
   "groups": {
     "title": "Parliamentary groups",

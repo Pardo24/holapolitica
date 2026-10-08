@@ -664,7 +664,7 @@
     "toc_api": "API",
     "toc_licence": "Llicència",
     "ai_title": "Com fem servir la IA",
-    "ai_intro": "Els textos oficials del Congrés són llargs i tècnics. Perquè es puguin llegir, un model de llenguatge fa tres feines, i cap d'elles és decidir res:",
+    "ai_intro": "Els textos oficials del Congrés són llargs i tècnics. Perquè es puguin llegir, un model de llenguatge fa quatre feines, i cap d'elles és decidir res:",
     "ai_point_summary": "Resumeix cada iniciativa en llenguatge planer i hi posa un titular.",
     "ai_point_topics": "La classifica per temes (habitatge, sanitat, feina…), que és com la pots filtrar.",
     "ai_point_audience": "Extreu a qui afecta a partir del mateix text de la llei (llogaters, autònoms, joves…).",
@@ -674,7 +674,8 @@
     "sources_body": "De les dades obertes que publica el Congrés dels Diputats a congreso.es: les votacions del ple amb el vot de cada diputat, les iniciatives i el seu recorregut, la composició dels grups i el calendari de sessions. Les importem automàticament.",
     "sources_untouched": "No les retoquem. Si una dada falta a l'origen, aquí també falta, i ho diem: per exemple, una votació per assentiment no té vot nominal i la targeta ho indica.",
     "sources_legal_link": "Dades personals i RGPD",
-    "lifecycle_more": "Els recorreguts, un per un"
+    "lifecycle_more": "Els recorreguts, un per un",
+    "ai_point_text": "Llegeix el text oficial de cada llei (el PDF del Congrés) per explicar-ne les mesures concretes, amb l'article on surt cada una, i què canvia: impostos, drets, medi ambient i gestió dels serveis, sempre en parelles. Cada etiqueta porta el passatge que la justifica i la revisa una segona lectura més estricta; si no es pot justificar, no es posa."
   },
   "groups": {
     "title": "Grups parlamentaris",

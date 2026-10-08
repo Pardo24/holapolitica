@@ -664,7 +664,7 @@
     "toc_api": "API",
     "toc_licence": "Licencia",
     "ai_title": "Cómo usamos la IA",
-    "ai_intro": "Los textos oficiales del Congreso son largos y técnicos. Para que se puedan leer, un modelo de lenguaje hace tres tareas, y ninguna consiste en decidir nada:",
+    "ai_intro": "Los textos oficiales del Congreso son largos y técnicos. Para que se puedan leer, un modelo de lenguaje hace cuatro tareas, y ninguna consiste en decidir nada:",
     "ai_point_summary": "Resume cada iniciativa en lenguaje llano y le pone un titular.",
     "ai_point_topics": "La clasifica por temas (vivienda, sanidad, empleo…), que es como la puedes filtrar.",
     "ai_point_audience": "Extrae a quién afecta a partir del propio texto de la ley (inquilinos, autónomos, jóvenes…).",
@@ -674,7 +674,8 @@
     "sources_body": "De los datos abiertos que publica el Congreso de los Diputados en congreso.es: las votaciones del pleno con el voto de cada diputado, las iniciativas y su recorrido, la composición de los grupos y el calendario de sesiones. Los importamos automáticamente.",
     "sources_untouched": "No los retocamos. Si un dato falta en el origen, aquí también falta, y lo decimos: por ejemplo, una votación por asentimiento no tiene voto nominal y la tarjeta lo indica.",
     "sources_legal_link": "Datos personales y RGPD",
-    "lifecycle_more": "Los recorridos, uno a uno"
+    "lifecycle_more": "Los recorridos, uno a uno",
+    "ai_point_text": "Lee el texto oficial de cada ley (el PDF del Congreso) para explicar sus medidas concretas, con el artículo donde aparece cada una, y qué cambia: impuestos, derechos, medio ambiente y gestión de los servicios, siempre en parejas. Cada etiqueta lleva el pasaje que la justifica y la revisa una segunda lectura más estricta; si no se puede justificar, no se pone."
   },
   "groups": {
     "title": "Grupos parlamentarios",

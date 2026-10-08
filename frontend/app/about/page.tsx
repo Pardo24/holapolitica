@@ -88,6 +88,7 @@ export default async function AboutPage() {
               <li>{t('ai_point_summary')}</li>
               <li>{t('ai_point_topics')}</li>
               <li>{t('ai_point_audience')}</li>
+              <li>{t('ai_point_text')}</li>
             </ul>
             <p>{t('ai_marked')}</p>
             <p className="about-callout">{t('ai_not_votes')}</p>
