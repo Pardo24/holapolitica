@@ -14,6 +14,7 @@ import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PartyBand } from '@/components/PartyBand';
 import { HomeQuickGrid } from '@/components/HomeQuickGrid';
+import { ProfilePicker } from '@/components/ProfilePicker';
 import { IntroNote } from '@/components/IntroNote';
 import { WelcomeWizard } from '@/components/WelcomeWizard';
 import { LawsThatMatter } from '@/components/LawsThatMatter';
@@ -153,6 +154,17 @@ export default async function HomePage() {
   } catch {
     province = null;
   }
+  // "I a tu, què t'afecta?": how many laws touch each situation.
+  const profileCounts = await api.initiatives
+    .profiles()
+    .then((rows) => new Map(rows.map((r) => [r.key, r.count] as const)))
+    .catch(() => null);
+  const profilePicker = (
+    <div id="et-afecta" style={{ scrollMarginTop: 72 }}>
+      <ProfilePicker counts={profileCounts} />
+    </div>
+  );
+
   const quickGrid = (
     <HomeQuickGrid province={province} nextSession={upcomingSessions[0]?.date?.slice(0, 10) ?? null} locale={locale} />
   );
@@ -188,6 +200,7 @@ export default async function HomePage() {
         noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
         plannedLabel={tUpcoming('planned_label')}
         quickGrid={quickGrid}
+        profilePicker={profilePicker}
         lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} />}
         partyBand={
           <PartyBand
@@ -552,6 +565,8 @@ export default async function HomePage() {
           the home page pointed at them. It also carries the page's
           strongest colour, and it is colour we don't have to invent:
           the parties' own brand hues. */}
+      <div style={{ marginTop: 36 }}>{profilePicker}</div>
+
       <PartyBand
         groups={allGroups}
         title={t('parties_title')}
@@ -745,6 +760,7 @@ function MobileDashboard({
   plannedLabel,
   partyBand,
   quickGrid,
+  profilePicker,
   lawsThatMatter,
   labels,
 }: {
@@ -757,6 +773,8 @@ function MobileDashboard({
   partyBand: React.ReactNode;
   /** Pre-rendered quick-access tiles, shared with the desktop. */
   quickGrid: React.ReactNode;
+  /** Pre-rendered "what affects you" picker, shared with the desktop. */
+  profilePicker: React.ReactNode;
   /** Pre-rendered "laws that matter" block, shared with the desktop. */
   lawsThatMatter: React.ReactNode;
   sessApproved: number;
@@ -800,6 +818,9 @@ function MobileDashboard({
           (the game, the map, their deputies); it is one tap away, before
           the news. */}
       <div style={{ margin: '0 0 18px' }}>{quickGrid}</div>
+
+      {/* "I a tu, què t'afecta?": pick your situation. */}
+      <div style={{ marginBottom: 26 }}>{profilePicker}</div>
 
       {/* Then the latest plenary session, as a full card: what happened. */}
       {latestVotes[0]?.voted_at && (

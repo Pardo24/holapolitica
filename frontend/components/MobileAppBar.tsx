@@ -38,6 +38,7 @@ import {
   Lock,
   ShieldCheck,
   Tags,
+  UserRound,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -100,6 +101,7 @@ export function MobileAppBar() {
   ];
 
   const links = [
+    { href: '/et-afecta', label: t('profiles'), Icon: UserRound },
     { href: '/about', label: t('about'), Icon: BookOpen },
     { href: '/recorregut', label: tFooter('lifecycle_link'), Icon: RouteIcon },
     { href: '/topics', label: tNav('topics'), Icon: Tags },

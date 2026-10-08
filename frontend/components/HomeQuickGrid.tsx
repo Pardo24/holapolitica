@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { CalendarDays, Gamepad2, Map as MapIcon, Scale, Sparkles, Users, type LucideIcon } from 'lucide-react';
+import { CalendarDays, Gamepad2, Map as MapIcon, Sparkles, UserRound, Users, type LucideIcon } from 'lucide-react';
 
 /**
  * The home's first screen: what you can do here, as six tiles.
@@ -71,8 +71,8 @@ export async function HomeQuickGrid({
         : t('plens_sub'),
     },
     {
-      href: '#lleis-que-importen',
-      Icon: Scale,
+      href: '#et-afecta',
+      Icon: UserRound,
       hue: 'var(--hue-lleis)',
       title: t('laws_title'),
       sub: t('laws_sub'),

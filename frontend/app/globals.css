@@ -3755,3 +3755,69 @@ summary.change-chip { cursor: pointer; }
   color: var(--ink-2);
   text-decoration: none;
 }
+
+/* "I a tu, què t'afecta?" (components/ProfilePicker): big situation buttons,
+   two columns on a phone, more on a desktop. */
+.profiles__head h2 { margin: 0; font-family: var(--font-serif); font-size: 22px; line-height: 1.2; color: var(--ink); }
+.profiles__head p { margin: 4px 0 12px; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
+.profiles__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 641px) { .profiles__grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; } }
+.profiles__grid.profiles__grid > li > a.profiles__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  min-height: 58px;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in oklch, var(--hue-lleis) 20%, var(--rule));
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+.profiles__grid > li > a.profiles__item:active { background: var(--hue-lleis-soft); }
+.profiles__grid > li > a.profiles__item:hover { border-color: color-mix(in oklch, var(--hue-lleis) 45%, var(--rule)); }
+.profiles__icon {
+  grid-row: 1 / span 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--hue-lleis-soft);
+  color: var(--hue-lleis-ink);
+}
+.profiles__label { align-self: end; font-size: 14px; font-weight: 700; line-height: 1.2; }
+.profiles__count { align-self: start; font-size: 12px; color: var(--ink-3); }
+.profiles__label:only-of-type { grid-row: 1 / span 2; align-self: center; }
+.profiles-other { margin: 0 0 10px; font-size: 16px; font-weight: 700; color: var(--ink); }
+.profile-pager { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; font-size: 14px; color: var(--ink-2); }
+.profile-pager a { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-weight: 700; color: var(--ink); text-decoration: none; }
+/* The law card's "for you" line on a situation page. */
+.law-card-for-you {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--hue-lleis-soft);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.law-card-for-you > span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hue-lleis-ink);
+}

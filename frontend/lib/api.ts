@@ -857,6 +857,9 @@ export interface Initiative {
    * "boe_" when the text read is a Real Decreto-ley as published in the BOE.
    */
   text_analysis_source?: string | null;
+  /** Everyday situations the law touches directly ("jove", "llogater"...),
+   *  each with what the text establishes for it, per language. */
+  profile_effects?: Record<string, { ca?: string; es?: string }> | null;
   // BOE link — populated by the nightly enrichment worker for
   // approved laws that have been formally published. NULL when the
   // initiative hasn't reached publication or the matcher couldn't
@@ -1127,6 +1130,9 @@ export const api = {
         ids?: string;
         /** "What the text changes" tags, comma-separated, OR-ed. */
         change?: string;
+        /** An everyday situation ("jove", "llogater"...): only laws with a
+         *  concrete measure for it. */
+        profile?: string;
         page?: number;
         page_size?: number;
       } = {},
@@ -1140,6 +1146,11 @@ export const api = {
         revalidate: LIST_REVALIDATE,
       });
     },
+    /** How many laws touch each everyday situation, in display order. */
+    profiles: () =>
+      request<{ key: string; count: number }[]>('/initiatives/profiles', {
+        revalidate: AGG_REVALIDATE,
+      }),
     /** Affected-audience tags in use, most common first, for the filter. */
     audiences: (params: { legislature_id?: number; creates_law?: boolean; lang?: string; limit?: number } = {}) => {
       const qs = new URLSearchParams();

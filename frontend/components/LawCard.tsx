@@ -51,10 +51,14 @@ export async function LawCard({
   initiative,
   parsed,
   locale,
+  profileKey,
 }: {
   initiative: InitiativeListItem;
   parsed: ParsedProposer;
   locale: string;
+  /** On a "what affects you" page: show what the text establishes for
+   *  that situation, right under the headline. */
+  profileKey?: string;
 }) {
   const t = await getTranslations('lleis');
   const tStats = await getTranslations('stats');
@@ -66,6 +70,11 @@ export async function LawCard({
   const changeEvidence =
     initiative.change_evidence?.[locale === 'ca' ? 'ca' : 'es'] ?? initiative.change_evidence?.es ?? {};
   const pdf = pdfUrl(initiative.source_url);
+  const tProfiles = await getTranslations('profiles');
+  const profileEffect = profileKey ? initiative.profile_effects?.[profileKey] : undefined;
+  const forYou = profileEffect
+    ? (locale === 'ca' ? profileEffect.ca : profileEffect.es) ?? profileEffect.es ?? profileEffect.ca
+    : undefined;
 
   const href = `/initiatives/${initiative.id}` as Route;
   const plainSummary = pickPlainSummary(initiative, locale);
@@ -140,6 +149,14 @@ export async function LawCard({
         )}
         {headline}
       </LawCardHeadline>
+
+      {/* What the text establishes for the reader's situation. */}
+      {forYou && (
+        <p className="law-card-for-you">
+          <span>{tProfiles('for_you')}</span>
+          {forYou}
+        </p>
+      )}
 
       {/* What the text changes: symmetric facts read from the bill itself,
           as icon chips, no label row. The passage behind each is on the
