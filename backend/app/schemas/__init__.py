@@ -304,6 +304,9 @@ class InitiativeDetail(InitiativeRead):
 
     votes: list[InitiativeVoteSummary] = []
     topics: list[InitiativeTopicSlug] = []
+    # A decree-law and the bill it became, pointed at each other: kind
+    # "from_decree" | "as_bill", id, official_id, label.
+    decree_link: dict[str, object] | None = None
 
 
 # ---------------------------------------------------------------------------

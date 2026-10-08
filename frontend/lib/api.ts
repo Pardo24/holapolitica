@@ -862,6 +862,8 @@ export interface Initiative {
   /** Everyday situations the law touches directly ("jove", "llogater"...),
    *  each with what the text establishes for it, per language. */
   profile_effects?: Record<string, { ca?: string; es?: string }> | null;
+  /** A decree-law and the bill it became, pointed at each other. */
+  decree_link?: DecreeLink | null;
   // BOE link — populated by the nightly enrichment worker for
   // approved laws that have been formally published. NULL when the
   // initiative hasn't reached publication or the matcher couldn't
@@ -921,6 +923,15 @@ export interface LawLatestVote {
   stage?: 'taking' | 'totality' | 'convalidation' | 'other';
   /** What it means for the initiative; null while it is in progress. */
   verdict?: VoteResult | null;
+}
+
+/** "from_decree": this bill comes from a validated Real Decreto-ley;
+ *  "as_bill": this decree is also being processed as a bill. */
+export interface DecreeLink {
+  kind: 'from_decree' | 'as_bill';
+  id: number;
+  official_id: string;
+  label: string;
 }
 
 export interface InitiativeListItem extends Initiative {

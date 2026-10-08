@@ -342,7 +342,11 @@
     "lens_change_title": "Què canvia",
     "lens_change_sub": "Impostos, drets, medi ambient…",
     "all_votes_link": "Totes les votacions",
-    "card_non_binding": "No vinculant"
+    "card_non_binding": "No vinculant",
+    "decree_from": "Ve del Reial decret llei {n}, que ja és vigent: el Congrés el va convalidar i ara el tramita també com a llei per poder-hi fer esmenes.",
+    "decree_as_bill": "Ja és vigent. A més, ara es tramita com a projecte de llei per poder-hi fer esmenes.",
+    "decree_see_decree": "Veure el decret",
+    "decree_see_bill": "Veure el projecte de llei"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",

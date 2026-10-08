@@ -4686,3 +4686,19 @@ summary.change-chip { cursor: pointer; }
 }
 .dq .dq-btn--ghost { background: var(--paper); color: var(--ink); border: 1.5px solid var(--rule-strong); }
 .dq-next { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; font-size: 13.5px; font-weight: 600; color: var(--ink-3); }
+
+/* A decree-law and the bill it became (components/DecreeLinkNote). */
+.decree-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: color-mix(in oklch, var(--hue-plens) 10%, var(--paper));
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.decree-note > svg { flex: none; margin-top: 2px; color: var(--hue-plens-ink); }
+.decree-note a { display: inline-flex; align-items: center; gap: 3px; font-weight: 800; color: var(--ink); white-space: nowrap; }

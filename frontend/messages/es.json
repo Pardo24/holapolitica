@@ -342,7 +342,11 @@
     "lens_change_title": "Qué cambia",
     "lens_change_sub": "Impuestos, derechos, medio ambiente…",
     "all_votes_link": "Todas las votaciones",
-    "card_non_binding": "No vinculante"
+    "card_non_binding": "No vinculante",
+    "decree_from": "Procede del Real Decreto-ley {n}, que ya está en vigor: el Congreso lo convalidó y ahora lo tramita también como ley para poder enmendarlo.",
+    "decree_as_bill": "Ya está en vigor. Además, ahora se tramita como proyecto de ley para poder enmendarlo.",
+    "decree_see_decree": "Ver el decreto",
+    "decree_see_bill": "Ver el proyecto de ley"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",

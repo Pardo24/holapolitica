@@ -342,7 +342,11 @@
     "lens_change_title": "What it changes",
     "lens_change_sub": "Taxes, rights, environment…",
     "all_votes_link": "All votes",
-    "card_non_binding": "Non-binding"
+    "card_non_binding": "Non-binding",
+    "decree_from": "Comes from Royal Decree-law {n}, already in force: Congress validated it and is now also processing it as a bill so it can be amended.",
+    "decree_as_bill": "Already in force. It is also being processed as a bill so it can be amended.",
+    "decree_see_decree": "See the decree",
+    "decree_see_bill": "See the bill"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",

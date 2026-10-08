@@ -58,6 +58,22 @@ the operator:
 - A pull from a machine at home: safest of all, because the credential lives
   on the machine doing the pulling and the server holds nothing.
 
+**Done (2026-10-08): pull from home.** `ops/pull-backup-home.sh` runs on the
+home server (Nubul) every day at 08:15 local time and copies
+`/var/backups/holapolitica` to `/mnt/nas/backups/holapolitica`, keeping 60
+days. On the VM the user `hpbackup` has a single key forced to
+`rrsync -ro /var/backups/holapolitica` with `restrict`: it can read the
+dumps and nothing else (no shell). A failed pull, or a newest dump older
+than 36 h, sends an ntfy alert. First pull verified by checksum against the
+VM's copy.
+
+### Scaling for a traffic peak
+
+The API runs `UVICORN_WORKERS` processes (default 2, set in
+`/opt/holapolitica/.env`). After resizing the VM (4 vCPU / 8 GB), set
+`UVICORN_WORKERS=4` there and recreate the backend:
+`docker compose -f docker-compose.prod.yml up -d backend`.
+
 Encrypt before it leaves the box: the dump carries newsletter subscribers'
 email addresses and their confirmation tokens. `gpg --symmetric` is already
 installed.

@@ -20,6 +20,7 @@ import {
   type PartyStance,
   type StanceLabels,
 } from '@/components/PartyStanceRow';
+import { DecreeLinkNote } from '@/components/DecreeLinkNote';
 import { ResultPill } from '@/components/ResultPill';
 import { FollowLawButton } from '@/components/FollowLawButton';
 import { ShareButton } from '@/components/ShareButton';
@@ -272,6 +273,8 @@ export default async function InitiativeDetailPage({
             </span>
           )}
         </div>
+
+        {initiative.decree_link && <DecreeLinkNote link={initiative.decree_link} />}
 
         <div className="law-head__who initiative-meta-strip">
           {(parsedProposer.isGovernment || parsedProposer.groups.length > 0) && (

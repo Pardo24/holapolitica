@@ -12,7 +12,9 @@ router's responsibility narrow.
 """
 
 import json
+import re
 from collections import Counter, defaultdict
+from collections.abc import Sequence
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -440,6 +442,7 @@ async def list_initiatives(
     item_ids = [i.id for i in items]
     latest_vote_by_initiative = await _load_latest_vote(session, item_ids)
     topics_by_initiative = await _load_topics_by_initiative(session, item_ids)
+    decree_links = await _load_decree_links(session, items)
 
     return {
         "total": total,
@@ -459,10 +462,59 @@ async def list_initiatives(
                     InitiativeTopicSlug.model_validate(tp).model_dump(mode="json")
                     for tp in topics_by_initiative.get(i.id, [])
                 ],
+                "decree_link": decree_links.get(i.id),
             }
             for i in items
         ],
     }
+
+
+_FROM_DECREE_RE = re.compile(r"procedente del real decreto-ley (\d+)/(\d{4})", re.IGNORECASE)
+_DECREE_RE = re.compile(r"^\s*real decreto-ley (\d+)/(\d{4})\b", re.IGNORECASE)
+
+
+async def _load_decree_links(
+    session: AsyncSession, items: Sequence[Initiative]
+) -> dict[int, dict[str, object]]:
+    """A decree-law and the bill it became, pointed at each other.
+
+    After the Congress validates a Real Decreto-ley it can also process it
+    as a bill ("procedente del Real Decreto-ley 14/2026"), so the groups
+    can amend it. Two real initiatives, one law: the decree already in
+    force, the bill still in progress. Shown side by side with no link, a
+    reader took them for a duplicate with contradictory outcomes.
+
+    Returns, per initiative id, ``{"kind": "from_decree" | "as_bill",
+    "id", "official_id", "label"}``.
+    """
+    out: dict[int, dict[str, object]] = {}
+    wanted: list[tuple[int, str, str]] = []  # (item id, kind, number/year)
+    for it in items:
+        title = it.title_original or ""
+        if (m := _FROM_DECREE_RE.search(title)) is not None:
+            wanted.append((it.id, "from_decree", f"{m.group(1)}/{m.group(2)}"))
+        elif it.type == InitiativeType.REAL_DECRETO_LEY and (m := _DECREE_RE.match(title)):
+            wanted.append((it.id, "as_bill", f"{m.group(1)}/{m.group(2)}"))
+    for item_id, kind, number in wanted:
+        if kind == "from_decree":
+            stmt = select(Initiative.id, Initiative.official_id).where(
+                Initiative.type == InitiativeType.REAL_DECRETO_LEY,
+                Initiative.title_original.ilike(f"Real Decreto-ley {number},%"),
+            )
+        else:
+            stmt = select(Initiative.id, Initiative.official_id).where(
+                Initiative.type == InitiativeType.PROYECTO_LEY,
+                Initiative.title_original.ilike(f"%procedente del Real Decreto-ley {number},%"),
+            )
+        row = (await session.execute(stmt.limit(1))).first()
+        if row is not None:
+            out[item_id] = {
+                "kind": kind,
+                "id": row[0],
+                "official_id": row[1],
+                "label": f"Real Decreto-ley {number}",
+            }
+    return out
 
 
 async def _load_topics_by_initiative(
@@ -770,6 +822,7 @@ async def get_initiative(
         **base.model_dump(),
         votes=[InitiativeVoteSummary.model_validate(v) for v in votes],
         topics=[InitiativeTopicSlug.model_validate(t) for t in topic_rows],
+        decree_link=(await _load_decree_links(session, [row])).get(row.id),
     )
 
 

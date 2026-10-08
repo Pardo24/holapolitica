@@ -10,6 +10,7 @@ import {
   LawCardHeadline,
   LawCardVoteBox,
 } from '@/components/LawCardParts';
+import { DecreeLinkNote } from '@/components/DecreeLinkNote';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 import { VoteSplit } from '@/components/VoteSplit';
@@ -139,6 +140,8 @@ export async function LawCard({
         {plainSummary && <AiMark label={t('card_ai_summary')} />}
         {headline}
       </LawCardHeadline>
+
+      {initiative.decree_link && <DecreeLinkNote link={initiative.decree_link} />}
 
       {/* Three lines of the summary, under a headline of its own. When the
           headline is itself taken from the summary, this would repeat it. */}
