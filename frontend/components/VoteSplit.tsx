@@ -115,14 +115,18 @@ export function VoteSplit({
       {bigTally ? (
         <>
           <div className="vote-big tabular">
-            <span className="vote-big__n" style={{ color: 'var(--aye)' }}>
-              {ayes}
+            <span className="vote-big__pair">
+              <span className="vote-big__n" style={{ color: 'var(--aye)' }}>
+                {ayes}
+              </span>
+              <span className="vote-big__l">{labels.inFavour}</span>
             </span>
-            <span className="vote-big__l">{labels.inFavour}</span>
-            <span className="vote-big__n" style={{ color: 'var(--no)' }}>
-              {noes}
+            <span className="vote-big__pair">
+              <span className="vote-big__n" style={{ color: 'var(--no)' }}>
+                {noes}
+              </span>
+              <span className="vote-big__l">{labels.against}</span>
             </span>
-            <span className="vote-big__l">{labels.against}</span>
             {abstentions > 0 && (
               <span className="vote-big__abst">
                 {abstentions} {labels.abstention.toLowerCase()}

@@ -156,7 +156,10 @@ export async function LawCard({
       {audiences && audiences.length > 0 && (
         <div className="law-card-affects">
           <span>{t('card_affects')}</span>
-          {audiences.slice(0, 5).join(', ')}
+          {(() => {
+            const list = audiences.slice(0, 5).join(', ');
+            return list.charAt(0).toLocaleUpperCase(locale) + list.slice(1);
+          })()}
         </div>
       )}
 

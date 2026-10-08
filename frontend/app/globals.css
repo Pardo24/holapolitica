@@ -7,7 +7,10 @@
   /* paper / ink — warm cream, deep cool ink. Saturation kept very low. */
   /* Near-white paper (#FAFAF7) with cool, faintly blue greys: the colour
      comes from the sections, so the ground stays quiet and clean. */
-  --paper: oklch(0.985 0.003 106);
+  /* Hue "none": the paper has no hue of its own, so every tint mixed into
+     it (color-mix in oklch) keeps the other colour's hue. With a hue here
+     an indigo tint drifted through green on its way to the paper. */
+  --paper: oklch(0.985 0.002 none);
   --paper-2: oklch(0.966 0.004 260);
   --paper-3: oklch(0.94 0.006 260);
   --ink: oklch(0.21 0.03 268);
@@ -3904,3 +3907,5 @@ summary.change-chip { cursor: pointer; }
 .vote-big__abst { font-size: 13px; color: var(--ink-3); }
 .vote-big__bar { display: flex; gap: 2px; height: 8px; margin: 10px 0 2px; border-radius: 999px; overflow: hidden; }
 .vote-big__bar > span { display: block; min-width: 2px; }
+
+.vote-big__pair { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
