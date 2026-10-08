@@ -2083,7 +2083,16 @@
     "person_kpi_attendance": "Vots emesos",
     "person_kpi_dissidence": "Dissidència",
     "person_kpi_of_total": "de {total}",
-    "person_kpi_times": "{count} cops"
+    "person_kpi_times": "{count} cops",
+    "og_home_line_1": "Què vota el Congrés,",
+    "og_home_line_2": "explicat clar.",
+    "og_home_sub": "Cada llei en paraules planeres, qui la proposa i com vota cada partit. Neutral i en obert.",
+    "og_sec_lleis": "Lleis",
+    "og_sec_plens": "Plens",
+    "og_sec_diputats": "Diputats",
+    "og_sec_dades": "Dades",
+    "og_sec_jocs": "Jocs",
+    "og_card_approved": "APROVADA"
   },
   "embed_topic_parties": {
     "eyebrow": "Vots a favor i en contra per grup",

@@ -82,7 +82,9 @@ export default async function TopicDetailPage({
   // URL-bound UI state. Each defaults to a safe value so a bare URL still
   // renders sensibly, and bookmarks / shareable links round-trip cleanly.
   const subset: Subset =
-    sp.subset === 'voted' ? 'voted' : sp.subset === 'other' ? 'other' : 'pending';
+    // Voted first: a voted law's card carries the result and every group's
+    // vote, the thing a reader comes to a subject to see.
+    sp.subset === 'pending' ? 'pending' : sp.subset === 'other' ? 'other' : 'voted';
   const groupFilter = (sp.group ?? '').trim();
   const rawQuery = (sp.q ?? '').trim();
   const queryNeedle = rawQuery ? normalizeForSearch(rawQuery) : '';
@@ -285,7 +287,7 @@ export default async function TopicDetailPage({
       ? `/topics/${slug}?subset=voted`
       : subset === 'other'
         ? `/topics/${slug}?subset=other`
-        : `/topics/${slug}`) as Route;
+        : `/topics/${slug}?subset=pending`) as Route;
 
   return (
     <article className="topic-article">
@@ -599,8 +601,8 @@ export default async function TopicDetailPage({
         >
           {(
             [
-              { key: 'pending' as const, label: t('subset_pending'), count: pendingAll.length },
               { key: 'voted' as const, label: t('subset_voted'), count: votedAll.length },
+              { key: 'pending' as const, label: t('subset_pending'), count: pendingAll.length },
               // "Altres" — withdrawn / expired. Only surface the segment
               // when there's at least one record so the control doesn't
               // grow a permanently-zero tab on quiet topics.

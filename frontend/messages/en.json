@@ -2084,7 +2084,16 @@
     "person_kpi_attendance": "Votes cast",
     "person_kpi_dissidence": "Dissent",
     "person_kpi_of_total": "of {total}",
-    "person_kpi_times": "{count} times"
+    "person_kpi_times": "{count} times",
+    "og_home_line_1": "What Congress votes,",
+    "og_home_line_2": "explained plainly.",
+    "og_home_sub": "Every law in plain words, who tabled it and how each party voted. Neutral and open.",
+    "og_sec_lleis": "Laws",
+    "og_sec_plens": "Sittings",
+    "og_sec_diputats": "Deputies",
+    "og_sec_dades": "Data",
+    "og_sec_jocs": "Games",
+    "og_card_approved": "PASSED"
   },
   "embed_topic_parties": {
     "eyebrow": "Votes for and against by group",

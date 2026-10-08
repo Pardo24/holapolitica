@@ -6,6 +6,8 @@ import { ImageResponse } from 'next/og';
 export const size = { width: 512, height: 512 };
 export const contentType = 'image/png';
 
+/** The mark (a framed page with two lines) in white on the laws' indigo,
+ *  in a rounded square, like the app's own icon. */
 export default function Icon() {
   return new ImageResponse(
     (
@@ -13,26 +15,26 @@ export default function Icon() {
         style={{
           width: '100%',
           height: '100%',
-          background: '#fbf9f4',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 96,
+          borderRadius: 112,
+          background: 'linear-gradient(135deg, #3D4FD1 0%, #1F2A5E 100%)',
         }}
       >
         <div
           style={{
-            width: 320,
-            height: 320,
-            border: '24px solid #1a2138',
+            width: 260,
+            height: 260,
+            border: '26px solid #fff',
+            borderRadius: 28,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'flex-start',
-            padding: '88px 0 0',
+            padding: '62px 30px 0',
           }}
         >
-          <div style={{ height: 24, background: '#1a2138', marginBottom: 56 }} />
-          <div style={{ height: 24, background: '#1a2138' }} />
+          <div style={{ height: 26, borderRadius: 13, background: '#fff', marginBottom: 40, display: 'flex' }} />
+          <div style={{ height: 26, borderRadius: 13, background: '#fff', width: '70%', display: 'flex' }} />
         </div>
       </div>
     ),

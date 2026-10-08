@@ -2084,7 +2084,16 @@
     "person_kpi_attendance": "Votos emitidos",
     "person_kpi_dissidence": "Disidencia",
     "person_kpi_of_total": "de {total}",
-    "person_kpi_times": "{count} veces"
+    "person_kpi_times": "{count} veces",
+    "og_home_line_1": "Qué vota el Congreso,",
+    "og_home_line_2": "explicado claro.",
+    "og_home_sub": "Cada ley en palabras sencillas, quién la propone y cómo vota cada partido. Neutral y en abierto.",
+    "og_sec_lleis": "Leyes",
+    "og_sec_plens": "Plenos",
+    "og_sec_diputats": "Diputados",
+    "og_sec_dades": "Datos",
+    "og_sec_jocs": "Juegos",
+    "og_card_approved": "APROBADA"
   },
   "embed_topic_parties": {
     "eyebrow": "Votos a favor y en contra por grupo",
