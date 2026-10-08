@@ -171,3 +171,37 @@ async def test_the_model_reads_the_measures(monkeypatch: pytest.MonkeyPatch) -> 
     assert "(Art. 3)" in user and "Preámbulo" not in user
     # The law prompt tells the model where the figures come from.
     assert "MEDIDAS del texto" in system
+
+
+@pytest.mark.asyncio
+async def test_rewrite_translates_with_the_large_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+
+    from app.core.config import get_settings
+    from app.ingest.congreso import bootstrap
+
+    models: list[tuple[str, str]] = []
+
+    async def fake_llm(settings: object, *, system: str, user: str) -> str:
+        model = str(getattr(settings, "mistral_model", ""))
+        if "traductor" in system:
+            models.append(("translate", model))
+            return "Crea un gravamen sobre els patrimonis de més de 50 milions."
+        if "TITULAR" in system:
+            return "Gravamen sobre els patrimonis de més de 50 milions"
+        models.append(("summary", model))
+        return "Crea un gravamen sobre los patrimonios de más de 50 millones."
+
+    monkeypatch.setattr(ps, "_call_llm_for_text", fake_llm)
+    row = SimpleNamespace(
+        title_original="Gravamen sobre la Concentración de Riqueza",
+        text_points=POINTS,
+        object_text=None,
+        summary=None,
+        type="proposicion_ley",
+    )
+    assert await bootstrap.rewrite_initiative_summary(row)  # type: ignore[arg-type]
+    settings = get_settings()
+    assert ("summary", settings.mistral_model) in models
+    assert ("translate", settings.law_text_verify_model) in models
+    assert "50 milions" in row.plain_summary_ca  # type: ignore[attr-defined]
