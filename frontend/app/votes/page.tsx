@@ -62,6 +62,7 @@ export default async function VotesPage({
   return (
     <div>
       <PageHeader
+        hue="var(--hue-lleis)"
         title={t('title')}
         icon={<CheckSquare size={20} strokeWidth={1.8} aria-hidden="true" />}
         cta={

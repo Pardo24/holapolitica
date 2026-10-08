@@ -122,6 +122,7 @@ export default async function MapaPage({
   return (
     <div>
       <PageHeader
+        hue="var(--hue-dades)"
         title={t('title')}
         subtitle={t('subtitle')}
         icon={<MapIcon size={20} strokeWidth={1.8} aria-hidden="true" />}

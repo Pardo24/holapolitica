@@ -120,6 +120,7 @@ export default async function ElTeuDiputatPage({
     return (
       <div>
         <PageHeader
+        hue="var(--hue-partits)"
           title={t('title')}
           subtitle={t('subtitle')}
           icon={<MapPin size={20} strokeWidth={1.8} aria-hidden="true" />}
@@ -153,6 +154,7 @@ export default async function ElTeuDiputatPage({
   return (
     <div>
       <PageHeader
+        hue="var(--hue-partits)"
         title={t('title')}
         subtitle={t('subtitle')}
         icon={<MapPin size={20} strokeWidth={1.8} aria-hidden="true" />}

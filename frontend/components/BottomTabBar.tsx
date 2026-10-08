@@ -40,7 +40,7 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { key: 'inici', href: '/' as Route, labelKey: 'tab_inici', hue: 'var(--accent)', Icon: Home },
+  { key: 'inici', href: '/' as Route, labelKey: 'tab_inici', hue: 'var(--ink)', Icon: Home },
   { key: 'lleis', href: '/lleis' as Route, labelKey: 'tab_lleis', hue: 'var(--hue-lleis)', Icon: Scale },
   {
     key: 'partits',
@@ -165,11 +165,11 @@ export function BottomTabBar() {
             line-height: 1;
           }
           .bottom-tab--on {
-            color: var(--tab-hue);
+            color: color-mix(in oklch, var(--tab-hue) 78%, var(--ink));
           }
           .bottom-tab--on .bottom-tab__icon {
-            background: color-mix(in oklch, var(--tab-hue) 16%, var(--paper));
-            color: var(--tab-hue);
+            background: var(--tab-hue);
+            color: #fff;
           }
           .bottom-tab--on .bottom-tab__label { font-weight: 700; }
           .bottom-tab:active .bottom-tab__icon {

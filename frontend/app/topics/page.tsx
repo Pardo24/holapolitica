@@ -19,6 +19,7 @@ export default async function TopicsPage() {
   return (
     <div>
       <PageHeader
+        hue="var(--hue-lleis)"
         title={t('title')}
         subtitle={t('eyebrow')}
         icon={<Layers size={20} strokeWidth={1.8} aria-hidden="true" />}

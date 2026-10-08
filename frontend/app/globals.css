@@ -5,19 +5,21 @@
 /* Hola Política — civic atlas tokens (Mirall design system) */
 :root {
   /* paper / ink — warm cream, deep cool ink. Saturation kept very low. */
-  --paper: oklch(0.985 0.004 85);
-  --paper-2: oklch(0.965 0.006 85);
-  --paper-3: oklch(0.94 0.008 85);
-  --ink: oklch(0.20 0.02 250);
-  --ink-2: oklch(0.36 0.015 250);
-  --ink-3: oklch(0.55 0.015 250);
-  --rule: oklch(0.86 0.01 80);
-  --rule-strong: oklch(0.72 0.012 80);
+  /* Near-white paper (#FAFAF7) with cool, faintly blue greys: the colour
+     comes from the sections, so the ground stays quiet and clean. */
+  --paper: oklch(0.985 0.003 106);
+  --paper-2: oklch(0.966 0.004 260);
+  --paper-3: oklch(0.94 0.006 260);
+  --ink: oklch(0.21 0.03 268);
+  --ink-2: oklch(0.37 0.022 265);
+  --ink-3: oklch(0.54 0.018 262);
+  --rule: oklch(0.885 0.007 262);
+  --rule-strong: oklch(0.75 0.01 262);
 
   /* Single civic accent — deep indigo, used sparingly */
-  --accent: oklch(0.42 0.13 264);
-  --accent-2: oklch(0.32 0.10 264);
-  --accent-soft: oklch(0.92 0.04 264);
+  --accent: #3D4FD1;
+  --accent-2: #2C3AA6;
+  --accent-soft: color-mix(in oklch, #3D4FD1 12%, var(--paper));
   --accent-warm: oklch(0.66 0.16 38);   /* Warm copper for highlights */
   --accent-warm-soft: oklch(0.94 0.04 38);
 
@@ -50,18 +52,31 @@
      cards and the page headers all agree on "leyes = indigo",
      "plenos = copper", "partidos = teal", "datos = violet".
 
-     Saturation stays low on purpose: this is a civic record, not a
-     product landing page. `-soft` is the same hue mixed into paper at
-     ~12%, safe as a background behind --ink text.
+     Vivid since the 2026-10 refresh: each section owns a clear colour
+     (laws indigo, sittings orange, deputies teal, data amber, games
+     rose, "how would you vote" sky). None is a party's colour: no red,
+     no PP blue, no Vox green, no purple. `-soft` is the hue mixed into
+     paper at ~12%, safe behind --ink text; `-ink` is the hue darkened
+     for text and thin strokes, where the fill colour would be too light.
      --------------------------------------------------------------- */
-  --hue-lleis: #475189;
-  --hue-lleis-soft: color-mix(in oklch, #475189 12%, var(--paper));
-  --hue-plens: #9A6628;
-  --hue-plens-soft: color-mix(in oklch, #9A6628 13%, var(--paper));
-  --hue-partits: #2F807A;
-  --hue-partits-soft: color-mix(in oklch, #2F807A 12%, var(--paper));
-  --hue-dades: #6E4F8E;
-  --hue-dades-soft: color-mix(in oklch, #6E4F8E 12%, var(--paper));
+  --hue-lleis: #3D4FD1;
+  --hue-lleis-soft: color-mix(in oklch, #3D4FD1 11%, var(--paper));
+  --hue-lleis-ink: #3241B5;
+  --hue-plens: #D9692A;
+  --hue-plens-soft: color-mix(in oklch, #D9692A 12%, var(--paper));
+  --hue-plens-ink: #A84B14;
+  --hue-partits: #13998A;
+  --hue-partits-soft: color-mix(in oklch, #13998A 12%, var(--paper));
+  --hue-partits-ink: #0B7267;
+  --hue-dades: #C4920E;
+  --hue-dades-soft: color-mix(in oklch, #C4920E 13%, var(--paper));
+  --hue-dades-ink: #8A6407;
+  --hue-jocs: #D6457F;
+  --hue-jocs-soft: color-mix(in oklch, #D6457F 11%, var(--paper));
+  --hue-jocs-ink: #A82A5D;
+  --hue-alinea: #1689C2;
+  --hue-alinea-soft: color-mix(in oklch, #1689C2 11%, var(--paper));
+  --hue-alinea-ink: #0D6592;
 
   /* Type — system stack only. Hierarchy via size/weight/tracking. */
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -3466,15 +3481,15 @@ summary.change-chip { cursor: pointer; }
   gap: 2px;
   min-width: 0;
   padding: 13px 14px 14px;
-  border: 1px solid color-mix(in oklch, var(--tile) 22%, var(--rule));
+  border: 1px solid color-mix(in oklch, var(--tile) 26%, var(--paper));
   border-radius: 16px;
-  background: color-mix(in oklch, var(--tile) 6%, var(--paper));
+  background: color-mix(in oklch, var(--tile) 10%, var(--paper));
   color: var(--ink);
   text-decoration: none;
   transition: background-color .15s ease, border-color .15s ease;
 }
-.home-grid .home-grid__tile:hover { border-color: color-mix(in oklch, var(--tile) 45%, var(--rule)); }
-.home-grid .home-grid__tile:active { background: color-mix(in oklch, var(--tile) 13%, var(--paper)); }
+.home-grid .home-grid__tile:hover { border-color: color-mix(in oklch, var(--tile) 55%, var(--paper)); }
+.home-grid .home-grid__tile:active { background: color-mix(in oklch, var(--tile) 18%, var(--paper)); }
 .home-grid__icon {
   display: inline-flex;
   align-items: center;
@@ -3482,9 +3497,10 @@ summary.change-chip { cursor: pointer; }
   width: 36px;
   height: 36px;
   margin-bottom: 8px;
-  border-radius: 11px;
-  background: color-mix(in oklch, var(--tile) 16%, var(--paper));
-  color: var(--tile);
+  border-radius: 999px;
+  background: var(--tile);
+  color: #fff;
+  box-shadow: 0 2px 6px -2px color-mix(in oklch, var(--tile) 60%, transparent);
 }
 .home-grid__title { font-size: 15px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
 .home-grid__sub {

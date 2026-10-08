@@ -22,6 +22,7 @@ export function PageHeader({
   title,
   subtitle,
   icon,
+  hue,
   cta,
   children,
   className,
@@ -33,6 +34,8 @@ export function PageHeader({
   subtitle?: ReactNode;
   /** Optional Lucide icon rendered before the H1 — small, accent-tinted. */
   icon?: ReactNode;
+  /** The section's colour for the icon (a --hue-* token); accent if unset. */
+  hue?: string;
   cta?: ReactNode;
   children?: ReactNode;
   className?: string;
@@ -73,11 +76,11 @@ export function PageHeader({
                 alignItems: 'center',
                 justifyContent: 'center',
                 flex: 'none',
-                color: 'var(--accent)',
+                color: '#fff',
                 width: 38,
                 height: 38,
-                borderRadius: 11,
-                background: 'color-mix(in oklch, var(--accent) 12%, var(--paper))',
+                borderRadius: 999,
+                background: hue ?? 'var(--accent)',
               }}
             >
               {icon}

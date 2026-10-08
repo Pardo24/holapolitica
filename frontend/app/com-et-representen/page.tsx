@@ -37,6 +37,7 @@ export default async function ComEtRepresentenPage({
   return (
     <div style={{ maxWidth: 680, marginInline: 'auto' }}>
       <PageHeader
+        hue="var(--hue-alinea)"
         title={t('title')}
         subtitle={t('subtitle')}
         icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}

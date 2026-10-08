@@ -34,14 +34,14 @@ export async function HomeQuickGrid({
     {
       href: '/jocs',
       Icon: Gamepad2,
-      hue: '#6E4F8E',
+      hue: 'var(--hue-jocs)',
       title: t('play_title'),
       sub: t('play_sub'),
     },
     {
       href: '/com-et-representen',
       Icon: Sparkles,
-      hue: '#2F807A',
+      hue: 'var(--hue-alinea)',
       title: t('align_title'),
       sub: t('align_sub'),
     },
@@ -55,7 +55,7 @@ export async function HomeQuickGrid({
     {
       href: '/mapa',
       Icon: MapIcon,
-      hue: '#475189',
+      hue: 'var(--hue-dades)',
       title: t('map_title'),
       sub: t('map_sub'),
     },

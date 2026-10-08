@@ -132,6 +132,7 @@ export default async function LleisPage({
   return (
     <div>
       <PageHeader
+        hue="var(--hue-lleis)"
         title={t('title')}
         subtitle={t('subtitle')}
         icon={<Scale size={20} strokeWidth={1.8} aria-hidden="true" />}

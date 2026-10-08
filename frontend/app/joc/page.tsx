@@ -53,6 +53,7 @@ export default async function JocPage({
 
   const header = (
     <PageHeader
+        hue="var(--hue-jocs)"
       title={t('title')}
       subtitle={t('subtitle')}
       icon={<Gamepad2 size={20} strokeWidth={1.8} aria-hidden="true" />}

@@ -63,6 +63,7 @@ export default async function NotificationsPage() {
       }}
     >
       <PageHeader
+        hue="var(--hue-plens)"
         title={t('title')}
         subtitle={t('eyebrow')}
         icon={<Bell size={20} strokeWidth={1.8} aria-hidden="true" />}

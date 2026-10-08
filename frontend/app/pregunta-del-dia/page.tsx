@@ -24,6 +24,7 @@ export default async function PreguntaDelDiaPage() {
   return (
     <div style={{ maxWidth: 620, marginInline: 'auto' }}>
       <PageHeader
+        hue="var(--hue-jocs)"
         title={t('page_title')}
         subtitle={t('page_subtitle')}
         icon={<CalendarDays size={20} strokeWidth={1.8} aria-hidden="true" />}
