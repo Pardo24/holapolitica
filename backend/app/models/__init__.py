@@ -450,6 +450,15 @@ class Initiative(Base, TimestampMixin):
     # locale). NULL = not processed yet; empty lists = the model could
     # not name a concrete audience. See ``app.services.affected``.
     affected_audiences: Mapped[dict[str, list[str]] | None] = mapped_column(JSON)
+    # Reading of the bill's own text (BOCG PDF): concrete measures with
+    # their article, symmetric "what it changes" tags and the passage that
+    # justifies each. See alembic 0034 and app/services/law_text.py.
+    text_points: Mapped[dict[str, list[dict[str, str | None]]] | None] = mapped_column(JSON)
+    change_tags: Mapped[list[str] | None] = mapped_column(JSON)
+    change_evidence: Mapped[dict[str, dict[str, str]] | None] = mapped_column(JSON)
+    text_analysis_source: Mapped[str | None] = mapped_column(String(16))
+    text_analysis_provider: Mapped[str | None] = mapped_column(String(64))
+    text_analysis_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Session(Base, TimestampMixin):

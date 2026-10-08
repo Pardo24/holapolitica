@@ -79,6 +79,16 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "45 */6 * * *",
         jobs.generate_affected_pending,
     ),
+    # Read the text of law-making initiatives (BOCG PDF): concrete measures
+    # with their article, and the symmetric "what it changes" tags. One PDF
+    # and one long LLM call per law, so a small batch per tick; new bills
+    # arrive a few a week.
+    (
+        "monitor-law-text-pending",
+        "ingest",
+        "55 */6 * * *",
+        jobs.analyse_law_texts_pending,
+    ),
     # Upcoming agenda: daily at 08:00 (after the calendar publishes any
     # overnight Mesa decisions), plus an extra Monday 14:00 run because the
     # Mesa typically tweaks the week's pleno on Friday afternoon / Monday

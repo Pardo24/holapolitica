@@ -39,6 +39,7 @@ from app.schemas import (
 )
 from app.services.affected import normalise_audience_tag
 from app.services.cache import cached
+from app.services.law_text import CHANGE_TAGS
 
 router = APIRouter(prefix="/initiatives", tags=["initiatives"])
 
@@ -162,6 +163,14 @@ async def list_initiatives(
             "Postgres."
         ),
     ),
+    change: str | None = Query(
+        None,
+        description=(
+            "What the text changes, from the analysis of the bill's own text: "
+            "tax_up, tax_down, rights_expand, rights_restrict, env_strengthen, "
+            "env_relax, public_more, private_more. Comma-separated, OR-ed."
+        ),
+    ),
     ids: str | None = Query(
         None,
         description=(
@@ -199,6 +208,16 @@ async def list_initiatives(
     count_stmt = select(func.count(func.distinct(Initiative.id))).select_from(Initiative)
 
     conditions: list[ColumnElement[bool]] = []
+    # "What it changes": the tags are a JSON list of slugs; match the quoted
+    # slug in the serialised column, as the audience filter does.
+    change_tags = (
+        [tok for tok in _split_csv(change) if tok in CHANGE_TAGS] if isinstance(change, str) else []
+    )
+    if change_tags:
+        serialised_tags = func.cast(Initiative.change_tags, String)
+        conditions.append(
+            or_(*(serialised_tags.contains(f'"{tag}"', autoescape=True) for tag in change_tags))
+        )
     wanted_ids = (
         [int(tok) for tok in _split_csv(ids) if tok.isdigit()] if isinstance(ids, str) else []
     )

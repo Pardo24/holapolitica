@@ -231,6 +231,15 @@ class InitiativeRead(BaseModel):
     # who the initiative directly affects. NULL until the extraction
     # job has run; empty lists when no concrete audience was named.
     affected_audiences: dict[str, list[str]] | None = None
+    # What the bill's text says (concrete measures with their article) and
+    # what it changes (symmetric tags with the passage behind each). NULL
+    # until the text analysis has run; see app/services/law_text.py.
+    text_points: dict[str, list[dict[str, str | None]]] | None = None
+    change_tags: list[str] | None = None
+    change_evidence: dict[str, dict[str, str]] | None = None
+    text_analysis_source: str | None = None
+    text_analysis_provider: str | None = None
+    text_analysis_generated_at: datetime | None = None
     # Boletín Oficial del Estado reference — populated by the worker
     # ``enrich_initiatives_boe`` for approved initiatives that have
     # been formally published as law. NULL otherwise. ``boe_id`` is

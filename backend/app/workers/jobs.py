@@ -489,6 +489,98 @@ def generate_affected_pending(batch_size: int = 200) -> dict[str, int]:
     return asyncio.run(_run())
 
 
+def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
+    """RQ entrypoint: read the text of law-making initiatives not yet analysed.
+
+    For each one with a BOCG PDF and no analysis yet, newest first: fetch
+    the PDF, extract its text, and store the concrete measures (with their
+    article) and the symmetric "what it changes" tags; see
+    :mod:`app.services.law_text`. A row whose text can't be read or yields
+    nothing is stamped anyway (source "empty") so the job doesn't retry it
+    every tick. One commit per row.
+    """
+    from datetime import datetime
+
+    from sqlalchemy import select as _select
+
+    from app.ingest.congreso.client import CongresoClient
+    from app.models import Initiative
+    from app.services.law_text import analyse_law_text, extract_pdf_text, pdf_url_from_source
+    from app.services.llm_http import LLMUnavailableError
+
+    law_types = ("proyecto_ley", "proposicion_ley", "real_decreto_ley")
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            stmt = (
+                _select(Initiative.id)
+                .where(Initiative.type.in_(law_types))
+                .where(Initiative.text_analysis_generated_at.is_(None))
+                .where(Initiative.source_url.ilike("%.pdf%"))
+                .order_by(Initiative.id.desc())
+                .limit(batch_size)
+            )
+            ids = [int(i) for i in (await session.execute(stmt)).scalars().all()]
+        if not ids:
+            log.info("law_text.pending.empty")
+            return {"attempted": 0, "succeeded": 0, "empty": 0, "failed": 0}
+
+        succeeded = empty = failed = 0
+        async with CongresoClient() as client:
+            for initiative_id in ids:
+                try:
+                    async with AsyncSessionLocal() as session:
+                        initiative = (
+                            await session.execute(
+                                _select(Initiative).where(Initiative.id == initiative_id)
+                            )
+                        ).scalar_one_or_none()
+                        if initiative is None:
+                            continue
+                        target = pdf_url_from_source(initiative.source_url)
+                        result = None
+                        if target is not None:
+                            pdf_bytes = await client.fetch_bytes(target[0])
+                            text, truncated = extract_pdf_text(pdf_bytes, target[1])
+                            if len(text) >= 400:
+                                result = await analyse_law_text(text, truncated=truncated)
+                        now = datetime.now(UTC)
+                        if result is None or not result.points.get("es"):
+                            initiative.text_analysis_source = "empty"
+                            initiative.text_analysis_generated_at = now
+                            empty += 1
+                        else:
+                            initiative.text_points = result.points
+                            initiative.change_tags = result.tags
+                            initiative.change_evidence = result.evidence
+                            initiative.text_analysis_source = result.source
+                            initiative.text_analysis_provider = result.provider
+                            initiative.text_analysis_generated_at = now
+                            succeeded += 1
+                        await session.commit()
+                except LLMUnavailableError as exc:
+                    log.error("law_text.pending.aborted", error=str(exc))
+                    failed += 1
+                    break
+                except Exception as exc:
+                    log.warning(
+                        "law_text.pending.failed", initiative_id=initiative_id, error=str(exc)
+                    )
+                    failed += 1
+                await asyncio.sleep(0.5)  # politeness towards congreso.es
+
+        log.info(
+            "law_text.pending.done",
+            attempted=len(ids),
+            succeeded=succeeded,
+            empty=empty,
+            failed=failed,
+        )
+        return {"attempted": len(ids), "succeeded": succeeded, "empty": empty, "failed": failed}
+
+    return asyncio.run(_run())
+
+
 def classify_pending_initiatives(batch_size: int = 200, kind: str = "theme") -> dict[str, int]:
     """RQ entrypoint: classify a batch of initiatives that still lack a topic.
 
