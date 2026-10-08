@@ -12,7 +12,7 @@ import { getLocale } from 'next-intl/server';
  */
 
 export const metadata: Metadata = {
-  title: 'Privacitat · Hola Política',
+  title: 'Privacitat',
   description:
     'Quines dades tracta Hola Política (web i apps): cap rastrejador, correu només si et subscrius, ubicació només al dispositiu.',
 };
