@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 
-from app.services.law_text import parse_analysis, pdf_url_from_source
+from app.services.law_text import parse_analysis, parse_verdict, pdf_url_from_source
 
 
 def test_pdf_url_and_first_page_from_source() -> None:
@@ -92,3 +92,14 @@ def test_reference_repeated_at_the_end_is_trimmed() -> None:
         )
     )
     assert points["es"][0]["text"] == "Prohíbe la custodia compartida con indicios de violencia."
+
+
+def test_verdict_keeps_order_and_only_known_tags() -> None:
+    assert parse_verdict(
+        '{"keep": ["rights_expand", "tax_down"]}', ["tax_down", "private_more", "rights_expand"]
+    ) == [
+        "tax_down",
+        "rights_expand",
+    ]
+    assert parse_verdict("no", ["tax_down"]) == []
+    assert parse_verdict('{"keep": ["invented"]}', ["tax_down"]) == []

@@ -102,6 +102,31 @@ Una ley puede tener las dos etiquetas de un par si hace ambas cosas.
 Si el texto no es legible o no contiene medidas, devuelve listas vacías.
 """
 
+# Second pass: a stricter reader checks each tag against its passage. The
+# first pass alone mislabelled about one tag in three on a sample (an
+# obligation on banks read as "more private management", municipal
+# autonomy read as "expands rights"); a tag shown as a fact needs better.
+_VERIFY_PROMPT = """Eres un verificador ESTRICTO. Recibirás el título de una ley y unas
+etiquetas, cada una con el pasaje que la justifica. Conserva SOLO las que
+cumplen su definición al pie de la letra; ante la duda, descártala.
+
+- tax_up / tax_down: cambia IMPUESTOS, TASAS, DEDUCCIONES, EXENCIONES o
+  BONIFICACIONES fiscales. Ayudas o subvenciones directas NO son impuestos.
+- rights_expand / rights_restrict: cambia derechos, libertades o
+  prestaciones de PERSONAS (ciudadanía, trabajadores, pacientes, alumnos,
+  víctimas, condenados…). NO: competencias, autonomía o financiación de
+  administraciones; NO: obligaciones o cargas para empresas.
+- env_strengthen / env_relax: cambia normas de PROTECCIÓN AMBIENTAL
+  (emisiones, residuos, contaminación, espacios o especies protegidas,
+  evaluación ambiental). Gestión económica de recursos NO basta.
+- public_more / private_more: cambia QUIÉN GESTIONA O POSEE un servicio o
+  bien público (paso a gestión pública o privada, externalización,
+  concesión, venta o compra de bienes públicos). Imponer obligaciones o
+  costes a empresas privadas NO es private_more.
+
+Devuelve SOLO: {"keep": ["etiqueta", ...]}
+"""
+
 _REF_RE = re.compile(r"^[\w\s.ºª°,\-/()]{1,40}$")
 
 
@@ -217,6 +242,13 @@ async def analyse_law_text(
     settings = settings or get_settings()
     raw = await _call_json(settings, system=_PROMPT, user=text)
     points, tags, evidence = parse_analysis(raw)
+    if tags:
+        tags = await verify_tags(
+            title=text[:300], tags=tags, evidence=evidence["es"], settings=settings
+        )
+        evidence = {
+            lang: {k: v for k, v in ev.items() if k in tags} for lang, ev in evidence.items()
+        }
     return LawTextAnalysis(
         points=points,
         tags=tags,
@@ -225,6 +257,34 @@ async def analyse_law_text(
         provider=_provider_name(settings),
         raw=raw,
     )
+
+
+async def verify_tags(
+    *, title: str, tags: list[str], evidence: dict[str, str], settings: Settings | None = None
+) -> list[str]:
+    """Keep only the tags a strict second reading confirms. Order kept."""
+    settings = settings or get_settings()
+    if not tags:
+        return []
+    user = json.dumps(
+        {"titulo": title, "etiquetas": [{"tag": t, "pasaje": evidence.get(t, "")} for t in tags]},
+        ensure_ascii=False,
+    )
+    raw = await _call_json(settings, system=_VERIFY_PROMPT, user=user)
+    return parse_verdict(raw, tags)
+
+
+def parse_verdict(raw: str, tags: list[str]) -> list[str]:
+    """The tags the verifier kept, in their original order; none on garbage."""
+    start, end = raw.find("{"), raw.rfind("}")
+    if start < 0 or end <= start:
+        return []
+    try:
+        keep = json.loads(raw[start : end + 1]).get("keep") or []
+    except (ValueError, AttributeError):
+        return []
+    kept = {str(k).strip() for k in keep}
+    return [t for t in tags if t in kept]
 
 
 async def _call_json(settings: Settings, *, system: str, user: str) -> str:

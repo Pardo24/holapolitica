@@ -581,6 +581,66 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
     return asyncio.run(_run())
 
 
+def reverify_change_tags(batch_size: int = 1000) -> dict[str, int]:
+    """One-off: run the strict second reading over tags stored before it existed.
+
+    Each row's tags are checked against their own passages; the ones the
+    verifier does not confirm are removed, with their evidence. Rows with
+    no tags are skipped. Safe to re-run: a confirmed tag stays confirmed.
+    """
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative
+    from app.services.law_text import verify_tags
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            rows = (
+                (
+                    await session.execute(
+                        _select(Initiative.id)
+                        .where(Initiative.change_tags.is_not(None))
+                        .order_by(Initiative.id.desc())
+                        .limit(batch_size)
+                    )
+                )
+                .scalars()
+                .all()
+            )
+        checked = removed = 0
+        for initiative_id in rows:
+            try:
+                async with AsyncSessionLocal() as session:
+                    i = (
+                        await session.execute(
+                            _select(Initiative).where(Initiative.id == initiative_id)
+                        )
+                    ).scalar_one()
+                    tags = list(i.change_tags or [])
+                    if not tags:
+                        continue
+                    evidence = dict(i.change_evidence or {})
+                    kept = await verify_tags(
+                        title=i.plain_title_es or i.title_original,
+                        tags=tags,
+                        evidence=dict(evidence.get("es") or {}),
+                    )
+                    removed += len(tags) - len(kept)
+                    i.change_tags = kept
+                    i.change_evidence = {
+                        lang: {k: v for k, v in (ev or {}).items() if k in kept}
+                        for lang, ev in evidence.items()
+                    }
+                    await session.commit()
+                    checked += 1
+            except Exception as exc:
+                log.warning("law_text.reverify.failed", initiative_id=initiative_id, error=str(exc))
+        log.info("law_text.reverify.done", checked=checked, removed=removed)
+        return {"checked": checked, "removed": removed}
+
+    return asyncio.run(_run())
+
+
 def classify_pending_initiatives(batch_size: int = 200, kind: str = "theme") -> dict[str, int]:
     """RQ entrypoint: classify a batch of initiatives that still lack a topic.
 
