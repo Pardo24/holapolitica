@@ -56,6 +56,7 @@ export function VoteSplit({
   /** "lg" gives the detail open by default: on a law's own page the
    *  breakdown is the point, not an extra. */
   size = 'sm',
+  bigTally = false,
 }: {
   ayes: number;
   noes: number;
@@ -65,6 +66,8 @@ export function VoteSplit({
   labels: VoteSplitLabels;
   date?: string | null;
   size?: 'sm' | 'lg';
+  /** The tally as two big figures and one bar (the laws list's big cards). */
+  bigTally?: boolean;
 }) {
   const inFavour = groups.filter((g) => g.choice === 'aye');
   const against = groups.filter((g) => g.choice === 'no');
@@ -109,6 +112,32 @@ export function VoteSplit({
           own page (size="lg") the breakdown IS the content, so it stays. */}
       {big && <Ribbon zones={zones} groups={groups} height={18} />}
 
+      {bigTally ? (
+        <>
+          <div className="vote-big tabular">
+            <span className="vote-big__n" style={{ color: 'var(--aye)' }}>
+              {ayes}
+            </span>
+            <span className="vote-big__l">{labels.inFavour}</span>
+            <span className="vote-big__n" style={{ color: 'var(--no)' }}>
+              {noes}
+            </span>
+            <span className="vote-big__l">{labels.against}</span>
+            {abstentions > 0 && (
+              <span className="vote-big__abst">
+                {abstentions} {labels.abstention.toLowerCase()}
+              </span>
+            )}
+          </div>
+          <div className="vote-big__bar" aria-hidden="true">
+            {zones
+              .filter((z) => z.count > 0)
+              .map((z) => (
+                <span key={z.key} style={{ flexGrow: z.count, background: z.color }} />
+              ))}
+          </div>
+        </>
+      ) : (
       <div
         className="tabular vote-split-tally"
         style={{
@@ -124,6 +153,7 @@ export function VoteSplit({
         <Tally color="var(--no)" label={labels.against} n={noes} />
         <Tally color="var(--abst)" label={labels.abstention} n={abstentions} />
       </div>
+      )}
 
       {groups.length === 0 ? (
         <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>

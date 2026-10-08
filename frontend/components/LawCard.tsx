@@ -2,23 +2,15 @@ import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { ProposerBadges } from '@/components/InitiativeRow';
-import {
-  LawCardFooter,
-  LawCardFrame,
-  LawCardHeadline,
-  LawCardTopLine,
-  LawCardVoteBox,
-} from '@/components/LawCardParts';
+import { LawCardFooter, LawCardFrame, LawCardHeadline, LawCardVoteBox } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
-import { ResultPill } from '@/components/ResultPill';
-import { StackedBar } from '@/components/StackedBar';
-import { TopicChip } from '@/components/TopicChip';
 import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
 import { type ParsedProposer } from '@/lib/groups';
-import { STATUS_COLOR, STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
+import { STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
+import { topicIcon } from '@/lib/topic_icons';
 import { pickTopicName } from '@/lib/topics';
 import { changeTagIcon, isChangeTag, pdfUrl } from '@/lib/changeTags';
 import { FileText, Sparkles } from 'lucide-react';
@@ -88,57 +80,63 @@ export async function LawCard({
     plainTitle ?? (plainSummary ? summaryHeadline(plainSummary) : initiative.title_original);
   const statusKey = STATUS_KEY[initiative.status];
   const statusLabel = statusKey ? tStats(statusKey) : initiative.status;
-  const statusColor = STATUS_COLOR[initiative.status] ?? 'var(--ink-3)';
   const showVoteResult = prefersVoteResult(initiative.status, initiative.latest_vote_result);
 
   const vote = initiative.latest_vote ?? null;
-  const inFavour = vote?.groups.filter((g) => g.choice === 'aye') ?? [];
-  const against = vote?.groups.filter((g) => g.choice === 'no') ?? [];
-  const abstained = vote?.groups.filter((g) => g.choice === 'abstention') ?? [];
   const voteDate = vote?.voted_at
     ? new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })
     : null;
 
+  // The band: the first subject (a theme before an SDG) and the outcome.
+  const outcomeKey = showVoteResult ? initiative.latest_vote_result : null;
+  const outcomeLabel = outcomeKey
+    ? tVotes(`result.${outcomeKey}` as 'result.approved')
+    : statusLabel;
+  const tone = outcomeKey === 'approved' ? 'aye' : outcomeKey === 'rejected' ? 'no' : 'neutral';
+  const topic =
+    (initiative.topics ?? []).find((tp) => tp.kind !== 'sdg') ?? initiative.topics?.[0] ?? null;
+  const TopicIcon = topic ? topicIcon(topic.icon) : null;
+  const dateIso = vote?.voted_at ?? initiative.submitted_at;
+  const dateLabel = dateIso
+    ? new Date(dateIso).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
+    : null;
+  // The summary's lead, when the headline is a title of its own.
+  const cardSummary = plainTitle && plainSummary ? summaryHeadline(plainSummary) : null;
+  // "en" has no audience list of its own; Spanish is the source language.
+  const audiences = (
+    locale === 'ca'
+      ? initiative.affected_audiences?.ca
+      : (initiative.affected_audiences?.es ?? initiative.affected_audiences?.ca)
+  )?.filter(Boolean);
+
   return (
     <LawCardFrame>
-      {/* Line 1: what kind of law it is, what it touches, how it ended. */}
-      <LawCardTopLine
-        outcome={
-          showVoteResult && initiative.latest_vote_result ? (
-            <ResultPill
-              result={initiative.latest_vote_result}
-              label={tVotes(`result.${initiative.latest_vote_result}` as 'result.approved')}
-            />
-          ) : (
-            <span
-              className="badge"
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: statusColor,
-                borderColor: 'color-mix(in oklch, currentColor 35%, var(--paper))',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {statusLabel}
-            </span>
-          )
-        }
-      >
-        <LawTypeChip type={initiative.type} />
-        {(initiative.topics ?? []).slice(0, 1).map((tp) => (
-          <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
-        ))}
-      </LawCardTopLine>
+      {/* The band: what it is about, and how it ended, in the outcome's
+          colour. One look says "housing, approved". */}
+      <div className={`law-card-band law-card-band--${tone}`}>
+        {topic ? (
+          <span className="law-card-band__topic" style={{ ['--topic' as string]: topic.color_hex ?? 'var(--ink-3)' }}>
+            {TopicIcon && <TopicIcon size={14} strokeWidth={2} aria-hidden="true" />}
+            {pickTopicName(topic, locale)}
+          </span>
+        ) : (
+          <span />
+        )}
+        <span className="law-card-band__verdict">{outcomeLabel}</span>
+      </div>
 
-      {/* Line 2: what it does, in plain language. A machine-written line
-          carries a small sparkle (with its label for screen readers and on
-          hover) instead of a whole eyebrow row above it: the card is read
-          in a second, and the law's page says it in full. */}
-      <LawCardHeadline href={href}>
+      {/* What kind of text, and when it was last voted (or tabled). */}
+      <div className="law-card-meta">
+        <LawTypeChip type={initiative.type} />
+        {dateLabel && <span className="tabular">{dateLabel}</span>}
+      </div>
+
+      {/* What it does, in plain language. A machine-written line carries a
+          small sparkle (with its label for screen readers and on hover). */}
+      <LawCardHeadline href={href} size="lg">
         {plainSummary && (
           <Sparkles
-            size={14}
+            size={15}
             strokeWidth={2}
             aria-label={t('card_ai_summary')}
             role="img"
@@ -149,6 +147,18 @@ export async function LawCard({
         )}
         {headline}
       </LawCardHeadline>
+
+      {/* Three lines of the summary, under a headline of its own. When the
+          headline is itself taken from the summary, this would repeat it. */}
+      {cardSummary && <p className="law-card-summary">{cardSummary}</p>}
+
+      {/* Who it touches: the collectives named in the text itself. */}
+      {audiences && audiences.length > 0 && (
+        <div className="law-card-affects">
+          <span>{t('card_affects')}</span>
+          {audiences.slice(0, 5).join(', ')}
+        </div>
+      )}
 
       {/* What the text establishes for the reader's situation. */}
       {forYou && (
@@ -195,6 +205,7 @@ export async function LawCard({
             absent={vote.absent}
             groups={vote.groups}
             date={voteDate}
+            bigTally
             labels={{
               // Say what was voted when it was a step, not the law: the
               // card's verdict above can differ from this vote's result

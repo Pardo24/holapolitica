@@ -58,11 +58,20 @@ export function LawCardTopLine({ children, outcome }: { children: ReactNode; out
 }
 
 /** The plain-language headline, clamped to three lines. */
-export function LawCardHeadline({ href, children }: { href: Route | null; children: ReactNode }) {
+export function LawCardHeadline({
+  href,
+  children,
+  size = 'md',
+}: {
+  href: Route | null;
+  children: ReactNode;
+  /** "lg": the laws list's big cards, one law per screen on a phone. */
+  size?: 'md' | 'lg';
+}) {
   const style: CSSProperties = {
-    fontSize: 'clamp(17px, 2.2vw, 20px)',
+    fontSize: size === 'lg' ? 'clamp(21px, 2.6vw, 25px)' : 'clamp(17px, 2.2vw, 20px)',
     fontWeight: 700,
-    lineHeight: 1.32,
+    lineHeight: size === 'lg' ? 1.22 : 1.32,
     color: 'var(--ink)',
     textDecoration: 'none',
     letterSpacing: '-0.01em',
