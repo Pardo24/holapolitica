@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowRight,
+  ChevronRight,
   Code2,
   LockKeyhole,
   ShieldCheck,
@@ -817,110 +818,48 @@ function MobileDashboard({
       {/* First: what you can do here. Many open the app for one thing
           (the game, the map, their deputies); it is one tap away, before
           the news. */}
-      <div style={{ margin: '0 0 18px' }}>{quickGrid}</div>
+      <div style={{ margin: '0 0 10px' }}>{quickGrid}</div>
 
-      {/* "I a tu, què t'afecta?": pick your situation. */}
-      <div style={{ marginBottom: 26 }}>{profilePicker}</div>
-
-      {/* Then the latest plenary session, as a full card: what happened. */}
+      {/* The latest plenary, compact: it shares the first screen with the
+          tiles, so it is one dark strip (when, how it went, how fresh)
+          that opens the day's votes. */}
       {latestVotes[0]?.voted_at && (
-        <Link
-          href={`/avui/${latestVotes[0].voted_at.slice(0, 10)}` as Route}
-          style={{
-            display: 'block',
-            padding: '16px 18px',
-            border: '1px solid var(--ink)',
-            background: 'var(--ink)',
-            color: 'var(--paper)',
-            borderRadius: 16,
-            textDecoration: 'none',
-            marginBottom: 22,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 10,
-              marginBottom: 5,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 10,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                color: 'var(--paper-2)',
-              }}
-            >
-              {labels.sessionBannerEyebrow}
-            </span>
+        <Link href={`/avui/${latestVotes[0].voted_at.slice(0, 10)}` as Route} className="home-ple">
+          <span className="home-ple__top">
+            <span className="home-ple__eyebrow">{labels.sessionBannerEyebrow}</span>
             <FreshnessButton isoDate={latestVotes[0].voted_at} locale={locale} label={labels.lastUpdate} />
-          </div>
-          <div
-            className="serif"
-            style={{
-              fontSize: 20,
-              fontWeight: 600,
-              lineHeight: 1.2,
-              letterSpacing: '-0.015em',
-            }}
-          >
-            {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            })}
-          </div>
-          {/* The day's outcome, on the card itself — a thin split bar plus
-              the counts, so the lead reads as "this happened, and here's
-              the shape of it", not just a date. Green/red survive the dark
-              card because they're the vote-choice tokens, tuned for it. */}
-          {sessTotal > 0 && (
-            <div style={{ marginTop: 12 }}>
-              <div
-                role="img"
-                aria-label={`${labels.sessionApproved}, ${labels.sessionRejected}`}
-                style={{
-                  display: 'flex',
-                  height: 7,
-                  borderRadius: 999,
-                  overflow: 'hidden',
-                  background: 'color-mix(in oklch, var(--paper) 22%, transparent)',
-                }}
-              >
-                {sessApproved > 0 && (
-                  <span style={{ width: `${(sessApproved / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--aye)' }} />
-                )}
-                {sessRejected > 0 && (
-                  <span style={{ width: `${(sessRejected / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--no)' }} />
-                )}
-              </div>
-              <div
-                className="tabular"
-                style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 12, flexWrap: 'wrap' }}
-              >
-                <span style={{ color: 'var(--aye)', fontWeight: 700 }}>{labels.sessionApproved}</span>
-                <span style={{ color: 'var(--no)', fontWeight: 700 }}>{labels.sessionRejected}</span>
-              </div>
-            </div>
-          )}
-          <div
-            style={{
-              fontSize: 12.5,
-              color: 'var(--paper-2)',
-              marginTop: 12,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            {labels.sessionBannerCta} →
-          </div>
+          </span>
+          <span className="home-ple__row">
+            <span className="home-ple__date serif">
+              {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+              })}
+            </span>
+            {sessTotal > 0 && (
+              <>
+                <span
+                  className="home-ple__bar"
+                  role="img"
+                  aria-label={`${labels.sessionApproved}, ${labels.sessionRejected}`}
+                >
+                  {sessApproved > 0 && <span style={{ flexGrow: sessApproved, background: 'var(--aye)' }} />}
+                  {sessRejected > 0 && <span style={{ flexGrow: sessRejected, background: 'var(--no)' }} />}
+                </span>
+                <span className="home-ple__counts tabular" aria-hidden="true">
+                  <b style={{ color: 'var(--aye)' }}>{sessApproved}</b>
+                  <b style={{ color: 'var(--no)' }}>{sessRejected}</b>
+                </span>
+              </>
+            )}
+            <ChevronRight size={18} aria-hidden="true" style={{ flex: 'none', opacity: 0.8 }} />
+          </span>
         </Link>
       )}
+
+      {/* "I a tu, què t'afecta?": pick your situation. */}
+      <div style={{ margin: '22px 0 26px' }}>{profilePicker}</div>
 
       {/* Where to start when you don't know what to look for: everyday
           subjects, and what a law changes. */}

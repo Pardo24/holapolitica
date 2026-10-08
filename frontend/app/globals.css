@@ -3594,7 +3594,7 @@ summary.change-chip { cursor: pointer; }
     grid-auto-rows: minmax(
       clamp(
         64px,
-        calc((100svh - 230px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 3),
+        calc((100svh - 318px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 3),
         124px
       ),
       auto
@@ -3616,7 +3616,7 @@ summary.change-chip { cursor: pointer; }
 }
 /* Very short screens (landscape-ish webviews): the tile lies flat, icon
    beside the text, so three rows still fit. */
-@media (max-width: 640px) and (max-height: 540px) {
+@media (max-width: 640px) and (max-height: 640px) {
   .home-grid .home-grid__tile {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -3914,13 +3914,13 @@ summary.change-chip { cursor: pointer; }
    edge along the foot, so a scrolled-past card still says how it ended. */
 .law-card[data-result="approved"] {
   border-color: color-mix(in oklch, var(--aye) 45%, var(--paper)) !important;
-  box-shadow: inset 0 -5px 0 var(--aye), var(--shadow-2) !important;
-  padding-bottom: 21px !important;
+  box-shadow: inset 0 -10px 0 color-mix(in oklch, var(--aye) 16%, var(--paper)), var(--shadow-2) !important;
+  padding-bottom: 26px !important;
 }
 .law-card[data-result="rejected"] {
   border-color: color-mix(in oklch, var(--no) 40%, var(--paper)) !important;
-  box-shadow: inset 0 -5px 0 var(--no), var(--shadow-2) !important;
-  padding-bottom: 21px !important;
+  box-shadow: inset 0 -10px 0 color-mix(in oklch, var(--no) 13%, var(--paper)), var(--shadow-2) !important;
+  padding-bottom: 26px !important;
 }
 
 /* Games hub (components/GamesHub): a coloured header with the player's
@@ -4082,3 +4082,21 @@ summary.change-chip { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .games-wheel, .games-bars span { animation: none; }
 }
+
+/* Home (phone): the latest plenary as a compact dark strip under the tiles. */
+.home-ple {
+  display: grid;
+  gap: 6px;
+  padding: 11px 14px 12px;
+  border-radius: 16px;
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+}
+.home-ple__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.home-ple__eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-2); }
+.home-ple__row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.home-ple__date { flex: none; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.home-ple__bar { flex: 1; display: flex; gap: 2px; height: 7px; min-width: 40px; border-radius: 999px; overflow: hidden; background: color-mix(in oklch, var(--paper) 22%, transparent); }
+.home-ple__bar > span { display: block; }
+.home-ple__counts { flex: none; display: inline-flex; gap: 8px; font-size: 14px; }
