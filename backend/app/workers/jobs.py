@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC
+from typing import Any
 
 from app.classify.providers import build_classifier
 from app.classify.service import ClassificationService
@@ -133,6 +134,7 @@ def generate_plain_summary_for_initiative(
 
     from sqlalchemy import select as _select
 
+    from app.ingest.congreso.bootstrap import initiative_summary_body
     from app.models import Initiative
     from app.services.plain_summary import generate_plain_summary
 
@@ -148,7 +150,7 @@ def generate_plain_summary_for_initiative(
 
             result = await generate_plain_summary(
                 title=initiative.title_original,
-                body=initiative.summary,
+                body=initiative_summary_body(initiative, lang),
                 lang=lang,
             )
             setattr(initiative, target_attr, result.text)
@@ -498,11 +500,19 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
     :mod:`app.services.law_text`. A row whose text can't be read or yields
     nothing is stamped anyway (source "empty") so the job doesn't retry it
     every tick. One commit per row.
+
+    A row whose text yields measures then gets its plain summary, its
+    translation and both headlines rewritten from those measures (see
+    :func:`app.ingest.congreso.bootstrap.rewrite_initiative_summary`):
+    the summary written at import time only had the title and the preamble
+    to go on. The analysis is committed first, so a failed rewrite never
+    costs it.
     """
     from datetime import datetime
 
     from sqlalchemy import select as _select
 
+    from app.ingest.congreso.bootstrap import rewrite_initiative_summary
     from app.ingest.congreso.client import CongresoClient
     from app.models import Initiative
     from app.services.law_text import analyse_law_text, extract_pdf_text, pdf_url_from_source
@@ -525,7 +535,7 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
             log.info("law_text.pending.empty")
             return {"attempted": 0, "succeeded": 0, "empty": 0, "failed": 0}
 
-        succeeded = empty = failed = 0
+        succeeded = empty = failed = resummarised = 0
         async with CongresoClient() as client:
             for initiative_id in ids:
                 try:
@@ -558,6 +568,20 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
                             initiative.text_analysis_generated_at = now
                             succeeded += 1
                         await session.commit()
+                        if result is not None and result.points.get("es"):
+                            try:
+                                if await rewrite_initiative_summary(initiative):
+                                    await session.commit()
+                                    resummarised += 1
+                            except LLMUnavailableError:
+                                raise
+                            except Exception as exc:
+                                await session.rollback()
+                                log.warning(
+                                    "law_text.resummary.failed",
+                                    initiative_id=initiative_id,
+                                    error=str(exc),
+                                )
                 except LLMUnavailableError as exc:
                     log.error("law_text.pending.aborted", error=str(exc))
                     failed += 1
@@ -575,8 +599,139 @@ def analyse_law_texts_pending(batch_size: int = 40) -> dict[str, int]:
             succeeded=succeeded,
             empty=empty,
             failed=failed,
+            resummarised=resummarised,
         )
-        return {"attempted": len(ids), "succeeded": succeeded, "empty": empty, "failed": failed}
+        return {
+            "attempted": len(ids),
+            "succeeded": succeeded,
+            "empty": empty,
+            "failed": failed,
+            "resummarised": resummarised,
+        }
+
+    return asyncio.run(_run())
+
+
+def check_summaries_against_text(
+    ids: list[int] | None = None, limit: int | None = None
+) -> dict[str, Any]:
+    """One-off, read-only: which plain summaries disagree with their text's measures.
+
+    Walks law-making initiatives whose text has been read (source ``full``
+    or ``partial``) and that carry a Spanish summary, newest first, and asks
+    :func:`app.services.summary_check.check_summary` about each. Writes
+    nothing; returns the counts per verdict and every flagged row with the
+    passages the model quoted, for a person to read before anything is
+    rewritten with :func:`resummarise_from_text`.
+    """
+    from sqlalchemy import select as _select
+
+    from app.models import Initiative
+    from app.services.llm_http import LLMUnavailableError
+    from app.services.summary_check import check_summary
+
+    async def _run() -> dict[str, Any]:
+        async with AsyncSessionLocal() as session:
+            stmt = (
+                _select(
+                    Initiative.id,
+                    Initiative.title_original,
+                    Initiative.plain_title_es,
+                    Initiative.plain_summary_es,
+                    Initiative.text_points,
+                )
+                .where(Initiative.text_analysis_source.in_(("full", "partial")))
+                .where(Initiative.plain_summary_es.is_not(None))
+                .order_by(Initiative.id.desc())
+            )
+            if ids is not None:
+                stmt = stmt.where(Initiative.id.in_(ids))
+            if limit is not None:
+                stmt = stmt.limit(limit)
+            rows = (await session.execute(stmt)).all()
+
+        counts = {"checked": 0, "ok": 0, "contradiction": 0, "unsupported": 0, "unknown": 0}
+        flagged: list[dict[str, Any]] = []
+        for iid, title, plain_title, summary, points in rows:
+            try:
+                check = await check_summary(
+                    title=title,
+                    plain_title=plain_title,
+                    summary=summary,
+                    points=(points or {}).get("es") or [],
+                )
+            except LLMUnavailableError as exc:
+                log.error("summary_check.aborted", error=str(exc))
+                break
+            except Exception as exc:
+                log.warning("summary_check.failed", initiative_id=iid, error=str(exc))
+                check = None
+            counts["checked"] += 1
+            verdict = check.verdict if check is not None else "unknown"
+            counts[verdict] += 1
+            if check is not None and check.issues:
+                flagged.append(
+                    {
+                        "id": iid,
+                        "verdict": verdict,
+                        "plain_title_es": plain_title,
+                        "issues": [
+                            {
+                                "kind": i.kind,
+                                "summary_says": i.summary_says,
+                                "text_says": i.text_says,
+                            }
+                            for i in check.issues
+                        ],
+                    }
+                )
+        log.info("summary_check.done", **counts)
+        return {**counts, "flagged": flagged}
+
+    return asyncio.run(_run())
+
+
+def resummarise_from_text(ids: list[int]) -> dict[str, int]:
+    """One-off: rewrite the plain summary and headlines of ``ids`` from their text.
+
+    Each row whose text has been read gets its Spanish summary, Catalan
+    translation and both headlines rewritten from the measures (see
+    :func:`app.ingest.congreso.bootstrap.rewrite_initiative_summary`), one
+    commit per row. Rows without measures are skipped: there is nothing
+    better to write them from. A rejected rewrite keeps the old summary.
+    """
+    from sqlalchemy import select as _select
+
+    from app.ingest.congreso.bootstrap import rewrite_initiative_summary
+    from app.models import Initiative
+    from app.services.llm_http import LLMUnavailableError
+
+    async def _run() -> dict[str, int]:
+        stats = {"seen": 0, "rewritten": 0, "kept": 0, "no_text": 0, "errors": 0}
+        for iid in ids:
+            stats["seen"] += 1
+            try:
+                async with AsyncSessionLocal() as session:
+                    row = (
+                        await session.execute(_select(Initiative).where(Initiative.id == iid))
+                    ).scalar_one_or_none()
+                    if row is None or not (row.text_points or {}).get("es"):
+                        stats["no_text"] += 1
+                        continue
+                    if await rewrite_initiative_summary(row):
+                        await session.commit()
+                        stats["rewritten"] += 1
+                    else:
+                        stats["kept"] += 1
+            except LLMUnavailableError as exc:
+                log.error("resummary_from_text.aborted", error=str(exc))
+                stats["errors"] += 1
+                break
+            except Exception as exc:
+                log.warning("resummary_from_text.failed", initiative_id=iid, error=str(exc))
+                stats["errors"] += 1
+        log.info("resummary_from_text.done", **stats)
+        return stats
 
     return asyncio.run(_run())
 
