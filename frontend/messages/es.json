@@ -1051,7 +1051,7 @@
   },
   "votes": {
     "title": "Votaciones",
-    "subtitle": "Todos los registros · Congreso de los Diputados · XV leg.",
+    "subtitle": "Todas las votaciones del pleno, también las que no hacen leyes.",
     "tab_by_topic": "Por tema",
     "calendar_all_label": "Todos",
     "calendar_count_suffix": "votaciones",

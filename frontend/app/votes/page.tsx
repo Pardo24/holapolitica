@@ -87,19 +87,8 @@ export default async function VotesPage({
             {tLifecycle('cta_short')}
           </Link>
         }
-      >
-        <p
-          style={{
-            margin: 0,
-            fontSize: 13,
-            color: 'var(--ink-3)',
-            lineHeight: 1.4,
-            maxWidth: 760,
-          }}
-        >
-          {t('subtitle')}
-        </p>
-      </PageHeader>
+        subtitle={t('subtitle')}
+      />
 
       <VotesListTab params={params} />
 

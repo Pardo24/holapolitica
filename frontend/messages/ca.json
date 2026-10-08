@@ -1051,7 +1051,7 @@
   },
   "votes": {
     "title": "Votacions",
-    "subtitle": "Tots els registres · Congrés dels Diputats · XV leg.",
+    "subtitle": "Totes les votacions del ple, també les que no fan lleis.",
     "tab_by_topic": "Per tema",
     "calendar_all_label": "Tots",
     "calendar_count_suffix": "votacions",
