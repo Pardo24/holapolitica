@@ -91,6 +91,22 @@ async def list_votes(
             "prefix, not initiative_type."
         ),
     ),
+    positions_only: bool = Query(
+        False,
+        description=(
+            "Keep only non-binding positions: Proposiciones no de Ley (162) "
+            "and mociones consecuencia de interpelación (173), by expediente "
+            "prefix like law_only."
+        ),
+    ),
+    sort: str = Query(
+        "recent",
+        description=(
+            "'recent' (default): newest first. 'close': narrowest margin "
+            "between ayes and noes first; drops votes carried by assent, "
+            "which have no tally to compare."
+        ),
+    ),
     date_from: date | None = Query(None, description="Earliest vote date (inclusive)"),
     date_to: date | None = Query(None, description="Latest vote date (inclusive)"),
     q: str | None = Query(None, description="Search in vote title or description"),
@@ -141,6 +157,14 @@ async def list_votes(
                 Vote.expediente_raw.like("130/%"),
             )
         )
+
+    if positions_only is True:
+        conditions.append(or_(Vote.expediente_raw.like("162/%"), Vote.expediente_raw.like("173/%")))
+
+    close = sort == "close"
+    if close:
+        conditions.append(Vote.approved_by_assent.is_not(True))
+        conditions.append((Vote.ayes + Vote.noes) > 0)
 
     if date_from is not None:
         conditions.append(Vote.voted_at >= date_from)
@@ -208,7 +232,12 @@ async def list_votes(
 
     total = (await db.execute(count_stmt)).scalar_one()
 
-    stmt = base_stmt.order_by(Vote.voted_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    order = (
+        (func.abs(Vote.ayes - Vote.noes).asc(), Vote.voted_at.desc())
+        if close
+        else (Vote.voted_at.desc(),)
+    )
+    stmt = base_stmt.order_by(*order).offset((page - 1) * page_size).limit(page_size)
     items = list((await db.execute(stmt)).scalars().unique().all())
 
     groups = list((await db.execute(select(ParliamentaryGroup))).scalars().all())
