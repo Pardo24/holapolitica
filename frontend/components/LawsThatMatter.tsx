@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 
 import type { Topic } from '@/lib/api';
 import { CHANGE_PAIRS, changeTagIcon } from '@/lib/changeTags';
@@ -22,6 +22,9 @@ import { pickTopicName } from '@/lib/topics';
  * The subject list is fixed and broad on purpose: it is the list of
  * things a household budget, a job, a rent or a school is made of, not a
  * selection of laws.
+ *
+ * On a phone the home has to breathe: there the change pairs fold behind
+ * one row (`foldChanges`), and the subjects alone fill the card.
  */
 const EVERYDAY_TOPICS = [
   'habitatge',
@@ -35,11 +38,37 @@ const EVERYDAY_TOPICS = [
   'igualtat',
 ];
 
-export async function LawsThatMatter({ topics, locale }: { topics: Topic[]; locale: string }) {
+export async function LawsThatMatter({
+  topics,
+  locale,
+  foldChanges = false,
+}: {
+  topics: Topic[];
+  locale: string;
+  foldChanges?: boolean;
+}) {
   const t = await getTranslations('laws_that_matter');
   const tTags = await getTranslations('change_tags');
   const bySlug = new Map(topics.map((tp) => [tp.slug, tp] as const));
   const everyday = EVERYDAY_TOPICS.map((slug) => bySlug.get(slug)).filter((tp): tp is Topic => tp != null);
+
+  const pairs = (
+    <div className="ltm__pairs">
+      {CHANGE_PAIRS.map((pair) => (
+        <div key={pair.key} className="ltm__pair">
+          {pair.tags.map((tag) => {
+            const Icon = changeTagIcon(tag);
+            return (
+              <Link key={tag} href={`/lleis?change=${tag}&sort=voted` as Route} className="change-chip change-chip--link">
+                <Icon size={13} strokeWidth={2} aria-hidden="true" />
+                {tTags(tag)}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <section className="ltm" aria-labelledby="ltm-title">
@@ -72,25 +101,24 @@ export async function LawsThatMatter({ topics, locale }: { topics: Topic[]; loca
         })}
       </div>
 
-      <div className="ltm__changes-head">
-        <span className="eyebrow">{t('changes_title')}</span>
-        <span className="ltm__changes-note">{t('changes_note')}</span>
-      </div>
-      <div className="ltm__pairs">
-        {CHANGE_PAIRS.map((pair) => (
-          <div key={pair.key} className="ltm__pair">
-            {pair.tags.map((tag) => {
-              const Icon = changeTagIcon(tag);
-              return (
-                <Link key={tag} href={`/lleis?change=${tag}&sort=voted` as Route} className="change-chip change-chip--link">
-                  <Icon size={13} strokeWidth={2} aria-hidden="true" />
-                  {tTags(tag)}
-                </Link>
-              );
-            })}
+      {foldChanges ? (
+        <details className="ltm__fold">
+          <summary>
+            {t('changes_title')}
+            <ChevronDown size={16} aria-hidden="true" />
+          </summary>
+          <p className="ltm__changes-note">{t('changes_note')}</p>
+          {pairs}
+        </details>
+      ) : (
+        <>
+          <div className="ltm__changes-head">
+            <span className="eyebrow">{t('changes_title')}</span>
+            <span className="ltm__changes-note">{t('changes_note')}</span>
           </div>
-        ))}
-      </div>
+          {pairs}
+        </>
+      )}
 
       <Link href={'/lleis' as Route} className="ltm__all">
         {t('all')} <ArrowRight size={14} aria-hidden="true" />
