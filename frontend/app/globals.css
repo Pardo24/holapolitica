@@ -3846,12 +3846,10 @@ summary.change-chip { cursor: pointer; }
   align-items: center;
   gap: 6px;
   min-width: 0;
-  overflow: hidden;
   font-size: 12.5px;
   font-weight: 700;
+  line-height: 1.25;
   color: var(--ink);
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 .law-card-band__topic svg { flex: none; color: var(--topic); }
 .law-card-band__verdict {
@@ -3911,3 +3909,16 @@ summary.change-chip { cursor: pointer; }
 .vote-big__pair { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 
 .vote-big__parties { margin-top: 12px; }
+
+/* The outcome frames the whole card: a border in its tint and a thick
+   edge along the foot, so a scrolled-past card still says how it ended. */
+.law-card[data-result="approved"] {
+  border-color: color-mix(in oklch, var(--aye) 45%, var(--paper)) !important;
+  box-shadow: inset 0 -5px 0 var(--aye), var(--shadow-2) !important;
+  padding-bottom: 21px !important;
+}
+.law-card[data-result="rejected"] {
+  border-color: color-mix(in oklch, var(--no) 40%, var(--paper)) !important;
+  box-shadow: inset 0 -5px 0 var(--no), var(--shadow-2) !important;
+  padding-bottom: 21px !important;
+}

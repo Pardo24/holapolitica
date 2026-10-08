@@ -112,7 +112,7 @@ export async function LawCard({
   )?.filter(Boolean);
 
   return (
-    <LawCardFrame>
+    <LawCardFrame data={{ 'data-result': outcomeKey ?? 'pending' }}>
       {/* The band: what it is about, and how it ended, in the outcome's
           colour. One look says "housing, approved". */}
       <LawCardBand topics={initiative.topics} outcome={outcomeKey} label={outcomeLabel} locale={locale} />
