@@ -1,5 +1,6 @@
 ext {
-    minSdkVersion = 22
+    // 24 (Android 7.0): Play's automatic protection requires it.
+    minSdkVersion = 24
     // Play requires targetSdk 36 (Android 16) for new apps and updates
     // since 31 Aug 2026.
     compileSdkVersion = 36
