@@ -231,7 +231,7 @@ Ara tornen una associació buida; només cal posar dues variables a Vercel →
 | Variable | Valor |
 |---|---|
 | `APPLE_TEAM_ID` | el Team ID de §4.1 |
-| `ANDROID_CERT_SHA256` | els dos SHA-256 de §6.5 separats per coma (`AA:BB:...,CC:DD:...`) |
+| `ANDROID_CERT_SHA256` | `<SHA-256 de la clau de signatura de Google, de §6.5>,BB:CB:19:74:F7:47:2F:98:61:E6:BF:7B:AC:F6:A0:98:CF:9A:F2:DA:BD:EF:67:1C:43:35:4E:84:8E:99:17:A7` (el segon és la teva clau de pujada, ja conegut; el primer només surt a Play Console quan l'app existeix) |
 
 Fes-ho abans d'enviar a revisió d'Apple, perquè les notes de revisió
 esmenten els Universal Links. Només el domini `www` es verifica (l'apex
