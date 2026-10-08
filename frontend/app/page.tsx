@@ -779,52 +779,12 @@ function MobileDashboard({
         // strings (expediente codes, topic names) blowing out the viewport.
         minWidth: 0,
         overflowX: 'hidden',
-        paddingTop: 12,
+        paddingTop: 0,
       }}
     >
-      {/* Brand header — logo mark + wordmark + motto, then a meta
-          line with the legislature counters, then a green pill that
-          reports the most recent vote's recency. Everything sits
-          INSIDE a single header so the page identity is one visual
-          block; the dashboard tiles below start the navigation. */}
-      <header
-        style={{
-          paddingBottom: 16,
-          marginBottom: 4,
-          borderBottom: '1px solid var(--rule)',
-        }}
-      >
-        {/* The mark and the name live in the app bar now, one line up;
-            repeating them here put "Hola Política" twice on one screen.
-            The motto stays: it is the one line that says what this is. */}
-        <Link
-          href={'/about#principi' as Route}
-          style={{
-            display: 'block',
-            fontFamily: 'var(--font-serif)',
-            fontStyle: 'italic',
-            fontSize: 15,
-            color: 'var(--ink-2)',
-            lineHeight: 1.25,
-            marginBottom: 6,
-            textDecoration: 'none',
-          }}
-        >
-          {labels.motto}
-        </Link>
-
-        {/* The legislature counters ("XV · 4.210 votacions · 350
-            diputats") used to sit here too: three numbers before anything
-            to read. They live on the Dades tab; the first screen keeps the
-            motto and how fresh the data is. */}
-        {latestVotes[0]?.voted_at && (
-          <FreshnessButton
-            isoDate={latestVotes[0].voted_at}
-            locale={locale}
-            label={labels.lastUpdate}
-          />
-        )}
-      </header>
+      {/* No header row: the motto lives under the name in the app bar, and
+          how fresh the data is sits on the latest-plenary card. The first
+          screen is the six tiles. */}
 
 
       {/* The home is now CONTENT, not a menu. The four primary
@@ -839,7 +799,7 @@ function MobileDashboard({
       {/* First: what you can do here. Many open the app for one thing
           (the game, the map, their deputies); it is one tap away, before
           the news. */}
-      <div style={{ margin: '14px 0 22px' }}>{quickGrid}</div>
+      <div style={{ margin: '0 0 18px' }}>{quickGrid}</div>
 
       {/* Then the latest plenary session, as a full card: what happened. */}
       {latestVotes[0]?.voted_at && (
@@ -858,15 +818,25 @@ function MobileDashboard({
         >
           <div
             style={{
-              fontSize: 10,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              fontWeight: 700,
-              color: 'var(--paper-2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 10,
               marginBottom: 5,
             }}
           >
-            {labels.sessionBannerEyebrow}
+            <span
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                color: 'var(--paper-2)',
+              }}
+            >
+              {labels.sessionBannerEyebrow}
+            </span>
+            <FreshnessButton isoDate={latestVotes[0].voted_at} locale={locale} label={labels.lastUpdate} />
           </div>
           <div
             className="serif"
@@ -1036,66 +1006,46 @@ function FreshnessButton({
   locale: string;
   label: string;
 }) {
-  // Server-rendered green pill that reports the most recent vote's
-  // recency. Visually a button (rounded, filled with a soft green
-  // tint, ink-coloured text) but not actually clickable — it's an
-  // ambient "the pipeline is alive" signal. The pulsing dot is a
-  // tiny 7px element with a CSS keyframes; no client JS.
-  const now = Date.now();
-  const then = new Date(isoDate).getTime();
-  const days = Math.max(0, Math.floor((now - then) / (1000 * 60 * 60 * 24)));
-  const hours = Math.max(0, Math.floor((now - then) / (1000 * 60 * 60)));
-  const formatted = new Date(isoDate).toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-  });
-  // Pick the most informative unit. "<1h" hides exact minutes (the
-  // data only refreshes every few hours so finer granularity would be
-  // false precision).
-  const rel = hours < 1 ? '<1h' : hours < 24 ? `${hours}h` : `${days}d`;
+  // How long ago the latest vote was, on the dark latest-plenary card: a
+  // pulsing dot (the data is alive) and "fa 8 dies". Not clickable; the
+  // card around it is the link. Hours under a day; never finer, the data
+  // only refreshes every few hours.
+  const ms = Date.now() - new Date(isoDate).getTime();
+  const hours = Math.max(0, Math.floor(ms / 3_600_000));
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const rel = hours < 24 ? rtf.format(-Math.max(1, hours), 'hour') : rtf.format(-Math.floor(hours / 24), 'day');
+  const formatted = new Date(isoDate).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
   return (
     <span
-      role="status"
       aria-label={`${label} ${formatted}, ${rel}`}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 8,
-        padding: '7px 12px 7px 10px',
-        borderRadius: 999,
-        background: 'color-mix(in oklch, #16A34A 14%, var(--paper))',
-        border: '1px solid color-mix(in oklch, #16A34A 32%, var(--paper))',
-        color: 'var(--ink)',
-        fontSize: 12,
+        gap: 6,
+        fontSize: 11.5,
         fontWeight: 600,
-        lineHeight: 1.2,
+        color: 'var(--paper-2)',
+        whiteSpace: 'nowrap',
       }}
     >
       <span
         aria-hidden="true"
         style={{
-          width: 8,
-          height: 8,
+          width: 7,
+          height: 7,
           borderRadius: 999,
-          background: '#16A34A',
-          boxShadow: '0 0 0 0 rgba(22, 163, 74, .55)',
+          background: '#22C55E',
           animation: 'hp-pulse 2.2s ease-out infinite',
           flex: 'none',
           display: 'inline-block',
         }}
       />
-      <span>
-        {label}{' '}
-        <span className="tabular" style={{ color: 'var(--ink-2)' }}>
-          · {formatted}
-        </span>{' '}
-        <span style={{ color: 'var(--ink-3)' }}>({rel})</span>
-      </span>
+      {rel}
       <style>{`
         @keyframes hp-pulse {
-          0%   { box-shadow: 0 0 0 0   rgba(22, 163, 74, .50); }
-          70%  { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
-          100% { box-shadow: 0 0 0 0   rgba(22, 163, 74, 0); }
+          0%   { box-shadow: 0 0 0 0   rgba(34, 197, 94, .55); }
+          70%  { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+          100% { box-shadow: 0 0 0 0   rgba(34, 197, 94, 0); }
         }
       `}</style>
     </span>

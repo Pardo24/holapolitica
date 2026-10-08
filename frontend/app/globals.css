@@ -2085,11 +2085,20 @@ button {
 }
 .appbar__mark::before { top: 6px; }
 .appbar__mark::after { top: 12px; }
+.appbar__brandtext { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
 .appbar__name {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+.appbar__motto {
+  margin-top: 1px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 11.5px;
+  color: var(--ink-3);
   white-space: nowrap;
 }
 .appbar__back {
@@ -3551,3 +3560,41 @@ summary.change-chip { cursor: pointer; }
 .law-head__official { max-width: 820px; margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-3); }
 .law-head__official > span:first-child { font-weight: 600; color: var(--ink-2); }
 .law-head__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+
+/* Phone: the six tiles always fit the first screen, whatever its height.
+   Each row takes a third of what is left between the app bar (57 + 14),
+   the tab bar (58), the gaps and a peek of the next card, inside the safe
+   areas; capped so a tall phone doesn't get towers. Icon on top and text
+   at the foot of the tile, like an app's launcher. */
+@media (max-width: 640px) {
+  .home-grid {
+    gap: 10px;
+    grid-auto-rows: clamp(
+      64px,
+      calc((100svh - 230px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 3),
+      124px
+    );
+  }
+  .home-grid .home-grid__tile {
+    justify-content: space-between;
+    padding: 11px 12px 12px;
+    overflow: hidden;
+  }
+  .home-grid__icon { width: 34px; height: 34px; margin-bottom: 6px; }
+  .home-grid__title { font-size: clamp(13.5px, 4vw, 15px); }
+  .home-grid__sub { font-size: clamp(11.5px, 3.3vw, 12.5px); }
+}
+/* Short phones (old iPhone SE, landscape-ish webviews): the tile lies flat,
+   icon beside one line of title, so three rows still fit. */
+@media (max-width: 640px) and (max-height: 620px) {
+  .home-grid .home-grid__tile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 9px;
+    align-items: center;
+    align-content: center;
+    padding: 8px 10px;
+  }
+  .home-grid__icon { width: 30px; height: 30px; margin-bottom: 0; grid-row: 1 / span 2; }
+  .home-grid__sub { -webkit-line-clamp: 1; }
+}

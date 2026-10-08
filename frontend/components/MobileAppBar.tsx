@@ -65,6 +65,7 @@ export function MobileAppBar() {
   const tNav = useTranslations('nav');
   const tBack = useTranslations('mobile_back');
   const tFooter = useTranslations('footer');
+  const tSite = useTranslations('site');
 
   // Whether "back" has anywhere to go is only knowable after hydration.
   // Optimistic default: almost everyone arrives with history.
@@ -115,7 +116,12 @@ export function MobileAppBar() {
       {isPrimary ? (
         <Link href="/" className="appbar__brand" aria-label={t('home_aria')}>
           <span className="appbar__mark" aria-hidden="true" />
-          <span className="appbar__name">Hola Política</span>
+          {/* The motto under the name: it is the one line that says what
+              this is, and it no longer takes a row of the home. */}
+          <span className="appbar__brandtext">
+            <span className="appbar__name">Hola Política</span>
+            <span className="appbar__motto">{tSite('motto')}</span>
+          </span>
         </Link>
       ) : (
         <Link
