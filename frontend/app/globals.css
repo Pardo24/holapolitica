@@ -4516,3 +4516,22 @@ summary.change-chip { cursor: pointer; }
 }
 .align-card__title { margin: 0 0 8px; font-size: clamp(20px, 5.4vw, 24px); font-weight: 700; line-height: 1.22; letter-spacing: -0.015em; color: var(--ink); }
 .align-card__summary { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+
+/* Phone home tiles filling the first screen: the room is there, so the
+   subtitle wraps (up to three lines, never cut at the right) and the icon
+   and text grow into the tile instead of leaving it empty. */
+@media (max-width: 640px) {
+  .home-first .home-grid .home-grid__sub {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    white-space: normal;
+    font-size: clamp(12.5px, 3.5vw, 14px);
+    line-height: 1.35;
+  }
+}
+@media (max-width: 640px) and (min-height: 641px) {
+  .home-first .home-grid .home-grid__tile { padding: 12px 13px 13px; }
+  .home-first .home-grid__icon { width: 46px; height: 46px; }
+  .home-first .home-grid__icon svg { width: 22px; height: 22px; }
+  .home-first .home-grid__title { font-size: clamp(15px, 4.4vw, 18px); margin-bottom: 3px; }
+}
