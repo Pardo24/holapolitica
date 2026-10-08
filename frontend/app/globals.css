@@ -4576,3 +4576,13 @@ summary.change-chip { cursor: pointer; }
   .home-first { margin-top: 0; }
   .home-first .home-grid { grid-template-rows: repeat(3, minmax(min-content, 1fr)); }
 }
+
+/* Mid-height phones (most phone browsers with their bars showing): a
+   smaller icon and title so the tiles and the plenary strip still fit. */
+@media (max-width: 640px) and (min-height: 641px) and (max-height: 760px) {
+  .home-first .home-grid .home-grid__tile { padding: 10px 12px 11px; }
+  .home-first .home-grid__icon { width: 36px; height: 36px; margin-bottom: 4px; }
+  .home-first .home-grid__icon svg { width: 18px; height: 18px; }
+  .home-first .home-grid__title { font-size: 15.5px; }
+  .home-first { gap: 8px; }
+}
