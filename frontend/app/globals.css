@@ -4568,3 +4568,11 @@ summary.change-chip { cursor: pointer; }
 @media (max-width: 640px) and (min-height: 641px) {
   .home-first .home-grid .home-grid__sub { min-height: calc(2 * 1.35em); }
 }
+
+/* The tiles block no longer pulls itself up (its container clips what
+   rises past it; the container moves instead), and a row is never shorter
+   than its tile's content, so nothing inside a tile is cut either. */
+@media (max-width: 640px) {
+  .home-first { margin-top: 0; }
+  .home-first .home-grid { grid-template-rows: repeat(3, minmax(min-content, 1fr)); }
+}

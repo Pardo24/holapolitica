@@ -810,6 +810,10 @@ function MobileDashboard({
         minWidth: 0,
         overflowX: 'hidden',
         paddingTop: 0,
+        // Closer to the app bar. On this element, not inside it: the
+        // overflow above clips anything pulled up past its own top edge,
+        // which is what cut the top of the tiles.
+        marginTop: -8,
       }}
     >
       {/* No header row: the motto lives under the name in the app bar, and
