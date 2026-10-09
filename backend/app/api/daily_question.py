@@ -25,6 +25,7 @@ from app.db.session import get_session
 from app.models import DailyAnswerCount, Initiative, ParliamentaryGroup, Vote
 from app.models import Session as SessionRow
 from app.services.game_pool import not_backwards
+from app.services.proposing_group import resolve_proposing_group
 
 router = APIRouter(prefix="/daily-question", tags=["daily-question"])
 
@@ -652,6 +653,7 @@ async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | No
                     Vote.proposing_group_id,
                     Vote.proposed_by_government,
                     SessionRow.legislature_id,
+                    Initiative.submitted_by,
                 )
                 .join(Initiative, Initiative.id == Vote.initiative_id)
                 .join(SessionRow, SessionRow.id == Vote.session_id)
@@ -660,7 +662,7 @@ async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | No
         ).first()
         if row is None:
             return None
-        sca, ses, tca, tes, result, ayes, noes, gid, by_gov, leg_id = row
+        sca, ses, tca, tes, result, ayes, noes, gid, by_gov, leg_id, submitted_by = row
         summary = ((ses or sca) if lang == "es" else (sca or ses)) or ""
         title = ((tes or tca) if lang == "es" else (tca or tes)) or None
         ayes, noes = ayes or 0, noes or 0
@@ -677,14 +679,28 @@ async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | No
             "source_id": vid,
         }
 
-        if variant == "proposer" and (gid is not None or by_gov):
-            groups = (
-                await session.execute(
-                    select(ParliamentaryGroup.id, ParliamentaryGroup.name_short)
-                    .where(ParliamentaryGroup.legislature_id == leg_id)
-                    .order_by(ParliamentaryGroup.id)
+        if variant == "proposer":
+            group_rows = list(
+                (
+                    await session.execute(
+                        select(ParliamentaryGroup)
+                        .where(ParliamentaryGroup.legislature_id == leg_id)
+                        .order_by(ParliamentaryGroup.id)
+                    )
                 )
-            ).all()
+                .scalars()
+                .all()
+            )
+            groups = [(g.id, g.name_short) for g in group_rows]
+            # A vote on a bill often names no group ("Proposición de Ley…"):
+            # the initiative's own "presented by" does.
+            if gid is None and not by_gov and submitted_by:
+                found = resolve_proposing_group(submitted_by, group_rows)
+                if found is not None:
+                    gid = found.id
+                elif "gobierno" in submitted_by.lower():
+                    by_gov = True
+        if variant == "proposer" and (gid is not None or by_gov):
             gov = "El Gobierno" if lang == "es" else "El Govern"
             right: str | None
             if by_gov and gid is None:
