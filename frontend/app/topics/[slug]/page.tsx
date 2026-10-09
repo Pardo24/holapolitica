@@ -23,6 +23,7 @@ import { displayGroupShort, parseProposer, type ParsedProposer } from '@/lib/gro
 import { effectiveResult, lawBucket } from '@/lib/lawStatus';
 import { pickPlainTitle } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
+import { topicIcon } from '@/lib/topic_icons';
 
 interface Params {
   slug: string;
@@ -289,6 +290,8 @@ export default async function TopicDetailPage({
         ? `/topics/${slug}?subset=other`
         : `/topics/${slug}?subset=pending`) as Route;
 
+  const TopicIconGlyph = topicIcon(topic.icon);
+
   return (
     <article className="topic-article">
       <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
@@ -299,71 +302,54 @@ export default async function TopicDetailPage({
         <span style={{ color: 'var(--ink)' }}>{topicLabel}</span>
       </div>
 
-      <header
-        style={{
-          paddingTop: 12,
-          paddingBottom: 24,
-          borderTop: `3px solid ${topic.color_hex ?? 'var(--accent)'}`,
-          marginTop: 12,
-          borderBottom: '1px solid var(--ink)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-          <h1
-            className="h-display"
-            style={{ margin: 0, fontSize: 'clamp(32px, 4.4vw, 48px)' }}
-          >
-            {topicLabel}
-          </h1>
-          <span
-            className="eyebrow"
-            style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600 }}
-          >
-            {t('topic_eyebrow')}
+      {/* The topic's card, in its own colour: its icon and name, then the
+          three ways its initiatives stand. Each figure is a way into the
+          list below, filtered (they used to be a table of four numbers
+          with no way in). */}
+      <header className="tpc-hero" style={{ ['--topic' as string]: topic.color_hex ?? 'var(--accent)' }}>
+        <div className="tpc-hero__top">
+          <span className="tpc-hero__icon" aria-hidden="true">
+            <TopicIconGlyph size={26} strokeWidth={2} />
           </span>
+          <div className="tpc-hero__titles">
+            <span className="tpc-hero__eyebrow">{t('topic_eyebrow')}</span>
+            <h1 className="tpc-hero__name">{topicLabel}</h1>
+            <p className="tpc-hero__total">
+              {t('hero_total', { n: initiatives.length })}
+            </p>
+          </div>
         </div>
-        {/* Cross-language label line. Hidden on mobile to keep the header
-            tight — Catalan-default UI users on a phone already see the
-            Catalan name in the H1; the Spanish/English variants are a
-            nice-to-have transparency cue that lives well on desktop only. */}
-        <p
-          className="hidden sm:block"
-          style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}
-        >
-          {topic.name_es} · {topic.name_en}
-        </p>
-        {/* The parts must add up to the total standing next to them. The
-            withdrawn/expired bucket used to be left out of this row and only
-            surfaced much further down as a tab, so a reader who added 104 and
-            7 against a total of 119 found eight initiatives missing and no
-            way to account for them. */}
-        <div
-          className="topic-kpi-row"
-          style={{ borderTop: '1px solid var(--rule)', marginTop: 18 }}
-        >
-          <div className="kpi">
-            <span className="label">{t('kpi_total_initiatives')}</span>
-            <span className="value tabular">{initiatives.length}</span>
-            <span className="sub">{t('kpi_classified_under_topic')}</span>
-          </div>
-          <div className="kpi">
-            <span className="label">{t('kpi_not_yet_voted')}</span>
-            <span className="value tabular">{pendingAll.length}</span>
-            <span className="sub">{t('kpi_submitted_or_in_debate')}</span>
-          </div>
-          <div className="kpi">
-            <span className="label">{t('kpi_already_voted')}</span>
-            <span className="value tabular">{votedAll.length}</span>
-            <span className="sub">{t('kpi_approved_or_rejected')}</span>
-          </div>
+        <nav className="tpc-stats" aria-label={t('subset_tablist_aria')}>
+          <Link
+            href={`${buildSubsetHref('voted')}#llista` as Route}
+            className={subset === 'voted' ? 'tpc-stat is-active' : 'tpc-stat'}
+            scroll={false}
+          >
+            <strong className="tabular">{votedAll.length}</strong>
+            <span>{t('kpi_already_voted')}</span>
+            <small>{t('kpi_approved_or_rejected')}</small>
+          </Link>
+          <Link
+            href={`${buildSubsetHref('pending')}#llista` as Route}
+            className={subset === 'pending' ? 'tpc-stat is-active' : 'tpc-stat'}
+            scroll={false}
+          >
+            <strong className="tabular">{pendingAll.length}</strong>
+            <span>{t('kpi_not_yet_voted')}</span>
+            <small>{t('kpi_submitted_or_in_debate')}</small>
+          </Link>
           {otherAll.length > 0 && (
-            <div className="kpi">
-              <span className="label">{t('kpi_other')}</span>
-              <span className="value tabular">{otherAll.length}</span>
-              <span className="sub">{t('kpi_withdrawn_or_expired')}</span>
-            </div>
+            <Link
+              href={`${buildSubsetHref('other')}#llista` as Route}
+              className={subset === 'other' ? 'tpc-stat is-active' : 'tpc-stat'}
+              scroll={false}
+            >
+              <strong className="tabular">{otherAll.length}</strong>
+              <span>{t('kpi_other')}</span>
+              <small>{t('kpi_withdrawn_or_expired')}</small>
+            </Link>
           )}
-        </div>
+        </nav>
       </header>
 
       {/* "Què passa ara" — narrative lede that answers, in two cards, the
@@ -577,7 +563,7 @@ export default async function TopicDetailPage({
 
       {/* Initiatives — unified section with a subset segmented control and
           a group-proposer filter. Replaces the two static lists. */}
-      <section className="topic-sec-list" style={{ paddingTop: 32 }}>
+      <section id="llista" className="topic-sec-list" style={{ paddingTop: 32, scrollMarginTop: 72 }}>
         <div className="eyebrow" style={{ marginBottom: 24 }}>
           {t('initiatives_section_title')}
         </div>

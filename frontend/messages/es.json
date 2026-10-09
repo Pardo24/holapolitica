@@ -1399,7 +1399,8 @@
     "kpi_other": "Otras",
     "kpi_withdrawn_or_expired": "retiradas o caducadas",
     "proposer_unknown": "Sin origen registrado",
-    "see_all_in_laws": "Ver {count} más en Leyes"
+    "see_all_in_laws": "Ver {count} más en Leyes",
+    "hero_total": "{n, plural, one {# iniciativa clasificada en este tema} other {# iniciativas clasificadas en este tema}}"
   },
   "stats": {
     "title": "Datos",

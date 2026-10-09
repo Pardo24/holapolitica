@@ -1399,7 +1399,8 @@
     "kpi_other": "Other",
     "kpi_withdrawn_or_expired": "withdrawn or expired",
     "proposer_unknown": "No origin recorded",
-    "see_all_in_laws": "See {count} more in Laws"
+    "see_all_in_laws": "See {count} more in Laws",
+    "hero_total": "{n, plural, one {# initiative filed under this topic} other {# initiatives filed under this topic}}"
   },
   "stats": {
     "title": "Data",

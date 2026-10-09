@@ -5340,3 +5340,47 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   cursor: pointer;
 }
 .session-lede-tiles { max-width: 720px; }
+
+/* Topic page (app/topics/[slug]): a card in the topic's colour, its three
+   standings as figures that filter the list. */
+.tpc-hero {
+  position: relative;
+  margin-top: 12px;
+  padding: 22px 18px 18px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in oklch, var(--topic) 30%, var(--rule));
+  background: linear-gradient(180deg, color-mix(in oklch, var(--topic) 13%, var(--paper)) 0, var(--paper) 80%);
+  overflow: hidden;
+}
+.tpc-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--topic); }
+.tpc-hero__top { display: flex; gap: 14px; align-items: center; }
+.tpc-hero__icon { flex: none; width: 56px; height: 56px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; background: var(--topic); color: #fff; box-shadow: 0 4px 12px -4px color-mix(in oklch, var(--topic) 60%, transparent); }
+.tpc-hero__titles { min-width: 0; display: grid; gap: 2px; }
+.tpc-hero__eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in oklch, var(--topic) 65%, var(--ink)); }
+.tpc-hero__name { margin: 0; font-family: var(--font-serif); font-size: clamp(28px, 4.4vw, 42px); line-height: 1.08; letter-spacing: -0.015em; color: var(--ink); text-wrap: balance; }
+.tpc-hero__total { margin: 2px 0 0; font-size: 13px; color: var(--ink-3); }
+.tpc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 18px; }
+.tpc-stat {
+  display: grid;
+  gap: 1px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+.tpc-stat strong { font-family: var(--font-serif); font-size: 28px; line-height: 1.05; font-weight: 600; }
+.tpc-stat span { font-size: 13.5px; font-weight: 800; }
+.tpc-stat small { font-size: 11.5px; color: var(--ink-3); }
+.tpc-stat:hover { border-color: color-mix(in oklch, var(--topic) 50%, var(--rule)); }
+.tpc-stat.is-active { border-color: var(--topic); box-shadow: 0 0 0 3px color-mix(in oklch, var(--topic) 18%, transparent); }
+@media (max-width: 560px) {
+  .tpc-hero { padding: 20px 14px 14px; }
+  .tpc-hero__icon { width: 46px; height: 46px; border-radius: 13px; }
+  .tpc-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .tpc-stat { padding: 10px; }
+  .tpc-stat strong { font-size: 24px; }
+  .tpc-stat span { font-size: 12.5px; line-height: 1.2; }
+  .tpc-stat small { display: none; }
+}
