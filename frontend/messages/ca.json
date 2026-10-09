@@ -349,7 +349,9 @@
     "decree_see_bill": "Veure el projecte de llei",
     "same_title_intro": "{n, plural, one {Aquesta proposta també es va presentar una altra vegada:} other {Aquesta proposta també es va presentar # vegades més:}}",
     "same_title_filed": "presentada el {date}",
-    "expired_note": "Va caducar quan es van dissoldre les Corts per convocar eleccions (6 d'octubre de 2026): les iniciatives que no havien acabat el tràmit decauen. Si algú la vol tirar endavant, l'haurà de tornar a presentar a la nova legislatura."
+    "expired_note": "Va caducar quan es van dissoldre les Corts per convocar eleccions (6 d'octubre de 2026): les iniciatives que no havien acabat el tràmit decauen. Si algú la vol tirar endavant, l'haurà de tornar a presentar a la nova legislatura.",
+    "howlaw_title": "Com es fa una llei?",
+    "howlaw_sub": "Les etapes de cada tipus d'iniciativa, explicades una a una"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -771,7 +773,12 @@
     "manifesto_source": "Veure el programa (PDF)",
     "manifesto_record_votes": "a favor en {n} votacions del tema",
     "manifesto_record_proposed": "{n} iniciatives impulsades en aquest tema",
-    "manifesto_record_title": "Com ha votat"
+    "manifesto_record_title": "Com ha votat",
+    "tab_summary": "Resum",
+    "tab_laws": "Lleis que proposa",
+    "tab_members": "Diputats",
+    "tabs_aria": "Seccions del grup",
+    "seats_label": "diputats"
   },
   "home": {
     "eyebrow": "Open data del Congrés dels Diputats",

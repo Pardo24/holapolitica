@@ -5199,3 +5199,113 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .rec-glossary dd { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
 .rec section + section { margin-top: 26px; }
 .rec-cta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* /recorregut cards: the doubled class outranks the global touch rule for
+   list links (li > a), which turned each card into inline text. */
+.rec-type.rec-type { display: grid; }
+.rec-journey__binding { font-weight: 700; color: var(--ink) !important; }
+/* Phone: the six kinds as a row of compact cards that scrolls sideways,
+   so the steps start on the first screen; the description moves to the
+   head of the steps. */
+@media (max-width: 640px) {
+  .rec-types {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(168px, 46%);
+    grid-template-columns: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: -16px;
+    padding: 2px 16px 10px;
+    scrollbar-width: none;
+  }
+  .rec-types::-webkit-scrollbar { display: none; }
+  .rec-types > li { scroll-snap-align: start; }
+  .rec-type.rec-type {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    align-content: start;
+    gap: 8px;
+    padding: 12px;
+    min-height: 128px;
+  }
+  .rec-type__icon { grid-row: auto; width: 36px; height: 36px; }
+  .rec-type__name { font-size: 15px; }
+  .rec-type__desc { display: none; }
+  .rec-hero { margin-bottom: 16px; }
+  .rec-hero p { font-size: 15px; }
+  .rec-journey { padding: 16px 12px; margin-inline: -4px; }
+  .rec-steps__card { padding: 11px 12px; }
+}
+/* Same guard for the other cards built as list links: the touch rule
+   (li > a, display inline-block + 6px block padding) must not reshape
+   them. Doubled classes outrank it. */
+.rec-type.rec-type { padding: 14px; }
+.vchain-cluster__row.vchain-cluster__row { display: flex; padding: 7px 9px; }
+.same-note .same-note__list > li > a { display: inline-flex; padding: 2px 10px; }
+@media (max-width: 640px) {
+  .rec-type.rec-type { padding: 12px; }
+}
+
+/* "How is a law made?" link on /lleis. */
+.howlaw-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in oklch, var(--hue-lleis) 25%, var(--rule));
+  background: var(--hue-lleis-soft);
+  color: var(--ink);
+  text-decoration: none;
+}
+.howlaw-link__icon { flex: none; width: 36px; height: 36px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-lleis); color: #fff; }
+.howlaw-link__text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.howlaw-link__text strong { font-size: 15px; font-weight: 800; }
+.howlaw-link__text span { font-size: 12.5px; color: var(--ink-2); }
+.howlaw-link > svg { flex: none; color: var(--hue-lleis-ink); }
+
+/* Group profile (app/groups/[slug]): the same card as a deputy's, in the
+   party's colour, then the term balance and tabs. */
+.grp-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 24px 18px 18px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in oklch, var(--party) 30%, var(--rule));
+  background: linear-gradient(180deg, color-mix(in oklch, var(--party) 14%, var(--paper)) 0, var(--paper) 75%);
+  overflow: hidden;
+}
+.grp-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--party); }
+.grp-hero__mark { width: 96px; height: 96px; border-radius: 22px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--shadow-2); display: flex; align-items: center; justify-content: center; }
+.grp-hero__mark > * { transform: scale(1.35); }
+.grp-hero__body { min-width: 0; display: grid; gap: 6px; }
+.grp-hero__name { margin: 0; font-family: var(--font-serif); font-size: clamp(26px, 4.2vw, 40px); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); text-wrap: balance; }
+.grp-hero__long { margin: 0; font-size: 13px; color: var(--ink-3); }
+.grp-hero__facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; font-size: 14px; color: var(--ink-2); }
+.grp-hero__facts strong { color: var(--ink); font-weight: 800; }
+.grp-hero__links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.grp-hero__links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--party) 35%, var(--rule));
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+@media (max-width: 560px) {
+  .grp-hero { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 20px 14px 14px; }
+  .grp-hero__mark { width: 64px; height: 64px; border-radius: 16px; }
+  .grp-hero__mark > * { transform: none; }
+}

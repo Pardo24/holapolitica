@@ -118,7 +118,8 @@ export default async function LifecyclePage({
           </span>
           <div>
             <h2 id="rec-journey-title">{tJourney(`type.${selected}` as 'type.proyecto_ley')}</h2>
-            <p>{binding ? t('binding_yes') : t('binding_no')}</p>
+            <p>{tType(`desc.${selected}` as 'desc.proyecto_ley')}</p>
+            <p className="rec-journey__binding">{binding ? t('binding_yes') : t('binding_no')}</p>
           </div>
         </div>
         <ol className="rec-steps">

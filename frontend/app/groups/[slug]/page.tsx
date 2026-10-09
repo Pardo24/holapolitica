@@ -33,10 +33,16 @@ interface Params {
 
 export default async function GroupDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<Params>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { slug } = await params;
+  const sp = await searchParams;
+  const tab: GroupTab = (GROUP_TABS as readonly string[]).includes(sp.tab ?? '')
+    ? (sp.tab as GroupTab)
+    : 'resum';
   const t = await getTranslations('group');
   const tVotes = await getTranslations('votes');
   const locale = await getLocale();
@@ -214,8 +220,16 @@ export default async function GroupDetailPage({
     });
   }
 
+  const base = `/groups/${group.slug}`;
+  const tabHref = (k: GroupTab) => (k === 'resum' ? base : `${base}?tab=${k}`) as Route;
+  const tabs: { key: GroupTab; label: string; count?: number }[] = [
+    { key: 'resum', label: t('tab_summary') },
+    { key: 'lleis', label: t('tab_laws'), count: balance?.total },
+    { key: 'diputats', label: t('tab_members'), count: group.members_active },
+  ];
+
   return (
-    <article>
+    <article className="grp">
       {/* Breadcrumb */}
       <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/groups" style={{ color: 'var(--ink-2)' }}>
@@ -225,141 +239,45 @@ export default async function GroupDetailPage({
         <span style={{ color: 'var(--ink)' }}>{group.name_short}</span>
       </div>
 
-      {/* Civic infobox header */}
-      <header
-        className="group-detail-header"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 320px',
-          gap: 36,
-          paddingTop: 18,
-          paddingBottom: 28,
-          borderBottom: '1px solid var(--ink)',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-            <h1
-              className="h-display"
-              style={{ margin: 0, fontSize: 'clamp(32px, 4.4vw, 48px)' }}
-            >
-              {fullName}
-            </h1>
-          </div>
-          {/* Long-form name sits BELOW the H1 as a soft descriptive line.
-              Matches the demoted-subtitle pattern used across other page
-              headers — smaller (13px) and ink-3 so the title remains the
-              page's visual anchor. */}
-          <div
-            style={{
-              fontSize: 13,
-              color: 'var(--ink-3)',
-              lineHeight: 1.4,
-              maxWidth: 540,
-            }}
-          >
-            {group.name_long}
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-              borderTop: '1px solid var(--ink)',
-              marginTop: 22,
-            }}
-          >
-            <div className="kpi">
-              <span className="label">{t('members_label')}</span>
-              <span className="value tabular">{group.members_active}</span>
-            </div>
-            {info?.founded_year && (
-              <div className="kpi">
-                <span className="label">{t('founded_label')}</span>
-                <span className="value tabular">{info.founded_year}</span>
-              </div>
-            )}
-            {info?.scope && (
-              <div className="kpi">
-                <span className="label">{t('scope_label')}</span>
-                <span className="value" style={{ fontSize: 16, lineHeight: 1.2 }}>
-                  {info.scope}
-                </span>
-              </div>
-            )}
-          </div>
+      {/* The card, in the party's colour: its mark, its name, how many seats
+          and since when, and the way out to its own site. */}
+      <header className="grp-hero" style={{ ['--party' as string]: group.color_hex ?? 'var(--ink-3)' }}>
+        <div className="grp-hero__mark">
+          <GroupBadge slug={group.slug} color={group.color_hex} size="lg" link={false} />
         </div>
-
-        <aside style={{ borderLeft: '1px solid var(--ink)', paddingLeft: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-            {/* Official party logo (falls back to the colour disc for
-                groups without one, e.g. GP Mixto). */}
-            <GroupBadge slug={group.slug} color={group.color_hex} size="lg" link={false} />
-            {/* What the logo is and the colour's hex code are reference
-                notes for a desktop's side panel; on a phone the mark and
-                the links are what matter. */}
-            <div className="group-civic-caption">
-              <div className="eyebrow">{t('civic_mark_eyebrow')}</div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: 'var(--ink-3)',
-                  marginTop: 4,
-                  lineHeight: 1.4,
-                  maxWidth: 200,
-                }}
-              >
-                {t('civic_mark_caption')}
-              </div>
-            </div>
+        <div className="grp-hero__body">
+          <h1 className="grp-hero__name">{fullName}</h1>
+          <p className="grp-hero__long">{group.name_long}</p>
+          <div className="grp-hero__facts">
+            <span>
+              <strong className="tabular">{group.members_active}</strong> {t('seats_label')}
+            </span>
+            {info?.founded_year && (
+              <span>
+                {t('founded_label')} <strong className="tabular">{info.founded_year}</strong>
+              </span>
+            )}
+            {info?.scope && <span>{info.scope}</span>}
           </div>
-
-          <div style={{ borderTop: '1px solid var(--rule)' }}>
-            {info?.website && (
-              <FactRow label={t('website')}>
-                <a
-                  href={info.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                >
-                  {info.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}{' '}
+          {(info?.website || info?.wikipedia_url) && (
+            <div className="grp-hero__links">
+              {info?.website && (
+                <a href={info.website} target="_blank" rel="noopener noreferrer">
+                  {info.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                   <ArrowUpRight size={14} aria-hidden="true" />
                 </a>
-              </FactRow>
-            )}
-            {info?.wikipedia_url && (
-              <FactRow label={t('wikipedia')}>
-                <a
-                  href={info.wikipedia_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                >
-                  Wikipedia <ArrowUpRight size={14} aria-hidden="true" />
+              )}
+              {info?.wikipedia_url && (
+                <a href={info.wikipedia_url} target="_blank" rel="noopener noreferrer">
+                  Wikipedia
+                  <ArrowUpRight size={14} aria-hidden="true" />
                 </a>
-              </FactRow>
-            )}
-            {group.color_hex && (
-              <FactRow label={t('color_identifier_label')} className="group-color-row">
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <span
-                    className="gdot"
-                    style={{ background: group.color_hex, width: 10, height: 10 }}
-                  />
-                  <span className="mono">{group.color_hex}</span>
-                </span>
-              </FactRow>
-            )}
-          </div>
-        </aside>
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
-      {/* Factual term balance — right under the header: how many
-          initiatives this group put forward and how they fared in the
-          plenary. Big serif numbers + one proportion bar; the subtitle
-          carries the neutrality caveat (passing depends on majorities,
-          not merit). */}
       {balance && (
         <section style={{ paddingTop: 28 }}>
           <h2 className="h-title">{t('balance_title')}</h2>
@@ -450,42 +368,25 @@ export default async function GroupDetailPage({
         </section>
       )}
 
-      {/* Composition — gender + age + constituent parties.
-          Symmetric: every bucket (including "unknown") is shown, never
-          hidden. Headline "Composició" (factual), never "Diversitat"
-          (value-laden). */}
-      {composition && composition.members_total > 0 && (
-        <CompositionSection
-          composition={composition}
-          groupColor={group.color_hex}
-          labels={{
-            title: t('composition_title'),
-            intro: t('composition_intro'),
-            gender: t('composition_gender'),
-            age: t('composition_age'),
-            parties: t('composition_parties'),
-            gender_distribution_aria: (summary: string) =>
-              t('gender_distribution_aria', { summary }),
-            age_bucket_aria: (label: string, value: number) =>
-              t('age_bucket_aria', { label, value }),
-            gender_F: t('gender_F'),
-            gender_M: t('gender_M'),
-            gender_X: t('gender_X'),
-            gender_unknown: t('gender_unknown'),
-            age_under_30: t('age_under_30'),
-            age_30_39: t('age_30_39'),
-            age_40_49: t('age_40_49'),
-            age_50_59: t('age_50_59'),
-            age_60_plus: t('age_60_plus'),
-            age_unknown: t('age_unknown'),
-            no_party_data: (count: number) => t('no_party_data', { count }),
-          }}
-        />
-      )}
 
-      {/* Thematic profile — factual, symmetric: where the group proposes
-          most, votes Yes most and rejects most. Same three lenses for every
-          group; "rejects most" always sits next to "votes Yes most". */}
+      {/* Tabs: links, so each one has its own URL and works without JS. */}
+      <nav className="dep-tabs" aria-label={t('tabs_aria')}>
+        {tabs.map((tb) => (
+          <Link
+            key={tb.key}
+            href={tabHref(tb.key)}
+            aria-current={tab === tb.key ? 'page' : undefined}
+            className={tab === tb.key ? 'is-active' : undefined}
+            scroll={false}
+          >
+            {tb.label}
+            {tb.count != null && <span className="tabular">{tb.count}</span>}
+          </Link>
+        ))}
+      </nav>
+
+      {tab === 'resum' && (
+        <>
       {hasProfile && (
         <section style={{ paddingTop: 28 }}>
           <h2 className="h-title">{t('profile_title')}</h2>
@@ -598,10 +499,11 @@ export default async function GroupDetailPage({
         />
       </section>
 
-      {/* Initiatives put forward by this group — the "in every place a law
-          appears" surface. Uses the shared CompactVoteRow/LawRow so a law
-          reads identically here, on /votes, on the home strip and on a
-          topic hub. Factual only: proposer + type + result, no framing. */}
+        </>
+      )}
+
+      {tab === 'lleis' && (
+        <>
       <section style={{ paddingTop: 28 }}>
         <h2 className="h-title">{t('proposed_section_title')}</h2>
         <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>
@@ -653,6 +555,11 @@ export default async function GroupDetailPage({
         )}
       </section>
 
+        </>
+      )}
+
+      {tab === 'diputats' && (
+        <>
       {members.length === 0 ? (
         <section style={{ paddingTop: 28 }}>
           <h2 className="h-title">{t('members_title')}</h2>
@@ -666,59 +573,45 @@ export default async function GroupDetailPage({
         />
       )}
 
-      <style>{`
-        @media (max-width: 860px) {
-          .group-detail-header {
-            grid-template-columns: 1fr !important;
-            gap: 18px !important;
-          }
-          .group-detail-header aside {
-            border-left: none !important;
-            border-top: 1px solid var(--rule) !important;
-            padding-left: 0 !important;
-            padding-top: 18px !important;
-          }
-        }
-      `}</style>
+      {composition && composition.members_total > 0 && (
+        <CompositionSection
+          composition={composition}
+          groupColor={group.color_hex}
+          labels={{
+            title: t('composition_title'),
+            intro: t('composition_intro'),
+            gender: t('composition_gender'),
+            age: t('composition_age'),
+            parties: t('composition_parties'),
+            gender_distribution_aria: (summary: string) =>
+              t('gender_distribution_aria', { summary }),
+            age_bucket_aria: (label: string, value: number) =>
+              t('age_bucket_aria', { label, value }),
+            gender_F: t('gender_F'),
+            gender_M: t('gender_M'),
+            gender_X: t('gender_X'),
+            gender_unknown: t('gender_unknown'),
+            age_under_30: t('age_under_30'),
+            age_30_39: t('age_30_39'),
+            age_40_49: t('age_40_49'),
+            age_50_59: t('age_50_59'),
+            age_60_plus: t('age_60_plus'),
+            age_unknown: t('age_unknown'),
+            no_party_data: (count: number) => t('no_party_data', { count }),
+          }}
+        />
+      )}
+
+        </>
+      )}
     </article>
   );
 }
 
-function FactRow({
-  label,
-  children,
-  className,
-}: {
-  label: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={className}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '110px minmax(0, 1fr)',
-        padding: '8px 0',
-        borderBottom: '1px solid var(--rule)',
-        fontSize: 12,
-        gap: 10,
-      }}
-    >
-      <span className="eyebrow" style={{ fontSize: 10 }}>
-        {label}
-      </span>
-      <span style={{ color: 'var(--ink-2)', minWidth: 0, overflowWrap: 'anywhere' }}>{children}</span>
-    </div>
-  );
-}
+const GROUP_TABS = ['resum', 'lleis', 'diputats'] as const;
+type GroupTab = (typeof GROUP_TABS)[number];
 
-/**
- * One compact stat card in the thematic profile: an eyebrow label, the
- * topic (colour dot + name), a single factual figure, and a link to the
- * relevant filtered view. Kept visually uniform across the three lenses
- * (proposes / votes Yes / rejects) so none reads as more prominent.
- */
+
 function ProfileStatCard({
   label,
   topicName,

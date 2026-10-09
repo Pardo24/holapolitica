@@ -1,7 +1,15 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowRight, ChevronLeft, ChevronRight, MessagesSquare, Scale, SlidersHorizontal } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  MessagesSquare,
+  Route as RouteIcon,
+  Scale,
+  SlidersHorizontal,
+} from 'lucide-react';
 
 import { BottomSheet } from '@/components/BottomSheet';
 import { LawCard } from '@/components/LawCard';
@@ -181,6 +189,20 @@ export default async function LleisPage({
           close: t('lens_close'),
         }}
       />
+
+      {/* How a law is made: the explainer of every step the cards below
+          mention (amendments, taking into consideration, the Senate...). On
+          a phone this is its way in, next to the laws themselves. */}
+      <Link href={'/recorregut' as Route} className="howlaw-link">
+        <span className="howlaw-link__icon" aria-hidden="true">
+          <RouteIcon size={18} strokeWidth={2} />
+        </span>
+        <span className="howlaw-link__text">
+          <strong>{t('howlaw_title')}</strong>
+          <span>{t('howlaw_sub')}</span>
+        </span>
+        <ChevronRight size={17} aria-hidden="true" />
+      </Link>
 
       {/* One toolbar, two shapes: in place on a desktop, in a sheet behind
           the "Filtres" button on a phone, where the lens above already

@@ -349,7 +349,9 @@
     "decree_see_bill": "Ver el proyecto de ley",
     "same_title_intro": "{n, plural, one {Esta propuesta también se presentó otra vez:} other {Esta propuesta también se presentó # veces más:}}",
     "same_title_filed": "presentada en {date}",
-    "expired_note": "Caducó cuando se disolvieron las Cortes para convocar elecciones (6 de octubre de 2026): las iniciativas que no habían terminado su tramitación decaen. Si alguien quiere sacarla adelante, tendrá que volver a presentarla en la nueva legislatura."
+    "expired_note": "Caducó cuando se disolvieron las Cortes para convocar elecciones (6 de octubre de 2026): las iniciativas que no habían terminado su tramitación decaen. Si alguien quiere sacarla adelante, tendrá que volver a presentarla en la nueva legislatura.",
+    "howlaw_title": "¿Cómo se hace una ley?",
+    "howlaw_sub": "Las etapas de cada tipo de iniciativa, explicadas una a una"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -771,7 +773,12 @@
     "manifesto_source": "Ver el programa (PDF)",
     "manifesto_record_votes": "a favor en {n} votaciones del tema",
     "manifesto_record_proposed": "{n} iniciativas impulsadas en este tema",
-    "manifesto_record_title": "Cómo ha votado"
+    "manifesto_record_title": "Cómo ha votado",
+    "tab_summary": "Resumen",
+    "tab_laws": "Leyes que propone",
+    "tab_members": "Diputados",
+    "tabs_aria": "Secciones del grupo",
+    "seats_label": "diputados"
   },
   "home": {
     "eyebrow": "Open data del Congreso de los Diputados",
