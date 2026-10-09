@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowUpRight } from 'lucide-react';
+import type { Route } from 'next';
+import { ArrowUpRight, MapPin } from 'lucide-react';
 
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupChip } from '@/components/GroupChip';
+import { PersonVotes } from '@/components/PersonVotes';
 import { TopicBars } from '@/components/TopicBars';
 import {
   api,
@@ -19,6 +21,7 @@ import {
 } from '@/lib/api';
 import { formatDMY } from '@/lib/dates';
 import { displayGroupShort } from '@/lib/groups';
+import { pickTopicName } from '@/lib/topics';
 
 interface Params {
   id: string;
@@ -65,12 +68,18 @@ export async function generateMetadata({
 
 export default async function PersonDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<Params>;
+  searchParams: Promise<{ tab?: string; tema?: string; page?: string }>;
 }) {
   const { id } = await params;
   const personId = Number(id);
   if (!Number.isFinite(personId)) notFound();
+  const sp = await searchParams;
+  const tab: Tab = (TABS as readonly string[]).includes(sp.tab ?? '') ? (sp.tab as Tab) : 'votacions';
+  const topicSlug = sp.tema && /^[a-z0-9-]+$/.test(sp.tema) ? sp.tema : null;
+  const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
 
   const t = await getTranslations('person');
   const locale = await getLocale();
@@ -93,14 +102,20 @@ export default async function PersonDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+  // The votes list behind the two vote tabs; its totals also label the tabs.
+  const votesPage = await api.persons
+    .votes(personId, {
+      dissent: tab === 'trenca',
+      topic_slug: tab === 'votacions' || tab === 'trenca' ? (topicSlug ?? undefined) : undefined,
+      page: tab === 'votacions' || tab === 'trenca' ? page : 1,
+    })
+    .catch(() => null);
 
   const wikiSearch = `https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(
     person.full_name + ' diputado',
   )}`;
   // Prefer the locale-matched Wikipedia URL surfaced by the Wikidata
-  // enrichment worker. We fall back through CA → ES → EN so a CA
-  // visitor on a deputy without a Catalan Wikipedia entry still
-  // lands on the most relevant article rather than a search page.
+  // enrichment worker, falling back through CA, ES, EN.
   const enrichedWiki =
     (locale === 'ca' && person.wikipedia_url_ca) ||
     (locale === 'es' && person.wikipedia_url_es) ||
@@ -109,9 +124,6 @@ export default async function PersonDetailPage({
     person.wikipedia_url_es ||
     person.wikipedia_url_en ||
     null;
-  // Locale-resolved Wikipedia extract — same CA → ES → EN cascade as
-  // the article URL so the blurb stays in the user's language when
-  // available and falls back gracefully when not.
   const wikiSummary =
     (locale === 'ca' && person.wikipedia_summary_ca) ||
     (locale === 'es' && person.wikipedia_summary_es) ||
@@ -121,8 +133,32 @@ export default async function PersonDetailPage({
     person.wikipedia_summary_en ||
     null;
 
+  // The deputy's busiest topics, named in the reader's language, for the
+  // filter chips of the vote tabs.
+  const topicBySlug = new Map(allTopics.map((tp) => [tp.slug, tp]));
+  const topicChips = [...topicStats]
+    .sort((a, b) => b.cast - a.cast)
+    .slice(0, 8)
+    .map((r) => {
+      const tp = topicBySlug.get(r.topic_slug);
+      return {
+        slug: r.topic_slug,
+        name: tp ? pickTopicName(tp, locale) : r.topic_name_ca,
+        color: r.topic_color_hex,
+      };
+    });
+
+  const base = `/persons/${person.id}`;
+  const tabHref = (k: Tab) => (k === 'votacions' ? base : `${base}?tab=${k}`) as Route;
+  const tabs: { key: Tab; label: string; count?: number }[] = [
+    { key: 'votacions', label: t('tab_votes'), count: votesPage?.all_total },
+    { key: 'trenca', label: t('tab_dissent'), count: votesPage?.dissent_total },
+    { key: 'temes', label: t('tab_topics') },
+    { key: 'trajectoria', label: t('tab_career') },
+  ];
+
   return (
-    <article>
+    <article className="dep">
       {/* Breadcrumb */}
       <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/el-teu-diputat?tab=tots" style={{ color: 'var(--ink-2)' }}>
@@ -130,116 +166,43 @@ export default async function PersonDetailPage({
         </Link>
       </div>
 
-      <header
-        className="person-header"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '192px 1fr',
-          gap: 28,
-          paddingTop: 18,
-          paddingBottom: 24,
-          borderBottom: '1px solid var(--ink)',
-          alignItems: 'flex-start',
-        }}
-      >
-        {person.photo_url ? (
-          // Photo is served by congreso.es with predictable dimensions; next/image
-          // would require domain allowlisting + a separate optimizer pass. The
-          // ficha photos are already small (~30-60 KB) and cached aggressively
-          // by Caddy in front of the API.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={person.photo_url}
-            alt=""
-            width={192}
-            height={240}
-            style={{
-              width: 192,
-              height: 240,
-              objectFit: 'cover',
-              border: '1px solid var(--rule)',
-              background: 'var(--paper-2)',
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: 192,
-              height: 240,
-              border: '1px solid var(--rule)',
-              background: 'var(--paper-2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 56,
-              fontWeight: 600,
-              color: 'var(--ink-3)',
-            }}
-            aria-hidden="true"
-          >
-            {personInitials(person.full_name)}
-          </div>
-        )}
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
-            <h1 className="h-headline" style={{ margin: 0 }}>
-              {person.full_name}
-            </h1>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 13,
-              color: 'var(--ink-2)',
-            }}
-          >
+      {/* The card: photo, name, party, province, role and the links out,
+          in the party's colour, then the three numbers as tiles. */}
+      <header className="dep-hero" style={{ ['--party' as string]: person.current_group_color ?? 'var(--ink-3)' }}>
+        <div className="dep-hero__photo">
+          {person.photo_url ? (
+            // Served by congreso.es, small and cached; no next/image pass.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={person.photo_url} alt="" width={132} height={165} />
+          ) : (
+            <span aria-hidden="true">{personInitials(person.full_name)}</span>
+          )}
+        </div>
+        <div className="dep-hero__body">
+          <h1 className="dep-hero__name">{person.full_name}</h1>
+          <div className="dep-hero__facts">
             {person.current_group_short && person.current_group_slug && (
               <GroupChip
                 slug={person.current_group_slug}
                 short={displayGroupShort(person.current_group_short)}
                 color={person.current_group_color}
-                size="sm"
+                size="md"
               />
             )}
             {person.current_constituency && (
-              <span>· {person.current_constituency}</span>
+              <span className="dep-hero__fact">
+                <MapPin size={14} aria-hidden="true" />
+                {person.current_constituency}
+              </span>
             )}
             {person.birth_year && (
-              <span>
-                · {t('born_in')} {person.birth_year}
+              <span className="dep-hero__fact">
+                {t('born_in')} {person.birth_year}
               </span>
             )}
           </div>
-          {person.role_title && (
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                marginTop: 10,
-                padding: '6px 10px',
-                background: 'var(--accent-soft)',
-                color: 'var(--accent-2)',
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.01em',
-              }}
-              title={
-                person.role_kind === 'govern'
-                  ? "Càrrec executiu — per convenció parlamentària no vota en la majoria de plens"
-                  : person.role_kind === 'mesa'
-                    ? "Membre de la Mesa del Congrés — el seu rol modifica el patró de vot"
-                    : undefined
-              }
-            >
-              {person.role_title}
-            </div>
-          )}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14, alignItems: 'center' }}>
+          {person.role_title && <div className="dep-hero__role">{person.role_title}</div>}
+          <div className="dep-hero__links">
             {person.biography_url && (
               <a
                 href={person.biography_url}
@@ -290,84 +253,6 @@ export default async function PersonDetailPage({
               )
             )}
           </div>
-          {(person.profession || person.education) && (
-            <div
-              style={{
-                marginTop: 10,
-                fontSize: 13,
-                color: 'var(--ink-2)',
-                display: 'flex',
-                gap: 14,
-                flexWrap: 'wrap',
-                lineHeight: 1.5,
-              }}
-            >
-              {person.profession && (
-                <span>
-                  <span
-                    className="eyebrow"
-                    style={{ fontSize: 10, marginRight: 6, color: 'var(--ink-3)' }}
-                  >
-                    {t('profession_label')}
-                  </span>
-                  {person.profession}
-                </span>
-              )}
-              {person.education && (
-                <span>
-                  <span
-                    className="eyebrow"
-                    style={{ fontSize: 10, marginRight: 6, color: 'var(--ink-3)' }}
-                  >
-                    {t('education_label')}
-                  </span>
-                  {person.education}
-                </span>
-              )}
-            </div>
-          )}
-          {wikiSummary && (
-            <div
-              style={{
-                marginTop: 14,
-                paddingTop: 14,
-                borderTop: '1px solid var(--rule)',
-                maxWidth: 720,
-              }}
-            >
-              <p
-                className="serif"
-                style={{
-                  margin: 0,
-                  fontSize: 15,
-                  lineHeight: 1.6,
-                  color: 'var(--ink-2)',
-                  fontStyle: 'normal',
-                }}
-              >
-                {wikiSummary}
-              </p>
-              {enrichedWiki && (
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontSize: 11,
-                    color: 'var(--ink-3)',
-                  }}
-                >
-                  {t('wikipedia_attribution')}{' '}
-                  <a
-                    href={enrichedWiki}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--ink-2)', textDecoration: 'underline' }}
-                  >
-                    Wikipedia
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </header>
 
@@ -429,108 +314,116 @@ export default async function PersonDetailPage({
         );
       })()}
 
-      <PersonBio
-        bioText={person.bio_text}
-        commissions={person.commissions}
-        labels={{
-          eyebrow: t('bio_eyebrow'),
-          sectionAria: t('bio_section_aria'),
-          sourceNote: t('bio_source_note'),
-          commissionsTitle: t('commissions_title'),
-          commissionsEmpty: t('commissions_empty'),
-        }}
-      />
+      {/* Tabs: links, so each one has its own URL and works without JS. */}
+      <nav className="dep-tabs" aria-label={t('tabs_aria')}>
+        {tabs.map((tb) => (
+          <Link
+            key={tb.key}
+            href={tabHref(tb.key)}
+            aria-current={tab === tb.key ? 'page' : undefined}
+            className={tab === tb.key ? 'is-active' : undefined}
+            scroll={false}
+          >
+            {tb.label}
+            {tb.count != null && <span className="tabular">{tb.count}</span>}
+          </Link>
+        ))}
+      </nav>
 
-      <section style={{ paddingTop: 28 }}>
-        <div className="eyebrow" style={{ marginBottom: 6 }}>
-          {t('mandates_title')}
-        </div>
-        {mandates.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_mandates')}</p>
-        ) : (
-          <>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-              {mandates.slice(0, 3).map((m) => (
-                <MandateLi
-                  key={m.id}
-                  mandate={m}
-                  locale={locale}
-                  labels={{
-                    dates: t('mandate_dates', {
-                      from: formatDMY(m.start_date),
-                      to: m.end_date ? formatDMY(m.end_date) : t('mandate_current'),
-                    }),
-                    constituency: t('constituency'),
-                    list: t('list'),
-                  }}
-                />
-              ))}
-            </ul>
-            {/* Truncate-and-reveal for deputies with a long mandate
-                history — frequent for senior politicians who span
-                several legislatures + chamber switches. The remaining
-                items live inside a <details>, so toggling is a pure-
-                HTML affordance that works without JS. */}
-            {mandates.length > 3 && (
-              <details
-                style={{ marginTop: 0, padding: 0 }}
-              >
-                <summary
-                  style={{
-                    cursor: 'pointer',
-                    listStyle: 'none',
-                    padding: '12px 0',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: 'var(--ink-2)',
-                    borderBottom: '1px solid var(--rule)',
-                  }}
-                >
-                  {t('mandates_show_more', { count: mandates.length - 3 })}
-                </summary>
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                  {mandates.slice(3).map((m) => (
-                    <MandateLi
-                      key={m.id}
-                      mandate={m}
-                      locale={locale}
-                      labels={{
-                        dates: t('mandate_dates', {
-                          from: formatDMY(m.start_date),
-                          to: m.end_date ? formatDMY(m.end_date) : t('mandate_current'),
-                        }),
-                        constituency: t('constituency'),
-                        list: t('list'),
-                      }}
-                    />
-                  ))}
-                </ul>
-              </details>
-            )}
-          </>
-        )}
-      </section>
-
-      <section style={{ paddingTop: 28 }}>
-        <h2 className="h-title">{t('vote_by_topic_title')}</h2>
-        <p
-          style={{
-            fontSize: 12,
-            color: 'var(--ink-3)',
-            marginTop: 0,
-            marginBottom: 12,
-            maxWidth: 760,
-          }}
-        >
-          {t('vote_by_topic_subtitle')}
-        </p>
-        <StanceArc rows={topicStats} locale={locale} t={t} />
-        <TopicBars
-          rows={topicStats}
-          emptyHint={t('vote_by_topic_empty_hint')}
-          allTopics={allTopics}
+      {(tab === 'votacions' || tab === 'trenca') && (
+        <PersonVotes
+          data={votesPage}
+          locale={locale}
+          baseHref={tab === 'trenca' ? `${base}?tab=trenca` : `${base}?`}
+          topicSlug={topicSlug}
+          topics={topicChips}
+          dissentTab={tab === 'trenca'}
         />
-      </section>
+      )}
+
+      {tab === 'temes' && (
+        <section className="dep-panel">
+          <h2 className="h-title">{t('vote_by_topic_title')}</h2>
+          <p className="dep-panel__dek">{t('vote_by_topic_subtitle')}</p>
+          <StanceArc rows={topicStats} locale={locale} t={t} />
+          <TopicBars
+            rows={topicStats}
+            emptyHint={t('vote_by_topic_empty_hint')}
+            allTopics={allTopics}
+          />
+        </section>
+      )}
+
+      {tab === 'trajectoria' && (
+        <section className="dep-panel dep-career">
+          {(person.profession || person.education) && (
+            <dl className="law-facts">
+              {person.profession && (
+                <div>
+                  <dt>{t('profession_label')}</dt>
+                  <dd>{person.profession}</dd>
+                </div>
+              )}
+              {person.education && (
+                <div>
+                  <dt>{t('education_label')}</dt>
+                  <dd>{person.education}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+          {wikiSummary && (
+            <div className="dep-career__wiki">
+              <p className="serif">{wikiSummary}</p>
+              {enrichedWiki && (
+                <p className="dep-career__source">
+                  {t('wikipedia_attribution')}{' '}
+                  <a href={enrichedWiki} target="_blank" rel="noopener noreferrer">
+                    Wikipedia
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
+          <PersonBio
+            bioText={person.bio_text}
+            commissions={person.commissions}
+            labels={{
+              eyebrow: t('bio_eyebrow'),
+              sectionAria: t('bio_section_aria'),
+              sourceNote: t('bio_source_note'),
+              commissionsTitle: t('commissions_title'),
+              commissionsEmpty: t('commissions_empty'),
+            }}
+          />
+          <div style={{ paddingTop: 28 }}>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>
+              {t('mandates_title')}
+            </div>
+            {mandates.length === 0 ? (
+              <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_mandates')}</p>
+            ) : (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {mandates.map((m) => (
+                  <MandateLi
+                    key={m.id}
+                    mandate={m}
+                    locale={locale}
+                    labels={{
+                      dates: t('mandate_dates', {
+                        from: formatDMY(m.start_date),
+                        to: m.end_date ? formatDMY(m.end_date) : t('mandate_current'),
+                      }),
+                      constituency: t('constituency'),
+                      list: t('list'),
+                    }}
+                  />
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
 
       <style>{`
         @media (max-width: 720px) {
@@ -553,6 +446,9 @@ export default async function PersonDetailPage({
     </article>
   );
 }
+
+const TABS = ['votacions', 'trenca', 'temes', 'trajectoria'] as const;
+type Tab = (typeof TABS)[number];
 
 /** Single mandate row — extracted so both the visible-first-3 list
  *  and the inside-details "show more" list share one implementation

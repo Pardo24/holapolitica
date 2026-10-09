@@ -1,5 +1,7 @@
 """API endpoints for persons and their mandates."""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -25,6 +27,7 @@ from app.models import (
 )
 from app.schemas import MandateWithPerson, PersonRead
 from app.services.cache import cached
+from app.services.person_votes import describe, is_dissent, person_vote_rows, votes_with_topic
 
 router = APIRouter(prefix="/persons", tags=["persons"])
 
@@ -342,3 +345,35 @@ async def get_person_kpis(
         3600,
         lambda: compute_person_kpis(session, person_id=person_id),
     )
+
+
+@router.get("/{person_id}/votes", response_model=dict)
+async def get_person_votes(
+    person_id: int,
+    dissent: bool = Query(False, description="Only the votes where they broke with their group."),
+    topic_slug: str | None = Query(None, description="Only votes on laws under this topic."),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """The deputy's votes, newest first: what they voted, what their group
+    voted, how it ended. See app/services/person_votes.py."""
+    rows: list[list[Any]] = await cached(
+        f"metrics:persons:{person_id}:votes:v1",
+        3600,
+        lambda: person_vote_rows(session, person_id),
+    )
+    dissent_total = sum(1 for r in rows if is_dissent(r))
+    selected = [r for r in rows if is_dissent(r)] if dissent else rows
+    if topic_slug:
+        with_topic = await votes_with_topic(session, [r[0] for r in selected], topic_slug)
+        selected = [r for r in selected if r[0] in with_topic]
+    start = (page - 1) * page_size
+    return {
+        "total": len(selected),
+        "all_total": len(rows),
+        "dissent_total": dissent_total,
+        "page": page,
+        "page_size": page_size,
+        "items": await describe(session, selected[start : start + page_size]),
+    }

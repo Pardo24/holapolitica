@@ -4982,3 +4982,140 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 @media (max-width: 560px) {
   .law-facts > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 }
+
+/* Deputy profile (app/persons/[id]): a card in the party's colour, the
+   three numbers as tiles, then tabs (votes, breaks with the group, by
+   topic, career). */
+.dep-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 12px;
+  padding: 22px 18px 18px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in oklch, var(--party) 30%, var(--rule));
+  background: linear-gradient(180deg, color-mix(in oklch, var(--party) 12%, var(--paper)) 0, var(--paper) 70%);
+  overflow: hidden;
+}
+.dep-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--party); }
+.dep-hero__photo { width: 132px; aspect-ratio: 4 / 5; max-width: 100%; border-radius: 16px; overflow: hidden; background: var(--paper-2); border: 3px solid var(--paper); box-shadow: var(--shadow-2); display: flex; align-items: center; justify-content: center; }
+.dep-hero__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dep-hero__photo span { font-size: 40px; font-weight: 700; color: var(--ink-3); }
+.dep-hero__body { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.dep-hero__name { margin: 0; font-family: var(--font-serif); font-size: clamp(26px, 4vw, 38px); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); text-wrap: balance; }
+.dep-hero__facts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 14px; color: var(--ink-2); }
+.dep-hero__fact { display: inline-flex; align-items: center; gap: 5px; }
+.dep-hero__role { align-self: flex-start; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-2); font-size: 12.5px; font-weight: 700; }
+@media (max-width: 560px) {
+  .dep-hero { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 18px 14px 14px; }
+  .dep-hero__photo { width: 96px; border-radius: 14px; }
+}
+
+.dep-tabs {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 56px);
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+  margin: 20px 0 14px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dep-tabs::-webkit-scrollbar { display: none; }
+.dep-tabs > a {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dep-tabs > a > span { font-size: 11px; opacity: .65; }
+.dep-tabs > a.is-active { background: var(--ink); color: var(--paper); }
+.dep-tabs > a.is-active > span { opacity: .85; }
+
+.dep-panel { margin-top: 4px; }
+.dep-panel__dek { margin: 0 0 12px; max-width: 760px; font-size: 13px; color: var(--ink-3); }
+
+.dep-votes__intro { margin: 0 0 12px; max-width: 720px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.dep-votes__topics { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+.dep-votes__topics::-webkit-scrollbar { display: none; }
+.dep-votes__topics > a {
+  flex: none;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--topic, var(--ink-3)) 40%, var(--rule));
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.dep-votes__topics > a.is-active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.dep-votes__count { margin: 0 0 8px; font-size: 12.5px; color: var(--ink-3); }
+.dep-votes__empty { margin: 0; padding: 14px; border-radius: 12px; border: 1px dashed var(--rule-strong); background: var(--paper-2); font-size: 14px; color: var(--ink-2); }
+.dep-votes__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.dep-vote {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  box-shadow: var(--shadow-1, 0 1px 2px rgba(15, 23, 42, .05));
+}
+.dep-vote.is-dissent { border-color: color-mix(in oklch, var(--accent) 45%, var(--rule)); }
+.dep-vote__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; color: var(--ink-3); }
+.dep-vote__topic { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--ink-2); }
+.dep-vote__topic svg { color: var(--topic); }
+.dep-vote__result { margin-left: auto; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.dep-vote__result--approved { color: color-mix(in oklch, var(--aye) 75%, var(--ink)); }
+.dep-vote__result--rejected { color: color-mix(in oklch, var(--no) 80%, var(--ink)); }
+.dep-vote__title { font-size: 16px; font-weight: 700; line-height: 1.35; color: var(--ink); text-decoration: none; text-wrap: pretty; }
+.dep-vote__title:hover { text-decoration: underline; text-underline-offset: 3px; }
+.dep-vote__stances { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; color: var(--ink-2); }
+.dep-vote__choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--choice) 14%, var(--paper));
+  border: 1px solid color-mix(in oklch, var(--choice) 35%, var(--paper));
+  color: var(--ink);
+}
+.dep-vote__choice strong { color: color-mix(in oklch, var(--choice) 75%, var(--ink)); }
+.dep-vote__choice.is-absent { background: var(--paper-2); border-color: var(--rule); }
+.dep-vote__group { display: inline-flex; align-items: center; gap: 5px; }
+.dep-vote__dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
+.dep-vote__dissent {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.dep-career__wiki { margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: var(--paper-2); border: 1px solid var(--rule); max-width: 760px; }
+.dep-career__wiki .serif { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.dep-career__source { margin: 6px 0 0; font-size: 11.5px; color: var(--ink-3); }
+.dep-career__source a { color: var(--ink-2); text-decoration: underline; }
+.dep-hero__links { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }

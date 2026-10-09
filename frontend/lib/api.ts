@@ -846,6 +846,38 @@ export interface StageGroup {
   color_hex: string | null;
 }
 
+/** One vote of a deputy (GET /persons/{id}/votes). */
+export interface PersonVoteItem {
+  vote_id: number;
+  voted_at: string;
+  title_ca: string | null;
+  title_es: string | null;
+  /** The chamber's own wording, when there is no plain title. */
+  subject: string;
+  initiative_id: number | null;
+  initiative_type: InitiativeType | null;
+  stage: VoteStageKey | null;
+  subgroup_text: string | null;
+  result: VoteResult;
+  /** aye | no | abstention | absent | no_vote_recorded */
+  choice: string;
+  /** Their group's majority on that vote, if it had one. */
+  group_majority: string | null;
+  /** They cast a vote different from their group's majority. */
+  dissent: boolean;
+  group: { slug: string; name_short: string; color_hex: string | null } | null;
+  topic: InitiativeTopicSlug | null;
+}
+
+export interface PersonVotesPage {
+  total: number;
+  all_total: number;
+  dissent_total: number;
+  page: number;
+  page_size: number;
+  items: PersonVoteItem[];
+}
+
 export interface InitiativeTopicSlug {
   slug: string;
   name_ca: string;
@@ -1156,6 +1188,17 @@ export const api = {
       request<TopicVoteStat[]>(`/persons/${id}/topic-stats`, { revalidate: AGG_REVALIDATE }),
     kpis: (id: number) =>
       request<PersonKPIs>(`/persons/${id}/kpis`, { revalidate: AGG_REVALIDATE }),
+    /** The deputy's votes, newest first, with their group's stance. */
+    votes: (id: number, params: { dissent?: boolean; topic_slug?: string; page?: number } = {}) => {
+      const qs = new URLSearchParams();
+      if (params.dissent) qs.set('dissent', 'true');
+      if (params.topic_slug) qs.set('topic_slug', params.topic_slug);
+      if (params.page && params.page > 1) qs.set('page', String(params.page));
+      const q = qs.toString();
+      return request<PersonVotesPage>(`/persons/${id}/votes${q ? `?${q}` : ''}`, {
+        revalidate: AGG_REVALIDATE,
+      });
+    },
     constituencies: (legislatureId?: number) => {
       const qs = legislatureId != null ? `?legislature_id=${legislatureId}` : '';
       return request<ConstituencyRow[]>(`/persons/constituencies${qs}`, {
