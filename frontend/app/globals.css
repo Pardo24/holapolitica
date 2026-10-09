@@ -5309,3 +5309,9 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   .grp-hero__mark { width: 64px; height: 64px; border-radius: 16px; }
   .grp-hero__mark > * { transform: none; }
 }
+/* /recorregut cards: rows sized by content, the badge as a chip. */
+.rec-type.rec-type { grid-template-rows: auto auto auto; align-content: start; }
+.rec-badge { align-self: start; }
+@media (max-width: 640px) {
+  .rec-type.rec-type { grid-template-rows: auto auto auto; }
+}
