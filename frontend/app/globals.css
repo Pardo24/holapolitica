@@ -4951,3 +4951,34 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   background: color-mix(in oklch, var(--no) 13%, var(--paper));
   border-top-color: color-mix(in oklch, var(--no) 28%, var(--paper));
 }
+
+/* Law page sections after the header (app/initiatives/[id]): each one a
+   titled block with a one-line explanation, in the same frame as "Què diu
+   el text" (.law-text). */
+.law-sec {
+  margin-top: 18px;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  box-shadow: var(--shadow-2);
+}
+.law-sec__head { margin-bottom: 12px; }
+.law-sec__head h2 { margin: 0; font-family: var(--font-serif); font-size: 20px; color: var(--ink); }
+.law-sec__head p { margin: 4px 0 0; max-width: 680px; font-size: 13.5px; line-height: 1.5; color: var(--ink-3); }
+.law-sec__empty { margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--rule); background: var(--paper-2); font-size: 13.5px; color: var(--ink-3); }
+.law-sec__box { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--rule); background: var(--paper-2); }
+.law-sec__lead { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink); }
+.law-sec__chain { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--rule); }
+.law-sec__chain h3 { margin: 0 0 4px; font-size: 15px; font-weight: 800; color: var(--ink); }
+.law-sec__help { margin: 0 0 14px; max-width: 680px; font-size: 13px; line-height: 1.5; color: var(--ink-3); }
+.law-head__nosummary { margin: 10px 0 0; font-size: 13.5px; color: var(--ink-3); }
+.law-facts { margin: 0; display: grid; gap: 14px; }
+.law-facts > div { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.law-facts dt { font-size: 12.5px; font-weight: 700; color: var(--ink-3); }
+.law-facts dd { margin: 0; font-size: 14px; color: var(--ink); }
+.law-facts__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.law-facts__chips > span { padding: 3px 11px; border-radius: 999px; background: var(--hue-lleis-soft); font-size: 12.5px; font-weight: 600; }
+@media (max-width: 560px) {
+  .law-facts > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}

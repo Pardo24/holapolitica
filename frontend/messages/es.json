@@ -379,7 +379,7 @@
     "breadcrumb_root": "Leyes",
     "submitted_at": "Fecha de presentación",
     "status_label": "Estado",
-    "topics_label": "Temas clasificados",
+    "topics_label": "Temas",
     "source_pdf_cta": "Ver texto oficial (PDF)",
     "boe_cta": "Publicada en el BOE",
     "entry_in_force": "Entrada en vigor",
@@ -403,7 +403,13 @@
     "submitted_at_short": "Presentada el",
     "summary_caveat_short": "Resumen hecho con IA a partir del texto. Puede tener errores: lo que vale es el texto oficial.",
     "summary_caveat_how": "Cómo lo hacemos",
-    "official_title_label": "Título oficial:"
+    "official_title_label": "Título oficial:",
+    "sec_votes_title": "Cómo se votó",
+    "sec_votes_dek": "La votación que decide la ley: cuántos diputados votaron a favor y en contra, y de qué lado se puso cada grupo.",
+    "sec_votes_points_dek": "Esta propuesta se votó por puntos: cada punto es una pregunta distinta y puede tener un resultado distinto.",
+    "sec_chain_title": "Todas las votaciones de esta ley ({n})",
+    "sec_chain_help": "Una ley se vota varias veces: primero si se tramita, después los cambios que proponen los grupos (enmiendas) y, al final, el texto entero. Toca una para verla en detalle.",
+    "sec_more_title": "Más información"
   },
   "law_journey": {
     "eyebrow": "Trayectoria",

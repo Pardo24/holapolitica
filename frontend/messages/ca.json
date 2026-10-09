@@ -379,7 +379,7 @@
     "breadcrumb_root": "Lleis",
     "submitted_at": "Data de presentació",
     "status_label": "Estat",
-    "topics_label": "Temes classificats",
+    "topics_label": "Temes",
     "source_pdf_cta": "Veure text oficial (PDF)",
     "boe_cta": "Publicada al BOE",
     "entry_in_force": "Entrada en vigor",
@@ -403,7 +403,13 @@
     "submitted_at_short": "Presentada el",
     "summary_caveat_short": "Resum fet amb IA a partir del text. Pot tenir errors: el que val és el text oficial.",
     "summary_caveat_how": "Com ho fem",
-    "official_title_label": "Títol oficial:"
+    "official_title_label": "Títol oficial:",
+    "sec_votes_title": "Com es va votar",
+    "sec_votes_dek": "La votació que decideix la llei: quants diputats hi van votar a favor i en contra, i de quin costat es va posar cada grup.",
+    "sec_votes_points_dek": "Aquesta proposta es va votar per punts: cada punt és una pregunta diferent i pot tenir un resultat diferent.",
+    "sec_chain_title": "Totes les votacions d'aquesta llei ({n})",
+    "sec_chain_help": "Una llei es vota diverses vegades: primer si es tramita, després els canvis que proposen els grups (esmenes) i, al final, el text sencer. Toca'n una per veure-la en detall.",
+    "sec_more_title": "Més informació"
   },
   "law_journey": {
     "eyebrow": "Trajectòria",

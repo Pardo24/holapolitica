@@ -379,7 +379,7 @@
     "breadcrumb_root": "Laws",
     "submitted_at": "Filing date",
     "status_label": "Status",
-    "topics_label": "Classified topics",
+    "topics_label": "Topics",
     "source_pdf_cta": "View official text (PDF)",
     "boe_cta": "Published in the BOE",
     "entry_in_force": "Enters into force",
@@ -403,7 +403,13 @@
     "submitted_at_short": "Tabled on",
     "summary_caveat_short": "Summary written by AI from the text. It can be wrong: the official text is what counts.",
     "summary_caveat_how": "How we do it",
-    "official_title_label": "Official title:"
+    "official_title_label": "Official title:",
+    "sec_votes_title": "How it was voted",
+    "sec_votes_dek": "The vote that decides the law: how many deputies voted for and against, and which side each group took.",
+    "sec_votes_points_dek": "This proposal was voted point by point: each point is a separate question and can end differently.",
+    "sec_chain_title": "Every vote on this law ({n})",
+    "sec_chain_help": "A law is voted several times: first whether to take it up, then the changes the groups propose (amendments), and finally the whole text. Tap one to see it in full.",
+    "sec_more_title": "More information"
   },
   "law_journey": {
     "eyebrow": "Trajectory",
