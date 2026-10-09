@@ -55,6 +55,16 @@ class Settings(BaseSettings):
         """List form of CORS origins."""
         return [o.strip() for o in self.backend_cors_origins.split(",") if o.strip()]
 
+    # API access (app/core/api_access.py). The frontend's secret(s), sent as
+    # X-HP-Key on its server-side requests; comma-separated so a key can be
+    # rotated without downtime. Limits apply to everyone else.
+    api_internal_keys: str = ""
+    # False: count and log only. Turn on once the frontend sends its key.
+    api_rate_limit_enforce: bool = False
+    api_anon_per_minute: int = 300
+    api_anon_per_hour: int = 5000
+    api_key_per_hour: int = 3000
+
     # Auth (admin only — there is no public user system)
     secret_key: str = "change-me-in-production-please"
     access_token_expire_minutes: int = 60 * 8  # 8 hours

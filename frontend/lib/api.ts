@@ -67,6 +67,13 @@ async function request<T>(path: string, init?: RequestOptions): Promise<T> {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
+      // The site's own server-side rendering identifies itself, so the API
+      // never rate-limits the site (backend app/core/api_access.py). Server
+      // only: HP_API_KEY has no NEXT_PUBLIC_ prefix, so it never reaches a
+      // browser bundle.
+      ...(typeof window === 'undefined' && process.env.HP_API_KEY
+        ? { 'X-HP-Key': process.env.HP_API_KEY }
+        : {}),
       ...rest.headers,
     },
   };

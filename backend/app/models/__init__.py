@@ -667,6 +667,27 @@ class NewsletterSubscription(Base, TimestampMixin):
     )
 
 
+class ApiKey(Base, TimestampMixin):
+    """A free key for the bulk downloads (``/dump/*``), see app/core/api_access.py.
+
+    Only the SHA-256 of the key is stored; the key itself is shown once, when
+    it is issued. Who asked and why is self-declared, alongside their
+    acceptance of the attribution terms (CC BY 4.0, cite Hola Política).
+    """
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    # First characters, to name the key in logs and reports without the secret.
+    key_prefix: Mapped[str] = mapped_column(String(16), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    purpose: Mapped[str] = mapped_column(Text, nullable=False)
+    created_ip: Mapped[str | None] = mapped_column(String(64))
+    revoked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+
 class PushSubscription(Base, TimestampMixin):
     """Browser Web Push subscription — one per (endpoint).
 

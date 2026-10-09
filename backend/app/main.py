@@ -19,6 +19,7 @@ from app import __version__
 from app.api import (
     agenda,
     align,
+    api_keys,
     chambers,
     daily_question,
     dump,
@@ -36,6 +37,7 @@ from app.api import (
     topics,
     votes,
 )
+from app.core.api_access import ApiAccessMiddleware
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.core.rate_limit import limiter
@@ -187,6 +189,10 @@ class _PathAwareCORSDispatch:
         await target(scope, receive, send)
 
 
+# Who uses the API and how much (app/core/api_access.py). Added before the
+# CORS dispatcher so CORS stays the outer layer.
+app.add_middleware(ApiAccessMiddleware)
+
 app.add_middleware(
     _PathAwareCORSDispatch,
     default_origins=settings.cors_origins_list,
@@ -214,6 +220,7 @@ app.include_router(game.router)
 app.include_router(daily_question.router)
 app.include_router(push.router)
 app.include_router(dump.router)
+app.include_router(api_keys.router)
 
 
 @app.get("/")

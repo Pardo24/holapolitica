@@ -2,6 +2,8 @@ import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 
+import { ApiKeyForm } from '@/components/ApiKeyForm';
+
 export const metadata: Metadata = {
   title: 'API i widgets · Hola Política',
   description:
@@ -40,10 +42,13 @@ export default function ApiDocsPage() {
       <Section title="API REST pública">
         <p>
           L&apos;API està hostatjada a{' '}
-          <code style={inlineCode}>https://api.holapolitica.org</code>. No requereix
-          autenticació; les peticions són respostes JSON amb caché de 5 minuts. Si
-          esperes fer més de 100 peticions per minut, contacta&apos;ns abans de
-          desplegar res.
+          <code style={inlineCode}>https://api.holapolitica.org</code>. Les consultes
+          no necessiten clau; tenen un límit per IP pensat per a persones, no per
+          baixar-ho tot. Per a les dades completes fes servir les{' '}
+          <a href="#clau" style={{ color: 'var(--accent)' }}>
+            descàrregues amb clau
+          </a>
+          , que són gratuïtes.
         </p>
         <table style={tableStyle}>
           <thead>
@@ -89,6 +94,24 @@ export default function ApiDocsPage() {
           .
         </p>
       </Section>
+
+      <section id="clau" style={{ scrollMarginTop: 80 }}>
+        <Section title="Descàrregues completes (clau gratuïta)">
+          <p>
+            Les rutes <code style={inlineCode}>/dump/votes</code>,{' '}
+            <code style={inlineCode}>/dump/initiatives</code>,{' '}
+            <code style={inlineCode}>/dump/deputies</code> i{' '}
+            <code style={inlineCode}>/dump/vote-records</code> donen el conjunt
+            de dades sencer en poques peticions. Necessiten una clau gratuïta:
+            la demanes aquí i la tens a l&apos;instant. Només et demanem qui ets,
+            per a què les faràs servir i que citis Hola Política.
+          </p>
+          <ApiKeyForm />
+          <pre style={{ ...preStyle, marginTop: 14 }}>
+{`curl -s -H "X-API-Key: hp_…" "https://api.holapolitica.org/dump/votes"`}
+          </pre>
+        </Section>
+      </section>
 
       <Section title="Widgets embedables">
         <p>

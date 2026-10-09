@@ -11,3 +11,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # Is anything broken? Every ten minutes; it only mails when the state changes.
 */10 * * * * root /opt/holapolitica/ops/healthcheck.sh >> /var/log/holapolitica-health.log 2>&1
+
+# Who used the API from outside last week. Mondays 07:30 UTC, after ingest.
+30 7 * * 1 root /opt/holapolitica/ops/api-usage-report.sh >> /var/log/holapolitica-api-usage.log 2>&1
