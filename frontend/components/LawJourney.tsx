@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import type { InitiativeType, InitiativeStatus, VoteResult } from '@/lib/api';
+import type { InitiativeType, InitiativeStatus, VoteResult, VoteStageKey } from '@/lib/api';
 import { JOURNEY_STEPS } from '@/lib/lawJourney';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 
@@ -24,6 +24,56 @@ import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
  * colour shifts to green/red only on the terminal step when the
  * initiative was Approved/Rejected.
  */
+
+type JourneyLabel = InitiativeStatus | 'congress_approved';
+
+/**
+ * Where a BILL stands, read from its own votes rather than the portal's
+ * lifecycle status, which goes stale: a bill the Congress passed in June
+ * still said "Presentada, 1 de 6 etapes". Each vote carries its stage
+ * (vote XML subgroup, see lib/voteStage.ts), so the furthest step the votes
+ * prove is the step the bill has reached. Amendments and motion points say
+ * nothing about the bill's progress and are skipped. ``null`` when no vote
+ * tells us anything; the status-based reading applies then.
+ */
+function billProgress(
+  type: InitiativeType,
+  votes: readonly { stage?: VoteStageKey | null; result: VoteResult; voted_at: string }[],
+  hasBoe: boolean,
+): { index: number; label: JourneyLabel } | null {
+  if (type !== 'proyecto_ley' && type !== 'proposicion_ley') return null;
+  const steps = JOURNEY_STEPS[type];
+  const at = (key: string) => Math.max(0, steps.findIndex((s) => s.key === key));
+  if (hasBoe) return { index: steps.length - 1, label: 'approved' };
+  const ordered = [...votes].sort((a, b) => a.voted_at.localeCompare(b.voted_at));
+  const last = (pred: (s: VoteStageKey | null | undefined) => boolean) =>
+    [...ordered].reverse().find((v) => pred(v.stage));
+
+  // The Congress voting on the Senate's changes is the last vote a law gets:
+  // passed by both chambers, waiting for the BOE.
+  if (last((s) => s === 'senate_amendment')) return { index: at('senate'), label: 'approved' };
+  // An organic law needs the whole-text vote too; it decides when present.
+  const decisive = last((s) => s === 'whole') ?? last((s) => s === 'final');
+  if (decisive) {
+    return decisive.result === 'approved'
+      ? { index: at('floor'), label: 'congress_approved' }
+      : { index: at('floor'), label: 'rejected' };
+  }
+  const totality = last((s) => s === 'totality');
+  if (totality) {
+    // Approving an amendment to the whole sends the bill back: it ends.
+    return totality.result === 'approved'
+      ? { index: at(type === 'proyecto_ley' ? 'bocg' : 'taking'), label: 'rejected' }
+      : { index: at('committee'), label: 'in_debate' };
+  }
+  const taking = last((s) => s === 'consideration');
+  if (taking) {
+    return taking.result === 'approved'
+      ? { index: at('committee'), label: 'in_debate' }
+      : { index: at('taking'), label: 'rejected' };
+  }
+  return null;
+}
 
 function deriveActiveIndex(
   type: InitiativeType,
@@ -67,6 +117,7 @@ export async function LawJourney({
   status,
   hasBoe = false,
   voteResult = null,
+  votes = [],
 }: {
   type: InitiativeType;
   status: InitiativeStatus | null;
@@ -76,6 +127,9 @@ export async function LawJourney({
   /** Optional outcome when this journey is being rendered on a
    *  vote-detail page — sharpens the colour of the terminal step. */
   voteResult?: VoteResult | null;
+  /** The law's votes with their stage: for a bill, they say which step it
+   *  has really reached (see ``billProgress``). */
+  votes?: readonly { stage?: VoteStageKey | null; result: VoteResult; voted_at: string }[];
 }) {
   const t = await getTranslations('law_journey');
   const tType = await getTranslations('law_type');
@@ -101,15 +155,21 @@ export async function LawJourney({
     status !== 'approved' && status !== 'rejected'
       ? voteResult
       : status;
-  const activeIndex = deriveActiveIndex(type, effectiveStatus, hasBoe, voteResult);
+  const progress = billProgress(type, votes, hasBoe);
+  const activeIndex = progress
+    ? progress.index
+    : deriveActiveIndex(type, effectiveStatus, hasBoe, voteResult);
+  const label: JourneyLabel | null = progress ? progress.label : effectiveStatus;
+  // With the bill's progress known, the colour follows it, not the result
+  // of whichever vote this page is about (an amendment, say).
   const accent =
-    voteResult === 'approved' || effectiveStatus === 'approved'
+    label === 'approved' || label === 'congress_approved' || (!progress && voteResult === 'approved')
       ? 'var(--aye)'
-      : voteResult === 'rejected' || effectiveStatus === 'rejected'
+      : label === 'rejected' || (!progress && voteResult === 'rejected')
         ? 'var(--no)'
         : 'var(--paper)';
   const typeLabel = t(`type.${type}`);
-  const statusLabel = effectiveStatus ? t(`status.${effectiveStatus}`) : null;
+  const statusLabel = label ? t(`status.${label}`) : null;
   const doneCount = activeIndex + 1;
 
   return (

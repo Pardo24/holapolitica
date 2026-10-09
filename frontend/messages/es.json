@@ -422,7 +422,8 @@
       "approved": "Aprobada",
       "rejected": "Rechazada",
       "withdrawn": "Retirada",
-      "expired": "Caducada"
+      "expired": "Caducada",
+      "congress_approved": "Aprobada en el Congreso"
     },
     "label": {
       "proyecto_ley": {

@@ -422,7 +422,8 @@
       "approved": "Aprovada",
       "rejected": "Rebutjada",
       "withdrawn": "Retirada",
-      "expired": "Caducada"
+      "expired": "Caducada",
+      "congress_approved": "Aprovada al Congrés"
     },
     "label": {
       "proyecto_ley": {

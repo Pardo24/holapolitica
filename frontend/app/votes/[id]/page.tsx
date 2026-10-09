@@ -398,6 +398,7 @@ export default async function VoteDetailPage({
           status={initiative.status}
           hasBoe={!!initiative.boe_url}
           voteResult={vote.result}
+          votes={initiative.votes ?? []}
         />
       )}
 

@@ -422,7 +422,8 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "withdrawn": "Withdrawn",
-      "expired": "Lapsed"
+      "expired": "Lapsed",
+      "congress_approved": "Passed by Congress"
     },
     "label": {
       "proyecto_ley": {

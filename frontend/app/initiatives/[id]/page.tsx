@@ -465,6 +465,7 @@ export default async function InitiativeDetailPage({
         // the roll call for single-vote procedures; it was never told one
         // had happened.
         voteResult={finalVote?.result ?? null}
+        votes={votes}
       />
 
       {/* Two-column layout: plain summary + vote box */}
