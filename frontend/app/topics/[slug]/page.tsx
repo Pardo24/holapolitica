@@ -685,7 +685,7 @@ export default async function TopicDetailPage({
             marginBottom: 6,
           }}
         >
-          <h2 id="topic-news-title" className="eyebrow" style={{ margin: 0 }}>
+          <h2 id="topic-news-title" className="tpc-h2" style={{ margin: 0 }}>
             {t('hub_news_eyebrow')}
           </h2>
           <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
