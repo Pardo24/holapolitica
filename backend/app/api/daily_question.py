@@ -22,7 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
-from app.models import DailyAnswerCount, Initiative, Vote
+from app.models import DailyAnswerCount, Initiative, ParliamentaryGroup, Vote
 from app.models import Session as SessionRow
 from app.services.game_pool import not_backwards
 
@@ -291,6 +291,252 @@ _CIVIC: list[_Civic] = [
             "vota: el candidato no es automáticamente el del partido más votado."
         ),
     ),
+    # ── About laws: how they are made, and what makes one count. Laws are
+    # what the site is about, so most civic days ask about them.
+    _Civic(
+        prompt_ca="Quants vots calen al Congrés per aprovar una llei orgànica?",
+        prompt_es="¿Cuántos votos hacen falta en el Congreso para aprobar una ley orgánica?",
+        options_ca=["176", "Més sís que nos", "210", "233"],
+        options_es=["176", "Más síes que noes", "210", "233"],
+        correct=0,
+        exp_ca=(
+            "Les lleis orgàniques (drets fonamentals, règim electoral, estatuts d'autonomia) "
+            "necessiten la majoria absoluta: 176 dels 350 diputats, en una votació final sobre "
+            "el text sencer. Les lleis ordinàries s'aproven amb més vots a favor que en contra."
+        ),
+        exp_es=(
+            "Las leyes orgánicas (derechos fundamentales, régimen electoral, estatutos de "
+            "autonomía) necesitan la mayoría absoluta: 176 de los 350 diputados, en una votación "
+            "final sobre el texto entero. Las ordinarias se aprueban con más votos a favor que en contra."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Quantes signatures calen perquè la ciutadania proposi una llei al Congrés?",
+        prompt_es="¿Cuántas firmas hacen falta para que la ciudadanía proponga una ley al Congreso?",
+        options_ca=["50.000", "500.000", "100.000", "1.000.000"],
+        options_es=["50.000", "500.000", "100.000", "1.000.000"],
+        correct=1,
+        exp_ca=(
+            "La iniciativa legislativa popular necessita 500.000 signatures (article 87.3 de la "
+            "Constitució). No pot tractar d'impostos, de matèries de llei orgànica ni de "
+            "relacions internacionals."
+        ),
+        exp_es=(
+            "La iniciativa legislativa popular necesita 500.000 firmas (artículo 87.3 de la "
+            "Constitución). No puede tratar de impuestos, de materias de ley orgánica ni de "
+            "relaciones internacionales."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Un reial decret llei, des de quan té força de llei?",
+        prompt_es="Un real decreto-ley, ¿desde cuándo tiene fuerza de ley?",
+        options_ca=[
+            "Des que es publica al BOE",
+            "Des que el convalida el Congrés",
+            "Des que el vota el Senat",
+            "Un mes després de publicar-se",
+        ],
+        options_es=[
+            "Desde que se publica en el BOE",
+            "Desde que lo convalida el Congreso",
+            "Desde que lo vota el Senado",
+            "Un mes después de publicarse",
+        ],
+        correct=0,
+        exp_ca=(
+            "El Govern l'aprova per urgència i s'aplica des que es publica. El Congrés té 30 dies "
+            "per convalidar-lo (es queda) o derogar-lo (deixa de valer)."
+        ),
+        exp_es=(
+            "El Gobierno lo aprueba por urgencia y se aplica desde que se publica. El Congreso "
+            "tiene 30 días para convalidarlo (se queda) o derogarlo (deja de valer)."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Si el Congrés aprova una proposició no de llei, què passa?",
+        prompt_es="Si el Congreso aprueba una proposición no de ley, ¿qué pasa?",
+        options_ca=[
+            "Es converteix en llei",
+            "El Govern està obligat a complir-la",
+            "És la posició del Congrés, però no obliga el Govern",
+            "Passa al Senat",
+        ],
+        options_es=[
+            "Se convierte en ley",
+            "El Gobierno está obligado a cumplirla",
+            "Es la posición del Congreso, pero no obliga al Gobierno",
+            "Pasa al Senado",
+        ],
+        correct=2,
+        exp_ca=(
+            "Les PNL demanen coses al Govern o fixen la posició de la cambra, però no canvien "
+            "cap llei. Són la votació més freqüent del Ple."
+        ),
+        exp_es=(
+            "Las PNL piden cosas al Gobierno o fijan la posición de la cámara, pero no cambian "
+            "ninguna ley. Son la votación más frecuente del Pleno."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Què és una esmena?",
+        prompt_es="¿Qué es una enmienda?",
+        options_ca=[
+            "Un canvi que un grup proposa al text d'una llei",
+            "La votació final d'una llei",
+            "Una sanció a un diputat",
+            "Un recurs al Tribunal Constitucional",
+        ],
+        options_es=[
+            "Un cambio que un grupo propone al texto de una ley",
+            "La votación final de una ley",
+            "Una sanción a un diputado",
+            "Un recurso al Tribunal Constitucional",
+        ],
+        correct=0,
+        exp_ca=(
+            "Les esmenes es voten una per una abans de la votació final. Que se'n rebutgi una no "
+            "vol dir que es rebutgi la llei: la llei es decideix al final, amb el text sencer."
+        ),
+        exp_es=(
+            "Las enmiendas se votan una a una antes de la votación final. Que se rechace una no "
+            "significa que se rechace la ley: la ley se decide al final, con el texto entero."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Quant temps té el Senat per esmenar o vetar una llei aprovada pel Congrés?",
+        prompt_es="¿Cuánto tiempo tiene el Senado para enmendar o vetar una ley aprobada por el Congreso?",
+        options_ca=["Dues setmanes", "Dos mesos", "Sis mesos", "Un any"],
+        options_es=["Dos semanas", "Dos meses", "Seis meses", "Un año"],
+        correct=1,
+        exp_ca=(
+            "Dos mesos, o vint dies si és urgent. Si la veta o hi fa canvis, el text torna al "
+            "Congrés, que té l'última paraula."
+        ),
+        exp_es=(
+            "Dos meses, o veinte días si es urgente. Si la veta o introduce cambios, el texto "
+            "vuelve al Congreso, que tiene la última palabra."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Si una llei no diu quan entra en vigor, quan ho fa?",
+        prompt_es="Si una ley no dice cuándo entra en vigor, ¿cuándo lo hace?",
+        options_ca=[
+            "L'endemà de publicar-se",
+            "Als 20 dies de publicar-se al BOE",
+            "Quan l'aprova el Congrés",
+            "L'1 de gener següent",
+        ],
+        options_es=[
+            "Al día siguiente de publicarse",
+            "A los 20 días de publicarse en el BOE",
+            "Cuando la aprueba el Congreso",
+            "El 1 de enero siguiente",
+        ],
+        correct=1,
+        exp_ca=(
+            "Ho fixa el Codi Civil: vint dies després de la publicació, si la llei no diu una "
+            "altra cosa. Moltes lleis fixen la seva pròpia data."
+        ),
+        exp_es=(
+            "Lo fija el Código Civil: veinte días después de la publicación, si la ley no dice "
+            "otra cosa. Muchas leyes fijan su propia fecha."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Què passa amb les lleis que s'estaven tramitant quan es dissolen les Corts?",
+        prompt_es="¿Qué pasa con las leyes que se estaban tramitando cuando se disuelven las Cortes?",
+        options_ca=[
+            "S'aproven automàticament",
+            "La majoria caduquen i s'han de tornar a presentar",
+            "Les aprova el Govern per decret",
+            "Passen al Senat",
+        ],
+        options_es=[
+            "Se aprueban automáticamente",
+            "La mayoría caducan y hay que volver a presentarlas",
+            "Las aprueba el Gobierno por decreto",
+            "Pasan al Senado",
+        ],
+        correct=1,
+        exp_ca=(
+            "Quan es convoquen eleccions, les iniciatives sense acabar decauen. Si algú les vol "
+            "tirar endavant, les ha de tornar a presentar a la nova legislatura."
+        ),
+        exp_es=(
+            "Cuando se convocan elecciones, las iniciativas sin terminar decaen. Si alguien "
+            "quiere sacarlas adelante, tiene que volver a presentarlas en la nueva legislatura."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Qui pot presentar la Llei de Pressupostos Generals de l'Estat?",
+        prompt_es="¿Quién puede presentar la Ley de Presupuestos Generales del Estado?",
+        options_ca=["Qualsevol grup", "El Govern", "El Senat", "El Banc d'Espanya"],
+        options_es=["Cualquier grupo", "El Gobierno", "El Senado", "El Banco de España"],
+        correct=1,
+        exp_ca=(
+            "Només el Govern. Si no s'aproven a temps, es prorroguen els de l'any anterior "
+            "fins que n'hi hagi de nous."
+        ),
+        exp_es=(
+            "Solo el Gobierno. Si no se aprueban a tiempo, se prorrogan los del año anterior "
+            "hasta que haya unos nuevos."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Qui té l'última paraula si una llei sembla contrària a la Constitució?",
+        prompt_es="¿Quién tiene la última palabra si una ley parece contraria a la Constitución?",
+        options_ca=["El Tribunal Suprem", "El Tribunal Constitucional", "El Senat", "El Rei"],
+        options_es=["El Tribunal Supremo", "El Tribunal Constitucional", "El Senado", "El Rey"],
+        correct=1,
+        exp_ca=(
+            "El Tribunal Constitucional pot anul·lar-la. Hi poden recórrer, entre d'altres, el "
+            "president del Govern, el Defensor del Poble, 50 diputats o 50 senadors."
+        ),
+        exp_es=(
+            "El Tribunal Constitucional puede anularla. Pueden recurrir, entre otros, el "
+            "presidente del Gobierno, el Defensor del Pueblo, 50 diputados o 50 senadores."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Per quants vots de diferència es va convalidar la reforma laboral del 2022?",
+        prompt_es="¿Por cuántos votos de diferencia se convalidó la reforma laboral de 2022?",
+        options_ca=["Per un", "Per deu", "Per cinquanta", "Per unanimitat"],
+        options_es=["Por uno", "Por diez", "Por cincuenta", "Por unanimidad"],
+        correct=0,
+        exp_ca=(
+            "175 vots a favor i 174 en contra, el febrer del 2022. Una votació ajustada no fa "
+            "la llei menys vigent: n'hi ha prou amb més sís que nos."
+        ),
+        exp_es=(
+            "175 votos a favor y 174 en contra, en febrero de 2022. Una votación ajustada no "
+            "hace la ley menos vigente: basta con más síes que noes."
+        ),
+    ),
+    _Civic(
+        prompt_ca="Què va establir la Llei del dret a l'habitatge del 2023?",
+        prompt_es="¿Qué estableció la Ley por el derecho a la vivienda de 2023?",
+        options_ca=[
+            "Que es poden contenir els lloguers en zones tensionades",
+            "Que es prohibeixen els pisos turístics",
+            "Que les hipoteques queden congelades",
+            "Que els pisos buits passen a l'Estat",
+        ],
+        options_es=[
+            "Que se pueden contener los alquileres en zonas tensionadas",
+            "Que se prohíben los pisos turísticos",
+            "Que las hipotecas quedan congeladas",
+            "Que los pisos vacíos pasan al Estado",
+        ],
+        correct=0,
+        exp_ca=(
+            "Les comunitats autònomes poden declarar zones de mercat tensionat, on es poden "
+            "limitar els preus del lloguer. Aplicar-ho depèn de cada comunitat."
+        ),
+        exp_es=(
+            "Las comunidades autónomas pueden declarar zonas de mercado tensionado, donde se "
+            "pueden limitar los precios del alquiler. Aplicarlo depende de cada comunidad."
+        ),
+    ),
 ]
 
 
@@ -304,6 +550,8 @@ class DailyQuestionOut(BaseModel):
     prompt: str
     options: list[DailyOption]
     context: str | None = None  # plain-language law text, for vote questions
+    # The law's short plain title, above the context.
+    context_title: str | None = None
     source_id: int | None = None
 
 
@@ -327,6 +575,7 @@ class _Resolved(BaseModel):
     correct_index: int
     explanation: str
     context: str | None = None
+    context_title: str | None = None
     source_id: int | None = None
 
 
@@ -345,6 +594,9 @@ async def _vote_pool_ids(session: AsyncSession) -> list[int]:
                 (Initiative.plain_summary_ca.is_not(None))
                 | (Initiative.plain_summary_es.is_not(None))
             )
+            .where(
+                (Initiative.plain_title_ca.is_not(None)) | (Initiative.plain_title_es.is_not(None))
+            )
             .order_by(Vote.voted_at.desc())
             .limit(_VOTE_POOL)
         )
@@ -352,52 +604,154 @@ async def _vote_pool_ids(session: AsyncSession) -> list[int]:
     return [r[0] for r in rows]
 
 
+# A vote day asks one of three things about the same real vote, so the
+# question changes from day to day: did it pass, who proposed it, how close.
+_VOTE_VARIANTS = ("approved", "proposer", "margin")
+
+_MARGIN_BUCKETS = ((0, 10), (10, 50), (50, 150), (150, 10_000))
+
+
+def _margin_labels(lang: str) -> list[str]:
+    if lang == "es":
+        return [
+            "Por menos de 10 votos",
+            "Entre 10 y 49 votos",
+            "Entre 50 y 149 votos",
+            "Por 150 votos o más",
+        ]
+    return [
+        "Per menys de 10 vots",
+        "Entre 10 i 49 vots",
+        "Entre 50 i 149 vots",
+        "Per 150 vots o més",
+    ]
+
+
+def _short_group(name_short: str) -> str:
+    return name_short if name_short == "GP Mixto" else name_short.removeprefix("GP ")
+
+
 async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | None:
     if key.startswith("vote:"):
+        parts = key.split(":")
         try:
-            vid = int(key.split(":", 1)[1])
-        except ValueError:
+            vid = int(parts[1])
+        except (IndexError, ValueError):
             return None
+        variant = parts[2] if len(parts) > 2 and parts[2] in _VOTE_VARIANTS else "approved"
         row = (
             await session.execute(
                 select(
                     Initiative.plain_summary_ca,
                     Initiative.plain_summary_es,
+                    Initiative.plain_title_ca,
+                    Initiative.plain_title_es,
                     Vote.result,
                     Vote.ayes,
                     Vote.noes,
+                    Vote.proposing_group_id,
+                    Vote.proposed_by_government,
+                    SessionRow.legislature_id,
                 )
                 .join(Initiative, Initiative.id == Vote.initiative_id)
+                .join(SessionRow, SessionRow.id == Vote.session_id)
                 .where(Vote.id == vid)
             )
         ).first()
         if row is None:
             return None
-        sca, ses, result, ayes, noes = row
+        sca, ses, tca, tes, result, ayes, noes, gid, by_gov, leg_id = row
         summary = ((ses or sca) if lang == "es" else (sca or ses)) or ""
+        title = ((tes or tca) if lang == "es" else (tca or tes)) or None
+        ayes, noes = ayes or 0, noes or 0
         approved = (result.value if hasattr(result, "value") else str(result)) == "approved"
+        tally = (
+            f"{ayes} votos a favor y {noes} en contra"
+            if lang == "es"
+            else f"{ayes} vots a favor i {noes} en contra"
+        )
+        base = {
+            "kind": "vote",
+            "context": summary or None,
+            "context_title": title,
+            "source_id": vid,
+        }
+
+        if variant == "proposer" and (gid is not None or by_gov):
+            groups = (
+                await session.execute(
+                    select(ParliamentaryGroup.id, ParliamentaryGroup.name_short)
+                    .where(ParliamentaryGroup.legislature_id == leg_id)
+                    .order_by(ParliamentaryGroup.id)
+                )
+            ).all()
+            gov = "El Gobierno" if lang == "es" else "El Govern"
+            right: str | None
+            if by_gov and gid is None:
+                right = gov
+                others = [_short_group(n) for _i, n in groups]
+            else:
+                right = next((_short_group(n) for i, n in groups if i == gid), None)
+                if right is None:
+                    variant = "approved"
+                others = [_short_group(n) for i, n in groups if i != gid] + [gov]
+            if variant == "proposer" and right is not None:
+                pool = [o for o in dict.fromkeys(others) if o != right]
+                # Deterministic per vote: the same three distractors for everyone.
+                start = vid % max(1, len(pool))
+                distractors = (pool[start:] + pool[:start])[:3]
+                options = [right, *distractors]
+                rot = vid % len(options)
+                options = options[rot:] + options[:rot]
+                verb = "la propuso" if lang == "es" else "la va proposar"
+                return _Resolved(
+                    **base,
+                    prompt="¿Quién propuso esta iniciativa?"
+                    if lang == "es"
+                    else "Qui va proposar aquesta iniciativa?",
+                    options=options,
+                    correct_index=options.index(right),
+                    explanation=(
+                        f"{right} {verb}. "
+                        + (
+                            f"El Congreso la {'aprobó' if approved else 'rechazó'}, con {tally}."
+                            if lang == "es"
+                            else f"El Congrés la va {'aprovar' if approved else 'rebutjar'}, amb {tally}."
+                        )
+                    ),
+                )
+
+        if variant == "margin":
+            diff = abs(ayes - noes)
+            idx = next(i for i, (lo, hi) in enumerate(_MARGIN_BUCKETS) if lo <= diff < hi)
+            if lang == "es":
+                exp = f"Terminó con {tally}: {diff} votos de diferencia. Fue {'aprobada' if approved else 'rechazada'}."
+            else:
+                exp = f"Va acabar amb {tally}: {diff} vots de diferència. Va ser {'aprovada' if approved else 'rebutjada'}."
+            return _Resolved(
+                **base,
+                prompt="¿Por cuántos votos se decidió?"
+                if lang == "es"
+                else "Per quants vots es va decidir?",
+                options=_margin_labels(lang),
+                correct_index=idx,
+                explanation=exp,
+            )
+
         if lang == "es":
             prompt = "¿El Congreso aprobó esta iniciativa?"
             options = ["Sí", "No"]
-            verb = "aprobó" if approved else "rechazó"
-            explanation = (
-                f"El Congreso la {verb}, con {ayes or 0} votos a favor y {noes or 0} en contra."
-            )
+            explanation = f"El Congreso la {'aprobó' if approved else 'rechazó'}, con {tally}."
         else:
             prompt = "El Congrés va aprovar aquesta iniciativa?"
             options = ["Sí", "No"]
-            verb = "aprovar" if approved else "rebutjar"
-            explanation = (
-                f"El Congrés la va {verb}, amb {ayes or 0} vots a favor i {noes or 0} en contra."
-            )
+            explanation = f"El Congrés la va {'aprovar' if approved else 'rebutjar'}, amb {tally}."
         return _Resolved(
-            kind="vote",
+            **base,
             prompt=prompt,
             options=options,
             correct_index=0 if approved else 1,
             explanation=explanation,
-            context=summary or None,
-            source_id=vid,
         )
 
     if key.startswith("civic:"):
@@ -425,7 +779,8 @@ async def _today_key(session: AsyncSession) -> str | None:
     if day % 2 == 0:
         ids = await _vote_pool_ids(session)
         if ids:
-            return f"vote:{ids[day % len(ids)]}"
+            variant = _VOTE_VARIANTS[(day // 2) % len(_VOTE_VARIANTS)]
+            return f"vote:{ids[day % len(ids)]}:{variant}"
         # No votes available — fall back to a civic question.
     if _CIVIC:
         return f"civic:{day % len(_CIVIC)}"
@@ -451,6 +806,7 @@ async def get_daily_question(
         prompt=resolved.prompt,
         options=[DailyOption(text=t) for t in resolved.options],
         context=resolved.context,
+        context_title=resolved.context_title,
         source_id=resolved.source_id,
     )
 

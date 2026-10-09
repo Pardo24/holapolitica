@@ -5402,3 +5402,28 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .topic-article .eyebrow::before { display: none; }
 .topic-article .tpc-h2.tpc-h2 { font-size: 21px; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .topic-article .tpc-h2::before { display: none; }
+
+/* Trivia: progress toward a quesito (three right answers), and the invite
+   step before the first spin when playing with friends. */
+.tg-dots { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; }
+.tg-dots > span { width: 7px; height: 7px; border-radius: 999px; background: color-mix(in oklch, var(--c, var(--ink-3)) 25%, transparent); border: 1px solid var(--c, var(--ink-3)); }
+.tg-dots > span.is-on { background: var(--c, var(--ink-3)); }
+.tg-dots--light > span { border-color: rgba(255, 255, 255, .9); background: transparent; }
+.tg-dots--light > span.is-on { background: #fff; }
+.tg-verdict__wedge { margin: 6px 0 0; font-weight: 800; font-size: 14px; }
+.tg-invite { display: grid; gap: 12px; justify-items: center; text-align: center; padding: 22px 18px; border-radius: 22px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--shadow-2); }
+.tg-invite__icon { width: 56px; height: 56px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-jocs); color: #fff; }
+.tg-invite__title { margin: 0; font-family: var(--font-serif); font-size: 24px; color: var(--ink); }
+.tg-invite__sub { margin: 0; max-width: 420px; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+.tg-invite__link { width: 100%; }
+.tg-invite__link input { width: 100%; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--rule-strong); background: var(--paper-2); color: var(--ink-2); font: inherit; font-size: 13.5px; }
+.tg-invite__actions { display: flex; gap: 8px; width: 100%; }
+.tg-invite__actions > button { flex: 1; }
+
+/* Trivia start: play solo or with friends. */
+.game-mode { margin: 18px auto 4px; display: flex; width: max-content; max-width: 100%; }
+.game-mode > a { gap: 7px; font-size: 14px; min-height: 40px; padding: 0 18px; }
+.game-mode__hint { margin: 6px auto 0; max-width: 460px; text-align: center; font-size: 13.5px; color: var(--ink-2); }
+
+.dq-context__title { margin: 0 0 4px; font-size: 16px; font-weight: 800; line-height: 1.3; color: var(--ink); }
+.dq-context__text { margin: 0; }

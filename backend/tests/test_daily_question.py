@@ -68,3 +68,87 @@ async def test_unknown_key_404(db_session: AsyncSession) -> None:
         await answer_daily_question(
             DailyAnswerIn(key="civic:999", option=0), lang="ca", session=db_session
         )
+
+
+async def test_vote_day_variants(db_session: AsyncSession) -> None:
+    """One real vote, three questions: passed?, who proposed it, how close."""
+    from datetime import UTC, date, datetime
+
+    from app.models import Chamber, Initiative, Legislature, ParliamentaryGroup, Vote
+    from app.models import Session as SessionRow
+
+    db_session.add_all(
+        [
+            Chamber(
+                id=1, slug="es-congreso", name_ca="C", name_es="C", name_en="C", level="national"
+            ),
+            Legislature(
+                id=1,
+                chamber_id=1,
+                number="XV",
+                name_ca="XV",
+                name_es="XV",
+                name_en="XV",
+                start_date=date(2023, 8, 17),
+                status="active",
+            ),
+        ]
+    )
+    await db_session.flush()
+    groups = [
+        ParliamentaryGroup(id=i, legislature_id=1, slug=s, name_short=n, name_long=n)
+        for i, (s, n) in enumerate(
+            [
+                ("gp-a", "GP Socialista"),
+                ("gp-b", "GP Popular"),
+                ("gp-c", "GP VOX"),
+                ("gp-d", "GP Republicano"),
+            ],
+            start=1,
+        )
+    ]
+    db_session.add_all(groups)
+    db_session.add(SessionRow(id=1, chamber_id=1, legislature_id=1, date=date(2026, 6, 25)))
+    db_session.add(
+        Initiative(
+            id=1,
+            chamber_id=1,
+            legislature_id=1,
+            type="proposicion_ley",
+            official_id="122/1",
+            title_original="x",
+            plain_title_ca="Una llei",
+            plain_summary_ca="Fa coses.",
+            status="approved",
+        )
+    )
+    await db_session.flush()
+    db_session.add(
+        Vote(
+            id=7,
+            session_id=1,
+            initiative_id=1,
+            title="Dictamen",
+            voted_at=datetime(2026, 6, 25, 12, tzinfo=UTC),
+            result="approved",
+            ayes=180,
+            noes=170,
+            proposing_group_id=2,
+        )
+    )
+    await db_session.commit()
+
+    approved = await _resolve("vote:7:approved", "ca", db_session)
+    assert approved is not None and approved.options[approved.correct_index] == "Sí"
+    assert approved.context_title == "Una llei"
+
+    proposer = await _resolve("vote:7:proposer", "ca", db_session)
+    assert proposer is not None
+    assert proposer.options[proposer.correct_index] == "Popular"
+    assert len(set(proposer.options)) == 4
+
+    margin = await _resolve("vote:7:margin", "ca", db_session)
+    assert margin is not None and margin.correct_index == 1  # 10 votes apart
+
+    legacy = await _resolve("vote:7", "ca", db_session)  # keys from before the variants
+    assert legacy is not None and legacy.prompt == approved.prompt

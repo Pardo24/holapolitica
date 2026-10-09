@@ -45,6 +45,7 @@ export function GameTopicStart({
   locale,
   hrefFor,
   children,
+  before,
 }: {
   /** The game's colour, a --hue-* token. */
   hue: string;
@@ -59,8 +60,10 @@ export function GameTopicStart({
   locale: string;
   /** Where a tile leads: null = any subject. */
   hrefFor: (slug: string | null) => string;
-  /** Anything after the topics (the Trivia's invite card). */
+  /** Anything after the topics. */
   children?: ReactNode;
+  /** Anything between the hero and the topics (Trivia's solo / friends switch). */
+  before?: ReactNode;
 }) {
   const themes = topics.filter((tp) => tp.kind !== 'sdg');
   const rank = (slug: string) => {
@@ -84,6 +87,7 @@ export function GameTopicStart({
         </ul>
       </header>
 
+      {before}
       <h2 className="gstart-pick">{pickLabel}</h2>
       <Link href={hrefFor(null) as Route} className="gstart-any">
         <span className="gstart-any__icon" aria-hidden="true">

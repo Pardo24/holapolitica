@@ -180,7 +180,12 @@ export function DailyQuestion({ locale, labels }: { locale: string; labels: Dail
       {hero}
 
       <section className="dq-card">
-        {q.context && <p className="dq-context">{q.context}</p>}
+        {(q.context_title || q.context) && (
+          <div className="dq-context">
+            {q.context_title && <p className="dq-context__title">{q.context_title}</p>}
+            {q.context && <p className="dq-context__text">{q.context}</p>}
+          </div>
+        )}
         <h2 className="serif dq-prompt">{q.prompt}</h2>
 
         <div className="dq-opts">

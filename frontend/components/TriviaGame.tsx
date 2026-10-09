@@ -28,9 +28,13 @@ import { openShareSheet } from '@/lib/native';
 /**
  * "Trivia" — an async 1v1 duel, Preguntados-style. On your turn you spin a
  * roulette for a category (Lleis / Partits / Veritat o Fals / Món) or the
- * golden Corona slot; answer a timed question, and a correct answer wins that
- * category's quesito. Three lives (a miss = wrong or time-out) end the turn,
- * or you win by collecting every quesito. Comodins (50/50, skip, +time) help.
+ * golden Corona slot. A category's quesito takes three right answers in it:
+ * get one right and the next question of the same category follows; get one
+ * wrong and you lose a life and go back to the wheel (the answers already
+ * banked toward that quesito stay). The Corona is the shortcut: answer its
+ * question right and you pick any missing quesito outright. Three lives end
+ * the turn, or you win by collecting every quesito. Comodins (50/50, skip,
+ * +time) help.
  * A seeded share link drops a friend onto the same pools; their result rides in
  * the URL so the winner is shown.
  *
@@ -45,11 +49,13 @@ const CAT_COLOR: Record<Cat, string> = {
 };
 const CORONA_COLOR = '#E0B341';
 const LIVES = 3;
+/** Right answers in a category that win its quesito. */
+const WEDGE_AT = 3;
 const SECONDS = 20;
 const ADD_TIME = 10;
 
 type WheelSlot = Cat | 'corona';
-type Phase = 'spin' | 'question' | 'feedback' | 'corona-claim' | 'over';
+type Phase = 'invite' | 'spin' | 'question' | 'feedback' | 'corona-claim' | 'over';
 
 export interface TriviaLabels {
   category_partits: string;
@@ -85,6 +91,17 @@ export interface TriviaLabels {
   daily_badge: string;
   best_label: string; // {n}
   streak_label: string; // {n}
+  progress: string; // {n} {total}: right answers toward the quesito
+  wedge_won: string;
+  next_question: string;
+  back_to_wheel: string;
+  invite_title: string;
+  invite_sub: string;
+  invite_start: string;
+  invite_share: string;
+  invite_copy: string;
+  invite_copied: string;
+  invited_banner: string;
 }
 
 export interface RivalResult {
@@ -134,12 +151,18 @@ export function TriviaGame({
   seed,
   rival,
   daily = false,
+  inviteLink = null,
+  invited = false,
   labels,
 }: {
   pools: Record<Cat, DuelQuestion[]>;
   seed: number;
   rival: RivalResult | null;
   daily?: boolean;
+  /** Playing with friends: the link to send them, shown before the first spin. */
+  inviteLink?: string | null;
+  /** Arrived through a friend's invite (same round, no result to beat yet). */
+  invited?: boolean;
   labels: TriviaLabels;
 }) {
   const allCats = useMemo(() => {
@@ -148,7 +171,11 @@ export function TriviaGame({
   }, [pools]);
   const target = allCats.length;
 
-  const [phase, setPhase] = useState<Phase>('spin');
+  const [phase, setPhase] = useState<Phase>(inviteLink ? 'invite' : 'spin');
+  // Right answers banked toward each quesito, and how the last answer went.
+  const [progress, setProgress] = useState<Record<Cat, number>>({ lleis: 0, partits: 0, vf: 0, mon: 0 });
+  const [lastOutcome, setLastOutcome] = useState<'progress' | 'wedge' | 'miss' | 'corona' | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [slot, setSlot] = useState<WheelSlot | null>(null);
   const [q, setQ] = useState<DuelQuestion | null>(null);
   const [collected, setCollected] = useState<Cat[]>([]);
@@ -220,7 +247,7 @@ export function TriviaGame({
     if (!s) return;
     // Corona draws a general-knowledge question; winning lets you claim any
     // missing quesito. Otherwise the landed category serves its own question.
-    const drawFrom: Cat = s === 'corona' ? (pools.mon.length > 0 ? 'mon' : remaining[0]!) : s;
+    const drawFrom: Cat = s === 'corona' ? (pools.lleis.length > 0 ? 'lleis' : remaining[0]!) : s;
     setSlot(s);
     setQ(nextQuestion(drawFrom));
     setSelected(null);
@@ -237,12 +264,21 @@ export function TriviaGame({
     if (correct) {
       if (slot === 'corona') {
         // Claim happens in the corona-claim step.
+        setLastOutcome('corona');
       } else {
-        setCollected((prev) => (prev.includes(slot) ? prev : [...prev, slot]));
+        const n = progress[slot] + 1;
+        setProgress((prev) => ({ ...prev, [slot]: n }));
+        if (n >= WEDGE_AT) {
+          setCollected((prev) => (prev.includes(slot) ? prev : [...prev, slot]));
+          setLastOutcome('wedge');
+        } else {
+          setLastOutcome('progress');
+        }
       }
     } else {
       setLives((l) => l - 1);
       setLostLife(true);
+      setLastOutcome('miss');
     }
     setPhase(correct && slot === 'corona' ? 'corona-claim' : 'feedback');
   }
@@ -261,6 +297,8 @@ export function TriviaGame({
 
   function claimCorona(c: Cat) {
     setCollected((prev) => (prev.includes(c) ? prev : [...prev, c]));
+    setProgress((prev) => ({ ...prev, [c]: WEDGE_AT }));
+    setLastOutcome('wedge');
     setPhase('feedback');
   }
 
@@ -268,9 +306,19 @@ export function TriviaGame({
     setLostLife(false);
     if (lives <= 0 || collected.length >= target) {
       setPhase('over');
-    } else {
-      setPhase('spin');
+      return;
     }
+    // Right, and the quesito not won yet: the next question of the same
+    // category, straight away. Otherwise back to the wheel.
+    if (lastOutcome === 'progress' && slot && slot !== 'corona') {
+      setQ(nextQuestion(slot));
+      setSelected(null);
+      setHidden([]);
+      setTimeLeft(SECONDS);
+      setPhase('question');
+      return;
+    }
+    setPhase('spin');
   }
 
   function useFifty() {
@@ -296,6 +344,8 @@ export function TriviaGame({
 
   function reset() {
     cursors.current = { lleis: 0, partits: 0, vf: 0, mon: 0 };
+    setProgress({ lleis: 0, partits: 0, vf: 0, mon: 0 });
+    setLastOutcome(null);
     setCollected([]);
     setLives(LIVES);
     setSelected(null);
@@ -424,6 +474,55 @@ export function TriviaGame({
       </div>
 
       {rival && <div className="tg-rival">{labels.duel_intro.replace('{q}', String(rival.quesitos))}</div>}
+      {invited && !rival && <div className="tg-rival">{labels.invited_banner}</div>}
+
+      {phase === 'invite' && inviteLink && (
+        <div className="trivia-card tg-invite">
+          <span className="tg-invite__icon" aria-hidden="true">
+            <Users size={26} strokeWidth={2} />
+          </span>
+          <h2 className="tg-invite__title">{labels.invite_title}</h2>
+          <p className="tg-invite__sub">{labels.invite_sub}</p>
+          <div className="tg-invite__link">
+            <input readOnly value={inviteLink} onFocus={(e) => e.currentTarget.select()} aria-label={labels.invite_copy} />
+          </div>
+          <div className="tg-invite__actions">
+            <button
+              type="button"
+              className="tg-btn tg-btn--ghost"
+              onClick={async () => {
+                try {
+                  if (!(await openShareSheet({ text: inviteLink }))) {
+                    await navigator.clipboard.writeText(inviteLink);
+                    setInviteCopied(true);
+                  }
+                } catch {
+                  /* dismissed */
+                }
+              }}
+            >
+              {labels.invite_share}
+            </button>
+            <button
+              type="button"
+              className="tg-btn tg-btn--ghost"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(inviteLink);
+                  setInviteCopied(true);
+                } catch {
+                  /* blocked: the link is selectable above */
+                }
+              }}
+            >
+              {inviteCopied ? labels.invite_copied : labels.invite_copy}
+            </button>
+          </div>
+          <button type="button" className="tg-btn" style={{ width: '100%' }} onClick={() => setPhase('spin')}>
+            {labels.invite_start}
+          </button>
+        </div>
+      )}
 
       {phase === 'spin' && (
         <div className="trivia-card tg-spin">
@@ -437,6 +536,7 @@ export function TriviaGame({
                 <span key={c} style={{ ['--c' as string]: CAT_COLOR[c] }}>
                   <Ic size={13} strokeWidth={2.2} />
                   {catLabel(c)}
+                  <ProgressDots n={progress[c]} />
                 </span>
               );
             })}
@@ -470,6 +570,8 @@ export function TriviaGame({
           onSkip={useSkip}
           onAddTime={useAddTime}
           onClaim={claimCorona}
+          progressN={slot !== 'corona' ? progress[slot] : null}
+          lastOutcome={lastOutcome}
         />
       )}
     </div>
@@ -498,7 +600,11 @@ function QuestionCard({
   onSkip,
   onAddTime,
   onClaim,
+  progressN,
+  lastOutcome,
 }: {
+  progressN: number | null;
+  lastOutcome: 'progress' | 'wedge' | 'miss' | 'corona' | null;
   q: DuelQuestion;
   slot: WheelSlot;
   color: string;
@@ -535,6 +641,7 @@ function QuestionCard({
         <span className="tg-q__chip">
           <Icon size={15} strokeWidth={2.2} aria-hidden="true" />
           {chip}
+          {progressN != null && <ProgressDots n={progressN} light />}
         </span>
         {phase === 'question' && <TimerRing left={timeLeft} total={SECONDS} />}
       </div>
@@ -638,6 +745,12 @@ function QuestionCard({
               </span>
               {timedOut ? labels.time_up : gotItRight ? labels.correct : labels.wrong}
             </p>
+            {gotItRight && lastOutcome === 'wedge' && <p className="tg-verdict__wedge">{labels.wedge_won}</p>}
+            {gotItRight && lastOutcome === 'progress' && progressN != null && (
+              <p className="tg-verdict__wedge">
+                {labels.progress.replace('{n}', String(progressN)).replace('{total}', String(WEDGE_AT))}
+              </p>
+            )}
             {q.reveal && <p className="tg-verdict__reveal">{q.reveal}</p>}
             {q.sourceId != null && (
               <Link href={`/votes/${q.sourceId}` as Route} className="tg-verdict__link">
@@ -649,11 +762,22 @@ function QuestionCard({
 
         {phase === 'feedback' && (
           <button type="button" onClick={onProceed} className="tg-btn trivia-next" style={{ width: '100%', marginTop: 14 }}>
-            {labels.continue}
+            {gotItRight && lastOutcome === 'progress' ? labels.next_question : labels.back_to_wheel}
           </button>
         )}
       </div>
     </div>
+  );
+}
+
+/** Right answers banked toward a quesito, as three dots. */
+function ProgressDots({ n, light = false }: { n: number; light?: boolean }) {
+  return (
+    <span className={light ? 'tg-dots tg-dots--light' : 'tg-dots'} aria-label={`${Math.min(n, WEDGE_AT)}/${WEDGE_AT}`}>
+      {Array.from({ length: WEDGE_AT }, (_, i) => (
+        <span key={i} className={i < n ? 'is-on' : undefined} />
+      ))}
+    </span>
   );
 }
 

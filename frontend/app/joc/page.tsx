@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Gamepad2 } from 'lucide-react';
+import Link from 'next/link';
+import type { Route } from 'next';
+import { Gamepad2, User, UserPlus } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TriviaGame, type RivalResult } from '@/components/TriviaGame';
 import { GameTopicStart } from '@/components/GameTopicStart';
-import { TriviaStart } from '@/components/TriviaStart';
 import { api, type GameQuestion, type Topic } from '@/lib/api';
+import { lawBankQuestions, interleave } from '@/lib/lawBank';
 import { bankQuestions, fromGameQuestion, type Cat, type DuelQuestion } from '@/lib/triviaBank';
 
 /**
@@ -21,7 +23,9 @@ import { bankQuestions, fromGameQuestion, type Cat, type DuelQuestion } from '@/
  */
 export const dynamic = 'force-dynamic';
 
-const POOL_PER_CATEGORY = 8;
+// A quesito takes three right answers, and a miss sends you back to the
+// wheel: a category can be visited several times in one round.
+const POOL_PER_CATEGORY = 14;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('game');
@@ -35,6 +39,10 @@ interface SearchParams {
   solo?: string;
   /** Play the round on one subject, as the alignment quiz already allows. */
   tema?: string;
+  /** Start screen: "amics" = play with friends (invite before the first spin). */
+  mode?: string;
+  /** In a round: show the invite step before the first spin. */
+  convida?: string;
 }
 
 export default async function JocPage({
@@ -44,7 +52,7 @@ export default async function JocPage({
 }) {
   const t = await getTranslations('game');
   const locale = await getLocale();
-  const { repte, rq, ru, solo, tema } = await searchParams;
+  const { repte, rq, ru, solo, tema, mode, convida } = await searchParams;
   const topicSlug = tema && /^[a-z0-9-]+$/.test(tema) ? tema : undefined;
 
   const hasRepte = Boolean(repte && /^\d+$/.test(repte));
@@ -65,6 +73,11 @@ export default async function JocPage({
     // Only offer subjects the bank can actually fill, so a chip never leads
     // to an empty round.
     const allTopics = await api.topics.list().catch(() => [] as Topic[]);
+    // With friends, every tile starts a shared round (one seed for the page)
+    // that opens on the invite step; the link it shows drops the friends
+    // onto the same questions.
+    const friends = mode === 'amics';
+    const shared = Math.floor(Math.random() * 1_000_000_000);
     return (
       <GameTopicStart
         hue="var(--hue-jocs)"
@@ -77,28 +90,29 @@ export default async function JocPage({
         anySub={t('start_any_sub')}
         topics={allTopics}
         locale={locale}
-        hrefFor={(slug) => (slug ? `/joc?solo=1&tema=${slug}` : '/joc?solo=1')}
-      >
-        <div style={{ marginTop: 18 }}>
-          <TriviaStart
-            showSolo={false}
-            topicSlug={topicSlug ?? null}
-            labels={{
-              solo_title: t('start_solo_title'),
-              solo_sub: t('start_solo_sub'),
-              solo_cta: t('start_solo_cta'),
-              invite_title: t('start_invite_title'),
-              invite_sub: t('start_invite_sub'),
-              invite_cta: t('start_invite_cta'),
-              invite_hint: t('start_invite_hint'),
-              copy: t('start_copy'),
-              copied: t('start_copied'),
-              share: t('start_share'),
-              start: t('start_begin'),
-            }}
-          />
-        </div>
-      </GameTopicStart>
+        hrefFor={(slug) =>
+          friends
+            ? `/joc?repte=${shared}&convida=1${slug ? `&tema=${slug}` : ''}`
+            : slug
+              ? `/joc?solo=1&tema=${slug}`
+              : '/joc?solo=1'
+        }
+        before={
+          <>
+            <nav className="seg-tabs game-mode" aria-label={t('mode_aria')}>
+              <Link href={'/joc' as Route} className={!friends ? 'is-active' : undefined} scroll={false}>
+                <User size={15} strokeWidth={2.2} aria-hidden="true" />
+                {t('mode_solo')}
+              </Link>
+              <Link href={'/joc?mode=amics' as Route} className={friends ? 'is-active' : undefined} scroll={false}>
+                <UserPlus size={15} strokeWidth={2.2} aria-hidden="true" />
+                {t('mode_friends')}
+              </Link>
+            </nav>
+            {friends && <p className="game-mode__hint">{t('mode_friends_hint')}</p>}
+          </>
+        }
+      />
     );
   }
 
@@ -118,7 +132,9 @@ export default async function JocPage({
   );
 
   const pools: Record<Cat, DuelQuestion[]> = {
-    lleis: (lleisApi ?? empty).map(fromGameQuestion),
+    // Real votes and questions about laws themselves (how they are made,
+    // well-known laws), alternating: laws are what the site is about.
+    lleis: interleave((lleisApi ?? empty).map(fromGameQuestion), lawBankQuestions(locale, seed)),
     partits: (partitsApi ?? empty).map(fromGameQuestion),
     vf: bankQuestions(locale, 'vf', seed),
     mon: bankQuestions(locale, 'mon', seed),
@@ -132,6 +148,12 @@ export default async function JocPage({
           pools={pools}
           seed={seed}
           rival={rival}
+          inviteLink={
+            hasRepte && convida === '1'
+              ? `https://www.holapolitica.org/joc?repte=${seed}${topicSlug ? `&tema=${topicSlug}` : ''}`
+              : null
+          }
+          invited={hasRepte && convida !== '1' && !rival}
           labels={{
             category_partits: t('category_partits'),
             category_lleis: t('category_lleis'),
@@ -166,6 +188,17 @@ export default async function JocPage({
             daily_badge: t('daily_badge'),
             best_label: t.raw('best_label'),
             streak_label: t.raw('streak_label'),
+            progress: t.raw('progress'),
+            wedge_won: t('wedge_won'),
+            next_question: t('next_question'),
+            back_to_wheel: t('back_to_wheel'),
+            invite_title: t('invite_title'),
+            invite_sub: t('invite_sub'),
+            invite_start: t('invite_start'),
+            invite_share: t('invite_share'),
+            invite_copy: t('invite_copy'),
+            invite_copied: t('invite_copied'),
+            invited_banner: t('invited_banner'),
           }}
         />
       </div>

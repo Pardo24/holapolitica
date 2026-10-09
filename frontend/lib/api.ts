@@ -666,6 +666,8 @@ export interface DailyQuestion {
   prompt: string;
   options: { text: string }[];
   context: string | null;
+  /** The law's short plain title, above the context (vote questions). */
+  context_title?: string | null;
   source_id: number | null;
 }
 
