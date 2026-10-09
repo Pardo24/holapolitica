@@ -3914,13 +3914,9 @@ summary.change-chip { cursor: pointer; }
    edge along the foot, so a scrolled-past card still says how it ended. */
 .law-card[data-result="approved"] {
   border-color: color-mix(in oklch, var(--aye) 45%, var(--paper)) !important;
-  box-shadow: inset 0 -10px 0 color-mix(in oklch, var(--aye) 16%, var(--paper)), var(--shadow-2) !important;
-  padding-bottom: 26px !important;
 }
 .law-card[data-result="rejected"] {
   border-color: color-mix(in oklch, var(--no) 40%, var(--paper)) !important;
-  box-shadow: inset 0 -10px 0 color-mix(in oklch, var(--no) 13%, var(--paper)), var(--shadow-2) !important;
-  padding-bottom: 26px !important;
 }
 
 /* Games hub (components/GamesHub): a coloured header with the player's
@@ -4937,3 +4933,21 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .apikey__key { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--paper); border: 1px solid var(--rule-strong); }
 .apikey__key code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 14px; user-select: all; }
 .apikey__key button { flex: none; display: inline-flex; padding: 6px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; }
+
+/* The foot of a law card: the same band as the top (.law-card-band), edge
+   to edge, in the outcome's tint, carrying who tabled it and the way in. */
+.law-card .law-card-foot {
+  margin: 14px -18px -16px;
+  padding: 10px 18px;
+  border-radius: 0 0 15px 15px;
+  background: var(--paper-2);
+  border-top: 1px solid var(--rule);
+}
+.law-card[data-result="approved"] .law-card-foot {
+  background: color-mix(in oklch, var(--aye) 16%, var(--paper));
+  border-top-color: color-mix(in oklch, var(--aye) 30%, var(--paper));
+}
+.law-card[data-result="rejected"] .law-card-foot {
+  background: color-mix(in oklch, var(--no) 13%, var(--paper));
+  border-top-color: color-mix(in oklch, var(--no) 28%, var(--paper));
+}

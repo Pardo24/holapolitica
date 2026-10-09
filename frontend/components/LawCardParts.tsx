@@ -130,13 +130,15 @@ export function LawCardFooter({
   openLabel: string;
 }) {
   return (
+    // A band like the one across the top, in the same outcome tint, so
+    // the card opens and closes on how it ended (see .law-card-foot).
     <div
+      className="law-card-foot"
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 8,
         flexWrap: 'wrap',
-        marginTop: 12,
         fontSize: 12,
         color: 'var(--ink-3)',
       }}
