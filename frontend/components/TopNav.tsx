@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { BarChart3, Bell, CalendarDays, Gamepad2, Users, Scale } from 'lucide-react';
 
+import { LangSwitch } from '@/components/LangSwitch';
 import { NavLink } from '@/components/NavLink';
 import { locales } from '@/i18n';
 
@@ -12,14 +13,12 @@ export async function TopNav() {
   const tSite = await getTranslations('site');
   const locale = await getLocale();
 
-  // Capture the current path AND the current query string so the
-  // locale switcher round-trips back to the page the user was on with
-  // every filter intact. Both headers are injected by middleware.ts;
-  // fall back to "/" for the very first request before they land.
+  // The path of the request that rendered this nav (injected by
+  // middleware.ts). Only good for the first page of a visit: the nav is
+  // not re-rendered on client navigations, which is why the language
+  // switcher reads the live location itself (LangSwitch).
   const hdrs = await headers();
   const pathname = hdrs.get('x-pathname') ?? '/';
-  const search = hdrs.get('x-search') ?? '';
-  const fullPath = `${pathname}${search}`;
   // On the home page the mobile dashboard IS the navigation — every
   // primary surface is one tap away — so the top nav adds clutter
   // without adding affordances. We tag the wrapper so the CSS rule
@@ -127,51 +126,7 @@ export async function TopNav() {
           iconOnly
           className="nav-bell"
         />
-        <div className="lang" aria-label="Language">
-        {locales.map((l, i) => {
-          const isActive = l === locale;
-          return (
-            <span key={l} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              {i > 0 && (
-                <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>
-                  ·
-                </span>
-              )}
-              <form
-                action="/api/locale"
-                method="POST"
-                style={{ display: 'inline' }}
-              >
-                <input type="hidden" name="locale" value={l} />
-                <input type="hidden" name="redirect" value={fullPath} />
-                <button
-                  type="submit"
-                  className={isActive ? 'lang-btn active' : 'lang-btn'}
-                  aria-current={isActive ? 'true' : undefined}
-                  aria-label={`Switch language to ${l.toUpperCase()}`}
-                  // The clickable target stays exactly the same shape as
-                  // the previous `<span>` so the visual rhythm doesn't
-                  // shift — bare text, no chrome until hover.
-                  style={{
-                    background: 'transparent',
-                    border: 0,
-                    padding: '2px 4px',
-                    cursor: 'pointer',
-                    font: 'inherit',
-                    color: isActive ? 'var(--ink)' : 'var(--ink-3)',
-                    fontWeight: isActive ? 700 : 400,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0,
-                    borderRadius: 4,
-                  }}
-                >
-                  {l.toUpperCase()}
-                </button>
-              </form>
-            </span>
-          );
-        })}
-        </div>
+        <LangSwitch locales={locales} current={locale} />
       </div>
     </nav>
   );
