@@ -346,7 +346,10 @@
     "decree_from": "Procede del Real Decreto-ley {n}, que ya está en vigor: el Congreso lo convalidó y ahora lo tramita también como ley para poder enmendarlo.",
     "decree_as_bill": "Ya está en vigor. Además, ahora se tramita como proyecto de ley para poder enmendarlo.",
     "decree_see_decree": "Ver el decreto",
-    "decree_see_bill": "Ver el proyecto de ley"
+    "decree_see_bill": "Ver el proyecto de ley",
+    "same_title_intro": "{n, plural, one {Esta propuesta también se presentó otra vez:} other {Esta propuesta también se presentó # veces más:}}",
+    "same_title_filed": "presentada en {date}",
+    "expired_note": "Caducó cuando se disolvieron las Cortes para convocar elecciones (6 de octubre de 2026): las iniciativas que no habían terminado su tramitación decaen. Si alguien quiere sacarla adelante, tendrá que volver a presentarla en la nueva legislatura."
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",

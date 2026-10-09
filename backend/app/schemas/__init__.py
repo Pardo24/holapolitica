@@ -327,6 +327,9 @@ class InitiativeDetail(InitiativeRead):
     # A decree-law and the bill it became, pointed at each other: kind
     # "from_decree" | "as_bill", id, official_id, label.
     decree_link: dict[str, object] | None = None
+    # The same proposal tabled again (same plain title): id, type, status,
+    # verdict, official_id, submitted_at. See api/initiatives.py.
+    same_title: list[dict[str, object]] = []
 
 
 # ---------------------------------------------------------------------------

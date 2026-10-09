@@ -11,6 +11,7 @@ import {
   LawCardVoteBox,
 } from '@/components/LawCardParts';
 import { DecreeLinkNote } from '@/components/DecreeLinkNote';
+import { SameProposalNote } from '@/components/SameProposalNote';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
@@ -142,6 +143,9 @@ export async function LawCard({
       </LawCardHeadline>
 
       {initiative.decree_link && <DecreeLinkNote link={initiative.decree_link} />}
+      {(initiative.same_title?.length ?? 0) > 0 && (
+        <SameProposalNote others={initiative.same_title!} locale={locale} />
+      )}
 
       {/* Three lines of the summary, under a headline of its own. When the
           headline is itself taken from the summary, this would repeat it. */}

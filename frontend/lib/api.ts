@@ -901,6 +901,8 @@ export interface Initiative {
   profile_effects?: Record<string, { ca?: string; es?: string }> | null;
   /** A decree-law and the bill it became, pointed at each other. */
   decree_link?: DecreeLink | null;
+  /** The same proposal tabled again (same plain title), oldest first. */
+  same_title?: SameProposal[];
   // BOE link — populated by the nightly enrichment worker for
   // approved laws that have been formally published. NULL when the
   // initiative hasn't reached publication or the matcher couldn't
@@ -960,6 +962,18 @@ export interface LawLatestVote {
   stage?: 'taking' | 'totality' | 'convalidation' | 'other';
   /** What it means for the initiative; null while it is in progress. */
   verdict?: VoteResult | null;
+}
+
+/** Another presentation of the same proposal: withdrawn and filed again,
+ *  re-registered after it lapsed, filed by another group. */
+export interface SameProposal {
+  id: number;
+  type: InitiativeType;
+  status: InitiativeStatus;
+  /** Outcome of its decisive vote, if it had one. */
+  verdict: VoteResult | null;
+  official_id: string;
+  submitted_at: string | null;
 }
 
 /** "from_decree": this bill comes from a validated Real Decreto-ley;

@@ -21,6 +21,7 @@ import {
   type StanceLabels,
 } from '@/components/PartyStanceRow';
 import { DecreeLinkNote } from '@/components/DecreeLinkNote';
+import { SameProposalNote } from '@/components/SameProposalNote';
 import { ProfileEffects } from '@/components/ProfileEffects';
 import { ResultPill } from '@/components/ResultPill';
 import { FollowLawButton } from '@/components/FollowLawButton';
@@ -280,6 +281,14 @@ export default async function InitiativeDetailPage({
         <ProfileEffects effects={initiative.profile_effects} locale={locale} id="com-t-afecta" />
 
         {initiative.decree_link && <DecreeLinkNote link={initiative.decree_link} />}
+        {(initiative.same_title?.length ?? 0) > 0 && (
+          <SameProposalNote others={initiative.same_title!} locale={locale} />
+        )}
+        {/* "Caducada" alone reads like a fault. It is what happens to every
+            unfinished initiative when the Cortes are dissolved. */}
+        {initiative.status === 'expired' && !outcome && (
+          <p className="expired-note">{tLleis('expired_note')}</p>
+        )}
 
         <div className="law-head__who initiative-meta-strip">
           {(parsedProposer.isGovernment || parsedProposer.groups.length > 0) && (

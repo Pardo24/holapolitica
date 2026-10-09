@@ -346,7 +346,10 @@
     "decree_from": "Ve del Reial decret llei {n}, que ja és vigent: el Congrés el va convalidar i ara el tramita també com a llei per poder-hi fer esmenes.",
     "decree_as_bill": "Ja és vigent. A més, ara es tramita com a projecte de llei per poder-hi fer esmenes.",
     "decree_see_decree": "Veure el decret",
-    "decree_see_bill": "Veure el projecte de llei"
+    "decree_see_bill": "Veure el projecte de llei",
+    "same_title_intro": "{n, plural, one {Aquesta proposta també es va presentar una altra vegada:} other {Aquesta proposta també es va presentar # vegades més:}}",
+    "same_title_filed": "presentada el {date}",
+    "expired_note": "Va caducar quan es van dissoldre les Corts per convocar eleccions (6 d'octubre de 2026): les iniciatives que no havien acabat el tràmit decauen. Si algú la vol tirar endavant, l'haurà de tornar a presentar a la nova legislatura."
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",

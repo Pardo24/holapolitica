@@ -199,12 +199,15 @@ def classify_initiative_status(situation: str | None, result: str | None) -> str
         return "rejected"
     if "retir" in r or "retir" in s:
         return "withdrawn"
-    if "caduc" in r or "caduc" in s:
+    if "caduc" in r or "caduc" in s or "deca" in r:
         return "expired"
     if "cerrado" in s and not r:
         # Closed without an explicit result — treat as expired/closed.
         return "expired"
-    if any(token in s for token in ("pleno", "comisión", "tramit", "toma", "debate", "enmienda")):
+    if any(
+        token in s
+        for token in ("pleno", "comisión", "tramit", "toma", "debate", "enmienda", "senado")
+    ):
         return "in_debate"
     return "submitted"
 

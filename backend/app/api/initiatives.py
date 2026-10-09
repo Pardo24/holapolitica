@@ -449,6 +449,9 @@ async def list_initiatives(
     latest_vote_by_initiative = await _load_latest_vote(session, item_ids)
     topics_by_initiative = await _load_topics_by_initiative(session, item_ids)
     decree_links = await _load_decree_links(session, items)
+    same_title = await _load_same_title(session, items)
+    if not ids:
+        items = _one_card_per_proposal(items, latest_vote_by_initiative, decree_links)
 
     return {
         "total": total,
@@ -469,10 +472,128 @@ async def list_initiatives(
                     for tp in topics_by_initiative.get(i.id, [])
                 ],
                 "decree_link": decree_links.get(i.id),
+                # The decree-law/bill pair is told by decree_link already.
+                "same_title": [
+                    s
+                    for s in same_title.get(i.id, [])
+                    if s["id"] != (decree_links.get(i.id) or {}).get("id")
+                ],
             }
             for i in items
         ],
     }
+
+
+# How far along an initiative got, to pick which of several presentations of
+# one proposal leads its card: decided by a vote, then in progress, then
+# merely tabled, then closed without a decision.
+_STATUS_RANK = {"approved": 3, "rejected": 3, "in_debate": 2, "submitted": 1}
+
+
+def _proposal_rank(item: Initiative, verdict: str | None) -> tuple[int, str]:
+    rank = 3 if verdict in ("approved", "rejected") else _STATUS_RANK.get(str(item.status), 0)
+    return (rank, item.submitted_at.isoformat() if item.submitted_at else "")
+
+
+def _one_card_per_proposal(
+    items: list[Initiative],
+    latest: dict[int, dict[str, Any]],
+    decree_links: dict[int, dict[str, object]],
+) -> list[Initiative]:
+    """One card per proposal on a page.
+
+    The same proposal is often tabled more than once: withdrawn and filed
+    again, re-registered after it lapsed, filed by two groups, or a decree-
+    law and the bill it became. Listed side by side they read as duplicates
+    with contradictory outcomes ("Retirada", "En tràmit", "Caducada" under
+    one title). The furthest-along one keeps the card; the others are named
+    on it (``same_title`` / ``decree_link``), so nothing disappears.
+    """
+    parent = {i.id: i.id for i in items}
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        if a in parent and b in parent:
+            parent[find(a)] = find(b)
+
+    by_title: dict[str, int] = {}
+    for i in items:
+        if i.plain_title_ca:
+            if i.plain_title_ca in by_title:
+                union(i.id, by_title[i.plain_title_ca])
+            else:
+                by_title[i.plain_title_ca] = i.id
+        linked = (decree_links.get(i.id) or {}).get("id")
+        if isinstance(linked, int):
+            union(i.id, linked)
+
+    best: dict[int, Initiative] = {}
+    for i in items:
+        root = find(i.id)
+        verdict = (latest.get(i.id) or {}).get("verdict")
+        current = best.get(root)
+        if current is None or _proposal_rank(i, verdict) > _proposal_rank(
+            current, (latest.get(current.id) or {}).get("verdict")
+        ):
+            best[root] = i
+    keep = {i.id for i in best.values()}
+    return [i for i in items if i.id in keep]
+
+
+async def _load_same_title(
+    session: AsyncSession, items: Sequence[Initiative]
+) -> dict[int, list[dict[str, Any]]]:
+    """Other initiatives with the same plain title: the same proposal
+    tabled again (see ``_one_card_per_proposal``). Per initiative id, a list
+    of ``{id, type, status, verdict, official_id, submitted_at}``, oldest
+    first; ``verdict`` is the outcome of its decisive vote, if any."""
+    titles = {i.plain_title_ca for i in items if i.plain_title_ca}
+    if not titles:
+        return {}
+    rows = (
+        await session.execute(
+            select(
+                Initiative.id,
+                Initiative.plain_title_ca,
+                Initiative.type,
+                Initiative.status,
+                Initiative.official_id,
+                Initiative.submitted_at,
+            ).where(Initiative.plain_title_ca.in_(titles))
+        )
+    ).all()
+    groups: dict[str, list[Any]] = {}
+    for r in rows:
+        groups.setdefault(r[1], []).append(r)
+    if not any(len(g) > 1 for g in groups.values()):
+        return {}
+    sibling_ids = [r[0] for g in groups.values() if len(g) > 1 for r in g]
+    verdicts = await _load_latest_vote(session, sibling_ids)
+    out: dict[int, list[dict[str, Any]]] = {}
+    for i in items:
+        group = groups.get(i.plain_title_ca or "", [])
+        others = sorted(
+            (r for r in group if r[0] != i.id),
+            key=lambda r: (r[5].isoformat() if r[5] else "", r[0]),
+        )
+        if others:
+            out[i.id] = [
+                {
+                    "id": r[0],
+                    "type": str(r[2]),
+                    "status": str(r[3]),
+                    "verdict": (verdicts.get(r[0]) or {}).get("verdict"),
+                    "official_id": r[4],
+                    "submitted_at": r[5].isoformat() if r[5] else None,
+                }
+                for r in others
+            ]
+    return out
 
 
 _FROM_DECREE_RE = re.compile(r"procedente del real decreto-ley (\d+)/(\d{4})", re.IGNORECASE)
@@ -855,6 +976,7 @@ async def get_initiative(
     # adding the joined collections. Pydantic builds the response model
     # from `model_validate` so the from_attributes config applies.
     base = InitiativeRead.model_validate(row)
+    decree_link = (await _load_decree_links(session, [row])).get(row.id)
     all_groups = list((await session.execute(select(ParliamentaryGroup))).scalars().all())
     vote_rows = []
     for v in votes:
@@ -867,7 +989,12 @@ async def get_initiative(
         **base.model_dump(),
         votes=vote_rows,
         topics=[InitiativeTopicSlug.model_validate(t) for t in topic_rows],
-        decree_link=(await _load_decree_links(session, [row])).get(row.id),
+        decree_link=decree_link,
+        same_title=[
+            s
+            for s in (await _load_same_title(session, [row])).get(row.id, [])
+            if s["id"] != (decree_link or {}).get("id")
+        ],
     )
 
 
