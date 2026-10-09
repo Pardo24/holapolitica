@@ -359,7 +359,7 @@ async def get_person_votes(
     """The deputy's votes, newest first: what they voted, what their group
     voted, how it ended. See app/services/person_votes.py."""
     rows: list[list[Any]] = await cached(
-        f"metrics:persons:{person_id}:votes:v1",
+        f"metrics:persons:{person_id}:votes:v2",
         3600,
         lambda: person_vote_rows(session, person_id),
     )

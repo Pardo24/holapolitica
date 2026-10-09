@@ -5119,3 +5119,4 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .dep-career__source { margin: 6px 0 0; font-size: 11.5px; color: var(--ink-3); }
 .dep-career__source a { color: var(--ink-2); text-decoration: underline; }
 .dep-hero__links { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.dep-vote__stage { padding: 1px 8px; border-radius: 999px; border: 1px solid var(--rule-strong); font-size: 11.5px; font-weight: 700; color: var(--ink-2); }

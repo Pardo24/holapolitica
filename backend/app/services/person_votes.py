@@ -10,8 +10,9 @@ abstention) different from the majority of the group the deputy sat in on
 that day. Absences are not dissent. Facts only, no reason given: a deputy
 can break ranks for conscience, their territory, or a mistaken button.
 
-Amendment votes are left out: they are votes on changes to a law, and a
-deputy's "no" to another group's amendment reads as a "no" to the law.
+Amendment votes are left out (and the Senate's changes voted one by one):
+they are votes on changes to a law, and a deputy's "no" to another group's
+amendment reads as a "no" to the law.
 
 The per-vote rows are computed once per deputy and cached (they change on
 ingest only); a page is then a slice of them plus one query for its
@@ -23,7 +24,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
@@ -52,6 +53,14 @@ async def person_vote_rows(session: AsyncSession, person_id: int) -> list[list[A
             .join(Vote, Vote.id == VoteRecord.vote_id)
             .where(Mandate.person_id == person_id)
             .where(~is_amendment_sql())
+            # The Senate's changes, voted one by one: the law's title on
+            # each, contradictory results, none of them the law's vote.
+            .where(
+                ~and_(
+                    func.lower(Vote.title).like("enmiendas del senado%"),
+                    ~func.lower(func.coalesce(Vote.description, "")).like("votación de conjunto%"),
+                )
+            )
             .order_by(Vote.voted_at.desc(), Vote.sequence_in_session.desc(), Vote.id.desc())
         )
     ).all()

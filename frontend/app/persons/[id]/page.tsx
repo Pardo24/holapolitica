@@ -137,6 +137,8 @@ export default async function PersonDetailPage({
   // filter chips of the vote tabs.
   const topicBySlug = new Map(allTopics.map((tp) => [tp.slug, tp]));
   const topicChips = [...topicStats]
+    // Editorial themes only, as on every other chip of the site.
+    .filter((r) => topicBySlug.get(r.topic_slug)?.kind !== 'sdg')
     .sort((a, b) => b.cast - a.cast)
     .slice(0, 8)
     .map((r) => {

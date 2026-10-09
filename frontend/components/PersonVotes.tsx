@@ -7,6 +7,7 @@ import type { PersonVoteItem, PersonVotesPage } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 import { topicIcon } from '@/lib/topic_icons';
+import { localizeSubgroupText } from '@/lib/voteStage';
 
 const CHOICE_TONE: Record<string, string> = {
   aye: 'var(--aye)',
@@ -43,6 +44,7 @@ export async function PersonVotes({
   const t = await getTranslations('person');
   const tSession = await getTranslations('session_sheet');
   const tVotes = await getTranslations('votes');
+  const tStage = await getTranslations('vote_stage');
 
   const href = (opts: { tema?: string | null; page?: number }) => {
     const qs = new URLSearchParams(baseHref.split('?')[1] ?? '');
@@ -99,6 +101,13 @@ export async function PersonVotes({
                 v={v}
                 locale={locale}
                 choiceLabel={choiceLabel}
+                stageLabel={
+                  v.stage === 'point'
+                    ? localizeSubgroupText(v.subgroup_text, locale)
+                    : v.stage && v.stage !== 'final'
+                      ? tStage(v.stage)
+                      : null
+                }
                 labels={{
                   voted: t('voted_label'),
                   group: t('group_label'),
@@ -141,9 +150,12 @@ function VoteRow({
   v,
   locale,
   choiceLabel,
+  stageLabel,
   labels,
 }: {
   v: PersonVoteItem;
+  /** Which step of the law it was (consideration, point 3...), if not the final text. */
+  stageLabel: string | null;
   locale: string;
   choiceLabel: (c: string | null) => string;
   labels: { voted: string; group: string; dissent: string; result: string };
@@ -162,6 +174,7 @@ function VoteRow({
             {pickTopicName(v.topic, locale)}
           </span>
         )}
+        {stageLabel && <span className="dep-vote__stage">{stageLabel}</span>}
         <span className={`dep-vote__result dep-vote__result--${v.result}`}>{labels.result}</span>
       </div>
       <Link href={`/votes/${v.vote_id}` as Route} className="dep-vote__title">
