@@ -359,18 +359,14 @@ export default async function TopicDetailPage({
           empty-state copy rather than hiding the section, so the page
           structure stays predictable across topics. */}
       <section className="topic-sec-now" style={{ paddingTop: 28 }} aria-labelledby="topic-whats-now">
-        <h2
-          id="topic-whats-now"
-          className="eyebrow"
-          style={{ marginBottom: 10 }}
-        >
+        <h2 id="topic-whats-now" className="tpc-h2">
           {t('hub_whats_now_eyebrow')}
         </h2>
         <div
           className="topic-whats-now"
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: nextAgendaItem ? '1fr 1fr' : 'minmax(0, 1fr)',
             gap: 14,
           }}
         >
@@ -380,12 +376,16 @@ export default async function TopicDetailPage({
             label={t('hub_last_vote_label')}
             emptyLabel={t('hub_no_recent_votes')}
           />
-          <TopicNextAgendaCard
-            item={nextAgendaItem}
-            label={t('hub_next_vote_label')}
-            emptyLabel={t('hub_no_upcoming')}
-          />
+          {/* Nothing on the next agenda is one line, not an empty card. */}
+          {nextAgendaItem && (
+            <TopicNextAgendaCard
+              item={nextAgendaItem}
+              label={t('hub_next_vote_label')}
+              emptyLabel={t('hub_no_upcoming')}
+            />
+          )}
         </div>
+        {!nextAgendaItem && <p className="tpc-note">{t('hub_no_upcoming')}</p>}
         <style>{`
           @media (max-width: 720px) {
             .topic-whats-now { grid-template-columns: 1fr !important; }
@@ -395,9 +395,7 @@ export default async function TopicDetailPage({
 
       {/* Stats widget for this topic */}
       <section className="topic-sec-stats" style={{ paddingTop: 28 }}>
-        <div className="eyebrow" style={{ marginBottom: 8 }}>
-          {t('topic_stats_eyebrow')}
-        </div>
+        <h2 className="tpc-h2">{t('topic_stats_eyebrow')}</h2>
         <div
           style={{
             display: 'grid',
@@ -564,75 +562,16 @@ export default async function TopicDetailPage({
       {/* Initiatives — unified section with a subset segmented control and
           a group-proposer filter. Replaces the two static lists. */}
       <section id="llista" className="topic-sec-list" style={{ paddingTop: 32, scrollMarginTop: 72 }}>
-        <div className="eyebrow" style={{ marginBottom: 24 }}>
-          {t('initiatives_section_title')}
-        </div>
+        <h2 className="tpc-h2">
+          {subset === 'voted'
+            ? t('kpi_already_voted')
+            : subset === 'other'
+              ? t('kpi_other')
+              : t('kpi_not_yet_voted')}
+          <span className="tabular">{totalForSubset}</span>
+        </h2>
 
-        {/* Segmented buttons: per votar / votades. URL-driven so it works
-            without client JS and is shareable. The extra top margin sits
-            below the section eyebrow so the segmented control reads as a
-            distinct affordance, not a sub-title glued to the heading. */}
-        <div
-          role="tablist"
-          aria-label={t('subset_tablist_aria')}
-          style={{
-            display: 'inline-flex',
-            border: '1px solid var(--rule-strong)',
-            borderRadius: 999,
-            padding: 2,
-            background: 'var(--paper-2)',
-            marginTop: 0,
-            marginBottom: 14,
-          }}
-        >
-          {(
-            [
-              { key: 'voted' as const, label: t('subset_voted'), count: votedAll.length },
-              { key: 'pending' as const, label: t('subset_pending'), count: pendingAll.length },
-              // "Altres" — withdrawn / expired. Only surface the segment
-              // when there's at least one record so the control doesn't
-              // grow a permanently-zero tab on quiet topics.
-              ...(otherAll.length > 0
-                ? [{ key: 'other' as const, label: t('subset_other'), count: otherAll.length }]
-                : []),
-            ]
-          ).map((opt) => {
-            const isActive = subset === opt.key;
-            return (
-              <Link
-                key={opt.key}
-                href={buildSubsetHref(opt.key)}
-                role="tab"
-                aria-selected={isActive}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '5px 11px',
-                  borderRadius: 999,
-                  textDecoration: 'none',
-                  fontSize: 12,
-                  fontWeight: isActive ? 600 : 500,
-                  background: isActive ? 'var(--ink)' : 'transparent',
-                  color: isActive ? 'var(--paper)' : 'var(--ink-2)',
-                  transition: 'background-color .12s ease, color .12s ease',
-                }}
-              >
-                <span>{opt.label}</span>
-                <span
-                  className="tabular"
-                  style={{
-                    fontSize: 10,
-                    opacity: isActive ? 0.85 : 0.6,
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  {opt.count}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+        {/* Voted / pending / other: the figures in the card at the top. */}
 
         {/* Group filter row — combobox + active-filter feedback. The
             combobox writes to a hidden input named ``group``; the form

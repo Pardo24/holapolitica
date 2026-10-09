@@ -5384,3 +5384,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   .tpc-stat span { font-size: 12.5px; line-height: 1.2; }
   .tpc-stat small { display: none; }
 }
+
+.tpc-h2 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 12px; font-family: var(--font-serif); font-size: 21px; font-weight: 600; color: var(--ink); }
+.tpc-h2 > .tabular { font-family: var(--font-sans, inherit); font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.tpc-note { margin: 10px 0 0; font-size: 13px; color: var(--ink-3); }
