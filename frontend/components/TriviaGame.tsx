@@ -238,6 +238,11 @@ export function TriviaGame({
     const delta = (need - current + 360) % 360;
     setWheelAngle(wheelAngle + 360 * 4 + delta);
     setSpinning(true);
+    // The wheel normally stops on its transitionend. A tab in the background
+    // (or an animation the browser skips) never fires it, which left the
+    // wheel spinning forever: stop it on a timer too, a little after the
+    // 2.2 s transition. The handler ignores the second call.
+    window.setTimeout(() => stoppedRef.current(), 2500);
   }
 
   function onWheelStopped() {
@@ -255,6 +260,9 @@ export function TriviaGame({
     setTimeLeft(SECONDS);
     setPhase('question');
   }
+
+  const stoppedRef = useRef(onWheelStopped);
+  stoppedRef.current = onWheelStopped;
 
   function answer(i: number) {
     if (phase !== 'question' || !q || !slot) return;
