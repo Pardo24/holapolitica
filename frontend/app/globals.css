@@ -5315,3 +5315,15 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 @media (max-width: 640px) {
   .rec-type.rec-type { grid-template-rows: auto auto auto; }
 }
+/* Deputy tabs on a phone: four is one too many for a row, and a row that
+   scrolls hides the last ones. Two by two, all visible. */
+@media (max-width: 560px) {
+  .dep-tabs.dep-tabs--four {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    border-radius: 18px;
+    overflow: visible;
+  }
+  .dep-tabs.dep-tabs--four > a { min-width: 0; padding: 0 8px; border-radius: 14px; font-size: 13px; }
+}

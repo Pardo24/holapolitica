@@ -1331,7 +1331,8 @@
     "dissent_badge": "Diferent del seu grup",
     "pager_prev": "Anterior",
     "pager_next": "Següent",
-    "pager_aria": "Pàgines"
+    "pager_aria": "Pàgines",
+    "role_since": "Des del {date}"
   },
   "topic": {
     "recent_votes_title": "Votacions recents en aquesta àrea",

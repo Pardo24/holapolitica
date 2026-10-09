@@ -1331,7 +1331,8 @@
     "dissent_badge": "Distinto de su grupo",
     "pager_prev": "Anterior",
     "pager_next": "Siguiente",
-    "pager_aria": "Páginas"
+    "pager_aria": "Páginas",
+    "role_since": "Desde el {date}"
   },
   "topic": {
     "recent_votes_title": "Votaciones recientes en este área",

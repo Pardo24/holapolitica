@@ -19,7 +19,7 @@ import {
   type Topic,
   type TopicVoteStat,
 } from '@/lib/api';
-import { formatDMY } from '@/lib/dates';
+import { formatDayMonthYear, splitRoleSince } from '@/lib/dates';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -317,7 +317,7 @@ export default async function PersonDetailPage({
       })()}
 
       {/* Tabs: links, so each one has its own URL and works without JS. */}
-      <nav className="dep-tabs" aria-label={t('tabs_aria')}>
+      <nav className="dep-tabs dep-tabs--four" aria-label={t('tabs_aria')}>
         {tabs.map((tb) => (
           <Link
             key={tb.key}
@@ -396,7 +396,9 @@ export default async function PersonDetailPage({
               sourceNote: t('bio_source_note'),
               commissionsTitle: t('commissions_title'),
               commissionsEmpty: t('commissions_empty'),
+              since: (date) => t('role_since', { date }),
             }}
+            locale={locale}
           />
           <div style={{ paddingTop: 28 }}>
             <div className="eyebrow" style={{ marginBottom: 6 }}>
@@ -413,8 +415,8 @@ export default async function PersonDetailPage({
                     locale={locale}
                     labels={{
                       dates: t('mandate_dates', {
-                        from: formatDMY(m.start_date),
-                        to: m.end_date ? formatDMY(m.end_date) : t('mandate_current'),
+                        from: formatDayMonthYear(m.start_date, locale),
+                        to: m.end_date ? formatDayMonthYear(m.end_date, locale) : t('mandate_current'),
                       }),
                       constituency: t('constituency'),
                       list: t('list'),
@@ -747,7 +749,9 @@ function PersonBio({
   bioText,
   commissions,
   labels,
+  locale,
 }: {
+  locale: string;
   bioText: string | null;
   commissions: string[] | null;
   labels: {
@@ -756,6 +760,7 @@ function PersonBio({
     sourceNote: string;
     commissionsTitle: string;
     commissionsEmpty: string;
+    since: (date: string) => string;
   };
 }) {
   const hasBio = bioText !== null && bioText.trim().length > 0;
@@ -862,7 +867,19 @@ function PersonBio({
                       lineHeight: 1.4,
                     }}
                   >
-                    {c}
+                    {(() => {
+                      const { role, since } = splitRoleSince(c);
+                      return (
+                        <>
+                          {role}
+                          {since && (
+                            <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>
+                              {labels.since(formatDayMonthYear(since, locale))}
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
                   </li>
                 ))}
               </ul>
