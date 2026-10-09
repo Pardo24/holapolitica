@@ -900,7 +900,9 @@
     "bar_not_yours": "No és la teva?",
     "bar_counts": "{n, plural, one {# diputat} other {# diputats}} · {g, plural, one {# grup} other {# grups}}",
     "geolocate_denied": "No tenim permís per saber on ets. Tria la província a mà.",
-    "geolocate_outside": "Sembla que no ets a Espanya. Tria la província a mà."
+    "geolocate_outside": "Sembla que no ets a Espanya. Tria la província a mà.",
+    "party_filter_aria": "Filtra per partit",
+    "party_filter_all": "Tots"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -1967,6 +1969,76 @@
       "publication": {
         "title": "Publicació al BOE",
         "body": "Un cop aprovada, la llei es publica al Butlletí Oficial de l'Estat i entra en vigor."
+      }
+    },
+    "page_intro": "Cada tipus d'iniciativa segueix un camí diferent dins del Congrés. Tria'n un per veure'n les etapes, explicades una a una.",
+    "pick_type": "Tria el tipus d'iniciativa",
+    "breadcrumb_laws": "Lleis",
+    "glossary_title": "Paraules que veuràs a la web",
+    "cta_laws": "Mira-ho en les lleis reals",
+    "body": {
+      "proyecto_ley": {
+        "presentation": "El Consell de Ministres aprova el text i l'envia al Congrés, amb una memòria que n'explica els motius.",
+        "bocg": "Es publica al Butlletí Oficial de les Corts i els grups hi poden presentar esmenes. Si algun grup en demana la devolució (esmena a la totalitat), el Ple ho vota primer.",
+        "committee": "Una comissió (sovint primer una ponència més petita) estudia el text, negocia i vota les esmenes. En surt un dictamen. De vegades la comissió l'aprova directament i no cal passar pel Ple.",
+        "floor": "El Ple vota les esmenes que els grups mantenen vives i després el text sencer. Si és una llei orgànica, cal una votació de conjunt amb majoria absoluta: 176 vots.",
+        "senate": "El Senat té dos mesos (vint dies si és urgent) per aprovar-lo, esmenar-lo o vetar-lo. Si hi fa canvis, el text torna al Congrés, que decideix quins accepta.",
+        "boe": "El Rei la sanciona, es publica al BOE i entra en vigor a la data que fixi la mateixa llei."
+      },
+      "proposicion_ley": {
+        "presentation": "La registra un grup parlamentari o quinze diputats. També la poden proposar el Senat, un parlament autonòmic o 500.000 ciutadans amb la seva signatura.",
+        "taking": "El Ple vota si la pren en consideració, és a dir, si el Congrés hi començarà a treballar. Abans, el Govern hi dona el seu parer i s'hi pot oposar si augmenta la despesa del pressupost.",
+        "committee": "Una comissió (sovint primer una ponència més petita) estudia el text, negocia i vota les esmenes dels grups. En surt un dictamen. De vegades la comissió l'aprova directament i no cal passar pel Ple.",
+        "floor": "El Ple vota les esmenes que els grups mantenen vives i després el text sencer. Si és una llei orgànica, cal una votació de conjunt amb majoria absoluta: 176 vots.",
+        "senate": "El Senat té dos mesos (vint dies si és urgent) per aprovar-la, esmenar-la o vetar-la. Si hi fa canvis, el text torna al Congrés, que decideix quins accepta.",
+        "boe": "El Rei la sanciona, es publica al BOE i entra en vigor a la data que fixi la mateixa llei."
+      },
+      "real_decreto_ley": {
+        "rdl": "El Govern l'aprova per urgència i té força de llei des que es publica al BOE, abans que el Congrés el voti.",
+        "debate": "Un membre del Govern el defensa al Ple i els grups hi fixen posició. No s'hi poden fer esmenes.",
+        "vote": "Dins dels 30 dies després de publicar-se, el Congrés vota si el convalida (es queda) o el deroga (deixa de valer). Si el convalida, pot decidir tramitar-lo també com a projecte de llei per poder-hi fer canvis."
+      },
+      "proposicion_no_ley": {
+        "presentation": "Un grup parlamentari la registra per demanar al Govern que faci alguna cosa o per fixar la posició del Congrés sobre un tema.",
+        "amendments": "Els altres grups hi poden presentar esmenes. El grup que la proposa decideix si les accepta, sovint després de negociar-les.",
+        "debate": "Es debat al Ple o en una comissió: el grup la defensa i els altres hi fixen posició.",
+        "vote": "Es vota, a vegades punt per punt. Si s'aprova, és la posició del Congrés, però no canvia cap llei i el Govern no està obligat a complir-la."
+      },
+      "mocion": {
+        "interpellation": "Un grup interpel·la el Govern al Ple: li pregunta per la seva política en un tema concret i un ministre respon.",
+        "motion": "La setmana següent, el mateix grup presenta una moció amb el que demana al Govern sobre aquell tema.",
+        "debate": "Es debat al Ple. Els altres grups hi poden presentar esmenes i el grup que la proposa decideix si les accepta.",
+        "vote": "Es vota, a vegades punt per punt. Si s'aprova, és la posició del Congrés, però no canvia cap llei i el Govern no està obligat a complir-la."
+      },
+      "interpelacion": {
+        "presentation": "Un grup o un diputat registra una pregunta al Govern sobre la seva política general en un tema.",
+        "debate": "Es debat al Ple: qui interpel·la pregunta i un membre del Govern respon. No es vota, però sovint en surt una moció."
+      }
+    },
+    "glossary": {
+      "amendment": {
+        "term": "Esmena",
+        "body": "Un canvi que un grup proposa al text d'una llei. Es vota per separat: que una esmena es rebutgi no vol dir que la llei es rebutgi."
+      },
+      "totality": {
+        "term": "Esmena a la totalitat",
+        "body": "Demana retornar el projecte al Govern o canviar-ne tot el text. Si el Ple l'aprova, la llei s'acaba aquí; si la rebutja, continua."
+      },
+      "taking": {
+        "term": "Presa en consideració",
+        "body": "La primera votació d'una proposició de llei: decideix si el Congrés hi treballarà. Aprovar-la no la converteix en llei."
+      },
+      "whole": {
+        "term": "Votació de conjunt",
+        "body": "La votació final que necessiten les lleis orgàniques (drets fonamentals, sistema electoral...): calen 176 vots, la majoria absoluta."
+      },
+      "validation": {
+        "term": "Convalidació",
+        "body": "El vot del Congrés sobre un reial decret llei: si el convalida, es queda; si no, queda derogat i deixa de valer."
+      },
+      "expired": {
+        "term": "Caducada",
+        "body": "Una iniciativa que no havia acabat el tràmit quan es van dissoldre les Corts per convocar eleccions. Si algú la vol tirar endavant, l'ha de tornar a presentar."
       }
     }
   },

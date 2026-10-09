@@ -260,7 +260,7 @@ export async function LawJourney({
                 that drifts while the finger is over the scroller is read as a
                 drag and never fires. */}
             <Link
-              href={`/recorregut?type=${type}` as Route}
+              href={`/recorregut?type=${type}#rec-steps` as Route}
               aria-label={t('aria', { type: typeLabel })}
               style={{
                 display: 'inline-flex',

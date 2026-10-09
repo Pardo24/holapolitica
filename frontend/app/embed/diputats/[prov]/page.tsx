@@ -25,8 +25,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('deputies_meta_title'), robots: { index: false } };
 }
 
-export default async function EmbedDeputiesPage({ params }: { params: Promise<{ prov: string }> }) {
+export default async function EmbedDeputiesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ prov: string }>;
+  searchParams: Promise<{ partit?: string }>;
+}) {
   const { prov: raw } = await params;
+  const { partit } = await searchParams;
   const prov = decodeURIComponent(raw);
   const t = await getTranslations('embed_widgets');
   const tDeputy = await getTranslations('deputy');
@@ -44,6 +51,12 @@ export default async function EmbedDeputiesPage({ params }: { params: Promise<{ 
     else byGroup.set(key, { slug: d.group_slug ?? '', short: d.group_short, color: d.group_color, list: [d] });
   }
   const parties = [...byGroup.values()].sort((a, b) => b.list.length - a.list.length);
+  // ?partit=<group slug>: one party only. The chips below switch it inside
+  // the iframe, so a reader can play with it without leaving the article.
+  const party = partit && parties.some((p) => p.slug === partit) ? partit : null;
+  const shown = party ? parties.filter((p) => p.slug === party) : parties;
+  const self = (slug: string | null) =>
+    `/embed/diputats/${encodeURIComponent(prov)}${slug ? `?partit=${slug}` : ''}`;
 
   return (
     <div className="embed-widget">
@@ -60,8 +73,31 @@ export default async function EmbedDeputiesPage({ params }: { params: Promise<{ 
           ))}
         </div>
 
+        {parties.length > 1 && (
+          <nav className="party-filter party-filter--embed" aria-label={tDeputy('party_filter_aria')}>
+            <a href={self(null)} className={!party ? 'is-active' : undefined}>
+              {tDeputy('party_filter_all')}
+              <span className="tabular">{deputies.length}</span>
+            </a>
+            {parties.map((p) =>
+              p.slug ? (
+                <a
+                  key={p.slug}
+                  href={self(p.slug)}
+                  className={party === p.slug ? 'is-active' : undefined}
+                  style={{ ['--party' as string]: p.color ?? 'var(--ink-3)' }}
+                >
+                  <span className="party-filter__dot" aria-hidden="true" />
+                  {p.short ? displayGroupShort(p.short) : '-'}
+                  <span className="tabular">{p.list.length}</span>
+                </a>
+              ) : null,
+            )}
+          </nav>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
-          {parties.map((p) => (
+          {shown.map((p) => (
             <section key={p.slug || 'none'}>
               <div className="embed-party">
                 {p.slug ? <GroupBadge slug={p.slug} color={p.color} size="sm" link={false} /> : null}

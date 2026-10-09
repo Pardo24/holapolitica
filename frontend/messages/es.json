@@ -900,7 +900,9 @@
     "bar_not_yours": "¿No es la tuya?",
     "bar_counts": "{n, plural, one {# diputado} other {# diputados}} · {g, plural, one {# grupo} other {# grupos}}",
     "geolocate_denied": "No tenemos permiso para saber dónde estás. Elige la provincia a mano.",
-    "geolocate_outside": "Parece que no estás en España. Elige la provincia a mano."
+    "geolocate_outside": "Parece que no estás en España. Elige la provincia a mano.",
+    "party_filter_aria": "Filtrar por partido",
+    "party_filter_all": "Todos"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -1968,6 +1970,76 @@
       "publication": {
         "title": "Publicación en el BOE",
         "body": "Una vez aprobada, la ley se publica en el Boletín Oficial del Estado y entra en vigor."
+      }
+    },
+    "page_intro": "Cada tipo de iniciativa sigue un camino distinto dentro del Congreso. Elige uno para ver sus etapas, explicadas una a una.",
+    "pick_type": "Elige el tipo de iniciativa",
+    "breadcrumb_laws": "Leyes",
+    "glossary_title": "Palabras que verás en la web",
+    "cta_laws": "Míralo en las leyes reales",
+    "body": {
+      "proyecto_ley": {
+        "presentation": "El Consejo de Ministros aprueba el texto y lo envía al Congreso, con una memoria que explica sus motivos.",
+        "bocg": "Se publica en el Boletín Oficial de las Cortes y los grupos pueden presentar enmiendas. Si algún grupo pide su devolución (enmienda a la totalidad), el Pleno lo vota primero.",
+        "committee": "Una comisión (a menudo primero una ponencia más pequeña) estudia el texto, negocia y vota las enmiendas. De ahí sale un dictamen. A veces la comisión lo aprueba directamente y no hace falta pasar por el Pleno.",
+        "floor": "El Pleno vota las enmiendas que los grupos mantienen vivas y después el texto entero. Si es una ley orgánica, hace falta una votación de conjunto con mayoría absoluta: 176 votos.",
+        "senate": "El Senado tiene dos meses (veinte días si es urgente) para aprobarlo, enmendarlo o vetarlo. Si introduce cambios, el texto vuelve al Congreso, que decide cuáles acepta.",
+        "boe": "El Rey la sanciona, se publica en el BOE y entra en vigor en la fecha que fije la propia ley."
+      },
+      "proposicion_ley": {
+        "presentation": "La registra un grupo parlamentario o quince diputados. También pueden proponerla el Senado, un parlamento autonómico o 500.000 ciudadanos con su firma.",
+        "taking": "El Pleno vota si la toma en consideración, es decir, si el Congreso empezará a trabajar en ella. Antes, el Gobierno da su parecer y puede oponerse si aumenta el gasto del presupuesto.",
+        "committee": "Una comisión (a menudo primero una ponencia más pequeña) estudia el texto, negocia y vota las enmiendas de los grupos. De ahí sale un dictamen. A veces la comisión lo aprueba directamente y no hace falta pasar por el Pleno.",
+        "floor": "El Pleno vota las enmiendas que los grupos mantienen vivas y después el texto entero. Si es una ley orgánica, hace falta una votación de conjunto con mayoría absoluta: 176 votos.",
+        "senate": "El Senado tiene dos meses (veinte días si es urgente) para aprobarla, enmendarla o vetarla. Si introduce cambios, el texto vuelve al Congreso, que decide cuáles acepta.",
+        "boe": "El Rey la sanciona, se publica en el BOE y entra en vigor en la fecha que fije la propia ley."
+      },
+      "real_decreto_ley": {
+        "rdl": "El Gobierno lo aprueba por urgencia y tiene fuerza de ley desde que se publica en el BOE, antes de que el Congreso lo vote.",
+        "debate": "Un miembro del Gobierno lo defiende en el Pleno y los grupos fijan posición. No se pueden presentar enmiendas.",
+        "vote": "Dentro de los 30 días siguientes a su publicación, el Congreso vota si lo convalida (se queda) o lo deroga (deja de valer). Si lo convalida, puede decidir tramitarlo también como proyecto de ley para poder introducir cambios."
+      },
+      "proposicion_no_ley": {
+        "presentation": "Un grupo parlamentario la registra para pedir al Gobierno que haga algo o para fijar la posición del Congreso sobre un tema.",
+        "amendments": "Los demás grupos pueden presentar enmiendas. El grupo que la propone decide si las acepta, a menudo tras negociarlas.",
+        "debate": "Se debate en el Pleno o en una comisión: el grupo la defiende y los demás fijan posición.",
+        "vote": "Se vota, a veces punto por punto. Si se aprueba, es la posición del Congreso, pero no cambia ninguna ley y el Gobierno no está obligado a cumplirla."
+      },
+      "mocion": {
+        "interpellation": "Un grupo interpela al Gobierno en el Pleno: le pregunta por su política en un tema concreto y un ministro responde.",
+        "motion": "La semana siguiente, el mismo grupo presenta una moción con lo que pide al Gobierno sobre ese tema.",
+        "debate": "Se debate en el Pleno. Los demás grupos pueden presentar enmiendas y el grupo proponente decide si las acepta.",
+        "vote": "Se vota, a veces punto por punto. Si se aprueba, es la posición del Congreso, pero no cambia ninguna ley y el Gobierno no está obligado a cumplirla."
+      },
+      "interpelacion": {
+        "presentation": "Un grupo o un diputado registra una pregunta al Gobierno sobre su política general en un tema.",
+        "debate": "Se debate en el Pleno: quien interpela pregunta y un miembro del Gobierno responde. No se vota, pero a menudo de ahí sale una moción."
+      }
+    },
+    "glossary": {
+      "amendment": {
+        "term": "Enmienda",
+        "body": "Un cambio que un grupo propone al texto de una ley. Se vota por separado: que una enmienda se rechace no significa que la ley se rechace."
+      },
+      "totality": {
+        "term": "Enmienda a la totalidad",
+        "body": "Pide devolver el proyecto al Gobierno o cambiar todo su texto. Si el Pleno la aprueba, la ley termina aquí; si la rechaza, sigue adelante."
+      },
+      "taking": {
+        "term": "Toma en consideración",
+        "body": "La primera votación de una proposición de ley: decide si el Congreso trabajará en ella. Aprobarla no la convierte en ley."
+      },
+      "whole": {
+        "term": "Votación de conjunto",
+        "body": "La votación final que necesitan las leyes orgánicas (derechos fundamentales, sistema electoral...): hacen falta 176 votos, la mayoría absoluta."
+      },
+      "validation": {
+        "term": "Convalidación",
+        "body": "El voto del Congreso sobre un real decreto-ley: si lo convalida, se queda; si no, queda derogado y deja de valer."
+      },
+      "expired": {
+        "term": "Caducada",
+        "body": "Una iniciativa que no había terminado su tramitación cuando se disolvieron las Cortes para convocar elecciones. Si alguien quiere sacarla adelante, debe volver a presentarla."
       }
     }
   },

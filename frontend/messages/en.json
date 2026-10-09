@@ -900,7 +900,9 @@
     "bar_not_yours": "Not yours?",
     "bar_counts": "{n, plural, one {# deputy} other {# deputies}} · {g, plural, one {# group} other {# groups}}",
     "geolocate_denied": "We don't have permission to see your location. Pick your province instead.",
-    "geolocate_outside": "You don't seem to be in Spain. Pick your province instead."
+    "geolocate_outside": "You don't seem to be in Spain. Pick your province instead.",
+    "party_filter_aria": "Filter by party",
+    "party_filter_all": "All"
   },
   "game": {
     "meta_title": "Trivia · Hola Política",
@@ -1968,6 +1970,76 @@
       "publication": {
         "title": "Publication in the BOE",
         "body": "Once approved, the law is published in the State Official Gazette and enters into force."
+      }
+    },
+    "page_intro": "Each kind of initiative follows its own path through Congress. Pick one to see its steps, explained one by one.",
+    "pick_type": "Pick the kind of initiative",
+    "breadcrumb_laws": "Laws",
+    "glossary_title": "Words you will see on the site",
+    "cta_laws": "See it in real laws",
+    "body": {
+      "proyecto_ley": {
+        "presentation": "The Council of Ministers approves the text and sends it to Congress, with a report explaining why.",
+        "bocg": "It is published in the Cortes' official gazette and the groups can table amendments. If a group asks to send it back (amendment to the whole), the plenary votes on that first.",
+        "committee": "A committee (often a smaller drafting panel first) studies the text, negotiates and votes on the amendments, producing a report. Sometimes the committee approves it outright and the plenary is skipped.",
+        "floor": "The plenary votes on the amendments the groups keep alive, then on the whole text. An organic law needs a whole-text vote by absolute majority: 176 votes.",
+        "senate": "The Senate has two months (twenty days if urgent) to pass it, amend it or veto it. If it changes the text, it goes back to Congress, which decides which changes to keep.",
+        "boe": "The King gives royal assent, it is published in the BOE and comes into force on the date the law itself sets."
+      },
+      "proposicion_ley": {
+        "presentation": "A parliamentary group or fifteen deputies table it. The Senate, a regional parliament or 500,000 citizens' signatures can also propose one.",
+        "taking": "The plenary votes on whether to take it into consideration, that is, whether Congress will start working on it. Before that, the Government gives its view and can object if it raises budget spending.",
+        "committee": "A committee (often a smaller drafting panel first) studies the text, negotiates and votes on the groups' amendments, producing a report. Sometimes the committee approves it outright and the plenary is skipped.",
+        "floor": "The plenary votes on the amendments the groups keep alive, then on the whole text. An organic law needs a whole-text vote by absolute majority: 176 votes.",
+        "senate": "The Senate has two months (twenty days if urgent) to pass it, amend it or veto it. If it changes the text, it goes back to Congress, which decides which changes to keep.",
+        "boe": "The King gives royal assent, it is published in the BOE and comes into force on the date the law itself sets."
+      },
+      "real_decreto_ley": {
+        "rdl": "The Government passes it as an emergency measure and it has the force of law from its publication in the BOE, before Congress votes on it.",
+        "debate": "A member of the Government defends it in the plenary and the groups state their position. No amendments are allowed.",
+        "vote": "Within 30 days of its publication, Congress votes to validate it (it stays) or repeal it (it lapses). If validated, Congress can also choose to process it as a bill so it can be amended."
+      },
+      "proposicion_no_ley": {
+        "presentation": "A parliamentary group tables it to ask the Government to do something or to set Congress's position on an issue.",
+        "amendments": "The other groups can table amendments. The proposing group decides whether to accept them, often after negotiating.",
+        "debate": "It is debated in the plenary or in a committee: the group defends it and the others state their position.",
+        "vote": "It is voted on, sometimes point by point. If it passes, it is Congress's position, but it changes no law and the Government is not bound by it."
+      },
+      "mocion": {
+        "interpellation": "A group questions the Government in the plenary about its policy on a specific issue, and a minister answers.",
+        "motion": "The following week, the same group tables a motion setting out what it asks of the Government on that issue.",
+        "debate": "It is debated in the plenary. The other groups can table amendments and the proposing group decides whether to accept them.",
+        "vote": "It is voted on, sometimes point by point. If it passes, it is Congress's position, but it changes no law and the Government is not bound by it."
+      },
+      "interpelacion": {
+        "presentation": "A group or a deputy tables a question to the Government about its general policy on an issue.",
+        "debate": "It is debated in the plenary: the questioner asks and a member of the Government answers. There is no vote, but a motion often follows."
+      }
+    },
+    "glossary": {
+      "amendment": {
+        "term": "Amendment",
+        "body": "A change a group proposes to a law's text. It is voted on separately: a rejected amendment does not mean a rejected law."
+      },
+      "totality": {
+        "term": "Amendment to the whole",
+        "body": "Asks to send the bill back to the Government or replace its whole text. If the plenary passes it, the bill ends there; if not, it carries on."
+      },
+      "taking": {
+        "term": "Taking into consideration",
+        "body": "The first vote on a member's bill: it decides whether Congress will work on it. Passing it does not make it law."
+      },
+      "whole": {
+        "term": "Whole-text vote",
+        "body": "The final vote organic laws need (fundamental rights, electoral system...): 176 votes, an absolute majority."
+      },
+      "validation": {
+        "term": "Validation",
+        "body": "Congress's vote on a royal decree-law: if validated it stays; if not, it is repealed and lapses."
+      },
+      "expired": {
+        "term": "Lapsed",
+        "body": "An initiative that had not finished its passage when the Cortes were dissolved for an election. To go ahead, it has to be tabled again."
       }
     }
   },

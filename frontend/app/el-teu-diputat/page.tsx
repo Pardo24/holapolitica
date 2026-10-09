@@ -27,6 +27,7 @@ interface SearchParams {
   prov?: string;
   /** meus (default) | tots | grups */
   tab?: string;
+  partit?: string;
 }
 
 interface PartyGroup {
@@ -50,7 +51,7 @@ export default async function ElTeuDiputatPage({
   const t = await getTranslations('deputy');
   const tHome = await getTranslations('home');
   const locale = await getLocale();
-  const { prov, tab } = await searchParams;
+  const { prov, tab, partit } = await searchParams;
   const activeTab = tab === 'grups' ? 'grups' : tab === 'tots' ? 'tots' : 'meus';
 
   const [constituencies, hemicycle, allGroups]: [
@@ -85,6 +86,11 @@ export default async function ElTeuDiputatPage({
     else byGroup.set(key, { slug: d.group_slug ?? '', short: d.group_short, color: d.group_color, deputies: [d] });
   }
   const parties = [...byGroup.values()].sort((a, b) => b.deputies.length - a.deputies.length);
+  // One party only, when picked: "who from PSOE represents Girona?".
+  const party = partit && parties.some((p) => p.slug === partit) ? partit : null;
+  const shown = party ? parties.filter((p) => p.slug === party) : parties;
+  const partyHref = (slug: string | null) =>
+    `/el-teu-diputat?prov=${encodeURIComponent(selected ?? '')}${slug ? `&partit=${slug}` : ''}` as Route;
 
   // One page for the chamber's people, three questions: who represents ME,
   // who are they ALL, and how do they group. /persons used to answer the
@@ -176,11 +182,34 @@ export default async function ElTeuDiputatPage({
             counts={t('bar_counts', { n: deputies.length, g: parties.length })}
             labels={pickerLabels}
           />
+          {parties.length > 1 && (
+            <nav className="party-filter" aria-label={t('party_filter_aria')}>
+              <Link href={partyHref(null)} scroll={false} className={!party ? 'is-active' : undefined}>
+                {t('party_filter_all')}
+                <span className="tabular">{deputies.length}</span>
+              </Link>
+              {parties.map((p) =>
+                p.slug ? (
+                  <Link
+                    key={p.slug}
+                    href={partyHref(p.slug)}
+                    scroll={false}
+                    className={party === p.slug ? 'is-active' : undefined}
+                    style={{ ['--party' as string]: p.color ?? 'var(--ink-3)' }}
+                  >
+                    <span className="party-filter__dot" aria-hidden="true" />
+                    {p.short ? displayGroupShort(p.short) : '—'}
+                    <span className="tabular">{p.deputies.length}</span>
+                  </Link>
+                ) : null,
+              )}
+            </nav>
+          )}
           {deputies.length === 0 ? (
             <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>{t('empty')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 22, marginBottom: 30 }}>
-              {parties.map((p) => (
+              {shown.map((p) => (
                 <section key={p.slug || 'none'}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                     {p.slug ? <GroupBadge slug={p.slug} color={p.color} size="sm" link={false} /> : null}
