@@ -2939,38 +2939,34 @@ button {
 }
 .topic-see-all:active { background: var(--paper-2); }
 
-/* Plenary filters: a button + active chips on a phone, rows on desktop. */
-.session-filter-bar { margin-bottom: 4px; }
-.session-filter-active { display: none; }
-@media (max-width: 640px) {
-  .session-filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-  .session-filter-active {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 40px;
-    padding: 0 12px;
-    border-radius: 999px;
-    border: 1px solid var(--ink);
-    background: var(--ink);
-    color: var(--paper);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  /* Inside the sheet the rows wrap instead of scrolling sideways, and
-     each row's label sits on its own line. */
-  .sheet .session-filter-row { flex-wrap: wrap !important; overflow: visible !important; padding-bottom: 16px !important; }
-  .sheet .session-filter-row > .eyebrow { flex-basis: 100%; margin-bottom: 2px !important; }
-  .sheet .session-filter-row button { min-height: 38px; font-size: 13.5px !important; }
+/* Plenary filters: a button + active chips, on every screen. */
+.session-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
 }
+.session-filter-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Inside the sheet the rows wrap instead of scrolling sideways, and each
+   row's label sits on its own line. */
+.sheet .session-filter-row { flex-wrap: wrap !important; overflow: visible !important; padding-bottom: 16px !important; }
+.sheet .session-filter-row > .eyebrow { flex-basis: 100%; margin-bottom: 2px !important; }
+.sheet .session-filter-row button { min-height: 38px; font-size: 13.5px !important; }
 
 /* First-visit note (components/IntroNote.tsx): a floating card on a phone. */
 .intro-note__ok { display: none; }
@@ -5327,3 +5323,20 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   }
   .dep-tabs.dep-tabs--four > a { min-width: 0; padding: 0 8px; border-radius: 14px; font-size: 13px; }
 }
+/* The plenary's "Filtres" button looks the same on a desktop as on a phone. */
+.session-filter-bar .laws-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.session-lede-tiles { max-width: 720px; }

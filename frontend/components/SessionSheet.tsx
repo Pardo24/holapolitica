@@ -427,10 +427,9 @@ export async function SessionSheet({
             )}
           </div>
         )}
-        {/* A phone gets the day as figures, not as a paragraph: three
-            numbers a thumb can read at a glance, the topics as chips.
-            The sentence below says the same in words on a wider screen. */}
-        <div className="session-lede-tiles sm:hidden">
+        {/* The day as figures, not as a paragraph: three numbers read at a
+            glance, the topics as chips. Same on a phone and a desktop. */}
+        <div className="session-lede-tiles">
           <div className="session-lede-figs">
             <span>
               <strong className="tabular">{counts.laws}</strong>
@@ -475,109 +474,6 @@ export async function SessionSheet({
             <p className="session-lede-note">{t('tile_votes_note', { votes: ordered.length })}</p>
           )}
         </div>
-        <p
-          className="serif hidden sm:block"
-          style={{
-            margin: 0,
-            fontSize: 'clamp(17px, 1.7vw, 19px)',
-            lineHeight: 1.55,
-            color: 'var(--ink-2)',
-            fontWeight: 400,
-          }}
-        >
-          {t.rich(
-            counts.tie > 0 ? 'lede_paragraph_with_tie' : 'lede_paragraph',
-            {
-              total: counts.laws,
-              approved: counts.approved,
-              rejected: counts.rejected,
-              tie: counts.tie,
-              n: (chunks) => (
-                <strong
-                  className="tabular"
-                  style={{
-                    color: 'var(--ink)',
-                    fontWeight: 600,
-                    letterSpacing: '-0.005em',
-                  }}
-                >
-                  {chunks}
-                </strong>
-              ),
-            },
-          )}
-          {/* The raw vote count, stated once and explained, so the
-              per-initiative figures above never read as a mistake next
-              to the "N votaciones" in the header. */}
-          {ordered.length > counts.laws && (
-            <>
-              {' '}
-              {t.rich('lede_votes_note', {
-                votes: ordered.length,
-                n: (chunks) => (
-                  <strong className="tabular" style={{ color: 'var(--ink)', fontWeight: 600 }}>
-                    {chunks}
-                  </strong>
-                ),
-              })}
-            </>
-          )}
-          {/* The "tightest margin" sentence used to sit here. Removed:
-              a margin is only meaningful between Sí and No, but ours
-              counted abstentions too, so it surfaced votes that weren't
-              actually contested — and readers couldn't tell what the
-              figure meant. The per-topic band below answers the real
-              question ("what was voted and how did it end") instead. */}
-          {/* Dominant-topics phrase — third sentence of the lede.
-              Lists up to 3 of the most-voted topics this session, each
-              linked to /votes?topic=<slug> so a reader can keep
-              browsing votes in the same area. Excluded when the only
-              bucket would be the unclassified one. Daniel:
-              'informe resumido de los resultados a traves de lenguaje
-              natural ... MUY importante que esten clasificadas por
-              tema.' */}
-          {(() => {
-            const topTopics = groupVotesByTopic(ordered, locale)
-              .filter((g) => g.key !== '__unclassified' && g.topic != null)
-              .slice(0, 3);
-            if (topTopics.length === 0) return null;
-            return (
-              <>
-                {' '}
-                {t('lede_topics_prefix')}{' '}
-                {topTopics.map((g, i) => (
-                  <span key={g.key}>
-                    {i > 0 ? ', ' : ''}
-                    {/* Applies the list's topic filter and scrolls to it
-                        (#tema-<slug>, see SessionVoteFilter). The underline takes the topic's
-                        own colour so the lede visually ties to the coloured
-                        sections. */}
-                    <a
-                      href={`#tema-${g.topic!.slug}`}
-                      style={{
-                        color: 'var(--ink)',
-                        fontWeight: 500,
-                        textDecoration: 'underline',
-                        textDecorationColor: g.topic!.color_hex ?? 'var(--accent)',
-                        textDecorationThickness: 2,
-                        textUnderlineOffset: 3,
-                      }}
-                    >
-                      {pickTopicName(g.topic!, locale)}
-                    </a>
-                    <span
-                      className="tabular"
-                      style={{ color: 'var(--ink-3)', marginLeft: 4 }}
-                    >
-                      ({summariseLaws(g.votes).laws})
-                    </span>
-                  </span>
-                ))}
-                .
-              </>
-            );
-          })()}
-        </p>
       </section>
 
       {/* Vote list — grouped by what a vote can DO: laws first (they

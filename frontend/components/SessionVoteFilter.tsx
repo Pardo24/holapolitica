@@ -151,12 +151,11 @@ export function SessionVoteFilter({
 
   return (
     <section ref={sectionRef} style={{ marginBottom: 8, scrollMarginTop: 64 }}>
-      {/* On a phone the filters are optional, as on /lleis: one button
-          that opens them in a sheet, and the active ones shown as chips
-          you can clear. On a wider screen the same rows sit in place. */}
+      {/* The filters are optional: one button that opens them (a sheet on a
+          phone, a dialog on a desktop), and the active ones shown as chips
+          you can clear. Same on every screen. */}
       <div className="session-filter-bar">
         <BottomSheet
-          inlineOnDesktop
           trigger={
             <>
               <SlidersHorizontal size={15} strokeWidth={2} aria-hidden="true" />
