@@ -52,6 +52,7 @@ from app.models import (
 from app.models import (
     Session as SessionRow,
 )
+from app.services.vote_stage import is_change_vote_sql
 
 _VOTING_CHOICES = {VoteChoice.AYE, VoteChoice.NO, VoteChoice.ABSTENTION}
 
@@ -552,12 +553,26 @@ async def compute_deputy_dissidence(
         if count > 0:
             majority[key] = choice
 
+    # Votes on changes to a law don't count as a stance on it (same rule as
+    # the profile's figure and list, see compute_person_kpis).
+    change_votes = {
+        vid
+        for (vid,) in (
+            await session.execute(
+                select(Vote.id)
+                .join(SessionRow, SessionRow.id == Vote.session_id)
+                .where(SessionRow.legislature_id == legislature_id)
+                .where(is_change_vote_sql())
+            )
+        ).all()
+    }
+
     # Pass 2: per deputy compare to their group's majority.
     by_person: dict[int, dict[str, object]] = defaultdict(
         lambda: {"full_name": "", "compared": 0, "dissents": 0}
     )
     for person_id, full_name, choice, vote_id, group_slug in rows:
-        if group_slug is None or choice not in _VOTING_CHOICES:
+        if group_slug is None or choice not in _VOTING_CHOICES or vote_id in change_votes:
             continue
         maj = majority.get((vote_id, group_slug))
         if maj is None:
@@ -1219,10 +1234,28 @@ async def compute_person_kpis(session: AsyncSession, *, person_id: int) -> Perso
 
     # Dissidence: only over CAST votes where the deputy had a group AND the
     # group itself reached a majority among its members on that vote.
+    # Votes on changes to a law (amendments, the Senate's changes one by
+    # one) are not a stance on the law: a deputy voting "no" to another
+    # group's amendment along with their whole group is not dissent worth
+    # counting, and the profile's list of breaks leaves them out too
+    # (app/services/person_votes.py). Same rule, same number.
+    voted_ids = list({vid for _c, _g, vid in rows})
+    change_votes: set[int] = set()
+    for i in range(0, len(voted_ids), 2000):
+        change_votes.update(
+            vid
+            for (vid,) in (
+                await session.execute(
+                    select(Vote.id)
+                    .where(Vote.id.in_(voted_ids[i : i + 2000]))
+                    .where(is_change_vote_sql())
+                )
+            ).all()
+        )
     cast_with_group = [
         (choice, gid, vid)
         for choice, gid, vid in rows
-        if choice in _VOTING_CHOICES and gid is not None
+        if choice in _VOTING_CHOICES and gid is not None and vid not in change_votes
     ]
     relevant_keys = {(vid, gid) for _c, gid, vid in cast_with_group}
     if not relevant_keys:

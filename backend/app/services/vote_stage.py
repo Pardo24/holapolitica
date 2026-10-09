@@ -25,7 +25,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any, Literal
 
-from sqlalchemy import ColumnElement, func, or_
+from sqlalchemy import ColumnElement, and_, func, or_
 
 from app.models import ParliamentaryGroup, Vote
 
@@ -52,6 +52,20 @@ def is_amendment_sql() -> ColumnElement[bool]:
     or voto particular voted in the plenary. Never the law's own vote."""
     sg = func.lower(func.coalesce(Vote.subgroup_title, ""))
     return or_(sg.like("enmienda%"), sg.like("voto% particular%"), sg.like("votos particulares%"))
+
+
+def is_change_vote_sql() -> ColumnElement[bool]:
+    """Votes on changes TO a law rather than on the law: a group's amendment
+    or voto particular, and the Senate's changes voted one by one (the law's
+    title on each, contradictory results). Left out wherever a deputy's or a
+    group's stance on laws is counted, so a "no" to another group's
+    amendment never reads as a "no" to the law."""
+    title = func.lower(Vote.title)
+    desc = func.lower(func.coalesce(Vote.description, ""))
+    return or_(
+        is_amendment_sql(),
+        and_(title.like("enmiendas del senado%"), ~desc.like("votación de conjunto%")),
+    )
 
 
 def latest_first() -> tuple[Any, ...]:

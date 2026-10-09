@@ -341,7 +341,7 @@ async def get_person_kpis(
     between ingests, so a 1h cache makes repeat opens instant.
     """
     return await cached(
-        f"metrics:persons:{person_id}:kpis",
+        f"metrics:persons:{person_id}:kpis:v2",
         3600,
         lambda: compute_person_kpis(session, person_id=person_id),
     )

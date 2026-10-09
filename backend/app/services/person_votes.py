@@ -24,7 +24,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from typing import Any
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
@@ -37,7 +37,7 @@ from app.models import (
     VoteChoice,
     VoteRecord,
 )
-from app.services.vote_stage import is_amendment_sql, vote_stage
+from app.services.vote_stage import is_change_vote_sql, vote_stage
 
 _CAST = {VoteChoice.AYE, VoteChoice.NO, VoteChoice.ABSTENTION}
 
@@ -52,15 +52,7 @@ async def person_vote_rows(session: AsyncSession, person_id: int) -> list[list[A
             .join(VoteRecord, VoteRecord.mandate_id == Mandate.id)
             .join(Vote, Vote.id == VoteRecord.vote_id)
             .where(Mandate.person_id == person_id)
-            .where(~is_amendment_sql())
-            # The Senate's changes, voted one by one: the law's title on
-            # each, contradictory results, none of them the law's vote.
-            .where(
-                ~and_(
-                    func.lower(Vote.title).like("enmiendas del senado%"),
-                    ~func.lower(func.coalesce(Vote.description, "")).like("votación de conjunto%"),
-                )
-            )
+            .where(~is_change_vote_sql())
             .order_by(Vote.voted_at.desc(), Vote.sequence_in_session.desc(), Vote.id.desc())
         )
     ).all()

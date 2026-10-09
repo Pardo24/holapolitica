@@ -71,3 +71,33 @@ async def test_votes_and_dissent(db_session: AsyncSession) -> None:
     assert by_id[broke.id]["dissent"] is True
     assert by_id[broke.id]["group"]["slug"] == "gp-socialista"
     assert isinstance(await db_session.get(Vote, broke.id), Vote)
+
+
+async def test_kpi_dissent_leaves_amendments_out(db_session: AsyncSession) -> None:
+    """The dissidence figure and the list of breaks count the same votes."""
+    from app.metrics.calc import compute_person_kpis
+
+    chamber, leg, group = await _seed_scaffold(db_session)
+    start = date(2023, 8, 17)
+    me = await _add_deputy(
+        db_session, chamber=chamber, leg=leg, group=group, full_name="Jo", mandate_start=start
+    )
+    other = await _add_deputy(
+        db_session, chamber=chamber, leg=leg, group=group, full_name="A", mandate_start=start
+    )
+    law = await _add_vote(
+        db_session, chamber=chamber, leg=leg, voted_at=datetime(2024, 1, 10, 12, tzinfo=UTC)
+    )
+    amendment = await _add_vote(
+        db_session, chamber=chamber, leg=leg, voted_at=datetime(2024, 1, 10, 12, tzinfo=UTC)
+    )
+    amendment.subgroup_title = "Enmiendas presentadas por el Grupo Parlamentario Popular"
+    for v in (law, amendment):
+        await _cast(db_session, vote=v, mandate=other, group=group, choice=VoteChoice.AYE)
+    await _cast(db_session, vote=law, mandate=me, group=group, choice=VoteChoice.AYE)
+    await _cast(db_session, vote=amendment, mandate=me, group=group, choice=VoteChoice.NO)
+    await db_session.commit()
+
+    kpis = await compute_person_kpis(db_session, person_id=me.person_id)
+    assert kpis.dissents == 0
+    assert kpis.votes_cast == 2  # attendance still counts the amendment vote
