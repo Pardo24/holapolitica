@@ -147,8 +147,31 @@ async def test_vote_day_variants(db_session: AsyncSession) -> None:
     assert proposer.options[proposer.correct_index] == "Popular"
     assert len(set(proposer.options)) == 4
 
-    margin = await _resolve("vote:7:margin", "ca", db_session)
-    assert margin is not None and margin.correct_index == 1  # 10 votes apart
+    # No roll call recorded: the stance question falls back to "did it pass".
+    assert (await _resolve("vote:7:stance", "ca", db_session)).prompt == approved.prompt  # type: ignore[union-attr]
+
+    from app.models import VoteChoice, VoteRecord
+
+    db_session.add_all(
+        [
+            VoteRecord(
+                id=100 + k, vote_id=7, mandate_id=500 + k, choice=VoteChoice.NO, group_id_at_time=2
+            )
+            for k in range(3)
+        ]
+        + [
+            VoteRecord(
+                id=200 + k, vote_id=7, mandate_id=600 + k, choice=VoteChoice.AYE, group_id_at_time=1
+            )
+            for k in range(2)
+        ]
+    )
+    await db_session.commit()
+    stance = await _resolve("vote:7:stance", "ca", db_session)
+    assert stance is not None and stance.options == ["A favor", "En contra", "Abstenció"]
+    group = stance.prompt.removeprefix("Què hi va votar ").removesuffix("?")
+    expected = {"Popular": "En contra", "Socialista": "A favor"}[group]
+    assert stance.options[stance.correct_index] == expected
 
     legacy = await _resolve("vote:7", "ca", db_session)  # keys from before the variants
     assert legacy is not None and legacy.prompt == approved.prompt
