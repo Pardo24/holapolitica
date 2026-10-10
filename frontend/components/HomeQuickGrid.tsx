@@ -15,22 +15,34 @@ import { CalendarDays, Gamepad2, Map as MapIcon, Sparkles, UserRound, Users, typ
  * same cookie the deputies tab uses), the plenary tile the next sitting.
  *
  * Neutral by construction: every tile is a place, none is a pick of ours.
- * "Laws that matter" scrolls to the everyday-topics block lower down.
+ * "What affects you" comes first and scrolls to the picker lower down.
  */
 export async function HomeQuickGrid({
   province,
   nextSession,
   locale,
+  afectaId,
 }: {
   /** The reader's remembered province (cookie), if any. */
   province: string | null;
   /** YYYY-MM-DD of the next convened sitting, if any. */
   nextSession: string | null;
   locale: string;
+  /** Id of the "what affects you" picker in this layout. The home renders
+   *  it twice (phone and wide), and a shared id sent the wide tile to the
+   *  hidden phone copy, so the click went nowhere. */
+  afectaId: string;
 }) {
   const t = await getTranslations('home_grid');
 
   const tiles: { href: string; Icon: LucideIcon; hue: string; title: string; sub: string }[] = [
+    {
+      href: `#${afectaId}`,
+      Icon: UserRound,
+      hue: 'var(--hue-lleis)',
+      title: t('laws_title'),
+      sub: t('laws_sub'),
+    },
     {
       href: '/jocs',
       Icon: Gamepad2,
@@ -69,13 +81,6 @@ export async function HomeQuickGrid({
             date: new Date(`${nextSession}T12:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
           })
         : t('plens_sub'),
-    },
-    {
-      href: '#et-afecta',
-      Icon: UserRound,
-      hue: 'var(--hue-lleis)',
-      title: t('laws_title'),
-      sub: t('laws_sub'),
     },
   ];
 

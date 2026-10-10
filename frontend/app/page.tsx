@@ -165,14 +165,21 @@ export default async function HomePage() {
     .profiles()
     .then((rows) => new Map(rows.map((r) => [r.key, r.count] as const)))
     .catch(() => null);
-  const profilePicker = (
-    <div id="et-afecta" style={{ scrollMarginTop: 72 }}>
+  // Both built twice, phone and wide: each layout's tile has to scroll to
+  // its own picker, and an id can only point at one.
+  const profilePicker = (id: string) => (
+    <div id={id} style={{ scrollMarginTop: 72 }}>
       <ProfilePicker counts={profileCounts} featured={HOME_PROFILES} />
     </div>
   );
 
-  const quickGrid = (
-    <HomeQuickGrid province={province} nextSession={upcomingSessions[0]?.date?.slice(0, 10) ?? null} locale={locale} />
+  const quickGrid = (afectaId: string) => (
+    <HomeQuickGrid
+      province={province}
+      nextSession={upcomingSessions[0]?.date?.slice(0, 10) ?? null}
+      locale={locale}
+      afectaId={afectaId}
+    />
   );
 
   // Split the hero title so the second line can be tinted with the accent.
@@ -207,8 +214,8 @@ export default async function HomePage() {
         noPlenaryTitle={tUpcoming('none_convened_title')}
         noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
         plannedLabel={tUpcoming('planned_label')}
-        quickGrid={quickGrid}
-        profilePicker={profilePicker}
+        quickGrid={quickGrid('et-afecta-m')}
+        profilePicker={profilePicker('et-afecta-m')}
         lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} />}
         partyBand={
           <PartyBand
@@ -339,7 +346,7 @@ export default async function HomePage() {
           {/* Everything you can do here, one tap each: the game, the map,
               your deputies. Many visitors come for one of these and
               nothing else, so they sit on the cover, not further down. */}
-          <div style={{ marginTop: 24 }}>{quickGrid}</div>
+          <div style={{ marginTop: 24 }}>{quickGrid('et-afecta')}</div>
           {/* Trust signals — three icon chips pinned to the bottom of the
               column. The licence chip ("EUPL-1.2 / CC-BY 4.0") is gone
               from the fold: cryptic to a first-time visitor, and the
@@ -575,7 +582,7 @@ export default async function HomePage() {
           the home page pointed at them. It also carries the page's
           strongest colour, and it is colour we don't have to invent:
           the parties' own brand hues. */}
-      <div style={{ marginTop: 36 }}>{profilePicker}</div>
+      <div style={{ marginTop: 36 }}>{profilePicker('et-afecta')}</div>
 
       <PartyBand
         groups={allGroups}
