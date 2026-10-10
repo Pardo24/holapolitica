@@ -683,13 +683,7 @@ function KpiStrip({
     );
   }
   return (
-    <section
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        borderBottom: '1px solid var(--rule)',
-      }}
-    >
+    <section className="dep-kpis">
       <div className="kpi">
         <span className="label">{t('kpi_votes_cast_label')}</span>
         <span className="value tabular">{kpis.votes_cast}</span>
