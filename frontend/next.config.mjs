@@ -25,6 +25,9 @@ const COMMON_SECURITY_HEADERS = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Self-hosted builds (Dockerfile.prod) ship the minimal standalone server;
+  // Vercel builds leave it unset and package the app their own way.
+  ...(process.env.NEXT_OUTPUT === 'standalone' ? { output: 'standalone' } : {}),
   reactStrictMode: true,
   typedRoutes: true,
   experimental: {

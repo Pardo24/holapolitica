@@ -6,8 +6,12 @@
  * (When the project grows we can switch to OpenAPI codegen.)
  */
 
+// Server-side renders on the same box as the backend skip the public
+// round trip (DNS, TLS, Caddy) and talk to it directly.
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+  (typeof window === 'undefined' ? process.env.BACKEND_INTERNAL_URL : undefined) ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'http://localhost:8000';
 
 /**
  * Revalidation window (seconds) applied to read-heavy aggregate endpoints —

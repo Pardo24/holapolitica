@@ -9,7 +9,9 @@ name: holapolitica
 #   sees them. The backend reaches them by service name.
 # - Backend (8000) and Listmonk (9000) bind to 127.0.0.1 only; Caddy on
 #   the host terminates TLS and reverse-proxies inbound 443 -> these.
-# - No frontend service: Vercel hosts the Next.js app.
+# - frontend: the Next.js site, self-hosted since Vercel's free plan paused
+#   it (2026-10-12). The image is built off the box (frontend/Dockerfile.prod)
+#   and loaded here; a Next build needs more memory than the VM spares.
 
 services:
   postgres:
@@ -102,6 +104,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  frontend:
+    image: holapolitica-frontend:latest
+    pull_policy: never
+    restart: unless-stopped
+    # Host network: it reaches the backend on 127.0.0.1:8000 directly and
+    # listens on 127.0.0.1:3000 only (HOSTNAME in the image); Caddy fronts it.
+    network_mode: host
+    environment:
+      BACKEND_INTERNAL_URL: http://127.0.0.1:8000
+      HP_API_KEY: ${HP_API_KEY}
+    # One core and a memory cap, so a traffic spike on the site slows the
+    # site and never starves the API and the database next to it.
+    cpus: 1.0
+    mem_limit: 700m
 
   listmonk:
     image: listmonk/listmonk:latest
