@@ -40,3 +40,30 @@ newsletter.holapolitica.org {
         format json
     }
 }
+
+# The site (Next.js standalone, docker-compose.prod.yml "frontend" on
+# 127.0.0.1:3000). www is canonical, as it was on Vercel.
+www.holapolitica.org, nou.holapolitica.org {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:3000
+
+    log {
+        output file /var/log/caddy/web.access.log {
+            roll_size 50mb
+            roll_keep 10
+        }
+        format json
+    }
+}
+
+# The bare domain sends people to www, except the app-link files: Apple and
+# Android fetch those from this exact host and do not follow redirects.
+holapolitica.org {
+    @wellknown path /.well-known/*
+    handle @wellknown {
+        reverse_proxy 127.0.0.1:3000
+    }
+    handle {
+        redir https://www.holapolitica.org{uri} permanent
+    }
+}
