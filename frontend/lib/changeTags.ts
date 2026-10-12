@@ -1,4 +1,4 @@
-import { Building2, Leaf, Receipt, Scale, type LucideIcon } from 'lucide-react';
+import { Building2, Leaf, Receipt, Scale, type LucideIcon } from '@/components/icons';
 
 /**
  * "What the text changes": symmetric facts read from a bill's own text

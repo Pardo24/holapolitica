@@ -1,4 +1,4 @@
-import { Check, Minus, X } from 'lucide-react';
+import { Check, Minus, X } from '@/components/icons';
 
 import type { GroupVoteChoiceRow } from '@/lib/api';
 import { groupLogoUrl } from '@/lib/groupLogos';
@@ -84,8 +84,12 @@ export function PartyStanceMini({
     { key: 'no', color: 'var(--no, #DC2626)', Icon: X },
     { key: 'abstention', color: 'var(--abst, #CA8A04)', Icon: Minus },
   ];
+  // The per-party pieces are styled by class (.psm-* in globals.css), not
+  // inline: the laws list prints this strip ~30 times with nine marks each,
+  // and the repeated style attributes were ~35 KB of its HTML.
   return (
     <div
+      className="psm"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -105,7 +109,8 @@ export function PartyStanceMini({
             // centred glyph floated down beside the SECOND row, reading as
             // if only those parties had taken that position. The 5px offset
             // centres the 12px glyph against the 22px mark beside it.
-            style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 5 }}
+            // --psm-ring: the stance colour of every mark in the cluster.
+            style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 5, ['--psm-ring' as string]: color }}
           >
             <Icon
               size={12}
@@ -122,13 +127,6 @@ export function PartyStanceMini({
                 // WITH the logo instead of depending on the glyph beside
                 // the cluster. No overlap — the rings need to read as
                 // separate rings.
-                const common: React.CSSProperties = {
-                  width: 22,
-                  height: 22,
-                  display: 'inline-block',
-                  flex: 'none',
-                  boxShadow: `0 0 0 1.5px var(--paper), 0 0 0 3.5px ${color}`,
-                };
                 const mark = logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -138,25 +136,15 @@ export function PartyStanceMini({
                     height={22}
                     loading="lazy"
                     decoding="async"
-                    style={{
-                      ...common,
-                      objectFit: 'contain',
-                      padding: 2,
-                      boxSizing: 'border-box',
-                      background: '#fff',
-                      // Rounded square, not a circle — wordmark logos
-                      // lose their sides inside a circular clip.
-                      borderRadius: 4,
-                    }}
+                    // Rounded square, not a circle — wordmark logos lose
+                    // their sides inside a circular clip.
+                    className="psm-mark psm-mark--logo"
                   />
                 ) : (
                   <span
                     aria-hidden="true"
-                    style={{
-                      ...common,
-                      borderRadius: 999,
-                      background: p.color_hex ?? 'var(--ink-3)',
-                    }}
+                    className="psm-mark psm-mark--disc"
+                    style={{ background: p.color_hex ?? 'var(--ink-3)' }}
                   />
                 );
                 // The short name is printed under the mark: logos alone
@@ -164,44 +152,14 @@ export function PartyStanceMini({
                 // name lived only in a hover tooltip, which a phone never
                 // shows (and the Mixto group has no logo at all).
                 return (
-                  <span
-                    key={p.slug}
-                    title={title}
-                    style={{
-                      display: 'inline-flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 5,
-                      minWidth: 26,
-                    }}
-                  >
+                  <span key={p.slug} title={title} className="psm-party">
                     {mark}
-                    <span
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 600,
-                        lineHeight: 1,
-                        color: 'var(--ink-2)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {stanceLabel(p)}
-                    </span>
+                    <span className="psm-label">{stanceLabel(p)}</span>
                     {/* How many deputies of that group, when the source
                         knows. Keeps the compact strip as informative as the
                         three columns it replaces on a phone. */}
                     {p.deputies != null && (
-                      <span
-                        className="tabular"
-                        style={{
-                          fontSize: 9,
-                          lineHeight: 1,
-                          color: 'var(--ink-3)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {p.deputies}
-                      </span>
+                      <span className="tabular psm-count">{p.deputies}</span>
                     )}
                   </span>
                 );

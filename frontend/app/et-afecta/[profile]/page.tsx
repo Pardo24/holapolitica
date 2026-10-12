@@ -2,7 +2,7 @@ import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from '@/components/icons';
 
 import { LawCard } from '@/components/LawCard';
 import { LAW_CARD_LIST_STYLE } from '@/components/LawCardParts';

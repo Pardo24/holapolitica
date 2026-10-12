@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ChevronDown, ArrowRight, Landmark, Tags, X } from 'lucide-react';
+import { ChevronDown, ArrowRight, Landmark, Tags, X } from '@/components/icons';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { BottomSheet } from '@/components/BottomSheet';

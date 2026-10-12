@@ -11,6 +11,7 @@ import { MobileAppBar } from '@/components/MobileAppBar';
 import { NativePushBridge } from '@/components/NativePushBridge';
 import { PushBootstrap } from '@/components/PushBootstrap';
 import { TopNav } from '@/components/TopNav';
+import { CLIENT_NAMESPACES, pickMessages } from '@/lib/clientMessages';
 
 import './globals.css';
 
@@ -77,7 +78,9 @@ export default async function RootLayout({
     // the html/body nodes; everything inside hydrates normally.
     <html lang={locale} suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        {/* Only the namespaces client components read: the whole locale
+            file would ride along in every page's payload. */}
+        <NextIntlClientProvider locale={locale} messages={pickMessages(messages, CLIENT_NAMESPACES)}>
           {isEmbed ? (
             // Bare embed shell: only the page content, no nav, no
             // footer, no mobile back bar. The iframe host owns the

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Bell, Globe2, Layers } from 'lucide-react';
+import { ArrowRight, Bell, Globe2, Layers } from '@/components/icons';
 import { getTranslations } from 'next-intl/server';
 
 import { PageHeader } from '@/components/PageHeader';

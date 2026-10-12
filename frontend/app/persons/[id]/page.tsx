@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { Route } from 'next';
-import { ArrowUpRight, MapPin } from 'lucide-react';
+import { ArrowUpRight, MapPin } from '@/components/icons';
 
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';

@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from '@/components/icons';
 
 import type { InitiativeTopicSlug } from '@/lib/api';
 import { topicIcon } from '@/lib/topic_icons';

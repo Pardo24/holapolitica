@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Gamepad2, User, UserPlus } from 'lucide-react';
+import { Gamepad2, User, UserPlus } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
 import { TriviaGame, type RivalResult } from '@/components/TriviaGame';

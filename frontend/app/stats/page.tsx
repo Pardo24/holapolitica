@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowLeft, BarChart3, X } from 'lucide-react';
+import { ArrowLeft, BarChart3, X } from '@/components/icons';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { CoincidenceMatrix } from '@/components/CoincidenceMatrix';
@@ -11,6 +11,7 @@ import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
 import { StatsQuestions } from '@/components/StatsQuestions';
+import { RouteMessages } from '@/components/RouteMessages';
 import { StatsGroupFilter, StatsTopicFilter } from '@/components/StatsFilterClient';
 import { SummaryHover } from '@/components/SummaryHover';
 import { Tooltip } from '@/components/Tooltip';
@@ -275,17 +276,19 @@ export default async function StatsPage({
           headline figures that used to open the page are gone: numbers
           without a question are what made this page heavy. */}
       {!anyFilter && (
-        <StatsQuestions
-          byStatus={byStatus}
-          groupSummary={groupSummary}
-          allGroups={allGroups}
-          allTopics={allTopics}
-          coincidence={coincidence}
-          proposals={proposals}
-          pairA={pairA}
-          pairB={pairB}
-          locale={locale}
-        />
+        <RouteMessages route="stats">
+          <StatsQuestions
+            byStatus={byStatus}
+            groupSummary={groupSummary}
+            allGroups={allGroups}
+            allTopics={allTopics}
+            coincidence={coincidence}
+            proposals={proposals}
+            pairA={pairA}
+            pairB={pairB}
+            locale={locale}
+          />
+        </RouteMessages>
       )}
 
       {anyFilter && (

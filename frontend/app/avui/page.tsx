@@ -1,7 +1,7 @@
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays } from '@/components/icons';
 
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { SessionSheet } from '@/components/SessionSheet';

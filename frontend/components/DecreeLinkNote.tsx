@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight, Link2 } from 'lucide-react';
+import { ArrowRight, Link2 } from '@/components/icons';
 
 import type { DecreeLink } from '@/lib/api';
 

@@ -1,3 +1,10 @@
+'use client';
+
+// A client component for the payload, not for interactivity: rendered on
+// the server it is a tree of ~20 KB per vote (every party chip twice, phone
+// and desktop), and the RSC payload carries that tree verbatim. As a client
+// component the payload carries only the tally and the group list; the HTML
+// is the same.
 import { ChevronDown } from 'lucide-react';
 
 import { PartyStanceMini } from '@/components/PartyStanceRow';

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowRight, Bell, ExternalLink, Newspaper } from 'lucide-react';
+import { ArrowRight, Bell, ExternalLink, Newspaper } from '@/components/icons';
 
 import { LawCard } from '@/components/LawCard';
 import { ResultPill } from '@/components/ResultPill';

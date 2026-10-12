@@ -2,12 +2,13 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from '@/components/icons';
 
 import { LawCard } from '@/components/LawCard';
 import { VoteCard } from '@/components/VoteCard';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCompositionFilter } from '@/components/GroupCompositionFilter';
+import { RouteMessages } from '@/components/RouteMessages';
 import { TopicBars } from '@/components/TopicBars';
 import {
   api,
@@ -566,11 +567,13 @@ export default async function GroupDetailPage({
           <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>{t('no_members')}</p>
         </section>
       ) : (
-        <GroupCompositionFilter
-          members={sortMembersWithRoleFirst(members)}
-          groupSlug={group.slug}
-          groupColor={group.color_hex}
-        />
+        <RouteMessages route="group">
+          <GroupCompositionFilter
+            members={sortMembersWithRoleFirst(members)}
+            groupSlug={group.slug}
+            groupColor={group.color_hex}
+          />
+        </RouteMessages>
       )}
 
       {composition && composition.members_total > 0 && (

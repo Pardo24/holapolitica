@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Sparkles } from 'lucide-react';
+import { Sparkles } from '@/components/icons';
 
 import { PROFILES, type ProfileKey } from '@/lib/profiles';
 

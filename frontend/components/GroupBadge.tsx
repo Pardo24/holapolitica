@@ -1,3 +1,8 @@
+'use client';
+
+// Client component only to keep the RSC payload small: lists render dozens
+// of badges, and each one serialised as a server tree (img + inline style)
+// cost ~300 bytes against ~60 for its props. Markup is unchanged.
 import Link from 'next/link';
 
 import { groupLogoUrl } from '@/lib/groupLogos';

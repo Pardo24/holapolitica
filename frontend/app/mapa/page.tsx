@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { Map as MapIcon } from 'lucide-react';
+import { Map as MapIcon } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
 import { LegislatureSelector } from '@/components/LegislatureSelector';

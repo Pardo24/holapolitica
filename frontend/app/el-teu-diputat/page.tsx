@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ChevronRight, MapPin, User } from 'lucide-react';
+import { ChevronRight, MapPin, User } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
 import { GroupBadge } from '@/components/GroupBadge';
@@ -20,6 +20,7 @@ import {
   type ParliamentaryGroupSummary,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { chartLayout } from '@/lib/hemicycleChart';
 
 export const revalidate = 300;
 
@@ -260,7 +261,7 @@ export default async function ElTeuDiputatPage({
             {selected ? t('hemicycle_hint_selected', { prov: selected }) : t('hemicycle_hint')}
           </p>
           <div style={{ margin: '0 auto', paddingInline: 'clamp(10px, 3vw, 20px)' }}>
-            <Hemicycle layout={hemicycle} highlightConstituency={selected} showLegend />
+            <Hemicycle layout={chartLayout(hemicycle)} highlightConstituency={selected} showLegend />
           </div>
         </section>
       )}

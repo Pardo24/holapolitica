@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { FileText, Route as RouteIcon } from 'lucide-react';
+import { FileText, Route as RouteIcon } from '@/components/icons';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';

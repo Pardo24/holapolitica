@@ -1,6 +1,6 @@
 import type { Metadata, Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ChevronRight, User } from 'lucide-react';
+import { ChevronRight, User } from '@/components/icons';
 
 import { EmbedFooter } from '@/components/EmbedFooter';
 import { GroupBadge } from '@/components/GroupBadge';

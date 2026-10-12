@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ArrowRight, Shuffle } from 'lucide-react';
+import { ArrowRight, Shuffle } from '@/components/icons';
 import type { ReactNode } from 'react';
 
 import type { Topic } from '@/lib/api';

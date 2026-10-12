@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown } from '@/components/icons';
 
 import { GroupChip } from '@/components/GroupChip';
 import { ResultPill } from '@/components/ResultPill';

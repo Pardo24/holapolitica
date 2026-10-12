@@ -9,7 +9,7 @@ import {
   Route as RouteIcon,
   Scale,
   SlidersHorizontal,
-} from 'lucide-react';
+} from '@/components/icons';
 
 import { BottomSheet } from '@/components/BottomSheet';
 import { LawCard } from '@/components/LawCard';
@@ -25,6 +25,7 @@ import {
 } from '@/lib/api';
 import { isChangeTag } from '@/lib/changeTags';
 import { parseProposer } from '@/lib/groups';
+import { topicOptions } from '@/lib/topics';
 
 /**
  * The laws view — the primary surface. Lists the initiatives that actually
@@ -240,7 +241,7 @@ export default async function LleisPage({
           doneLabel={t('lens_done', { count: data.total })}
         >
           <LawsFilterBar
-            topics={topics}
+            topics={topicOptions(topics)}
             groups={groups}
             initialQ={query}
             initialResults={resultFilters}

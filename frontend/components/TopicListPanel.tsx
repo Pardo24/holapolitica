@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from '@/components/icons';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { api, type Topic, type TopicGlobalStat } from '@/lib/api';

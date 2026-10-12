@@ -8,7 +8,7 @@ import {
   Code2,
   LockKeyhole,
   ShieldCheck,
-} from 'lucide-react';
+} from '@/components/icons';
 
 import { CompactVoteRow } from '@/components/CompactVoteRow';
 import { HighlightsCarousel } from '@/components/HighlightsCarousel';
@@ -26,6 +26,7 @@ import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
 import { buildHighlights, type Highlight } from '@/lib/highlights';
 import { summariseLaws } from '@/lib/sessionSummary';
+import { topicNamesFor, type TopicNames } from '@/lib/topics';
 import {
   api,
   type HemicycleLayout,
@@ -182,6 +183,22 @@ export default async function HomePage() {
     />
   );
 
+  // Built once and placed in both layouts: the RSC payload sends an element
+  // it has already sent as a reference, so the phone layout doesn't carry a
+  // second copy of these trees.
+  const lawsThatMatter = <LawsThatMatter topics={allTopics} locale={locale} />;
+  const partyBand = (
+    <PartyBand
+      groups={allGroups}
+      title={t('parties_title')}
+      caption={t('parties_caption')}
+      seatsLabel={(n) => t('parties_seats', { n })}
+      seeAllLabel={t('parties_see_all')}
+    />
+  );
+  // The carousel only looks up the names of the topics it shows.
+  const highlightTopics = topicNamesFor(allTopics, highlights.map((h) => h.topic_slug));
+
   // Split the hero title so the second line can be tinted with the accent.
   const heroTitleLines = t('hero_title').split('\n');
 
@@ -203,7 +220,7 @@ export default async function HomePage() {
           data as the desktop layout below. */}
       <MobileDashboard
         highlights={highlights}
-        allTopics={allTopics}
+        highlightTopics={highlightTopics}
         latestVotes={latestVotes}
         upcomingSessions={upcomingSessions}
         locale={locale}
@@ -216,16 +233,8 @@ export default async function HomePage() {
         plannedLabel={tUpcoming('planned_label')}
         quickGrid={quickGrid('et-afecta-m')}
         profilePicker={profilePicker('et-afecta-m')}
-        lawsThatMatter={<LawsThatMatter topics={allTopics} locale={locale} />}
-        partyBand={
-          <PartyBand
-            groups={allGroups}
-            title={t('parties_title')}
-            caption={t('parties_caption')}
-            seatsLabel={(n) => t('parties_seats', { n })}
-            seeAllLabel={t('parties_see_all')}
-          />
-        }
+        lawsThatMatter={lawsThatMatter}
+        partyBand={partyBand}
         labels={{
           brand: t('mobile_brand'),
           motto: tSite('motto'),
@@ -584,19 +593,13 @@ export default async function HomePage() {
           the parties' own brand hues. */}
       <div style={{ marginTop: 36 }}>{profilePicker('et-afecta')}</div>
 
-      <PartyBand
-        groups={allGroups}
-        title={t('parties_title')}
-        caption={t('parties_caption')}
-        seatsLabel={(n) => t('parties_seats', { n })}
-        seeAllLabel={t('parties_see_all')}
-      />
+      {partyBand}
 
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
           shown only when there's something scheduled, so an empty agenda
           doesn't add a blank section to the home. */}
       <div id="lleis-que-importen" style={{ marginTop: 40, marginBottom: 48, scrollMarginTop: 80 }}>
-        <LawsThatMatter topics={allTopics} locale={locale} />
+        {lawsThatMatter}
       </div>
 
       {(upcomingSessions.length > 0 || withdrawnSessions > 0) && (
@@ -669,7 +672,7 @@ export default async function HomePage() {
             borderBottom: '1px solid var(--rule)',
           }}
         >
-          <HighlightsCarousel items={highlights} allTopics={allTopics} />
+          <HighlightsCarousel items={highlights} allTopics={highlightTopics} />
         </section>
       )}
 
@@ -766,7 +769,7 @@ interface MobileDashboardLabels {
 
 function MobileDashboard({
   highlights,
-  allTopics,
+  highlightTopics,
   latestVotes,
   upcomingSessions,
   locale,
@@ -784,7 +787,7 @@ function MobileDashboard({
   labels,
 }: {
   highlights: Highlight[];
-  allTopics: Topic[];
+  highlightTopics: TopicNames[];
   latestVotes: Vote[];
   upcomingSessions: ScheduledSession[];
   locale: string;
@@ -976,7 +979,7 @@ function MobileDashboard({
         seeAllHref="/stats"
         seeAllLabel={labels.highlightsSeeAll}
       >
-        <HighlightsCarousel items={highlights} allTopics={allTopics} />
+        <HighlightsCarousel items={highlights} allTopics={highlightTopics} />
       </DashboardSection>
 
     </div>

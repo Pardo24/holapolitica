@@ -1,4 +1,4 @@
-import { FileText, Sparkles } from 'lucide-react';
+import { FileText, Sparkles } from '@/components/icons';
 
 /**
  * Says where the text above or below it came from.

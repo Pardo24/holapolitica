@@ -1,4 +1,4 @@
-import { Gavel, HelpCircle, Users } from 'lucide-react';
+import { Gavel, HelpCircle, Users } from '@/components/icons';
 
 /**
  * Explains why a vote has no per-party breakdown, in the exact slot where

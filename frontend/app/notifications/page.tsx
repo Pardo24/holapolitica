@@ -1,8 +1,9 @@
 import { getTranslations } from 'next-intl/server';
-import { Bell } from 'lucide-react';
+import { Bell } from '@/components/icons';
 
 import { NewsletterPreferencesManager } from '@/components/NewsletterPreferencesManager';
 import { NotificationsManager } from '@/components/NotificationsManager';
+import { RouteMessages } from '@/components/RouteMessages';
 import { PageHeader } from '@/components/PageHeader';
 import { api, type ParliamentaryGroupSummary, type Topic } from '@/lib/api';
 
@@ -75,11 +76,13 @@ export default async function NotificationsPage() {
         </p>
       </PageHeader>
 
-      {ENABLE_BROWSER_PUSH && (
-        <NotificationsManager topics={topics} groups={groups} />
-      )}
+      <RouteMessages route="notifications">
+        {ENABLE_BROWSER_PUSH && (
+          <NotificationsManager topics={topics} groups={groups} />
+        )}
 
-      <NewsletterPreferencesManager topics={topics} />
+        <NewsletterPreferencesManager topics={topics} />
+      </RouteMessages>
 
       <section style={{ marginTop: 32, fontSize: 12, color: 'var(--ink-3)', lineHeight: 1.55 }}>
         <h2 style={{ fontSize: 13, color: 'var(--ink)', margin: '0 0 6px' }}>

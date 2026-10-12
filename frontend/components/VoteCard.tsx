@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from '@/components/icons';
 
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';

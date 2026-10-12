@@ -33,6 +33,41 @@ interface TopicNameFields {
   name_en?: string | null;
 }
 
+/** What `resolveTopicName` needs of each topic. */
+export type TopicNames = TopicNameFields & { slug: string };
+
+/**
+ * Only the names, and only of the topics in `slugs`: for handing the
+ * catalogue to a client component, where every field of every topic
+ * (three descriptions each) would travel in the page payload.
+ */
+export function topicNamesFor(allTopics: readonly Topic[], slugs: Iterable<string>): TopicNames[] {
+  const wanted = new Set(slugs);
+  return allTopics
+    .filter((t) => wanted.has(t.slug))
+    .map((t) => ({ slug: t.slug, name_ca: t.name_ca, name_es: t.name_es, name_en: t.name_en }));
+}
+
+/**
+ * A topic without its three descriptions, for the filter pickers. They are
+ * client components, so the list they get travels in the page payload, and
+ * the descriptions were most of its weight.
+ */
+export type TopicOption = Omit<Topic, 'description_ca' | 'description_es' | 'description_en'>;
+
+export function topicOptions(allTopics: readonly Topic[]): TopicOption[] {
+  return allTopics.map((t) => ({
+    id: t.id,
+    slug: t.slug,
+    name_ca: t.name_ca,
+    name_es: t.name_es,
+    name_en: t.name_en,
+    color_hex: t.color_hex,
+    icon: t.icon,
+    kind: t.kind,
+  }));
+}
+
 /** Pick the localised name from a full {@link Topic} (or anything with the three name fields). */
 export function pickTopicName(
   topic: TopicNameFields | null | undefined,
@@ -63,7 +98,7 @@ export function pickTopicDescription(
  */
 export function resolveTopicName(
   slug: string,
-  allTopics: readonly Topic[] | null | undefined,
+  allTopics: readonly TopicNames[] | null | undefined,
   locale: LocaleLike,
   fallbackName: string,
 ): string {

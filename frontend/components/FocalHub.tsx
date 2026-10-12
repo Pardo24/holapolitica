@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Gamepad2, Map as MapIcon, MapPin, Scale } from 'lucide-react';
+import { Gamepad2, Map as MapIcon, MapPin, Scale } from '@/components/icons';
 
 /**
  * The home's visual front door — four big cards for the things we want people

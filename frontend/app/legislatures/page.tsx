@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Landmark } from 'lucide-react';
+import { Landmark } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
 import { api, type LegislatureStat } from '@/lib/api';

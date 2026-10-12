@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { UserRound } from 'lucide-react';
+import { UserRound } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
 import { ProfilePicker } from '@/components/ProfilePicker';

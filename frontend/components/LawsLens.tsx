@@ -13,7 +13,7 @@ import {
   UsersRound,
   X,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/icons';
 
 import { BottomSheet } from '@/components/BottomSheet';
 import { GroupBadge } from '@/components/GroupBadge';

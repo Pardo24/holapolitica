@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Layers } from 'lucide-react';
+import { Layers } from '@/components/icons';
 
 import type { SameProposal } from '@/lib/api';
 import { STATUS_COLOR, STATUS_KEY } from '@/lib/lawStatus';

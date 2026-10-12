@@ -28,7 +28,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ExternalLink, FileText, User } from 'lucide-react';
+import { ExternalLink, FileText, User } from '@/components/icons';
 
 import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
@@ -56,6 +56,7 @@ import {
   type VoteHemicycleLayout,
 } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
+import { chartVoteLayout } from '@/lib/hemicycleChart';
 import { isStubLead, parseSummary } from '@/lib/plainSummary';
 import { pickPlainTitle, pickPlainSummary, proceduralExplainerKey } from '@/lib/glossary';
 import { pickTopicName } from '@/lib/topics';
@@ -1016,7 +1017,7 @@ export default async function VoteDetailPage({
               </div>
               {voteHemicycleLayout && (
                 <div style={{ minWidth: 0, maxWidth: 400, marginInline: 'auto', width: '100%' }}>
-                  <Hemicycle layout={voteHemicycleLayout} coloredBy="vote" />
+                  <Hemicycle layout={chartVoteLayout(voteHemicycleLayout)} coloredBy="vote" />
                   {/* Compact legend — pairs each color used by the
                       vote-mode hemicycle with its labelled count so a
                       first-time reader can decode the dots without

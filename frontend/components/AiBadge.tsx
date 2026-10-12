@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react';
+import { Sparkles } from '@/components/icons';
 
 /**
  * Small pill that marks a piece of content as AI-generated. Used next

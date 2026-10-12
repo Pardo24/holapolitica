@@ -42,7 +42,7 @@ import {
   Wheat,
   Zap,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/icons';
 
 const ICONS: Record<string, LucideIcon> = {
   archive: Archive,

@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getMessages, getTranslations } from 'next-intl/server';
-import { ArrowRight, Info } from 'lucide-react';
+import { ArrowRight, Info } from '@/components/icons';
 
 import { LifecycleDiagram } from '@/components/LifecycleDiagram';
 import { NewsletterSignup } from '@/components/NewsletterSignup';

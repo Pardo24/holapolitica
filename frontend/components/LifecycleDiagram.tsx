@@ -9,7 +9,7 @@ import {
   RotateCcw,
   FileText,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/icons';
 
 /**
  * Educational static infographic that describes the typical lifecycle of a

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ExternalLink, FileText, Sparkles } from 'lucide-react';
+import { ExternalLink, FileText, Sparkles } from '@/components/icons';
 
 import type { Initiative } from '@/lib/api';
 import { changeTagIcon, isChangeTag, pdfUrl } from '@/lib/changeTags';

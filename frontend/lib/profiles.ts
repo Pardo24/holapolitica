@@ -19,7 +19,7 @@ import {
   Tractor,
   UserRound,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/icons';
 
 /**
  * The everyday situations of "I a tu, què t'afecta?", in display order.

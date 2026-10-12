@@ -23,7 +23,7 @@ import { type ParsedProposer } from '@/lib/groups';
 import { STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
 import { changeTagIcon, isChangeTag, pdfUrl } from '@/lib/changeTags';
-import { FileText } from 'lucide-react';
+import { FileText } from '@/components/icons';
 
 /**
  * One LAW, as a full-width card — the /lleis surface.

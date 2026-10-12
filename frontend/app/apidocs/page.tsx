@@ -1,6 +1,6 @@
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from '@/components/icons';
 
 import { ApiKeyForm } from '@/components/ApiKeyForm';
 

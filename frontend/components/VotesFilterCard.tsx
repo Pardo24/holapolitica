@@ -8,10 +8,10 @@ import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { LegislatureSelector } from '@/components/LegislatureSelector';
 import { TopicCombobox } from '@/components/TopicCombobox';
-import type { Legislature, ParliamentaryGroupSummary, Topic, VoteResult } from '@/lib/api';
+import type { Legislature, ParliamentaryGroupSummary, VoteResult } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { useEdgeFade } from '@/lib/useEdgeFade';
-import { pickTopicName } from '@/lib/topics';
+import { pickTopicName, type TopicOption } from '@/lib/topics';
 
 /**
  * Filter toolbar for /votes.
@@ -62,7 +62,7 @@ export interface VotesFilterCardLabels {
 }
 
 interface Props {
-  topics: Topic[];
+  topics: TopicOption[];
   groups: ParliamentaryGroupSummary[];
   initialQ: string;
   initialTopicSlugs: string[];

@@ -1,4 +1,4 @@
-import { FileText, MessageSquare, Scale } from 'lucide-react';
+import { FileText, MessageSquare, Scale } from '@/components/icons';
 import { getTranslations } from 'next-intl/server';
 
 import { Tooltip } from '@/components/Tooltip';

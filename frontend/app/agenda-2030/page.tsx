@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ExternalLink, FileText, Gavel, Globe2, Users } from 'lucide-react';
+import { ExternalLink, FileText, Gavel, Globe2, Users } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
 import { api, type Topic, type TopicGlobalStat } from '@/lib/api';

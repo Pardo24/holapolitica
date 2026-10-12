@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { CalendarDays, Gamepad2, Map as MapIcon, Sparkles, UserRound, Users, type LucideIcon } from 'lucide-react';
+import { CalendarDays, Gamepad2, Map as MapIcon, Sparkles, UserRound, Users, type LucideIcon } from '@/components/icons';
 
 /**
  * The home's first screen: what you can do here, as six tiles.

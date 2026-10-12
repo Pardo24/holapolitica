@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ArrowRight, ChevronRight, Landmark, Tags } from 'lucide-react';
+import { ArrowRight, ChevronRight, Landmark, Tags } from '@/components/icons';
 
 import { BottomSheet } from '@/components/BottomSheet';
 import { GroupBadge } from '@/components/GroupBadge';

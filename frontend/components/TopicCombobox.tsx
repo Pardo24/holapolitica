@@ -13,7 +13,8 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
-import type { Topic, TopicKind } from '@/lib/api';
+import type { TopicKind } from '@/lib/api';
+import type { TopicOption as Topic } from '@/lib/topics';
 import { pickTopicName } from '@/lib/topics';
 
 /**

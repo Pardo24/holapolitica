@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, SearchX, SlidersHorizontal } from 'lucide-react';
+import { CheckSquare, ChevronLeft, ChevronRight, Route as RouteIcon, SearchX, SlidersHorizontal } from '@/components/icons';
 
 import { VoteCard } from '@/components/VoteCard';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
@@ -10,6 +10,7 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { VotesLens } from '@/components/VotesLens';
 import { VotesFilterCard } from '@/components/VotesFilterCard';
 import { api, type Legislature, type VoteResult } from '@/lib/api';
+import { topicOptions } from '@/lib/topics';
 
 /**
  * The votes archive — every roll call, law-making or not.
@@ -243,7 +244,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           doneLabel={t('lens_done')}
         >
           <VotesFilterCard
-            topics={topics}
+            topics={topicOptions(topics)}
             groups={groups}
             initialQ={params.q ?? ''}
             initialTopicSlugs={topicSlugs}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ArrowRight } from 'lucide-react';
+import { ChamberSeats } from '@/components/ChamberSeats';
+import { ArrowRight } from '@/components/icons';
 
 import type { HemicycleLayout } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
@@ -19,8 +20,10 @@ import { ALL_SEAT_POSITIONS } from '@/lib/hemicycleAllSeats';
  *
  * Static on purpose: {@link Hemicycle} is the interactive version (hover
  * cards, per-seat links) and it belongs on the pages about deputies. Here
- * a plain SVG with no client JavaScript carries the whole point, and the
- * card links to that interactive one.
+ * a plain SVG with no interaction carries the whole point, and the card
+ * links to that interactive one. (The seats are drawn by a client component,
+ * {@link ChamberSeats}, only so the page payload carries coordinates rather
+ * than ~400 circle elements.)
  *
  * Neutrality: every group is painted with its own colour and every group
  * appears in the legend, ordered by seats. No group is highlighted, and
@@ -112,22 +115,14 @@ export function ChamberMap({
         aria-label={ariaLabel}
         style={{ display: 'block', width: '100%', height: 'auto' }}
       >
-        {/* Shared attributes live on the <g>, never on each circle. */}
-        {/* The chairs with nobody in them — the cabinet benches, and any
-            seat vacant between a resignation and its replacement. */}
-        <g fill="none" stroke="var(--rule-strong)" strokeWidth={1} opacity={0.6}>
-          {emptyChairs.map(([x, y]) => (
-            <circle key={`chair-${x}-${y}`} cx={x} cy={y} r={SEAT_R} />
-          ))}
-        </g>
-        {/* The deputies, one group per colour. */}
-        {[...seatsByColor.entries()].map(([color, list]) => (
-          <g key={color} fill={color} stroke="rgba(20, 28, 60, 0.18)" strokeWidth={1}>
-            {list.map(({ x, y }) => (
-              <circle key={`${x},${y}`} cx={x} cy={y} r={SEAT_R} />
-            ))}
-          </g>
-        ))}
+        <ChamberSeats
+          r={SEAT_R}
+          chairs={emptyChairs.flat()}
+          groups={[...seatsByColor.entries()].map(([color, list]) => ({
+            color,
+            xy: list.flatMap(({ x, y }) => [x, y]),
+          }))}
+        />
       </svg>
 
       {/* The legend is the same information in words: every group, its

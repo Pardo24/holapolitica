@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight, Split } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Split } from '@/components/icons';
 
 import type { PersonVoteItem, PersonVotesPage } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';

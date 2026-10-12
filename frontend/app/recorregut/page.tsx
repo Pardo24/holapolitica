@@ -10,7 +10,7 @@ import {
   Users,
   Zap,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/icons';
 
 import type { InitiativeType } from '@/lib/api';
 import { JOURNEY_STEPS, JOURNEY_TYPES, isJourneyType } from '@/lib/lawJourney';

@@ -39,12 +39,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowUpRight, User, X } from 'lucide-react';
 
-import type {
-  HemicycleSeat,
-  HemicycleLayout,
-  VoteHemicycleSeat,
-  VoteHemicycleLayout,
-} from '@/lib/api';
+import type { ChartLayout, ChartSeat, ChartVoteLayout, ChartVoteSeat } from '@/lib/hemicycleChart';
 import { GroupBadge } from '@/components/GroupBadge';
 import { displayGroupShort } from '@/lib/groups';
 import { ALL_SEAT_POSITIONS } from '@/lib/hemicycleAllSeats';
@@ -165,14 +160,14 @@ function syntheticArc(
   };
 }
 
-interface PlacedSeat extends HemicycleSeat {
+interface PlacedSeat extends ChartSeat {
   cx: number;
   cy: number;
 }
 
-function placeSeats(layout: HemicycleLayout): {
+function placeSeats(layout: ChartLayout): {
   placed: PlacedSeat[];
-  unplaced: HemicycleSeat[];
+  unplaced: ChartSeat[];
   usingFallback: boolean;
 } {
   const seated = layout.seats.filter((s) => s.seat_x != null && s.seat_y != null);
@@ -241,7 +236,7 @@ export function Hemicycle({
   // per-vote layout (each seat carries a `vote_choice`). The two
   // shapes share every field except `vote_choice`, so we widen the
   // type here and let the seat renderer branch on `coloredBy`.
-  layout: HemicycleLayout | VoteHemicycleLayout;
+  layout: ChartLayout | ChartVoteLayout;
   /**
    * How to fill each seat:
    *
@@ -601,7 +596,7 @@ function SeatDot({
   // passed `coloredBy="vote"` with a legacy layout). Reading via the
   // generic indexer avoids a type assertion while keeping null-safe.
   const voteChoice =
-    coloredBy === 'vote' ? (seat as PlacedSeat & Partial<VoteHemicycleSeat>).vote_choice : null;
+    coloredBy === 'vote' ? (seat as PlacedSeat & Partial<ChartVoteSeat>).vote_choice : null;
   const color =
     coloredBy === 'vote' && voteChoice
       ? VOTE_CHOICE_COLOR[voteChoice] ?? DEFAULT_COLOR

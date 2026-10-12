@@ -9,10 +9,10 @@ import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { TopicChip } from '@/components/TopicChip';
 import { TopicCombobox } from '@/components/TopicCombobox';
-import type { AudienceCount, ParliamentaryGroupSummary, Topic } from '@/lib/api';
+import type { AudienceCount, ParliamentaryGroupSummary } from '@/lib/api';
 import { displayGroupShort } from '@/lib/groups';
 import { useEdgeFade } from '@/lib/useEdgeFade';
-import { pickTopicName } from '@/lib/topics';
+import { pickTopicName, type TopicOption } from '@/lib/topics';
 
 /**
  * Filter toolbar for /lleis — the same clean, hierarchical pattern as the
@@ -49,7 +49,7 @@ export interface LawsFilterLabels {
 }
 
 interface Props {
-  topics: Topic[];
+  topics: TopicOption[];
   groups: ParliamentaryGroupSummary[];
   /** Audience tags in use, most common first; the row shows the top ones. */
   audiences: AudienceCount[];

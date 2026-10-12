@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, CalendarDays, Gamepad2, Users, Scale } from 'lucide-react';
+import { BarChart3, Bell, CalendarDays, Gamepad2, Users, Scale } from '@/components/icons';
 
 import { LangSwitch } from '@/components/LangSwitch';
 import { NavLink } from '@/components/NavLink';

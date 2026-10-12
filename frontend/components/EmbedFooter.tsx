@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from '@/components/icons';
 
 /**
  * The foot of every new widget: the way to the full page, and the source.

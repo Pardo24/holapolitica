@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from '@/components/icons';
 import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {

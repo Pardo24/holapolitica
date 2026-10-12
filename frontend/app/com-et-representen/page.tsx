@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Scale } from 'lucide-react';
+import { Scale } from '@/components/icons';
 
 import { AlignQuiz } from '@/components/AlignQuiz';
 import { PageHeader } from '@/components/PageHeader';

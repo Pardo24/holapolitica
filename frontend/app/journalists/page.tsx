@@ -1,6 +1,6 @@
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
-import { ArrowUpRight, Newspaper } from 'lucide-react';
+import { ArrowUpRight, Newspaper } from '@/components/icons';
 import { getLocale, getTranslations } from 'next-intl/server';
 
 import { PageHeader } from '@/components/PageHeader';

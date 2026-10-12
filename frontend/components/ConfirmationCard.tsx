@@ -13,7 +13,7 @@
  */
 import type { Route } from 'next';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, XCircle } from '@/components/icons';
 
 type Variant = 'success' | 'error';
 

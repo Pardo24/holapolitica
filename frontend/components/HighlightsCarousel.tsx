@@ -7,10 +7,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { GroupBadge } from '@/components/GroupBadge';
-import type { Topic } from '@/lib/api';
 import { type Highlight } from '@/lib/highlights';
 import { displayGroupShort } from '@/lib/groups';
-import { resolveTopicName } from '@/lib/topics';
+import { resolveTopicName, type TopicNames } from '@/lib/topics';
 
 const ROTATE_MS = 6000;
 
@@ -31,7 +30,7 @@ export function HighlightsCarousel({
    * is intentionally lean); we look up the localised label when this
    * prop is provided and fall back to the Catalan bundle otherwise.
    */
-  allTopics?: Topic[];
+  allTopics?: readonly TopicNames[];
 }) {
   const t = useTranslations('dashboard');
   const locale = useLocale();
