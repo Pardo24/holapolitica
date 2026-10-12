@@ -13,7 +13,9 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # PR runs make way for newer pushes; a deploy to main is never cut short
+  # halfway through loading the image on the server.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -61,9 +63,8 @@ jobs:
       run:
         working-directory: frontend
     env:
-      # Build-time placeholder. Real production URL is injected at deploy
-      # time by Vercel/host. We only need the var to be present so the
-      # NEXT_PUBLIC_API_URL reference doesn't crash the build.
+      # Build-time placeholder: this job only checks that the app builds.
+      # The image the deploy job ships bakes in the production URL.
       NEXT_PUBLIC_API_URL: http://localhost:8000
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
     steps:
@@ -86,46 +87,46 @@ jobs:
             !frontend/.next/cache/
           retention-days: 3
 
-  vercel-deploy:
-    name: Deploy to Vercel
+  deploy:
+    # The site runs on the Hetzner VM next to the backend (Vercel's free
+    # plan paused it on 2026-10-12). The image is built here, because a
+    # Next build needs more memory than the VM spares, and streamed to the
+    # server over SSH. The key can only run ops/deploy-frontend.sh there,
+    # which loads the image, restarts the site and rolls back if it does
+    # not answer.
+    name: Deploy to the VM
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: frontend-deploy
+      cancel-in-progress: false
     steps:
-      - name: Skip if no Vercel token
-        id: gate
-        run: |
-          if [ -z "${VERCEL_TOKEN}" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::VERCEL_TOKEN not set — skipping deploy."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       - uses: actions/checkout@v4
-        if: steps.gate.outputs.skip == 'false'
-      - uses: actions/setup-node@v4
-        if: steps.gate.outputs.skip == 'false'
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image
+        uses: docker/build-push-action@v6
         with:
-          node-version: "20"
-      - name: Install Vercel CLI
-        if: steps.gate.outputs.skip == 'false'
-        run: npm install --global vercel@latest
-      - name: Pull Vercel environment
-        if: steps.gate.outputs.skip == 'false'
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          context: frontend
+          file: frontend/Dockerfile.prod
+          tags: holapolitica-frontend:latest
+          outputs: type=docker,dest=/tmp/image.tar
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+      - name: Ship it to the server
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      - name: Build with Vercel
-        if: steps.gate.outputs.skip == 'false'
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy to Vercel
-        if: steps.gate.outputs.skip == 'false'
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOY_KEY: ${{ secrets.VM_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          gzip -c /tmp/image.tar | ssh -i ~/.ssh/deploy -o BatchMode=yes root@178.105.128.194
+      - name: Check the live site
+        run: |
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://www.holapolitica.org/)
+            [ "$code" = 200 ] && echo "www.holapolitica.org answers 200" && exit 0
+            sleep 3
+          done
+          echo "::error::www.holapolitica.org answered $code"; exit 1
