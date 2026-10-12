@@ -43,7 +43,7 @@ newsletter.holapolitica.org {
 
 # The site (Next.js standalone, docker-compose.prod.yml "frontend" on
 # 127.0.0.1:3000). www is canonical, as it was on Vercel.
-www.holapolitica.org, nou.holapolitica.org {
+www.holapolitica.org {
     encode zstd gzip
     reverse_proxy 127.0.0.1:3000
 

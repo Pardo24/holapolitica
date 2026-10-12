@@ -11,6 +11,9 @@ set -euo pipefail
 cd /opt/holapolitica
 compose() { docker compose -f docker-compose.prod.yml "$@" </dev/null; }
 
+# The compose file (limits, environment) travels with the repo.
+git pull --ff-only -q || echo "git pull failed; deploying with the compose file as it is" >&2
+
 if docker image inspect holapolitica-frontend:latest >/dev/null 2>&1; then
   docker tag holapolitica-frontend:latest holapolitica-frontend:previous
 fi

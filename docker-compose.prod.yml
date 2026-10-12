@@ -115,10 +115,12 @@ services:
     environment:
       BACKEND_INTERNAL_URL: http://127.0.0.1:8000
       HP_API_KEY: ${HP_API_KEY}
-    # One core and a memory cap, so a traffic spike on the site slows the
-    # site and never starves the API and the database next to it.
-    cpus: 1.0
-    mem_limit: 700m
+    # Two Next servers behind a page cache (frontend/server/launch.mjs).
+    # Capped below the box's two cores and with a memory ceiling, so a
+    # traffic spike slows the site and never starves the API and the
+    # database next to it.
+    cpus: 1.6
+    mem_limit: 1100m
 
   listmonk:
     image: listmonk/listmonk:latest
