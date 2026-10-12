@@ -23,30 +23,34 @@ import { welcomeApplies } from '@/components/WelcomeWizard';
  *
  * Same storage key as the old modal, so anyone who already dismissed that
  * never sees this. Storage can throw (private windows): if it does, the
- * strip simply doesn't render, exactly as the modal used to behave.
+ * strip simply doesn't show, exactly as the modal used to behave.
  */
 
 const STORAGE_KEY = 'holapolitica.onboarded.v1';
 
+/**
+ * Runs in <head> before the first paint (app/layout.tsx): readers who
+ * dismissed the note get `intro-seen` on <html>, which hides it in CSS.
+ * The note itself is in the server HTML, so it never pops in after
+ * hydration and pushes the page down (a layout shift Lighthouse scored
+ * at 0.1 on the home). No storage (private windows) counts as seen, as
+ * before.
+ */
+export const INTRO_SEEN_SCRIPT = `try{if(localStorage.getItem('${STORAGE_KEY}'))document.documentElement.classList.add('intro-seen')}catch(e){document.documentElement.classList.add('intro-seen')}`;
+
 export function IntroNote() {
-  // Server renders nothing and the client decides after hydration: reading
-  // localStorage during SSR isn't possible, and rendering optimistically
-  // would flash the strip at readers who dismissed it long ago.
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const t = useTranslations('onboarding');
 
   useEffect(() => {
-    // In the app and on a phone the welcome wizard does this job.
-    if (welcomeApplies()) return;
-    try {
-      if (!window.localStorage.getItem(STORAGE_KEY)) setVisible(true);
-    } catch {
-      /* no storage: stay hidden */
-    }
+    // In the app the welcome wizard does this job (on a phone too; CSS
+    // already keeps the note off narrow screens).
+    if (welcomeApplies()) setVisible(false);
   }, []);
 
   function dismiss() {
     setVisible(false);
+    document.documentElement.classList.add('intro-seen');
     try {
       window.localStorage.setItem(STORAGE_KEY, '1');
     } catch {

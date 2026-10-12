@@ -29,6 +29,12 @@ const nextConfig = {
   // Vercel builds leave it unset and package the app their own way.
   ...(process.env.NEXT_OUTPUT === 'standalone' ? { output: 'standalone' } : {}),
   reactStrictMode: true,
+  // Title, description and share image always go in <head>. Next 15 streams
+  // them into the body for anything it doesn't list as a bot, which link
+  // previews and Lighthouse then miss ("no meta description"). The page
+  // cache in front (server/launch.mjs) sends whole pages anyway, so
+  // streaming them bought nothing.
+  htmlLimitedBots: /.*/,
   typedRoutes: true,
   experimental: {
     // Keep pages already visited in the client router cache for a while.

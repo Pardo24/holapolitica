@@ -342,6 +342,16 @@ a { color: inherit; }
   font-size: 0.85em;
 }
 
+/* The scrollbar's room is kept from the first paint. The page streams in:
+   the first frames are shorter than the window, and when the scrollbar
+   then appeared the whole centred page jumped sideways (Lighthouse scored
+   the shift at 1.0 on desktop). */
+html { scrollbar-gutter: stable; }
+/* Same story for the footer: in the first frames it sat on screen under a
+   half-streamed page and was then pushed down as the rest arrived. The
+   page's main column starts a screen tall, so the footer starts below it. */
+.page > main { min-height: calc(100svh - 120px); }
+
 /* page-frame: an artboard-feeling document */
 .page {
   background: var(--paper);
@@ -2968,10 +2978,14 @@ button {
 .sheet .session-filter-row > .eyebrow { flex-basis: 100%; margin-bottom: 2px !important; }
 .sheet .session-filter-row button { min-height: 38px; font-size: 13.5px !important; }
 
-/* First-visit note (components/IntroNote.tsx): a floating card on a phone. */
+/* First-visit note (components/IntroNote.tsx). Server-rendered and hidden
+   before the first paint for readers who dismissed it (html.intro-seen),
+   and on a phone, where the welcome wizard does its job. */
+html.intro-seen .intro-note { display: none !important; }
 .intro-note__ok { display: none; }
 @media (max-width: 640px) {
   .intro-note {
+    display: none !important;
     position: fixed !important;
     left: 12px;
     right: 12px;

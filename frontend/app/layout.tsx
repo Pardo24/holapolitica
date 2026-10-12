@@ -11,6 +11,7 @@ import { MobileAppBar } from '@/components/MobileAppBar';
 import { NativePushBridge } from '@/components/NativePushBridge';
 import { PushBootstrap } from '@/components/PushBootstrap';
 import { TopNav } from '@/components/TopNav';
+import { INTRO_SEEN_SCRIPT } from '@/components/IntroNote';
 import { CLIENT_NAMESPACES, pickMessages } from '@/lib/clientMessages';
 
 import './globals.css';
@@ -77,6 +78,11 @@ export default async function RootLayout({
     // browser extensions (Scribe, Grammarly, Dark Reader). Shallow — only
     // the html/body nodes; everything inside hydrates normally.
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        {/* Before the first paint: hides the first-visit note for readers
+            who dismissed it, so it never shifts the page (IntroNote). */}
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SEEN_SCRIPT }} />
+      </head>
       <body suppressHydrationWarning>
         {/* Only the namespaces client components read: the whole locale
             file would ride along in every page's payload. */}
