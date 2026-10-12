@@ -292,7 +292,8 @@ export default async function StatsPage({
       )}
 
       {anyFilter && (
-      <>
+      // The filtered views carry PairCoincidenceClient too (mobile dashboard).
+      <RouteMessages route="stats">
       {/* Mobile-only dashboard (≤640px). Same data, denser layout — every
           key signal visible without scrolling through paragraphs. Hidden on
           ≥sm so the existing tabbed layout below survives unchanged. */}
@@ -645,7 +646,7 @@ export default async function StatsPage({
           )}
 
       </div>
-      </>
+      </RouteMessages>
       )}
 
       <style>{`
