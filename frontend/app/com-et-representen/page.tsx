@@ -1,3 +1,4 @@
+import '@/app/styles/com-et-representen-and-1-e71ba2.css';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';

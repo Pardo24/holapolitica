@@ -1,3 +1,6 @@
+import '@/app/styles/lleis-and-1-1f5337.css';
+import '@/app/styles/home-and-10-543c29.css';
+import '@/app/styles/home-and-11-6a6aa9.css';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';

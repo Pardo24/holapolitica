@@ -1,3 +1,4 @@
+import '@/app/styles/about-5780da.css';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getMessages, getTranslations } from 'next-intl/server';

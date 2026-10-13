@@ -1,3 +1,5 @@
+import '@/app/styles/persons-id-910fb0.css';
+import '@/app/styles/home-and-9-0ab327.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';

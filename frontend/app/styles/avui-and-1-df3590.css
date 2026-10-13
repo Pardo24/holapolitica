@@ -1,0 +1,106 @@
+/*  Styles only these pages use (split out of globals.css by route): avui, avui/[date]  */
+.topic-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+}
+@media (min-width: 620px) {
+  .topic-kpi-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; }
+}
+.law-card-votes { margin-top: 12px; }
+.law-card-votes > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  list-style: none;
+}
+.law-card-votes > summary::-webkit-details-marker { display: none; }
+.law-card-votes > summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.75px solid currentColor;
+  border-bottom: 1.75px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .15s ease;
+  margin-right: 2px;
+}
+.law-card-votes[open] > summary::before { transform: rotate(45deg); }
+.law-card-votes__i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  font-size: 8.5px;
+  color: var(--ink-3);
+  font-style: italic;
+  font-weight: 700;
+}
+.session-lede-note { margin: 10px 0 0; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+.session-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.session-filter-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sheet .session-filter-row { flex-wrap: wrap !important; overflow: visible !important; padding-bottom: 16px !important; }
+.sheet .session-filter-row > .eyebrow { flex-basis: 100%; margin-bottom: 2px !important; }
+.sheet .session-filter-row button { min-height: 38px; font-size: 13.5px !important; }
+.law-card-for-you {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--hue-lleis-soft);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.law-card-for-you > span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hue-lleis-ink);
+}
+.session-filter-bar .laws-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.session-lede-tiles { max-width: 720px; }

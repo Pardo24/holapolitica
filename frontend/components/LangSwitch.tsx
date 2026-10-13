@@ -46,6 +46,10 @@ export function LangSwitch({ locales, current }: { locales: readonly string[]; c
                   background: 'transparent',
                   border: 0,
                   padding: '2px 4px',
+                  // 24px minimum target (WCAG 2.5.8): the three codes sit
+                  // side by side and were 21px tall.
+                  minWidth: 24,
+                  minHeight: 24,
                   cursor: 'pointer',
                   font: 'inherit',
                   color: isActive ? 'var(--ink)' : 'var(--ink-3)',

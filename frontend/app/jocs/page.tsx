@@ -1,3 +1,4 @@
+import '@/app/styles/jocs-7d9463.css';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 

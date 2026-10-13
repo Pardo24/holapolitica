@@ -1,0 +1,42 @@
+/*  Styles only these pages use (split out of globals.css by route): groups/[slug]  */
+.grp-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 24px 18px 18px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in oklch, var(--party) 30%, var(--rule));
+  background: linear-gradient(180deg, color-mix(in oklch, var(--party) 14%, var(--paper)) 0, var(--paper) 75%);
+  overflow: hidden;
+}
+.grp-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--party); }
+.grp-hero__mark { width: 96px; height: 96px; border-radius: 22px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--shadow-2); display: flex; align-items: center; justify-content: center; }
+.grp-hero__mark > * { transform: scale(1.35); }
+.grp-hero__body { min-width: 0; display: grid; gap: 6px; }
+.grp-hero__name { margin: 0; font-family: var(--font-serif); font-size: clamp(26px, 4.2vw, 40px); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); text-wrap: balance; }
+.grp-hero__long { margin: 0; font-size: 13px; color: var(--ink-3); }
+.grp-hero__facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; font-size: 14px; color: var(--ink-2); }
+.grp-hero__facts strong { color: var(--ink); font-weight: 800; }
+.grp-hero__links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.grp-hero__links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--party) 35%, var(--rule));
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+@media (max-width: 560px) {
+  .grp-hero { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 20px 14px 14px; }
+  .grp-hero__mark { width: 64px; height: 64px; border-radius: 16px; }
+  .grp-hero__mark > * { transform: none; }
+}

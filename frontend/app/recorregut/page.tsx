@@ -1,3 +1,4 @@
+import '@/app/styles/recorregut-1fa58d.css';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';

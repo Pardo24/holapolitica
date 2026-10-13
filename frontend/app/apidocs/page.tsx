@@ -1,3 +1,4 @@
+import '@/app/styles/apidocs-52e082.css';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from '@/components/icons';

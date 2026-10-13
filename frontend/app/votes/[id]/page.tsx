@@ -1,3 +1,5 @@
+import '@/app/styles/home-and-11-6a6aa9.css';
+import '@/app/styles/home-and-9-0ab327.css';
 /**
  * Hola Política · Redisseny V1 "Editorial v2"
  * Drop-in replacement for `frontend/app/votes/[id]/page.tsx`.

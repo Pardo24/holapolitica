@@ -1,3 +1,4 @@
+import '@/app/styles/home-and-10-543c29.css';
 import type { Metadata, Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 

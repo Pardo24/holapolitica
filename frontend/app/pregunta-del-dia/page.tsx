@@ -1,3 +1,4 @@
+import '@/app/styles/pregunta-del-dia-5e04e1.css';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 

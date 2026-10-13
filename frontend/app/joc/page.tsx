@@ -1,3 +1,5 @@
+import '@/app/styles/joc-17a1d2.css';
+import '@/app/styles/com-et-representen-and-1-e71ba2.css';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';

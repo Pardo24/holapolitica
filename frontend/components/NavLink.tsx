@@ -48,6 +48,12 @@ export function NavLink({
               display: 'inline-flex',
               alignItems: 'center',
               gap: iconOnly ? 0 : 6,
+              // An icon alone is a 17px target; this gives it a 29px hit
+              // area (WCAG 2.5.8 asks for 24) while the negative margin
+              // keeps the row exactly where it was.
+              ...(iconOnly
+                ? { justifyContent: 'center', minWidth: 29, minHeight: 29, margin: -6 }
+                : {}),
             }
           : undefined
       }

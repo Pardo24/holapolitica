@@ -1,3 +1,5 @@
+import '@/app/styles/el-teu-diputat-eed049.css';
+import '@/app/styles/home-and-1-29ff80.css';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { cookies } from 'next/headers';

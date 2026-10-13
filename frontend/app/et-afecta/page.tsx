@@ -1,3 +1,4 @@
+import '@/app/styles/home-and-2-359641.css';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { UserRound } from '@/components/icons';

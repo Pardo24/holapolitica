@@ -1,3 +1,9 @@
+import '@/app/styles/home-42099b.css';
+import '@/app/styles/home-and-1-29ff80.css';
+import '@/app/styles/home-and-2-359641.css';
+import '@/app/styles/home-and-10-543c29.css';
+import '@/app/styles/home-and-11-6a6aa9.css';
+import '@/app/styles/home-and-9-0ab327.css';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { cookies } from 'next/headers';

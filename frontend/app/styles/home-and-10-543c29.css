@@ -1,0 +1,54 @@
+/*  Styles only these pages use (split out of globals.css by route): /, avui, avui/[date], embed/llei/[id], embed/ple/[date], et-afecta/[profile], groups/[slug], initiatives/[id], lleis, topics/[slug], votes  */
+.vote-split-details { margin-top: 12px; }
+.vote-split-summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  min-height: 34px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  user-select: none;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.vote-split-summary::-webkit-details-marker { display: none; }
+.vote-split-summary:hover {
+  background: var(--paper-2);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.vote-split-summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.vote-split-details[open] > .vote-split-summary {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+.vote-split-caret {
+  flex: none;
+  color: var(--ink-3);
+  transition: transform .18s ease;
+}
+.vote-split-details[open] > .vote-split-summary .vote-split-caret {
+  transform: rotate(180deg);
+  color: var(--ink-2);
+}
+.vote-split-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.vote-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 2px; }
+.vote-big__n { font-family: var(--font-serif); font-size: clamp(26px, 7.6vw, 34px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.vote-big__l { margin-right: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.vote-big__abst { font-size: 13px; color: var(--ink-3); }
+.vote-big__bar { display: flex; gap: 2px; height: 8px; margin: 10px 0 2px; border-radius: 999px; overflow: hidden; }
+.vote-big__bar > span { display: block; min-width: 2px; }
+
+.vote-big__pair { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+
+.vote-big__parties { margin-top: 12px; }
