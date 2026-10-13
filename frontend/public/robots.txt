@@ -21,13 +21,11 @@ Disallow: /api/
 Disallow: /embed/
 
 # Generous crawl-delay only for known aggressive crawlers (AhrefsBot,
-# SemrushBot, DotBot). Mainstream crawlers (Googlebot, Bingbot,
+# DotBot). Mainstream crawlers (Googlebot, Bingbot,
 # DuckDuckBot) get full speed.
 User-agent: AhrefsBot
 Crawl-delay: 10
 
-User-agent: SemrushBot
-Crawl-delay: 10
 
 User-agent: DotBot
 Crawl-delay: 10
@@ -40,10 +38,17 @@ User-agent: OAI-SearchBot
 User-agent: GPTBot
 User-agent: Amazonbot
 User-agent: PetalBot
-User-agent: Bytespider
 Crawl-delay: 5
 Disallow: /api/
 Disallow: /embed/
+
+# Not welcome: they send no visitors and only cost the server. Semrush
+# honours this; Bytespider is also refused by the server itself.
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
 
 # Canonical sitemap, regenerated on each build. Note the www host —
 # the apex redirects to it, so listing the bare apex would force

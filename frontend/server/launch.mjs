@@ -195,7 +195,7 @@ function isCacheableResponse(res) {
 const store = new Map();
 let storeBytes = 0;
 const inflight = new Map();
-const stats = { hit: 0, stale: 0, miss: 0, pass: 0, coalesced: 0, crawlerMiss: 0, shed: 0 };
+const stats = { hit: 0, stale: 0, miss: 0, pass: 0, coalesced: 0, crawlerMiss: 0, shed: 0, blocked: 0 };
 
 function remember(key, entry) {
   const old = store.get(key);
@@ -300,6 +300,12 @@ async function passThrough(req, res) {
 const CRAWLER = /[a-z]bot\/|\bbot\b|spider|crawl|slurp|Bytespider|PerplexityBot|OAI-SearchBot|GPTBot|ClaudeBot|Amazonbot|SemrushBot|AhrefsBot|PetalBot|DataForSeo|HeadlessChrome|python-requests|Go-http-client|curl\//i;
 // Link previews: few, and someone is waiting for the card to appear.
 const PREVIEW = /facebookexternalhit|Twitterbot|WhatsApp|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Pinterest|redditbot|vkShare/i;
+// Turned away outright: they send no visitors (no referral from either in
+// the logs) and only cost renders. Bytespider is ByteDance's crawler; people
+// opening a link inside the TikTok app use its in-app browser, which says
+// "BytedanceWebview"/"musical_ly", not this, and still get in.
+const BLOCKED = /Bytespider|SemrushBot/i;
+
 const isCrawler = (req) => {
   const ua = req.headers['user-agent'] ?? '';
   return CRAWLER.test(ua) && !PREVIEW.test(ua);
@@ -340,6 +346,12 @@ function releaseCrawlerSlot() {
 }
 
 async function handle(req, res) {
+  // robots.txt stays readable: it is how Semrush learns it is not welcome.
+  if (BLOCKED.test(req.headers['user-agent'] ?? '') && req.url !== '/robots.txt') {
+    stats.blocked++;
+    res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8' });
+    return res.end('Crawling this site is not allowed for this agent.');
+  }
   if (!isCacheableRequest(req)) return passThrough(req, res);
 
   const key = cacheKey(req);
@@ -406,11 +418,11 @@ server.keepAliveTimeout = 65_000;
 server.listen(PORT, HOST, () => console.log(`page cache on ${HOST}:${PORT} -> next x${WORKERS}`));
 
 setInterval(() => {
-  const total = stats.hit + stats.stale + stats.miss + stats.shed;
+  const total = stats.hit + stats.stale + stats.miss + stats.shed + stats.blocked;
   if (!total && !stats.pass) return;
   console.log(
     `page cache: ${stats.hit} hit, ${stats.stale} stale, ${stats.miss} miss (${stats.coalesced} coalesced), ` +
-      `${stats.pass} pass; crawlers: ${stats.crawlerMiss} misses, ${stats.shed} told to come back; ` +
+      `${stats.pass} pass; crawlers: ${stats.crawlerMiss} misses, ${stats.shed} told to come back, ${stats.blocked} blocked; ` +
       `${store.size} pages, ${(storeBytes / 1048576).toFixed(1)} MB`,
   );
   for (const k of Object.keys(stats)) stats[k] = 0;
