@@ -134,13 +134,15 @@ export default async function AvuiPage() {
                 <li
                   key={d}
                   style={{
-                    padding: '10px 0',
                     borderBottom: '1px solid var(--rule)',
                   }}
                 >
+                  {/* The row's padding is on the link, so the whole 40px row
+                      is the target, not a 20px line of text. */}
                   <Link
                     href={`/avui/${d}` as Route}
                     style={{
+                      padding: '10px 0',
                       display: 'flex',
                       alignItems: 'baseline',
                       gap: 12,

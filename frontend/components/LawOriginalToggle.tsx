@@ -58,6 +58,9 @@ export function LawOriginalToggle({
           alignItems: 'center',
           gap: 5,
           padding: '2px 8px',
+          // It sits right next to the row's link: 24px is the minimum
+          // target size there (WCAG 2.5.8).
+          minHeight: 24,
           borderRadius: 999,
           border: '1px solid var(--rule-strong)',
           background: open ? 'var(--paper-2)' : 'transparent',

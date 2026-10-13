@@ -212,6 +212,13 @@ html { scroll-behavior: smooth; }
      visually tight, expand the touch hit zone via a pseudo-element. */
   position: relative;
 }
+/* The ::before zone helps fingers but checkers (and some assistive tech)
+   measure the element's own box. Top padding on an inline box grows that
+   box to 24px (WCAG 2.5.8) without moving the line or the dotted rule. */
+.term-tooltip__anchor { padding-top: 9px; }
+/* The round "i" marker is 14px wide: side padding, given back with a
+   negative margin, makes it 24px without moving anything. */
+.term-tooltip__anchor:has(> .law-card-votes__i) { padding-inline: 5px; margin-inline: -5px; }
 .glossary-term__anchor::before,
 .term-tooltip__anchor::before {
   content: "";
@@ -1570,6 +1577,9 @@ button {
   [style*="font-size: 10.5px"] { font-size: 11px !important; }
   .kpi .label { font-size: 10.5px !important; }
 }
+/* Card "see the law / the vote" links: 24px minimum target on desktop
+   (WCAG 2.5.8); 40px on a phone, below. */
+.card-open-link { min-height: 24px; }
 @media (max-width: 640px) {
   /* Card "see the law / the vote" links and segmented chips: past the
      touch floor, without changing how they look. */
