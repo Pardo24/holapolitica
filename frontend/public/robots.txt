@@ -32,6 +32,19 @@ Crawl-delay: 10
 User-agent: DotBot
 Crawl-delay: 10
 
+# AI-search and other high-volume crawlers: welcome, but slower. In bursts
+# of 200 pages a minute they slowed the site for everyone (2026-10-13). A
+# group for a named agent replaces the * group, so the disallows repeat.
+User-agent: PerplexityBot
+User-agent: OAI-SearchBot
+User-agent: GPTBot
+User-agent: Amazonbot
+User-agent: PetalBot
+User-agent: Bytespider
+Crawl-delay: 5
+Disallow: /api/
+Disallow: /embed/
+
 # Canonical sitemap, regenerated on each build. Note the www host —
 # the apex redirects to it, so listing the bare apex would force
 # Google through an extra hop.

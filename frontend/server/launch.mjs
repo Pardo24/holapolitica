@@ -195,7 +195,7 @@ function isCacheableResponse(res) {
 const store = new Map();
 let storeBytes = 0;
 const inflight = new Map();
-const stats = { hit: 0, stale: 0, miss: 0, pass: 0, coalesced: 0 };
+const stats = { hit: 0, stale: 0, miss: 0, pass: 0, coalesced: 0, crawlerMiss: 0, shed: 0 };
 
 function remember(key, entry) {
   const old = store.get(key);
@@ -284,6 +284,61 @@ async function passThrough(req, res) {
   up.pipe(res);
 }
 
+// ---------------------------------------------------------------------------
+// Crawlers wait their turn
+// ---------------------------------------------------------------------------
+//
+// Nineteen of every twenty requests are crawlers (AI search, SEO tools), and
+// they ask for pages nobody has opened lately: old votes, every deputy. In
+// bursts of 200 a minute those all miss the cache, fill both Next servers
+// and the API behind them, and the people on the site waited 30 s or got a
+// 502 (Caddy log, 2026-10-13). Crawlers still get every cached page at once,
+// but only CRAWLER_SLOTS of their misses render at a time; the rest queue,
+// and past the queue they get a 503 with Retry-After, which crawlers read
+// as "come back later". People never wait behind them.
+
+const CRAWLER = /[a-z]bot\/|\bbot\b|spider|crawl|slurp|Bytespider|PerplexityBot|OAI-SearchBot|GPTBot|ClaudeBot|Amazonbot|SemrushBot|AhrefsBot|PetalBot|DataForSeo|HeadlessChrome|python-requests|Go-http-client|curl\//i;
+// Link previews: few, and someone is waiting for the card to appear.
+const PREVIEW = /facebookexternalhit|Twitterbot|WhatsApp|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Pinterest|redditbot|vkShare/i;
+const isCrawler = (req) => {
+  const ua = req.headers['user-agent'] ?? '';
+  return CRAWLER.test(ua) && !PREVIEW.test(ua);
+};
+
+const CRAWLER_SLOTS = Number(process.env.CRAWLER_SLOTS ?? 2);
+const CRAWLER_QUEUE = Number(process.env.CRAWLER_QUEUE ?? 40);
+const CRAWLER_WAIT_MS = 15_000;
+let crawlerActive = 0;
+const crawlerQueue = [];
+
+/** Resolves true with a render slot, or false when the crawler should come back later. */
+function crawlerSlot() {
+  if (crawlerActive < CRAWLER_SLOTS) {
+    crawlerActive++;
+    return Promise.resolve(true);
+  }
+  if (crawlerQueue.length >= CRAWLER_QUEUE) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const grant = () => {
+      clearTimeout(timer);
+      crawlerActive++;
+      resolve(true);
+    };
+    const timer = setTimeout(() => {
+      const i = crawlerQueue.indexOf(grant);
+      if (i >= 0) crawlerQueue.splice(i, 1);
+      resolve(false);
+    }, CRAWLER_WAIT_MS);
+    crawlerQueue.push(grant);
+  });
+}
+
+function releaseCrawlerSlot() {
+  crawlerActive--;
+  const next = crawlerQueue.shift();
+  if (next) next();
+}
+
 async function handle(req, res) {
   if (!isCacheableRequest(req)) return passThrough(req, res);
 
@@ -307,6 +362,23 @@ async function handle(req, res) {
     return send(req, res, entry, 'STALE');
   }
 
+  // A miss someone else is already rendering costs nothing to wait for.
+  if (!isCrawler(req) || inflight.has(key)) return serveMiss(req, res, key);
+
+  stats.crawlerMiss++;
+  if (!(await crawlerSlot())) {
+    stats.shed++;
+    res.writeHead(503, { 'content-type': 'text/plain; charset=utf-8', 'retry-after': '60', 'x-page-cache': 'BUSY' });
+    return res.end('Busy, please come back in a minute.');
+  }
+  try {
+    return await serveMiss(req, res, key);
+  } finally {
+    releaseCrawlerSlot();
+  }
+}
+
+async function serveMiss(req, res, key) {
   stats.miss++;
   const { promise, first } = renderOnce(key, req);
   const result = await promise;
@@ -334,11 +406,12 @@ server.keepAliveTimeout = 65_000;
 server.listen(PORT, HOST, () => console.log(`page cache on ${HOST}:${PORT} -> next x${WORKERS}`));
 
 setInterval(() => {
-  const total = stats.hit + stats.stale + stats.miss;
+  const total = stats.hit + stats.stale + stats.miss + stats.shed;
   if (!total && !stats.pass) return;
   console.log(
     `page cache: ${stats.hit} hit, ${stats.stale} stale, ${stats.miss} miss (${stats.coalesced} coalesced), ` +
-      `${stats.pass} pass; ${store.size} pages, ${(storeBytes / 1048576).toFixed(1)} MB`,
+      `${stats.pass} pass; crawlers: ${stats.crawlerMiss} misses, ${stats.shed} told to come back; ` +
+      `${store.size} pages, ${(storeBytes / 1048576).toFixed(1)} MB`,
   );
   for (const k of Object.keys(stats)) stats[k] = 0;
 }, 300_000).unref();
