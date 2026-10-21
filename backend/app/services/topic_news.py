@@ -44,7 +44,7 @@ from app.core.logging import get_logger
 log = get_logger(__name__)
 
 USER_AGENT = (
-    "monitor-parlamentari/0.1 (+https://www.holapolitica.org; " "contact daniel@holapolitica.org)"
+    "monitor-parlamentari/0.1 (+https://www.holapolitica.org; contact daniel@holapolitica.org)"
 )
 
 NEWS_BASE_URL = "https://news.google.com/rss/search"
@@ -120,8 +120,8 @@ def _clean_title(raw: str) -> str:
     return _HTML_TAG_RE.sub("", raw).strip()
 
 
-def _parse_feed(xml: bytes) -> list[NewsItem]:
-    """Walk the RSS document and yield up to :data:`MAX_ITEMS` items.
+def _parse_feed(xml: bytes, limit: int = MAX_ITEMS) -> list[NewsItem]:
+    """Walk the RSS document and yield up to ``limit`` items.
 
     Tolerant of malformed entries: each ``<item>`` is wrapped in a
     try/except so one bad row doesn't kill the batch. We require a
@@ -160,7 +160,7 @@ def _parse_feed(xml: bytes) -> list[NewsItem]:
                     published_at=published,
                 )
             )
-            if len(items) >= MAX_ITEMS:
+            if len(items) >= limit:
                 break
         except Exception as e:
             log.warning("news.item.parse.failed", error=str(e))
@@ -195,3 +195,109 @@ async def fetch_topic_news(
             return []
 
     return _parse_feed(resp.content)
+
+
+# ---------------------------------------------------------------------------
+# Election news: pacts, coalitions, candidacies
+# ---------------------------------------------------------------------------
+#
+# The "Pactes i candidatures" page follows the run-up to the general election
+# of 29 November 2026 through the press. Same pass-through stance as the
+# topic news: Google News picks and orders the articles, we only merge a few
+# searches, drop duplicates and keep any single outlet from filling the page
+# (in a test on 2026-10-21 one outlet had 31 of the 50 results of a search).
+
+ELECTION_NEWS_LIMIT: Final[int] = 30
+ELECTION_NEWS_PER_SOURCE: Final[int] = 3
+
+# Searches per feed language. Broad on purpose: pacts and coalitions on any
+# side, candidacies and lists, and the investiture that follows. English
+# readers get the Spanish-language feed: the English editions barely cover it.
+_ELECTION_QUERIES: Final[dict[str, list[str]]] = {
+    "es": [
+        '(pacto OR pactos OR coalición OR "candidatura conjunta" OR "lista unitaria" OR acuerdo) '
+        '"elecciones generales" when:14d',
+        "(pactos OR coalición OR candidaturas OR listas OR investidura) elecciones 29N when:14d",
+    ],
+    "ca": [
+        '(pacte OR pactes OR coalició OR candidatura OR acord) "eleccions generals" when:14d',
+        "(pactes OR coalició OR candidatures OR llistes OR investidura) 29N when:14d",
+    ],
+}
+
+
+def _election_feed_urls(locale: str) -> list[str]:
+    feed_locale = "ca" if locale == "ca" else "es"
+    hl, gl, ceid = _LOCALE_PARAMS[feed_locale]
+    return [
+        f"{NEWS_BASE_URL}?{urlencode({'q': q, 'hl': hl, 'gl': gl, 'ceid': ceid})}"
+        for q in _ELECTION_QUERIES[feed_locale]
+    ]
+
+
+def _strip_source_suffix(title: str, source: str) -> str:
+    """Google News titles end in " - Outlet"; the outlet is shown apart."""
+    if source and title.endswith(f" - {source}"):
+        return title[: -len(source) - 3].rstrip()
+    return title
+
+
+def merge_news(
+    feeds: list[list[NewsItem]],
+    *,
+    limit: int = ELECTION_NEWS_LIMIT,
+    per_source: int = ELECTION_NEWS_PER_SOURCE,
+) -> list[NewsItem]:
+    """Merge several feeds: newest first, no repeats, a few per outlet.
+
+    A repeat is the same link or the same headline (outlets syndicate the
+    same agency piece under one title). Undated items go last.
+    """
+    seen_urls: set[str] = set()
+    seen_titles: set[str] = set()
+    unique: list[NewsItem] = []
+    for feed in feeds:
+        for it in feed:
+            title = _strip_source_suffix(it.title, it.source)
+            key = re.sub(r"\W+", " ", title.casefold()).strip()
+            if it.url in seen_urls or key in seen_titles:
+                continue
+            seen_urls.add(it.url)
+            seen_titles.add(key)
+            unique.append(
+                NewsItem(title=title, url=it.url, source=it.source, published_at=it.published_at)
+            )
+    unique.sort(
+        key=lambda it: it.published_at.timestamp() if it.published_at else float("-inf"),
+        reverse=True,
+    )
+    per: dict[str, int] = {}
+    out: list[NewsItem] = []
+    for it in unique:
+        outlet = it.source.casefold()
+        if per.get(outlet, 0) >= per_source:
+            continue
+        per[outlet] = per.get(outlet, 0) + 1
+        out.append(it)
+        if len(out) >= limit:
+            break
+    return out
+
+
+async def fetch_election_news(locale: str, *, timeout: float = 15.0) -> list[NewsItem]:
+    """Recent press on pacts, coalitions and candidacies for the 29-N election.
+
+    ``[]`` when every search fails; a failed search is skipped otherwise.
+    """
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/rss+xml"}
+    feeds: list[list[NewsItem]] = []
+    async with httpx.AsyncClient(timeout=timeout, headers=headers, follow_redirects=True) as client:
+        for url in _election_feed_urls(locale):
+            try:
+                resp = await client.get(url)
+                resp.raise_for_status()
+            except httpx.HTTPError as e:
+                log.warning("news.election.fetch.failed", error=str(e))
+                continue
+            feeds.append(_parse_feed(resp.content, limit=100))
+    return merge_news(feeds)

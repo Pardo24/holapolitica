@@ -29,6 +29,7 @@ from app.api import (
     initiatives,
     legislatures,
     metrics,
+    news,
     newsletter_preview,
     persons,
     push,
@@ -221,6 +222,7 @@ app.include_router(daily_question.router)
 app.include_router(push.router)
 app.include_router(dump.router)
 app.include_router(api_keys.router)
+app.include_router(news.router)
 
 
 @app.get("/")
