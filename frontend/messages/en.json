@@ -778,7 +778,11 @@
     "tab_laws": "Laws",
     "tab_members": "Deputies",
     "tabs_aria": "Group sections",
-    "seats_label": "deputies"
+    "seats_label": "deputies",
+    "ballot_eyebrow": "29 November election",
+    "ballot_sumar": "The parties in this group run in the general election of 29 November as Frente Amplio: Izquierda Unida, Movimiento Sumar, Más Madrid and Comuns. In some regions they run with other parties under their own name, such as Chunta Aragonesista-Frente Amplio Aragón, Ara MÉS-Front Ampli in the Balearic Islands, Frente Amplio Por Andalucía or Unidad del Pueblo Canario. Podemos runs separately almost everywhere.",
+    "ballot_votes_note": "The votes on this page are the parliamentary group's, which in Congress was called Sumar.",
+    "ballot_link": "Follow the pacts and candidacies"
   },
   "home": {
     "eyebrow": "Open data from the Spanish Congress",
@@ -868,7 +872,8 @@
     "mobile_topic_laws": "{n, plural, =1 {1 law} other {# laws}}",
     "mobile_investigate_parties": "Explore the parties",
     "ple_approved": "{n, plural, one {# initiative passed} other {# initiatives passed}}",
-    "ple_rejected": "{n, plural, one {# rejected} other {# rejected}}"
+    "ple_rejected": "{n, plural, one {# rejected} other {# rejected}}",
+    "parties_ballot": "29 Nov: {name}"
   },
   "deputy": {
     "title": "Deputies & parties",
@@ -1798,7 +1803,8 @@
     "privacy_link": "Privacy",
     "apidocs_link": "API & widgets",
     "journalists_link": "For journalists",
-    "avui_link": "Plenary chronicle"
+    "avui_link": "Plenary chronicle",
+    "pacts_link": "Pacts 29 Nov"
   },
   "dashboard": {
     "highlights_eyebrow": "Group highlights",
@@ -2449,5 +2455,20 @@
     "whole_hint": "Organic laws need this second vote, by absolute majority (176 votes).",
     "amendment_by": "Amendment by",
     "on_law": "On the law:"
+  },
+  "pacts": {
+    "meta_title": "Pacts and candidacies for 29 November",
+    "meta_description": "News on the pacts, coalitions and candidacies for the Spanish general election of 29 November 2026, from many different outlets, newest first.",
+    "eyebrow": "General election · 29 November",
+    "title": "Pacts and candidacies",
+    "intro": "Who runs with whom, the lists and the candidates, and the pacts that will follow. This is what the press is publishing: articles from many outlets, newest first, and no more than three from any one outlet. We do not pick or summarise any of them. The articles are in Spanish.",
+    "attribution": "Source: Google News · updated every half hour",
+    "empty": "We cannot load the news right now. Please try again in a while.",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "new_tab": "opens in a new tab",
+    "teaser_eyebrow": "29 November election",
+    "teaser_title": "Pacts and candidacies",
+    "teaser_cta": "All the news"
   }
 }

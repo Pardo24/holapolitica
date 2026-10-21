@@ -1104,6 +1104,12 @@ export interface Mandate {
 // ---------------------------------------------------------------------------
 
 export const api = {
+  // Press coverage of the 29 November 2026 election (pacts, coalitions,
+  // candidacies): a Google News pass-through, cached 30 min by the backend.
+  news: {
+    elections: (locale: string) =>
+      request<TopicNewsItem[]>(`/news/elections?locale=${locale}`, { revalidate: 1800 }),
+  },
   chambers: {
     list: () => request<Chamber[]>('/chambers', { revalidate: AGG_REVALIDATE }),
     get: (slug: string) => request<Chamber>(`/chambers/${slug}`, { revalidate: AGG_REVALIDATE }),

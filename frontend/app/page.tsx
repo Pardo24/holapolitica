@@ -4,6 +4,7 @@ import '@/app/styles/home-and-2-359641.css';
 import '@/app/styles/home-and-10-543c29.css';
 import '@/app/styles/home-and-11-6a6aa9.css';
 import '@/app/styles/home-and-9-0ab327.css';
+import '@/app/styles/election-news.css';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { cookies } from 'next/headers';
@@ -27,6 +28,7 @@ import { WelcomeWizard } from '@/components/WelcomeWizard';
 import { WhatsNew } from '@/components/WhatsNew';
 import { LawsThatMatter } from '@/components/LawsThatMatter';
 import { DailyTeaser } from '@/components/DailyTeaser';
+import { ElectionNewsTeaser } from '@/components/ElectionNews';
 import { ChamberMap } from '@/components/ChamberMap';
 import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
@@ -199,9 +201,13 @@ export default async function HomePage() {
       title={t('parties_title')}
       caption={t('parties_caption')}
       seatsLabel={(n) => t('parties_seats', { n })}
+      ballotLabel={(name) => t('parties_ballot', { name })}
       seeAllLabel={t('parties_see_all')}
     />
   );
+  // The run-up to the 29 November election: the latest press on pacts and
+  // candidacies, three headlines and a way to the rest (/pactes).
+  const electionNews = <ElectionNewsTeaser locale={locale} />;
   // The carousel only looks up the names of the topics it shows.
   const highlightTopics = topicNamesFor(allTopics, highlights.map((h) => h.topic_slug));
 
@@ -240,6 +246,7 @@ export default async function HomePage() {
         quickGrid={quickGrid('et-afecta-m')}
         profilePicker={profilePicker('et-afecta-m')}
         lawsThatMatter={lawsThatMatter}
+        electionNews={electionNews}
         partyBand={partyBand}
         labels={{
           brand: t('mobile_brand'),
@@ -599,6 +606,8 @@ export default async function HomePage() {
           the parties' own brand hues. */}
       <div style={{ marginTop: 36 }}>{profilePicker('et-afecta')}</div>
 
+      {electionNews}
+
       {partyBand}
 
       {/* Upcoming votes — agenda ingestion is in progress, so this is an
@@ -789,6 +798,7 @@ function MobileDashboard({
   partyBand,
   quickGrid,
   profilePicker,
+  electionNews,
   lawsThatMatter,
   labels,
 }: {
@@ -803,6 +813,8 @@ function MobileDashboard({
   quickGrid: React.ReactNode;
   /** Pre-rendered "what affects you" picker, shared with the desktop. */
   profilePicker: React.ReactNode;
+  /** Pre-rendered election-news teaser, shared with the desktop. */
+  electionNews: React.ReactNode;
   /** Pre-rendered "laws that matter" block, shared with the desktop. */
   lawsThatMatter: React.ReactNode;
   sessApproved: number;
@@ -896,6 +908,8 @@ function MobileDashboard({
 
       {/* "I a tu, què t'afecta?": pick your situation. */}
       <div style={{ margin: '22px 0 26px' }}>{profilePicker}</div>
+
+      {electionNews}
 
       {/* Where to start when you don't know what to look for: everyday
           subjects, and what a law changes. */}

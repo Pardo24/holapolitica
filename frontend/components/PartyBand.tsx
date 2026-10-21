@@ -3,7 +3,7 @@ import type { Route } from 'next';
 
 import type { ParliamentaryGroupSummary } from '@/lib/api';
 import { groupLogoUrl } from '@/lib/groupLogos';
-import { displayGroupShort, groupAbbreviation } from '@/lib/groups';
+import { ballotName2026, displayGroupShort, groupAbbreviation } from '@/lib/groups';
 
 /**
  * Full-width strip of every parliamentary group — logo, seat count, and
@@ -27,6 +27,7 @@ export function PartyBand({
   title,
   caption,
   seatsLabel,
+  ballotLabel,
   seeAllLabel,
   variant = 'band',
 }: {
@@ -35,6 +36,8 @@ export function PartyBand({
   caption: string;
   /** Pluralisable "escons" label, already resolved by the caller. */
   seatsLabel: (n: number) => string;
+  /** "29-N: Frente Amplio" under a group whose parties run under another name. */
+  ballotLabel?: (name: string) => string;
   seeAllLabel?: string;
   /**
    * ``band`` — full-bleed tinted section, for the home page.
@@ -184,6 +187,9 @@ export function PartyBand({
                 >
                   {displayGroupShort(g.name_short)}
                 </span>
+                {ballotLabel && ballotName2026(g.slug) && (
+                  <span className="party-band__ballot">{ballotLabel(ballotName2026(g.slug)!)}</span>
+                )}
                 <span
                   className="party-band__seats tabular"
                   style={{

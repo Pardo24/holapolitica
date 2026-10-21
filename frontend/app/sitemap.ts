@@ -36,6 +36,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFreq: MetadataRoute
   { path: '/topics', priority: 0.7, changeFreq: 'weekly' },
   { path: '/stats', priority: 0.7, changeFreq: 'daily' },
   { path: '/recorregut', priority: 0.5, changeFreq: 'monthly' },
+  { path: '/pactes', priority: 0.7, changeFreq: 'hourly' },
   { path: '/about', priority: 0.5, changeFreq: 'monthly' },
   { path: '/about/data', priority: 0.5, changeFreq: 'monthly' },
   { path: '/apidocs', priority: 0.5, changeFreq: 'monthly' },

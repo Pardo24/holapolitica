@@ -31,13 +31,18 @@ import {
   type Vote,
 } from '@/lib/api';
 import { pickPlainTitle } from '@/lib/glossary';
-import { displayGroupFullName, groupAbbreviation, groupInfo, parseProposer } from '@/lib/groups';
+import { ballotName2026, displayGroupFullName, groupAbbreviation, groupInfo, parseProposer } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
 interface Params {
   slug: string;
 }
 
+
+/** Groups whose parties run in the 29 November 2026 election under another name. */
+const BALLOT_NOTE: Record<string, 'ballot_sumar'> = {
+  'gp-plurinacional-sumar': 'ballot_sumar',
+};
 export default async function GroupDetailPage({
   params,
   searchParams,
@@ -284,6 +289,20 @@ export default async function GroupDetailPage({
           )}
         </div>
       </header>
+
+      {/* The 29 November 2026 election: the parties of this group run under
+          another name. The page keeps the group's name, which is what its
+          votes were cast under. */}
+      {ballotName2026(group.slug) && BALLOT_NOTE[group.slug] && (
+        <aside className="grp-ballot" style={{ ['--party' as string]: group.color_hex ?? 'var(--ink-3)' }}>
+          <p className="grp-ballot__eyebrow">{t('ballot_eyebrow')}</p>
+          <p className="grp-ballot__text">{t(BALLOT_NOTE[group.slug]!)}</p>
+          <p className="grp-ballot__text grp-ballot__text--quiet">{t('ballot_votes_note')}</p>
+          <Link href={'/pactes' as Route} className="grp-ballot__link">
+            {t('ballot_link')} <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </aside>
+      )}
 
       {balance && (
         <section style={{ paddingTop: 28 }}>

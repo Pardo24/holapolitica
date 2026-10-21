@@ -128,6 +128,21 @@ export function groupInfo(slug: string): GroupInfo | null {
 }
 
 /**
+ * The name a group's parties run under in the general election of
+ * 29 November 2026, where it is not the group's own. The group keeps its
+ * name everywhere its votes are shown: that is what the Congress record
+ * says. Source: coalitions registered on 16 October 2026, as reported by
+ * the press (Infobae, RTVE, El País, 16-18 October).
+ */
+const BALLOT_2026: Record<string, string> = {
+  'gp-plurinacional-sumar': 'Frente Amplio',
+};
+
+export function ballotName2026(slug: string): string | null {
+  return BALLOT_2026[slug] ?? null;
+}
+
+/**
  * Canonical brand abbreviation for each group's slug. We don't ship the
  * official party SVG logos (licensing is murky and the official PP/PSOE
  * marks would feel partisan in a civic project), so we render a colored

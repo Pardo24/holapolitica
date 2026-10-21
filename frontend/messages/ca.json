@@ -778,7 +778,11 @@
     "tab_laws": "Lleis",
     "tab_members": "Diputats",
     "tabs_aria": "Seccions del grup",
-    "seats_label": "diputats"
+    "seats_label": "diputats",
+    "ballot_eyebrow": "Eleccions del 29-N",
+    "ballot_sumar": "Els partits d'aquest grup es presenten a les eleccions generals del 29 de novembre com a Frente Amplio: Izquierda Unida, Movimiento Sumar, Más Madrid i Comuns. En algunes comunitats hi van amb altres partits i amb un nom propi, com Chunta Aragonesista-Frente Amplio Aragón, Ara MÉS-Front Ampli a les Illes Balears, Frente Amplio Por Andalucía o Unidad del Pueblo Canario. Podemos s'hi presenta per separat a gairebé tot l'Estat.",
+    "ballot_votes_note": "Les votacions d'aquesta pàgina són del grup parlamentari, que al Congrés es deia Sumar.",
+    "ballot_link": "Segueix els pactes i les candidatures"
   },
   "home": {
     "eyebrow": "Open data del Congrés dels Diputats",
@@ -868,7 +872,8 @@
     "mobile_topic_laws": "{n, plural, =1 {1 llei} other {# lleis}}",
     "mobile_investigate_parties": "Investiga els partits",
     "ple_approved": "{n, plural, one {# iniciativa aprovada} other {# iniciatives aprovades}}",
-    "ple_rejected": "{n, plural, one {# rebutjada} other {# rebutjades}}"
+    "ple_rejected": "{n, plural, one {# rebutjada} other {# rebutjades}}",
+    "parties_ballot": "29-N: {name}"
   },
   "deputy": {
     "title": "Diputats i partits",
@@ -1797,7 +1802,8 @@
     "privacy_link": "Privacitat",
     "apidocs_link": "API i widgets",
     "journalists_link": "Per a periodistes",
-    "avui_link": "Crònica del ple"
+    "avui_link": "Crònica del ple",
+    "pacts_link": "Pactes 29-N"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacats per grup",
@@ -2448,5 +2454,20 @@
     "whole_hint": "Les lleis orgàniques necessiten aquesta segona votació, amb majoria absoluta (176 vots).",
     "amendment_by": "Esmena de",
     "on_law": "A la llei:"
+  },
+  "pacts": {
+    "meta_title": "Pactes i candidatures del 29-N",
+    "meta_description": "Notícies dels pactes, les coalicions i les candidatures de les eleccions generals del 29 de novembre de 2026, de molts mitjans diferents i per ordre de publicació.",
+    "eyebrow": "Eleccions generals · 29 de novembre",
+    "title": "Pactes i candidatures",
+    "intro": "Qui es presenta amb qui, les llistes i els candidats, i els pactes que vindran després. Aquí tens el que en publica la premsa: notícies de molts mitjans, per ordre de publicació i com a màxim tres de cada mitjà. No en triem ni en resumim cap.",
+    "attribution": "Font: Google News · s'actualitza cada mitja hora",
+    "empty": "Ara mateix no podem carregar les notícies. Torna-ho a provar d'aquí a una estona.",
+    "today": "Avui",
+    "yesterday": "Ahir",
+    "new_tab": "s'obre en una pestanya nova",
+    "teaser_eyebrow": "Eleccions del 29-N",
+    "teaser_title": "Pactes i candidatures",
+    "teaser_cta": "Totes les notícies"
   }
 }

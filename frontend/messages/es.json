@@ -778,7 +778,11 @@
     "tab_laws": "Leyes",
     "tab_members": "Diputados",
     "tabs_aria": "Secciones del grupo",
-    "seats_label": "diputados"
+    "seats_label": "diputados",
+    "ballot_eyebrow": "Elecciones del 29-N",
+    "ballot_sumar": "Los partidos de este grupo se presentan a las elecciones generales del 29 de noviembre como Frente Amplio: Izquierda Unida, Movimiento Sumar, Más Madrid y Comuns. En algunas comunidades van con otros partidos y con nombre propio, como Chunta Aragonesista-Frente Amplio Aragón, Ara MÉS-Front Ampli en las Illes Balears, Frente Amplio Por Andalucía o Unidad del Pueblo Canario. Podemos se presenta por separado en casi todo el Estado.",
+    "ballot_votes_note": "Las votaciones de esta página son del grupo parlamentario, que en el Congreso se llamaba Sumar.",
+    "ballot_link": "Sigue los pactos y las candidaturas"
   },
   "home": {
     "eyebrow": "Open data del Congreso de los Diputados",
@@ -868,7 +872,8 @@
     "mobile_topic_laws": "{n, plural, =1 {1 ley} other {# leyes}}",
     "mobile_investigate_parties": "Investiga los partidos",
     "ple_approved": "{n, plural, one {# iniciativa aprobada} other {# iniciativas aprobadas}}",
-    "ple_rejected": "{n, plural, one {# rechazada} other {# rechazadas}}"
+    "ple_rejected": "{n, plural, one {# rechazada} other {# rechazadas}}",
+    "parties_ballot": "29-N: {name}"
   },
   "deputy": {
     "title": "Diputados y partidos",
@@ -1798,7 +1803,8 @@
     "privacy_link": "Privacidad",
     "apidocs_link": "API y widgets",
     "journalists_link": "Para periodistas",
-    "avui_link": "Crónica del pleno"
+    "avui_link": "Crónica del pleno",
+    "pacts_link": "Pactos 29-N"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacados por grupo",
@@ -2449,5 +2455,20 @@
     "whole_hint": "Las leyes orgánicas necesitan esta segunda votación, con mayoría absoluta (176 votos).",
     "amendment_by": "Enmienda de",
     "on_law": "A la ley:"
+  },
+  "pacts": {
+    "meta_title": "Pactos y candidaturas del 29-N",
+    "meta_description": "Noticias de los pactos, las coaliciones y las candidaturas de las elecciones generales del 29 de noviembre de 2026, de muchos medios distintos y por orden de publicación.",
+    "eyebrow": "Elecciones generales · 29 de noviembre",
+    "title": "Pactos y candidaturas",
+    "intro": "Quién se presenta con quién, las listas y los candidatos, y los pactos que vendrán después. Aquí tienes lo que publica la prensa: noticias de muchos medios, por orden de publicación y como máximo tres de cada medio. No elegimos ni resumimos ninguna.",
+    "attribution": "Fuente: Google News · se actualiza cada media hora",
+    "empty": "Ahora mismo no podemos cargar las noticias. Vuelve a intentarlo dentro de un rato.",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "new_tab": "se abre en una pestaña nueva",
+    "teaser_eyebrow": "Elecciones del 29-N",
+    "teaser_title": "Pactos y candidaturas",
+    "teaser_cta": "Todas las noticias"
   }
 }

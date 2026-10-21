@@ -276,6 +276,7 @@ export default async function ElTeuDiputatPage({
         title={tHome('parties_title')}
         caption={tHome('parties_caption')}
         seatsLabel={(n) => tHome('parties_seats', { n })}
+        ballotLabel={(name) => tHome('parties_ballot', { name })}
       />
 
       <Link
