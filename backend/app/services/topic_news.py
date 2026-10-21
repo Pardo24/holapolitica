@@ -235,6 +235,20 @@ def _election_feed_urls(locale: str) -> list[str]:
     ]
 
 
+# A search for "pacte" also returns, say, a defence pact between other
+# countries. Only headlines about this election stay: a relevance check on
+# the subject, never on what the article says about anyone.
+_ELECTION_STORY = re.compile(
+    r"29[\s.-]?N\b|29 de (?:noviembre|novembre)|elecci|electoral|llista|lista|candidat"
+    r"|investidura|escons|escaños|frente amplio|front ampli",
+    re.IGNORECASE,
+)
+
+
+def is_election_story(title: str) -> bool:
+    return bool(_ELECTION_STORY.search(title))
+
+
 def _strip_source_suffix(title: str, source: str) -> str:
     """Google News titles end in " - Outlet"; the outlet is shown apart."""
     if source and title.endswith(f" - {source}"):
@@ -259,6 +273,8 @@ def merge_news(
     for feed in feeds:
         for it in feed:
             title = _strip_source_suffix(it.title, it.source)
+            if not is_election_story(title):
+                continue
             key = re.sub(r"\W+", " ", title.casefold()).strip()
             if it.url in seen_urls or key in seen_titles:
                 continue

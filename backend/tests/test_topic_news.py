@@ -71,22 +71,47 @@ def _item(title: str, source: str, hours_ago: float | None, url: str | None = No
 
 
 def test_merge_newest_first_without_repeats() -> None:
-    a = [_item("Pacto A", "El País", 5), _item("Lista B", "RTVE", 1)]
+    a = [_item("Pacto electoral A", "El País", 5), _item("Lista B", "RTVE", 1)]
     b = [
-        _item("Pacto A", "La Vanguardia", 2),
+        _item("Pacto electoral A", "La Vanguardia", 2),
         _item("Lista C", "Público", 3, url="https://n/RTVE/Lista B"),
     ]
     out = merge_news([a, b])
     # Same headline from another outlet and the same link are repeats.
-    assert [(i.title, i.source) for i in out] == [("Lista B", "RTVE"), ("Pacto A", "El País")]
+    assert [(i.title, i.source) for i in out] == [
+        ("Lista B", "RTVE"),
+        ("Pacto electoral A", "El País"),
+    ]
 
 
 def test_merge_caps_each_outlet_and_strips_the_suffix() -> None:
-    feed = [_item(f"Titular {n}", "Demòcrata", n) for n in range(10)] + [_item("Altre", "3Cat", 20)]
+    feed = [_item(f"Llista {n}", "Demòcrata", n) for n in range(10)] + [
+        _item("Altra llista", "3Cat", 20)
+    ]
     out = merge_news([feed], per_source=3)
-    assert [i.title for i in out] == ["Titular 0", "Titular 1", "Titular 2", "Altre"]
+    assert [i.title for i in out] == ["Llista 0", "Llista 1", "Llista 2", "Altra llista"]
 
 
 def test_merge_puts_undated_items_last() -> None:
-    out = merge_news([[_item("Sense data", "X", None), _item("Amb data", "Y", 30)]])
-    assert [i.title for i in out] == ["Amb data", "Sense data"]
+    out = merge_news(
+        [[_item("Candidats sense data", "X", None), _item("Candidats amb data", "Y", 30)]]
+    )
+    assert [i.title for i in out] == ["Candidats amb data", "Candidats sense data"]
+
+
+@pytest.mark.parametrize(
+    ("title", "kept"),
+    [
+        ("Llistes d'ERC a les eleccions espanyoles del 29-N: qui acompanya Gabriel Rufián?", True),
+        ("Albiol veu molt complicat un acord d'investidura PP-Junts", True),
+        ("Front Ampli desmenteix contactes amb el PSOE", True),
+        ("El PSOE aparta de sus listas electorales a cuatro diputados", True),
+        (
+            "Turquia, Qatar, Pakistan i Indonèsia tanquen un pacte estratègic en indústria de Defensa",
+            False,
+        ),
+    ],
+)
+def test_only_election_headlines_stay(title: str, kept: bool) -> None:
+    out = merge_news([[_item(title, "Mitjà", 1)]])
+    assert bool(out) is kept
