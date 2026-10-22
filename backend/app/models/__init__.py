@@ -967,3 +967,33 @@ class DailyAnswerCount(Base, TimestampMixin):
     question_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     option_index: Mapped[int] = mapped_column(Integer, nullable=False)
     count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class ElectionCandidacy(Base, TimestampMixin):
+    """One list standing for the Congress in one constituency, as the BOE
+    publishes it (app/ingest/candidacies.py).
+
+    The BOE publishes the lists twice: as presented (``stage="presented"``)
+    and, a few days later, as proclaimed by the provincial electoral boards
+    (``"proclaimed"``), which is the official one. ``ballot_order`` is the
+    order the board gives them. Names are kept exactly as published.
+    """
+
+    __tablename__ = "election_candidacies"
+    __table_args__ = (
+        UniqueConstraint(
+            "election", "stage", "constituency", "ballot_order", name="uq_candidacy_list"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    election: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    stage: Mapped[str] = mapped_column(String(16), nullable=False)
+    constituency: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    ballot_order: Mapped[int] = mapped_column(Integer, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    acronym: Mapped[str | None] = mapped_column(String(120))
+    candidates: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    substitutes: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    boe_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    published_on: Mapped[date] = mapped_column(Date, nullable=False)

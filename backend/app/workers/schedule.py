@@ -175,6 +175,11 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
         "20 7 * * *",
         jobs.backfill_plain_titles,
     ),
+    # The 29-N candidacies: the BOE publishes them as presented and then as
+    # proclaimed, on days the electoral calendar only bounds. Every three
+    # hours; outside the window the job returns at once. See
+    # ``app/ingest/candidacies.py``.
+    ("monitor-candidacies", "ingest", "5 */3 * * *", jobs.refresh_candidacies),
 ]
 
 

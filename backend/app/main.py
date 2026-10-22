@@ -23,6 +23,7 @@ from app.api import (
     chambers,
     daily_question,
     dump,
+    elections,
     game,
     groups,
     health,
@@ -223,6 +224,7 @@ app.include_router(push.router)
 app.include_router(dump.router)
 app.include_router(api_keys.router)
 app.include_router(news.router)
+app.include_router(elections.router)
 
 
 @app.get("/")

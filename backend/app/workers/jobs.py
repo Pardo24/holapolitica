@@ -309,6 +309,21 @@ def ingest_active_deputies() -> int:
     return asyncio.run(_run())
 
 
+def refresh_candidacies() -> dict[str, int]:
+    """RQ entrypoint: import the 29-N Congress candidacies once the BOE has them."""
+    from app.ingest.candidacies import refresh
+
+    async def _run() -> dict[str, int]:
+        imported = await refresh()
+        if imported:
+            from app.services.cache import invalidate
+
+            await invalidate("elections:2026:candidacies:")
+        return imported
+
+    return asyncio.run(_run())
+
+
 def ingest_initiatives() -> int:
     """RQ entrypoint: refresh all three initiative datasets."""
 

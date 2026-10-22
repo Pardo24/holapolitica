@@ -11,6 +11,7 @@ about, never on what it says about them.
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 from typing import Final
 
@@ -100,3 +101,50 @@ _CONTEXT: Final[dict[str, str]] = {
 def party_query(slug: str, feed_locale: str) -> str:
     party = BY_SLUG[slug]
     return f"({' OR '.join(party.search)}) {_CONTEXT[feed_locale]} when:14d"
+
+
+def party_for_list(name: str, acronym: str | None) -> str | None:
+    """The party of an official list, from its name and initials as the BOE
+    prints them (upper case): 'PARTIDO POPULAR (PP)' → 'pp'. Joint lists
+    under a name of their own ('UNIDAD DEL PUEBLO CANARIO') get none.
+    """
+    n = _fold_upper(name)
+    a = _fold_upper(acronym or "")
+    tokens = set(re.split(r"[\s\-/()+,.]+", a)) - {""}
+    if "FRENTE AMPLIO" in n or "FRONT AMPLI" in n or "FRENTE AMPLIO" in a or "FRONT AMPLI" in a:
+        return "frente-amplio"
+    if "PP" in tokens or n.startswith(("PARTIDO POPULAR", "PARTIT POPULAR")):
+        return "pp"
+    if tokens & {"PSOE", "PSC", "PSPV"} or n.startswith(
+        (
+            "PARTIDO SOCIALISTA",
+            "PARTIT DELS SOCIALISTES",
+            "PARTIT SOCIALISTA",
+            "PARTIDO DOS SOCIALISTAS",
+        )
+    ):
+        return "psoe"
+    if "VOX" in tokens:
+        return "vox"
+    if "ERC" in tokens or "ESQUERRA REPUBLICANA" in n:
+        return "erc"
+    if "JUNTS" in tokens or n.startswith("JUNTS"):
+        return "junts"
+    if "BILDU" in n or "BILDU" in tokens:
+        return "bildu"
+    if tokens & {"PNV", "EAJ"}:
+        return "pnv"
+    if "PODEMOS" in tokens or n.startswith("PODEMOS"):
+        return "podemos"
+    if "BNG" in tokens or n.startswith("BLOQUE NACIONALISTA GALEGO"):
+        return "bng"
+    if tokens & {"CC", "CCA"} or "COALICION CANARIA" in n:
+        return "cc"
+    if "UPN" in tokens:
+        return "upn"
+    return None
+
+
+def _fold_upper(text: str) -> str:
+    text = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in text if not unicodedata.combining(c)).upper()

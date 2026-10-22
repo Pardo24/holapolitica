@@ -1,0 +1,200 @@
+"""The general election of 29 November 2026: official Congress candidacies.
+
+Lists come from the BOE (app/ingest/candidacies.py): the proclaimed ones once
+published, the presented ones before that, nothing before either. Names are
+shown as published. A candidate who sat in the outgoing Congress links to
+their page; that is a fact about the person, not about the list.
+"""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db import get_session
+from app.ingest.candidacies import ELECTION, ELECTIONS
+from app.models import ElectionCandidacy, Legislature, Mandate, Person
+from app.services.cache import cached
+from app.services.election_parties import party_for_list
+
+router = APIRouter(prefix="/elections/2026", tags=["elections"])
+
+
+class ConstituencySummary(BaseModel):
+    constituency: str
+    seats: int
+    lists: int
+
+
+class CandidaciesStatus(BaseModel):
+    election_day: date
+    #: "proclaimed", "presented", or None while the BOE has published neither.
+    stage: str | None
+    boe_id: str | None
+    published_on: date | None
+    constituencies: list[ConstituencySummary]
+
+
+class Candidate(BaseModel):
+    name: str
+    #: Their page on the site if they sat in the outgoing Congress.
+    person_id: int | None = None
+
+
+class CandidacyList(BaseModel):
+    ballot_order: int
+    name: str
+    acronym: str | None
+    party: str | None
+    candidates: list[Candidate]
+    substitutes: list[Candidate]
+
+
+class ConstituencyCandidacies(BaseModel):
+    constituency: str
+    seats: int
+    stage: str | None
+    boe_id: str | None
+    published_on: date | None
+    lists: list[CandidacyList]
+
+
+async def _stage(
+    session: AsyncSession, election: str
+) -> tuple[str | None, str | None, date | None]:
+    """The newest stage we have: proclaimed wins over presented."""
+    for stage in ("proclaimed", "presented"):
+        row = (
+            await session.execute(
+                select(ElectionCandidacy.boe_id, ElectionCandidacy.published_on)
+                .where(ElectionCandidacy.election == election, ElectionCandidacy.stage == stage)
+                .limit(1)
+            )
+        ).first()
+        if row:
+            return stage, row[0], row[1]
+    return None, None, None
+
+
+_ELECTION_Q = Query(ELECTION, pattern="^(2026-11|2023-07)$")
+
+
+@router.get("/candidacies", response_model=CandidaciesStatus)
+async def candidacies_status(
+    election: str = _ELECTION_Q, session: AsyncSession = Depends(get_session)
+) -> dict[str, object]:
+    day, seats_by = ELECTIONS[election]
+
+    async def _factory() -> dict[str, object]:
+        stage, boe_id, published_on = await _stage(session, election)
+        counts: dict[str, int] = {}
+        if stage:
+            rows = (
+                await session.execute(
+                    select(ElectionCandidacy.constituency, func.count())
+                    .where(ElectionCandidacy.election == election, ElectionCandidacy.stage == stage)
+                    .group_by(ElectionCandidacy.constituency)
+                )
+            ).all()
+            counts = {c: int(n) for c, n in rows}
+        return {
+            "election_day": day.isoformat(),
+            "stage": stage,
+            "boe_id": boe_id,
+            "published_on": published_on.isoformat() if published_on else None,
+            "constituencies": [
+                {"constituency": c, "seats": seats, "lists": counts.get(c, 0)}
+                for c, seats in seats_by.items()
+            ],
+        }
+
+    return await cached(f"elections:2026:candidacies:status:{election}:v1", 600, _factory)
+
+
+def _fold(name: str) -> str:
+    name = unicodedata.normalize("NFKD", name)
+    name = "".join(c for c in name if not unicodedata.combining(c))
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", name.lower())).strip()
+
+
+async def _outgoing_deputies(session: AsyncSession) -> dict[str, int]:
+    """Folded full name → person id, for everyone who sat in the latest Congress."""
+    latest = (
+        await session.execute(
+            select(Legislature.id).order_by(Legislature.start_date.desc()).limit(1)
+        )
+    ).scalar_one_or_none()
+    if latest is None:
+        return {}
+    rows = (
+        await session.execute(
+            select(Person.id, Person.full_name)
+            .join(Mandate, Mandate.person_id == Person.id)
+            .where(Mandate.legislature_id == latest)
+            .distinct()
+        )
+    ).all()
+    out: dict[str, int] = {}
+    for pid, full_name in rows:
+        out.setdefault(_fold(full_name), int(pid))
+    return out
+
+
+@router.get("/candidacies/constituency", response_model=ConstituencyCandidacies)
+async def constituency_candidacies(
+    name: str = Query(..., max_length=100),
+    election: str = _ELECTION_Q,
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, object]:
+    """The lists of one constituency (by its Congress name, e.g. 'Coruña (A)')."""
+    _, seats_by = ELECTIONS[election]
+    if name not in seats_by:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown constituency")
+
+    async def _factory() -> dict[str, object]:
+        stage, boe_id, published_on = await _stage(session, election)
+        lists: list[dict[str, object]] = []
+        if stage:
+            deputies = await _outgoing_deputies(session)
+            rows = (
+                await session.execute(
+                    select(ElectionCandidacy)
+                    .where(
+                        ElectionCandidacy.election == election,
+                        ElectionCandidacy.stage == stage,
+                        ElectionCandidacy.constituency == name,
+                    )
+                    .order_by(ElectionCandidacy.ballot_order)
+                )
+            ).scalars()
+
+            def people(names: list[str]) -> list[dict[str, object]]:
+                return [{"name": n, "person_id": deputies.get(_fold(n))} for n in names]
+
+            lists = [
+                {
+                    "ballot_order": r.ballot_order,
+                    "name": r.name,
+                    "acronym": r.acronym,
+                    "party": party_for_list(r.name, r.acronym),
+                    "candidates": people(r.candidates),
+                    "substitutes": people(r.substitutes),
+                }
+                for r in rows
+            ]
+        return {
+            "constituency": name,
+            "seats": seats_by[name],
+            "stage": stage,
+            "boe_id": boe_id,
+            "published_on": published_on.isoformat() if published_on else None,
+            "lists": lists,
+        }
+
+    return await cached(f"elections:2026:candidacies:{election}:{_fold(name)}:v1", 600, _factory)
