@@ -229,14 +229,16 @@ _ELECTION_QUERIES: Final[dict[str, list[str]]] = {
 
 def _election_feed_urls(locale: str, party: str | None = None) -> list[str]:
     feed_locale = "ca" if locale == "ca" else "es"
-    hl, gl, ceid = _LOCALE_PARAMS[feed_locale]
-    queries = list(_ELECTION_QUERIES[feed_locale])
+    searches = [(q, feed_locale) for q in _ELECTION_QUERIES[feed_locale]]
     if party:
-        # A search of its own, so a party with less coverage still fills a page.
-        queries.append(party_query(party, feed_locale))
-    return [
-        f"{NEWS_BASE_URL}?{urlencode({'q': q, 'hl': hl, 'gl': gl, 'ceid': ceid})}" for q in queries
-    ]
+        # A search of its own, in both editions: the Catalan one alone had a
+        # single article on the PNV, so a smaller party would fill no page.
+        searches += [(party_query(party, ed), ed) for ed in ("ca", "es")]
+    urls = []
+    for q, ed in searches:
+        hl, gl, ceid = _LOCALE_PARAMS[ed]
+        urls.append(f"{NEWS_BASE_URL}?{urlencode({'q': q, 'hl': hl, 'gl': gl, 'ceid': ceid})}")
+    return urls
 
 
 # A search for "pacte" also returns, say, a defence pact between other
