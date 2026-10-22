@@ -40,6 +40,7 @@ from xml.etree import ElementTree as ET
 import httpx
 
 from app.core.logging import get_logger
+from app.services.election_parties import parties_in, party_query
 
 log = get_logger(__name__)
 
@@ -226,12 +227,15 @@ _ELECTION_QUERIES: Final[dict[str, list[str]]] = {
 }
 
 
-def _election_feed_urls(locale: str) -> list[str]:
+def _election_feed_urls(locale: str, party: str | None = None) -> list[str]:
     feed_locale = "ca" if locale == "ca" else "es"
     hl, gl, ceid = _LOCALE_PARAMS[feed_locale]
+    queries = list(_ELECTION_QUERIES[feed_locale])
+    if party:
+        # A search of its own, so a party with less coverage still fills a page.
+        queries.append(party_query(party, feed_locale))
     return [
-        f"{NEWS_BASE_URL}?{urlencode({'q': q, 'hl': hl, 'gl': gl, 'ceid': ceid})}"
-        for q in _ELECTION_QUERIES[feed_locale]
+        f"{NEWS_BASE_URL}?{urlencode({'q': q, 'hl': hl, 'gl': gl, 'ceid': ceid})}" for q in queries
     ]
 
 
@@ -261,6 +265,7 @@ def merge_news(
     *,
     limit: int = ELECTION_NEWS_LIMIT,
     per_source: int = ELECTION_NEWS_PER_SOURCE,
+    party: str | None = None,
 ) -> list[NewsItem]:
     """Merge several feeds: newest first, no repeats, a few per outlet.
 
@@ -274,6 +279,8 @@ def merge_news(
         for it in feed:
             title = _strip_source_suffix(it.title, it.source)
             if not is_election_story(title):
+                continue
+            if party and party not in parties_in(title):
                 continue
             key = re.sub(r"\W+", " ", title.casefold()).strip()
             if it.url in seen_urls or key in seen_titles:
@@ -300,15 +307,18 @@ def merge_news(
     return out
 
 
-async def fetch_election_news(locale: str, *, timeout: float = 15.0) -> list[NewsItem]:
+async def fetch_election_news(
+    locale: str, party: str | None = None, *, timeout: float = 15.0
+) -> list[NewsItem]:
     """Recent press on pacts, coalitions and candidacies for the 29-N election.
 
-    ``[]`` when every search fails; a failed search is skipped otherwise.
+    With ``party`` (a slug of ``election_parties.PARTIES``), only headlines
+    that name it. ``[]`` when every search fails; a failed one is skipped.
     """
     headers = {"User-Agent": USER_AGENT, "Accept": "application/rss+xml"}
     feeds: list[list[NewsItem]] = []
     async with httpx.AsyncClient(timeout=timeout, headers=headers, follow_redirects=True) as client:
-        for url in _election_feed_urls(locale):
+        for url in _election_feed_urls(locale, party):
             try:
                 resp = await client.get(url)
                 resp.raise_for_status()
@@ -316,4 +326,4 @@ async def fetch_election_news(locale: str, *, timeout: float = 15.0) -> list[New
                 log.warning("news.election.fetch.failed", error=str(e))
                 continue
             feeds.append(_parse_feed(resp.content, limit=100))
-    return merge_news(feeds)
+    return merge_news(feeds, party=party)

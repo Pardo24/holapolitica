@@ -194,6 +194,12 @@ class TopicNewsRead(BaseModel):
     published_at: datetime | None = None
 
 
+class ElectionNewsRead(TopicNewsRead):
+    """One article on the 29-N election, with the parties its headline names."""
+
+    parties: list[str] = []
+
+
 # ---------------------------------------------------------------------------
 # Initiatives
 # ---------------------------------------------------------------------------
