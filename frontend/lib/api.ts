@@ -166,6 +166,12 @@ export interface TopicNewsItem {
   published_at: string | null;
 }
 
+/** An article on the 29-N election, with the parties its headline names. */
+export interface ElectionNewsItem extends TopicNewsItem {
+  /** Slugs from lib/electionParties.ts, in that order. */
+  parties: string[];
+}
+
 export interface Person {
   id: number;
   full_name: string;
@@ -1107,8 +1113,11 @@ export const api = {
   // Press coverage of the 29 November 2026 election (pacts, coalitions,
   // candidacies): a Google News pass-through, cached 30 min by the backend.
   news: {
-    elections: (locale: string) =>
-      request<TopicNewsItem[]>(`/news/elections?locale=${locale}`, { revalidate: 1800 }),
+    elections: (locale: string, party?: string | null) =>
+      request<ElectionNewsItem[]>(
+        `/news/elections?locale=${locale}${party ? `&party=${encodeURIComponent(party)}` : ''}`,
+        { revalidate: 1800 },
+      ),
   },
   chambers: {
     list: () => request<Chamber[]>('/chambers', { revalidate: AGG_REVALIDATE }),

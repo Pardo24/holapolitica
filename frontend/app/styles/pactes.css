@@ -1,6 +1,13 @@
-/* Pacts and candidacies (app/pactes, components/ElectionNews.tsx). */
-.pacts { max-width: 760px; }
-.pacts-hero { margin: 10px 0 26px; }
+/* Pacts and candidacies page (app/pactes). */
+.pacts { max-width: 820px; }
+
+.pacts-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: end;
+  margin: 10px 0 26px;
+}
 .pacts-hero__eyebrow {
   margin: 0 0 8px;
   font-size: 11.5px;
@@ -12,17 +19,169 @@
 .pacts-hero h1 {
   margin: 0 0 10px;
   font-family: var(--font-serif);
-  font-size: clamp(28px, 4.4vw, 42px);
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  font-size: clamp(30px, 4.6vw, 46px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   color: var(--ink);
   text-wrap: balance;
 }
-.pacts-hero__intro { margin: 0 0 10px; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
-.pacts-hero__source { margin: 0; font-size: 12px; color: var(--ink-3); }
-.pacts-empty { font-size: 14px; color: var(--ink-3); }
+.pacts-hero__intro { margin: 0; max-width: 560px; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
 
+/* Countdown card */
+.ecount {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 150px;
+  padding: 16px 20px 14px;
+  border: 1px solid var(--rule-strong);
+  border-top: 3px solid var(--accent);
+  border-radius: 16px;
+  background: var(--paper-2);
+  text-align: center;
+}
+.ecount__n {
+  font-family: var(--font-serif);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.ecount__label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.ecount__label:empty { display: none; }
+.ecount__today { font-family: var(--font-serif); font-size: 24px; font-weight: 600; color: var(--ink); }
+.ecount__date {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+}
+
+/* Party filter: stays in view while scrolling the list. */
+.pfilter {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 -8px 22px;
+  padding: 10px 8px;
+  background: color-mix(in oklch, var(--paper) 92%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--rule);
+}
+.pfilter__label {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.pfilter__chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+.pchip:hover { border-color: var(--ink-3); color: var(--ink); }
+.pchip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pchip__dot { width: 8px; height: 8px; border-radius: 999px; background: var(--party); flex: none; }
+.pchip--on {
+  border-color: var(--party);
+  background: color-mix(in oklch, var(--party) 14%, var(--paper));
+  color: var(--ink);
+  font-weight: 800;
+}
+/* "All" has no party colour: ink on, like the site's other active pills. */
+.pchip--on:not([style]) { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* Results */
+.pacts-results__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.pacts-results__count {
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--paper-3);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.pacts-empty {
+  padding: 22px;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 14px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+/* How we choose the articles */
+.pacts-how {
+  margin-top: 30px;
+  padding: 14px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper-2);
+}
+.pacts-how summary { cursor: pointer; min-height: 24px; font-size: 14px; font-weight: 700; color: var(--ink); }
+.pacts-how ul { display: grid; gap: 6px; margin: 10px 0 2px; padding-left: 18px; }
+.pacts-how li { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+
+@media (max-width: 720px) {
+  .pacts-hero { grid-template-columns: 1fr; gap: 16px; }
+  .ecount {
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    padding: 10px 14px;
+    border-top-width: 1px;
+    border-left: 3px solid var(--accent);
+    text-align: left;
+  }
+  .ecount__n { font-size: 30px; }
+  .ecount__date { margin: 0 0 0 6px; padding: 0 0 0 10px; border-top: 0; border-left: 1px solid var(--rule); }
+}
 @media (max-width: 640px) {
-  .pacts-hero h1 { font-size: 30px; }
+  .pacts-hero h1 { font-size: 32px; }
   .pacts-hero__intro { font-size: 15px; }
+  /* One row of chips that scrolls sideways, under the app bar. */
+  .pfilter { flex-direction: column; align-items: stretch; gap: 8px; top: calc(env(safe-area-inset-top, 0px) + 54px); margin: 0 -20px 18px; padding: 10px 20px; }
+  .pfilter__chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -20px;
+    padding: 0 20px;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+  .pfilter__chips::-webkit-scrollbar { display: none; }
+  .pacts-results__head { font-size: 19px; }
 }
