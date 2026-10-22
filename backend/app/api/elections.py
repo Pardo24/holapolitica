@@ -8,8 +8,6 @@ their page; that is a fact about the person, not about the list.
 
 from __future__ import annotations
 
-import re
-import unicodedata
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -21,6 +19,7 @@ from app.db import get_session
 from app.ingest.candidacies import ELECTION, ELECTIONS
 from app.models import ElectionCandidacy, Legislature, Mandate, Person
 from app.services.cache import cached
+from app.services.candidate_match import Deputy, DeputyIndex, fold
 from app.services.election_parties import party_for_list
 
 router = APIRouter(prefix="/elections/2026", tags=["elections"])
@@ -117,33 +116,30 @@ async def candidacies_status(
     return await cached(f"elections:2026:candidacies:status:{election}:v1", 600, _factory)
 
 
-def _fold(name: str) -> str:
-    name = unicodedata.normalize("NFKD", name)
-    name = "".join(c for c in name if not unicodedata.combining(c))
-    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", name.lower())).strip()
-
-
-async def _outgoing_deputies(session: AsyncSession) -> dict[str, int]:
-    """Folded full name → person id, for everyone who sat in the latest Congress."""
+async def _outgoing_deputies(session: AsyncSession) -> DeputyIndex:
+    """Everyone who sat in the latest Congress, to link from the lists."""
     latest = (
         await session.execute(
             select(Legislature.id).order_by(Legislature.start_date.desc()).limit(1)
         )
     ).scalar_one_or_none()
     if latest is None:
-        return {}
+        return DeputyIndex([])
     rows = (
         await session.execute(
-            select(Person.id, Person.full_name)
+            select(
+                Person.id,
+                Person.full_name,
+                Person.family_names,
+                Person.given_names,
+                Mandate.constituency,
+            )
             .join(Mandate, Mandate.person_id == Person.id)
             .where(Mandate.legislature_id == latest)
             .distinct()
         )
     ).all()
-    out: dict[str, int] = {}
-    for pid, full_name in rows:
-        out.setdefault(_fold(full_name), int(pid))
-    return out
+    return DeputyIndex([Deputy(int(r[0]), r[1], r[2], r[3], r[4]) for r in rows])
 
 
 @router.get("/candidacies/constituency", response_model=ConstituencyCandidacies)
@@ -175,7 +171,7 @@ async def constituency_candidacies(
             ).scalars()
 
             def people(names: list[str]) -> list[dict[str, object]]:
-                return [{"name": n, "person_id": deputies.get(_fold(n))} for n in names]
+                return [{"name": n, "person_id": deputies.match(n, name)} for n in names]
 
             lists = [
                 {
@@ -197,4 +193,4 @@ async def constituency_candidacies(
             "lists": lists,
         }
 
-    return await cached(f"elections:2026:candidacies:{election}:{_fold(name)}:v1", 600, _factory)
+    return await cached(f"elections:2026:candidacies:{election}:{fold(name)}:v2", 600, _factory)
