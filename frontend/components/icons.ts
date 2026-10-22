@@ -107,6 +107,7 @@ export {
   UserRound,
   Users,
   UsersRound,
+  Vote,
   Wallet,
   Wheat,
   X,

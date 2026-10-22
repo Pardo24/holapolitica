@@ -119,8 +119,8 @@ export default async function RootLayout({
                     <Link href={'/avui' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                       {tFooter('avui_link')}
                     </Link>
-                    <Link href={'/pactes' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
-                      {tFooter('pacts_link')}
+                    <Link href={'/eleccions' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
+                      {tFooter('elections_link')}
                     </Link>
                     <Link href={'/recorregut' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                       {tFooter('lifecycle_link')}

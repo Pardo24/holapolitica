@@ -29,6 +29,7 @@ import { WhatsNew } from '@/components/WhatsNew';
 import { LawsThatMatter } from '@/components/LawsThatMatter';
 import { DailyTeaser } from '@/components/DailyTeaser';
 import { ElectionNewsTeaser } from '@/components/ElectionNews';
+import { ElectionsBanner } from '@/components/Elections';
 import { ChamberMap } from '@/components/ChamberMap';
 import { ResultPill } from '@/components/ResultPill';
 import { UpcomingAgenda } from '@/components/UpcomingAgenda';
@@ -208,6 +209,9 @@ export default async function HomePage() {
   // The run-up to the 29 November election: the latest press on pacts and
   // candidacies, three headlines and a way to the rest (/pactes).
   const electionNews = <ElectionNewsTeaser locale={locale} />;
+  // The way into the election section (candidacies, pacts), first thing on
+  // the page in both layouts until the vote.
+  const electionsBanner = <ElectionsBanner />;
   // The carousel only looks up the names of the topics it shows.
   const highlightTopics = topicNamesFor(allTopics, highlights.map((h) => h.topic_slug));
 
@@ -247,6 +251,7 @@ export default async function HomePage() {
         profilePicker={profilePicker('et-afecta-m')}
         lawsThatMatter={lawsThatMatter}
         electionNews={electionNews}
+        electionsBanner={electionsBanner}
         partyBand={partyBand}
         labels={{
           brand: t('mobile_brand'),
@@ -302,6 +307,7 @@ export default async function HomePage() {
         className="home-hero"
       >
         <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {electionsBanner}
           <div className="eyebrow" style={{ marginBottom: 18, color: 'var(--accent)' }}>
             {t('eyebrow')}
           </div>
@@ -799,6 +805,7 @@ function MobileDashboard({
   quickGrid,
   profilePicker,
   electionNews,
+  electionsBanner,
   lawsThatMatter,
   labels,
 }: {
@@ -815,6 +822,8 @@ function MobileDashboard({
   profilePicker: React.ReactNode;
   /** Pre-rendered election-news teaser, shared with the desktop. */
   electionNews: React.ReactNode;
+  /** Pre-rendered link into the election section, shared with the desktop. */
+  electionsBanner: React.ReactNode;
   /** Pre-rendered "laws that matter" block, shared with the desktop. */
   lawsThatMatter: React.ReactNode;
   sessApproved: number;
@@ -863,6 +872,7 @@ function MobileDashboard({
           the news. */}
       {/* The first screen, exactly: the six tiles and the latest plenary
           fill the space between the bars, and nothing else peeks in. */}
+      {electionsBanner}
       <div className="home-first">
       <div className="home-first__grid">{quickGrid}</div>
 

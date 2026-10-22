@@ -1,9 +1,11 @@
 import '@/app/styles/election-news.css';
 import '@/app/styles/pactes.css';
+import '@/app/styles/eleccions.css';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 
-import { Countdown, ElectionNewsList, PartyFilter } from '@/components/ElectionNews';
+import { ElectionsHeader } from '@/components/Elections';
+import { ElectionNewsList, PartyFilter } from '@/components/ElectionNews';
 import { api, type ElectionNewsItem } from '@/lib/api';
 import { ELECTION_PARTIES, electionParty } from '@/lib/electionParties';
 
@@ -27,14 +29,7 @@ export default async function PactsPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="pacts">
-      <header className="pacts-hero">
-        <div className="pacts-hero__text">
-          <p className="pacts-hero__eyebrow">{t('eyebrow')}</p>
-          <h1>{t('title')}</h1>
-          <p className="pacts-hero__intro">{t('intro')}</p>
-        </div>
-        <Countdown />
-      </header>
+      <ElectionsHeader active="pacts" title={t('title')} intro={t('intro')} />
 
       <PartyFilter parties={ELECTION_PARTIES} active={party?.slug ?? null} />
 

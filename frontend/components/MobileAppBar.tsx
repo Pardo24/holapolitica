@@ -103,7 +103,7 @@ export function MobileAppBar() {
 
   const links = [
     // The 29 November 2026 election: press on pacts and candidacies.
-    { href: '/pactes', label: tFooter('pacts_link'), Icon: Handshake },
+    { href: '/eleccions', label: tFooter('elections_link'), Icon: Handshake },
     { href: '/et-afecta', label: t('profiles'), Icon: UserRound },
     { href: '/about', label: t('about'), Icon: BookOpen },
     { href: '/recorregut', label: tFooter('lifecycle_link'), Icon: RouteIcon },

@@ -269,7 +269,9 @@
     "tab_lleis": "Leyes",
     "tab_partits": "Diputados",
     "tab_dades": "Datos",
-    "primary_aria": "Navegación principal"
+    "primary_aria": "Navegación principal",
+    "eleccions": "Elecciones 29-N",
+    "tab_eleccions": "29-N"
   },
   "lleis": {
     "title": "Leyes",
@@ -1804,7 +1806,8 @@
     "apidocs_link": "API y widgets",
     "journalists_link": "Para periodistas",
     "avui_link": "Crónica del pleno",
-    "pacts_link": "Pactos 29-N"
+    "pacts_link": "Pactos 29-N",
+    "elections_link": "Elecciones 29-N"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacados por grupo",
@@ -2460,7 +2463,7 @@
     "meta_title": "Pactos y candidaturas del 29-N",
     "meta_description": "Noticias de los pactos, las coaliciones y las candidaturas de las elecciones generales del 29 de noviembre de 2026, de muchos medios distintos y por orden de publicación.",
     "eyebrow": "Elecciones generales · 29 de noviembre",
-    "title": "Pactos y candidaturas",
+    "title": "Pactos y noticias",
     "intro": "Quién se presenta con quién, las listas y los candidatos, y los pactos que vendrán después, tal como lo cuenta la prensa. Filtra por partido para ver solo las noticias que lo mencionan.",
     "empty": "Ahora mismo no podemos cargar las noticias. Vuelve a intentarlo dentro de un rato.",
     "today": "Hoy",
@@ -2484,5 +2487,45 @@
     "how_order": "Salen por orden de publicación, y como máximo tres de cada medio, para que ninguno llene la página.",
     "how_relevance": "Solo entran titulares sobre estas elecciones: candidaturas, listas, pactos, investidura o escaños.",
     "how_parties": "Una noticia lleva la etiqueta de un partido cuando el titular lo nombra por su nombre, sus siglas o su líder. No dice nada de si habla bien o mal de él."
+  },
+  "elections": {
+    "meta_title": "Candidaturas del 29-N por circunscripción",
+    "meta_description": "Las candidaturas oficiales al Congreso de las elecciones generales del 29 de noviembre de 2026, circunscripción por circunscripción, tal como las publica el BOE.",
+    "eyebrow": "Elecciones generales · 29 de noviembre",
+    "tabs_aria": "Secciones de las elecciones",
+    "tab_candidacies": "Candidaturas",
+    "tab_pacts": "Pactos y noticias",
+    "cand_title": "Quién se presenta dónde",
+    "cand_intro": "Las candidaturas al Congreso de cada circunscripción, tal como las publica el BOE: todas las listas, en el orden oficial, con sus candidatos y suplentes.",
+    "pick_label": "Circunscripción",
+    "pick_placeholder": "Elige una circunscripción",
+    "pick_cta": "Ver",
+    "all_title": "Todas las circunscripciones",
+    "see_all_constituencies": "Ver todas las circunscripciones",
+    "seats": "{n, plural, one {# escaño} other {# escaños}}",
+    "lists_count": "{n, plural, one {# candidatura} other {# candidaturas}}",
+    "deputies_count": "{n, plural, one {# diputado saliente} other {# diputados salientes}}",
+    "pending_title": "Las candidaturas aún no se han publicado",
+    "pending_body": "Las publica el BOE en dos veces. En esta página aparecerán solas, el mismo día en que se publiquen.",
+    "pending_step1_date": "Hacia el 28 de octubre:",
+    "pending_step1": "las candidaturas presentadas en cada Junta Electoral Provincial.",
+    "pending_step2_date": "Hacia el 3 de noviembre:",
+    "pending_step2": "las candidaturas proclamadas, que son las definitivas.",
+    "pending_circ": "{circ} elige {n, plural, one {# diputado} other {# diputados}}.",
+    "stage_proclaimed": "Candidaturas proclamadas (definitivas)",
+    "stage_presented": "Candidaturas presentadas, pendientes de proclamar",
+    "published_on": "BOE del {date}",
+    "boe_link": "En el BOE",
+    "order_note": "Las listas aparecen en el orden que les da la Junta Electoral Provincial. Los nombres son los que publica el BOE.",
+    "order_aria": "Candidatura número {n}",
+    "show_all": "Ver los {n} candidatos",
+    "substitutes": "Suplentes ({n})",
+    "deputy_badge": "Diputado/a saliente",
+    "unavailable": "Ahora mismo no podemos cargar las candidaturas. Vuelve a intentarlo dentro de un rato.",
+    "banner_title": "Elecciones generales del 29 de noviembre",
+    "banner_days": "{n, plural, one {Falta # día} other {Faltan # días}}",
+    "banner_today": "Hoy se vota",
+    "banner_after": "Resultados y pactos",
+    "banner_sub": "Candidaturas y pactos"
   }
 }

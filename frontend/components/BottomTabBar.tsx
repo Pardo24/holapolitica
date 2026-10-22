@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { BarChart3, Home, Scale, Users } from 'lucide-react';
+import { BarChart3, Home, Scale, Users, Vote } from 'lucide-react';
 
 /**
  * Persistent bottom tab bar — the spine of the mobile navigation.
@@ -29,7 +29,7 @@ import { BarChart3, Home, Scale, Users } from 'lucide-react';
  * indicator inside Capacitor's WebView.
  */
 
-type TabKey = 'inici' | 'lleis' | 'partits' | 'dades';
+type TabKey = 'inici' | 'lleis' | 'eleccions' | 'partits' | 'dades';
 
 interface Tab {
   key: TabKey;
@@ -42,6 +42,9 @@ interface Tab {
 const TABS: Tab[] = [
   { key: 'inici', href: '/' as Route, labelKey: 'tab_inici', hue: 'var(--ink)', Icon: Home },
   { key: 'lleis', href: '/lleis' as Route, labelKey: 'tab_lleis', hue: 'var(--hue-lleis)', Icon: Scale },
+  // The 29 November 2026 election (candidacies, pacts), in the middle of the
+  // bar until the vote: the thing most people come for in these weeks.
+  { key: 'eleccions', href: '/eleccions' as Route, labelKey: 'tab_eleccions', hue: 'var(--accent)', Icon: Vote },
   {
     key: 'partits',
     href: '/el-teu-diputat' as Route,
@@ -80,6 +83,9 @@ function activeTab(pathname: string): TabKey | null {
     inSection('/mapa')
   )
     return 'partits';
+
+  // 29-N — the election section: candidacies and the press on pacts.
+  if (inSection('/eleccions') || inSection('/pactes')) return 'eleccions';
 
   // Dades — aggregate analysis and cross-legislature comparison.
   if (inSection('/stats') || inSection('/legislatures')) return 'dades';

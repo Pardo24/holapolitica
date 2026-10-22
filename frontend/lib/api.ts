@@ -166,6 +166,46 @@ export interface TopicNewsItem {
   published_at: string | null;
 }
 
+export interface ConstituencySummary {
+  constituency: string;
+  seats: number;
+  lists: number;
+}
+
+export interface CandidaciesStatus {
+  election_day: string;
+  /** 'proclaimed' once the boards have proclaimed them, 'presented' before; null before either. */
+  stage: 'proclaimed' | 'presented' | null;
+  boe_id: string | null;
+  published_on: string | null;
+  constituencies: ConstituencySummary[];
+}
+
+export interface Candidate {
+  name: string;
+  /** Their page, if they sat in the outgoing Congress. */
+  person_id: number | null;
+}
+
+export interface CandidacyList {
+  ballot_order: number;
+  name: string;
+  acronym: string | null;
+  /** A slug of lib/electionParties.ts when the list's name says it. */
+  party: string | null;
+  candidates: Candidate[];
+  substitutes: Candidate[];
+}
+
+export interface ConstituencyCandidacies {
+  constituency: string;
+  seats: number;
+  stage: 'proclaimed' | 'presented' | null;
+  boe_id: string | null;
+  published_on: string | null;
+  lists: CandidacyList[];
+}
+
 /** An article on the 29-N election, with the parties its headline names. */
 export interface ElectionNewsItem extends TopicNewsItem {
   /** Slugs from lib/electionParties.ts, in that order. */
@@ -1109,7 +1149,26 @@ export interface Mandate {
 // Endpoints
 // ---------------------------------------------------------------------------
 
+// The 29 November 2026 election: official Congress candidacies from the BOE.
+// CANDIDACIES_PREVIEW_ELECTION (server-only, never set in production) reads
+// another election's lists, e.g. 2023-07, to look at the page before the
+// BOE publishes this one's.
+const CANDIDACIES_ELECTION = process.env.CANDIDACIES_PREVIEW_ELECTION;
+const electionQuery = (sep: '?' | '&') =>
+  CANDIDACIES_ELECTION ? `${sep}election=${encodeURIComponent(CANDIDACIES_ELECTION)}` : '';
+
 export const api = {
+  elections: {
+    candidacies: () =>
+      request<CandidaciesStatus>(`/elections/2026/candidacies${electionQuery('?')}`, {
+        revalidate: 600,
+      }),
+    constituency: (name: string) =>
+      request<ConstituencyCandidacies>(
+        `/elections/2026/candidacies/constituency?name=${encodeURIComponent(name)}${electionQuery('&')}`,
+        { revalidate: 600 },
+      ),
+  },
   // Press coverage of the 29 November 2026 election (pacts, coalitions,
   // candidacies): a Google News pass-through, cached 30 min by the backend.
   news: {

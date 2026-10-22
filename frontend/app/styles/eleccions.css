@@ -1,0 +1,209 @@
+/* The 29-N election section (components/Elections.tsx): the tabs shared by
+   /eleccions and /pactes, and the candidacies page. */
+
+/* ---- tabs ---------------------------------------------------------- */
+.etabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 22px;
+  padding: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper-2);
+  width: fit-content;
+  max-width: 100%;
+}
+.etab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.etab:hover { color: var(--ink); background: var(--paper); }
+.etab--on { background: var(--ink); color: var(--paper); }
+.etab--on:hover { background: var(--ink); color: var(--paper); }
+
+/* ---- constituency picker ------------------------------------------- */
+.cpick { margin: 0 0 24px; }
+.cpick__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cpick__row { display: flex; gap: 8px; max-width: 460px; }
+.cpick__select {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 40px 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 12px;
+  background-color: var(--paper);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.cpick__go {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- before the BOE publishes them --------------------------------- */
+.epending {
+  margin: 0 0 28px;
+  padding: 18px 20px;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 14px;
+  background: var(--paper-2);
+}
+.epending h2 { margin: 0 0 6px; font-family: var(--font-serif); font-size: 20px; color: var(--ink); }
+.epending p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+.epending__steps { display: grid; gap: 6px; margin: 0 0 4px; padding-left: 20px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.epending__steps b { color: var(--ink); }
+.epending__circ { margin: 12px 0 0 !important; font-weight: 700; color: var(--ink) !important; }
+
+/* ---- one constituency ---------------------------------------------- */
+.ecirc { margin-bottom: 30px; }
+.ecirc__head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 14px; flex-wrap: wrap; }
+.ecirc__title { margin: 0; font-family: var(--font-serif); font-size: 28px; line-height: 1.1; color: var(--ink); }
+.ecirc__facts { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+.estage {
+  display: flex;
+  align-items: center;
+  gap: 6px 12px;
+  flex-wrap: wrap;
+  margin: 10px 0 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.estage > span:first-child {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--accent) 12%, var(--paper));
+  color: var(--accent);
+}
+.estage--final > span:first-child { background: color-mix(in oklch, var(--aye) 14%, var(--paper)); color: var(--aye); }
+.estage__date { color: var(--ink-3); font-weight: 600; }
+.estage__boe { display: inline-flex; align-items: center; gap: 3px; min-height: 24px; color: var(--ink); }
+.ecirc__note { margin: 0 0 16px; font-size: 12.5px; color: var(--ink-3); }
+
+.ccards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.ccard {
+  position: relative;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--party, var(--rule-strong));
+  border-radius: 14px;
+  background: var(--paper-2);
+}
+.ccard__head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: start; margin-bottom: 10px; }
+.ccard__order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.ccard__acronym { margin: 0; font-size: 16px; font-weight: 800; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+.ccard__name { margin: 2px 0 0; font-size: 11px; line-height: 1.35; letter-spacing: 0.01em; color: var(--ink-3); }
+.ccard__list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.crow { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 3px 0; font-size: 14px; line-height: 1.4; color: var(--ink); }
+.crow__n { text-align: right; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+/* The badge follows the name, and wraps under it, never to the margin. */
+.crow__body { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
+.crow__name { min-width: 0; }
+.crow__dep {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--paper-3);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.crow__dep:hover { color: var(--ink); background: color-mix(in oklch, var(--paper-3) 70%, var(--ink) 8%); }
+.ccard__more { margin-top: 6px; }
+.ccard__more summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.ccard__more[open] summary { margin-bottom: 4px; }
+.ccard__more--subs summary { color: var(--ink-3); font-weight: 600; }
+
+/* ---- every constituency -------------------------------------------- */
+.esec-title { margin: 6px 0 12px; font-family: var(--font-serif); font-size: 21px; color: var(--ink); }
+.cgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cgrid__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 52px;
+  padding: 9px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper-2);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.12s ease;
+}
+.cgrid__item:hover { border-color: var(--ink-3); }
+.cgrid__name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cgrid__meta { font-size: 12px; color: var(--ink-3); }
+.eother { margin: 6px 0 0; }
+.eother__link { display: inline-flex; align-items: center; min-height: 24px; font-size: 14px; font-weight: 700; color: var(--ink); }
+
+@media (max-width: 640px) {
+  .etabs { width: 100%; }
+  .etab { flex: 1; justify-content: center; padding: 0 10px; font-size: 13.5px; }
+  .cpick__row { max-width: none; }
+  .ecirc__title { font-size: 24px; }
+  .cgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -269,7 +269,9 @@
     "tab_lleis": "Laws",
     "tab_partits": "Deputies",
     "tab_dades": "Data",
-    "primary_aria": "Primary navigation"
+    "primary_aria": "Primary navigation",
+    "eleccions": "Election 29 Nov",
+    "tab_eleccions": "29 Nov"
   },
   "lleis": {
     "title": "Laws",
@@ -1804,7 +1806,8 @@
     "apidocs_link": "API & widgets",
     "journalists_link": "For journalists",
     "avui_link": "Plenary chronicle",
-    "pacts_link": "Pacts 29 Nov"
+    "pacts_link": "Pacts 29 Nov",
+    "elections_link": "Election 29 Nov"
   },
   "dashboard": {
     "highlights_eyebrow": "Group highlights",
@@ -2460,7 +2463,7 @@
     "meta_title": "Pacts and candidacies for 29 November",
     "meta_description": "News on the pacts, coalitions and candidacies for the Spanish general election of 29 November 2026, from many different outlets, newest first.",
     "eyebrow": "General election · 29 November",
-    "title": "Pacts and candidacies",
+    "title": "Pacts and news",
     "intro": "Who runs with whom, the lists and the candidates, and the pacts that will follow, as the press reports them. Filter by party to see only the articles that name it. The articles are in Spanish.",
     "empty": "We cannot load the news right now. Please try again in a while.",
     "today": "Today",
@@ -2484,5 +2487,45 @@
     "how_order": "Newest first, and no more than three from any one outlet, so that none fills the page.",
     "how_relevance": "Only headlines about this election get in: candidacies, lists, pacts, the investiture or seats.",
     "how_parties": "An article carries a party tag when its headline names the party, its initials or its leader. It says nothing about whether the article is for or against it."
+  },
+  "elections": {
+    "meta_title": "Candidacies for 29 November by constituency",
+    "meta_description": "The official Congress candidacies for the Spanish general election of 29 November 2026, constituency by constituency, as published in the BOE.",
+    "eyebrow": "General election · 29 November",
+    "tabs_aria": "Election sections",
+    "tab_candidacies": "Candidacies",
+    "tab_pacts": "Pacts and news",
+    "cand_title": "Who stands where",
+    "cand_intro": "The Congress candidacies in each constituency, as the BOE publishes them: every list, in the official order, with its candidates and substitutes.",
+    "pick_label": "Constituency",
+    "pick_placeholder": "Choose a constituency",
+    "pick_cta": "Show",
+    "all_title": "All constituencies",
+    "see_all_constituencies": "See all constituencies",
+    "seats": "{n, plural, one {# seat} other {# seats}}",
+    "lists_count": "{n, plural, one {# list} other {# lists}}",
+    "deputies_count": "{n, plural, one {# outgoing deputy} other {# outgoing deputies}}",
+    "pending_title": "The candidacies have not been published yet",
+    "pending_body": "The BOE publishes them in two steps. They will appear on this page by themselves, the day they are published.",
+    "pending_step1_date": "Around 28 October:",
+    "pending_step1": "the candidacies as presented to each provincial electoral board.",
+    "pending_step2_date": "Around 3 November:",
+    "pending_step2": "the proclaimed candidacies, which are final.",
+    "pending_circ": "{circ} elects {n, plural, one {# deputy} other {# deputies}}.",
+    "stage_proclaimed": "Proclaimed candidacies (final)",
+    "stage_presented": "Candidacies as presented, not yet proclaimed",
+    "published_on": "BOE of {date}",
+    "boe_link": "In the BOE",
+    "order_note": "Lists appear in the order the provincial electoral board gives them. Names are as the BOE publishes them.",
+    "order_aria": "List number {n}",
+    "show_all": "See all {n} candidates",
+    "substitutes": "Substitutes ({n})",
+    "deputy_badge": "Outgoing deputy",
+    "unavailable": "We cannot load the candidacies right now. Please try again in a while.",
+    "banner_title": "General election of 29 November",
+    "banner_days": "{n, plural, one {# day to go} other {# days to go}}",
+    "banner_today": "Election day",
+    "banner_after": "Results and pacts",
+    "banner_sub": "Candidacies and pacts"
   }
 }

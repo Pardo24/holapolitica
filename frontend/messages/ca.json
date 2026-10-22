@@ -269,7 +269,9 @@
     "tab_lleis": "Lleis",
     "tab_partits": "Diputats",
     "tab_dades": "Dades",
-    "primary_aria": "Navegació principal"
+    "primary_aria": "Navegació principal",
+    "eleccions": "Eleccions 29-N",
+    "tab_eleccions": "29-N"
   },
   "lleis": {
     "title": "Lleis",
@@ -1803,7 +1805,8 @@
     "apidocs_link": "API i widgets",
     "journalists_link": "Per a periodistes",
     "avui_link": "Crònica del ple",
-    "pacts_link": "Pactes 29-N"
+    "pacts_link": "Pactes 29-N",
+    "elections_link": "Eleccions 29-N"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacats per grup",
@@ -2459,7 +2462,7 @@
     "meta_title": "Pactes i candidatures del 29-N",
     "meta_description": "Notícies dels pactes, les coalicions i les candidatures de les eleccions generals del 29 de novembre de 2026, de molts mitjans diferents i per ordre de publicació.",
     "eyebrow": "Eleccions generals · 29 de novembre",
-    "title": "Pactes i candidatures",
+    "title": "Pactes i notícies",
     "intro": "Qui es presenta amb qui, les llistes i els candidats, i els pactes que vindran després, tal com ho explica la premsa. Filtra per partit per veure només les notícies que l'esmenten.",
     "empty": "Ara mateix no podem carregar les notícies. Torna-ho a provar d'aquí a una estona.",
     "today": "Avui",
@@ -2483,5 +2486,45 @@
     "how_order": "Surten per ordre de publicació, i com a màxim tres de cada mitjà, perquè cap no ompli la pàgina.",
     "how_relevance": "Només hi entren titulars sobre aquestes eleccions: candidatures, llistes, pactes, investidura o escons.",
     "how_parties": "Una notícia porta l'etiqueta d'un partit quan el titular l'anomena pel nom, les sigles o el líder. No diu res de si en parla bé o malament."
+  },
+  "elections": {
+    "meta_title": "Candidatures del 29-N per circumscripció",
+    "meta_description": "Les candidatures oficials al Congrés de les eleccions generals del 29 de novembre de 2026, circumscripció per circumscripció, tal com les publica el BOE.",
+    "eyebrow": "Eleccions generals · 29 de novembre",
+    "tabs_aria": "Seccions de les eleccions",
+    "tab_candidacies": "Candidatures",
+    "tab_pacts": "Pactes i notícies",
+    "cand_title": "Qui es presenta on",
+    "cand_intro": "Les candidatures al Congrés de cada circumscripció, tal com les publica el BOE: totes les llistes, en l'ordre oficial, amb els seus candidats i suplents.",
+    "pick_label": "Circumscripció",
+    "pick_placeholder": "Tria una circumscripció",
+    "pick_cta": "Veure",
+    "all_title": "Totes les circumscripcions",
+    "see_all_constituencies": "Veure totes les circumscripcions",
+    "seats": "{n, plural, one {# escó} other {# escons}}",
+    "lists_count": "{n, plural, one {# candidatura} other {# candidatures}}",
+    "deputies_count": "{n, plural, one {# diputat sortint} other {# diputats sortints}}",
+    "pending_title": "Les candidatures encara no s'han publicat",
+    "pending_body": "Les publica el BOE en dues vegades. En aquesta pàgina sortiran soles, el mateix dia que es publiquin.",
+    "pending_step1_date": "Cap al 28 d'octubre:",
+    "pending_step1": "les candidatures presentades a cada Junta Electoral Provincial.",
+    "pending_step2_date": "Cap al 3 de novembre:",
+    "pending_step2": "les candidatures proclamades, que són les definitives.",
+    "pending_circ": "{circ} elegeix {n, plural, one {# diputat} other {# diputats}}.",
+    "stage_proclaimed": "Candidatures proclamades (definitives)",
+    "stage_presented": "Candidatures presentades, pendents de proclamar",
+    "published_on": "BOE del {date}",
+    "boe_link": "Al BOE",
+    "order_note": "Les llistes surten en l'ordre que els dona la Junta Electoral Provincial. Els noms són els que publica el BOE.",
+    "order_aria": "Candidatura número {n}",
+    "show_all": "Veure els {n} candidats",
+    "substitutes": "Suplents ({n})",
+    "deputy_badge": "Diputat/da sortint",
+    "unavailable": "Ara mateix no podem carregar les candidatures. Torna-ho a provar d'aquí a una estona.",
+    "banner_title": "Eleccions generals del 29 de novembre",
+    "banner_days": "{n, plural, one {Falta # dia} other {Falten # dies}}",
+    "banner_today": "Avui es vota",
+    "banner_after": "Resultats i pactes",
+    "banner_sub": "Candidatures i pactes"
   }
 }
