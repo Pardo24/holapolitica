@@ -34,6 +34,7 @@ from app.api import (
     newsletter_preview,
     persons,
     push,
+    sitemap,
     stats,
     subscriptions,
     topics,
@@ -225,6 +226,7 @@ app.include_router(dump.router)
 app.include_router(api_keys.router)
 app.include_router(news.router)
 app.include_router(elections.router)
+app.include_router(sitemap.router)
 
 
 @app.get("/")
