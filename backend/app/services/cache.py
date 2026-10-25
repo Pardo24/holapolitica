@@ -38,6 +38,7 @@ from __future__ import annotations
 import dataclasses
 import json
 from collections.abc import Awaitable, Callable
+from datetime import date, datetime
 from functools import lru_cache
 from typing import Any, TypeVar
 
@@ -103,6 +104,11 @@ def _to_jsonable(value: object) -> Any:
         return [_to_jsonable(v) for v in value]
     if isinstance(value, dict):
         return {k: _to_jsonable(v) for k, v in value.items()}
+    # Dates come back as ISO strings, which response models parse again.
+    # Without this the group stance examples never reached the cache (292
+    # failures in five days) and were recomputed on every request.
+    if isinstance(value, date | datetime):
+        return value.isoformat()
     return value
 
 

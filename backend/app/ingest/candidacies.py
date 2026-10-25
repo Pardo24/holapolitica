@@ -308,7 +308,7 @@ async def import_document(
     return len(lists)
 
 
-async def refresh(today: date | None = None) -> dict[str, int]:
+async def refresh(today: date | None = None) -> dict[str, str]:
     """Import any candidacy document published so far that we do not have yet."""
     today = today or datetime.now(ZoneInfo("Europe/Madrid")).date()
     start, end = WINDOW
@@ -325,7 +325,7 @@ async def refresh(today: date | None = None) -> dict[str, int]:
                 )
             ).all()
         }
-    imported: dict[str, int] = {}
+    imported: dict[str, str] = {}  # BOE id -> stage, for what was new
     async with httpx.AsyncClient(timeout=30, headers={"User-Agent": USER_AGENT}) as client:
         day = start
         while day <= min(today, end):
@@ -335,8 +335,8 @@ async def refresh(today: date | None = None) -> dict[str, int]:
                 log.warning("candidacies.summary_failed", day=day.isoformat(), error=str(e))
                 docs = []
             for boe_id, stage in docs:
-                if (boe_id, stage) not in have:
-                    imported[boe_id] = await import_document(boe_id, stage, day)
+                if (boe_id, stage) not in have and await import_document(boe_id, stage, day):
+                    imported[boe_id] = stage
             day += timedelta(days=1)
     return imported
 

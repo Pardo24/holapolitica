@@ -309,16 +309,38 @@ def ingest_active_deputies() -> int:
     return asyncio.run(_run())
 
 
-def refresh_candidacies() -> dict[str, int]:
-    """RQ entrypoint: import the 29-N Congress candidacies once the BOE has them."""
+# What the push says when each stage of the candidacies is published.
+_CANDIDACY_PUSH: dict[str, tuple[str, str]] = {
+    "presented": (
+        "Candidatures del 29-N",
+        "El BOE ha publicat les candidatures presentades. Mira qui es presenta a la teva circumscripció.",
+    ),
+    "proclaimed": (
+        "Candidatures definitives del 29-N",
+        "Les juntes electorals han proclamat les candidatures. Ja pots veure les llistes oficials.",
+    ),
+}
+
+
+def refresh_candidacies() -> dict[str, str]:
+    """RQ entrypoint: import the 29-N Congress candidacies once the BOE has
+    them, and tell everyone with notifications on, once per stage."""
     from app.ingest.candidacies import refresh
 
-    async def _run() -> dict[str, int]:
+    async def _run() -> dict[str, str]:
         imported = await refresh()
         if imported:
             from app.services.cache import invalidate
+            from app.services.push import broadcast
 
             await invalidate("elections:2026:candidacies:")
+            url = f"{_site_url().rstrip('/')}/eleccions"
+            for stage in sorted(set(imported.values())):
+                title, body = _CANDIDACY_PUSH[stage]
+                async with AsyncSessionLocal() as session:
+                    await broadcast(
+                        session, {"title": title, "body": body, "url": url, "icon": "/icon.svg"}
+                    )
         return imported
 
     return asyncio.run(_run())

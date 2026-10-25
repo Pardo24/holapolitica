@@ -214,3 +214,21 @@ async def test_concurrent_misses_run_factory_once_each(fake_redis: FakeRedis) ->
     assert a in ({"calls": 1}, {"calls": 2})
     assert b in ({"calls": 1}, {"calls": 2})
     assert calls in (1, 2)
+
+
+async def test_cached_stores_dates_as_iso_strings(fake_redis: FakeRedis) -> None:
+    """A value holding dates reaches the cache (it used to be refused)."""
+    from datetime import UTC, date, datetime
+
+    calls = 0
+
+    async def factory() -> list[dict[str, Any]]:
+        nonlocal calls
+        calls += 1
+        return [{"voted_at": datetime(2026, 9, 30, 12, tzinfo=UTC), "day": date(2026, 9, 30)}]
+
+    first = await cache.cached("t:dates", 60, factory)
+    second = await cache.cached("t:dates", 60, factory)
+    assert calls == 1
+    assert first[0]["day"] == date(2026, 9, 30)
+    assert second == [{"voted_at": "2026-09-30T12:00:00+00:00", "day": "2026-09-30"}]

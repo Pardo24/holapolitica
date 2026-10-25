@@ -435,3 +435,20 @@ async def test_fan_out_skips_orphan_vote(db_session: AsyncSession, patched_vapid
         wp.assert_not_called()
     assert result.sent == 0
     assert result.skipped == 1
+
+
+async def test_broadcast_reaches_every_subscription(
+    db_session: AsyncSession, patched_vapid: Any
+) -> None:
+    """The candidacies announcement goes to everyone, whatever they follow."""
+    from app.services.push import broadcast
+
+    housing, _ = await _seed_minimal_taxonomy(db_session)
+    await _seed_subscription(db_session, endpoint="https://push.example/a", topics=[housing])
+    await _seed_subscription(db_session, endpoint="https://push.example/b")
+    with patch("app.services.push._webpush_blocking", return_value=None) as sent:
+        counts = await broadcast(
+            db_session, {"title": "Candidatures del 29-N", "url": "/eleccions"}
+        )
+    assert counts == {"recipients": 2, "sent": 2, "deleted": 0, "failed": 0}
+    assert sent.call_count == 2

@@ -432,6 +432,37 @@ async def fan_out_new_vote(
     )
 
 
+async def broadcast(
+    session: AsyncSession,
+    payload: dict[str, Any],
+    *,
+    concurrency: int = FAN_OUT_CONCURRENCY,
+) -> dict[str, int]:
+    """Send one notification to every subscription, whatever it follows.
+
+    For the few announcements every reader asked the site for by turning
+    notifications on, such as the official candidacies of the 29 November
+    election being published. Commits like the vote fan-out.
+    """
+    subs = list((await session.execute(select(PushSubscription))).scalars().all())
+    sem = asyncio.Semaphore(concurrency)
+
+    async def _one(sub: PushSubscription) -> SendResult:
+        async with sem:
+            return await send_to_subscription(session, sub, payload)
+
+    results = await asyncio.gather(*(_one(s) for s in subs))
+    await session.commit()
+    counts = {
+        "recipients": len(subs),
+        "sent": sum(1 for r in results if r.status == "sent"),
+        "deleted": sum(1 for r in results if r.status == "deleted"),
+        "failed": sum(1 for r in results if r.status == "failed"),
+    }
+    log.info("push.broadcast.done", title=payload.get("title"), **counts)
+    return counts
+
+
 # ---------------------------------------------------------------------------
 # Subscription management helpers (used by API)
 # ---------------------------------------------------------------------------
