@@ -512,6 +512,9 @@ class GroupVoteChoiceRow(BaseModel):
     name_short: str
     color_hex: str | None
     choices: dict[str, str]
+    #: ``vote_id`` -> how many of the group's deputies cast that majority
+    #: choice (the plenary cards print "PSOE 120", as the vote list does).
+    deputies: dict[str, int] = {}
 
 
 class GroupVoteMatrixResponse(BaseModel):
@@ -610,28 +613,33 @@ async def get_group_choices(
         for slug in sorted(meta, key=lambda s: (-size.get(s, 0), s)):
             name_short, color_hex = meta[slug]
             choice_map: dict[str, str] = {}
+            deputies: dict[str, int] = {}
             for vid in vote_ids:
                 c = counts.get((slug, vid))
                 if c:
                     # Majority choice; ties break by _CHOICE_PRECEDENCE so the
                     # answer matches the vote-detail page exactly.
-                    choice_map[str(vid)] = max(
+                    choice, n = max(
                         c.items(),
                         key=lambda kv: (kv[1], -_CHOICE_PRECEDENCE.get(kv[0], 99)),
-                    )[0]
+                    )
+                    choice_map[str(vid)] = choice
+                    deputies[str(vid)] = n
             groups.append(
                 GroupVoteChoiceRow(
                     slug=slug,
                     name_short=name_short,
                     color_hex=color_hex,
                     choices=choice_map,
+                    deputies=deputies,
                 )
             )
         return GroupVoteMatrixResponse(groups=groups)
 
     # v2: tie-breaking changed from alphabetical to _CHOICE_PRECEDENCE, so
     # cached v1 entries would keep serving the old (disagreeing) answer.
-    key = "votes:group-choices:v2:" + ",".join(str(v) for v in sorted(vote_ids))
+    # v3: carries the deputies behind each majority choice.
+    key = "votes:group-choices:v3:" + ",".join(str(v) for v in sorted(vote_ids))
     return await cached(key, 3600, factory)
 
 
