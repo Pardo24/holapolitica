@@ -18,6 +18,7 @@ the ministry gives them.
 
 from __future__ import annotations
 
+import unicodedata
 from datetime import datetime
 from typing import Any
 
@@ -31,9 +32,17 @@ def party_of(info: ListInfo) -> str | None:
     them. SUMAR, the 2023 list of the parties that run as Frente Amplio in
     2026, takes its slug so the two elections compare (Podemos ran inside it
     then; the page says so)."""
-    return party_for_list(info.name, info.acronym) or (
+    # The ministry dots some initials (U.P.N., B.N.G.); the BOE does not.
+    return party_for_list(info.name, info.acronym.replace(".", "")) or (
         "frente-amplio" if info.acronym.upper() == "SUMAR" else None
     )
+
+
+def _alpha(name: str) -> str:
+    """Alphabetical order as readers expect it: Ávila with the A's."""
+    return "".join(
+        c for c in unicodedata.normalize("NFKD", name) if not unicodedata.combining(c)
+    ).lower()
 
 
 def _pct(part: int, whole: int) -> float:
@@ -53,7 +62,7 @@ def build(
     constituencies: list[dict[str, Any]] = []
     census_counted = census_total = voters = blank = null = 0
 
-    for ine, name in sorted(PROVINCES.items(), key=lambda kv: kv[1]):
+    for ine, name in sorted(PROVINCES.items(), key=lambda kv: _alpha(kv[1])):
         p = provinces.get(ine)
         if p is None:
             continue

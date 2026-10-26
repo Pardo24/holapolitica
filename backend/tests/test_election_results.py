@@ -41,6 +41,7 @@ def test_build_adds_lists_up_nationally() -> None:
         "000002": ListInfo("000002", "PSOE", "PARTIDO SOCIALISTA OBRERO ESPAÑOL", "000002"),
         "000003": ListInfo("000003", "PSC-PSOE", "PARTIT DELS SOCIALISTES DE CATALUNYA", "000002"),
         "000010": ListInfo("000010", "SUMAR", "SUMAR", "000010"),
+        "000012": ListInfo("000012", "U.P.N.", "UNIÓN DEL PUEBLO NAVARRO", "000012"),
     }
     provinces = {
         "08": ProvinceCount(
@@ -63,16 +64,29 @@ def test_build_adds_lists_up_nationally() -> None:
             null=0,
             votes={"000002": 300, "000010": 300},
         ),
+        "31": ProvinceCount(
+            ine="31",
+            seats=1,
+            census_counted=10,
+            census_total=10,
+            voters=5,
+            blank=0,
+            null=0,
+            votes={"000012": 5},
+        ),
     }
     snap = build(
         "2023-07", provinces, lists, official=False, taken_at=datetime(2023, 7, 23, tzinfo=UTC)
     )
-    assert snap["counted_pct"] == 66.67
+    assert snap["counted_pct"] == 66.78
     parties = {p["acronym"]: p for p in snap["parties"]}
     assert parties["PSOE"]["votes"] == 700 and parties["PSOE"]["party"] == "psoe"
     # SUMAR compares with Frente Amplio, the 2026 list of its parties.
     assert parties["SUMAR"]["party"] == "frente-amplio"
-    assert snap["seats_total"] == 5
+    assert parties["U.P.N."]["party"] == "upn"
+    assert snap["seats_total"] == 6
     barcelona = next(c for c in snap["constituencies"] if c["ine"] == "08")
     assert barcelona["name"] == "Barcelona" and barcelona["counted_pct"] == 50.0
     assert [r["acronym"] for r in barcelona["lists"]] == ["PSC-PSOE", "SUMAR"]
+    # Alphabetical without accents: Barcelona, Madrid, Navarra.
+    assert [c["ine"] for c in snap["constituencies"]] == ["08", "28", "31"]
