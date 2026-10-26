@@ -163,3 +163,16 @@ def test_image_dimensions_constants_are_natural_size() -> None:
     """
     assert HEMICYCLE_IMAGE_WIDTH == 536
     assert HEMICYCLE_IMAGE_HEIGHT == 393
+
+
+def test_group_code_in_brackets_is_not_a_role() -> None:
+    """The hemicycle prints the group's code after every name; it used to
+    land on 336 profiles as their "role"."""
+    from app.ingest.congreso.hemicycle import extract_role_title, is_group_code
+
+    assert extract_role_title("Delgado Arce, Celso Luis (GP)") is None
+    assert extract_role_title("Aizpurua Arzallus, Mertxe (GEH Bildu)") is None
+    assert extract_role_title(
+        "Armengol Socias, Francina (Presidenta del Congreso de los Diputados)"
+    ) == ("Presidenta del Congreso de los Diputados")
+    assert is_group_code("GVOX") and not is_group_code("Secretario Primero")

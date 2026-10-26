@@ -183,12 +183,25 @@ def classify_role(role_title: str | None) -> str | None:
     return None
 
 
+def is_group_code(text: str | None) -> bool:
+    """The parliamentary group's code ("GP", "GS", "GVOX", "GEH Bildu"),
+    which the hemicycle now prints in brackets after every deputy's name.
+    Not a role: real ones are words ("Secretaria Cuarta", "Presidente del
+    Gobierno")."""
+    if not text:
+        return False
+    text = text.strip()
+    return len(text) <= 12 and text.startswith("G")
+
+
 def extract_role_title(raw_name: str | None) -> str | None:
     """Strip the parenthesised role from a "Family, Given (role)" string."""
     if not raw_name:
         return None
     match = re.search(r"\(([^)]+)\)\s*$", raw_name)
-    return match.group(1).strip() if match else None
+    if not match or is_group_code(match.group(1)):
+        return None
+    return match.group(1).strip()
 
 
 @dataclass(frozen=True, slots=True)
@@ -316,6 +329,11 @@ async def import_hemicycle_seats(
         if seat.role_title:
             person.role_title = seat.role_title
             person.role_kind = classify_role(seat.role_title)
+        elif is_group_code(person.role_title):
+            # Stored as a role before the group codes were told apart
+            # (until 2026-10-26: "GP" on 336 profiles).
+            person.role_title = None
+            person.role_kind = None
 
     for seat in seats:
         person: Person | None = by_cod.get(seat.cod_parlamentario)
