@@ -8,7 +8,9 @@ their page; that is a fact about the person, not about the list.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date
+from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -53,6 +55,25 @@ class CandidacyList(BaseModel):
     party: str | None
     candidates: list[Candidate]
     substitutes: list[Candidate]
+
+
+class PersonCandidacy(BaseModel):
+    constituency: str
+    list_name: str
+    acronym: str | None
+    party: str | None
+    #: 1-based place on the list (among candidates, or among substitutes).
+    position: int
+    substitute: bool
+
+
+class PersonCandidacies(BaseModel):
+    stage: str | None
+    boe_id: str | None
+    published_on: date | None
+    #: Empty when they are not on a list we could link to them. That is not
+    #: "not standing": a name the BOE spells differently is not matched.
+    candidacies: list[PersonCandidacy]
 
 
 class ConstituencyCandidacies(BaseModel):
@@ -140,6 +161,71 @@ async def _outgoing_deputies(session: AsyncSession) -> DeputyIndex:
         )
     ).all()
     return DeputyIndex([Deputy(int(r[0]), r[1], r[2], r[3], r[4]) for r in rows])
+
+
+def candidacies_by_person(
+    lists: Iterable[ElectionCandidacy], deputies: DeputyIndex
+) -> dict[int, list[dict[str, object]]]:
+    """Every outgoing deputy found on a list: where, on which list, at which
+    place. For the "standing on 29-N" note on their profile."""
+    found: dict[int, list[dict[str, object]]] = {}
+    for lst in lists:
+        for substitute, names in ((False, lst.candidates), (True, lst.substitutes)):
+            for position, name in enumerate(names, start=1):
+                person_id = deputies.match(name, lst.constituency)
+                if person_id is None:
+                    continue
+                found.setdefault(person_id, []).append(
+                    {
+                        "constituency": lst.constituency,
+                        "list_name": lst.name,
+                        "acronym": lst.acronym,
+                        "party": party_for_list(lst.name, lst.acronym),
+                        "position": position,
+                        "substitute": substitute,
+                    }
+                )
+    return found
+
+
+@router.get("/candidacies/person/{person_id}", response_model=PersonCandidacies)
+async def person_candidacies(
+    person_id: int,
+    election: str = _ELECTION_Q,
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, object]:
+    """Whether an outgoing deputy is on a list, as the BOE published it."""
+
+    async def _factory() -> dict[str, object]:
+        stage, boe_id, published_on = await _stage(session, election)
+        by_person: dict[int, list[dict[str, object]]] = {}
+        if stage:
+            rows = (
+                await session.execute(
+                    select(ElectionCandidacy).where(
+                        ElectionCandidacy.election == election, ElectionCandidacy.stage == stage
+                    )
+                )
+            ).scalars()
+            by_person = candidacies_by_person(rows, await _outgoing_deputies(session))
+        return {
+            "stage": stage,
+            "boe_id": boe_id,
+            "published_on": published_on.isoformat() if published_on else None,
+            # JSON keys are strings once cached.
+            "by_person": {str(k): v for k, v in by_person.items()},
+        }
+
+    # One build for every profile: matching ~4,000 lists of names is the
+    # expensive part, the lookup is not.
+    data = await cached(f"elections:2026:candidacies:by-person:{election}:v1", 600, _factory)
+    by_person = cast(dict[str, list[dict[str, object]]], data["by_person"])
+    return {
+        "stage": data["stage"],
+        "boe_id": data["boe_id"],
+        "published_on": data["published_on"],
+        "candidacies": by_person.get(str(person_id), []),
+    }
 
 
 @router.get("/candidacies/constituency", response_model=ConstituencyCandidacies)

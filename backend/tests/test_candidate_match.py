@@ -53,3 +53,38 @@ def test_two_deputies_with_one_name_get_no_link() -> None:
         Deputy(2, "Ana García López", "García López", "Ana", "Madrid"),
     ]
     assert DeputyIndex(twins).match("Ana García López", "Madrid") is None
+
+
+def test_candidacies_by_person_gives_place_and_list() -> None:
+    from datetime import date
+
+    from app.api.elections import candidacies_by_person
+    from app.models import ElectionCandidacy
+
+    lists = [
+        ElectionCandidacy(
+            election="2026-11",
+            stage="presented",
+            constituency="Barcelona",
+            ballot_order=1,
+            name="Esquerra Republicana de Catalunya",
+            acronym="ERC",
+            candidates=["Gabriel Rufián i Romero", "Pilar Vallugera Balañà"],
+            substitutes=["Ignacio (Nacho) Martín Blanco"],
+            boe_id="BOE-A-2026-1",
+            published_on=date(2026, 10, 28),
+        ),
+    ]
+    found = candidacies_by_person(lists, DeputyIndex(DEPUTIES))
+    assert found[2] == [
+        {
+            "constituency": "Barcelona",
+            "list_name": "Esquerra Republicana de Catalunya",
+            "acronym": "ERC",
+            "party": found[2][0]["party"],
+            "position": 1,
+            "substitute": False,
+        }
+    ]
+    assert found[3][0]["substitute"] is True and found[3][0]["position"] == 1
+    assert set(found) == {2, 3}
