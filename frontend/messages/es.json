@@ -306,7 +306,7 @@
     "tab_dades": "Datos",
     "primary_aria": "Navegación principal",
     "eleccions": "Elecciones",
-    "tab_eleccions": "29-N"
+    "tab_eleccions": "Elecciones"
   },
   "lleis": {
     "title": "Leyes",
@@ -1878,7 +1878,7 @@
     "journalists_link": "Para periodistas",
     "avui_link": "Crónica del pleno",
     "pacts_link": "Pactos 29-N",
-    "elections_link": "Elecciones 29-N"
+    "elections_link": "Elecciones"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacados por grupo",

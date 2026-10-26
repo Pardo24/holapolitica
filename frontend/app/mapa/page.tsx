@@ -206,6 +206,7 @@ export default async function MapaPage({
                 // party" holds everywhere a party appears.
                 <a
                   key={n.key}
+                  id={`map-node-${n.key}`}
                   href={`/groups/${n.slug}`}
                   className="map-node"
                   aria-label={n.label}
@@ -216,31 +217,44 @@ export default async function MapaPage({
                   <text x={n.cx} y={n.cy + 3} textAnchor="middle" fontSize={11} fontWeight={600} fill="#fff">
                     {n.abbr}
                   </text>
-                  {/* Full name — hidden until you hover the disc, so close discs
-                      don't overlap their labels. The white halo (paint-order
-                      stroke) keeps it legible over neighbouring discs. */}
-                  <text
-                    className="map-label"
-                    x={n.cx}
-                    y={n.cy - n.r - 6}
-                    textAnchor="middle"
-                    fontSize={12}
-                    fontWeight={700}
-                    fill="var(--ink)"
-                    stroke="var(--paper)"
-                    strokeWidth={3.5}
-                    paintOrder="stroke"
-                    strokeLinejoin="round"
-                  >
-                    {n.label}
-                  </text>
                 </a>
+              ))}
+              {/* Full names, hidden until you hover or focus a disc, so close
+                  discs don't overlap their labels. A layer of their own,
+                  after every disc: SVG paints in document order, and inside
+                  each disc's link a later disc covered the name (PNV's under
+                  PP, EHB's under ERC). The white halo (paint-order stroke)
+                  keeps it legible over neighbouring discs. */}
+              {nodes.map((n) => (
+                <text
+                  key={n.key}
+                  id={`map-label-${n.key}`}
+                  className="map-label"
+                  x={n.cx}
+                  y={n.cy - n.r - 6}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fontWeight={700}
+                  fill="var(--ink)"
+                  stroke="var(--paper)"
+                  strokeWidth={3.5}
+                  paintOrder="stroke"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  {n.label}
+                </text>
               ))}
               <style>{`
                 .map-node { cursor: pointer; }
                 .map-node:focus-visible circle { stroke: var(--accent); stroke-width: 3; }
                 .map-label { opacity: 0; transition: opacity 120ms ease; pointer-events: none; }
-                .map-node:hover .map-label { opacity: 1; }
+                ${nodes
+                  .map(
+                    (n) =>
+                      `svg:has(#map-node-${n.key}:hover, #map-node-${n.key}:focus-visible) #map-label-${n.key} { opacity: 1; }`,
+                  )
+                  .join('\n')}
                 .map-node:hover circle { fill-opacity: 1; }
               `}</style>
             </svg>

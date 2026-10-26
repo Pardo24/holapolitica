@@ -306,7 +306,7 @@
     "tab_dades": "Data",
     "primary_aria": "Primary navigation",
     "eleccions": "Elections",
-    "tab_eleccions": "29 Nov"
+    "tab_eleccions": "Elections"
   },
   "lleis": {
     "title": "Laws",
@@ -1878,7 +1878,7 @@
     "journalists_link": "For journalists",
     "avui_link": "Plenary chronicle",
     "pacts_link": "Pacts 29 Nov",
-    "elections_link": "Election 29 Nov"
+    "elections_link": "Elections"
   },
   "dashboard": {
     "highlights_eyebrow": "Group highlights",
