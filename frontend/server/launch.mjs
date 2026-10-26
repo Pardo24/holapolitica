@@ -269,6 +269,12 @@ function renderOnce(key, req) {
 
 function send(req, res, entry, state) {
   const headers = { ...entry.headers, 'x-page-cache': state };
+  // Next marks every dynamic page no-store, which keeps it out of the
+  // browser's back/forward cache: going back re-downloaded the page instead
+  // of showing it at once. no-cache still revalidates on every visit.
+  if (/no-store/.test(headers['cache-control'] ?? '')) {
+    headers['cache-control'] = 'private, no-cache, max-age=0, must-revalidate';
+  }
   const wantsGzip = /\bgzip\b/.test(req.headers['accept-encoding'] ?? '');
   let body = entry.raw;
   if (entry.gz && wantsGzip) {

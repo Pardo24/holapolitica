@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { Route } from 'next';
+import { JsonLd, SITE_URL, breadcrumbs } from '@/components/JsonLd';
 import { ArrowRight, ArrowUpRight, MapPin, Vote } from '@/components/icons';
 
 
@@ -165,8 +166,30 @@ export default async function PersonDetailPage({
     { key: 'trajectoria', label: t('tab_career') },
   ];
 
+  const tSite = await getTranslations('site');
+  const tDeputy = await getTranslations('deputy');
   return (
     <article className="dep">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: person.full_name,
+          jobTitle: tSite('jsonld_deputy'),
+          image: person.photo_url ?? undefined,
+          memberOf: person.current_group_short
+            ? { '@type': 'Organization', name: displayGroupShort(person.current_group_short) }
+            : undefined,
+          url: `${SITE_URL}/persons/${person.id}`,
+          sameAs: [person.wikipedia_url_ca, person.wikipedia_url_es, person.wikipedia_url_en].filter(Boolean),
+        }}
+      />
+      <JsonLd
+        data={breadcrumbs(tSite('breadcrumb_home'), [
+          [tDeputy('title'), '/el-teu-diputat'],
+          [person.full_name, `/persons/${person.id}`],
+        ])}
+      />
       {/* Breadcrumb */}
       <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
         <Link href="/el-teu-diputat?tab=tots" style={{ color: 'var(--ink-2)' }}>

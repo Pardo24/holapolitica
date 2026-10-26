@@ -81,7 +81,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     const description =
       (locale === 'es' ? topic.description_es : locale === 'en' ? topic.description_en : topic.description_ca) ??
       undefined;
-    return { title: name, description: description ?? undefined };
+    // Most topics carry no description of their own: a sentence from the
+    // name, so search results never show an empty snippet.
+    const tTopic = await getTranslations('topic');
+    return { title: name, description: description ?? tTopic('meta_description_fallback', { topic: name }) };
   } catch {
     return {};
   }

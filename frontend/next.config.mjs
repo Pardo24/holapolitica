@@ -70,6 +70,9 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // Browsers and crawlers ask for /favicon.ico whatever the page links;
+      // it was a 404. The generated favicon (app/icon.tsx) answers.
+      { source: '/favicon.ico', destination: '/icon' },
       // Android App Links verification file. Served from a route handler
       // (app/api/assetlinks) so its content is driven by the
       // ANDROID_CERT_SHA256 env var — the signing SHA-256 is only known

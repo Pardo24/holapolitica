@@ -222,7 +222,9 @@
     "name": "Hola Política",
     "motto": "Mirror, not megaphone.",
     "tagline": "Laws are voted by our representatives. This tool shows how.",
-    "description": "Civic tool for tracking what the Spanish Congress votes. Who proposes each law, who votes for or against, classified by topic. No political interpretation."
+    "description": "Civic tool for tracking what the Spanish Congress votes. Who proposes each law, who votes for or against, classified by topic. No political interpretation.",
+    "breadcrumb_home": "Home",
+    "jsonld_deputy": "Member of the Spanish Congress of Deputies"
   },
   "not_found": {
     "title": "This page doesn't exist",
@@ -365,7 +367,8 @@
     "card_majority": "absolute majority: {n}",
     "card_majority_title": "The line marks the absolute majority of the Congress: {n} votes.",
     "card_amend_hint": "A change to the law, not the law",
-    "card_ai_title_from_title": "Headline written by AI from the official title"
+    "card_ai_title_from_title": "Headline written by AI from the official title",
+    "meta_description": "Every law in the Spanish Congress in plain language: what it changes, whom it affects and how each party voted. Bills and decree-laws."
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -1122,7 +1125,8 @@
     "results_next_title": "What next?",
     "results_next_group": "What {name} has done",
     "results_next_compare": "Compare the parties, topic by topic",
-    "results_next_vote": "Your vote on 29 November: who stands where you vote and how it counts"
+    "results_next_vote": "Your vote on 29 November: who stands where you vote and how it counts",
+    "meta_description": "Vote on real Congress votes and find out which parties you agree with most. Three minutes, no sign-up, on your phone."
   },
   "hub": {
     "joc_title": "Trivia",
@@ -1278,7 +1282,8 @@
     "lens_session_sub": "Everything voted",
     "lens_close": "Close",
     "lens_filters": "Filters",
-    "lens_done": "Done"
+    "lens_done": "Done",
+    "meta_description": "Every plenary vote in the Spanish Congress: the result, the count and how each parliamentary group voted, in plain language."
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",
@@ -1456,7 +1461,8 @@
     "kpi_withdrawn_or_expired": "withdrawn or expired",
     "proposer_unknown": "No origin recorded",
     "see_all_in_laws": "See {count} more in Laws",
-    "hero_total": "{n, plural, one {# initiative filed under this topic} other {# initiatives filed under this topic}}"
+    "hero_total": "{n, plural, one {# initiative filed under this topic} other {# initiatives filed under this topic}}",
+    "meta_description_fallback": "{topic}: the Congress laws and votes on this topic, what passed and how each party voted."
   },
   "stats": {
     "title": "Data",

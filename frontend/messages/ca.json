@@ -222,7 +222,9 @@
     "name": "Hola Política",
     "motto": "Mirall, no megàfon.",
     "tagline": "Les lleis les voten els nostres representants. Aquesta eina mostra com.",
-    "description": "Eina cívica per seguir què vota el Congrés dels Diputats. Qui proposa cada llei, qui hi vota a favor o en contra, classificat per tema. Sense interpretació política."
+    "description": "Eina cívica per seguir què vota el Congrés dels Diputats. Qui proposa cada llei, qui hi vota a favor o en contra, classificat per tema. Sense interpretació política.",
+    "breadcrumb_home": "Inici",
+    "jsonld_deputy": "Diputat al Congrés dels Diputats"
   },
   "not_found": {
     "title": "Aquesta pàgina no existeix",
@@ -365,7 +367,8 @@
     "card_majority": "majoria absoluta: {n}",
     "card_majority_title": "La línia marca la majoria absoluta del Congrés: {n} vots.",
     "card_amend_hint": "Un canvi a la llei, no la llei",
-    "card_ai_title_from_title": "Titular fet amb IA a partir del títol oficial"
+    "card_ai_title_from_title": "Titular fet amb IA a partir del títol oficial",
+    "meta_description": "Totes les lleis del Congrés explicades en llenguatge planer: què canvien, a qui afecten i com ha votat cada partit. Projectes, proposicions i decrets llei."
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -1122,7 +1125,8 @@
     "results_next_title": "I ara?",
     "results_next_group": "Què ha fet {name}",
     "results_next_compare": "Compara els partits, tema a tema",
-    "results_next_vote": "El teu vot el 29-N: qui es presenta on votes i com compta"
+    "results_next_vote": "El teu vot el 29-N: qui es presenta on votes i com compta",
+    "meta_description": "Vota tu les votacions reals del Congrés i descobreix amb quins partits coincideixes més. En 3 minuts, sense registre i des del teu mòbil."
   },
   "hub": {
     "joc_title": "Trivia",
@@ -1278,7 +1282,8 @@
     "lens_session_sub": "Tot el que es va votar",
     "lens_close": "Tanca",
     "lens_filters": "Filtres",
-    "lens_done": "Fet"
+    "lens_done": "Fet",
+    "meta_description": "Cada votació del ple del Congrés dels Diputats: el resultat, el recompte i com ha votat cada grup parlamentari, explicat en llenguatge planer."
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",
@@ -1456,7 +1461,8 @@
     "kpi_withdrawn_or_expired": "retirades o caducades",
     "proposer_unknown": "Sense origen registrat",
     "see_all_in_laws": "Veure'n {count} més a Lleis",
-    "hero_total": "{n, plural, one {# iniciativa classificada en aquest tema} other {# iniciatives classificades en aquest tema}}"
+    "hero_total": "{n, plural, one {# iniciativa classificada en aquest tema} other {# iniciatives classificades en aquest tema}}",
+    "meta_description_fallback": "{topic}: les lleis i votacions del Congrés sobre aquest tema, què s'ha aprovat i com ha votat cada partit."
   },
   "stats": {
     "title": "Dades",

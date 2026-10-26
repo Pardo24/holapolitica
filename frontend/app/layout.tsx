@@ -14,6 +14,8 @@ import { TopNav } from '@/components/TopNav';
 import { INTRO_SEEN_SCRIPT } from '@/components/IntroNote';
 import { CLIENT_NAMESPACES, pickMessages } from '@/lib/clientMessages';
 
+import { JsonLd, SITE_URL } from '@/components/JsonLd';
+
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -98,6 +100,35 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: INTRO_SEEN_SCRIPT }} />
       </head>
       <body suppressHydrationWarning>
+        {/* Who publishes the site, and its search, for search engines. */}
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'Organization',
+                '@id': `${SITE_URL}/#org`,
+                name: 'Hola Política',
+                url: SITE_URL,
+                logo: `${SITE_URL}/apple-icon`,
+                sameAs: ['https://github.com/Pardo24/holapolitica'],
+              },
+              {
+                '@type': 'WebSite',
+                '@id': `${SITE_URL}/#web`,
+                name: 'Hola Política',
+                url: SITE_URL,
+                inLanguage: ['ca', 'es', 'en'],
+                publisher: { '@id': `${SITE_URL}/#org` },
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: `${SITE_URL}/lleis?q={search_term_string}`,
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+            ],
+          }}
+        />
         {/* Only the namespaces client components read: the whole locale
             file would ride along in every page's payload. */}
         <NextIntlClientProvider locale={locale} messages={pickMessages(messages, CLIENT_NAMESPACES)}>

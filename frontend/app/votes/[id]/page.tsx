@@ -30,6 +30,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { shortTitle } from '@/lib/shortTitle';
 import { ExternalLink, FileText, User } from '@/components/icons';
 
 import { AiBadge } from '@/components/AiBadge';
@@ -85,17 +86,19 @@ export async function generateMetadata({
       (locale === 'ca' ? v.plain_title_ca : v.plain_title_es) ??
       v.plain_title_ca ??
       (v.description?.trim() || v.title);
-    const subjectShort =
-      subject.length > 140 ? subject.slice(0, 137) + '…' : subject;
+    const subjectShort = shortTitle(subject);
     const dateStr = new Date(v.voted_at).toLocaleDateString(locale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
     const result = t(`result.${v.result}` as 'result.approved');
-    const description = v.approved_by_assent
+    // What was voted first, then the outcome: a search snippet of just a
+    // date and a count said nothing about the vote.
+    const outcome = v.approved_by_assent
       ? `${dateStr} · ${result}`
       : `${dateStr} · ${result} · ${v.ayes} ${t('ayes')} · ${v.noes} ${t('noes')} · ${v.abstentions} ${t('abstentions')}`;
+    const description = `${subject.replace(/[.\s]+$/, '')}. ${outcome}`.slice(0, 220);
     return {
       title: subjectShort,
       description,

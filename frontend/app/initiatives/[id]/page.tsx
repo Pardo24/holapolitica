@@ -8,6 +8,8 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { shortTitle } from '@/lib/shortTitle';
+import { JsonLd, SITE_URL, breadcrumbs } from '@/components/JsonLd';
 import { FileText, Route as RouteIcon } from '@/components/icons';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
@@ -84,7 +86,7 @@ export async function generateMetadata({
       ini.plain_title_ca ??
       (es ? ini.title_es : ini.title_ca) ??
       ini.title_original;
-    const titleShort = title.length > 120 ? title.slice(0, 117) + '…' : title;
+    const titleShort = shortTitle(title);
     const description =
       (es ? ini.plain_summary_es : ini.plain_summary_ca) ??
       ini.plain_summary_ca ??
@@ -228,8 +230,30 @@ export default async function InitiativeDetailPage({
   const hasEffects = effectsFor(initiative.profile_effects, locale).length > 0;
   const audiences = initiative.affected_audiences?.[locale === 'ca' ? 'ca' : 'es'] ?? [];
 
+  const tSite = await getTranslations('site');
+  const tLleisNav = await getTranslations('lleis');
+  const ldTitle = plainTitle ?? initiative.title_original;
   return (
     <article>
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Legislation',
+          name: ldTitle,
+          alternateName: initiative.title_original !== ldTitle ? initiative.title_original : undefined,
+          legislationIdentifier: initiative.official_id,
+          legislationJurisdiction: 'ES',
+          dateCreated: initiative.submitted_at ?? undefined,
+          url: `${SITE_URL}/initiatives/${initiative.id}`,
+          inLanguage: locale,
+        }}
+      />
+      <JsonLd
+        data={breadcrumbs(tSite('breadcrumb_home'), [
+          [tLleisNav('title'), '/lleis'],
+          [ldTitle, `/initiatives/${initiative.id}`],
+        ])}
+      />
 
       {/* Breadcrumb */}
       <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 6 }}>

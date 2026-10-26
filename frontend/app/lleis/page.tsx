@@ -73,7 +73,7 @@ function splitCsv(value: string | undefined): string[] {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('lleis');
-  return { title: t('title'), description: t('subtitle') };
+  return { title: t('title'), description: t('meta_description') };
 }
 
 export default async function LleisPage({

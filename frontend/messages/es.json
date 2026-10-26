@@ -222,7 +222,9 @@
     "name": "Hola Política",
     "motto": "Espejo, no megáfono.",
     "tagline": "Las leyes las votan nuestros representantes. Esta herramienta muestra cómo.",
-    "description": "Herramienta cívica para seguir qué vota el Congreso de los Diputados. Quién propone cada ley, quién vota a favor o en contra, clasificado por tema. Sin interpretación política."
+    "description": "Herramienta cívica para seguir qué vota el Congreso de los Diputados. Quién propone cada ley, quién vota a favor o en contra, clasificado por tema. Sin interpretación política.",
+    "breadcrumb_home": "Inicio",
+    "jsonld_deputy": "Diputado en el Congreso de los Diputados"
   },
   "not_found": {
     "title": "Esta página no existe",
@@ -365,7 +367,8 @@
     "card_majority": "mayoría absoluta: {n}",
     "card_majority_title": "La línea marca la mayoría absoluta del Congreso: {n} votos.",
     "card_amend_hint": "Un cambio en la ley, no la ley",
-    "card_ai_title_from_title": "Titular hecho con IA a partir del título oficial"
+    "card_ai_title_from_title": "Titular hecho con IA a partir del título oficial",
+    "meta_description": "Todas las leyes del Congreso explicadas en lenguaje claro: qué cambian, a quién afectan y cómo ha votado cada partido. Proyectos, proposiciones y decretos ley."
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -1122,7 +1125,8 @@
     "results_next_title": "¿Y ahora?",
     "results_next_group": "Qué ha hecho {name}",
     "results_next_compare": "Compara los partidos, tema a tema",
-    "results_next_vote": "Tu voto el 29-N: quién se presenta donde votas y cómo cuenta"
+    "results_next_vote": "Tu voto el 29-N: quién se presenta donde votas y cómo cuenta",
+    "meta_description": "Vota tú las votaciones reales del Congreso y descubre con qué partidos coincides más. En 3 minutos, sin registro y desde tu móvil."
   },
   "hub": {
     "joc_title": "Trivia",
@@ -1278,7 +1282,8 @@
     "lens_session_sub": "Todo lo que se votó",
     "lens_close": "Cerrar",
     "lens_filters": "Filtros",
-    "lens_done": "Hecho"
+    "lens_done": "Hecho",
+    "meta_description": "Cada votación del pleno del Congreso de los Diputados: el resultado, el recuento y cómo ha votado cada grupo parlamentario, explicado en lenguaje claro."
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",
@@ -1456,7 +1461,8 @@
     "kpi_withdrawn_or_expired": "retiradas o caducadas",
     "proposer_unknown": "Sin origen registrado",
     "see_all_in_laws": "Ver {count} más en Leyes",
-    "hero_total": "{n, plural, one {# iniciativa clasificada en este tema} other {# iniciativas clasificadas en este tema}}"
+    "hero_total": "{n, plural, one {# iniciativa clasificada en este tema} other {# iniciativas clasificadas en este tema}}",
+    "meta_description_fallback": "{topic}: las leyes y votaciones del Congreso sobre este tema, qué se ha aprobado y cómo ha votado cada partido."
   },
   "stats": {
     "title": "Datos",

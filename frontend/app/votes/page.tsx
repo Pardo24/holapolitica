@@ -57,7 +57,7 @@ interface SearchParams {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('votes');
-  return { title: t('title'), description: t('subtitle') };
+  return { title: t('title'), description: t('meta_description') };
 }
 
 export default async function VotesPage({
