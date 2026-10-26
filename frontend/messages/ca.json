@@ -398,7 +398,8 @@
     "card_majority_title": "La línia marca la majoria absoluta del Congrés: {n} vots.",
     "card_amend_hint": "Un canvi a la llei, no la llei",
     "card_ai_title_from_title": "Titular fet amb IA a partir del títol oficial",
-    "meta_description": "Totes les lleis del Congrés explicades en llenguatge planer: què canvien, a qui afecten i com ha votat cada partit. Projectes, proposicions i decrets llei."
+    "meta_description": "Totes les lleis del Congrés explicades en llenguatge planer: què canvien, a qui afecten i com ha votat cada partit. Projectes, proposicions i decrets llei.",
+    "card_proposer_senate": "Senat"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",

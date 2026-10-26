@@ -398,7 +398,8 @@
     "card_majority_title": "The line marks the absolute majority of the Congress: {n} votes.",
     "card_amend_hint": "A change to the law, not the law",
     "card_ai_title_from_title": "Headline written by AI from the official title",
-    "meta_description": "Every law in the Spanish Congress in plain language: what it changes, whom it affects and how each party voted. Bills and decree-laws."
+    "meta_description": "Every law in the Spanish Congress in plain language: what it changes, whom it affects and how each party voted. Bills and decree-laws.",
+    "card_proposer_senate": "Senate"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",

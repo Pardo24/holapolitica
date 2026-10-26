@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from '@/components/icons';
 import { LAW_CARD_LIST_STYLE, AiMark } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
-import { GroupRows, ProposerChip, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChip, ProposerText, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import {
   PartyStanceMini,
   buildStanceByVote,
@@ -793,6 +793,7 @@ function NoBreakdownFor({
 type Proposer =
   | { kind: 'group'; short: string; slug: string | null; color: string; logoUrl: string | null }
   | { kind: 'government'; short: string; color: string }
+  | { kind: 'text'; short: string }
   | null;
 
 function proposerOf(vote: Vote, logoUrl: string | null, governmentLabel: string): Proposer {
@@ -805,9 +806,8 @@ function proposerOf(vote: Vote, logoUrl: string | null, governmentLabel: string)
       logoUrl,
     };
   }
-  return vote.proposed_by_government
-    ? { kind: 'government', short: governmentLabel, color: 'var(--ink)' }
-    : null;
+  if (vote.proposed_by_government) return { kind: 'government', short: governmentLabel, color: 'var(--ink)' };
+  return vote.proposer_text ? { kind: 'text', short: vote.proposer_text } : null;
 }
 
 interface CardLabels {
@@ -822,6 +822,7 @@ interface CardLabels {
  *  proposer shape. */
 function CardProposer({ proposer }: { proposer: Proposer }) {
   if (!proposer) return null;
+  if (proposer.kind === 'text') return <ProposerText text={proposer.short} />;
   if (proposer.kind === 'group') {
     if (!proposer.slug) return null;
     return <ProposerChip slug={proposer.slug} short={displayGroupShort(proposer.short)} color={proposer.color} />;
@@ -1233,7 +1234,9 @@ function VoteRow({
           color: 'var(--ink)',
           logoUrl: null,
         }
-      : null;
+      : vote.proposer_text
+        ? { kind: 'text' as const, short: vote.proposer_text }
+        : null;
   const voteHref = `/votes/${vote.id}` as Route;
 
   return (
@@ -1297,9 +1300,9 @@ function VoteRow({
         proposer && (proposer.kind !== 'group' || proposer.slug) ? (
           <CardProposer
             proposer={
-              proposer.kind === 'group'
-                ? proposer
-                : { kind: 'government', short: proposer.short, color: proposer.color }
+              proposer.kind === 'government'
+                ? { kind: 'government', short: proposer.short, color: proposer.color }
+                : proposer
             }
           />
         ) : null

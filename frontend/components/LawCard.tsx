@@ -1,7 +1,6 @@
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
-import { ProposerBadges } from '@/components/InitiativeRow';
 import Link from 'next/link';
 
 import { AiMark } from '@/components/LawCardParts';
@@ -9,7 +8,7 @@ import { DecreeLinkNote } from '@/components/DecreeLinkNote';
 import { SameProposalNote } from '@/components/SameProposalNote';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
-import { GroupRows, ProposerChips, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChips, ProposerText, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import { TopicChip } from '@/components/TopicChip';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 import type { InitiativeListItem } from '@/lib/api';
@@ -255,18 +254,9 @@ export async function LawCard({
                 }
               />
             ) : (
-              hasProposer && (
-                // Free text we could not match to a group: shown as written.
-                <span className="vcard__by">
-                  <span className="vcard__by-label">{t('card_proposed_label')}</span>
-                  <ProposerBadges
-                    parsed={parsed}
-                    governmentLabel={tTopic('proposer_government_label')}
-                    moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
-                    rawFallback={initiative.submitted_by ?? ''}
-                  />
-                </span>
-              )
+              // Free text we could not match to a group (the Senate, a
+              // regional parliament, deputies): shown as written.
+              hasProposer && <ProposerText text={initiative.submitted_by ?? ''} />
             )}
             {pdf && (
               <a href={pdf} target="_blank" rel="noopener noreferrer" className="card-pdf-link">

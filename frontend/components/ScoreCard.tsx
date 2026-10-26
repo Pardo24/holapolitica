@@ -247,6 +247,22 @@ export async function ProposerChip({
   return <ProposerChips proposers={[{ slug, short, color }]} />;
 }
 
+/** Who tabled it when that is no group of ours nor the Government: the
+ *  Senate, a regional parliament, several groups or a list of deputies, as
+ *  the Congress writes it. Long ones wrap. */
+export async function ProposerText({ text }: { text: string }) {
+  const t = await getTranslations('lleis');
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return (
+    <span className="vcard__by">
+      <span className="vcard__by-label">{t('card_proposed_label')}</span>
+      <span className="vcard__by-chip vcard__by-chip--text">
+        {clean === 'Senado' ? t('card_proposer_senate') : clean}
+      </span>
+    </span>
+  );
+}
+
 /** The same, for a text tabled by several groups together: one chip each,
  *  the first three, then how many more. */
 export async function ProposerChips({

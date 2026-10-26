@@ -6,7 +6,7 @@ These are pure function tests — no DB. We pass in fake group rows.
 from __future__ import annotations
 
 from app.models import ParliamentaryGroup
-from app.services.proposing_group import resolve_proposing_group
+from app.services.proposing_group import proposing_groups_in, resolve_proposing_group
 
 
 def _g(slug: str, name_long: str) -> ParliamentaryGroup:
@@ -60,3 +60,26 @@ def test_returns_none_for_empty_description() -> None:
 
 def test_returns_none_when_groups_list_empty() -> None:
     assert resolve_proposing_group("Grupo Parlamentario VOX", []) is None
+
+
+def test_groups_in_lists_co_signers_in_order() -> None:
+    text = "Grupo Parlamentario Socialista Grupo Parlamentario Plurinacional SUMAR"
+    assert [g.slug for g in proposing_groups_in(text, GROUPS)] == ["socialista", "sumar"]
+
+
+def test_groups_in_counts_a_name_once_across_legislatures() -> None:
+    old = _g("socialista-xiv", "Grupo Parlamentario Socialista")
+    new = _g("socialista", "Grupo Parlamentario Socialista")
+    new.color_hex = "#E30613"
+    named = proposing_groups_in("Grupo Parlamentario Socialista", [old, new])
+    assert [g.slug for g in named] == ["socialista"]
+
+
+def test_groups_in_skips_a_name_inside_a_longer_one() -> None:
+    groups = [*GROUPS, _g("vasco-short", "Grupo Parlamentario Vasco")]
+    named = proposing_groups_in("Grupo Parlamentario Vasco (EAJ-PNV)", groups)
+    assert [g.slug for g in named] == ["vasco"]
+
+
+def test_groups_in_names_none_for_the_senate() -> None:
+    assert proposing_groups_in("Senado", GROUPS) == []

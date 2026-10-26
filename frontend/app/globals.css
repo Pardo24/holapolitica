@@ -2666,6 +2666,8 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .vcard__foot .vcard__by-dot { width: 12px; height: 12px; margin-left: 7px; }
 .vcard__foot > .vcard__by { flex-wrap: wrap; }
 .vcard__by-more { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+/* Who tabled it as written (the Senate, a parliament, deputies): may be long. */
+.vcard__by-chip--text { padding: 3px 11px; white-space: normal; }
 
 /* The scoreboard. */
 .vcard__score {

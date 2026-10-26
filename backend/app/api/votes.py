@@ -40,7 +40,7 @@ from app.models import (
 )
 from app.schemas import InitiativeTopicSlug, VoteRead
 from app.services.cache import cached
-from app.services.proposing_group import resolve_proposing_group
+from app.services.proposing_group import proposing_groups_in, resolve_proposing_group
 from app.services.vote_stage import stage_groups_for
 
 router = APIRouter(prefix="/votes", tags=["votes"])
@@ -703,6 +703,27 @@ def _serialize_vote(
     if signers:
         update["stage_groups"] = signers
     proposer = resolve_proposing_group(vote.description, groups)
+    # The vote's own text names the group for motions, rarely for a bill: a
+    # bill's vote reads "Enmiendas del Senado" or the title. The initiative
+    # behind it knows who tabled it.
+    initiative = vote.initiative if vote.initiative_id is not None else None
+    submitted_by = (
+        " ".join(initiative.submitted_by.split())
+        if initiative is not None and initiative.submitted_by
+        else None
+    )
+    if proposer is None and not vote.proposed_by_government and initiative is not None:
+        if initiative.type in (InitiativeType.PROYECTO_LEY, InitiativeType.REAL_DECRETO_LEY) or (
+            submitted_by is not None and submitted_by.startswith("Gobierno")
+        ):
+            # A government bill or decree-law has one possible author.
+            update["proposed_by_government"] = True
+        elif submitted_by:
+            named = proposing_groups_in(submitted_by, groups)
+            if len(named) == 1:
+                proposer = named[0]
+            else:
+                update["proposer_text"] = submitted_by
     if proposer is not None:
         update["proposing_group_slug"] = proposer.slug
         update["proposing_group_short"] = proposer.name_short

@@ -398,7 +398,8 @@
     "card_majority_title": "La línea marca la mayoría absoluta del Congreso: {n} votos.",
     "card_amend_hint": "Un cambio en la ley, no la ley",
     "card_ai_title_from_title": "Titular hecho con IA a partir del título oficial",
-    "meta_description": "Todas las leyes del Congreso explicadas en lenguaje claro: qué cambian, a quién afectan y cómo ha votado cada partido. Proyectos, proposiciones y decretos ley."
+    "meta_description": "Todas las leyes del Congreso explicadas en lenguaje claro: qué cambian, a quién afectan y cómo ha votado cada partido. Proyectos, proposiciones y decretos ley.",
+    "card_proposer_senate": "Senado"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",

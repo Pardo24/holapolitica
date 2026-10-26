@@ -380,6 +380,9 @@ export interface Vote {
   proposing_group_short: string | null;
   proposing_group_color: string | null;
   proposed_by_government: boolean;
+  /** Who tabled it, as written, when neither one group nor the Government
+   *  (the Senate, a regional parliament, several groups, deputies). */
+  proposer_text?: string | null;
   /** Approved by assent (acclamation): no roll-call, no tally. Counts are
    *  all 0 — render a dedicated label instead of a 0-0-0 breakdown. */
   approved_by_assent?: boolean;

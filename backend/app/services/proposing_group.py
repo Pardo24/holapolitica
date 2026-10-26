@@ -39,3 +39,24 @@ def resolve_proposing_group(
     if not candidates:
         return None
     return max(candidates, key=lambda g: len(g.name_long))
+
+
+def proposing_groups_in(
+    text: str | None, groups: list[ParliamentaryGroup]
+) -> list[ParliamentaryGroup]:
+    """Every distinct group named in ``text``, in order of appearance.
+
+    For an initiative's ``submitted_by``, which may name several groups that
+    co-signed it. A name inside a longer one that also matched ("Vasco"
+    inside "Vasco (EAJ-PNV)") does not count, and the same name in several
+    legislatures' rows counts once, preferring a row with a colour.
+    """
+    if not text:
+        return []
+    names = {g.name_long for g in groups if g.name_long and g.name_long in text}
+    names = {n for n in names if not any(n != m and n in m for m in names)}
+    picked: list[ParliamentaryGroup] = []
+    for name in sorted(names, key=text.index):
+        rows = [g for g in groups if g.name_long == name]
+        picked.append(max(rows, key=lambda g: g.color_hex is not None))
+    return picked

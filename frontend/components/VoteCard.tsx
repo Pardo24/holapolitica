@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects } from '@/components/ProfileEffects';
-import { GroupRows, ProposerChip, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChip, ProposerText, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import type { Vote } from '@/lib/api';
@@ -102,12 +102,14 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
       groups={vote.approved_by_assent ? null : <GroupRows groups={vote.groups ?? []} />}
       foot={
         <>
-          {proposer && (
+          {proposer ? (
             <ProposerChip
               slug={byGovernment ? null : (vote.proposing_group_slug ?? null)}
               short={proposer}
               color={vote.proposing_group_color}
             />
+          ) : (
+            vote.proposer_text && <ProposerText text={vote.proposer_text} />
           )}
           {vote.expediente_raw && <span className="mono vcard__exp">{vote.expediente_raw}</span>}
           {plainSummary && <LawOriginalToggle original={subject} provider={vote.plain_summary_provider} />}

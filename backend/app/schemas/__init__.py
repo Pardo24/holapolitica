@@ -371,14 +371,18 @@ class VoteRead(BaseModel):
     expediente_raw: str | None = None
     graphic_url: str | None = None
     # Group that proposed/registered this vote, derived from ``description``
-    # ("Proposición no de Ley del Grupo Parlamentario X, …") or, in future,
-    # from the linked Initiative.submitted_by. Populated by
-    # ``app.services.proposing_group``; null when no group can be reliably
-    # extracted (e.g. government bills, multi-group co-signed initiatives).
+    # ("Proposición no de Ley del Grupo Parlamentario X, …") or from the
+    # linked Initiative.submitted_by. Populated by
+    # ``app.services.proposing_group``; null when no single group can be
+    # reliably extracted (government bills, multi-group co-signed bills).
     proposing_group_slug: str | None = None
     proposing_group_short: str | None = None
     proposing_group_color: str | None = None
     proposed_by_government: bool = False
+    # Who tabled it, as the Congress writes it, when that is neither one
+    # group nor the Government: the Senate, a regional parliament, several
+    # groups, a list of deputies.
+    proposer_text: str | None = None
     # True when approved by assent (acclamation): no roll-call, no tally.
     # The frontend renders a dedicated label instead of a 0-0-0 count.
     approved_by_assent: bool = False
