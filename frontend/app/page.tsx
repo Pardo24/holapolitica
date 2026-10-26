@@ -23,6 +23,7 @@ import { NewsletterSignup } from '@/components/NewsletterSignup';
 import { PartyBand } from '@/components/PartyBand';
 import { HomeQuickGrid } from '@/components/HomeQuickGrid';
 import { ProfilePicker } from '@/components/ProfilePicker';
+import { DissolvedNote } from '@/components/DissolvedNote';
 import { IntroNote } from '@/components/IntroNote';
 import { WelcomeWizard } from '@/components/WelcomeWizard';
 import { WhatsNew } from '@/components/WhatsNew';
@@ -437,6 +438,7 @@ export default async function HomePage() {
           }}
           className="home-hero__right"
         >
+          <DissolvedNote />
           {latestVotes[0]?.voted_at && (
             <Link href={'/avui' as Route} className="hero-pleno-card">
               <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 8 }}>
@@ -890,6 +892,7 @@ function MobileDashboard({
       {/* The latest plenary, compact: it shares the first screen with the
           tiles, so it is one dark strip (when, how it went, how fresh)
           that opens the day's votes. */}
+      <DissolvedNote compact />
       {latestVotes[0]?.voted_at && (
         <Link href={`/avui/${latestVotes[0].voted_at.slice(0, 10)}` as Route} className="home-ple">
           <span className="home-ple__top">

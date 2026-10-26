@@ -32,6 +32,7 @@ import {
 } from '@/lib/api';
 import { pickPlainTitle } from '@/lib/glossary';
 import { ballotName2026, displayGroupFullName, groupAbbreviation, groupInfo, parseProposer } from '@/lib/groups';
+import { PARTY_OF_GROUP, PROGRAMS_2026 } from '@/lib/programs2026';
 import { pickTopicName } from '@/lib/topics';
 
 interface Params {
@@ -314,6 +315,20 @@ export default async function GroupDetailPage({
           </Link>
         </aside>
       )}
+
+      {/* The party's own 29-N manifesto, linked once it is out
+          (lib/programs2026.ts); nothing until then. */}
+      {(() => {
+        const program = PROGRAMS_2026[PARTY_OF_GROUP[group.slug] ?? ''];
+        return program ? (
+          <aside className="grp-ballot" style={{ ['--party' as string]: group.color_hex ?? 'var(--ink-3)' }}>
+            <p className="grp-ballot__eyebrow">{t('program_eyebrow')}</p>
+            <a href={program.url} target="_blank" rel="noopener noreferrer" className="grp-ballot__link">
+              {t('program_link')} <ArrowRight size={14} aria-hidden="true" />
+            </a>
+          </aside>
+        ) : null;
+      })()}
 
       {balance && (
         <section style={{ paddingTop: 28 }}>

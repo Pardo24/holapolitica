@@ -8,6 +8,7 @@ import Link from 'next/link';
 import type { Metadata, Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { DissolvedNote, congressDissolved } from '@/components/DissolvedNote';
 import { ArrowRight, Bell, ExternalLink, Newspaper } from '@/components/icons';
 
 import { LawCard } from '@/components/LawCard';
@@ -406,7 +407,8 @@ export default async function TopicDetailPage({
             />
           )}
         </div>
-        {!nextAgendaItem && <p className="tpc-note">{t('hub_no_upcoming')}</p>}
+        {!nextAgendaItem &&
+          (congressDissolved() ? <DissolvedNote compact /> : <p className="tpc-note">{t('hub_no_upcoming')}</p>)}
         <style>{`
           @media (max-width: 720px) {
             .topic-whats-now { grid-template-columns: 1fr !important; }

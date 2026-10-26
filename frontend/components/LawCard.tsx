@@ -161,7 +161,13 @@ export async function LawCard({
               small sparkle (with its label for screen readers and on hover). */}
           <h3 className="vcard__title">
             <Link href={href} className="serif">
-              {plainSummary && <AiMark label={t('card_ai_summary')} />}
+              {/* A machine-written line is marked: from our summary, or, for a
+                  text never published, from the official title. */}
+              {plainSummary ? (
+                <AiMark label={t('card_ai_summary')} />
+              ) : (
+                plainTitle && <AiMark label={t('card_ai_title_from_title')} />
+              )}
               {headline}
             </Link>
           </h3>

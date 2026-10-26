@@ -364,7 +364,8 @@
     "card_absents": "{n, plural, one {# ausente} other {# ausentes}}",
     "card_majority": "mayoría absoluta: {n}",
     "card_majority_title": "La línea marca la mayoría absoluta del Congreso: {n} votos.",
-    "card_amend_hint": "Un cambio en la ley, no la ley"
+    "card_amend_hint": "Un cambio en la ley, no la ley",
+    "card_ai_title_from_title": "Titular hecho con IA a partir del título oficial"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -795,7 +796,9 @@
     "ballot_eyebrow": "Elecciones del 29-N",
     "ballot_sumar": "Los partidos de este grupo se presentan a las elecciones generales del 29 de noviembre como Frente Amplio: Izquierda Unida, Movimiento Sumar, Más Madrid y Comuns. En algunas comunidades van con otros partidos y con nombre propio, como Chunta Aragonesista-Frente Amplio Aragón, Ara MÉS-Front Ampli en las Illes Balears, Frente Amplio Por Andalucía o Unidad del Pueblo Canario. Podemos se presenta por separado en casi todo el Estado.",
     "ballot_votes_note": "Las votaciones de esta página son del grupo parlamentario, que en el Congreso se llamaba Sumar.",
-    "ballot_link": "Sigue los pactos y las candidaturas"
+    "ballot_link": "Sigue los pactos y las candidaturas",
+    "program_eyebrow": "Elecciones del 29-N",
+    "program_link": "Lee el programa electoral oficial"
   },
   "home": {
     "eyebrow": "Open data del Congreso de los Diputados",
@@ -1115,7 +1118,11 @@
     "ballot_tag": "29-N: {name}",
     "results_ballot_note": "Los resultados comparan votos en el Congreso, donde el grupo se llamaba Sumar. En las elecciones del 29 de noviembre estos partidos se presentan como Frente Amplio, y Podemos va por separado.",
     "meta_result_title": "He coincidido un {pct}% con {name}",
-    "meta_result_description": "En {n, plural, one {# votación real} other {# votaciones reales}} del Congreso. Haz el test y mira con quién coincides tú."
+    "meta_result_description": "En {n, plural, one {# votación real} other {# votaciones reales}} del Congreso. Haz el test y mira con quién coincides tú.",
+    "results_next_title": "¿Y ahora?",
+    "results_next_group": "Qué ha hecho {name}",
+    "results_next_compare": "Compara los partidos, tema a tema",
+    "results_next_vote": "Tu voto el 29-N: quién se presenta donde votas y cómo cuenta"
   },
   "hub": {
     "joc_title": "Trivia",
@@ -2607,6 +2614,55 @@
     "res_all_circ": "Todas las circunscripciones",
     "res_updated_day": "Datos del {time}",
     "meta_title_circ": "Candidaturas en {circ} para el 29-N",
-    "meta_description_circ": "Quién se presenta en {circ} a las elecciones generales del 29 de noviembre: todas las candidaturas al Congreso, tal como las publica el BOE."
+    "meta_description_circ": "Quién se presenta en {circ} a las elecciones generales del 29 de noviembre: todas las candidaturas al Congreso, tal como las publica el BOE.",
+    "tab_vote": "Tu voto",
+    "vote_meta_title": "Tu voto el 29-N: cómo decidir y cómo cuenta",
+    "vote_meta_description": "Cuatro pasos para decidir el voto del 29 de noviembre con hechos, y cómo cuenta tu voto en tu circunscripción según los escaños y el resultado de 2023.",
+    "vote_title": "Tu voto",
+    "vote_intro": "Cómo decidir con hechos, y cómo cuenta tu voto donde votas. Aquí no te diremos qué votar: te mostramos qué han hecho los partidos y cómo funciona el recuento.",
+    "step1_title": "Haz el test",
+    "step1_body": "Vota 10 votaciones reales del Congreso y mira con qué partidos coincides.",
+    "step1_cta": "¿Qué votarías tú?",
+    "step2_title": "Compara los partidos",
+    "step2_body": "Cómo ha votado cada partido, tema a tema: vivienda, sanidad, trabajo...",
+    "step2_cta": "Compáralos",
+    "step3_title": "Mira quién se presenta",
+    "step3_body": "Las listas oficiales de tu circunscripción, con los candidatos.",
+    "step3_cta": "Ver las candidaturas",
+    "step4_title": "Cómo cuenta tu voto",
+    "step4_body": "Cuántos escaños se reparten donde votas y cuántos votos costó cada escaño en 2023.",
+    "step4_cta": "Míralo abajo",
+    "weight_title": "Cómo cuenta tu voto",
+    "weight_intro": "Cada circunscripción reparte sus escaños con la regla D'Hondt entre las listas que superan el 3% de los votos válidos. Cuantos menos escaños tiene, más porcentaje hace falta para sacar uno. Elige la tuya y mira cómo fue en 2023.",
+    "weight_seats": "{circ} elige {n, plural, one {# diputado} other {# diputados}} el 29-N",
+    "weight_seats_change": "En 2023 elegía {n}.",
+    "weight_valid": "Votos válidos en 2023",
+    "weight_threshold": "Mínimo legal (3%)",
+    "weight_per_seat": "Votos por escaño, de media",
+    "weight_lowest_seat": "La lista con menos votos que sacó escaño: {list}, con el {pct}%.",
+    "weight_highest_without": "La lista con más votos que no lo sacó: {list}, con el {pct}%.",
+    "weight_table_title": "Resultado de 2023",
+    "weight_source": "Fuente: resultado oficial del Ministerio del Interior (elecciones del 23 de julio de 2023). Listas con el 1% o más.",
+    "programs_title": "Los programas",
+    "programs_intro": "Los programas electorales oficiales del 29-N, tal como los publique cada partido. Los enlazamos sin resumirlos.",
+    "program_pending": "Todavía no publicado",
+    "program_open": "Leer el programa"
+  },
+  "dissolved": {
+    "title": "Las Cortes están disueltas.",
+    "body": "Desde el 6 de octubre, por las elecciones del 29 de noviembre, no hay plenos. El nuevo Congreso se constituye el 23 de diciembre."
+  },
+  "compare": {
+    "meta_title": "Compara los partidos, tema a tema",
+    "meta_description": "Cómo ha votado cada partido del Congreso en las votaciones de cada tema esta legislatura: vivienda, sanidad, trabajo, educación y más.",
+    "title": "Compara los partidos",
+    "subtitle": "Elige un tema y mira cómo han votado los diputados de cada partido en las votaciones de ese tema, esta legislatura.",
+    "topics_aria": "Temas",
+    "topic_title": "{topic}: cómo ha votado cada partido",
+    "ballot": "29-N: {name}",
+    "bar_aria": "{aye}% a favor, {abst}% abstención, {no}% en contra",
+    "empty": "Todavía no hay votaciones de este tema en esta legislatura.",
+    "method": "Porcentaje de los votos de los diputados de cada grupo en todas las votaciones clasificadas en este tema en la XV legislatura, incluidas las enmiendas. Son los votos registrados, no la posición que declara cada partido.",
+    "see_topic": "Ver las leyes y votaciones de {topic}"
   }
 }

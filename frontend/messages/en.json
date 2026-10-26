@@ -364,7 +364,8 @@
     "card_absents": "{n, plural, one {# absent} other {# absent}}",
     "card_majority": "absolute majority: {n}",
     "card_majority_title": "The line marks the absolute majority of the Congress: {n} votes.",
-    "card_amend_hint": "A change to the law, not the law"
+    "card_amend_hint": "A change to the law, not the law",
+    "card_ai_title_from_title": "Headline written by AI from the official title"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -795,7 +796,9 @@
     "ballot_eyebrow": "29 November election",
     "ballot_sumar": "The parties in this group run in the general election of 29 November as Frente Amplio: Izquierda Unida, Movimiento Sumar, Más Madrid and Comuns. In some regions they run with other parties under their own name, such as Chunta Aragonesista-Frente Amplio Aragón, Ara MÉS-Front Ampli in the Balearic Islands, Frente Amplio Por Andalucía or Unidad del Pueblo Canario. Podemos runs separately almost everywhere.",
     "ballot_votes_note": "The votes on this page are the parliamentary group's, which in Congress was called Sumar.",
-    "ballot_link": "Follow the pacts and candidacies"
+    "ballot_link": "Follow the pacts and candidacies",
+    "program_eyebrow": "29 November election",
+    "program_link": "Read the official manifesto"
   },
   "home": {
     "eyebrow": "Open data from the Spanish Congress",
@@ -1115,7 +1118,11 @@
     "ballot_tag": "29 Nov: {name}",
     "results_ballot_note": "The results compare votes in Congress, where the group was called Sumar. In the 29 November election these parties run as Frente Amplio, and Podemos runs separately.",
     "meta_result_title": "I agreed {pct}% with {name}",
-    "meta_result_description": "Across {n, plural, one {# real Congress vote} other {# real Congress votes}}. Take the test and see who you agree with."
+    "meta_result_description": "Across {n, plural, one {# real Congress vote} other {# real Congress votes}}. Take the test and see who you agree with.",
+    "results_next_title": "What next?",
+    "results_next_group": "What {name} has done",
+    "results_next_compare": "Compare the parties, topic by topic",
+    "results_next_vote": "Your vote on 29 November: who stands where you vote and how it counts"
   },
   "hub": {
     "joc_title": "Trivia",
@@ -2607,6 +2614,55 @@
     "res_all_circ": "All constituencies",
     "res_updated_day": "Data as of {time}",
     "meta_title_circ": "29 November lists in {circ}",
-    "meta_description_circ": "Who is standing in {circ} at the 29 November general election: every list for the Congress, as the BOE publishes it."
+    "meta_description_circ": "Who is standing in {circ} at the 29 November general election: every list for the Congress, as the BOE publishes it.",
+    "tab_vote": "Your vote",
+    "vote_meta_title": "Your vote on 29 November: how to decide and how it counts",
+    "vote_meta_description": "Four steps to decide your 29 November vote with facts, and how your vote counts in your constituency, from its seats and the 2023 result.",
+    "vote_title": "Your vote",
+    "vote_intro": "How to decide with facts, and how your vote counts where you vote. We won't tell you what to vote: we show what the parties did and how the count works.",
+    "step1_title": "Take the test",
+    "step1_body": "Vote on 10 real Congress votes and see which parties you agree with.",
+    "step1_cta": "How would you vote?",
+    "step2_title": "Compare the parties",
+    "step2_body": "How each party voted, topic by topic: housing, health, work...",
+    "step2_cta": "Compare them",
+    "step3_title": "See who is standing",
+    "step3_body": "The official lists in your constituency, with their candidates.",
+    "step3_cta": "See the lists",
+    "step4_title": "How your vote counts",
+    "step4_body": "How many seats are shared where you vote, and how many votes each seat took in 2023.",
+    "step4_cta": "See below",
+    "weight_title": "How your vote counts",
+    "weight_intro": "Each constituency shares its seats by the D'Hondt rule among the lists above 3% of the valid votes. The fewer seats it has, the larger the share a list needs to win one. Pick yours and see how 2023 went.",
+    "weight_seats": "{circ} elects {n, plural, one {# deputy} other {# deputies}} on 29 November",
+    "weight_seats_change": "In 2023 it elected {n}.",
+    "weight_valid": "Valid votes in 2023",
+    "weight_threshold": "Legal minimum (3%)",
+    "weight_per_seat": "Votes per seat, on average",
+    "weight_lowest_seat": "The list with the fewest votes that won a seat: {list}, with {pct}%.",
+    "weight_highest_without": "The list with the most votes that won none: {list}, with {pct}%.",
+    "weight_table_title": "2023 result",
+    "weight_source": "Source: official result from the Ministry of the Interior (23 July 2023 election). Lists with 1% or more.",
+    "programs_title": "The manifestos",
+    "programs_intro": "The official 29 November manifestos, as each party publishes them. We link them without summarising.",
+    "program_pending": "Not published yet",
+    "program_open": "Read the manifesto"
+  },
+  "dissolved": {
+    "title": "Parliament is dissolved.",
+    "body": "Since 6 October, for the 29 November election, there are no plenary sessions. The new Congress meets on 23 December."
+  },
+  "compare": {
+    "meta_title": "Compare the parties, topic by topic",
+    "meta_description": "How each party in Congress voted on each topic this legislature: housing, health, work, education and more.",
+    "title": "Compare the parties",
+    "subtitle": "Pick a topic and see how each party's deputies voted on its votes this legislature.",
+    "topics_aria": "Topics",
+    "topic_title": "{topic}: how each party voted",
+    "ballot": "29 Nov: {name}",
+    "bar_aria": "{aye}% in favour, {abst}% abstention, {no}% against",
+    "empty": "No votes on this topic this legislature yet.",
+    "method": "Share of each group's deputies' votes across every vote classified under this topic in the 15th legislature, amendments included. These are recorded votes, not each party's stated position.",
+    "see_topic": "See the laws and votes on {topic}"
   }
 }

@@ -1,0 +1,85 @@
+/* "Your vote" (app/eleccions/el-teu-vot): four steps, then how a vote
+   counts in one constituency. */
+.vsteps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 30px;
+  padding: 0;
+  list-style: none;
+}
+.vsteps__item {
+  display: flex;
+  gap: 12px;
+  height: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+  color: var(--ink);
+  text-decoration: none;
+}
+.vsteps__item:hover { border-color: var(--rule-strong); background: var(--paper-2); }
+.vsteps__n {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 700;
+}
+.vsteps__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.vsteps__title { font-size: 15.5px; font-weight: 700; }
+.vsteps__body { font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
+.vsteps__cta { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 13px; font-weight: 700; }
+@media (max-width: 640px) { .vsteps { grid-template-columns: minmax(0, 1fr); } }
+
+.vsec { scroll-margin-top: 80px; }
+.vsec__intro { margin: -4px 0 14px; max-width: 64ch; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+
+.tvot { margin: 4px 0 28px; padding: 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
+.tvot__title { margin: 0; font-family: var(--font-serif); font-size: 22px; line-height: 1.2; color: var(--ink); }
+.tvot__note { margin: 4px 0 0; font-size: 13px; color: var(--ink-3); }
+.tvot__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.tvot__facts > div { padding: 10px 12px; border-radius: 12px; background: var(--paper-2); }
+.tvot__facts dt { font-size: 11.5px; color: var(--ink-3); }
+.tvot__facts dd { margin: 2px 0 0; font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: var(--ink); }
+.tvot__edges { margin: 0 0 14px; padding-left: 18px; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.tvot__sub { margin: 0 0 8px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.tvot__lists { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.tvot__lists > li { display: grid; grid-template-columns: 120px minmax(0, 1fr) 54px 72px; align-items: center; gap: 10px; font-size: 13.5px; }
+.tvot__name { font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.tvot__bar { height: 8px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
+.tvot__bar > span { display: block; height: 100%; background: var(--party); }
+.tvot__pct { text-align: right; color: var(--ink-2); }
+.tvot__seats { text-align: right; font-weight: 700; color: var(--ink); }
+.tvot__source { margin: 12px 0 0; font-size: 12px; color: var(--ink-3); }
+@media (max-width: 640px) {
+  .tvot { padding: 14px; }
+  .tvot__facts { grid-template-columns: minmax(0, 1fr); }
+  .tvot__lists > li { grid-template-columns: 92px minmax(0, 1fr) 48px 64px; gap: 8px; font-size: 13px; }
+}
+
+.vprog { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; margin: 0 0 30px; padding: 0; list-style: none; }
+.vprog > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--party);
+  border-radius: 0 10px 10px 0;
+  background: var(--paper);
+}
+.vprog__name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.vprog__pending { font-size: 12px; color: var(--ink-3); }
+.vprog__link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink); }

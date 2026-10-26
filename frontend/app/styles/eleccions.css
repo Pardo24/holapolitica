@@ -12,6 +12,9 @@
   background: var(--paper-2);
   width: fit-content;
   max-width: 100%;
+  /* Four tabs: they scroll on a phone rather than overflow. */
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 .etab {
   display: inline-flex;

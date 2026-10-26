@@ -2756,3 +2756,32 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .effects__count { font-weight: 700; letter-spacing: 0; }
 .effects__chev { margin-left: auto; transition: transform .15s ease; }
 .effects--fold[open] .effects__chev { transform: rotate(180deg); }
+
+/* The Cortes are dissolved (components/DissolvedNote.tsx). */
+.dissolved {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklch, var(--abst) 35%, var(--paper));
+  background: color-mix(in oklch, var(--abst) 10%, var(--paper));
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.dissolved strong { color: var(--ink); }
+.dissolved--compact { margin: 0 0 10px; padding: 8px 12px; font-size: 12.5px; }
+
+/* "What next?" under the test's results (components/AlignQuiz.tsx). */
+.quiz-next {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 18px 0 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+}
+.quiz-next__title { margin: 0 0 4px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.quiz-next__link { display: flex; align-items: center; min-height: 36px; font-size: 14.5px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.quiz-next__link:hover { text-decoration: underline; }

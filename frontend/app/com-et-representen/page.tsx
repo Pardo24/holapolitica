@@ -159,6 +159,10 @@ export default async function ComEtRepresentenPage({
               results_diff: t('results_diff'),
               ballot_tag: t('ballot_tag'),
               results_ballot_note: t('results_ballot_note'),
+              results_next_title: t('results_next_title'),
+              results_next_group: t('results_next_group'),
+              results_next_compare: t('results_next_compare'),
+              results_next_vote: t('results_next_vote'),
             }}
           />
         )}

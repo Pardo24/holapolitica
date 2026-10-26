@@ -6,6 +6,7 @@ import '@/app/styles/home-and-11-6a6aa9.css';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { DissolvedNote } from '@/components/DissolvedNote';
 import { CalendarDays } from '@/components/icons';
 
 import { NewsletterSignup } from '@/components/NewsletterSignup';
@@ -92,6 +93,7 @@ export default async function AvuiPage() {
 
   return (
     <>
+      <DissolvedNote />
       <SessionSheet
         date={latestDate}
         votes={latestVotes}

@@ -62,6 +62,10 @@ export interface AlignQuizLabels {
   results_diff: string;
   ballot_tag: string; // "29-N: {name}"
   results_ballot_note: string;
+  results_next_title: string;
+  results_next_group: string; // uses {name}
+  results_next_compare: string;
+  results_next_vote: string;
 }
 
 interface GroupResult {
@@ -329,6 +333,20 @@ export function AlignQuiz({
                 {labels.results_ballot_note}
               </p>
             )}
+            {/* From the test to the ballot: a coincidence is where reading
+                starts, not where it ends. */}
+            <nav className="quiz-next" aria-label={labels.results_next_title}>
+              <p className="quiz-next__title">{labels.results_next_title}</p>
+              <a href={`/groups/${results[0]!.slug}`} className="quiz-next__link">
+                {labels.results_next_group.replace('{name}', results[0]!.name)} →
+              </a>
+              <a href="/comparar" className="quiz-next__link">
+                {labels.results_next_compare} →
+              </a>
+              <a href="/eleccions/el-teu-vot" className="quiz-next__link">
+                {labels.results_next_vote} →
+              </a>
+            </nav>
           </>
         )}
 

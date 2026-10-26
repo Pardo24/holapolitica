@@ -364,7 +364,8 @@
     "card_absents": "{n, plural, one {# absent} other {# absents}}",
     "card_majority": "majoria absoluta: {n}",
     "card_majority_title": "La línia marca la majoria absoluta del Congrés: {n} vots.",
-    "card_amend_hint": "Un canvi a la llei, no la llei"
+    "card_amend_hint": "Un canvi a la llei, no la llei",
+    "card_ai_title_from_title": "Titular fet amb IA a partir del títol oficial"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -795,7 +796,9 @@
     "ballot_eyebrow": "Eleccions del 29-N",
     "ballot_sumar": "Els partits d'aquest grup es presenten a les eleccions generals del 29 de novembre com a Frente Amplio: Izquierda Unida, Movimiento Sumar, Más Madrid i Comuns. En algunes comunitats hi van amb altres partits i amb un nom propi, com Chunta Aragonesista-Frente Amplio Aragón, Ara MÉS-Front Ampli a les Illes Balears, Frente Amplio Por Andalucía o Unidad del Pueblo Canario. Podemos s'hi presenta per separat a gairebé tot l'Estat.",
     "ballot_votes_note": "Les votacions d'aquesta pàgina són del grup parlamentari, que al Congrés es deia Sumar.",
-    "ballot_link": "Segueix els pactes i les candidatures"
+    "ballot_link": "Segueix els pactes i les candidatures",
+    "program_eyebrow": "Eleccions del 29-N",
+    "program_link": "Llegeix el programa electoral oficial"
   },
   "home": {
     "eyebrow": "Open data del Congrés dels Diputats",
@@ -1115,7 +1118,11 @@
     "ballot_tag": "29-N: {name}",
     "results_ballot_note": "Els resultats comparen vots al Congrés, on el grup es deia Sumar. A les eleccions del 29 de novembre aquests partits es presenten com a Frente Amplio, i Podemos hi va per separat.",
     "meta_result_title": "He coincidit un {pct}% amb {name}",
-    "meta_result_description": "En {n, plural, one {# votació real} other {# votacions reals}} del Congrés. Fes el test i mira amb qui coincideixes tu."
+    "meta_result_description": "En {n, plural, one {# votació real} other {# votacions reals}} del Congrés. Fes el test i mira amb qui coincideixes tu.",
+    "results_next_title": "I ara?",
+    "results_next_group": "Què ha fet {name}",
+    "results_next_compare": "Compara els partits, tema a tema",
+    "results_next_vote": "El teu vot el 29-N: qui es presenta on votes i com compta"
   },
   "hub": {
     "joc_title": "Trivia",
@@ -2606,6 +2613,55 @@
     "res_all_circ": "Totes les circumscripcions",
     "res_updated_day": "Dades del {time}",
     "meta_title_circ": "Candidatures a {circ} per al 29-N",
-    "meta_description_circ": "Qui es presenta a {circ} a les eleccions generals del 29 de novembre: totes les candidatures al Congrés, tal com les publica el BOE."
+    "meta_description_circ": "Qui es presenta a {circ} a les eleccions generals del 29 de novembre: totes les candidatures al Congrés, tal com les publica el BOE.",
+    "tab_vote": "El teu vot",
+    "vote_meta_title": "El teu vot el 29-N: com decidir i com compta",
+    "vote_meta_description": "Quatre passos per decidir el vot del 29 de novembre amb fets, i com compta el teu vot a la teva circumscripció segons els escons i el resultat del 2023.",
+    "vote_title": "El teu vot",
+    "vote_intro": "Com decidir amb fets, i com compta el teu vot on votes. Aquí no et direm què votar: et mostrem què han fet els partits i com funciona el recompte.",
+    "step1_title": "Fes el test",
+    "step1_body": "Vota 10 votacions reals del Congrés i mira amb quins partits coincideixes.",
+    "step1_cta": "Què votaries tu?",
+    "step2_title": "Compara els partits",
+    "step2_body": "Com ha votat cada partit, tema a tema: habitatge, sanitat, feina...",
+    "step2_cta": "Compara'ls",
+    "step3_title": "Mira qui es presenta",
+    "step3_body": "Les llistes oficials de la teva circumscripció, amb els candidats.",
+    "step3_cta": "Veure les candidatures",
+    "step4_title": "Com compta el teu vot",
+    "step4_body": "Quants escons es reparteixen on votes i quants vots va costar cada escó el 2023.",
+    "step4_cta": "Mira-ho a sota",
+    "weight_title": "Com compta el teu vot",
+    "weight_intro": "Cada circumscripció reparteix els seus escons amb la regla D'Hondt entre les llistes que passen el 3% dels vots vàlids. Com menys escons té, més percentatge cal per treure'n un. Tria la teva i mira com va anar el 2023.",
+    "weight_seats": "{circ} elegeix {n, plural, one {# diputat} other {# diputats}} el 29-N",
+    "weight_seats_change": "El 2023 n'elegia {n}.",
+    "weight_valid": "Vots vàlids el 2023",
+    "weight_threshold": "Mínim legal (3%)",
+    "weight_per_seat": "Vots per escó, de mitjana",
+    "weight_lowest_seat": "La llista amb menys vots que va treure escó: {list}, amb el {pct}%.",
+    "weight_highest_without": "La llista amb més vots que no en va treure: {list}, amb el {pct}%.",
+    "weight_table_title": "Resultat del 2023",
+    "weight_source": "Font: resultat oficial del Ministeri de l'Interior (eleccions del 23 de juliol de 2023). Llistes amb l'1% o més.",
+    "programs_title": "Els programes",
+    "programs_intro": "Els programes electorals oficials del 29-N, tal com els publiqui cada partit. Els enllacem sense resumir-los.",
+    "program_pending": "Encara no publicat",
+    "program_open": "Llegir el programa"
+  },
+  "dissolved": {
+    "title": "Les Corts estan dissoltes.",
+    "body": "Des del 6 d'octubre, per les eleccions del 29 de novembre, no hi ha plens. El nou Congrés es constitueix el 23 de desembre."
+  },
+  "compare": {
+    "meta_title": "Compara els partits, tema a tema",
+    "meta_description": "Com ha votat cada partit del Congrés en les votacions de cada tema aquesta legislatura: habitatge, sanitat, feina, educació i més.",
+    "title": "Compara els partits",
+    "subtitle": "Tria un tema i mira com han votat els diputats de cada partit en les votacions d'aquest tema, aquesta legislatura.",
+    "topics_aria": "Temes",
+    "topic_title": "{topic}: com ha votat cada partit",
+    "ballot": "29-N: {name}",
+    "bar_aria": "{aye}% a favor, {abst}% abstenció, {no}% en contra",
+    "empty": "Encara no hi ha votacions d'aquest tema en aquesta legislatura.",
+    "method": "Percentatge dels vots dels diputats de cada grup en totes les votacions classificades en aquest tema a la XV legislatura, incloses les esmenes. Són els vots registrats, no la posició que declara cada partit.",
+    "see_topic": "Veure les lleis i votacions de {topic}"
   }
 }

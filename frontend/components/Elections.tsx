@@ -16,13 +16,14 @@ export async function ElectionsHeader({
   title,
   intro,
 }: {
-  active: 'candidacies' | 'results' | 'pacts';
+  active: 'candidacies' | 'vote' | 'results' | 'pacts';
   title: string;
   intro: string;
 }) {
   const t = await getTranslations('elections');
   const tabs = [
     { key: 'candidacies', href: '/eleccions', label: t('tab_candidacies') },
+    { key: 'vote', href: '/eleccions/el-teu-vot', label: t('tab_vote') },
     { key: 'results', href: '/eleccions/resultats', label: t('tab_results') },
     { key: 'pacts', href: '/pactes', label: t('tab_pacts') },
   ] as const;
