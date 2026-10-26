@@ -2574,8 +2574,10 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .vcard__exp { font-size: 10px; word-break: break-all; }
 .vcard__foot > details { order: 90; margin: 0; }
 .vcard__foot > details[open] { flex-basis: 100%; order: 99; }
-.vcard__foot > .effects--fold { padding: 0; border: 0; background: none; }
-.vcard__foot > .effects--fold > summary {
+.vcard .effects--fold { padding: 0; border: 0; background: none; }
+/* Folded under the summary (list cards): a pill, opening into a panel. */
+.vcard__head > .effects--fold { margin-top: 12px; }
+.vcard .effects--fold > summary {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -2586,16 +2588,16 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   background: var(--hue-lleis-soft);
   font-size: 11px;
 }
-.vcard__foot > .effects--fold > summary .effects__chev { margin-left: 2px; }
-.vcard__foot > .effects--fold[open] > summary { padding-bottom: 0; }
-.vcard__foot > .effects--fold > .effects__list {
+.vcard .effects--fold > summary .effects__chev { margin-left: 2px; }
+.vcard .effects--fold[open] > summary { padding-bottom: 0; }
+.vcard .effects--fold > .effects__list {
   margin: 8px 0 0;
   padding: 12px 14px;
   border-radius: 12px;
   background: var(--hue-lleis-soft);
 }
-.vcard__foot > .effects--fold > .effects__more { display: inline-block; margin: 6px 0 0; }
-.vcard__foot > .effects--fold > :last-child { margin-bottom: 0; }
+.vcard .effects--fold > .effects__more { display: inline-block; margin: 6px 0 0; }
+.vcard .effects--fold > :last-child { margin-bottom: 0; }
 .vcard__foot > .law-card-votes > summary {
   min-height: 30px;
   padding: 0 11px;
@@ -2638,7 +2640,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   .vcard__point-count { justify-self: end; }
 }
 
-/* Who tabled it, on the card's first line (ProposerChip). */
+/* Who tabled it, in the card's foot (ProposerChip). */
 .vcard__by { display: inline-flex; align-items: center; gap: 6px; margin-left: 4px; }
 .vcard__by-label { font-size: 11.5px; color: var(--ink-3); }
 .vcard__by-chip {
@@ -2656,6 +2658,14 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 }
 .vcard__by-chip img { width: 18px; height: 18px; border-radius: 999px; object-fit: contain; background: #fff; }
 .vcard__by-dot { width: 8px; height: 8px; margin-left: 6px; border-radius: 999px; }
+/* In the foot, who tabled it leads: a size up, the extras pushed right. */
+.vcard__foot > .vcard__by { margin: 0 auto 0 0; gap: 8px; }
+.vcard__foot > .vcard__by .vcard__by-label { font-size: 12px; font-weight: 600; }
+.vcard__foot .vcard__by-chip { padding: 3px 11px 3px 3px; font-size: 13.5px; }
+.vcard__foot .vcard__by-chip img { width: 22px; height: 22px; }
+.vcard__foot .vcard__by-dot { width: 12px; height: 12px; margin-left: 7px; }
+.vcard__foot > .vcard__by { flex-wrap: wrap; }
+.vcard__by-more { font-size: 12px; font-weight: 600; color: var(--ink-2); }
 
 /* The scoreboard. */
 .vcard__score {

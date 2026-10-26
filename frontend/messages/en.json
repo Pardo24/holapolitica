@@ -1155,7 +1155,7 @@
     "results_next_title": "What next?",
     "results_next_group": "What {name} has done",
     "results_next_compare": "Compare the parties, topic by topic",
-    "results_next_vote": "Your vote on 29 November: who stands where you vote and how it counts",
+    "results_next_vote": "Decide your vote on 29 November: who stands where you vote and how it counts",
     "meta_description": "Vote on real Congress votes and find out which parties you agree with most. Three minutes, no sign-up, on your phone."
   },
   "hub": {
@@ -2415,7 +2415,9 @@
     "plens_sub": "What is voted, and the outcome",
     "plens_next": "Next sitting: {date}",
     "laws_title": "What affects you",
-    "laws_sub": "Pick your situation"
+    "laws_sub": "Pick your situation",
+    "elections_title": "29 November election",
+    "elections_sub": "Candidacies and pacts"
   },
   "stats_q": {
     "subtitle": "Four questions about how the Congress works.",
@@ -2651,10 +2653,10 @@
     "res_updated_day": "Data as of {time}",
     "meta_title_circ": "29 November lists in {circ}",
     "meta_description_circ": "Who is standing in {circ} at the 29 November general election: every list for the Congress, as the BOE publishes it.",
-    "tab_vote": "Your vote",
-    "vote_meta_title": "Your vote on 29 November: how to decide and how it counts",
+    "tab_vote": "Decide your vote",
+    "vote_meta_title": "Decide your vote on 29 November: a 4-step guide",
     "vote_meta_description": "Four steps to decide your 29 November vote with facts, and how your vote counts in your constituency, from its seats and the 2023 result.",
-    "vote_title": "Your vote",
+    "vote_title": "Decide your vote",
     "vote_intro": "How to decide with facts, and how your vote counts where you vote. We won't tell you what to vote: we show what the parties did and how the count works.",
     "step1_title": "Take the test",
     "step1_body": "Vote on 10 real Congress votes and see which parties you agree with.",
@@ -2682,7 +2684,11 @@
     "programs_title": "The manifestos",
     "programs_intro": "The official 29 November manifestos, as each party publishes them. We link them without summarising.",
     "program_pending": "Not published yet",
-    "program_open": "Read the manifesto"
+    "program_open": "Read the manifesto",
+    "guide_eyebrow": "29 November · {n, plural, one {# day to go} other {# days to go}}",
+    "guide_title": "Decide your vote",
+    "guide_sub": "A 4-step guide: take the test, compare the parties, see who is standing and how your vote counts. Without telling you what to vote.",
+    "guide_cta": "Start"
   },
   "dissolved": {
     "title": "Parliament is dissolved.",

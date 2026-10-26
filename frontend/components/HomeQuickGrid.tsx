@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { CalendarDays, Gamepad2, Map as MapIcon, Sparkles, UserRound, Users, type LucideIcon } from '@/components/icons';
+import { CalendarDays, Gamepad2, Map as MapIcon, Sparkles, UserRound, Users, Vote, type LucideIcon } from '@/components/icons';
+import { daysToElection } from '@/lib/electionParties';
 
 /**
  * The home's first screen: what you can do here, as six tiles.
@@ -50,13 +51,23 @@ export async function HomeQuickGrid({
       title: t('play_title'),
       sub: t('play_sub'),
     },
-    {
-      href: '/com-et-representen',
-      Icon: Sparkles,
-      hue: 'var(--hue-alinea)',
-      title: t('align_title'),
-      sub: t('align_sub'),
-    },
+    // Until the election the test is step one of the guide in the banner
+    // above, so its tile hands over to the candidacies and pacts.
+    daysToElection() > 0
+      ? {
+          href: '/eleccions',
+          Icon: Vote,
+          hue: 'var(--accent)',
+          title: t('elections_title'),
+          sub: t('elections_sub'),
+        }
+      : {
+          href: '/com-et-representen',
+          Icon: Sparkles,
+          hue: 'var(--hue-alinea)',
+          title: t('align_title'),
+          sub: t('align_sub'),
+        },
     {
       href: '/el-teu-diputat',
       Icon: Users,

@@ -935,7 +935,6 @@ function LawVoteGroup({
               .map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
-            <CardProposer proposer={proposer} />
           </div>
           <h3 className="vcard__title">
             {lawHref ? (
@@ -952,6 +951,15 @@ function LawVoteGroup({
           </h3>
           {pickPlainTitle(lead, locale) && plainSummary && (
             <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+          )}
+          {effectsFor(lawEffects, locale).length > 0 && (
+            <ProfileEffects
+              effects={lawEffects}
+              locale={locale}
+              max={3}
+              moreHref={lawHref ? `${lawHref}#com-t-afecta` : undefined}
+              folded
+            />
           )}
           {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
           {proceduralNote && (
@@ -1014,6 +1022,7 @@ function LawVoteGroup({
       }
       foot={
         <>
+          <CardProposer proposer={proposer} />
           <details className="law-card-votes">
             <summary>
               {byPoints ? labels.pointsGroupsToggle : labels.votesToggle(ordered.length)}
@@ -1044,15 +1053,6 @@ function LawVoteGroup({
               ))}
             </ul>
           </details>
-          {effectsFor(lawEffects, locale).length > 0 && (
-            <ProfileEffects
-              effects={lawEffects}
-              locale={locale}
-              max={3}
-              moreHref={lawHref ? `${lawHref}#com-t-afecta` : undefined}
-              folded
-            />
-          )}
         </>
       }
     />
@@ -1254,15 +1254,6 @@ function VoteRow({
               .map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
-            <CardProposer
-              proposer={
-                proposer
-                  ? proposer.kind === 'group'
-                    ? proposer
-                    : { kind: 'government', short: proposer.short, color: proposer.color }
-                  : null
-              }
-            />
           </div>
           <h3 className="vcard__title">
             <Link href={voteHref} className="serif">
@@ -1272,6 +1263,15 @@ function VoteRow({
           </h3>
           {pickPlainTitle(vote, locale) && plainSummary && (
             <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+          )}
+          {effectsFor(vote.profile_effects, locale).length > 0 && (
+            <ProfileEffects
+              effects={vote.profile_effects}
+              locale={locale}
+              max={3}
+              moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : voteHref}
+              folded
+            />
           )}
           {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
           {proceduralNote && (
@@ -1293,14 +1293,14 @@ function VoteRow({
         <GroupRows groups={stance ?? []} empty={<NoBreakdownFor vote={vote} labels={noBreakLabels} />} />
       }
       foot={
-        // Only "what it means for you" lives here now; no empty foot.
-        effectsFor(vote.profile_effects, locale).length > 0 ? (
-          <ProfileEffects
-            effects={vote.profile_effects}
-            locale={locale}
-            max={3}
-            moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : voteHref}
-            folded
+        // Only who tabled it lives here now; no empty foot.
+        proposer && (proposer.kind !== 'group' || proposer.slug) ? (
+          <CardProposer
+            proposer={
+              proposer.kind === 'group'
+                ? proposer
+                : { kind: 'government', short: proposer.short, color: proposer.color }
+            }
           />
         ) : null
       }

@@ -1155,7 +1155,7 @@
     "results_next_title": "¿Y ahora?",
     "results_next_group": "Qué ha hecho {name}",
     "results_next_compare": "Compara los partidos, tema a tema",
-    "results_next_vote": "Tu voto el 29-N: quién se presenta donde votas y cómo cuenta",
+    "results_next_vote": "Decide tu voto el 29-N: quién se presenta donde votas y cómo cuenta",
     "meta_description": "Vota tú las votaciones reales del Congreso y descubre con qué partidos coincides más. En 3 minutos, sin registro y desde tu móvil."
   },
   "hub": {
@@ -2415,7 +2415,9 @@
     "plens_sub": "Qué se vota y cómo sale",
     "plens_next": "Próximo pleno: {date}",
     "laws_title": "Qué te afecta",
-    "laws_sub": "Elige tu situación"
+    "laws_sub": "Elige tu situación",
+    "elections_title": "Elecciones 29‑N",
+    "elections_sub": "Candidaturas y pactos"
   },
   "stats_q": {
     "subtitle": "Cuatro preguntas sobre cómo trabaja el Congreso.",
@@ -2651,10 +2653,10 @@
     "res_updated_day": "Datos del {time}",
     "meta_title_circ": "Candidaturas en {circ} para el 29-N",
     "meta_description_circ": "Quién se presenta en {circ} a las elecciones generales del 29 de noviembre: todas las candidaturas al Congreso, tal como las publica el BOE.",
-    "tab_vote": "Tu voto",
-    "vote_meta_title": "Tu voto el 29-N: cómo decidir y cómo cuenta",
+    "tab_vote": "Decide tu voto",
+    "vote_meta_title": "Decide tu voto el 29-N: guía en 4 pasos",
     "vote_meta_description": "Cuatro pasos para decidir el voto del 29 de noviembre con hechos, y cómo cuenta tu voto en tu circunscripción según los escaños y el resultado de 2023.",
-    "vote_title": "Tu voto",
+    "vote_title": "Decide tu voto",
     "vote_intro": "Cómo decidir con hechos, y cómo cuenta tu voto donde votas. Aquí no te diremos qué votar: te mostramos qué han hecho los partidos y cómo funciona el recuento.",
     "step1_title": "Haz el test",
     "step1_body": "Vota 10 votaciones reales del Congreso y mira con qué partidos coincides.",
@@ -2682,7 +2684,11 @@
     "programs_title": "Los programas",
     "programs_intro": "Los programas electorales oficiales del 29-N, tal como los publique cada partido. Los enlazamos sin resumirlos.",
     "program_pending": "Todavía no publicado",
-    "program_open": "Leer el programa"
+    "program_open": "Leer el programa",
+    "guide_eyebrow": "29-N · {n, plural, one {falta # día} other {faltan # días}}",
+    "guide_title": "Decide tu voto",
+    "guide_sub": "Una guía en 4 pasos: haz el test, compara los partidos, mira quién se presenta y cómo cuenta tu voto. Sin decirte qué votar.",
+    "guide_cta": "Empieza"
   },
   "dissolved": {
     "title": "Las Cortes están disueltas.",

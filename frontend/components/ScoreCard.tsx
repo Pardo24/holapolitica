@@ -244,20 +244,37 @@ export async function ProposerChip({
   short: string;
   color?: string | null;
 }) {
+  return <ProposerChips proposers={[{ slug, short, color }]} />;
+}
+
+/** The same, for a text tabled by several groups together: one chip each,
+ *  the first three, then how many more. */
+export async function ProposerChips({
+  proposers,
+  more = null,
+}: {
+  proposers: { slug: string | null; short: string; color?: string | null }[];
+  more?: string | null;
+}) {
   const t = await getTranslations('lleis');
-  const logo = slug ? groupLogoUrl(slug) : null;
   return (
     <span className="vcard__by">
       <span className="vcard__by-label">{t('card_proposed_label')}</span>
-      <span className="vcard__by-chip">
-        {logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={logo} alt="" width={18} height={18} loading="lazy" decoding="async" />
-        ) : (
-          <span className="vcard__by-dot" style={{ background: color ?? 'var(--ink)' }} aria-hidden="true" />
-        )}
-        {short}
-      </span>
+      {proposers.map(({ slug, short, color }) => {
+        const logo = slug ? groupLogoUrl(slug) : null;
+        return (
+          <span key={slug ?? short} className="vcard__by-chip">
+            {logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logo} alt="" width={18} height={18} loading="lazy" decoding="async" />
+            ) : (
+              <span className="vcard__by-dot" style={{ background: color ?? 'var(--ink)' }} aria-hidden="true" />
+            )}
+            {short}
+          </span>
+        );
+      })}
+      {more && <span className="vcard__by-more">{more}</span>}
     </span>
   );
 }

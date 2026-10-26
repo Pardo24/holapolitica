@@ -1155,7 +1155,7 @@
     "results_next_title": "I ara?",
     "results_next_group": "Què ha fet {name}",
     "results_next_compare": "Compara els partits, tema a tema",
-    "results_next_vote": "El teu vot el 29-N: qui es presenta on votes i com compta",
+    "results_next_vote": "Decideix el teu vot el 29-N: qui es presenta on votes i com compta",
     "meta_description": "Vota tu les votacions reals del Congrés i descobreix amb quins partits coincideixes més. En 3 minuts, sense registre i des del teu mòbil."
   },
   "hub": {
@@ -2414,7 +2414,9 @@
     "plens_sub": "Què es vota i com surt",
     "plens_next": "Proper ple: {date}",
     "laws_title": "Què t'afecta",
-    "laws_sub": "Tria la teva situació"
+    "laws_sub": "Tria la teva situació",
+    "elections_title": "Eleccions 29‑N",
+    "elections_sub": "Candidatures i pactes"
   },
   "stats_q": {
     "subtitle": "Quatre preguntes sobre com treballa el Congrés.",
@@ -2650,10 +2652,10 @@
     "res_updated_day": "Dades del {time}",
     "meta_title_circ": "Candidatures a {circ} per al 29-N",
     "meta_description_circ": "Qui es presenta a {circ} a les eleccions generals del 29 de novembre: totes les candidatures al Congrés, tal com les publica el BOE.",
-    "tab_vote": "El teu vot",
-    "vote_meta_title": "El teu vot el 29-N: com decidir i com compta",
+    "tab_vote": "Decideix el vot",
+    "vote_meta_title": "Decideix el teu vot el 29-N: guia en 4 passos",
     "vote_meta_description": "Quatre passos per decidir el vot del 29 de novembre amb fets, i com compta el teu vot a la teva circumscripció segons els escons i el resultat del 2023.",
-    "vote_title": "El teu vot",
+    "vote_title": "Decideix el teu vot",
     "vote_intro": "Com decidir amb fets, i com compta el teu vot on votes. Aquí no et direm què votar: et mostrem què han fet els partits i com funciona el recompte.",
     "step1_title": "Fes el test",
     "step1_body": "Vota 10 votacions reals del Congrés i mira amb quins partits coincideixes.",
@@ -2681,7 +2683,11 @@
     "programs_title": "Els programes",
     "programs_intro": "Els programes electorals oficials del 29-N, tal com els publiqui cada partit. Els enllacem sense resumir-los.",
     "program_pending": "Encara no publicat",
-    "program_open": "Llegir el programa"
+    "program_open": "Llegir el programa",
+    "guide_eyebrow": "29-N · {n, plural, one {falta # dia} other {falten # dies}}",
+    "guide_title": "Decideix el teu vot",
+    "guide_sub": "Una guia en 4 passos: fes el test, compara els partits, mira qui es presenta i com compta el teu vot. Sense dir-te què votar.",
+    "guide_cta": "Comença"
   },
   "dissolved": {
     "title": "Les Corts estan dissoltes.",

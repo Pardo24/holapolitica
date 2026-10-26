@@ -58,6 +58,27 @@ export async function ElectionsBanner() {
   const t = await getTranslations('elections');
   const n = daysToElection();
   if (n < -3) return null;
+  if (n > 0) {
+    // Until polling day the way in is the guide to deciding: the test,
+    // the parties side by side, who stands and how a vote counts, behind
+    // one button. The candidacies have their own tile in the grid.
+    return (
+      <Link href={'/eleccions/el-teu-vot' as Route} className="ebanner ebanner--guide">
+        <span className="ebanner__mark tabular" aria-hidden="true">
+          29N
+        </span>
+        <span className="ebanner__text">
+          <span className="ebanner__eyebrow">{t('guide_eyebrow', { n })}</span>
+          <span className="ebanner__title">{t('guide_title')}</span>
+          <span className="ebanner__sub">{t('guide_sub')}</span>
+        </span>
+        <span className="ebanner__cta">
+          {t('guide_cta')}
+          <ArrowRight size={16} aria-hidden="true" />
+        </span>
+      </Link>
+    );
+  }
   return (
     // From polling day on, the way in is the count.
     <Link href={(n <= 0 ? '/eleccions/resultats' : '/eleccions') as Route} className="ebanner">

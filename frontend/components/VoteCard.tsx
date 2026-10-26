@@ -61,13 +61,6 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
             {(vote.topics ?? []).slice(0, 2).map((tp) => (
               <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
             ))}
-            {proposer && (
-              <ProposerChip
-                slug={byGovernment ? null : (vote.proposing_group_slug ?? null)}
-                short={proposer}
-                color={vote.proposing_group_color}
-              />
-            )}
           </div>
           {/* The headline is either a machine summary or the chamber's own
               wording, and which one it is should never be a guess. */}
@@ -85,6 +78,13 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
             // and the card does not pretend it can show it.
             <span className="vcard__more">{t('card_more_points', { n: morePoints })}</span>
           )}
+          <ProfileEffects
+            effects={vote.profile_effects}
+            locale={locale}
+            max={3}
+            moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : undefined}
+            folded
+          />
         </>
       }
       score={
@@ -102,15 +102,15 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
       groups={vote.approved_by_assent ? null : <GroupRows groups={vote.groups ?? []} />}
       foot={
         <>
+          {proposer && (
+            <ProposerChip
+              slug={byGovernment ? null : (vote.proposing_group_slug ?? null)}
+              short={proposer}
+              color={vote.proposing_group_color}
+            />
+          )}
           {vote.expediente_raw && <span className="mono vcard__exp">{vote.expediente_raw}</span>}
           {plainSummary && <LawOriginalToggle original={subject} provider={vote.plain_summary_provider} />}
-          <ProfileEffects
-            effects={vote.profile_effects}
-            locale={locale}
-            max={3}
-            moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : undefined}
-            folded
-          />
         </>
       }
     />

@@ -9,13 +9,13 @@ import { DecreeLinkNote } from '@/components/DecreeLinkNote';
 import { SameProposalNote } from '@/components/SameProposalNote';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
-import { GroupRows, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChips, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import { TopicChip } from '@/components/TopicChip';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
 import type { InitiativeListItem } from '@/lib/api';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
-import { type ParsedProposer } from '@/lib/groups';
+import { displayGroupShort, type ParsedProposer } from '@/lib/groups';
 import { STATUS_KEY, prefersVoteResult } from '@/lib/lawStatus';
 import { pickTopicName } from '@/lib/topics';
 import { changeTagIcon, isChangeTag, pdfUrl } from '@/lib/changeTags';
@@ -113,10 +113,11 @@ export async function LawCard({
       : (initiative.affected_audiences?.es ?? initiative.affected_audiences?.ca)
   )?.filter(Boolean);
 
-  // "What it means for you" is folded in the foot of the list card; on a
-  // situation's page it is what the reader came for, so it stays open,
-  // under the headline.
+  // "What it means for you" is folded under the summary in the list card;
+  // on a situation's page it is what the reader came for, so it stays
+  // open, in the summary's place.
   const effectsOpen = hasEffects && !!profileKey;
+  const hasProposer = parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '';
   const stageEyebrow =
     vote?.stage === 'totality'
       ? t('card_votes_eyebrow_totality')
@@ -143,19 +144,6 @@ export async function LawCard({
               .map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
-            {/* Who tabled it, on the first line: a motion is read through
-                who asks for it. */}
-            {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
-              <span className="vcard__by">
-                <span className="vcard__by-label">{t('card_proposed_label')}</span>
-                <ProposerBadges
-                  parsed={parsed}
-                  governmentLabel={tTopic('proposer_government_label')}
-                  moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
-                  rawFallback={initiative.submitted_by ?? ''}
-                />
-              </span>
-            )}
           </div>
           {/* What it does, in plain language. A machine-written line carries a
               small sparkle (with its label for screen readers and on hover). */}
@@ -184,7 +172,20 @@ export async function LawCard({
               moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
             />
           ) : (
-            cardSummary && <p className="law-card-summary">{cardSummary}</p>
+            <>
+              {cardSummary && <p className="law-card-summary">{cardSummary}</p>}
+              {/* "What it means for you", folded, right under what the law
+                  does: the two are read together. */}
+              {hasEffects && (
+                <ProfileEffects
+                  effects={initiative.profile_effects}
+                  locale={locale}
+                  max={3}
+                  moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
+                  folded
+                />
+              )}
+            </>
           )}
           {/* Who it touches: the collectives named in the text itself. */}
           {!hasEffects && audiences && audiences.length > 0 && (
@@ -232,24 +233,48 @@ export async function LawCard({
       }
       groups={vote && !vote.approved_by_assent ? <GroupRows groups={vote.groups} /> : null}
       foot={
-        pdf || (hasEffects && !effectsOpen) ? (
-        <>
-          {pdf && (
-            <a href={pdf} target="_blank" rel="noopener noreferrer" className="card-pdf-link">
-              <FileText size={12} strokeWidth={2} aria-hidden="true" />
-              {tLawText('pdf_short')}
-            </a>
-          )}
-          {hasEffects && !effectsOpen && (
-            <ProfileEffects
-              effects={initiative.profile_effects}
-              locale={locale}
-              max={3}
-              moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
-              folded
-            />
-          )}
-        </>
+        hasProposer || pdf ? (
+          <>
+            {/* Who tabled it, across the foot where it is seen at once: a
+                law is read through who asks for it. */}
+            {parsed.isGovernment || parsed.groups.length > 0 ? (
+              <ProposerChips
+                proposers={
+                  parsed.isGovernment
+                    ? [{ slug: null, short: tTopic('proposer_government_label'), color: '#9ca3af' }]
+                    : parsed.groups.slice(0, 3).map((g) => ({
+                        slug: g.slug,
+                        short: displayGroupShort(g.name_short),
+                        color: g.color_hex,
+                      }))
+                }
+                more={
+                  parsed.groups.length > 3
+                    ? tTopic('proposer_more_groups', { count: parsed.groups.length - 3 })
+                    : null
+                }
+              />
+            ) : (
+              hasProposer && (
+                // Free text we could not match to a group: shown as written.
+                <span className="vcard__by">
+                  <span className="vcard__by-label">{t('card_proposed_label')}</span>
+                  <ProposerBadges
+                    parsed={parsed}
+                    governmentLabel={tTopic('proposer_government_label')}
+                    moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
+                    rawFallback={initiative.submitted_by ?? ''}
+                  />
+                </span>
+              )
+            )}
+            {pdf && (
+              <a href={pdf} target="_blank" rel="noopener noreferrer" className="card-pdf-link">
+                <FileText size={12} strokeWidth={2} aria-hidden="true" />
+                {tLawText('pdf_short')}
+              </a>
+            )}
+          </>
         ) : null
       }
     />
