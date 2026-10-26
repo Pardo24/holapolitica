@@ -34,7 +34,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const referer = request.headers.get('referer');
   let target = '/';
   if (typeof redirectField === 'string' && redirectField.startsWith('/')) {
-    target = redirectField;
+    // Only a path on this site: ``//other.site`` and ``/\other.site`` are
+    // read by browsers as another host.
+    const url = new URL(redirectField, 'http://site.invalid');
+    if (url.origin === 'http://site.invalid') target = `${url.pathname}${url.search}`;
   } else if (referer) {
     try {
       const url = new URL(referer);
