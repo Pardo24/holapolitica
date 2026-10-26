@@ -724,9 +724,11 @@ async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | No
                 verb = "la propuso" if lang == "es" else "la va proposar"
                 return _Resolved(
                     **base,
-                    prompt="¿Quién propuso esta iniciativa?"
-                    if lang == "es"
-                    else "Qui va proposar aquesta iniciativa?",
+                    prompt=(
+                        "¿Quién propuso esta iniciativa?"
+                        if lang == "es"
+                        else "Qui va proposar aquesta iniciativa?"
+                    ),
                     options=options,
                     correct_index=options.index(right),
                     explanation=(

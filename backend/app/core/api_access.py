@@ -140,9 +140,8 @@ class ApiAccessMiddleware:
         self, scope: Scope, headers: dict[str, str], path: str
     ) -> tuple[int, dict[str, str], list[tuple[bytes, bytes]]] | None:
         # Behind Caddy, which overwrites X-Forwarded-For with the real peer.
-        ip = (
-            headers.get("x-forwarded-for", "").split(",")[0].strip()
-            or ((scope.get("client") or ("?", 0))[0])
+        ip = headers.get("x-forwarded-for", "").split(",")[0].strip() or (
+            (scope.get("client") or ("?", 0))[0]
         )
         query = parse_qs(scope.get("query_string", b"").decode("latin-1"))
         key = headers.get("x-api-key") or (query.get("key") or [""])[0]

@@ -707,8 +707,7 @@ async def _load_latest_vote(
                 Vote.description,
                 Vote.subgroup_title,
                 Vote.subgroup_text,
-            )
-            .where(Vote.initiative_id.in_(initiative_ids))
+            ).where(Vote.initiative_id.in_(initiative_ids))
             # Every vote of a sitting carries the same noon timestamp, so the
             # order within the day is the session's own: sequence, then id.
             # Ordering by the date alone picked an arbitrary vote of the day,
