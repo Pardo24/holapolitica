@@ -44,12 +44,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  const response = NextResponse.redirect(new URL(target, request.url), {
-    // 303 forces a GET on the redirect target — correct for the
-    // POST/Redirect/GET idiom and prevents browsers from re-submitting
-    // the form if the user navigates back.
-    status: 303,
-  });
+  // A relative Location, resolved by the browser against the page it is on.
+  // ``request.url`` is the address of the Next worker behind the page cache
+  // (server/launch.mjs), so an absolute redirect built from it sent every
+  // desktop language switch to https://localhost:3101/.
+  // 303 forces a GET on the redirect target — correct for the
+  // POST/Redirect/GET idiom and prevents browsers from re-submitting
+  // the form if the user navigates back.
+  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
   response.cookies.set(COOKIE_NAME, locale, {
     path: '/',
     maxAge: COOKIE_MAX_AGE,

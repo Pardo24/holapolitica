@@ -62,9 +62,14 @@ export function middleware(request: NextRequest) {
   // language choice: set the cookie and redirect to the unprefixed path.
   const prefixed = LOCALE_PREFIX.exec(request.nextUrl.pathname);
   if (prefixed) {
-    const url = request.nextUrl.clone();
-    url.pathname = prefixed[2] || '/';
-    const redirect = NextResponse.redirect(url);
+    // The request URL here carries the address of the Next worker behind
+    // the page cache (server/launch.mjs), not the site's, and middleware
+    // only takes absolute redirects: rebuild the origin from the headers
+    // Caddy forwards.
+    const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+    const proto = request.headers.get('x-forwarded-proto') ?? request.nextUrl.protocol.replace(':', '');
+    const target = (prefixed[2] || '/') + request.nextUrl.search;
+    const redirect = NextResponse.redirect(new URL(target, host ? `${proto}://${host}` : request.url));
     redirect.cookies.set({
       name: COOKIE_NAME,
       value: prefixed[1]!,
