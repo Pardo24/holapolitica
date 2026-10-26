@@ -39,6 +39,7 @@ import { isNativeApp } from '@/lib/native';
 
 const DISMISS_KEY = 'holapolitica.install.dismissed.v1';
 const SECOND_VISIT_KEY = 'holapolitica.visited.v1';
+const SHOW_AFTER_MS = 25_000;
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -82,6 +83,15 @@ export function InstallPrompt() {
   const [showIosBanner, setShowIosBanner] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Not on arrival: it covered the page (and the phone's tab bar) the
+  // moment a returning reader opened any link. It waits until they have
+  // been reading for a while in this visit.
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setReady(true), SHOW_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -175,13 +185,14 @@ export function InstallPrompt() {
     }
   }
 
-  if (dismissed) return null;
+  if (dismissed || !ready) return null;
   if (!installEvent && !showIosBanner) return null;
 
   return (
     <div
       role="region"
       aria-label={t('region_aria')}
+      className="install-prompt"
       style={{
         position: 'fixed',
         left: 12,

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 
 import type { AlignQuestion } from '@/lib/api';
-import { displayGroupShort } from '@/lib/groups';
+import { ballotName2026, displayGroupShort } from '@/lib/groups';
 import { SummaryBody } from '@/components/SummaryBody';
 import { summaryHeadline } from '@/lib/plainSummary';
 import { ProfileEffectsClient, effectsItems } from '@/components/ProfileEffectsClient';
@@ -59,6 +59,8 @@ export interface AlignQuizLabels {
   read_less: string;
   results_same: string;
   results_diff: string;
+  ballot_tag: string; // "29-N: {name}"
+  results_ballot_note: string;
 }
 
 interface GroupResult {
@@ -314,6 +316,13 @@ export function AlignQuiz({
                   ))}
                 </ul>
               </>
+            )}
+            {/* A group that runs on 29-N under another name: the ranking
+                keeps the name its votes were cast under and says so. */}
+            {results.some((r) => ballotName2026(r.slug)) && (
+              <p style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, margin: '14px 2px 0' }}>
+                {labels.results_ballot_note}
+              </p>
             )}
           </>
         )}
@@ -829,6 +838,7 @@ function PodiumTop({ r, labels }: { r: GroupResult; labels: AlignQuizLabels }) {
             >
               {r.name}
             </div>
+            <BallotTag slug={r.slug} labels={labels} />
             <div className="tabular" style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 3 }}>
               {ofVotes(labels, r)}
             </div>
@@ -891,6 +901,7 @@ function PodiumSecond({
           }}
         >
           {r.name}
+          <BallotTag slug={r.slug} labels={labels} />
         </span>
       </div>
       <div
@@ -904,6 +915,16 @@ function PodiumSecond({
         {ofVotes(labels, r)}
       </div>
     </div>
+  );
+}
+
+function BallotTag({ slug, labels }: { slug: string; labels: AlignQuizLabels }) {
+  const name = ballotName2026(slug);
+  if (!name) return null;
+  return (
+    <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--ink-2)', marginTop: 2 }}>
+      {labels.ballot_tag.replace('{name}', name)}
+    </span>
   );
 }
 
@@ -933,6 +954,7 @@ function GroupRow({ r, rank, labels }: { r: GroupResult; rank: number; labels: A
             }}
           >
             {r.name}
+            <BallotTag slug={r.slug} labels={labels} />
           </span>
         </span>
         <span className="tabular" style={{ fontSize: 13, color: 'var(--ink-2)', flex: 'none' }}>

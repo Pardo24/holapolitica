@@ -513,6 +513,11 @@ html { scrollbar-gutter: stable; }
    moving the text. */
 .site-footer a { display: inline-block; padding-block: 3px; }
 
+/* The install prompt sits above the phone's tab bar, never over it. */
+@media (max-width: 640px) {
+  .install-prompt { bottom: calc(78px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
 /* KPI cell */
 .kpi {
   display: flex; flex-direction: column; gap: 4px;

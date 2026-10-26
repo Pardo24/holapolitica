@@ -1,4 +1,5 @@
 import '@/app/styles/about-5780da.css';
+import type { Metadata } from 'next';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { getMessages, getTranslations } from 'next-intl/server';
@@ -30,6 +31,11 @@ interface GlossaryTerm {
 
 // Base URL of the public backend, for the copy-paste curl examples.
 const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('about');
+  return { title: t('title') };
+}
 
 export default async function AboutPage() {
   const t = await getTranslations('about');

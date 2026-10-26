@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import type { Metadata } from 'next';
 import { Bell } from '@/components/icons';
 
 import { NewsletterPreferencesManager } from '@/components/NewsletterPreferencesManager';
@@ -32,6 +33,11 @@ import { api, type ParliamentaryGroupSummary, type Topic } from '@/lib/api';
 // alongside the newsletter picker. We keep the legacy component
 // untouched so reverting is a one-line change.
 const ENABLE_BROWSER_PUSH = true;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('notifications');
+  return { title: t('title'), description: t('eyebrow') };
+}
 
 export default async function NotificationsPage() {
   const t = await getTranslations('notifications');

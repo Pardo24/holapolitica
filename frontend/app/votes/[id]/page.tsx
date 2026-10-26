@@ -68,12 +68,6 @@ interface Params {
   id: string;
 }
 
-const RESULT_CA: Record<string, string> = {
-  approved: 'Aprovada',
-  rejected: 'Rebutjada',
-  tie: 'Empat',
-};
-
 export async function generateMetadata({
   params,
 }: {
@@ -84,18 +78,23 @@ export async function generateMetadata({
   if (!Number.isFinite(voteId)) return {};
   try {
     const v = await api.votes.get(voteId);
-    const subject = v.description?.trim() || v.title;
+    const locale = await getLocale();
+    const t = await getTranslations('votes');
+    const subject =
+      (locale === 'ca' ? v.plain_title_ca : v.plain_title_es) ??
+      v.plain_title_ca ??
+      (v.description?.trim() || v.title);
     const subjectShort =
       subject.length > 140 ? subject.slice(0, 137) + '…' : subject;
-    const dateStr = new Date(v.voted_at).toLocaleDateString('ca-ES', {
+    const dateStr = new Date(v.voted_at).toLocaleDateString(locale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
-    const result = RESULT_CA[v.result] ?? v.result;
+    const result = t(`result.${v.result}` as 'result.approved');
     const description = v.approved_by_assent
-      ? `Votació al Congrés (${dateStr}): aprovat per assentiment, sense votació nominal.`
-      : `Votació al Congrés (${dateStr}): ${result}. ${v.ayes} Sí · ${v.noes} No · ${v.abstentions} Abst.`;
+      ? `${dateStr} · ${result}`
+      : `${dateStr} · ${result} · ${v.ayes} ${t('ayes')} · ${v.noes} ${t('noes')} · ${v.abstentions} ${t('abstentions')}`;
     return {
       title: subjectShort,
       description,

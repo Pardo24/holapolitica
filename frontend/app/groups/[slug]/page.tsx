@@ -4,7 +4,7 @@ import '@/app/styles/groups-slug-5f25ce.css';
 import '@/app/styles/home-and-11-6a6aa9.css';
 import '@/app/styles/home-and-9-0ab327.css';
 import '@/app/styles/embed-llei-id-and-5-a88482.css';
-import type { Route } from 'next';
+import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -43,6 +43,17 @@ interface Params {
 const BALLOT_NOTE: Record<string, 'ballot_sumar'> = {
   'gp-plurinacional-sumar': 'ballot_sumar',
 };
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const group = await api.groups.get(slug);
+    return { title: displayGroupFullName(group.slug, group.name_long) };
+  } catch {
+    return {};
+  }
+}
+
 export default async function GroupDetailPage({
   params,
   searchParams,

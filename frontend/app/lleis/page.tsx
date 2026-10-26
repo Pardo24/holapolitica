@@ -1,4 +1,5 @@
 import '@/app/styles/lleis-and-1-1f5337.css';
+import type { Metadata } from 'next';
 import '@/app/styles/avui-and-6-0ba769.css';
 import '@/app/styles/home-and-10-543c29.css';
 import '@/app/styles/home-and-11-6a6aa9.css';
@@ -68,6 +69,11 @@ type Sort = (typeof SORTS)[number];
 function splitCsv(value: string | undefined): string[] {
   if (!value) return [];
   return value.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('lleis');
+  return { title: t('title'), description: t('subtitle') };
 }
 
 export default async function LleisPage({

@@ -4,7 +4,7 @@ import { ArrowUpRight } from '@/components/icons';
 import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {
-  title: 'Sobre les dades · Hola Política',
+  title: 'Sobre les dades',
   description:
     "Fonts, metodologia, llicències i procediment de correcció de Hola Política. " +
     'Tota la informació prové de portals d\'open data oficials sota CC-BY 4.0.',

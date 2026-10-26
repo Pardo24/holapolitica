@@ -1,6 +1,6 @@
 {
   "avui": {
-    "meta_title": "Plenary chronicle · Hola Política",
+    "meta_title": "Plenary chronicle",
     "meta_description": "Journalistic chronicle of the latest Spanish Congress plenary: votes grouped by topic, tightest margins and a factual summary of the session.",
     "eyebrow": "Daily summary of parliamentary activity",
     "title": "Plenary chronicle",
@@ -41,7 +41,7 @@
     "journalists_eyebrow": "Are you a journalist?",
     "journalists_caption": "Widgets, social cards and REST API for newsrooms. CC-BY 4.0.",
     "journalists_cta": "Tools for newsrooms →",
-    "archive_meta_title": "Today · archive {date} · Hola Política",
+    "archive_meta_title": "Today · archive {date}",
     "archive_meta_description": "Spanish Congress summary for {date}: plenary votes with results and margins.",
     "archive_ribbon": "Archive",
     "archive_back_to_today": "See the most recent day",
@@ -919,7 +919,7 @@
     "party_filter_all": "All"
   },
   "game": {
-    "meta_title": "Trivia · Hola Política",
+    "meta_title": "Trivia",
     "meta_description": "Test what you know about Spanish politics with real data from the Congreso.",
     "title": "Trivia",
     "subtitle": "Guess what was voted and who proposed it.",
@@ -1100,7 +1100,9 @@
     "start_any_title": "Any subject",
     "start_any_sub": "A mix of everyday laws",
     "topic_label": "Subject",
-    "change_topic": "Change subject"
+    "change_topic": "Change subject",
+    "ballot_tag": "29 Nov: {name}",
+    "results_ballot_note": "The results compare votes in Congress, where the group was called Sumar. In the 29 November election these parties run as Frente Amplio, and Podemos runs separately."
   },
   "hub": {
     "joc_title": "Trivia",
@@ -1551,7 +1553,7 @@
     "attendance_short": "Votes cast"
   },
   "quiz": {
-    "meta_title": "Civic quiz · Hola Política",
+    "meta_title": "Civic quiz",
     "meta_description": "Learn how Congress votes by playing: guess who tabled a law or what the result was, with each vote's plain-language summary in front of you.",
     "eyebrow": "Civic quiz",
     "h1": "Civic quiz",
@@ -1634,7 +1636,7 @@
     "follow_body": "The Data tab shows how each group votes, always with every side. And on any law you can tap \"Follow this law\" to be notified when it is voted."
   },
   "journalists": {
-    "meta_title": "For journalists · Hola Política",
+    "meta_title": "For journalists",
     "meta_description": "Ready-made tools for newsrooms: embeddable widgets, social cards, REST API and open datasets from the Spanish Congress. All under CC-BY 4.0 with attribution.",
     "eyebrow": "For newsrooms",
     "h1": "Ready-made tools for journalists",

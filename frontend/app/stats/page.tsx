@@ -1,4 +1,5 @@
 import '@/app/styles/stats-e350d5.css';
+import type { Metadata } from 'next';
 import '@/app/styles/home-and-11-6a6aa9.css';
 import '@/app/styles/home-and-9-0ab327.css';
 import Link from 'next/link';
@@ -78,6 +79,11 @@ interface SearchParams {
    *  Desktop layout ignores these. */
   pair_a?: string;
   pair_b?: string;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('stats');
+  return { title: t('title'), description: t('intro') };
 }
 
 export default async function StatsPage({

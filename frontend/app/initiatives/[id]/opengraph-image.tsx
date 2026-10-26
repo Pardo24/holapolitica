@@ -135,7 +135,9 @@ export default async function InitiativeOg({
               textTransform: 'uppercase',
             }}
           >
-            Iniciativa · {initiative.official_id}
+            {/* One text node: the image renderer refuses a block with two
+                children and no display: flex, and every law preview failed. */}
+            {`Iniciativa · ${initiative.official_id}`}
           </div>
         </div>
 

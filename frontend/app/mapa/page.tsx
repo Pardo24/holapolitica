@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import type { Metadata } from 'next';
 import { Map as MapIcon } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
@@ -64,6 +65,11 @@ function separate(nodes: Node[], minX: number, maxX: number, minY: number, maxY:
       n.cy = Math.min(maxY, Math.max(minY, n.cy));
     }
   }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('map');
+  return { title: t('title'), description: t('subtitle') };
 }
 
 /**

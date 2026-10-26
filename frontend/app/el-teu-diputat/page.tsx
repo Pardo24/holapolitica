@@ -1,4 +1,5 @@
 import '@/app/styles/el-teu-diputat-eed049.css';
+import type { Metadata } from 'next';
 import '@/app/styles/home-and-1-29ff80.css';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -38,6 +39,11 @@ interface PartyGroup {
   short: string | null;
   color: string | null;
   deputies: DeputyCard[];
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('deputy');
+  return { title: t('title'), description: t('subtitle') };
 }
 
 /**

@@ -6,7 +6,7 @@ import { ArrowUpRight } from '@/components/icons';
 import { ApiKeyForm } from '@/components/ApiKeyForm';
 
 export const metadata: Metadata = {
-  title: 'API i widgets · Hola Política',
+  title: 'API i widgets',
   description:
     'Documentació pràctica per a periodistes i desenvolupadors: endpoints REST públics, ' +
     'widgets embedables, llicències, exemples copy-paste. Tot CC-BY 4.0.',

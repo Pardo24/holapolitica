@@ -1,6 +1,6 @@
 {
   "avui": {
-    "meta_title": "Crónica del pleno · Hola Política",
+    "meta_title": "Crónica del pleno",
     "meta_description": "Crónica periodística del último pleno del Congreso de los Diputados: votaciones por tema, márgenes más ajustados y resumen factual de la sesión.",
     "eyebrow": "Resumen diario de la actividad parlamentaria",
     "title": "Crónica del pleno",
@@ -41,7 +41,7 @@
     "journalists_eyebrow": "¿Eres periodista?",
     "journalists_caption": "Widgets, cards sociales y API REST para redacciones. Licencia CC-BY 4.0.",
     "journalists_cta": "Herramientas para redacciones →",
-    "archive_meta_title": "Hoy · archivo {date} · Hola Política",
+    "archive_meta_title": "Hoy · archivo {date}",
     "archive_meta_description": "Resumen del Congreso de los Diputados del {date}: votaciones del pleno con resultados y márgenes.",
     "archive_ribbon": "Archivo",
     "archive_back_to_today": "Ver el día más reciente",
@@ -919,7 +919,7 @@
     "party_filter_all": "Todos"
   },
   "game": {
-    "meta_title": "Trivia · Hola Política",
+    "meta_title": "Trivia",
     "meta_description": "Pon a prueba lo que sabes de la política española con datos reales del Congreso.",
     "title": "Trivia",
     "subtitle": "Acierta qué se votó y quién lo propuso.",
@@ -1100,7 +1100,9 @@
     "start_any_title": "Cualquier tema",
     "start_any_sub": "Una mezcla de leyes del día a día",
     "topic_label": "Tema",
-    "change_topic": "Cambia el tema"
+    "change_topic": "Cambia el tema",
+    "ballot_tag": "29-N: {name}",
+    "results_ballot_note": "Los resultados comparan votos en el Congreso, donde el grupo se llamaba Sumar. En las elecciones del 29 de noviembre estos partidos se presentan como Frente Amplio, y Podemos va por separado."
   },
   "hub": {
     "joc_title": "Trivia",
@@ -1551,7 +1553,7 @@
     "attendance_short": "Votos emitidos"
   },
   "quiz": {
-    "meta_title": "Juego cívico · Hola Política",
+    "meta_title": "Juego cívico",
     "meta_description": "Aprende cómo vota el Congreso jugando: adivina quién ha propuesto una ley o cuál fue el resultado, con el resumen de cada votación delante.",
     "eyebrow": "Juego cívico",
     "h1": "Juego cívico",
@@ -1634,7 +1636,7 @@
     "follow_body": "En Datos tienes cómo vota cada grupo, siempre con todas las partes. Y en cada ley puedes tocar «Sigue esta ley» para que te avisemos cuando se vote."
   },
   "journalists": {
-    "meta_title": "Para periodistas · Hola Política",
+    "meta_title": "Para periodistas",
     "meta_description": "Herramientas listas para redacciones: widgets incrustables, cards sociales, API REST y datasets abiertos del Congreso de los Diputados. Todo bajo CC-BY 4.0 con atribución.",
     "eyebrow": "Para redacciones",
     "h1": "Herramientas listas para periodistas",

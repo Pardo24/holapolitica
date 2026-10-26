@@ -77,12 +77,19 @@ export async function generateMetadata({
   if (!Number.isFinite(initiativeId)) return {};
   try {
     const ini = await api.initiatives.get(initiativeId);
-    const title = ini.title_ca ?? ini.title_original;
+    const locale = await getLocale();
+    const es = locale !== 'ca';
+    const title =
+      (es ? ini.plain_title_es : ini.plain_title_ca) ??
+      ini.plain_title_ca ??
+      (es ? ini.title_es : ini.title_ca) ??
+      ini.title_original;
     const titleShort = title.length > 120 ? title.slice(0, 117) + '…' : title;
     const description =
+      (es ? ini.plain_summary_es : ini.plain_summary_ca) ??
       ini.plain_summary_ca ??
       ini.plain_summary_es ??
-      `Iniciativa ${ini.official_id} · ${ini.type}`;
+      `${ini.official_id} · ${ini.type}`;
     return {
       title: titleShort,
       description: description.slice(0, 220),

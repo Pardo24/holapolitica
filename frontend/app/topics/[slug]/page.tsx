@@ -5,7 +5,7 @@ import '@/app/styles/home-and-11-6a6aa9.css';
 import '@/app/styles/home-and-9-0ab327.css';
 import '@/app/styles/embed-llei-id-and-5-a88482.css';
 import Link from 'next/link';
-import type { Route } from 'next';
+import type { Metadata, Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Bell, ExternalLink, Newspaper } from '@/components/icons';
@@ -70,6 +70,21 @@ type Subset = 'pending' | 'voted' | 'other';
 
 /** Cards shown inline; the rest is one tap away on /lleis. */
 const TOPIC_LIST_LIMIT = 10;
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { slug } = await params;
+  const locale = await getLocale();
+  try {
+    const topic = await api.topics.get(slug);
+    const name = locale === 'es' ? topic.name_es : locale === 'en' ? topic.name_en : topic.name_ca;
+    const description =
+      (locale === 'es' ? topic.description_es : locale === 'en' ? topic.description_en : topic.description_ca) ??
+      undefined;
+    return { title: name, description: description ?? undefined };
+  } catch {
+    return {};
+  }
+}
 
 export default async function TopicDetailPage({
   params,

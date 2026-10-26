@@ -1,6 +1,6 @@
 {
   "avui": {
-    "meta_title": "Crònica del ple · Hola Política",
+    "meta_title": "Crònica del ple",
     "meta_description": "Crònica periodística del darrer ple del Congrés dels Diputats: votacions per tema, marges més ajustats i resum factual de la sessió.",
     "eyebrow": "Resum diari de l'activitat parlamentària",
     "title": "Crònica del ple",
@@ -41,7 +41,7 @@
     "journalists_eyebrow": "Ets periodista?",
     "journalists_caption": "Widgets, cards socials i API REST per a redaccions. Llicència CC-BY 4.0.",
     "journalists_cta": "Eines per a redaccions →",
-    "archive_meta_title": "Avui · arxiu {date} · Hola Política",
+    "archive_meta_title": "Avui · arxiu {date}",
     "archive_meta_description": "Resum del Congrés dels Diputats del {date}: votacions del ple amb resultats i marges.",
     "archive_ribbon": "Arxiu",
     "archive_back_to_today": "Veure el dia més recent",
@@ -919,7 +919,7 @@
     "party_filter_all": "Tots"
   },
   "game": {
-    "meta_title": "Trivia · Hola Política",
+    "meta_title": "Trivia",
     "meta_description": "Posa a prova el que saps de la política espanyola amb dades reals del Congrés.",
     "title": "Trivia",
     "subtitle": "Encerta què s'ha votat i qui ho ha proposat.",
@@ -1100,7 +1100,9 @@
     "start_any_title": "Qualsevol tema",
     "start_any_sub": "Una barreja de lleis del dia a dia",
     "topic_label": "Tema",
-    "change_topic": "Canvia el tema"
+    "change_topic": "Canvia el tema",
+    "ballot_tag": "29-N: {name}",
+    "results_ballot_note": "Els resultats comparen vots al Congrés, on el grup es deia Sumar. A les eleccions del 29 de novembre aquests partits es presenten com a Frente Amplio, i Podemos hi va per separat."
   },
   "hub": {
     "joc_title": "Trivia",
@@ -1551,7 +1553,7 @@
     "attendance_short": "Vots emesos"
   },
   "quiz": {
-    "meta_title": "Joc cívic · Hola Política",
+    "meta_title": "Joc cívic",
     "meta_description": "Aprèn com vota el Congrés jugant: endevina qui ha proposat una llei o quin va ser el resultat, amb el resum de cada votació al davant.",
     "eyebrow": "Joc cívic",
     "h1": "Joc cívic",
@@ -1634,7 +1636,7 @@
     "follow_body": "A Dades tens com vota cada grup, sempre amb totes les parts. I a cada llei pots tocar «Segueix aquesta llei» perquè t'avisem quan es voti."
   },
   "journalists": {
-    "meta_title": "Per a periodistes · Hola Política",
+    "meta_title": "Per a periodistes",
     "meta_description": "Eines llestes per a redaccions: widgets embedables, cards socials, API REST i datasets oberts del Congrés dels Diputats. Tot sota CC-BY 4.0 amb atribució.",
     "eyebrow": "Per a redaccions",
     "h1": "Eines llestes per a periodistes",

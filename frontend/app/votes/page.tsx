@@ -1,4 +1,5 @@
 import '@/app/styles/lleis-and-1-1f5337.css';
+import type { Metadata } from 'next';
 import '@/app/styles/home-and-10-543c29.css';
 import '@/app/styles/home-and-11-6a6aa9.css';
 import Link from 'next/link';
@@ -52,6 +53,11 @@ interface SearchParams {
   positions?: string;
   /** recent (default) | close */
   sort?: string;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('votes');
+  return { title: t('title'), description: t('subtitle') };
 }
 
 export default async function VotesPage({

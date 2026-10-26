@@ -6,7 +6,7 @@ import '@/app/styles/home-and-11-6a6aa9.css';
 import '@/app/styles/home-and-9-0ab327.css';
 import '@/app/styles/election-news.css';
 import Link from 'next/link';
-import type { Route } from 'next';
+import type { Metadata, Route } from 'next';
 import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
@@ -58,6 +58,15 @@ const heroTextLink: React.CSSProperties = {
 // The situations most people are in, for the home's "what affects you":
 // the rest are one tap away on /et-afecta, so the home doesn't fill up.
 const HOME_PROFILES = ["assalariat", "jove", "pensionista", "llogater", "families", "autonom"] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('home');
+  const tSite = await getTranslations('site');
+  return {
+    title: { absolute: `${tSite('name')} · ${t('hero_title').replace(/\s*\n\s*/g, ' ')}` },
+    description: t('hero_subtitle'),
+  };
+}
 
 export default async function HomePage() {
   const t = await getTranslations('home');

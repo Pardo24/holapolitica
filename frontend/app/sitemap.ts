@@ -3,21 +3,17 @@ import type { MetadataRoute } from 'next';
 import { api } from '@/lib/api';
 
 /**
- * Sitemap for holapolitica.org.
+ * Sitemap for holapolitica.org: every page a search engine should know.
  *
- * Strategy: every static route is hardcoded; the dynamic detail
- * routes (/votes/[id], /initiatives/[id], /persons/[id],
- * /topics/[slug], /groups/[slug]) are enumerated server-side from the
- * public API at build / regenerate time. We deliberately limit the
- * /votes/[id] enumeration to the most recent 500 because Google does
- * not need every 2024 procedural micro-vote indexed individually —
- * the /votes hub aggregates them. Topic and group routes are small
- * enough to enumerate fully.
+ * It used to list the last 100 votes and no deputy at all, out of ~16,000
+ * votes, ~1,600 laws and ~1,250 deputies, and Google sent three visits in
+ * three days (Caddy log, 2026-10-24). Now every vote, law, deputy and
+ * plenary day is listed, from one cached backend call (/sitemap/ids), plus
+ * the 29-N candidacies of each constituency and every "what affects you"
+ * profile. ~20,000 URLs, well under the 50,000 a sitemap may hold.
  *
- * The sitemap is server-rendered on demand (Next.js MetadataRoute)
- * and respects the same revalidate=300 we use on aggregate endpoints,
- * so a single user hit warms the cache for everyone else within five
- * minutes.
+ * Every fetch is wrapped: a backend hiccup leaves the static routes, never
+ * an empty sitemap.
  */
 
 // Canonical host is the www subdomain — the apex 301-redirects to it,
@@ -25,117 +21,66 @@ import { api } from '@/lib/api';
 // and (worse) can be read as two distinct sites for indexing purposes.
 const BASE_URL = 'https://www.holapolitica.org';
 
-export const revalidate = 300;
+export const revalidate = 21600;
 
-const STATIC_ROUTES: { path: string; priority: number; changeFreq: MetadataRoute.Sitemap[number]['changeFrequency'] }[] = [
+type Freq = MetadataRoute.Sitemap[number]['changeFrequency'];
+
+const STATIC_ROUTES: { path: string; priority: number; changeFreq: Freq }[] = [
   { path: '/', priority: 1.0, changeFreq: 'daily' },
-  { path: '/avui', priority: 0.95, changeFreq: 'daily' },
+  { path: '/eleccions', priority: 0.95, changeFreq: 'daily' },
+  { path: '/pactes', priority: 0.8, changeFreq: 'hourly' },
+  { path: '/lleis', priority: 0.9, changeFreq: 'daily' },
   { path: '/votes', priority: 0.9, changeFreq: 'daily' },
-  { path: '/persons', priority: 0.8, changeFreq: 'weekly' },
-  { path: '/groups', priority: 0.7, changeFreq: 'weekly' },
+  { path: '/avui', priority: 0.9, changeFreq: 'daily' },
+  { path: '/el-teu-diputat', priority: 0.9, changeFreq: 'weekly' },
+  { path: '/com-et-representen', priority: 0.85, changeFreq: 'weekly' },
+  { path: '/et-afecta', priority: 0.8, changeFreq: 'weekly' },
   { path: '/topics', priority: 0.7, changeFreq: 'weekly' },
   { path: '/stats', priority: 0.7, changeFreq: 'daily' },
+  { path: '/mapa', priority: 0.6, changeFreq: 'weekly' },
+  { path: '/jocs', priority: 0.6, changeFreq: 'weekly' },
+  { path: '/pregunta-del-dia', priority: 0.6, changeFreq: 'daily' },
   { path: '/recorregut', priority: 0.5, changeFreq: 'monthly' },
-  { path: '/eleccions', priority: 0.9, changeFreq: 'daily' },
-  { path: '/pactes', priority: 0.7, changeFreq: 'hourly' },
+  { path: '/legislatures', priority: 0.5, changeFreq: 'monthly' },
+  { path: '/agenda-2030', priority: 0.5, changeFreq: 'monthly' },
   { path: '/about', priority: 0.5, changeFreq: 'monthly' },
-  { path: '/about/data', priority: 0.5, changeFreq: 'monthly' },
-  { path: '/apidocs', priority: 0.5, changeFreq: 'monthly' },
-  { path: '/journalists', priority: 0.5, changeFreq: 'monthly' },
-  { path: '/notifications', priority: 0.4, changeFreq: 'monthly' },
+  { path: '/about/data', priority: 0.4, changeFreq: 'monthly' },
+  { path: '/apidocs', priority: 0.4, changeFreq: 'monthly' },
+  { path: '/journalists', priority: 0.4, changeFreq: 'monthly' },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const entry = (path: string, priority: number, changeFrequency: Freq, lastModified: Date = now) => ({
+    url: `${BASE_URL}${path}`,
+    lastModified,
+    changeFrequency,
+    priority,
+  });
 
-  // Static routes — always present, deterministic.
-  const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((r) => ({
-    url: `${BASE_URL}${r.path}`,
-    lastModified: now,
-    changeFrequency: r.changeFreq,
-    priority: r.priority,
-  }));
-
-  // Dynamic routes. Every fetch is wrapped so a single backend hiccup
-  // can't blank the sitemap.
-  const [topics, groups, votesPage, initiativesPage] = await Promise.all([
+  const [ids, topics, groups, profiles, candidacies] = await Promise.all([
+    api.sitemap.ids().catch(() => null),
     api.topics.list().catch(() => []),
     api.groups.list().catch(() => []),
-    api.votes.list({ page: 1, page_size: 100 }).catch(() => null),
-    // We don't have a paginated /initiatives list endpoint yet; we
-    // skip the full enumeration and lean on the /votes coverage to
-    // surface the related initiative pages via internal linking.
-    Promise.resolve(null),
+    api.initiatives.profiles().catch(() => []),
+    api.elections.candidacies().catch(() => null),
   ]);
 
-  const topicEntries: MetadataRoute.Sitemap = topics.map((t) => ({
-    url: `${BASE_URL}/topics/${t.slug}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
-
-  const groupEntries: MetadataRoute.Sitemap = groups.map((g) => ({
-    url: `${BASE_URL}/groups/${g.slug}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
-
-  // Most recent 100 votes — Google can use the /votes hub to discover
-  // older ones via pagination. Surfacing every individual vote would
-  // bloat the sitemap (~1800 rows today) without measurable SEO win.
-  const voteEntries: MetadataRoute.Sitemap = (votesPage?.items ?? []).map(
-    (v) => ({
-      url: `${BASE_URL}/votes/${v.id}`,
-      lastModified: new Date(v.voted_at),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    }),
-  );
-  // Each linked initiative also gets its own canonical /initiatives/<id>
-  // entry derived from the same vote feed.
-  const initiativeIds = new Set<number>();
-  for (const v of votesPage?.items ?? []) {
-    if (v.initiative_id != null) initiativeIds.add(v.initiative_id);
-  }
-  const initiativeEntries: MetadataRoute.Sitemap = [...initiativeIds].map(
-    (id) => ({
-      url: `${BASE_URL}/initiatives/${id}`,
-      lastModified: now,
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    }),
-  );
-
-  // /avui archive — one entry per distinct date with at least one vote
-  // in the recent window. Lets Google discover the permalink shape and
-  // index a few snapshots; older days remain reachable via direct
-  // links from articles citing them. Set as immutable (changeFreq:
-  // 'never') because past data doesn't change.
-  const archiveDates = new Set<string>();
-  for (const v of votesPage?.items ?? []) {
-    archiveDates.add(new Date(v.voted_at).toISOString().slice(0, 10));
-  }
-  const avuiArchiveEntries: MetadataRoute.Sitemap = [...archiveDates].map(
-    (date) => ({
-      url: `${BASE_URL}/avui/${date}`,
-      lastModified: new Date(date),
-      changeFrequency: 'never' as const,
-      priority: 0.55,
-    }),
-  );
-
-  // Linter wants ``initiativesPage`` referenced; we keep the slot for
-  // when the backend grows a paginated /initiatives endpoint.
-  void initiativesPage;
-
   return [
-    ...staticEntries,
-    ...topicEntries,
-    ...groupEntries,
-    ...voteEntries,
-    ...initiativeEntries,
-    ...avuiArchiveEntries,
+    ...STATIC_ROUTES.map((r) => entry(r.path, r.priority, r.changeFreq)),
+    // Who stands in each constituency on 29 November: what people search for now.
+    ...(candidacies?.constituencies ?? []).map((c) =>
+      entry(`/eleccions?circ=${encodeURIComponent(c.constituency)}`, 0.8, 'daily'),
+    ),
+    ...profiles.map((p) => entry(`/et-afecta/${p.key}`, 0.7, 'weekly')),
+    ...topics.map((t) => entry(`/topics/${t.slug}`, 0.6, 'weekly')),
+    ...groups.map((g) => entry(`/groups/${g.slug}`, 0.7, 'weekly')),
+    ...(ids?.persons ?? []).map((id) => entry(`/persons/${id}`, 0.7, 'weekly')),
+    ...(ids?.initiatives ?? []).map(([id, submitted]) =>
+      entry(`/initiatives/${id}`, 0.6, 'monthly', submitted ? new Date(submitted) : now),
+    ),
+    ...(ids?.votes ?? []).map(([id, day]) => entry(`/votes/${id}`, 0.5, 'yearly', new Date(day))),
+    // Past plenary days don't change.
+    ...(ids?.days ?? []).map((day) => entry(`/avui/${day}`, 0.5, 'never', new Date(day))),
   ];
 }

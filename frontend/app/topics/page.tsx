@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ArrowRight, Bell, Globe2, Layers } from '@/components/icons';
 import { getTranslations } from 'next-intl/server';
 
@@ -12,6 +13,11 @@ import { TopicListPanel } from '@/components/TopicListPanel';
  * /agenda-2030 rather than a tab here, because most of what that page owes
  * a reader is an explanation of what the Agenda is, not another grid.
  */
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('topics');
+  return { title: t('title'), description: t('subtitle') };
+}
 
 export default async function TopicsPage() {
   const t = await getTranslations('topics');

@@ -1,4 +1,5 @@
 import '@/app/styles/com-et-representen-and-1-e71ba2.css';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -13,6 +14,11 @@ import { api, type AlignQuestion, type Topic } from '@/lib/api';
 // Questions rotate with the data; a short ISR window keeps them fresh without
 // hammering the backend (the payload is also cached server-side).
 export const revalidate = 300;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('align');
+  return { title: t('title'), description: t('subtitle') };
+}
 
 /**
  * "Com et representen?" — the participation centrepiece. The citizen answers
@@ -130,6 +136,8 @@ export default async function ComEtRepresentenPage({
               results_votes: t.raw('results_votes'),
               results_same: t('results_same'),
               results_diff: t('results_diff'),
+              ballot_tag: t('ballot_tag'),
+              results_ballot_note: t('results_ballot_note'),
             }}
           />
         )}

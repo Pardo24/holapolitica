@@ -1158,6 +1158,16 @@ const electionQuery = (sep: '?' | '&') =>
   CANDIDACIES_ELECTION ? `${sep}election=${encodeURIComponent(CANDIDACIES_ELECTION)}` : '';
 
 export const api = {
+  // Every page id the sitemap lists (backend /sitemap/ids, cached 6 h there).
+  sitemap: {
+    ids: () =>
+      request<{
+        votes: [number, string][];
+        initiatives: [number, string | null][];
+        persons: number[];
+        days: string[];
+      }>('/sitemap/ids', { revalidate: 21600 }),
+  },
   elections: {
     candidacies: () =>
       request<CandidaciesStatus>(`/elections/2026/candidacies${electionQuery('?')}`, {

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import type { Route } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Landmark } from '@/components/icons';
@@ -9,6 +10,11 @@ import { api, type LegislatureStat } from '@/lib/api';
 // Aggregate data refreshes event-driven via the backend cache; a 5-min ISR
 // window is plenty for this comparison surface.
 export const revalidate = 300;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('legislatures');
+  return { title: t('title'), description: t('subtitle') };
+}
 
 /**
  * Cross-legislature comparison — the "memory / accountability" surface
