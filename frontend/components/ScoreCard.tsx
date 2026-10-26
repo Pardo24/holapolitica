@@ -45,7 +45,9 @@ export function ScoreCard({
   foot?: ReactNode;
 }) {
   return (
-    <li {...data} className={`vcard vcard--${tone}`}>
+    // Without a row of parties (not voted yet, by assent) the head closes the
+    // left column itself, so it needs the bottom space that row gave it.
+    <li {...data} className={`vcard vcard--${tone}${groups ? '' : ' vcard--nogroups'}`}>
       <div className="vcard__head">{head}</div>
       <div className="vcard__score">{score}</div>
       {groups && <div className="vcard__groups psm">{groups}</div>}

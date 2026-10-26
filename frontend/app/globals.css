@@ -2495,6 +2495,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   /* No overflow clip: it swallowed the law-type tooltip. */
 }
 .vcard__head { grid-area: head; padding: 18px 18px 0; min-width: 0; }
+.vcard--nogroups .vcard__head { padding-bottom: 18px; }
 .vcard__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
 .vcard__title { margin: 0; }
 .vcard__title a,
@@ -2565,7 +2566,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 10px;
-  padding: 10px 18px 12px;
+  padding: 10px 18px 14px;
   border-top: 1px solid var(--rule);
   font-size: 12px;
   color: var(--ink-3);
@@ -2736,7 +2737,9 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   .vcard__groups { padding: 12px 16px 14px; }
   .vcard__side { flex-direction: column; gap: 5px; }
   .vcard__side-label { width: auto; padding-top: 0; }
-  .vcard__foot { padding: 10px 16px 12px; }
+  .vcard__foot { padding: 10px 16px 14px; }
+  .vcard--nogroups .vcard__head { padding-bottom: 0; }
+  .vcard--nogroups .vcard__score { margin-bottom: 16px; }
 }
 
 /* "What it means for you", folded in the list cards (ProfileEffects folded). */
