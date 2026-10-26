@@ -1,0 +1,180 @@
+/* Election-night results (app/eleccions/resultats, components/ElectionResults.tsx). */
+
+/* ---- count status ---------------------------------------------------- */
+.rstatus { margin: 0 0 18px; }
+.rstatus__badge {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-warm-soft);
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.rstatus__badge--final { background: var(--aye-soft); }
+.rstatus__bar { height: 8px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
+.rstatus__bar > span { display: block; height: 100%; background: var(--ink); border-radius: 999px; }
+.rstatus__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.rstatus__facts b { color: var(--ink); }
+
+/* ---- hemicycle ------------------------------------------------------- */
+.rhemi { margin: 6px 0 14px; }
+.rhemi svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; }
+.rhemi__majority { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.55; }
+.rhemi__caption { margin-top: 4px; text-align: center; font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
+
+/* ---- national table -------------------------------------------------- */
+.rtable-wrap { overflow-x: auto; margin: 0 0 8px; }
+.rtable { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rtable th, .rtable td { padding: 9px 8px; border-bottom: 1px solid var(--rule); text-align: left; }
+.rtable thead th {
+  padding-top: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.rtable tbody th { font-weight: 700; color: var(--ink); }
+.rtable .num { text-align: right; white-space: nowrap; }
+.rtable__seats { font-family: var(--font-serif); font-size: 19px; font-weight: 600; color: var(--ink); }
+.rtable__dot { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 3px; vertical-align: -1px; }
+.rtable__quiet th, .rtable__quiet td { color: var(--ink-3); font-weight: 600; }
+.rchg { font-size: 13px; font-weight: 700; color: var(--ink-3); }
+.rchg--up { color: var(--aye); }
+.rchg--down { color: var(--no); }
+.rchg--new { font-weight: 600; font-style: italic; }
+@media (max-width: 520px) {
+  .rtable__votes { display: none; }
+}
+
+.rnote { margin: 6px 0 22px; font-size: 12.5px; line-height: 1.5; color: var(--ink-3); }
+.rref { margin: 0 0 6px; }
+.rref .rnote { margin-bottom: 8px; }
+
+/* ---- seat counter ---------------------------------------------------- */
+.rsum {
+  margin: 0 0 28px;
+  padding: 16px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper-2);
+}
+.rsum .esec-title { margin-top: 0; }
+.rsum__hint { margin: -4px 0 12px; font-size: 13.5px; color: var(--ink-2); }
+.rsum__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.rsum__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+.rsum__chip[aria-pressed='true'] {
+  border-color: var(--party);
+  box-shadow: inset 0 0 0 1.5px var(--party);
+  background: color-mix(in oklch, var(--party) 12%, var(--paper));
+}
+.rsum__dot { width: 10px; height: 10px; border-radius: 999px; background: var(--party); }
+.rsum__n { font-weight: 600; color: var(--ink-2); }
+.rsum__result { margin-top: 14px; }
+.rsum__bar {
+  position: relative;
+  display: flex;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--paper-3);
+  overflow: hidden;
+}
+.rsum__bar > span { display: block; height: 100%; }
+.rsum__bar > i { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--ink); }
+.rsum__total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 8px 0 0; font-size: 15px; }
+.rsum__total b { font-size: 18px; color: var(--ink); }
+.rsum__verdict { font-weight: 700; color: var(--ink-2); }
+.rsum__verdict--yes { color: var(--aye); }
+.rsum__clear {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---- constituencies -------------------------------------------------- */
+.rsec { scroll-margin-top: 80px; }
+.rgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+.rgrid__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 74px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+.rgrid__item:hover { border-color: var(--rule-strong); background: var(--paper-2); }
+.rgrid__name { font-size: 14px; font-weight: 700; }
+.rgrid__seats { display: flex; gap: 2px; height: 8px; border-radius: 3px; overflow: hidden; background: var(--paper-3); }
+.rgrid__seats > span { display: block; height: 100%; }
+.rgrid__meta { font-size: 12px; color: var(--ink-3); }
+
+.rcirc { margin: 0 0 10px; scroll-margin-top: 80px; }
+.rcirc__lists { display: flex; flex-direction: column; gap: 14px; margin: 16px 0 6px; padding: 0; list-style: none; }
+.rcirc__list { padding-left: 12px; border-left: 3px solid var(--party); }
+.rcirc__row { display: flex; align-items: baseline; gap: 10px; }
+.rcirc__name { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.rcirc__pct { font-size: 13.5px; color: var(--ink-2); }
+.rcirc__seats { min-width: 64px; text-align: right; font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.rcirc__bar { height: 6px; margin-top: 6px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
+.rcirc__bar > span { display: block; height: 100%; background: var(--party); }
+.rcirc__elected { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+.rcirc__elected a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.rback { margin: 0 0 24px; font-size: 14px; font-weight: 700; }
+
+/* ---- replay steps (preview only) ------------------------------------- */
+.rsim {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.rsim a { font-weight: 700; color: var(--ink); }

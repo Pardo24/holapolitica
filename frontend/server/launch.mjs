@@ -32,6 +32,11 @@ const HOST = process.env.HOSTNAME ?? '127.0.0.1';
 const WORKERS = Number(process.env.NEXT_WORKERS ?? 2);
 const FRESH_MS = Number(process.env.PAGE_CACHE_FRESH_S ?? 60) * 1000;
 const STALE_MS = Number(process.env.PAGE_CACHE_STALE_S ?? 600) * 1000;
+// The election-night count changes every minute; its page refreshes itself
+// every 30 s (components/ElectionResultsClient.tsx) and should not wait a
+// whole minute on top. Everything else keeps FRESH_MS.
+const LIVE_FRESH_MS = 15_000;
+const LIVE_PATH = /^\/(?:(?:ca|es|en)\/)?eleccions\/resultats(?:[/?]|$)/;
 const MAX_BYTES = Number(process.env.PAGE_CACHE_MB ?? 160) * 1024 * 1024;
 const MAX_ENTRY = 3 * 1024 * 1024;
 
@@ -358,7 +363,8 @@ async function handle(req, res) {
   const entry = store.get(key);
   const age = entry ? Date.now() - entry.at : Infinity;
 
-  if (entry && age < FRESH_MS) {
+  const fresh = LIVE_PATH.test(req.url) ? LIVE_FRESH_MS : FRESH_MS;
+  if (entry && age < fresh) {
     stats.hit++;
     store.delete(key);
     store.set(key, entry); // most recently used

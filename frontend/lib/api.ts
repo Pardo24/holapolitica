@@ -206,6 +206,59 @@ export interface ConstituencyCandidacies {
   lists: CandidacyList[];
 }
 
+/** One list in a results snapshot (backend app/services/election_results.py). */
+export interface ResultList {
+  /** The list as it adds up nationally (PSC → PSOE). */
+  key: string;
+  acronym: string;
+  name: string;
+  /** Slug from lib/electionParties.ts, or null for other lists. */
+  party: string | null;
+  votes: number;
+  /** Of valid votes (lists plus blank). */
+  pct: number;
+  seats: number;
+  /** National rows only: the previous election's official result. */
+  prev_seats?: number | null;
+  prev_pct?: number | null;
+  /** Constituency rows with seats: the first N on the BOE list. */
+  elected?: { name: string; person_id: number | null }[];
+}
+
+export interface ResultConstituency {
+  name: string;
+  ine: string;
+  seats: number;
+  counted_pct: number;
+  turnout_pct: number;
+  blank: number;
+  null: number;
+  lists: ResultList[];
+}
+
+export interface ResultSnapshot {
+  election: string;
+  official: boolean;
+  taken_at: string;
+  counted_pct: number;
+  turnout_pct: number;
+  voters: number;
+  blank: number;
+  blank_pct: number;
+  null: number;
+  seats_total: number;
+  parties: ResultList[];
+  constituencies: ResultConstituency[];
+}
+
+export interface ElectionResults {
+  election: string;
+  steps: { step: number; counted_pct: number; official: boolean; taken_at: string }[];
+  step: number | null;
+  /** Null until the first count arrives. */
+  snapshot: ResultSnapshot | null;
+}
+
 /** An outgoing deputy's place on a 29-N list (backend: /candidacies/person). */
 export interface PersonCandidacy {
   constituency: string;
@@ -1197,6 +1250,16 @@ export const api = {
       request<ConstituencyCandidacies>(
         `/elections/2026/candidacies/constituency?name=${encodeURIComponent(name)}${electionQuery('&')}`,
         { revalidate: 600 },
+      ),
+    /** The count: latest snapshot, or ``step``. ``election`` overrides the
+     *  preview one (the page shows 2023 as reference before 29-N). */
+    results: (step?: number | null, election?: string) =>
+      request<ElectionResults>(
+        `/elections/2026/results${
+          election ? `?election=${encodeURIComponent(election)}` : electionQuery('?')
+        }${step ? `${election || CANDIDACIES_ELECTION ? '&' : '?'}step=${step}` : ''}`,
+        // The backend caches 20 s; on the night a count moves every minute.
+        { revalidate: 20 },
       ),
     person: (personId: number) =>
       request<PersonCandidacies>(

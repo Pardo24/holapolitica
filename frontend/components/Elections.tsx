@@ -16,13 +16,14 @@ export async function ElectionsHeader({
   title,
   intro,
 }: {
-  active: 'candidacies' | 'pacts';
+  active: 'candidacies' | 'results' | 'pacts';
   title: string;
   intro: string;
 }) {
   const t = await getTranslations('elections');
   const tabs = [
     { key: 'candidacies', href: '/eleccions', label: t('tab_candidacies') },
+    { key: 'results', href: '/eleccions/resultats', label: t('tab_results') },
     { key: 'pacts', href: '/pactes', label: t('tab_pacts') },
   ] as const;
   return (
@@ -57,7 +58,8 @@ export async function ElectionsBanner() {
   const n = daysToElection();
   if (n < -3) return null;
   return (
-    <Link href={'/eleccions' as Route} className="ebanner">
+    // From polling day on, the way in is the count.
+    <Link href={(n <= 0 ? '/eleccions/resultats' : '/eleccions') as Route} className="ebanner">
       <span className="ebanner__mark tabular" aria-hidden="true">
         29N
       </span>
@@ -78,13 +80,20 @@ export async function ElectionsBanner() {
 export async function ConstituencyPicker({
   constituencies,
   current,
+  action = '/eleccions',
+  extra,
 }: {
   constituencies: ConstituencySummary[];
   current: string | null;
+  /** The page it opens: the candidacies, or the results. */
+  action?: string;
+  /** Other parameters to keep (the results' replay step). */
+  extra?: Record<string, string>;
 }) {
   const t = await getTranslations('elections');
   return (
-    <form action="/eleccions" method="get" className="cpick">
+    <form action={action} method="get" className="cpick">
+      {extra && Object.entries(extra).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
       <label htmlFor="cpick-select" className="cpick__label">
         {t('pick_label')}
       </label>
