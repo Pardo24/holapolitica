@@ -76,7 +76,8 @@ async def _key_is_valid(key: str) -> str | None:
     r = _redis()
     cached = await r.get(f"apikey:{digest}")
     if cached is not None:
-        return cached or None
+        prefix = cached.decode() if isinstance(cached, bytes) else cached
+        return prefix or None
     async with AsyncSessionLocal() as session:
         row = (
             await session.execute(
