@@ -92,6 +92,7 @@ async def _warm_aggregate_caches() -> None:
     is a nice-to-have, freshness is contractually guaranteed by the
     invalidation step above plus the 24 h TTL safety net.
     """
+    from app.api.persons import deputy_metrics
     from app.metrics import (
         compute_group_coincidence_matrix,
         compute_group_summary,
@@ -112,6 +113,8 @@ async def _warm_aggregate_caches() -> None:
                     session, legislature_id=1, from_date=None, to_date=None
                 ),
             )
+            # "El teu diputat": every province's page reads this one.
+            await deputy_metrics(session, 1)
         log.info("cache.warmed", scope="aggregates")
     except Exception as e:
         # Warming is best-effort; the user-facing API still works

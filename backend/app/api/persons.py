@@ -93,6 +93,37 @@ async def list_persons(
     }
 
 
+async def deputy_metrics(
+    session: AsyncSession, legislature_id: int
+) -> list[tuple[int, float | None, int, float | None]]:
+    """``(person_id, attendance, votes_cast, dissidence)`` for every deputy.
+
+    Two passes over the whole legislature's records (~8 s), the same work
+    for any province. Cached on its own, so it runs once per ingest and not
+    once per constituency; the ingest worker warms it right after busting
+    ``metrics:`` (app/workers/jobs.py).
+    """
+
+    async def factory() -> list[tuple[int, float | None, int, float | None]]:
+        attendance = await compute_deputy_attendance(session, legislature_id=legislature_id)
+        dissidence = {
+            r.person_id: r.dissidence
+            for r in await compute_deputy_dissidence(session, legislature_id=legislature_id)
+        }
+        rows = {
+            r.person_id: (r.person_id, r.attendance, r.votes_attended, dissidence.get(r.person_id))
+            for r in attendance
+        }
+        for pid, dis in dissidence.items():
+            rows.setdefault(pid, (pid, None, 0, dis))
+        return list(rows.values())
+
+    # JSON turns the tuples into lists; callers unpack them either way.
+    return await cached(
+        f"metrics:persons:deputy-metrics:{legislature_id}", _DEPUTY_CACHE_TTL, factory
+    )
+
+
 async def _resolve_legislature_id(session: AsyncSession, legislature_id: int | None) -> int | None:
     if legislature_id is not None:
         return legislature_id
@@ -189,12 +220,7 @@ async def deputies_by_constituency(
         if not person_rows:
             return []
 
-        attendance = {
-            r.person_id: r for r in await compute_deputy_attendance(session, legislature_id=leg_id)
-        }
-        dissidence = {
-            r.person_id: r for r in await compute_deputy_dissidence(session, legislature_id=leg_id)
-        }
+        metrics = {row[0]: row for row in await deputy_metrics(session, leg_id)}
 
         cards: list[DeputyCard] = []
         seen: set[int] = set()
@@ -202,8 +228,7 @@ async def deputies_by_constituency(
             if pid in seen:
                 continue
             seen.add(pid)
-            att = attendance.get(pid)
-            dis = dissidence.get(pid)
+            _, attendance_pct, votes_cast, dissidence_pct = metrics.get(pid, (pid, None, 0, None))
             cards.append(
                 DeputyCard(
                     person_id=pid,
@@ -213,9 +238,9 @@ async def deputies_by_constituency(
                     group_slug=slug,
                     group_short=short,
                     group_color=color,
-                    attendance_pct=att.attendance if att else None,
-                    dissidence_pct=dis.dissidence if dis else None,
-                    votes_cast=att.votes_attended if att else 0,
+                    attendance_pct=attendance_pct,
+                    dissidence_pct=dissidence_pct,
+                    votes_cast=votes_cast,
                 )
             )
         # Group-mates together, then most-present first within a group.
