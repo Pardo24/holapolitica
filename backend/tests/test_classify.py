@@ -144,3 +144,22 @@ async def test_keyword_classifier_still_works_for_theme() -> None:
         kind="theme",
     )
     assert any(r.slug == "habitatge" for r in result)
+
+
+def test_keep_confident_drops_guesses_but_never_every_topic() -> None:
+    """Below 0.65 the model guesses (Ceuta's security filed under housing at
+    0.40); the most confident topic stays even when it is low."""
+    from app.classify.providers import ClassifierResult
+    from app.classify.service import keep_confident
+
+    kept = keep_confident(
+        [
+            ClassifierResult(slug="justicia", confidence=0.9),
+            ClassifierResult(slug="seguretat", confidence=0.7),
+            ClassifierResult(slug="habitatge", confidence=0.4),
+        ]
+    )
+    assert [d.slug for d in kept] == ["justicia", "seguretat"]
+    only_low = keep_confident([ClassifierResult(slug="habitatge", confidence=0.3)])
+    assert [d.slug for d in only_low] == ["habitatge"]
+    assert keep_confident([]) == []

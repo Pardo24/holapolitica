@@ -22,7 +22,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.classify.providers import Classifier
+from app.classify.providers import Classifier, ClassifierResult
 from app.core.logging import get_logger
 from app.models import Initiative, InitiativeTopic, Topic
 
@@ -33,6 +33,23 @@ log = get_logger(__name__)
 # knowledge bases' rows never overwrite each other on re-run. For ``theme``
 # we keep the bare classifier name for backwards compatibility with rows
 # already in the database.
+#: Below this the model is guessing: a motion on security in Ceuta filed
+#: under housing at 0.40, the dependency-care budget at 0.10 to 0.30, while
+#: the housing laws sit at 0.95-1.0 (2026-10-26). Shown as a topic, a guess
+#: puts noise in every list, count and party comparison of that topic.
+MIN_CONFIDENCE = 0.65
+
+
+def keep_confident(decisions: list[ClassifierResult]) -> list[ClassifierResult]:
+    """The decisions worth showing: every one at ``MIN_CONFIDENCE`` or
+    above, and always the most confident one, so no initiative is left
+    without a topic."""
+    if not decisions:
+        return []
+    best = max(decisions, key=lambda d: d.confidence)
+    return [d for d in decisions if d is best or d.confidence >= MIN_CONFIDENCE]
+
+
 def _classified_by_label(classifier_name: str, kind: str) -> str:
     if kind == "theme":
         return classifier_name
@@ -69,8 +86,10 @@ class ClassificationService:
         slugs_to_id = {slug: tid for tid, slug, _ in topic_pairs}
         topic_choices = [(slug, desc) for _, slug, desc in topic_pairs]
 
-        decisions = await self.classifier.classify(
-            title=initiative.title_original, topic_slugs=topic_choices, kind=kind
+        decisions = keep_confident(
+            await self.classifier.classify(
+                title=initiative.title_original, topic_slugs=topic_choices, kind=kind
+            )
         )
 
         classified_by = _classified_by_label(self.classifier.name, kind)
