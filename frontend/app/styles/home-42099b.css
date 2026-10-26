@@ -376,3 +376,22 @@
   .home-first .home-grid__title { margin: 0; align-self: end; font-size: 15px; }
   .home-first .home-grid .home-grid__sub { align-self: start; -webkit-line-clamp: 2; font-size: 12.5px; }
 }
+
+/* "I a tu, què t'afecta?" on a tinted band (2026-10-26): the white tiles
+   stand out on it, and the election news below starts a new section
+   instead of running on from the "all situations" button. */
+.home-affects {
+  margin: 44px 0 40px;
+  padding: 22px 24px 24px;
+  border-radius: 20px;
+  background: color-mix(in oklch, var(--hue-lleis) 10%, var(--paper-2));
+  border: 1px solid color-mix(in oklch, var(--hue-lleis) 18%, var(--paper));
+}
+.home-affects .profiles__more { background: var(--paper); }
+/* The home shows six situations: one row of six, or two of three, never
+   five and one left alone (the band's padding left room for five). */
+@media (min-width: 641px) { .home-affects .profiles__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .home-affects .profiles__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .home-affects { margin: 24px 0 30px; padding: 16px 14px 16px; border-radius: 18px; }
+}

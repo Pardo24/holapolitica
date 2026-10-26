@@ -619,7 +619,9 @@ export default async function HomePage() {
           the home page pointed at them. It also carries the page's
           strongest colour, and it is colour we don't have to invent:
           the parties' own brand hues. */}
-      <div style={{ marginTop: 36 }}>{profilePicker('et-afecta')}</div>
+      {/* A band of its own, so it reads as a section and the election news
+          after it as another (they ran together). */}
+      <div className="home-affects">{profilePicker('et-afecta')}</div>
 
       {electionNews}
 
@@ -926,7 +928,7 @@ function MobileDashboard({
       </div>
 
       {/* "I a tu, què t'afecta?": pick your situation. */}
-      <div style={{ margin: '22px 0 26px' }}>{profilePicker}</div>
+      <div className="home-affects">{profilePicker}</div>
 
       {electionNews}
 
