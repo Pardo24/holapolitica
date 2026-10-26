@@ -2,7 +2,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
-// Defensive HTTP headers applied at the Vercel edge. We pin every
+// Defensive HTTP headers, set by Next on every response. We pin every
 // header that doesn't conflict with the iframable nature of the
 // /embed/* widgets. The wholesale X-Frame-Options DENY would block
 // our own embed surface, so we set it (and frame-ancestors) only on
@@ -22,6 +22,35 @@ const COMMON_SECURITY_HEADERS = [
     value: 'geolocation=(self), camera=(), microphone=(), browsing-topics=()',
   },
 ];
+
+// Content-Security-Policy: what a page may load and where it may send
+// data. Scripts only from this origin; 'unsafe-inline' because Next ships
+// its page data as inline scripts and the page cache in front
+// (server/launch.mjs) serves one copy to everyone, so per-request nonces
+// are not an option. It still shuts out scripts, frames and objects from
+// anywhere else, and forms and connections to anywhere but us. Images: the
+// deputies' photos come from the Congress. Dev needs eval for fast refresh.
+// Embeds may be framed by anyone; every other page by no one.
+function contentSecurityPolicy({ embed }) {
+  const directives = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'", "'unsafe-inline'", ...(process.env.NODE_ENV === 'production' ? [] : ["'unsafe-eval'"])],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", 'data:', 'blob:', 'https://www.congreso.es'],
+    'font-src': ["'self'", 'data:'],
+    'connect-src': ["'self'", 'https://api.holapolitica.org'],
+    'worker-src': ["'self'"],
+    'manifest-src': ["'self'"],
+    'frame-src': ["'none'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+    'frame-ancestors': embed ? ['*'] : ["'none'"],
+  };
+  return Object.entries(directives)
+    .map(([k, v]) => [k, ...v].join(' '))
+    .join('; ');
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -98,7 +127,10 @@ const nextConfig = {
       // from, not us.
       {
         source: '/embed/:path*',
-        headers: COMMON_SECURITY_HEADERS,
+        headers: [
+          ...COMMON_SECURITY_HEADERS,
+          { key: 'Content-Security-Policy', value: contentSecurityPolicy({ embed: true }) },
+        ],
       },
       // Everything else: deny framing. Crucially, the catch-all must
       // NOT also match /embed/* — Next.js applies every matching
@@ -112,6 +144,7 @@ const nextConfig = {
         headers: [
           ...COMMON_SECURITY_HEADERS,
           { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Content-Security-Policy', value: contentSecurityPolicy({ embed: false }) },
         ],
       },
     ];

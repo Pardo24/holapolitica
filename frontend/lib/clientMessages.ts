@@ -17,6 +17,7 @@ import type { AbstractIntlMessages } from 'next-intl';
  * namespace or key missing here shows up as the raw key on screen.
  */
 export const CLIENT_NAMESPACES = [
+  'api_key_form',
   'app_bar',
   'coincidence_progressive',
   'common.how_we_use_ai', // LawOriginalToggle, LawSummaryPanel

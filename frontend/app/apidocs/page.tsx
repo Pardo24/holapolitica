@@ -2,15 +2,56 @@ import '@/app/styles/apidocs-52e082.css';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from '@/components/icons';
+import { getTranslations } from 'next-intl/server';
 
 import { ApiKeyForm } from '@/components/ApiKeyForm';
 
-export const metadata: Metadata = {
-  title: 'API i widgets',
-  description:
-    'Documentació pràctica per a periodistes i desenvolupadors: endpoints REST públics, ' +
-    'widgets embedables, llicències, exemples copy-paste. Tot CC-BY 4.0.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('apidocs');
+  return { title: t('meta_title'), description: t('meta_description') };
+}
+
+const ENDPOINTS: [path: string, key: string][] = [
+  ['GET /votes', 'ep_votes'],
+  ['GET /votes/{id}', 'ep_vote'],
+  ['GET /initiatives/{id}', 'ep_initiative'],
+  ['GET /topics', 'ep_topics'],
+  ['GET /topics/{slug}', 'ep_topic'],
+  ['GET /topics/{slug}/initiatives', 'ep_topic_initiatives'],
+  ['GET /groups', 'ep_groups'],
+  ['GET /groups/{slug}', 'ep_group'],
+  ['GET /groups/{slug}/members', 'ep_group_members'],
+  ['GET /groups/{slug}/composition', 'ep_group_composition'],
+  ['GET /persons', 'ep_persons'],
+  ['GET /persons/{id}', 'ep_person'],
+  ['GET /persons/{id}/kpis', 'ep_person_kpis'],
+  ['GET /stats/summary', 'ep_stats'],
+  ['GET /metrics/cohesion?vote_id=N', 'ep_cohesion'],
+  ['GET /metrics/coincidence?legislature_id=N', 'ep_coincidence'],
+  ['GET /metrics/attendance?legislature_id=N', 'ep_attendance'],
+  ['GET /metrics/dissidence?legislature_id=N', 'ep_dissidence'],
+];
+
+const EMBEDS: [path: string, key: string, height: string][] = [
+  ['/embed/llei/{id}', 'emb_law', '620px'],
+  ['/embed/ple/{data|darrer}', 'emb_plenary', '560px'],
+  ['/embed/diputats/{província}', 'emb_deputies', '760px'],
+  ['/embed/votes/{id}', 'emb_vote', '320px'],
+  ['/embed/groups/{slug}', 'emb_group', '220px'],
+  ['/embed/topics/{slug}', 'emb_topic', '220px'],
+  ['/embed/persons/{id}', 'emb_person', '220px'],
+];
+
+const DICTIONARY = [
+  'd_result',
+  'd_gov',
+  'd_expediente',
+  'd_type',
+  'd_cohesion',
+  'd_coincidence',
+  'd_attendance',
+  'd_dissidence',
+];
 
 /**
  * Hub de documentació tècnica per a la reutilització de dades.
@@ -18,95 +59,73 @@ export const metadata: Metadata = {
  * No fem aquí explicació editorial (la fa /about/data). Aquí donem el
  * material que una redacció o un desenvolupador necessita per
  * incrustar el contingut: URLs, paràmetres, exemples curl, fragments
- * d'iframe. Text en català perquè és l'audiència principal del
- * projecte; els camps tècnics (rutes, queries) són anglès per
- * convenció.
+ * d'iframe. Els camps tècnics (rutes, queries) queden en anglès per
+ * convenció; la resta es tradueix (missatges ``apidocs``).
  */
-export default function ApiDocsPage() {
+export default async function ApiDocsPage() {
+  const t = await getTranslations('apidocs');
+  const tags = {
+    b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+    em: (chunks: React.ReactNode) => <em>{chunks}</em>,
+    c: (chunks: React.ReactNode) => <code style={inlineCode}>{chunks}</code>,
+  };
+  const withLink = (href: string) => ({
+    ...tags,
+    link: (chunks: React.ReactNode) => <ExternalLink href={href}>{chunks}</ExternalLink>,
+  });
+
   return (
     <article style={{ maxWidth: 820, paddingTop: 24, paddingBottom: 64 }}>
       <div className="eyebrow" style={{ marginBottom: 8 }}>
-        Per a periodistes i desenvolupadors
+        {t('eyebrow')}
       </div>
       <h1 className="h-headline" style={{ margin: '6px 0 14px' }}>
-        API i widgets
+        {t('meta_title')}
       </h1>
       <p style={{ fontSize: 16, color: 'var(--ink-2)', lineHeight: 1.6, margin: '0 0 28px' }}>
-        Tot el contingut de Hola Política és open data sota llicència CC-BY 4.0. Pots
-        consumir l&apos;API REST directament, incrustar widgets a la teva web o
-        descarregar fitxers de tota la legislatura.{' '}
+        {t('lede')}{' '}
         <Link href={'/about/data' as Route} style={{ color: 'var(--accent)' }}>
-          Veure metodologia →
+          {t('methodology_link')}
         </Link>
       </p>
 
-      <Section title="API REST pública">
+      <Section title={t('rest_title')}>
         <p>
-          L&apos;API està hostatjada a{' '}
-          <code style={inlineCode}>https://api.holapolitica.org</code>. Les consultes
-          no necessiten clau; tenen un límit per IP pensat per a persones, no per
-          baixar-ho tot. Per a les dades completes fes servir les{' '}
-          <a href="#clau" style={{ color: 'var(--accent)' }}>
-            descàrregues amb clau
-          </a>
-          , que són gratuïtes.
+          {t.rich('rest_intro', {
+            ...tags,
+            keys: (chunks) => (
+              <a href="#clau" style={{ color: 'var(--accent)' }}>
+                {chunks}
+              </a>
+            ),
+          })}
         </p>
         <table style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>Endpoint</th>
-              <th style={thStyle}>Descripció</th>
+              <th style={thStyle}>{t('th_endpoint')}</th>
+              <th style={thStyle}>{t('th_description')}</th>
             </tr>
           </thead>
           <tbody>
-            <Row path="GET /votes" desc="Llistat paginat de votacions. Filtres: chamber_id, legislature_id, topic_slug, proposing_group_slug, result, date_from, date_to, q." />
-            <Row path="GET /votes/{id}" desc="Detall d'una votació individual: totals (sí, no, abst., absent), descripció, expedient, proposant, resum planer." />
-            <Row path="GET /initiatives/{id}" desc="Iniciativa parlamentària: títol original, situació, vots associats, temes." />
-            <Row path="GET /topics" desc="Taxonomia tancada de temes (17 editorials + 17 ODS). Paràmetre opcional kind=theme|sdg." />
-            <Row path="GET /topics/{slug}" desc="Detall del tema amb nom multilingüe i descripció." />
-            <Row path="GET /topics/{slug}/initiatives" desc="Iniciatives classificades sota un tema. Filtres: legislature_id, status." />
-            <Row path="GET /groups" desc="Grups parlamentaris actius. Filtre legislature_id." />
-            <Row path="GET /groups/{slug}" desc="Detall d'un grup parlamentari." />
-            <Row path="GET /groups/{slug}/members" desc="Diputats actius del grup amb dates de pertinença." />
-            <Row path="GET /groups/{slug}/composition" desc="Distribució per gènere, edat i partit electoral." />
-            <Row path="GET /persons" desc="Llistat paginat de diputats. Filtres: q, legislature_id." />
-            <Row path="GET /persons/{id}" desc="Fitxa pública del diputat (mai dades privades)." />
-            <Row path="GET /persons/{id}/kpis" desc="Indicadors agregats: assistència, dissidència, vots emesos." />
-            <Row path="GET /stats/summary" desc="Comptadors globals (iniciatives, votacions, classificades)." />
-            <Row path="GET /metrics/cohesion?vote_id=N" desc="Cohesió per grup en una votació concreta." />
-            <Row path="GET /metrics/coincidence?legislature_id=N" desc="Matriu completa de coincidència entre parelles de grups." />
-            <Row path="GET /metrics/attendance?legislature_id=N" desc="Assistència per diputat al període sol·licitat." />
-            <Row path="GET /metrics/dissidence?legislature_id=N" desc="Dissidència individual respecte a la línia del grup." />
+            {ENDPOINTS.map(([path, key]) => (
+              <Row key={path} path={path} desc={t(key)} />
+            ))}
           </tbody>
         </table>
-        <p style={{ marginTop: 14 }}>
-          <strong>Exemple amb curl</strong> - última pàgina de votacions del PSOE:
-        </p>
+        <p style={{ marginTop: 14 }}>{t.rich('curl_example', tags)}</p>
         <pre style={preStyle}>
 {`curl -s "https://api.holapolitica.org/votes?proposing_group_slug=psoe&page_size=5" \\
   | jq '.items[] | {id, title, voted_at, result}'`}
         </pre>
         <p style={{ marginTop: 8, fontSize: 13, color: 'var(--ink-3)' }}>
-          Les rutes són estables; canvis de signatura es comuniquen amb mes
-          d&apos;antelació al{' '}
-          <ExternalLink href="https://github.com/Pardo24/holapolitica/blob/main/CHANGELOG.md">
-            CHANGELOG
-          </ExternalLink>
-          .
+          {t.rich('stability', withLink('https://github.com/Pardo24/holapolitica/blob/main/CHANGELOG.md'))}
         </p>
       </Section>
 
       <section id="clau" style={{ scrollMarginTop: 80 }}>
-        <Section title="Descàrregues completes (clau gratuïta)">
-          <p>
-            Les rutes <code style={inlineCode}>/dump/votes</code>,{' '}
-            <code style={inlineCode}>/dump/initiatives</code>,{' '}
-            <code style={inlineCode}>/dump/deputies</code> i{' '}
-            <code style={inlineCode}>/dump/vote-records</code> donen el conjunt
-            de dades sencer en poques peticions. Necessiten una clau gratuïta:
-            la demanes aquí i la tens a l&apos;instant. Només et demanem qui ets,
-            per a què les faràs servir i que citis Hola Política.
-          </p>
+        <Section title={t('dump_title')}>
+          <p>{t.rich('dump_intro', tags)}</p>
           <ApiKeyForm />
           <pre style={{ ...preStyle, marginTop: 14 }}>
 {`curl -s -H "X-API-Key: hp_…" "https://api.holapolitica.org/dump/votes"`}
@@ -114,34 +133,37 @@ export default function ApiDocsPage() {
         </Section>
       </section>
 
-      <Section title="Widgets embedables">
+      <Section title={t('widgets_title')}>
         <p>
-          Cinc widgets pensats per a articles de premsa: incrusta&apos;ls amb un{' '}
-          <code style={inlineCode}>&lt;iframe&gt;</code> sense scripts ni cookies
-          de tercers. Cap tracker, càrrega &lt;1s, contingut només factual amb
-          atribució a Hola Política i enllaç a la font.
+          {t.rich('widgets_intro', {
+            // The message wraps just the word; the angle brackets go here so
+            // the message syntax doesn't read <iframe> as a tag of its own.
+            tag: (chunks) => <code style={inlineCode}>&lt;{chunks}&gt;</code>,
+          })}
         </p>
         <table style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>Ruta</th>
-              <th style={thStyle}>Què mostra</th>
-              <th style={thStyle}>Alçada</th>
+              <th style={thStyle}>{t('th_route')}</th>
+              <th style={thStyle}>{t('th_shows')}</th>
+              <th style={thStyle}>{t('th_height')}</th>
             </tr>
           </thead>
           <tbody>
-            <RowEmbed path="/embed/llei/{id}" desc="Una llei amb el disseny del web: titular planer, a qui afecta, resultat i vot de cada grup." h="620px" />
-            <RowEmbed path="/embed/ple/{data|darrer}" desc="El ple d'un dia: xifres, temes i cada llei amb el resultat. «darrer» = l'últim ple." h="560px" />
-            <RowEmbed path="/embed/diputats/{província}" desc="Els diputats d'una circumscripció, per partit (nom tal com l'escriu el Congrés, codificat a l'URL). Afegeix ?partit=gp-socialista (o qualsevol slug de grup) per mostrar-ne només un; el lector també pot canviar-lo des del widget." h="760px" />
-            <RowEmbed path="/embed/votes/{id}" desc="Resultat d'una votació: totals, qui ho proposa, barra apilada." h="320px" />
-            <RowEmbed path="/embed/groups/{slug}" desc="Cohesió mitjana, assistència mitjana, mida del grup." h="220px" />
-            <RowEmbed path="/embed/topics/{slug}" desc="Distribució d'iniciatives sobre el tema (aprovades, rebutjades, en tràmit)." h="220px" />
-            <RowEmbed path="/embed/persons/{id}" desc="Fitxa breu del diputat: foto, grup, KPIs (assistència, dissidència)." h="220px" />
-            <RowEmbed path="/votes/{id}/opengraph-image" desc="Imatge social 1200×630 (PNG) per a Open Graph / Twitter. Mateixa convenció per a /groups/{slug}, /topics/{slug}, /persons/{id}, /initiatives/{id} i /stats." h="—" />
+            {EMBEDS.map(([path, key, h]) => (
+              <RowEmbed key={path} path={path} desc={t(key)} h={h} />
+            ))}
+            <RowEmbed
+              path="/votes/{id}/opengraph-image"
+              desc={t('emb_og', {
+                paths: '/groups/{slug}, /topics/{slug}, /persons/{id}, /initiatives/{id}, /stats',
+              })}
+              h="-"
+            />
           </tbody>
         </table>
         <p style={{ marginTop: 14 }}>
-          <strong>Exemple d&apos;iframe</strong>:
+          <strong>{t('iframe_example')}</strong>:
         </p>
         <pre style={preStyle}>
 {`<iframe
@@ -149,95 +171,36 @@ export default function ApiDocsPage() {
   width="100%" height="320" frameborder="0"
   sandbox="allow-scripts allow-same-origin"
   loading="lazy"
-  title="Votació al Congrés - Hola Política"
+  title="${t('iframe_title')}"
 ></iframe>`}
         </pre>
         <p style={{ marginTop: 8, fontSize: 13, color: 'var(--ink-3)' }}>
-          El sandbox és recomanat però opcional. Si t&apos;omple massa l&apos;alçada,
-          ajusta l&apos;atribut <code style={inlineCode}>height</code> - el
-          contingut és responsive.
+          {t.rich('sandbox_note', tags)}
         </p>
       </Section>
 
-      <Section title="Diccionari de dades essencial">
+      <Section title={t('dict_title')}>
         <p>
-          Els camps més consultats. La definició completa és al codi font (
-          <ExternalLink href="https://github.com/Pardo24/holapolitica/blob/main/backend/app/models/__init__.py">
-            models/__init__.py
-          </ExternalLink>
-          ).
+          {t.rich(
+            'dict_intro',
+            withLink('https://github.com/Pardo24/holapolitica/blob/main/backend/app/models/__init__.py'),
+          )}
         </p>
         <ul style={listStyle}>
-          <li>
-            <strong>vote.result</strong>: <code style={inlineCode}>approved</code> |{' '}
-            <code style={inlineCode}>rejected</code> |{' '}
-            <code style={inlineCode}>tie</code>. Empat només quan els sí igualen els
-            no exactament.
-          </li>
-          <li>
-            <strong>vote.proposed_by_government</strong>: booleà. Quan és{' '}
-            <code style={inlineCode}>true</code>, el camp{' '}
-            <code style={inlineCode}>proposing_group_slug</code> sol ser{' '}
-            <code style={inlineCode}>null</code>: el govern proposa, no un grup.
-          </li>
-          <li>
-            <strong>vote.expediente_raw</strong>: codi oficial del Congrés (p.ex.{' '}
-            <code style={inlineCode}>122/000262</code>) - clau per cercar a la font
-            original.
-          </li>
-          <li>
-            <strong>initiative.type</strong>: enum amb{' '}
-            <code style={inlineCode}>proyecto_ley</code>,{' '}
-            <code style={inlineCode}>proposicion_ley</code>,{' '}
-            <code style={inlineCode}>proposicion_no_ley</code>,{' '}
-            <code style={inlineCode}>real_decreto_ley</code>,{' '}
-            <code style={inlineCode}>mocion</code>,{' '}
-            <code style={inlineCode}>interpelacion</code>,{' '}
-            <code style={inlineCode}>other</code>.
-          </li>
-          <li>
-            <strong>cohesion</strong>: percentatge de membres del grup que voten
-            igual que la majoria del grup. <code style={inlineCode}>null</code>{' '}
-            quan menys de 3 membres voten.
-          </li>
-          <li>
-            <strong>coincidence</strong>: percentatge de votacions on dos grups
-            voten igual sentit (sí vs. sí, no vs. no, abst. vs. abst.).
-          </li>
-          <li>
-            <strong>attendance</strong>: percentatge de votacions on el diputat
-            emet un vot (sí, no o abstenció). Excusats i baixes computen com a
-            absents perquè la font no els distingeix.
-          </li>
-          <li>
-            <strong>dissidence</strong>: percentatge de votacions on el diputat
-            vota diferent que la majoria del seu grup. Diputats amb càrrec
-            institucional (govern, mesa) tenen valors no comparables; el camp{' '}
-            <code style={inlineCode}>role_kind</code> ho indica.
-          </li>
+          {DICTIONARY.map((key) => (
+            <li key={key}>{t.rich(key, tags)}</li>
+          ))}
         </ul>
       </Section>
 
-      <Section title="Llicències i atribució">
+      <Section title={t('lic_title')}>
         <ul style={listStyle}>
-          <li>
-            <strong>Dades</strong>: CC-BY 4.0. Reutilitza-les citant{' '}
-            <em>Hola Política</em> i la font original (Congreso de los Diputados).
-          </li>
-          <li>
-            <strong>Codi font</strong>: EUPL-1.2 (
-            <ExternalLink href="https://github.com/Pardo24/holapolitica">
-              GitHub
-            </ExternalLink>
-            ).
-          </li>
-          <li>
-            <strong>Widgets i imatges OG</strong>: lliures d&apos;ús en mitjans i
-            xarxes amb la mateixa obligació d&apos;atribució.
-          </li>
+          <li>{t.rich('lic_data', tags)}</li>
+          <li>{t.rich('lic_code', withLink('https://github.com/Pardo24/holapolitica'))}</li>
+          <li>{t.rich('lic_widgets', tags)}</li>
         </ul>
         <p style={{ marginTop: 12 }}>
-          Contacte tècnic:{' '}
+          {t('contact')}:{' '}
           <a href="mailto:dades@holapolitica.org" style={{ color: 'var(--accent)' }}>
             dades@holapolitica.org
           </a>
@@ -255,16 +218,10 @@ export default function ApiDocsPage() {
         }}
       >
         <div className="eyebrow" style={{ marginBottom: 6 }}>
-          Et falta un endpoint
+          {t('cta_eyebrow')}
         </div>
-        <p style={{ margin: '0 0 12px', color: 'var(--ink-2)', fontSize: 14 }}>
-          Si la teva redacció necessita un tall concret (per exemple, totes les
-          votacions d&apos;un partit en un trimestre), obre un issue al repositori i
-          ho prioritzem.
-        </p>
-        <ExternalLink href="https://github.com/Pardo24/holapolitica/issues/new">
-          Obrir un issue a GitHub
-        </ExternalLink>
+        <p style={{ margin: '0 0 12px', color: 'var(--ink-2)', fontSize: 14 }}>{t('cta_body')}</p>
+        <ExternalLink href="https://github.com/Pardo24/holapolitica/issues/new">{t('cta_button')}</ExternalLink>
       </div>
     </article>
   );
