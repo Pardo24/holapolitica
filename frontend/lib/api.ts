@@ -206,6 +206,26 @@ export interface ConstituencyCandidacies {
   lists: CandidacyList[];
 }
 
+/** An outgoing deputy's place on a 29-N list (backend: /candidacies/person). */
+export interface PersonCandidacy {
+  constituency: string;
+  list_name: string;
+  acronym: string | null;
+  /** Slug from lib/electionParties.ts, when the list is one of those. */
+  party: string | null;
+  /** 1-based, among the candidates or among the substitutes. */
+  position: number;
+  substitute: boolean;
+}
+
+export interface PersonCandidacies {
+  stage: 'proclaimed' | 'presented' | null;
+  boe_id: string | null;
+  published_on: string | null;
+  /** Empty when no list names them, or names them in a way we can't match. */
+  candidacies: PersonCandidacy[];
+}
+
 /** An article on the 29-N election, with the parties its headline names. */
 export interface ElectionNewsItem extends TopicNewsItem {
   /** Slugs from lib/electionParties.ts, in that order. */
@@ -1176,6 +1196,11 @@ export const api = {
     constituency: (name: string) =>
       request<ConstituencyCandidacies>(
         `/elections/2026/candidacies/constituency?name=${encodeURIComponent(name)}${electionQuery('&')}`,
+        { revalidate: 600 },
+      ),
+    person: (personId: number) =>
+      request<PersonCandidacies>(
+        `/elections/2026/candidacies/person/${personId}${electionQuery('?')}`,
         { revalidate: 600 },
       ),
   },

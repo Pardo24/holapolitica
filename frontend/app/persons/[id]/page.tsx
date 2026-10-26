@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { Route } from 'next';
-import { ArrowUpRight, MapPin } from '@/components/icons';
+import { ArrowRight, ArrowUpRight, MapPin, Vote } from '@/components/icons';
 
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
@@ -17,11 +17,13 @@ import {
   ApiError,
   type Mandate,
   type Person,
+  type PersonCandidacies,
   type PersonKPIs,
   type Topic,
   type TopicVoteStat,
 } from '@/lib/api';
 import { formatDayMonthYear, splitRoleSince } from '@/lib/dates';
+import { electionParty } from '@/lib/electionParties';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -104,6 +106,8 @@ export default async function PersonDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+  // On a 29-N list? Nothing shows until the BOE publishes them (~28 Oct).
+  const standing = await api.elections.person(personId).catch(() => null);
   // The votes list behind the two vote tabs; its totals also label the tabs.
   const votesPage = await api.persons
     .votes(personId, {
@@ -259,6 +263,10 @@ export default async function PersonDetailPage({
           </div>
         </div>
       </header>
+
+      {standing && standing.candidacies.length > 0 && (
+        <StandingNote data={standing} locale={locale} t={t} />
+      )}
 
       <KpiStrip kpis={kpis} t={t} />
 
@@ -917,4 +925,51 @@ function personInitials(fullName: string): string {
   if (parts.length === 1) return first.slice(0, 2).toUpperCase();
   const last = parts[parts.length - 1]!;
   return (first.charAt(0) + last.charAt(0)).toUpperCase();
+}
+
+/**
+ * "Standing on 29-N": where an outgoing deputy is on the official lists, as
+ * the BOE published them. Facts from the BOE only; a deputy with no note
+ * may still be standing under a spelling we could not match.
+ */
+function StandingNote({
+  data,
+  locale,
+  t,
+}: {
+  data: PersonCandidacies;
+  locale: string;
+  t: Awaited<ReturnType<typeof getTranslations<'person'>>>;
+}) {
+  const first = data.candidacies[0]!;
+  const color = electionParty(first.party)?.color ?? 'var(--ink-3)';
+  const date = data.published_on ? formatDayMonthYear(data.published_on, locale) : '';
+  return (
+    <aside className="dep-ballot" style={{ ['--party' as string]: color }}>
+      <p className="dep-ballot__eyebrow">
+        <Vote size={14} aria-hidden="true" /> {t('candidacy_eyebrow')}
+      </p>
+      {data.candidacies.map((c) => (
+        <p key={`${c.constituency}-${c.list_name}`} className="dep-ballot__text">
+          {t(c.substitute ? 'candidacy_text_substitute' : 'candidacy_text', {
+            constituency: c.constituency,
+            position: c.position,
+            list: c.acronym ?? c.list_name,
+          })}
+        </p>
+      ))}
+      {date && (
+        <p className="dep-ballot__text dep-ballot__text--quiet">
+          {t(data.stage === 'proclaimed' ? 'candidacy_proclaimed' : 'candidacy_presented', { date })}
+        </p>
+      )}
+      <Link
+        href={`/eleccions?circ=${encodeURIComponent(first.constituency)}` as Route}
+        className="dep-ballot__link"
+      >
+        {t('candidacy_link', { constituency: first.constituency })}{' '}
+        <ArrowRight size={14} aria-hidden="true" />
+      </Link>
+    </aside>
+  );
 }

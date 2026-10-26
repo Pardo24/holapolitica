@@ -1355,7 +1355,13 @@
     "pager_prev": "Anterior",
     "pager_next": "Siguiente",
     "pager_aria": "Páginas",
-    "role_since": "Desde el {date}"
+    "role_since": "Desde el {date}",
+    "candidacy_eyebrow": "Elecciones del 29-N",
+    "candidacy_text": "Se presenta por {constituency}: número {position} de la lista de {list}.",
+    "candidacy_text_substitute": "Se presenta por {constituency} como suplente número {position} de la lista de {list}.",
+    "candidacy_presented": "Candidatura presentada (BOE del {date}). Las juntas electorales las proclaman unos días después.",
+    "candidacy_proclaimed": "Candidatura proclamada (BOE del {date}).",
+    "candidacy_link": "Todas las candidaturas de {constituency}"
   },
   "topic": {
     "recent_votes_title": "Votaciones recientes en este área",

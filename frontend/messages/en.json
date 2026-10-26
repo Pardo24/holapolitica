@@ -1355,7 +1355,13 @@
     "pager_prev": "Previous",
     "pager_next": "Next",
     "pager_aria": "Pages",
-    "role_since": "Since {date}"
+    "role_since": "Since {date}",
+    "candidacy_eyebrow": "29 November election",
+    "candidacy_text": "Standing in {constituency}: number {position} on the {list} list.",
+    "candidacy_text_substitute": "Standing in {constituency} as substitute number {position} on the {list} list.",
+    "candidacy_presented": "Candidacy as presented (BOE of {date}). The electoral boards proclaim the lists a few days later.",
+    "candidacy_proclaimed": "Candidacy as proclaimed (BOE of {date}).",
+    "candidacy_link": "All candidacies in {constituency}"
   },
   "topic": {
     "recent_votes_title": "Recent votes in this area",
