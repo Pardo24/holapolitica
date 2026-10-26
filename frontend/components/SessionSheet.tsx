@@ -4,17 +4,10 @@ import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from '@/components/icons';
 
 import { GroupBadge } from '@/components/GroupBadge';
-import {
-  LAW_CARD_LIST_STYLE,
-  LawCardFooter,
-  AiMark,
-  LawCardBand,
-  LawCardFrame,
-  LawCardHeadline,
-  LawCardVoteBox,
-} from '@/components/LawCardParts';
+import { LAW_CARD_LIST_STYLE, AiMark } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
+import { GroupRows, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import {
   PartyStanceMini,
   buildStanceByVote,
@@ -29,8 +22,8 @@ import {
 import { ResultPill } from '@/components/ResultPill';
 import { SessionVoteFilter, type TopicOption } from '@/components/SessionVoteFilter';
 import { Tooltip } from '@/components/Tooltip';
+import { TopicChip } from '@/components/TopicChip';
 import { api, type InitiativeTopicSlug, type ParliamentaryGroupSummary, type Vote } from '@/lib/api';
-import { VoteSplit, type VoteSplitLabels } from '@/components/VoteSplit';
 import { pickPlainSummary, pickPlainTitle, proceduralExplainerKey } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
 import {
@@ -90,17 +83,6 @@ export async function SessionSheet({
   const tLleis = await getTranslations('lleis');
   const tVotes = await getTranslations('votes');
   const tStage = await getTranslations('vote_stage');
-  // The same vote block as /lleis and the law page, so one vote reads the
-  // same wherever it appears.
-  const splitLabels: VoteSplitLabels = {
-    eyebrow: tLleis('card_votes_eyebrow'),
-    inFavour: tLleis('card_in_favour'),
-    against: tLleis('card_against'),
-    abstention: tLleis('card_abstention'),
-    detail: tLleis('card_group_detail'),
-    sideEmpty: tLleis('card_side_empty'),
-    noBreakdown: tLleis('card_no_breakdown'),
-  };
 
   // Resolve the per-group ``logo_url`` so each VoteRow can render a
   // proper branded badge instead of a generic colored dot. Today
@@ -228,7 +210,6 @@ export async function SessionSheet({
         <LawVoteGroup
           key={`law-${entry.key}`}
           cardLabels={cardLabels}
-          splitLabels={splitLabels}
           votes={entry.votes}
           kind={kind}
           locale={locale}
@@ -254,7 +235,6 @@ export async function SessionSheet({
       <VoteRow
         key={v.id}
         cardLabels={cardLabels}
-        splitLabels={splitLabels}
         vote={v}
         locale={locale}
         proposerLogoUrl={proposerGroup?.logo_url ?? null}
@@ -922,7 +902,6 @@ function LawVoteGroup({
   labels,
   stanceByVote,
   stanceLabels,
-  splitLabels,
   noBreakLabels,
   outcomeLabelFor,
   stageHintFor,
@@ -939,7 +918,6 @@ function LawVoteGroup({
   labels: GroupLabels;
   stanceByVote: Map<number, PartyStance[]>;
   stanceLabels: StanceLabels;
-  splitLabels: VoteSplitLabels;
   noBreakLabels: Record<NoBreakdownReason, string>;
   outcomeLabelFor: (v: Vote) => string;
   stageHintFor: (v: Vote) => string | null;
@@ -970,18 +948,6 @@ function LawVoteGroup({
   const hint = byPoints ? null : stageHintFor(decider);
   const deciderStance = stanceByVote.get(decider.id);
   const proposer = proposerOf(lead, proposerLogoUrl, proposedByGovernmentLabel);
-  const headlineStyle: React.CSSProperties = {
-    margin: 0,
-    fontSize: 'clamp(14px, 1.4vw, 15px)',
-    fontWeight: 400,
-    color: 'var(--ink)',
-    lineHeight: 1.35,
-    letterSpacing: '-0.005em',
-    flex: '1 1 280px',
-    minWidth: 0,
-    textDecoration: 'none',
-  };
-
   const lawHref = lead.initiative_id != null ? (`/initiatives/${lead.initiative_id}` as Route) : null;
 
   return (
@@ -989,91 +955,107 @@ function LawVoteGroup({
     // a bill that passed after its amendments were voted down is approved.
     // The same card as /lleis (LawCardParts), so one law looks the same
     // whether you meet it in the list or in the day it was voted.
-    <LawCardFrame data={{ 'data-result': outcome, 'data-topics': topicSlugs }}>
-      <LawCardBand
-        topics={topics}
-        outcome={outcome}
-        label={byPoints ? labels.pointsSummary(approvedPoints, ordered.length) : outcomeLabelFor(decider)}
-        locale={locale}
-      />
-      {lead.initiative_type && (
-        <div className="law-card-meta">
-          <LawTypeChip type={lead.initiative_type} />
-        </div>
-      )}
-      <LawCardHeadline href={lawHref} size="lg">
-        {plainSummary && <AiMark label={cardLabels.aiSummary} />}
-        {headline}
-      </LawCardHeadline>
-      {effectsFor(lawEffects, locale).length > 0 ? (
-        <ProfileEffects
-          effects={lawEffects}
-          locale={locale}
-          max={3}
-          moreHref={lawHref ? `${lawHref}#com-t-afecta` : undefined}
-        />
-      ) : (
-        pickPlainTitle(lead, locale) &&
-        plainSummary && <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
-      )}
-      {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
-      {proceduralNote && (
-        <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
-          {proceduralNote}
-        </p>
-      )}
-      {/* Point-by-point motions show who voted what per point, below. */}
-      {!byPoints && (
-        <LawCardVoteBox>
-          {deciderStance && deciderStance.length > 0 ? (
-            <VoteSplit
-              ayes={decider.ayes}
-              noes={decider.noes}
-              abstentions={decider.abstentions}
-              absent={decider.absent}
-              groups={deciderStance}
-              labels={splitLabels}
-              bigTally
-            />
-          ) : (
-            <NoBreakdownFor vote={decider} labels={noBreakLabels} />
-          )}
-        </LawCardVoteBox>
-      )}
-      <details className="law-card-votes">
-        <summary>
-          {byPoints ? labels.pointsToggle(ordered.length) : labels.votesToggle(ordered.length)}
-          {/* Educational note: why one item is voted several times. */}
-          <Tooltip
-            term={
-              <span aria-hidden="true" className="law-card-votes__i">
-                i
+    <ScoreCard
+      tone={scoreTone(outcome)}
+      data={{ 'data-result': outcome, 'data-topics': topicSlugs }}
+      head={
+        <>
+          <div className="vcard__chips">
+            {lead.initiative_type && <LawTypeChip type={lead.initiative_type} />}
+            {topics
+              .filter((tp) => tp.kind !== 'sdg')
+              .slice(0, 2)
+              .map((tp) => (
+                <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+              ))}
+          </div>
+          <h3 className="vcard__title">
+            {lawHref ? (
+              <Link href={lawHref} className="serif">
+                {plainSummary && <AiMark label={cardLabels.aiSummary} />}
+                {headline}
+              </Link>
+            ) : (
+              <span className="serif">
+                {plainSummary && <AiMark label={cardLabels.aiSummary} />}
+                {headline}
               </span>
-            }
-            explanation={byPoints ? labels.whyPoints : labels.whyMultiple}
+            )}
+          </h3>
+          {pickPlainTitle(lead, locale) && plainSummary && (
+            <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+          )}
+          {hint && <p style={STAGE_HINT_STYLE}>{hint}</p>}
+          {proceduralNote && (
+            <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+              {proceduralNote}
+            </p>
+          )}
+        </>
+      }
+      score={
+        <ScorePanel
+          label={byPoints ? labels.pointsSummary(approvedPoints, ordered.length) : outcomeLabelFor(decider)}
+          // A motion voted point by point has no one tally: each point has
+          // its own, in the list below.
+          tally={byPoints || decider.approved_by_assent ? null : decider}
+          href={lawHref}
+          openLabel={cardLabels.openLaw}
+        />
+      }
+      groups={
+        byPoints ? null : (
+          <GroupRows
+            groups={deciderStance ?? []}
+            empty={<NoBreakdownFor vote={decider} labels={noBreakLabels} />}
           />
-        </summary>
-        <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>
-          {ordered.map((v, i) => (
-            <SubVote
-              key={v.id}
-              vote={v}
-              label={byPoints ? labels.pointLabel(i + 1) : labels.stageLabel(v)}
-              ayesLabel={labels.ayes}
-              noesLabel={labels.noes}
-              resultLabel={outcomeLabelFor(v)}
-              marginLabel={marginLabel}
-              tag={!byPoints && v.id === decider.id ? labels.finalTag : null}
-              stance={byPoints ? stanceByVote.get(v.id) : undefined}
-              stanceLabels={stanceLabels}
+        )
+      }
+      foot={
+        <>
+          <ProposerChip proposer={proposer} />
+          <details className="law-card-votes">
+            <summary>
+              {byPoints ? labels.pointsToggle(ordered.length) : labels.votesToggle(ordered.length)}
+              {/* Educational note: why one item is voted several times. */}
+              <Tooltip
+                term={
+                  <span aria-hidden="true" className="law-card-votes__i">
+                    i
+                  </span>
+                }
+                explanation={byPoints ? labels.whyPoints : labels.whyMultiple}
+              />
+            </summary>
+            <ul style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>
+              {ordered.map((v, i) => (
+                <SubVote
+                  key={v.id}
+                  vote={v}
+                  label={byPoints ? labels.pointLabel(i + 1) : labels.stageLabel(v)}
+                  ayesLabel={labels.ayes}
+                  noesLabel={labels.noes}
+                  resultLabel={outcomeLabelFor(v)}
+                  marginLabel={marginLabel}
+                  tag={!byPoints && v.id === decider.id ? labels.finalTag : null}
+                  stance={byPoints ? stanceByVote.get(v.id) : undefined}
+                  stanceLabels={stanceLabels}
+                />
+              ))}
+            </ul>
+          </details>
+          {effectsFor(lawEffects, locale).length > 0 && (
+            <ProfileEffects
+              effects={lawEffects}
+              locale={locale}
+              max={3}
+              moreHref={lawHref ? `${lawHref}#com-t-afecta` : undefined}
+              folded
             />
-          ))}
-        </ul>
-      </details>
-      <LawCardFooter href={lawHref} openLabel={cardLabels.openLaw}>
-        <ProposerChip proposer={proposer} />
-      </LawCardFooter>
-    </LawCardFrame>
+          )}
+        </>
+      }
+    />
   );
 }
 
@@ -1183,7 +1165,6 @@ function VoteRow({
   marginLabel,
   stance,
   stanceLabels,
-  splitLabels,
   noBreakLabels,
   stageHint,
   proceduralNote,
@@ -1209,7 +1190,6 @@ function VoteRow({
   marginLabel: (margin: number) => string;
   stance?: PartyStance[];
   stanceLabels: StanceLabels;
-  splitLabels: VoteSplitLabels;
   noBreakLabels: Record<NoBreakdownReason, string>;
   stageHint?: string | null;
   /** What this kind of procedural vote does, when no summary exists. */
@@ -1261,63 +1241,73 @@ function VoteRow({
     // row with a panel of figures on the right, a 15px headline and the
     // margin beside the verdict: a second visual language for the same
     // thing. The figures live in the vote box's tally now, as on /lleis.
-    <LawCardFrame data={{ 'data-result': outcome, 'data-topics': topicSlugs }}>
-      <LawCardBand topics={topics} outcome={outcome} label={resultLabel} locale={locale} />
-      {vote.initiative_type && (
-        <div className="law-card-meta">
-          <LawTypeChip type={vote.initiative_type} />
-        </div>
-      )}
-      <LawCardHeadline href={voteHref} size="lg">
-        {plainSummary && <AiMark label={cardLabels.aiSummary} />}
-        {headline}
-      </LawCardHeadline>
-      {effectsFor(vote.profile_effects, locale).length > 0 ? (
-        <ProfileEffects
-          effects={vote.profile_effects}
-          locale={locale}
-          max={3}
-          moreHref={
-            vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : voteHref
-          }
+    <ScoreCard
+      tone={scoreTone(outcome)}
+      data={{ 'data-result': outcome, 'data-topics': topicSlugs }}
+      head={
+        <>
+          <div className="vcard__chips">
+            {vote.initiative_type && <LawTypeChip type={vote.initiative_type} />}
+            {topics
+              .filter((tp) => tp.kind !== 'sdg')
+              .slice(0, 2)
+              .map((tp) => (
+                <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+              ))}
+          </div>
+          <h3 className="vcard__title">
+            <Link href={voteHref} className="serif">
+              {plainSummary && <AiMark label={cardLabels.aiSummary} />}
+              {headline}
+            </Link>
+          </h3>
+          {pickPlainTitle(vote, locale) && plainSummary && (
+            <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
+          )}
+          {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
+          {proceduralNote && (
+            <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
+              {proceduralNote}
+            </p>
+          )}
+        </>
+      }
+      score={
+        <ScorePanel
+          label={resultLabel}
+          tally={vote.approved_by_assent ? null : vote}
+          href={voteHref}
+          openLabel={cardLabels.openVote}
         />
-      ) : (
-        pickPlainTitle(vote, locale) &&
-        plainSummary && <p className="law-card-summary">{summaryHeadline(plainSummary)}</p>
-      )}
-      {stageHint && <p style={STAGE_HINT_STYLE}>{stageHint}</p>}
-      {proceduralNote && (
-        <p style={{ margin: '6px 0 0', fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-2)' }}>
-          {proceduralNote}
-        </p>
-      )}
-      <LawCardVoteBox>
-        {stance && stance.length > 0 ? (
-          <VoteSplit
-            ayes={vote.ayes}
-            noes={vote.noes}
-            abstentions={vote.abstentions}
-            absent={vote.absent}
-            groups={stance}
-            labels={splitLabels}
-            bigTally
+      }
+      groups={
+        <GroupRows groups={stance ?? []} empty={<NoBreakdownFor vote={vote} labels={noBreakLabels} />} />
+      }
+      foot={
+        <>
+          <ProposerChip
+            proposer={
+              proposer
+                ? proposer.kind === 'group'
+                  ? proposer
+                  : { kind: 'government', short: proposer.short, color: proposer.color }
+                : null
+            }
           />
-        ) : (
-          <NoBreakdownFor vote={vote} labels={noBreakLabels} />
-        )}
-      </LawCardVoteBox>
-      <LawCardFooter href={voteHref} openLabel={cardLabels.openVote}>
-        <ProposerChip
-          proposer={
-            proposer
-              ? proposer.kind === 'group'
-                ? proposer
-                : { kind: 'government', short: proposer.short, color: proposer.color }
-              : null
-          }
-        />
-      </LawCardFooter>
-    </LawCardFrame>
+          {effectsFor(vote.profile_effects, locale).length > 0 && (
+            <ProfileEffects
+              effects={vote.profile_effects}
+              locale={locale}
+              max={3}
+              moreHref={
+                vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : voteHref
+              }
+              folded
+            />
+          )}
+        </>
+      }
+    />
   );
 }
 

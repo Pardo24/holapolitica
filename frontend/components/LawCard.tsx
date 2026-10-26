@@ -2,20 +2,16 @@ import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 import { ProposerBadges } from '@/components/InitiativeRow';
-import {
-  AiMark,
-  LawCardBand,
-  LawCardFooter,
-  LawCardFrame,
-  LawCardHeadline,
-  LawCardVoteBox,
-} from '@/components/LawCardParts';
+import Link from 'next/link';
+
+import { AiMark } from '@/components/LawCardParts';
 import { DecreeLinkNote } from '@/components/DecreeLinkNote';
 import { SameProposalNote } from '@/components/SameProposalNote';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
+import { GroupRows, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { TopicChip } from '@/components/TopicChip';
 import { LAW_TYPE_BINDING } from '@/lib/lawTypes';
-import { VoteSplit } from '@/components/VoteSplit';
 import type { InitiativeListItem } from '@/lib/api';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline } from '@/lib/plainSummary';
@@ -92,9 +88,6 @@ export async function LawCard({
   const showVoteResult = prefersVoteResult(initiative.status, initiative.latest_vote_result);
 
   const vote = initiative.latest_vote ?? null;
-  const voteDate = vote?.voted_at
-    ? new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' })
-    : null;
 
   // The band: the first subject (a theme before an SDG) and the outcome.
   const outcomeKey = showVoteResult ? initiative.latest_vote_result : null;
@@ -120,139 +113,132 @@ export async function LawCard({
       : (initiative.affected_audiences?.es ?? initiative.affected_audiences?.ca)
   )?.filter(Boolean);
 
+  // "What it means for you" is folded in the foot of the list card; on a
+  // situation's page it is what the reader came for, so it stays open,
+  // under the headline.
+  const effectsOpen = hasEffects && !!profileKey;
+  const stageEyebrow =
+    vote?.stage === 'totality'
+      ? t('card_votes_eyebrow_totality')
+      : vote?.stage === 'taking'
+        ? t('card_votes_eyebrow_taking')
+        : vote?.stage === 'convalidation'
+          ? t('card_votes_eyebrow_convalidation')
+          : null;
+
   return (
-    <LawCardFrame data={{ 'data-result': toneKey ?? 'pending' }}>
-      {/* The band: what it is about, and how it ended, in the outcome's
-          colour. One look says "housing, approved". */}
-      <LawCardBand topics={initiative.topics} outcome={toneKey} label={outcomeLabel} locale={locale} />
-
-      {/* What kind of text, and when it was last voted (or tabled). */}
-      <div className="law-card-meta">
-        <LawTypeChip type={initiative.type} />
-        {LAW_TYPE_BINDING[initiative.type] === false && (
-          <span className="law-card-nonbinding">{t('card_non_binding')}</span>
-        )}
-        {dateLabel && <span className="tabular">{dateLabel}</span>}
-      </div>
-
-      {/* What it does, in plain language. A machine-written line carries a
-          small sparkle (with its label for screen readers and on hover). */}
-      <LawCardHeadline href={href} size="lg">
-        {plainSummary && <AiMark label={t('card_ai_summary')} />}
-        {headline}
-      </LawCardHeadline>
-
-      {initiative.decree_link && <DecreeLinkNote link={initiative.decree_link} />}
-      {(initiative.same_title?.length ?? 0) > 0 && (
-        <SameProposalNote others={initiative.same_title!} locale={locale} />
-      )}
-
-      {/* Three lines of the summary, under a headline of its own. When the
-          headline is itself taken from the summary, this would repeat it. */}
-      {hasEffects ? (
-        <ProfileEffects
-          effects={initiative.profile_effects}
-          locale={locale}
-          max={3}
-          first={profileKey}
-          moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
-          // Folded in the lists; open on a situation's page, where it is
-          // what the reader came for.
-          folded={!profileKey}
+    <ScoreCard
+      tone={scoreTone(toneKey)}
+      data={{ 'data-result': toneKey ?? 'pending' }}
+      head={
+        <>
+          <div className="vcard__chips">
+            <LawTypeChip type={initiative.type} />
+            {LAW_TYPE_BINDING[initiative.type] === false && (
+              <span className="law-card-nonbinding">{t('card_non_binding')}</span>
+            )}
+            {(initiative.topics ?? [])
+              .filter((tp) => tp.kind !== 'sdg')
+              .slice(0, 2)
+              .map((tp) => (
+                <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+              ))}
+          </div>
+          {/* What it does, in plain language. A machine-written line carries a
+              small sparkle (with its label for screen readers and on hover). */}
+          <h3 className="vcard__title">
+            <Link href={href} className="serif">
+              {plainSummary && <AiMark label={t('card_ai_summary')} />}
+              {headline}
+            </Link>
+          </h3>
+          {initiative.decree_link && <DecreeLinkNote link={initiative.decree_link} />}
+          {(initiative.same_title?.length ?? 0) > 0 && (
+            <SameProposalNote others={initiative.same_title!} locale={locale} />
+          )}
+          {effectsOpen ? (
+            <ProfileEffects
+              effects={initiative.profile_effects}
+              locale={locale}
+              max={3}
+              first={profileKey}
+              moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
+            />
+          ) : (
+            cardSummary && <p className="law-card-summary">{cardSummary}</p>
+          )}
+          {/* Who it touches: the collectives named in the text itself. */}
+          {!hasEffects && audiences && audiences.length > 0 && (
+            <div className="law-card-affects">
+              <span>{t('card_affects')}</span>
+              {(() => {
+                const list = audiences.slice(0, 5).join(', ');
+                return list.charAt(0).toLocaleUpperCase(locale) + list.slice(1);
+              })()}
+            </div>
+          )}
+          {/* What the text changes: symmetric facts read from the bill
+              itself, as icon chips. The passage behind each is on the law's
+              page; the tooltip gives it here. */}
+          {changeTags.length > 0 && (
+            <div className="vcard__tags">
+              {changeTags.map((tag) => {
+                const Icon = changeTagIcon(tag);
+                return (
+                  <span key={tag} className="change-chip" title={changeEvidence[tag] ?? undefined}>
+                    <Icon size={12} strokeWidth={2} aria-hidden="true" />
+                    {tTags(tag)}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </>
+      }
+      score={
+        <ScorePanel
+          // The verdict, wherever it comes from: the latest vote, or the
+          // initiative's own status when that is the verdict.
+          label={outcomeLabel}
+          // Say what was voted when it was a step, not the law: the verdict
+          // can differ from this vote's result (amendments to the whole
+          // text rejected = the law goes on).
+          eyebrow={stageEyebrow}
+          tally={vote && !vote.approved_by_assent ? vote : null}
+          note={vote === null ? t('card_not_voted_yet') : vote.approved_by_assent ? t('card_by_assent') : null}
+          date={dateLabel}
+          href={href}
+          openLabel={t('card_open')}
         />
-      ) : (
-        cardSummary && <p className="law-card-summary">{cardSummary}</p>
-      )}
-
-      {/* Who it touches: the collectives named in the text itself. */}
-      {!hasEffects && audiences && audiences.length > 0 && (
-        <div className="law-card-affects">
-          <span>{t('card_affects')}</span>
-          {(() => {
-            const list = audiences.slice(0, 5).join(', ');
-            return list.charAt(0).toLocaleUpperCase(locale) + list.slice(1);
-          })()}
-        </div>
-      )}
-
-      {/* What the text changes: symmetric facts read from the bill itself,
-          as icon chips, no label row. The passage behind each is on the
-          law's page; the tooltip gives it here. Who it affects lives on
-          the law's page too: four more chips here was one layer too many. */}
-      {changeTags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-          {changeTags.map((tag) => {
-            const Icon = changeTagIcon(tag);
-            return (
-              <span key={tag} className="change-chip" title={changeEvidence[tag] ?? undefined}>
-                <Icon size={12} strokeWidth={2} aria-hidden="true" />
-                {tTags(tag)}
-              </span>
-            );
-          })}
-        </div>
-      )}
-
-      {/* The vote itself. */}
-      <LawCardVoteBox>
-        {vote === null ? (
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-3)' }}>
-            {t('card_not_voted_yet')}
-          </p>
-        ) : vote.approved_by_assent ? (
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-2)' }}>
-            {t('card_by_assent')}
-            {voteDate ? ` · ${voteDate}` : ''}
-          </p>
-        ) : (
-          <VoteSplit
-            ayes={vote.ayes}
-            noes={vote.noes}
-            abstentions={vote.abstentions}
-            absent={vote.absent}
-            groups={vote.groups}
-            date={voteDate}
-            bigTally
-            labels={{
-              // Say what was voted when it was a step, not the law: the
-              // card's verdict above can differ from this vote's result
-              // (amendments to the whole text rejected = the law goes on).
-              eyebrow:
-                vote.stage === 'totality'
-                  ? t('card_votes_eyebrow_totality')
-                  : vote.stage === 'taking'
-                    ? t('card_votes_eyebrow_taking')
-                    : vote.stage === 'convalidation'
-                      ? t('card_votes_eyebrow_convalidation')
-                      : t('card_votes_eyebrow'),
-              inFavour: t('card_in_favour'),
-              against: t('card_against'),
-              abstention: t('card_abstention'),
-              detail: t('card_group_detail'),
-              sideEmpty: t('card_side_empty'),
-              noBreakdown: t('card_no_breakdown'),
-            }}
-          />
-        )}
-      </LawCardVoteBox>
-
-      {/* Footer: who tabled it, its file number, and the way in. */}
-      <LawCardFooter href={href} openLabel={t('card_open')}>
-        {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
-          <ProposerBadges
-            parsed={parsed}
-            governmentLabel={tTopic('proposer_government_label')}
-            moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
-            rawFallback={initiative.submitted_by ?? ''}
-          />
-        )}
-        {pdf && (
-          <a href={pdf} target="_blank" rel="noopener noreferrer" className="card-pdf-link">
-            <FileText size={12} strokeWidth={2} aria-hidden="true" />
-            {tLawText('pdf_short')}
-          </a>
-        )}
-      </LawCardFooter>
-    </LawCardFrame>
+      }
+      groups={vote && !vote.approved_by_assent ? <GroupRows groups={vote.groups} /> : null}
+      foot={
+        <>
+          {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
+            <ProposerBadges
+              parsed={parsed}
+              governmentLabel={tTopic('proposer_government_label')}
+              moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
+              rawFallback={initiative.submitted_by ?? ''}
+            />
+          )}
+          {pdf && (
+            <a href={pdf} target="_blank" rel="noopener noreferrer" className="card-pdf-link">
+              <FileText size={12} strokeWidth={2} aria-hidden="true" />
+              {tLawText('pdf_short')}
+            </a>
+          )}
+          {hasEffects && !effectsOpen && (
+            <ProfileEffects
+              effects={initiative.profile_effects}
+              locale={locale}
+              max={3}
+              moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
+              folded
+            />
+          )}
+        </>
+      }
+    />
   );
 }
