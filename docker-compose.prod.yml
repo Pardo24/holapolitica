@@ -17,6 +17,10 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    # Parallel queries and VACUUM share memory through /dev/shm, which
+    # Docker caps at 64 MB: "could not resize shared memory segment ... No
+    # space left on device" (VACUUM of vote_records, 2026-10-26).
+    shm_size: 256m
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

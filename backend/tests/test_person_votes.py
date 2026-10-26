@@ -101,3 +101,29 @@ async def test_kpi_dissent_leaves_amendments_out(db_session: AsyncSession) -> No
     kpis = await compute_person_kpis(db_session, person_id=me.person_id)
     assert kpis.dissents == 0
     assert kpis.votes_cast == 2  # attendance still counts the amendment vote
+
+
+async def test_a_split_group_has_no_majority_to_break(db_session: AsyncSession) -> None:
+    """Two members, one yes and one no: neither broke with the group, in the
+    list or in the KPI (it used to depend on which record came first)."""
+    from app.metrics.calc import compute_person_kpis
+
+    chamber, leg, group = await _seed_scaffold(db_session)
+    start = date(2023, 8, 17)
+    me = await _add_deputy(
+        db_session, chamber=chamber, leg=leg, group=group, full_name="Jo", mandate_start=start
+    )
+    other = await _add_deputy(
+        db_session, chamber=chamber, leg=leg, group=group, full_name="A", mandate_start=start
+    )
+    split = await _add_vote(
+        db_session, chamber=chamber, leg=leg, voted_at=datetime(2024, 1, 10, 12, tzinfo=UTC)
+    )
+    await _cast(db_session, vote=split, mandate=me, group=group, choice=VoteChoice.NO)
+    await _cast(db_session, vote=split, mandate=other, group=group, choice=VoteChoice.AYE)
+    await db_session.commit()
+
+    rows = await person_vote_rows(db_session, me.person_id)
+    assert rows[0][3] is None and not is_dissent(rows[0])
+    kpis = await compute_person_kpis(db_session, person_id=me.person_id)
+    assert kpis.dissents == 0 and kpis.dissidence_pct is None

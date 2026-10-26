@@ -52,6 +52,7 @@ from app.models import (
 from app.models import (
     Session as SessionRow,
 )
+from app.services.group_majority import person_group_majorities
 from app.services.vote_stage import is_change_vote_sql
 
 _VOTING_CHOICES = {VoteChoice.AYE, VoteChoice.NO, VoteChoice.ABSTENTION}
@@ -1238,60 +1239,14 @@ async def compute_person_kpis(session: AsyncSession, *, person_id: int) -> Perso
     # one) are not a stance on the law: a deputy voting "no" to another
     # group's amendment along with their whole group is not dissent worth
     # counting, and the profile's list of breaks leaves them out too
-    # (app/services/person_votes.py). Same rule, same number.
-    voted_ids = list({vid for _c, _g, vid in rows})
-    change_votes: set[int] = set()
-    for i in range(0, len(voted_ids), 2000):
-        change_votes.update(
-            vid
-            for (vid,) in (
-                await session.execute(
-                    select(Vote.id)
-                    .where(Vote.id.in_(voted_ids[i : i + 2000]))
-                    .where(is_change_vote_sql())
-                )
-            ).all()
-        )
-    cast_with_group = [
-        (choice, gid, vid)
-        for choice, gid, vid in rows
-        if choice in _VOTING_CHOICES and gid is not None and vid not in change_votes
-    ]
-    relevant_keys = {(vid, gid) for _c, gid, vid in cast_with_group}
-    if not relevant_keys:
-        return PersonKPIs(
-            person_id=person_id,
-            votes_total=total,
-            votes_cast=cast_count,
-            attendance_pct=attendance,
-            dissents=0,
-            dissidence_pct=None,
-            mandate_total_votes=mandate_total_votes,
-            legislature_total_votes=legislature_total_votes,
-        )
-
-    # Pull the group-majority per (vote, group) for the relevant subset.
-    counters: dict[tuple[int, int], Counter[VoteChoice]] = defaultdict(Counter)
-    other_rows = (
-        await session.execute(
-            select(VoteRecord.choice, VoteRecord.group_id_at_time, VoteRecord.vote_id)
-            .where(VoteRecord.vote_id.in_({k[0] for k in relevant_keys}))
-            .where(VoteRecord.group_id_at_time.in_({k[1] for k in relevant_keys}))
-        )
-    ).all()
-    for choice, gid, vid in other_rows:
-        if choice in _VOTING_CHOICES and gid is not None:
-            counters[(vid, gid)][choice] += 1
-
-    majority: dict[tuple[int, int], VoteChoice] = {}
-    for key, counts in counters.items():
-        choice, count = max(((c, counts[c]) for c in _VOTING_CHOICES), key=lambda kv: kv[1])
-        if count > 0:
-            majority[key] = choice
-
+    # (app/services/person_votes.py). Same majorities, same number: both
+    # come from app/services/group_majority.py, which leaves those votes out.
+    majority = await person_group_majorities(session, person_id)
     compared = 0
     dissents = 0
-    for choice, gid, vid in cast_with_group:
+    for choice, gid, vid in rows:
+        if choice not in _VOTING_CHOICES or gid is None:
+            continue
         maj = majority.get((vid, gid))
         if maj is None:
             continue

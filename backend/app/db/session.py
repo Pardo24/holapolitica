@@ -18,6 +18,15 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,
+    # Postgres compiles "expensive" queries to machine code first, ~0.4 s
+    # each on the profile's tallies (2026-10-26) for queries that then run
+    # in a fraction of that. A web API's queries are never long enough to
+    # win it back.
+    connect_args=(
+        {"server_settings": {"jit": "off"}}
+        if _settings.database_url.startswith("postgresql")
+        else {}
+    ),
 )
 
 AsyncSessionLocal = async_sessionmaker(

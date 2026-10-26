@@ -21,7 +21,6 @@ details.
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
 from typing import Any
 
 from sqlalchemy import select
@@ -37,6 +36,7 @@ from app.models import (
     VoteChoice,
     VoteRecord,
 )
+from app.services.group_majority import person_group_majorities
 from app.services.vote_stage import is_change_vote_sql, vote_stage
 
 _CAST = {VoteChoice.AYE, VoteChoice.NO, VoteChoice.ABSTENTION}
@@ -56,27 +56,13 @@ async def person_vote_rows(session: AsyncSession, person_id: int) -> list[list[A
             .order_by(Vote.voted_at.desc(), Vote.sequence_in_session.desc(), Vote.id.desc())
         )
     ).all()
-    keys = {(vid, gid) for vid, _t, choice, gid in rows if gid is not None and choice in _CAST}
-    majority: dict[tuple[int, int], str] = {}
-    if keys:
-        counters: dict[tuple[int, int], Counter[str]] = defaultdict(Counter)
-        vote_ids = list({k[0] for k in keys})
-        group_ids = list({k[1] for k in keys})
-        # In chunks: a veteran deputy has thousands of votes.
-        for i in range(0, len(vote_ids), 2000):
-            for choice, gid, vid in (
-                await session.execute(
-                    select(VoteRecord.choice, VoteRecord.group_id_at_time, VoteRecord.vote_id)
-                    .where(VoteRecord.vote_id.in_(vote_ids[i : i + 2000]))
-                    .where(VoteRecord.group_id_at_time.in_(group_ids))
-                )
-            ).all():
-                if choice in _CAST and (vid, gid) in keys:
-                    counters[(vid, gid)][str(choice)] += 1
-        for key, counts in counters.items():
-            choice, n = counts.most_common(1)[0]
-            if n > 0:
-                majority[key] = choice
+    # The group's majority on each vote, tallied by the database (shared with
+    # the dissidence KPI). None on a tie: a split group has no line to break.
+    majority = {
+        key: str(choice)
+        for key, choice in (await person_group_majorities(session, person_id)).items()
+        if choice is not None
+    }
     seen: set[int] = set()
     out: list[list[Any]] = []
     for vid, voted_at, choice, gid in rows:
