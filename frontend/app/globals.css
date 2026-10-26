@@ -2519,10 +2519,54 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   font-weight: 600;
   color: var(--ink-3);
 }
-.vcard__groups { grid-area: groups; display: flex; flex-direction: column; gap: 4px; padding: 12px 18px 0; min-width: 0; }
-.vcard__side { display: flex; align-items: baseline; gap: 7px; margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
-.vcard__side-label { flex: none; min-width: 72px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
-.vcard__dot { flex: none; width: 8px; height: 8px; border-radius: 999px; transform: translateY(-1px); }
+.vcard__groups { grid-area: groups; display: flex; flex-direction: column; gap: 10px; padding: 14px 18px 0; min-width: 0; }
+.vcard__side { display: flex; align-items: flex-start; gap: 12px; }
+.vcard__side-label {
+  flex: none;
+  width: 84px;
+  padding-top: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.vcard__marks { display: flex; flex-wrap: wrap; gap: 10px 12px; min-width: 0; }
+/* On the card each party is a pill: its logo and its name side by side,
+   readable, the border in the colour of its vote. The logos alone, with
+   the name in 9.5px under them, had to be deciphered. */
+.vcard .psm .psm-party {
+  flex-direction: row;
+  gap: 7px;
+  min-width: 0;
+  padding: 3px 11px 3px 3px;
+  border-radius: 999px;
+  border: 1.5px solid var(--psm-ring);
+  background: var(--paper);
+}
+.vcard .psm .psm-mark { width: 26px; height: 26px; box-shadow: none; }
+.vcard .psm .psm-mark--logo { border-radius: 999px; }
+.vcard .psm .psm-label { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.vcard .psm .psm-count { font-size: 12.5px; color: var(--ink-3); }
+.vcard .vcard__marks { gap: 8px; }
+.vcard .vcard__side-label { padding-top: 9px; }
+
+/* "What it means for you", folded in the list cards (ProfileEffects folded). */
+.effects--fold { padding: 0; }
+.effects--fold > summary {
+  margin: 0;
+  padding: 10px 14px;
+  min-height: 40px;
+  list-style: none;
+  cursor: pointer;
+}
+.effects--fold > summary::-webkit-details-marker { display: none; }
+.effects--fold[open] > summary { padding-bottom: 6px; }
+.effects--fold > .effects__list,
+.effects--fold > .effects__more { margin: 0 14px; }
+.effects--fold > :last-child { margin-bottom: 12px; }
+.effects__count { font-weight: 700; letter-spacing: 0; }
+.effects__chev { margin-left: auto; transition: transform .15s ease; }
+.effects--fold[open] .effects__chev { transform: rotate(180deg); }
 .vcard__none { margin: 0; font-size: 13px; color: var(--ink-3); }
 .vcard__foot {
   grid-area: foot;
@@ -2600,7 +2644,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   .vcard__count { font-size: 28px; }
   .vcard__open { margin-top: 2px; }
   .vcard__groups { padding: 12px 16px 0; }
-  .vcard__side-label { min-width: 0; }
-  .vcard__side { flex-wrap: wrap; row-gap: 0; }
+  .vcard__side { flex-direction: column; gap: 6px; }
+  .vcard__side-label { width: auto; padding-top: 0; }
   .vcard__foot { padding: 10px 16px 14px; }
 }

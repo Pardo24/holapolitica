@@ -156,6 +156,9 @@ export async function LawCard({
           max={3}
           first={profileKey}
           moreHref={`/initiatives/${initiative.id}#com-t-afecta`}
+          // Folded in the lists; open on a situation's page, where it is
+          // what the reader came for.
+          folded={!profileKey}
         />
       ) : (
         cardSummary && <p className="law-card-summary">{cardSummary}</p>

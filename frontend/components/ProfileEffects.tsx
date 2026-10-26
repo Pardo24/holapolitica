@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Sparkles } from '@/components/icons';
+import { ChevronDown, Sparkles } from '@/components/icons';
 
 import { PROFILES, type ProfileKey } from '@/lib/profiles';
 
@@ -46,6 +46,7 @@ export async function ProfileEffects({
   first,
   moreHref,
   id,
+  folded = false,
 }: {
   effects: ProfileEffectsMap;
   locale: string;
@@ -55,6 +56,9 @@ export async function ProfileEffects({
   first?: string;
   moreHref?: string;
   id?: string;
+  /** Closed until opened, its heading a button with the count (the list
+   *  cards: twenty open boxes made the lists hard to scan). */
+  folded?: boolean;
 }) {
   const items = effectsFor(effects, locale, first);
   if (items.length === 0) return null;
@@ -62,12 +66,8 @@ export async function ProfileEffects({
   const shown = max ? items.slice(0, max) : items;
   const rest = items.length - shown.length;
 
-  return (
-    <section className="effects" id={id}>
-      <h3 className="effects__head">
-        <Sparkles size={13} strokeWidth={2.2} aria-label={t('effects_ai')} />
-        {t('effects_title')}
-      </h3>
+  const list = (
+    <>
       <ul className="effects__list">
         {shown.map(({ key, text }) => {
           const Icon = PROFILES.find((p) => p.key === key)!.Icon;
@@ -88,6 +88,29 @@ export async function ProfileEffects({
           {t('effects_more', { n: rest })}
         </Link>
       )}
+    </>
+  );
+
+  if (folded) {
+    return (
+      <details className="effects effects--fold" id={id}>
+        <summary className="effects__head">
+          <Sparkles size={13} strokeWidth={2.2} aria-label={t('effects_ai')} />
+          {t('effects_title')}
+          <span className="effects__count tabular">({items.length})</span>
+          <ChevronDown size={14} strokeWidth={2.2} aria-hidden="true" className="effects__chev" />
+        </summary>
+        {list}
+      </details>
+    );
+  }
+  return (
+    <section className="effects" id={id}>
+      <h3 className="effects__head">
+        <Sparkles size={13} strokeWidth={2.2} aria-label={t('effects_ai')} />
+        {t('effects_title')}
+      </h3>
+      {list}
     </section>
   );
 }

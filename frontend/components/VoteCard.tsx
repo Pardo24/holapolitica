@@ -12,6 +12,7 @@ import { TopicChip } from '@/components/TopicChip';
 import type { Vote } from '@/lib/api';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline, summaryPointCount, summaryRestCount } from '@/lib/plainSummary';
+import { groupLogoUrl } from '@/lib/groupLogos';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
@@ -99,6 +100,7 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
           locale={locale}
           max={3}
           moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : undefined}
+          folded
         />
       </div>
 
@@ -136,25 +138,56 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
       </div>
 
       {!vote.approved_by_assent && (
-        <div className="vcard__groups">
+        // Who voted what, by logo: one row per position, each party's mark
+        // ringed in that position's colour with its short name and deputies
+        // under it (the .psm marks of the plenary sheet). Read at a glance,
+        // where a list of names had to be read.
+        <div className="vcard__groups psm">
           {groups.length === 0 ? (
             <p className="vcard__none">{t('card_no_breakdown')}</p>
           ) : (
-            // The short names of the logo strips (PP, Sumar, Bildu, Mixto):
-            // the official ones ran each side over two lines.
             SIDES.map(({ choice, key, color }) => {
               const side = groups.filter((g) => g.choice === choice);
               if (side.length === 0) return null;
               return (
-                <p key={choice} className="vcard__side">
-                  <span className="vcard__dot" style={{ background: color }} aria-hidden="true" />
-                  <span className="vcard__side-label">{t(key)}</span>
-                  <span>
-                    {side
-                      .map((g) => `${stanceLabel(g)}${g.deputies != null ? ` ${g.deputies}` : ''}`)
-                      .join(', ')}
+                <div key={choice} className="vcard__side" style={{ ['--psm-ring' as string]: color }}>
+                  <span className="vcard__side-label" style={{ color }}>
+                    {t(key)}
                   </span>
-                </p>
+                  <span className="vcard__marks">
+                    {side.map((g) => {
+                      const logo = groupLogoUrl(g.slug);
+                      return (
+                        <span
+                          key={g.slug}
+                          className="psm-party"
+                          title={`${displayGroupShort(g.name_short)} · ${t(key)}`}
+                        >
+                          {logo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={logo}
+                              alt=""
+                              width={22}
+                              height={22}
+                              loading="lazy"
+                              decoding="async"
+                              className="psm-mark psm-mark--logo"
+                            />
+                          ) : (
+                            <span
+                              aria-hidden="true"
+                              className="psm-mark psm-mark--disc"
+                              style={{ background: g.color_hex ?? 'var(--ink-3)' }}
+                            />
+                          )}
+                          <span className="psm-label">{stanceLabel(g)}</span>
+                          {g.deputies != null && <span className="tabular psm-count">{g.deputies}</span>}
+                        </span>
+                      );
+                    })}
+                  </span>
+                </div>
               );
             })
           )}
