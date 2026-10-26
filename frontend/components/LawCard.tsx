@@ -143,6 +143,19 @@ export async function LawCard({
               .map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
+            {/* Who tabled it, on the first line: a motion is read through
+                who asks for it. */}
+            {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
+              <span className="vcard__by">
+                <span className="vcard__by-label">{t('card_proposed_label')}</span>
+                <ProposerBadges
+                  parsed={parsed}
+                  governmentLabel={tTopic('proposer_government_label')}
+                  moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
+                  rawFallback={initiative.submitted_by ?? ''}
+                />
+              </span>
+            )}
           </div>
           {/* What it does, in plain language. A machine-written line carries a
               small sparkle (with its label for screen readers and on hover). */}
@@ -213,15 +226,8 @@ export async function LawCard({
       }
       groups={vote && !vote.approved_by_assent ? <GroupRows groups={vote.groups} /> : null}
       foot={
+        pdf || (hasEffects && !effectsOpen) ? (
         <>
-          {(parsed.isGovernment || parsed.groups.length > 0 || parsed.raw !== '') && (
-            <ProposerBadges
-              parsed={parsed}
-              governmentLabel={tTopic('proposer_government_label')}
-              moreGroupsLabel={(n: number) => tTopic('proposer_more_groups', { count: n })}
-              rawFallback={initiative.submitted_by ?? ''}
-            />
-          )}
           {pdf && (
             <a href={pdf} target="_blank" rel="noopener noreferrer" className="card-pdf-link">
               <FileText size={12} strokeWidth={2} aria-hidden="true" />
@@ -238,6 +244,7 @@ export async function LawCard({
             />
           )}
         </>
+        ) : null
       }
     />
   );

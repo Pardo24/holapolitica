@@ -2637,6 +2637,25 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   .vcard__point-count { justify-self: end; }
 }
 
+/* Who tabled it, on the card's first line (ProposerChip). */
+.vcard__by { display: inline-flex; align-items: center; gap: 6px; margin-left: 4px; }
+.vcard__by-label { font-size: 11.5px; color: var(--ink-3); }
+.vcard__by-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 2px 2px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.vcard__by-chip img { width: 18px; height: 18px; border-radius: 999px; object-fit: contain; background: #fff; }
+.vcard__by-dot { width: 8px; height: 8px; margin-left: 6px; border-radius: 999px; }
+
 /* The scoreboard. */
 .vcard__score {
   grid-area: score;
@@ -2654,6 +2673,18 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .vcard--tie { --score: var(--abst); }
 .vcard--pending { --score: var(--ink-3); }
 .vcard__eyebrow { font-size: 11px; font-weight: 600; color: var(--ink-3); }
+.vcard__eyebrow--amend {
+  justify-self: start;
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--abst) 18%, var(--paper));
+  color: color-mix(in oklch, var(--abst) 55%, var(--ink));
+  font-weight: 700;
+}
+.vcard__amend-hint { font-size: 11.5px; line-height: 1.3; color: var(--ink-2); }
+.vcard__majority { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--ink-3); }
+.vcard__majority::before { content: ""; width: 2px; height: 10px; background: var(--ink); }
 .vcard__result { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: color-mix(in oklch, var(--score) 75%, var(--ink)); }
 .vcard__count { font-size: 34px; font-weight: 600; line-height: 1.05; letter-spacing: -0.02em; color: var(--ink); white-space: nowrap; }
 .vcard__dash { color: var(--ink-3); font-size: 22px; }
@@ -2699,7 +2730,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
     border: 0;
     border-radius: 12px;
   }
-  .vcard__eyebrow, .vcard__result, .vcard__bar, .vcard__date, .vcard__open { grid-column: 1 / -1; }
+  .vcard__eyebrow, .vcard__amend-hint, .vcard__result, .vcard__bar, .vcard__majority, .vcard__date, .vcard__open { grid-column: 1 / -1; }
   .vcard__count { font-size: 28px; }
   .vcard__open { margin-top: 2px; }
   .vcard__groups { padding: 12px 16px 14px; }

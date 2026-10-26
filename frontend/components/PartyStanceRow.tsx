@@ -37,7 +37,13 @@ export function buildStanceByVote(groups: GroupVoteChoiceRow[]): Map<number, Par
     for (const [voteIdStr, choice] of Object.entries(g.choices)) {
       const vid = Number(voteIdStr);
       const list = map.get(vid) ?? [];
-      list.push({ slug: g.slug, name_short: g.name_short, color_hex: g.color_hex, choice });
+      list.push({
+        slug: g.slug,
+        name_short: g.name_short,
+        color_hex: g.color_hex,
+        choice,
+        deputies: g.deputies?.[voteIdStr],
+      });
       map.set(vid, list);
     }
   }

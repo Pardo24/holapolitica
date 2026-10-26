@@ -3,11 +3,10 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from '@/components/icons';
 
-import { GroupBadge } from '@/components/GroupBadge';
 import { LAW_CARD_LIST_STYLE, AiMark } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
-import { GroupRows, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChip, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import {
   PartyStanceMini,
   buildStanceByVote,
@@ -819,57 +818,15 @@ interface CardLabels {
 }
 
 /** Who tabled it: the group's emblem and short name, or the Government. */
-function ProposerChip({ proposer }: { proposer: Proposer }) {
+/** The card's proposer chip (components/ScoreCard.tsx), from this sheet's
+ *  proposer shape. */
+function CardProposer({ proposer }: { proposer: Proposer }) {
   if (!proposer) return null;
   if (proposer.kind === 'group') {
     if (!proposer.slug) return null;
-    return (
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '2px 10px 2px 2px',
-          borderRadius: 999,
-          background: `color-mix(in oklch, ${proposer.color} 12%, var(--paper))`,
-          border: `1px solid color-mix(in oklch, ${proposer.color} 30%, var(--paper))`,
-          fontSize: 11,
-          fontWeight: 600,
-          color: 'var(--ink)',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        <GroupBadge
-          slug={proposer.slug}
-          color={proposer.color}
-          size="xs"
-          link={false}
-          logoUrl={proposer.logoUrl}
-        />
-        {proposer.short}
-      </span>
-    );
+    return <ProposerChip slug={proposer.slug} short={displayGroupShort(proposer.short)} color={proposer.color} />;
   }
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '3px 10px',
-        borderRadius: 999,
-        background: 'var(--paper-2)',
-        border: '1px solid var(--rule-strong)',
-        fontSize: 11,
-        fontWeight: 600,
-        color: 'var(--ink)',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 999, background: proposer.color }} />
-      {proposer.short}
-    </span>
-  );
+  return <ProposerChip slug={null} short={proposer.short} color={proposer.color} />;
 }
 
 interface GroupLabels {
@@ -978,6 +935,7 @@ function LawVoteGroup({
               .map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
+            <CardProposer proposer={proposer} />
           </div>
           <h3 className="vcard__title">
             {lawHref ? (
@@ -1056,7 +1014,6 @@ function LawVoteGroup({
       }
       foot={
         <>
-          <ProposerChip proposer={proposer} />
           <details className="law-card-votes">
             <summary>
               {byPoints ? labels.pointsGroupsToggle : labels.votesToggle(ordered.length)}
@@ -1297,6 +1254,15 @@ function VoteRow({
               .map((tp) => (
                 <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
               ))}
+            <CardProposer
+              proposer={
+                proposer
+                  ? proposer.kind === 'group'
+                    ? proposer
+                    : { kind: 'government', short: proposer.short, color: proposer.color }
+                  : null
+              }
+            />
           </div>
           <h3 className="vcard__title">
             <Link href={voteHref} className="serif">
@@ -1327,28 +1293,16 @@ function VoteRow({
         <GroupRows groups={stance ?? []} empty={<NoBreakdownFor vote={vote} labels={noBreakLabels} />} />
       }
       foot={
-        <>
-          <ProposerChip
-            proposer={
-              proposer
-                ? proposer.kind === 'group'
-                  ? proposer
-                  : { kind: 'government', short: proposer.short, color: proposer.color }
-                : null
-            }
+        // Only "what it means for you" lives here now; no empty foot.
+        effectsFor(vote.profile_effects, locale).length > 0 ? (
+          <ProfileEffects
+            effects={vote.profile_effects}
+            locale={locale}
+            max={3}
+            moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : voteHref}
+            folded
           />
-          {effectsFor(vote.profile_effects, locale).length > 0 && (
-            <ProfileEffects
-              effects={vote.profile_effects}
-              locale={locale}
-              max={3}
-              moreHref={
-                vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : voteHref
-              }
-              folded
-            />
-          )}
-        </>
+        ) : null
       }
     />
   );

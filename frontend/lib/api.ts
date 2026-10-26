@@ -648,6 +648,8 @@ export interface GroupVoteChoiceRow {
   name_short: string;
   color_hex: string | null;
   choices: Record<string, string>;
+  /** vote id -> deputies of the group who cast that majority choice. */
+  deputies?: Record<string, number>;
 }
 
 /** One group's Sí/No/Abst breakdown on a single topic (inverse of

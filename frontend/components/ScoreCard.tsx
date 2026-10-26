@@ -73,10 +73,14 @@ export async function ScorePanel({
   href,
   openLabel,
   points,
+  amendment = false,
 }: {
   label: string;
   /** What this vote was, when it was a step and not the law itself. */
   eyebrow?: string | null;
+  /** An amendment's vote: the eyebrow stands out, with a line saying the
+   *  result is about a change, not the law (they read as the law). */
+  amendment?: boolean;
   tally?: Tally | null;
   note?: string | null;
   date?: string | null;
@@ -110,6 +114,7 @@ export async function ScorePanel({
     const chamber = tally.ayes + tally.noes + tally.abstentions + tally.absent || 350;
     const pct = (n: number) => `${(100 * n) / chamber}%`;
     const margin = Math.abs(tally.ayes - tally.noes);
+    const majority = Math.floor(chamber / 2) + 1;
     figures = (
       <>
         <span className="vcard__count serif tabular">
@@ -123,19 +128,26 @@ export async function ScorePanel({
         <span className="vcard__note tabular">
           {margin > 0 && `${t('card_margin', { n: margin })} · `}
           {t('card_abstentions', { n: tally.abstentions })}
+          {/* Absences decide close votes as much as abstentions do. */}
+          {tally.absent > 0 && ` · ${t('card_absents', { n: tally.absent })}`}
         </span>
-        <span className="vcard__bar" aria-hidden="true">
+        <span className="vcard__bar" title={t('card_majority_title', { n: majority })}>
           <span style={{ width: pct(tally.ayes), background: 'var(--aye)' }} />
           <span style={{ width: pct(tally.abstentions), background: 'var(--abst)' }} />
           <span style={{ width: pct(tally.noes), background: 'var(--no)' }} />
-          <i style={{ left: pct(Math.floor(chamber / 2) + 1) }} />
+          <i style={{ left: pct(majority) }} />
         </span>
+        {/* What the line in the bar is: it was never said. */}
+        <span className="vcard__majority">{t('card_majority', { n: majority })}</span>
       </>
     );
   }
   return (
     <>
-      {eyebrow && <span className="vcard__eyebrow">{eyebrow}</span>}
+      {eyebrow && (
+        <span className={amendment ? 'vcard__eyebrow vcard__eyebrow--amend' : 'vcard__eyebrow'}>{eyebrow}</span>
+      )}
+      {amendment && <span className="vcard__amend-hint">{t('card_amend_hint')}</span>}
       <span className="vcard__result">{label}</span>
       {figures}
       {note && <span className="vcard__note">{note}</span>}
@@ -215,5 +227,35 @@ export async function GroupRows({ groups, empty }: { groups: StanceGroup[]; empt
         );
       })}
     </>
+  );
+}
+
+/** Who tabled it, on the card's first line: a motion or a non-legislative
+ *  motion is read through who asks for it. The party's logo, or a dot for
+ *  the Government. */
+export async function ProposerChip({
+  slug,
+  short,
+  color,
+}: {
+  slug: string | null;
+  short: string;
+  color?: string | null;
+}) {
+  const t = await getTranslations('lleis');
+  const logo = slug ? groupLogoUrl(slug) : null;
+  return (
+    <span className="vcard__by">
+      <span className="vcard__by-label">{t('card_proposed_label')}</span>
+      <span className="vcard__by-chip">
+        {logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logo} alt="" width={18} height={18} loading="lazy" decoding="async" />
+        ) : (
+          <span className="vcard__by-dot" style={{ background: color ?? 'var(--ink)' }} aria-hidden="true" />
+        )}
+        {short}
+      </span>
+    </span>
   );
 }

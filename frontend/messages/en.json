@@ -359,7 +359,12 @@
     "howlaw_sub": "The steps of each kind of initiative, explained one by one",
     "card_margin": "by {n, plural, one {# vote} other {# votes}}",
     "card_abstentions": "{n, plural, =0 {no abstentions} one {# abstention} other {# abstentions}}",
-    "card_proposed_by": "Proposed by {who}"
+    "card_proposed_by": "Proposed by {who}",
+    "card_proposed_label": "Proposed by",
+    "card_absents": "{n, plural, one {# absent} other {# absent}}",
+    "card_majority": "absolute majority: {n}",
+    "card_majority_title": "The line marks the absolute majority of the Congress: {n} votes.",
+    "card_amend_hint": "A change to the law, not the law"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",

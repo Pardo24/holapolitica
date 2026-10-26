@@ -359,7 +359,12 @@
     "howlaw_sub": "Las etapas de cada tipo de iniciativa, explicadas una a una",
     "card_margin": "por {n, plural, one {# voto} other {# votos}}",
     "card_abstentions": "{n, plural, =0 {ninguna abstención} one {# abstención} other {# abstenciones}}",
-    "card_proposed_by": "Propone: {who}"
+    "card_proposed_by": "Propone: {who}",
+    "card_proposed_label": "Propone",
+    "card_absents": "{n, plural, one {# ausente} other {# ausentes}}",
+    "card_majority": "mayoría absoluta: {n}",
+    "card_majority_title": "La línea marca la mayoría absoluta del Congreso: {n} votos.",
+    "card_amend_hint": "Un cambio en la ley, no la ley"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",

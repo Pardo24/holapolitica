@@ -359,7 +359,12 @@
     "howlaw_sub": "Les etapes de cada tipus d'iniciativa, explicades una a una",
     "card_margin": "per {n, plural, one {# vot} other {# vots}}",
     "card_abstentions": "{n, plural, =0 {cap abstenció} one {# abstenció} other {# abstencions}}",
-    "card_proposed_by": "Proposa: {who}"
+    "card_proposed_by": "Proposa: {who}",
+    "card_proposed_label": "Proposa",
+    "card_absents": "{n, plural, one {# absent} other {# absents}}",
+    "card_majority": "majoria absoluta: {n}",
+    "card_majority_title": "La línia marca la majoria absoluta del Congrés: {n} vots.",
+    "card_amend_hint": "Un canvi a la llei, no la llei"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",

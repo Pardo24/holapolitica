@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects } from '@/components/ProfileEffects';
-import { GroupRows, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChip, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import type { Vote } from '@/lib/api';
@@ -13,6 +13,7 @@ import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline, summaryPointCount, summaryRestCount } from '@/lib/plainSummary';
 import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
+import { isAmendmentStage } from '@/lib/voteStage';
 
 /**
  * One VOTE, as a list card: the /votes archive and the group pages. The
@@ -22,6 +23,7 @@ import { pickTopicName } from '@/lib/topics';
 export async function VoteCard({ vote, locale }: { vote: Vote; locale: string }) {
   const t = await getTranslations('lleis');
   const tVotes = await getTranslations('votes');
+  const tStage = await getTranslations('vote_stage');
 
   const href = `/votes/${vote.id}` as Route;
   const subject = vote.description?.trim() || vote.title;
@@ -43,6 +45,11 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
       : vote.proposing_group_short
         ? displayGroupShort(vote.proposing_group_short)
         : null;
+  // What was voted when it was a step and not the law: an amendment read as
+  // "Rejected 33-176" passes for the law falling. The text's own votes
+  // (final, whole) and a motion's points say nothing extra.
+  const stage = vote.stage && !['final', 'whole', 'point'].includes(vote.stage) ? vote.stage : null;
+  const byGovernment = vote.proposed_by_government && !vote.proposing_group_short;
 
   return (
     <ScoreCard
@@ -54,6 +61,13 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
             {(vote.topics ?? []).slice(0, 2).map((tp) => (
               <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
             ))}
+            {proposer && (
+              <ProposerChip
+                slug={byGovernment ? null : (vote.proposing_group_slug ?? null)}
+                short={proposer}
+                color={vote.proposing_group_color}
+              />
+            )}
           </div>
           {/* The headline is either a machine summary or the chamber's own
               wording, and which one it is should never be a guess. */}
@@ -76,6 +90,8 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
       score={
         <ScorePanel
           label={tVotes(`result.${vote.result}` as 'result.approved')}
+          eyebrow={stage ? tStage(stage as 'amendment') : null}
+          amendment={isAmendmentStage(vote.stage)}
           tally={vote.approved_by_assent ? null : vote}
           note={vote.approved_by_assent ? t('card_by_assent') : null}
           date={voteDate}
@@ -86,7 +102,6 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
       groups={vote.approved_by_assent ? null : <GroupRows groups={vote.groups ?? []} />}
       foot={
         <>
-          {proposer && <span>{t('card_proposed_by', { who: proposer })}</span>}
           {vote.expediente_raw && <span className="mono vcard__exp">{vote.expediente_raw}</span>}
           {plainSummary && <LawOriginalToggle original={subject} provider={vote.plain_summary_provider} />}
           <ProfileEffects
