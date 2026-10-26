@@ -72,6 +72,7 @@ export async function ScorePanel({
   date,
   href,
   openLabel,
+  points,
 }: {
   label: string;
   /** What this vote was, when it was a step and not the law itself. */
@@ -81,10 +82,29 @@ export async function ScorePanel({
   date?: string | null;
   href?: Route | null;
   openLabel?: string;
+  /** A motion voted point by point: how many passed, and a square per
+   *  point in the colour of its result, instead of one tally. */
+  points?: { results: string[]; label: string } | null;
 }) {
   const t = await getTranslations('lleis');
   let figures: ReactNode = null;
-  if (tally) {
+  if (points) {
+    const approved = points.results.filter((r) => r === 'approved').length;
+    figures = (
+      <>
+        <span className="vcard__count serif tabular">
+          {approved}
+          <span className="vcard__dash"> / {points.results.length}</span>
+        </span>
+        <span className="vcard__note">{points.label}</span>
+        <span className="vcard__squares" aria-hidden="true">
+          {points.results.map((r, i) => (
+            <span key={i} className={`vcard__square vcard__square--${r}`} />
+          ))}
+        </span>
+      </>
+    );
+  } else if (tally) {
     // The bar spans the whole chamber, so the majority line (176 of 350)
     // sits where it really is.
     const chamber = tally.ayes + tally.noes + tally.abstentions + tally.absent || 350;

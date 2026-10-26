@@ -167,6 +167,11 @@ export async function SessionSheet({
     pointsToggle: (n) => t('points_toggle', { count: n }),
     pointLabel: (n) => t('point_label', { n }),
     pointsSummary: (approved, total) => t('points_summary', { approved, total }),
+    pointsPartly: t('points_partly'),
+    pointsApprovedLabel: t('points_approved_label'),
+    pointsGroupsToggle: t('points_groups_toggle'),
+    resultApproved: t('result_approved'),
+    resultRejected: t('result_rejected'),
     whyMultiple: t('law_why_multiple'),
     whyPoints: t('points_why'),
     finalTag: t('law_vote_final_tag'),
@@ -876,6 +881,11 @@ interface GroupLabels {
   pointLabel: (n: number) => string;
   stageLabel: (v: Vote) => string | null;
   pointsSummary: (approved: number, total: number) => string;
+  pointsPartly: string;
+  pointsApprovedLabel: string;
+  pointsGroupsToggle: string;
+  resultApproved: string;
+  resultRejected: string;
   whyMultiple: string;
   whyPoints: string;
   finalTag: string;
@@ -995,16 +1005,49 @@ function LawVoteGroup({
       }
       score={
         <ScorePanel
-          label={byPoints ? labels.pointsSummary(approvedPoints, ordered.length) : outcomeLabelFor(decider)}
-          // A motion voted point by point has no one tally: each point has
-          // its own, in the list below.
+          label={
+            byPoints
+              ? approvedPoints === 0
+                ? labels.resultRejected
+                : approvedPoints === ordered.length
+                  ? labels.resultApproved
+                  : labels.pointsPartly
+              : outcomeLabelFor(decider)
+          }
+          // A motion voted point by point has no one tally: the panel counts
+          // the points that passed, and each point's tally is on the card.
           tally={byPoints || decider.approved_by_assent ? null : decider}
+          points={byPoints ? { results: ordered.map((v) => v.result), label: labels.pointsApprovedLabel } : null}
           href={lawHref}
           openLabel={cardLabels.openLaw}
         />
       }
       groups={
-        byPoints ? null : (
+        byPoints ? (
+          // Each point, on the card: its result, its count and its bar.
+          // How each group voted on each is one tap away, in the foot.
+          <ol className="vcard__points">
+            {ordered.map((v, i) => {
+              const chamber = v.ayes + v.noes + v.abstentions + v.absent || 350;
+              return (
+                <li key={v.id} className={`vcard__point vcard__point--${stageOutcome(v)}`}>
+                  <Link href={`/votes/${v.id}` as Route}>
+                    <span className="vcard__point-n">{labels.pointLabel(i + 1)}</span>
+                    <span className="vcard__point-result">{outcomeLabelFor(v)}</span>
+                    <span className="vcard__point-count tabular">
+                      {v.ayes} – {v.noes}
+                    </span>
+                    <span className="vcard__point-bar" aria-hidden="true">
+                      <span style={{ width: `${(100 * v.ayes) / chamber}%`, background: 'var(--aye)' }} />
+                      <span style={{ width: `${(100 * v.abstentions) / chamber}%`, background: 'var(--abst)' }} />
+                      <span style={{ width: `${(100 * v.noes) / chamber}%`, background: 'var(--no)' }} />
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
           <GroupRows
             groups={deciderStance ?? []}
             empty={<NoBreakdownFor vote={decider} labels={noBreakLabels} />}
@@ -1016,7 +1059,7 @@ function LawVoteGroup({
           <ProposerChip proposer={proposer} />
           <details className="law-card-votes">
             <summary>
-              {byPoints ? labels.pointsToggle(ordered.length) : labels.votesToggle(ordered.length)}
+              {byPoints ? labels.pointsGroupsToggle : labels.votesToggle(ordered.length)}
               {/* Educational note: why one item is voted several times. */}
               <Tooltip
                 term={

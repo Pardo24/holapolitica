@@ -2603,6 +2603,40 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   background: var(--paper);
 }
 
+/* A motion voted point by point: each point on the card (result, count,
+   bar), and on the scoreboard a square per point. */
+.vcard__points { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.vcard__point > a {
+  display: grid;
+  grid-template-columns: 62px minmax(90px, auto) 76px minmax(60px, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.vcard__point > a:hover { background: var(--paper-2); }
+.vcard__point-n { font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.vcard__point-result { font-size: 12px; font-weight: 700; }
+.vcard__point--approved .vcard__point-result { color: color-mix(in oklch, var(--aye) 80%, var(--ink)); }
+.vcard__point--rejected .vcard__point-result { color: color-mix(in oklch, var(--no) 80%, var(--ink)); }
+.vcard__point--tie .vcard__point-result { color: color-mix(in oklch, var(--abst) 80%, var(--ink)); }
+.vcard__point-count { font-size: 13px; font-weight: 600; color: var(--ink); }
+.vcard__point-bar { display: flex; height: 6px; border-radius: 999px; overflow: hidden; background: var(--paper-3); }
+.vcard__point-bar > span { display: block; height: 100%; }
+.vcard__squares { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 2px; }
+.vcard__square { width: 14px; height: 14px; border-radius: 4px; background: var(--paper-3); }
+.vcard__square--approved { background: var(--aye); }
+.vcard__square--rejected { background: var(--no); }
+.vcard__square--tie { background: var(--abst); }
+@media (max-width: 640px) {
+  .vcard__point > a { grid-template-columns: 54px auto 1fr; row-gap: 4px; }
+  .vcard__point-bar { grid-column: 1 / -1; }
+  .vcard__point-count { justify-self: end; }
+}
+
 /* The scoreboard. */
 .vcard__score {
   grid-area: score;

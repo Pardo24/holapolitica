@@ -175,7 +175,10 @@
     "filter_button": "Filtres",
     "filter_close": "Tanca",
     "filter_done": "Fet",
-    "filter_clear": "Treu el filtre"
+    "filter_clear": "Treu el filtre",
+    "points_partly": "Aprovada en part",
+    "points_approved_label": "punts aprovats",
+    "points_groups_toggle": "Com ha votat cada grup, punt per punt"
   },
   "avui_og": {
     "brand": "Hola Política",

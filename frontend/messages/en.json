@@ -175,7 +175,10 @@
     "filter_button": "Filters",
     "filter_close": "Close",
     "filter_done": "Done",
-    "filter_clear": "Clear filter"
+    "filter_clear": "Clear filter",
+    "points_partly": "Partly approved",
+    "points_approved_label": "points approved",
+    "points_groups_toggle": "How each group voted, point by point"
   },
   "avui_og": {
     "brand": "Hola Política",
