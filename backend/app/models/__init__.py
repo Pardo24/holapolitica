@@ -997,3 +997,30 @@ class ElectionCandidacy(Base, TimestampMixin):
     substitutes: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     boe_id: Mapped[str] = mapped_column(String(32), nullable=False)
     published_on: Mapped[date] = mapped_column(Date, nullable=False)
+
+
+class ElectionResultSnapshot(Base, TimestampMixin):
+    """The Congress results of an election at one moment of the count
+    (app/services/election_results.py builds the payload).
+
+    On election night the ministry's feed is read every minute and a new
+    row is written whenever the count moved; the page shows the latest. The
+    2023 election is stored as a replay of its night (``step`` 1..20, then
+    the official result), to build and test the page with real numbers.
+    """
+
+    __tablename__ = "election_result_snapshots"
+    __table_args__ = (UniqueConstraint("election", "step", name="uq_result_snapshot_step"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    election: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
+    #: Order within the election: 1, 2, 3... as the count advances.
+    step: Mapped[int] = mapped_column(Integer, nullable=False)
+    #: "replay" (2023, rebuilt from the polling stations), "interior" (the
+    #: ministry's feed on the night), "official" (the final result).
+    source: Mapped[str] = mapped_column(String(16), nullable=False)
+    official: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    #: Share of the census counted, 0-100.
+    counted_pct: Mapped[float] = mapped_column(nullable=False)
+    taken_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    payload: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)

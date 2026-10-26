@@ -19,7 +19,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.ingest.candidacies import ELECTION, ELECTIONS
-from app.models import ElectionCandidacy, Legislature, Mandate, Person
+from app.models import (
+    ElectionCandidacy,
+    ElectionResultSnapshot,
+    Legislature,
+    Mandate,
+    Person,
+)
 from app.services.cache import cached
 from app.services.candidate_match import Deputy, DeputyIndex, fold
 from app.services.election_parties import party_for_list
@@ -280,3 +286,144 @@ async def constituency_candidacies(
         }
 
     return await cached(f"elections:2026:candidacies:{election}:{fold(name)}:v2", 600, _factory)
+
+
+# --- Results ----------------------------------------------------------------
+
+#: The election each one is compared with.
+_PREVIOUS: dict[str, str] = {"2026-11": "2023-07"}
+
+
+async def _previous_by_party(session: AsyncSession, election: str) -> dict[str, dict[str, object]]:
+    """The previous election's official result, keyed by party slug (or the
+    list's initials for lists without one)."""
+    prev = _PREVIOUS.get(election)
+    if prev is None:
+        return {}
+    payload = (
+        await session.execute(
+            select(ElectionResultSnapshot.payload)
+            .where(ElectionResultSnapshot.election == prev, ElectionResultSnapshot.official)
+            .order_by(ElectionResultSnapshot.step.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if payload is None:
+        return {}
+    parties = cast(list[dict[str, object]], payload["parties"])
+    return {
+        str(p["party"] or p["acronym"]): {"seats": p["seats"], "pct": p["pct"]} for p in parties
+    }
+
+
+async def _elected(
+    session: AsyncSession, election: str, constituencies: list[dict[str, object]]
+) -> None:
+    """Each list's first N candidates, N its seats: who would sit in the
+    Congress on this count. Lists matched to the BOE's by initials, then by
+    name, then by party; outgoing deputies link to their page."""
+    stage, _boe, _pub = await _stage(session, election)
+    if stage is None:
+        return
+    rows = (
+        await session.execute(
+            select(ElectionCandidacy).where(
+                ElectionCandidacy.election == election, ElectionCandidacy.stage == stage
+            )
+        )
+    ).scalars()
+    by_constituency: dict[str, list[ElectionCandidacy]] = {}
+    for r in rows:
+        by_constituency.setdefault(r.constituency, []).append(r)
+    deputies = await _outgoing_deputies(session)
+
+    for c in constituencies:
+        name = str(c["name"])
+        boe_lists = by_constituency.get(name, [])
+        for lst in cast(list[dict[str, object]], c["lists"]):
+            seats = int(cast(int, lst["seats"]))
+            if seats <= 0:
+                continue
+            match = (
+                next(
+                    (
+                        b
+                        for b in boe_lists
+                        if b.acronym and fold(b.acronym) == fold(str(lst["acronym"]))
+                    ),
+                    None,
+                )
+                or next((b for b in boe_lists if fold(b.name) == fold(str(lst["name"]))), None)
+                or next(
+                    (
+                        b
+                        for b in boe_lists
+                        if lst["party"] and party_for_list(b.name, b.acronym) == lst["party"]
+                    ),
+                    None,
+                )
+            )
+            if match is not None:
+                lst["elected"] = [
+                    {"name": n, "person_id": deputies.match(n, name)}
+                    for n in match.candidates[:seats]
+                ]
+
+
+@router.get("/results")
+async def results(
+    election: str = _ELECTION_Q,
+    step: int | None = Query(None, ge=1, le=10_000),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, object]:
+    """The count at its latest snapshot (or at ``step``): national totals,
+    every constituency, the provisionally elected, and the previous
+    election's seats per party to compare. ``snapshot`` is None until the
+    first one."""
+
+    async def _factory() -> dict[str, object]:
+        steps = (
+            await session.execute(
+                select(
+                    ElectionResultSnapshot.step,
+                    ElectionResultSnapshot.counted_pct,
+                    ElectionResultSnapshot.official,
+                    ElectionResultSnapshot.taken_at,
+                )
+                .where(ElectionResultSnapshot.election == election)
+                .order_by(ElectionResultSnapshot.step)
+            )
+        ).all()
+        out: dict[str, object] = {
+            "election": election,
+            "steps": [
+                {"step": s, "counted_pct": pct, "official": off, "taken_at": at.isoformat()}
+                for s, pct, off, at in steps
+            ],
+            "step": None,
+            "snapshot": None,
+        }
+        if not steps:
+            return out
+        chosen = step if step is not None and any(s[0] == step for s in steps) else steps[-1][0]
+        payload = (
+            await session.execute(
+                select(ElectionResultSnapshot.payload).where(
+                    ElectionResultSnapshot.election == election,
+                    ElectionResultSnapshot.step == chosen,
+                )
+            )
+        ).scalar_one()
+        snapshot = dict(payload)
+        previous = await _previous_by_party(session, election)
+        for p in cast(list[dict[str, object]], snapshot["parties"]):
+            prev = previous.get(str(p["party"] or p["acronym"]))
+            p["prev_seats"] = prev["seats"] if prev else None
+            p["prev_pct"] = prev["pct"] if prev else None
+        await _elected(session, election, cast(list[dict[str, object]], snapshot["constituencies"]))
+        out["step"] = chosen
+        out["snapshot"] = snapshot
+        return out
+
+    # Short: on the night a new snapshot lands every minute or so.
+    return await cached(f"elections:results:{election}:{step or 'latest'}:v1", 20, _factory)
