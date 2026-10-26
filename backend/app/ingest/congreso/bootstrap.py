@@ -1277,10 +1277,17 @@ async def generate_plain_titles(
     costs almost nothing — the model reads our own short summary instead of
     re-reading a 2.700-token bill.
 
+    An initiative with no text to summarise (a motion or PNL the Congress
+    never published before the dissolution) gets its headline from its
+    official title: without one the lists showed the Spanish legal title in
+    every language (2026-10-26). The cards mark that headline as written by
+    the model from the official title.
+
     Per-row try/except, newest first, capped like the summary job.
     """
     from datetime import datetime
 
+    from sqlalchemy import or_ as _or
     from sqlalchemy import select as _select
 
     from app.models import Initiative, Vote
@@ -1294,12 +1301,14 @@ async def generate_plain_titles(
         if not hasattr(model, title_attr):
             raise ValueError(f"Unsupported lang for plain title: {lang!r}")
         async with AsyncSessionLocal() as session:
+            has_source = (
+                _or(getattr(model, summary_attr).is_not(None), Initiative.object_text.is_(None))
+                if model is Initiative
+                else getattr(model, summary_attr).is_not(None)
+            )
             stmt = (
                 _select(model.id)
-                .where(
-                    getattr(model, summary_attr).is_not(None),
-                    getattr(model, title_attr).is_(None),
-                )
+                .where(has_source, getattr(model, title_attr).is_(None))
                 .order_by(getattr(model, order_col).desc())
             )
             if limit is not None:
@@ -1313,7 +1322,9 @@ async def generate_plain_titles(
                     row = (
                         await inner.execute(_select(model).where(model.id == row_id))
                     ).scalar_one()
-                    source = getattr(row, summary_attr)
+                    source = getattr(row, summary_attr) or (
+                        getattr(row, "title_original", None) if model is Initiative else None
+                    )
                     if not source:
                         continue
                     result = await generate_plain_title(summary=source, lang=lang)
