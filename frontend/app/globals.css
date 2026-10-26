@@ -2414,3 +2414,30 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .psm .psm-mark--disc { border-radius: 999px; }
 .psm .psm-label { font-size: 9.5px; font-weight: 600; line-height: 1; color: var(--ink-2); white-space: nowrap; }
 .psm .psm-count { font-size: 9px; line-height: 1; color: var(--ink-3); white-space: nowrap; }
+
+/* A group in the yes / no / abstention columns of a vote's split
+   (components/VoteSplit.tsx). */
+.vsplit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  font-size: 12px;
+  color: var(--ink);
+}
+.vsplit-chip__logo {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 999px;
+  object-fit: cover;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+.vsplit-chip__dot { width: 7px; height: 7px; border-radius: 999px; flex: none; }
+.vsplit-chip__name { min-width: 0; overflow-wrap: anywhere; }
+.vsplit-chip__n { color: var(--ink-3); font-size: 11px; }

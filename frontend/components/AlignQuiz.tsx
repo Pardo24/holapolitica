@@ -6,6 +6,7 @@ import type { Route } from 'next';
 
 import type { AlignQuestion } from '@/lib/api';
 import { ballotName2026, displayGroupShort } from '@/lib/groups';
+import { quizResultParam } from '@/lib/quizResult';
 import { SummaryBody } from '@/components/SummaryBody';
 import { summaryHeadline } from '@/lib/plainSummary';
 import { ProfileEffectsClient, effectsItems } from '@/components/ProfileEffectsClient';
@@ -251,7 +252,11 @@ export function AlignQuiz({
     const text = `${labels.share_text
       .replace('{name}', top.name)
       .replace('{pct}', String(Math.round(top.pct * 100)))
-      .replace('{compared}', String(top.compared))} ${window.location.origin}/com-et-representen`;
+      .replace('{compared}', String(top.compared))} ${window.location.origin}/com-et-representen?r=${quizResultParam({
+      slug: top.slug,
+      pct: Math.round(top.pct * 100),
+      compared: top.compared,
+    })}`;
     try {
       if (!(await openShareSheet({ text }))) {
         await navigator.clipboard.writeText(text);

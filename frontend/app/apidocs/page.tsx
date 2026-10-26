@@ -80,7 +80,7 @@ export default function ApiDocsPage() {
           </tbody>
         </table>
         <p style={{ marginTop: 14 }}>
-          <strong>Exemple amb curl</strong> — última pàgina de votacions del PSOE:
+          <strong>Exemple amb curl</strong> - última pàgina de votacions del PSOE:
         </p>
         <pre style={preStyle}>
 {`curl -s "https://api.holapolitica.org/votes?proposing_group_slug=psoe&page_size=5" \\
@@ -149,12 +149,12 @@ export default function ApiDocsPage() {
   width="100%" height="320" frameborder="0"
   sandbox="allow-scripts allow-same-origin"
   loading="lazy"
-  title="Votació al Congrés — Hola Política"
+  title="Votació al Congrés - Hola Política"
 ></iframe>`}
         </pre>
         <p style={{ marginTop: 8, fontSize: 13, color: 'var(--ink-3)' }}>
           El sandbox és recomanat però opcional. Si t&apos;omple massa l&apos;alçada,
-          ajusta l&apos;atribut <code style={inlineCode}>height</code> — el
+          ajusta l&apos;atribut <code style={inlineCode}>height</code> - el
           contingut és responsive.
         </p>
       </Section>
@@ -182,7 +182,7 @@ export default function ApiDocsPage() {
           </li>
           <li>
             <strong>vote.expediente_raw</strong>: codi oficial del Congrés (p.ex.{' '}
-            <code style={inlineCode}>122/000262</code>) — clau per cercar a la font
+            <code style={inlineCode}>122/000262</code>) - clau per cercar a la font
             original.
           </li>
           <li>

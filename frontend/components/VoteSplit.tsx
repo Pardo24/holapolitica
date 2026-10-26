@@ -386,21 +386,9 @@ function StanceColumn({
             // API field is a fallback for groups added later.
             const logo = groupLogoUrl(g.slug) ?? g.logo_url ?? null;
             return (
-            <span
-              key={g.slug}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                maxWidth: '100%',
-                padding: '3px 8px',
-                borderRadius: 999,
-                border: '1px solid var(--rule)',
-                background: 'var(--paper)',
-                fontSize: 12,
-                color: 'var(--ink)',
-              }}
-            >
+            // Styled by class (.vsplit-chip in globals.css): /votes prints
+            // these ~170 times and the inline styles were 170 KB of its HTML.
+            <span key={g.slug} className="vsplit-chip">
               {/* The party's emblem, so it is recognised rather than
                   decoded. Groups with no logo on file keep the colour disc. */}
               {logo ? (
@@ -412,37 +400,18 @@ function StanceColumn({
                   height={14}
                   loading="lazy"
                   decoding="async"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    flex: 'none',
-                    borderRadius: 999,
-                    objectFit: 'cover',
-                    background: '#fff',
-                    border: '1px solid rgba(0,0,0,.06)',
-                  }}
+                  className="vsplit-chip__logo"
                 />
               ) : (
                 <span
                   aria-hidden="true"
-                  style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: 999,
-                    background: g.color_hex ?? 'var(--ink-3)',
-                    flex: 'none',
-                  }}
+                  className="vsplit-chip__dot"
+                  style={{ background: g.color_hex ?? 'var(--ink-3)' }}
                 />
               )}
-              <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-                {displayGroupShort(g.name_short)}
-              </span>
-              {g.deputies != null && (
-                <span className="tabular" style={{ color: 'var(--ink-3)', fontSize: 11 }}>
-                  {g.deputies}
-                </span>
-              )}
-              </span>
+              <span className="vsplit-chip__name">{displayGroupShort(g.name_short)}</span>
+              {g.deputies != null && <span className="tabular vsplit-chip__n">{g.deputies}</span>}
+            </span>
             );
           })}
         </div>

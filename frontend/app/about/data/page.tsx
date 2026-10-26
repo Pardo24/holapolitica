@@ -29,14 +29,14 @@ export default async function AboutDataPage() {
         <p>{t('sources_intro')}</p>
         <ul style={listStyle}>
           <li>
-            <strong>Open data del Congrés dels Diputats</strong> —{' '}
+            <strong>Open data del Congrés dels Diputats</strong> -{' '}
             <ExternalLink href="https://www.congreso.es/es/opendata">
               congreso.es/es/opendata
             </ExternalLink>
             . Diputats, iniciatives, votacions del ple. Llicència CC-BY 4.0.
           </li>
           <li>
-            <strong>Cercador d&apos;iniciatives del Congrés</strong> —{' '}
+            <strong>Cercador d&apos;iniciatives del Congrés</strong> -{' '}
             <ExternalLink href="https://www.congreso.es/ca/busqueda-de-iniciativas">
               busqueda-de-iniciativas
             </ExternalLink>
@@ -44,7 +44,7 @@ export default async function AboutDataPage() {
             del Liferay. Mateixa llicència.
           </li>
           <li>
-            <strong>Hemicicle</strong> — mapa de seients oficial publicat a{' '}
+            <strong>Hemicicle</strong> - mapa de seients oficial publicat a{' '}
             <ExternalLink href="https://www.congreso.es/ca/hemiciclo">
               congreso.es/ca/hemiciclo
             </ExternalLink>
@@ -52,7 +52,7 @@ export default async function AboutDataPage() {
             diputat.
           </li>
           <li>
-            <strong>Fitxes de diputats</strong> — pàgines públiques del
+            <strong>Fitxes de diputats</strong> - pàgines públiques del
             Congrés. D&apos;allà extreim fotografia oficial, codi parlamentari
             i any de naixement. Mai dades privades (telèfon personal, adreça,
             família).
@@ -77,7 +77,7 @@ export default async function AboutDataPage() {
             <strong>Classificació temàtica per LLM</strong>. Cada iniciativa
             es classifica per tema (17 temes editorials + 17 ODS de l&apos;Agenda
             2030) amb un model de llenguatge (Mistral, europeu). La taxonomia és
-            tancada — el model assigna entre els temes definits, no n&apos;inventa.
+            tancada - el model assigna entre els temes definits, no n&apos;inventa.
             La precisió varia; iniciatives sense classificació són explícites.
           </li>
           <li>

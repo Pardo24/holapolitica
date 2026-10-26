@@ -401,7 +401,7 @@ function MobileCoincidenceList({
 function GroupHeaderCell({ group }: { group: ParliamentaryGroupSummary }) {
   const shortName = displayGroupShort(group.name_short);
   const explanation =
-    shortName === group.name_long ? shortName : `${shortName} — ${group.name_long}`;
+    shortName === group.name_long ? shortName : `${shortName} · ${group.name_long}`;
   return (
     <span
       className="term-tooltip"

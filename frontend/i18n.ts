@@ -12,7 +12,13 @@ function isKnownLocale(value: string | null | undefined): value is Locale {
   return typeof value === 'string' && (locales as readonly string[]).includes(value);
 }
 
-export default getRequestConfig(async () => {
+export default getRequestConfig(async ({ locale: explicit }) => {
+  // A locale passed explicitly (``getTranslations({ locale, ... })``) wins:
+  // share images render in the language their link names (?l=), whatever
+  // the cookie of whoever fetches them (app/eleccions/og).
+  if (isKnownLocale(explicit)) {
+    return { locale: explicit, messages: (await import(`./messages/${explicit}.json`)).default };
+  }
   // Locale negotiation precedence:
   //   1. `x-locale` header set by middleware.ts — the canonical signal,
   //      already resolved from cookie or Accept-Language.

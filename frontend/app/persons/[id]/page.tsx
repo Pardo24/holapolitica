@@ -205,11 +205,15 @@ export default async function PersonDetailPage({
             )}
             {person.birth_year && (
               <span className="dep-hero__fact">
-                {t('born_in')} {person.birth_year}
+                {t(person.gender === 'F' ? 'born_in_f' : person.gender === 'M' ? 'born_in' : 'born_in_x', {
+                  year: person.birth_year,
+                })}
               </span>
             )}
           </div>
-          {person.role_title && <div className="dep-hero__role">{person.role_title}</div>}
+          {/* Only real posts (the Bureau, the Government): the Congress's
+              hemicycle used to hand us the group's code ("GP") as one. */}
+          {person.role_kind && person.role_title && <div className="dep-hero__role">{person.role_title}</div>}
           <div className="dep-hero__links">
             {person.biography_url && (
               <a
@@ -271,18 +275,14 @@ export default async function PersonDetailPage({
       <KpiStrip kpis={kpis} t={t} />
 
       {person.role_kind && (() => {
-        const fullText =
-          person.role_kind === 'govern'
-            ? `Aquest diputat ostenta el càrrec de ${person.role_title ?? 'membre del Govern'}. Per convenció parlamentària, el President del Govern i els ministres no participen en la majoria de votacions ordinàries del Ple. Comparar els seus vots emesos amb els d'un diputat sense càrrec executiu és enganyós.`
-            : `Aquest diputat és ${person.role_title ?? 'membre de la Mesa del Congrés'}. La Mesa té funcions de presidència i moderació que modifiquen el patró habitual de vot.`;
+        const gender = person.gender === 'F' ? 'F' : 'M';
+        const role = person.role_title ?? '';
+        const fullText = t(person.role_kind === 'govern' ? 'role_note_govern' : 'role_note_mesa', { gender, role });
         // One-sentence summary used on mobile. The full text is one tap
         // away inside a native <details>, so transparency isn't lost —
         // just deferred. On desktop the full caveat stays inline because
         // the page has the room for it.
-        const shortText =
-          person.role_kind === 'govern'
-            ? `${person.role_title ?? 'Membre del Govern'} — vots emesos no comparables amb un diputat regular.`
-            : `${person.role_title ?? 'Membre de la Mesa'} — patró de vot diferent al d'un diputat regular.`;
+        const shortText = t(person.role_kind === 'govern' ? 'role_short_govern' : 'role_short_mesa', { role });
         return (
           <div
             role="note"
@@ -302,7 +302,7 @@ export default async function PersonDetailPage({
                 and the long explanation expands on tap. */}
             <div className="hidden sm:block">
               <strong style={{ color: 'var(--ink)' }}>
-                Avís sobre aquestes mètriques.
+                {t('role_note_title')}
               </strong>{' '}
               {fullText}
             </div>
@@ -315,7 +315,7 @@ export default async function PersonDetailPage({
                 }}
               >
                 <strong style={{ color: 'var(--ink)' }}>
-                  Avís sobre aquestes mètriques.
+                  {t('role_note_title')}
                 </strong>{' '}
                 <span>{shortText}</span>{' '}
                 <span style={{ color: 'var(--ink-3)' }}>…</span>

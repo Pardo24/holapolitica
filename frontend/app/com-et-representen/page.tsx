@@ -8,6 +8,8 @@ import { Scale } from '@/components/icons';
 import { AlignQuiz } from '@/components/AlignQuiz';
 import { PageHeader } from '@/components/PageHeader';
 import { GameTopicStart } from '@/components/GameTopicStart';
+import { displayGroupShort } from '@/lib/groups';
+import { parseQuizResult, quizResultParam } from '@/lib/quizResult';
 import { pickTopicName } from '@/lib/topics';
 import { api, type AlignQuestion, type Topic } from '@/lib/api';
 
@@ -15,8 +17,27 @@ import { api, type AlignQuestion, type Topic } from '@/lib/api';
 // hammering the backend (the payload is also cached server-side).
 export const revalidate = 300;
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ r?: string }>;
+}): Promise<Metadata> {
   const t = await getTranslations('align');
+  // A shared result (?r=, components/AlignQuiz.tsx): the preview shows it.
+  const result = parseQuizResult((await searchParams).r);
+  const group = result
+    ? (await api.groups.list().catch(() => [])).find((g) => g.slug === result.slug)
+    : undefined;
+  if (result && group) {
+    const locale = await getLocale();
+    const image = `/com-et-representen/og?r=${quizResultParam(result)}&l=${locale}`;
+    return {
+      title: t('meta_result_title', { pct: result.pct, name: displayGroupShort(group.name_short) }),
+      description: t('meta_result_description', { n: result.compared }),
+      openGraph: { images: [{ url: image, width: 1200, height: 630 }] },
+      twitter: { card: 'summary_large_image', images: [image] },
+    };
+  }
   return { title: t('title'), description: t('subtitle') };
 }
 

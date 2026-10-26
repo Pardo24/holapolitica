@@ -11,8 +11,25 @@ import { ArrowUpRight } from '@/components/icons';
 import { CandidacyCard, ConstituencyGrid, ConstituencyPicker, ElectionsHeader } from '@/components/Elections';
 import { api, type CandidaciesStatus, type ConstituencyCandidacies } from '@/lib/api';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ circ?: string }>;
+}): Promise<Metadata> {
   const t = await getTranslations('elections');
+  const { circ } = await searchParams;
+  const status = circ ? await api.elections.candidacies().catch(() => null) : null;
+  if (circ && status?.constituencies.some((c) => c.constituency === circ)) {
+    // One constituency: its own title and share image (app/eleccions/og).
+    const locale = await getLocale();
+    const image = `/eleccions/og?circ=${encodeURIComponent(circ)}&l=${locale}`;
+    return {
+      title: t('meta_title_circ', { circ }),
+      description: t('meta_description_circ', { circ }),
+      openGraph: { images: [{ url: image, width: 1200, height: 630 }] },
+      twitter: { card: 'summary_large_image', images: [image] },
+    };
+  }
   return { title: t('meta_title'), description: t('meta_description') };
 }
 

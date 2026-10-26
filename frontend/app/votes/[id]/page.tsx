@@ -49,6 +49,7 @@ import { SummaryBody } from '@/components/SummaryBody';
 import { VoteChain } from '@/components/VoteChain';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { VoteDonut } from '@/components/VoteDonut';
+import { agendaHeading } from '@/lib/agendaHeadings';
 import {
   api,
   ApiError,
@@ -387,23 +388,6 @@ export default async function VoteDetailPage({
 
   return (
     <article>
-      {/* Trajectory banner — same dark strip used on /initiatives/[id].
-          When the vote has a linked initiative we use the initiative's
-          type + status; this lets a PNL vote that ALREADY happened
-          still show "Proposició no de Llei → Votació" as the
-          terminal step. Skipped when the vote has no initiative (the
-          legacy unlinked-vote case) to avoid guessing a journey from
-          incomplete data. */}
-      {initiative && (
-        <LawJourney
-          type={initiative.type}
-          status={initiative.status}
-          hasBoe={!!initiative.boe_url}
-          voteResult={vote.result}
-          votes={initiative.votes ?? []}
-        />
-      )}
-
       {/* Breadcrumb */}
       <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 6 }}>
         <Link href="/votes" style={{ color: 'var(--ink-2)' }}>
@@ -429,7 +413,7 @@ export default async function VoteDetailPage({
             marginBottom: 10,
           }}
         >
-          <Lbl style={{ fontWeight: 600, color: 'var(--ink-2)' }}>{vote.title}</Lbl>
+          <Lbl style={{ fontWeight: 600, color: 'var(--ink-2)' }}>{agendaHeading(vote.title, locale)}</Lbl>
           {vote.stage && (
             <span className="vote-stage-chip">
               {vote.stage === 'point' && amendmentDetail ? amendmentDetail : tStage(vote.stage)}
@@ -800,6 +784,25 @@ export default async function VoteDetailPage({
           )}
         </div>
       </header>
+
+      {/* Trajectory banner — same dark strip used on /initiatives/[id],
+          after the header: above it, it filled a phone's first screen before
+          the reader knew what the vote was about.
+          When the vote has a linked initiative we use the initiative's
+          type + status; this lets a PNL vote that ALREADY happened
+          still show "Proposició no de Llei → Votació" as the
+          terminal step. Skipped when the vote has no initiative (the
+          legacy unlinked-vote case) to avoid guessing a journey from
+          incomplete data. */}
+      {initiative && (
+        <LawJourney
+          type={initiative.type}
+          status={initiative.status}
+          hasBoe={!!initiative.boe_url}
+          voteResult={vote.result}
+          votes={initiative.votes ?? []}
+        />
+      )}
 
       {/* Body: recount (left) // dissidents (right). The second column is
           only declared when there is something to put in it — the grid
