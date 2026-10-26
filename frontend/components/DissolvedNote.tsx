@@ -19,11 +19,18 @@ export function congressDissolved(now: Date = new Date()): boolean {
   return today >= DISSOLVED_FROM && today < CONSTITUTED_ON;
 }
 
-export async function DissolvedNote({ compact = false }: { compact?: boolean }) {
+export async function DissolvedNote({
+  compact = false,
+  top = false,
+}: {
+  compact?: boolean;
+  /** First thing on a page: clear of the navigation bar above it. */
+  top?: boolean;
+}) {
   if (!congressDissolved()) return null;
   const t = await getTranslations('dissolved');
   return (
-    <p className={compact ? 'dissolved dissolved--compact' : 'dissolved'} role="note">
+    <p className={`dissolved${compact ? ' dissolved--compact' : ''}${top ? ' dissolved--top' : ''}`} role="note">
       <strong>{t('title')}</strong> {t('body')}
     </p>
   );

@@ -29,7 +29,8 @@ const COMMON_SECURITY_HEADERS = [
 // (server/launch.mjs) serves one copy to everyone, so per-request nonces
 // are not an option. It still shuts out scripts, frames and objects from
 // anywhere else, and forms and connections to anywhere but us. Images: the
-// deputies' photos come from the Congress. Dev needs eval for fast refresh.
+// deputies' photos come from the Congress. Frames: our own only, which
+// /journalists uses to preview the embeds. Dev needs eval for fast refresh.
 // Embeds may be framed by anyone; every other page by no one.
 function contentSecurityPolicy({ embed }) {
   const directives = {
@@ -41,7 +42,7 @@ function contentSecurityPolicy({ embed }) {
     'connect-src': ["'self'", 'https://api.holapolitica.org'],
     'worker-src': ["'self'"],
     'manifest-src': ["'self'"],
-    'frame-src': ["'none'"],
+    'frame-src': ["'self'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],

@@ -2783,6 +2783,8 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 }
 .dissolved strong { color: var(--ink); }
 .dissolved--compact { margin: 0 0 10px; padding: 8px 12px; font-size: 12.5px; }
+.dissolved--top { margin: 20px 0 22px; }
+@media (max-width: 640px) { .dissolved--top { margin: 0 0 16px; } }
 
 /* "What next?" under the test's results (components/AlignQuiz.tsx). */
 .quiz-next {

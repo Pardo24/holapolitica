@@ -93,7 +93,7 @@ export default async function AvuiPage() {
 
   return (
     <>
-      <DissolvedNote />
+      <DissolvedNote top />
       <SessionSheet
         date={latestDate}
         votes={latestVotes}
