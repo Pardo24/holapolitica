@@ -42,7 +42,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t('meta_title'),
     description: t('meta_description'),
-    alternates: { canonical: '/avui' },
   };
 }
 

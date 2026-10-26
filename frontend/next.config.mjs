@@ -35,6 +35,12 @@ const nextConfig = {
   // cache in front (server/launch.mjs) sends whole pages anyway, so
   // streaming them bought nothing.
   htmlLimitedBots: /.*/,
+  // Middleware sees the worker's real address in request.url. Normalised,
+  // 127.0.0.1 becomes "localhost", which no longer matches the address
+  // Next serves itself on, so the /ca/… → /… rewrite (middleware.ts) went
+  // out as a proxy to "another site" and lost its language. The other
+  // thing it normalises, /_next/data URLs, is Pages Router only.
+  skipMiddlewareUrlNormalize: true,
   typedRoutes: true,
   experimental: {
     // Keep pages already visited in the client router cache for a while.

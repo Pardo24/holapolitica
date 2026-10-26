@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
+
+import { stripLocale } from '@/lib/localePath';
 import { useTranslations } from 'next-intl';
 import { BarChart3, Home, Scale, Users, Vote } from 'lucide-react';
 
@@ -97,7 +99,7 @@ function activeTab(pathname: string): TabKey | null {
 }
 
 export function BottomTabBar() {
-  const pathname = usePathname() ?? '/';
+  const pathname = stripLocale(usePathname() ?? '/');
   const t = useTranslations('nav');
   const active = activeTab(pathname);
 

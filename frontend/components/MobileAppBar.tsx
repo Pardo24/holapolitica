@@ -45,6 +45,8 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
+
+import { stripLocale } from '@/lib/localePath';
 import { useCallback, useEffect, useState } from 'react';
 
 import { BottomSheet } from '@/components/BottomSheet';
@@ -60,7 +62,7 @@ const LOCALES = [
 ] as const;
 
 export function MobileAppBar() {
-  const pathname = usePathname() ?? '/';
+  const pathname = stripLocale(usePathname() ?? '/');
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('app_bar');

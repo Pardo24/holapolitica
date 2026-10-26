@@ -47,7 +47,6 @@ export async function generateMetadata({
   return {
     title: t('archive_meta_title', { date }),
     description: t('archive_meta_description', { date }),
-    alternates: { canonical: `/avui/${date}` },
   };
 }
 

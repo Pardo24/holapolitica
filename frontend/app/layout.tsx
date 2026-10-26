@@ -18,7 +18,21 @@ import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('site');
+  // Each page in each language at an address of its own (middleware.ts):
+  // /ca/…, /es/…, /en/…, and the unprefixed one, which follows the reader's
+  // choice, as the default. A page reached through a prefix is canonical
+  // there, so the search engine keeps each language.
+  const hdrs = await headers();
+  const path = hdrs.get('x-pathname') ?? '/';
+  const search = hdrs.get('x-search') ?? '';
+  const prefix = hdrs.get('x-locale-prefix');
+  const at = (locale: string | null) =>
+    `${locale ? `/${locale}` : ''}${path === '/' && locale ? '' : path}${search}`;
   return {
+    alternates: {
+      canonical: at(prefix),
+      languages: { ca: at('ca'), es: at('es'), en: at('en'), 'x-default': at(null) },
+    },
     // Anchors every relative URL Next emits for OG images, Twitter
     // cards and `<link rel="canonical">`. Without this, opengraph
     // image URLs become relative paths in `<head>` and many social

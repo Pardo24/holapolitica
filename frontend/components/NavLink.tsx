@@ -4,6 +4,8 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 
+import { stripLocale } from '@/lib/localePath';
+
 /**
  * Active-state nav link. Client component so `usePathname()` re-renders on
  * every client-side navigation — the root layout (which hosts TopNav) is
@@ -33,7 +35,7 @@ export function NavLink({
   /** Extra class merged with the active-state class. */
   className?: string;
 }) {
-  const pathname = usePathname() ?? '';
+  const pathname = stripLocale(usePathname() ?? '/');
   const active = pathname === href || pathname.startsWith(`${href}/`);
   return (
     <Link

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import { defaultLocale, locales, type Locale } from '@/i18n';
+import { stripLocale } from '@/lib/localePath';
 
 const COOKIE_NAME = 'NEXT_LOCALE';
 // One year — long enough that the choice persists across sessions but
@@ -37,11 +38,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Only a path on this site: ``//other.site`` and ``/\other.site`` are
     // read by browsers as another host.
     const url = new URL(redirectField, 'http://site.invalid');
-    if (url.origin === 'http://site.invalid') target = `${url.pathname}${url.search}`;
+    // Without its language prefix: /ca/votes/1 would stay in Catalan.
+    if (url.origin === 'http://site.invalid') target = `${stripLocale(url.pathname)}${url.search}`;
   } else if (referer) {
     try {
       const url = new URL(referer);
-      target = `${url.pathname}${url.search}` || '/';
+      target = `${stripLocale(url.pathname)}${url.search}` || '/';
     } catch {
       target = '/';
     }

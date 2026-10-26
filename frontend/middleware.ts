@@ -56,28 +56,39 @@ function negotiate(
 const LOCALE_PREFIX = /^\/(ca|es|en)(\/.*)?$/;
 
 export function middleware(request: NextRequest) {
-  // The site has no locale segment in its URLs (the locale lives in the
-  // NEXT_LOCALE cookie), but people naturally type or share
-  // holapolitica.org/es. Those used to 404. Treat the prefix as a
-  // language choice: set the cookie and redirect to the unprefixed path.
+  // ``/ca/votes/1`` is ``/votes/1`` in Catalan, at an address of its own:
+  // search engines index each language through these (hreflang links in
+  // app/layout.tsx), and a shared link keeps its language. The page is
+  // rendered from the unprefixed route; the prefix also becomes the
+  // reader's language choice, so the site's own (unprefixed) links stay in
+  // it. These used to redirect to the unprefixed path, which left every
+  // language but the negotiated one without a URL.
   const prefixed = LOCALE_PREFIX.exec(request.nextUrl.pathname);
   if (prefixed) {
-    // The request URL here carries the address of the Next worker behind
-    // the page cache (server/launch.mjs), not the site's, and middleware
-    // only takes absolute redirects: rebuild the origin from the headers
-    // Caddy forwards.
-    const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
-    const proto = request.headers.get('x-forwarded-proto') ?? request.nextUrl.protocol.replace(':', '');
-    const target = (prefixed[2] || '/') + request.nextUrl.search;
-    const redirect = NextResponse.redirect(new URL(target, host ? `${proto}://${host}` : request.url));
-    redirect.cookies.set({
-      name: COOKIE_NAME,
-      value: prefixed[1]!,
-      path: '/',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 365,
-    });
-    return redirect;
+    const locale = prefixed[1]!;
+    const path = prefixed[2] || '/';
+    // ``request.url``, not ``nextUrl``: Next proxies a rewrite whose origin
+    // differs from its own as if it were another site (the page then renders
+    // without these headers, in the negotiated language), and nextUrl turns
+    // the worker's 127.0.0.1 into "localhost". request.url keeps it with
+    // skipMiddlewareUrlNormalize (next.config.mjs).
+    const url = new URL(path + request.nextUrl.search, request.url);
+    const headers = new Headers(request.headers);
+    headers.set('x-pathname', path);
+    headers.set('x-search', request.nextUrl.search);
+    headers.set('x-locale', locale);
+    headers.set('x-locale-prefix', locale);
+    const response = NextResponse.rewrite(url, { request: { headers } });
+    if (request.cookies.get(COOKIE_NAME)?.value !== locale) {
+      response.cookies.set({
+        name: COOKIE_NAME,
+        value: locale,
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 365,
+      });
+    }
+    return response;
   }
 
   const headers = new Headers(request.headers);
