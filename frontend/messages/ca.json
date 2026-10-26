@@ -353,7 +353,10 @@
     "same_title_filed": "presentada el {date}",
     "expired_note": "Va caducar quan es van dissoldre les Corts per convocar eleccions (6 d'octubre de 2026): les iniciatives que no havien acabat el tràmit decauen. Si algú la vol tirar endavant, l'haurà de tornar a presentar a la nova legislatura.",
     "howlaw_title": "Com es fa una llei?",
-    "howlaw_sub": "Les etapes de cada tipus d'iniciativa, explicades una a una"
+    "howlaw_sub": "Les etapes de cada tipus d'iniciativa, explicades una a una",
+    "card_margin": "per {n, plural, one {# vot} other {# vots}}",
+    "card_abstentions": "{n, plural, =0 {cap abstenció} one {# abstenció} other {# abstencions}}",
+    "card_proposed_by": "Proposa: {who}"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",

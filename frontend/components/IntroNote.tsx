@@ -9,7 +9,8 @@ import { ArrowRight, X } from 'lucide-react';
 import { welcomeApplies } from '@/components/WelcomeWizard';
 
 /**
- * First-visit explanation, as a strip inside the page.
+ * First-visit explanation: a card in the corner of wide screens (globals.css
+ * ``.intro-note``), off on phones.
  *
  * It replaces a three-slide modal that covered the whole screen on a
  * phone: the first thing a visitor met was a barrier, and the way out was
@@ -108,7 +109,7 @@ export function IntroNote() {
         {t('more')}
         <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
       </Link>
-      {/* Phone only: a clear way to say "got it", beside the X. */}
+      {/* A clear way to say "got it", beside the X. */}
       <button type="button" onClick={dismiss} className="intro-note__ok no-touch-pad">
         {t('done')}
       </button>

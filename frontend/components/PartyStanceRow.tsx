@@ -51,7 +51,7 @@ const STANCE_LABEL_OVERRIDES: Record<string, string> = {
 };
 
 /** Short visible name printed under each party mark. */
-function stanceLabel(p: PartyStance): string {
+export function stanceLabel(p: Pick<PartyStance, 'slug' | 'name_short'>): string {
   const override = STANCE_LABEL_OVERRIDES[p.slug];
   if (override) return override;
   const abbr = groupAbbreviation(p.slug);

@@ -353,7 +353,10 @@
     "same_title_filed": "tabled {date}",
     "expired_note": "It lapsed when the Cortes were dissolved for the election (6 October 2026): initiatives that had not finished their passage fall. To go ahead, it has to be tabled again in the new legislature.",
     "howlaw_title": "How is a law made?",
-    "howlaw_sub": "The steps of each kind of initiative, explained one by one"
+    "howlaw_sub": "The steps of each kind of initiative, explained one by one",
+    "card_margin": "by {n, plural, one {# vote} other {# votes}}",
+    "card_abstentions": "{n, plural, =0 {no abstentions} one {# abstention} other {# abstentions}}",
+    "card_proposed_by": "Proposed by {who}"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",

@@ -5,11 +5,10 @@ import { ArrowRight } from '@/components/icons';
 
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
-import { ResultPill } from '@/components/ResultPill';
+import { stanceLabel } from '@/components/PartyStanceRow';
 import { ProfileEffects } from '@/components/ProfileEffects';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
-import { VoteSplit } from '@/components/VoteSplit';
 import type { Vote } from '@/lib/api';
 import { pickPlainSummary, pickPlainTitle } from '@/lib/glossary';
 import { summaryHeadline, summaryPointCount, summaryRestCount } from '@/lib/plainSummary';
@@ -17,14 +16,24 @@ import { displayGroupShort } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
 
 /**
- * One VOTE, as a full-width card — the /votes archive.
+ * One VOTE, as a full-width card: the /votes archive.
  *
- * The twin of {@link LawCard}: the same reading order (what it does, then
- * who voted what), so a vote doesn't change appearance depending on which
- * list you met it in. The two differ only where the objects differ: a vote
- * has a result rather than a lifecycle status, and it has no audiences of
- * its own, since those belong to the initiative behind it.
+ * Two parts (2026-10-26): what was voted on the left (what it does, who it
+ * affects, how each group voted) and the result on the right, as a
+ * scoreboard: the outcome, the count, the margin and the bar against the
+ * absolute majority. On a phone the scoreboard sits under the headline.
+ * The groups were behind a "detail by group" button; they are the point
+ * of the card, so they are on it, named and counted.
+ *
+ * Styled by class (.vcard in globals.css): the list prints twenty of these.
  */
+
+const SIDES = [
+  { choice: 'aye', key: 'card_in_favour', color: 'var(--aye)' },
+  { choice: 'no', key: 'card_against', color: 'var(--no)' },
+  { choice: 'abstention', key: 'card_abstention', color: 'var(--abst)' },
+] as const;
+
 export async function VoteCard({ vote, locale }: { vote: Vote; locale: string }) {
   const t = await getTranslations('lleis');
   const tVotes = await getTranslations('votes');
@@ -44,168 +53,118 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
       : summaryRestCount(plainSummary);
   const voteDate = new Date(vote.voted_at).toLocaleDateString(locale, { dateStyle: 'medium' });
 
+  // The scoreboard: the bar spans the whole chamber, so the majority line
+  // (176 of 350) sits where it really is.
+  const chamber = vote.ayes + vote.noes + vote.abstentions + vote.absent || 350;
+  const majority = Math.floor(chamber / 2) + 1;
+  const margin = Math.abs(vote.ayes - vote.noes);
+  const pct = (n: number) => `${(100 * n) / chamber}%`;
+  const groups = [...(vote.groups ?? [])].sort((a, b) => (b.deputies ?? 0) - (a.deputies ?? 0));
+  const proposer =
+    vote.proposed_by_government && !vote.proposing_group_short
+      ? tVotes('proposed_by_government')
+      : vote.proposing_group_short
+        ? displayGroupShort(vote.proposing_group_short)
+        : null;
+
   return (
-    <li
-      style={{
-        listStyle: 'none',
-        border: '1px solid var(--rule)',
-        borderRadius: 16,
-        background: 'var(--paper)',
-        boxShadow: 'var(--shadow-2)',
-        padding: '18px 18px 16px',
-        // See LawCard: clipping here swallowed the law-type tooltip.
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          flexWrap: 'wrap',
-          marginBottom: 10,
-        }}
-      >
-        {vote.initiative_type && <LawTypeChip type={vote.initiative_type} />}
-        {(vote.topics ?? []).slice(0, 2).map((tp) => (
-          <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
-        ))}
-        <span style={{ flex: 1 }} />
-        <ResultPill
-          result={vote.result}
-          label={tVotes(`result.${vote.result}` as 'result.approved')}
+    <li className={`vcard vcard--${vote.result}`}>
+      <div className="vcard__head">
+        <div className="vcard__chips">
+          {vote.initiative_type && <LawTypeChip type={vote.initiative_type} />}
+          {(vote.topics ?? []).slice(0, 2).map((tp) => (
+            <TopicChip key={tp.slug} name={pickTopicName(tp, locale)} color={tp.color_hex} />
+          ))}
+        </div>
+        {/* Same label as on a law card: the headline is either a machine
+            summary or the chamber's own wording, and which one it is should
+            never be a guess. */}
+        <SummaryProvenance
+          kind={plainSummary ? 'ai' : 'none'}
+          label={plainSummary ? t('card_ai_summary') : t('card_no_summary')}
+        />
+        <h3 className="vcard__title">
+          <Link href={href} className="serif">
+            {headline}
+          </Link>
+        </h3>
+        {morePoints > 0 && (
+          // The points the headline leaves out. Counted, not run together:
+          // "+3 punts més" says there is a list without pretending the card
+          // can show it.
+          <span className="vcard__more">{t('card_more_points', { n: morePoints })}</span>
+        )}
+        <ProfileEffects
+          effects={vote.profile_effects}
+          locale={locale}
+          max={3}
+          moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : undefined}
         />
       </div>
 
-      {/* Same label as on a law card: the headline is either a machine
-          summary or the chamber's own wording, and which one it is should
-          never be a guess. */}
-      <SummaryProvenance
-        kind={plainSummary ? 'ai' : 'none'}
-        label={plainSummary ? t('card_ai_summary') : t('card_no_summary')}
-      />
-      <h3 style={{ margin: 0 }}>
-        <Link
-          href={href}
-          className="serif"
-          style={{
-            fontSize: 'clamp(16px, 2.1vw, 19px)',
-            fontWeight: 600,
-            lineHeight: 1.4,
-            color: 'var(--ink)',
-            textDecoration: 'none',
-            letterSpacing: '-0.01em',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {headline}
-        </Link>
-      </h3>
-      <ProfileEffects
-        effects={vote.profile_effects}
-        locale={locale}
-        max={3}
-        moreHref={vote.initiative_id != null ? `/initiatives/${vote.initiative_id}#com-t-afecta` : undefined}
-      />
-      {morePoints > 0 && (
-        // The points the headline leaves out. Counted, not run together:
-        // "+3 punts més" says there is a list without pretending the card
-        // can show it.
-        <span
-          style={{
-            display: 'inline-block',
-            marginTop: 6,
-            padding: '2px 9px',
-            borderRadius: 999,
-            border: '1px solid var(--rule-strong)',
-            background: 'var(--paper-2)',
-            fontSize: 11.5,
-            fontWeight: 600,
-            color: 'var(--ink-3)',
-          }}
-        >
-          {t('card_more_points', { n: morePoints })}
-        </span>
-      )}
-
-      <div
-        style={{
-          marginTop: 14,
-          padding: '12px 13px',
-          borderRadius: 12,
-          border: '1px solid var(--rule)',
-          background: 'var(--paper-2)',
-        }}
-      >
+      <div className="vcard__score">
+        <span className="vcard__result">{tVotes(`result.${vote.result}` as 'result.approved')}</span>
         {vote.approved_by_assent ? (
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-2)' }}>
-            {t('card_by_assent')} · {voteDate}
-          </p>
+          <span className="vcard__note">{t('card_by_assent')}</span>
         ) : (
-          <VoteSplit
-            ayes={vote.ayes}
-            noes={vote.noes}
-            abstentions={vote.abstentions}
-            absent={vote.absent}
-            groups={vote.groups ?? []}
-            date={voteDate}
-            labels={{
-              eyebrow: t('card_votes_eyebrow'),
-              inFavour: t('card_in_favour'),
-              against: t('card_against'),
-              abstention: t('card_abstention'),
-              detail: t('card_group_detail'),
-              sideEmpty: t('card_side_empty'),
-              noBreakdown: t('card_no_breakdown'),
-            }}
-          />
+          <>
+            <span className="vcard__count serif tabular">
+              {vote.ayes}
+              <span className="vcard__dash" aria-hidden="true">
+                {' – '}
+              </span>
+              <span className="sr-only"> / </span>
+              {vote.noes}
+            </span>
+            <span className="vcard__note tabular">
+              {vote.result !== 'tie' && `${t('card_margin', { n: margin })} · `}
+              {t('card_abstentions', { n: vote.abstentions })}
+            </span>
+            <span className="vcard__bar" aria-hidden="true">
+              <span style={{ width: pct(vote.ayes), background: 'var(--aye)' }} />
+              <span style={{ width: pct(vote.abstentions), background: 'var(--abst)' }} />
+              <span style={{ width: pct(vote.noes), background: 'var(--no)' }} />
+              <i style={{ left: pct(majority) }} />
+            </span>
+          </>
         )}
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          flexWrap: 'wrap',
-          marginTop: 12,
-          fontSize: 12,
-          color: 'var(--ink-3)',
-        }}
-      >
-        {vote.proposed_by_government && !vote.proposing_group_short ? (
-          <span>{tVotes('proposed_by_government')}</span>
-        ) : vote.proposing_group_short ? (
-          <span>{displayGroupShort(vote.proposing_group_short)}</span>
-        ) : null}
-        {vote.expediente_raw && (
-          <span className="mono" style={{ fontSize: 10, wordBreak: 'break-all' }}>
-            {vote.expediente_raw}
-          </span>
-        )}
-        {plainSummary && (
-          <LawOriginalToggle original={subject} provider={vote.plain_summary_provider} />
-        )}
-        <span style={{ flex: 1 }} />
-        <Link
-          href={href}
-          className="card-open-link"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            fontSize: 12.5,
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <span className="vcard__date">{voteDate}</span>
+        <Link href={href} className="vcard__open card-open-link">
           {tVotes('see_vote')}
           <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
         </Link>
+      </div>
+
+      {!vote.approved_by_assent && (
+        <div className="vcard__groups">
+          {groups.length === 0 ? (
+            <p className="vcard__none">{t('card_no_breakdown')}</p>
+          ) : (
+            // The short names of the logo strips (PP, Sumar, Bildu, Mixto):
+            // the official ones ran each side over two lines.
+            SIDES.map(({ choice, key, color }) => {
+              const side = groups.filter((g) => g.choice === choice);
+              if (side.length === 0) return null;
+              return (
+                <p key={choice} className="vcard__side">
+                  <span className="vcard__dot" style={{ background: color }} aria-hidden="true" />
+                  <span className="vcard__side-label">{t(key)}</span>
+                  <span>
+                    {side
+                      .map((g) => `${stanceLabel(g)}${g.deputies != null ? ` ${g.deputies}` : ''}`)
+                      .join(', ')}
+                  </span>
+                </p>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      <div className="vcard__foot">
+        {proposer && <span>{t('card_proposed_by', { who: proposer })}</span>}
+        {vote.expediente_raw && <span className="mono vcard__exp">{vote.expediente_raw}</span>}
+        {plainSummary && <LawOriginalToggle original={subject} provider={vote.plain_summary_provider} />}
       </div>
     </li>
   );

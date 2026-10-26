@@ -353,7 +353,10 @@
     "same_title_filed": "presentada en {date}",
     "expired_note": "Caducó cuando se disolvieron las Cortes para convocar elecciones (6 de octubre de 2026): las iniciativas que no habían terminado su tramitación decaen. Si alguien quiere sacarla adelante, tendrá que volver a presentarla en la nueva legislatura.",
     "howlaw_title": "¿Cómo se hace una ley?",
-    "howlaw_sub": "Las etapas de cada tipo de iniciativa, explicadas una a una"
+    "howlaw_sub": "Las etapas de cada tipo de iniciativa, explicadas una a una",
+    "card_margin": "por {n, plural, one {# voto} other {# votos}}",
+    "card_abstentions": "{n, plural, =0 {ninguna abstención} one {# abstención} other {# abstenciones}}",
+    "card_proposed_by": "Propone: {who}"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
