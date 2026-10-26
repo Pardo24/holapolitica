@@ -185,6 +185,10 @@ async def list_topic_news(
         "es": topic.name_es,
         "en": topic.name_en,
     }[locale]
+    # Done with the database: give the connection back before waiting on
+    # Google News (seconds, or the timeout), or a few slow feeds hold the
+    # pool and the rest of the API queues behind them.
+    await session.close()
 
     async def _factory() -> list[dict[str, object]]:
         # Convert the dataclass items to JSON-ready dicts before they hit

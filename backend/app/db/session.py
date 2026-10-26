@@ -16,8 +16,12 @@ engine = create_async_engine(
     _settings.database_url,
     echo=_settings.is_development,
     pool_pre_ping=True,
+    # Per process. Production runs 3 API workers plus the job worker and
+    # the scheduler against Postgres's 100 connections: 3 x 30 could take
+    # them all. 20 is plenty since the deputy profiles stopped holding
+    # connections for seconds (2026-10-26).
     pool_size=10,
-    max_overflow=20,
+    max_overflow=10,
     # Postgres compiles "expensive" queries to machine code first, ~0.4 s
     # each on the profile's tallies (2026-10-26) for queries that then run
     # in a fraction of that. A web API's queries are never long enough to
