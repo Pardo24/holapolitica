@@ -6,6 +6,8 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { CalendarDays, Check, Clock, Flame, Gamepad2, Share2, X } from 'lucide-react';
 
+import { GameLawTags } from '@/components/GameLawTags';
+import { ProfileEffectsClient } from '@/components/ProfileEffectsClient';
 import { api, type DailyAnswer, type DailyQuestion as DQ } from '@/lib/api';
 import { answeredDailyToday, readStats, recordDailyAnswered } from '@/lib/triviaStats';
 import { openShareSheet } from '@/lib/native';
@@ -184,6 +186,11 @@ export function DailyQuestion({ locale, labels }: { locale: string; labels: Dail
           <div className="dq-context">
             {q.context_title && <p className="dq-context__title">{q.context_title}</p>}
             {q.context && <p className="dq-context__text">{q.context}</p>}
+            <GameLawTags
+              topics={q.topic ? [{ key: 'topic', name: q.topic.name, color: q.topic.color_hex }] : []}
+              tags={q.change_tags}
+            />
+            {q.effects && q.effects.length > 0 && <ProfileEffectsClient items={q.effects} max={3} folded />}
           </div>
         )}
         <h2 className="serif dq-prompt">{q.prompt}</h2>

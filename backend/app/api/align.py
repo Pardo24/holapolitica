@@ -15,7 +15,6 @@ the vote's own title / plain-language summary, with no editorial framing.
 from __future__ import annotations
 
 import random
-import re
 from collections import Counter, defaultdict
 from typing import Any, NamedTuple
 
@@ -44,48 +43,13 @@ from app.services.game_pool import (
     EVERYDAY_TOPICS,
     MIN_EVERYDAY_POOL,
     initiatives_about,
+    is_procedural,
+    law_tier,
     not_backwards,
 )
 from app.services.plain_summary import looks_insufficient
 
 router = APIRouter(prefix="/align", tags=["align"])
-
-# Votes that are about procedure, not about anything a citizen holds a view
-# on. The chamber spends a lot of its roll calls ratifying treaties and
-# settling how a bill will be handled, and those made genuinely unanswerable
-# questions: "Acuerdo entre el Reino de España y la República de Uzbekistán
-# sobre exención de visados para pasaportes diplomáticos" is a real vote and
-# a fair thing to publish, but asking a reader to be for or against it tells
-# neither of us anything.
-#
-# Anchored at the start, so a law that merely mentions a treaty is unaffected.
-_PROCEDURAL_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
-    re.compile(p, re.IGNORECASE)
-    for p in (
-        r"^\s*(tratado|convenci[oó]n|convenio|protocolo|canje de notas|acuerdo"
-        r"|enmienda al acuerdo)\b",
-        r"tramitaci[oó]n directa y en lectura [uú]nica",
-        r"reforma del reglamento",
-        r"informe de la (sub)?comisi[oó]n|informe de la ponencia",
-        r"(comisi[oó]n del )?estatuto de los diputados",
-        r"tribunal de cuentas",
-        r"creaci[oó]n de\s+(una\s+)?(sub)?comisi[oó]n",
-        r"solicitudes? de avocaci[oó]n",
-        r"pr[oó]rroga del plazo",
-    )
-)
-
-
-def _is_procedural(*texts: str | None) -> bool:
-    """Whether any of ``texts`` reads as a procedural vote."""
-    for text in texts:
-        if not text:
-            continue
-        stripped = text.strip()
-        if any(p.search(stripped) for p in _PROCEDURAL_PATTERNS):
-            return True
-    return False
-
 
 # The three stances a citizen can take — and the only group positions we
 # compare against. ABSENT / NO_VOTE_RECORDED are not opinions, so they can't
@@ -103,6 +67,9 @@ class _Chosen(NamedTuple):
     plain_title_es: str | None
     plain_summary_ca: str | None
     plain_summary_es: str | None
+    # game_pool.law_tier: laws that say whom they affect come first.
+    tier: int
+    change_tags: list[str]
 
 
 class AlignTopic(BaseModel):
@@ -132,6 +99,9 @@ class AlignQuestion(BaseModel):
     plain_summary_es: str | None = None
     topics: list[AlignTopic] = []
     group_positions: list[AlignGroupPosition] = []
+    # What the text changes (app/services/change_tags.py): "lowers taxes",
+    # "expands rights"... the card's tags beside the topics.
+    change_tags: list[str] = []
     # "Com t'afecta": {profile_key: {"ca", "es"}}, the plainest explanation
     # of the law, shown under its title when it has one.
     profile_effects: dict[str, dict[str, str]] | None = None
@@ -200,6 +170,9 @@ async def align_questions(
                     Initiative.plain_summary_es,
                     Initiative.plain_title_ca,
                     Initiative.plain_title_es,
+                    Initiative.type,
+                    Initiative.profile_effects,
+                    Initiative.change_tags,
                 )
                 .join(SessionRow, SessionRow.id == Vote.session_id)
                 .outerjoin(Initiative, Initiative.id == Vote.initiative_id)
@@ -251,13 +224,27 @@ async def align_questions(
 
         chosen: list[_Chosen] = []
         seen_initiatives: set[int] = set()
-        for vid, init_id, title, desc, vca, ves, ica, ies, ptca, ptes in pool_rows:
+        for (
+            vid,
+            init_id,
+            title,
+            desc,
+            vca,
+            ves,
+            ica,
+            ies,
+            ptca,
+            ptes,
+            itype,
+            effects,
+            tags,
+        ) in pool_rows:
             if init_id is not None:
                 if init_id in seen_initiatives:
                     continue
                 seen_initiatives.add(init_id)
             # Procedure is not an opinion.
-            if _is_procedural(title, desc):
+            if is_procedural(title, desc):
                 continue
             # The summariser's decline marker was being stored as if it were
             # the summary, so a reader was once asked to take a position on
@@ -280,6 +267,8 @@ async def align_questions(
                     plain_title_es=ptes,
                     plain_summary_ca=summary_ca,
                     plain_summary_es=summary_es,
+                    tier=law_tier(itype, effects),
+                    change_tags=list(tags or []),
                 )
             )
             # Take the whole deduped pool; the final assembly applies the
@@ -291,6 +280,10 @@ async def align_questions(
         # instead of the same most-recent ones every time.
         if seed:
             random.Random(seed).shuffle(chosen)
+        # Laws first, and among them the ones that say whom they affect; a
+        # motion only fills in when a topic has too few laws. Stable, so the
+        # order within a tier (recent first, or the seed's) stands.
+        chosen.sort(key=lambda c: c.tier)
 
         vote_ids = [c.vote_id for c in chosen]
         if not vote_ids:
@@ -397,6 +390,7 @@ async def align_questions(
                         else []
                     ),
                     group_positions=positions,
+                    change_tags=c.change_tags,
                     profile_effects=(
                         effects_by_initiative.get(c.initiative_id)
                         if c.initiative_id is not None
@@ -407,5 +401,5 @@ async def align_questions(
         return out
 
     return await cached(
-        f"align:questions:v4:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
+        f"align:questions:v5:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
     )

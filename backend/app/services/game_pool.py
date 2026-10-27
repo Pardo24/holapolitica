@@ -12,6 +12,13 @@ Two rules, both about being understood by anyone:
    bill start. Asked as "did the Congress approve it?" or "would you vote
    yes?" next to the law's summary, each of them reads backwards.
 
+3. It is a law. Motions and non-binding proposals ask the Government for
+   things, often local ("speed up the Pamplona station"); a reader asked
+   "would you vote for it?" should be looking at a law. And among laws, the
+   ones that say whom they affect ("Com t'afecta") first: that is what makes
+   a law matter to someone. The games take the best of these tiers that is
+   still big enough to play (``best_tiers``), so a narrow topic still works.
+
 And the card speaks plainly: the law's short plain title and the lead of
 its plain summary, never the official wording.
 """
@@ -19,12 +26,78 @@ its plain summary, never the official wording.
 from __future__ import annotations
 
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from typing import Any, TypeVar
 
 from sqlalchemy import ColumnElement, Select, and_, func, not_, select
 
-from app.models import InitiativeTopic, Topic, Vote
+from app.models import InitiativeTopic, InitiativeType, Topic, Vote
 from app.services.vote_stage import is_amendment_sql
+
+T = TypeVar("T")
+
+# What a game calls a law: the three kinds of initiative that make one.
+LAW_TYPES: tuple[InitiativeType, ...] = (
+    InitiativeType.PROYECTO_LEY,
+    InitiativeType.PROPOSICION_LEY,
+    InitiativeType.REAL_DECRETO_LEY,
+)
+
+
+def law_tier(initiative_type: Any, profile_effects: Any) -> int:
+    """0: a law that says whom it affects; 1: another law; 2: anything else."""
+    if initiative_type not in LAW_TYPES:
+        return 2
+    return 0 if profile_effects else 1
+
+
+def best_tiers(items: Sequence[T], tier_of: Callable[[T], int], minimum: int) -> list[T]:
+    """The items of the best tiers that reach ``minimum`` together, in order."""
+    for top in (0, 1):
+        picked = [item for item in items if tier_of(item) <= top]
+        if len(picked) >= minimum:
+            return picked
+    return list(items)
+
+
+# Votes about procedure, not about anything a citizen holds a view on. The
+# chamber spends a lot of its roll calls ratifying treaties and settling how
+# a bill will be handled, and those make unanswerable questions: "Acuerdo
+# entre el Reino de España y la República de Uzbekistán sobre exención de
+# visados para pasaportes diplomáticos" is a real vote and a fair thing to
+# publish, but asking a reader about it tells neither of us anything.
+#
+# Anchored at the start, so a law that merely mentions a treaty is unaffected.
+_PROCEDURAL_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
+    re.compile(p, re.IGNORECASE)
+    for p in (
+        r"^\s*(tratado|convenci[oó]n|convenio|protocolo|canje de notas|acuerdo"
+        r"|enmienda al acuerdo)\b",
+        r"tramitaci[oó]n directa y en lectura [uú]nica",
+        # After a decree-law is validated: whether to also process it as a
+        # bill. A "yes" there is about the procedure, not the decree.
+        r"^\s*tramitaci[oó]n como proyecto de ley",
+        r"reforma del reglamento",
+        r"informe de la (sub)?comisi[oó]n|informe de la ponencia",
+        r"(comisi[oó]n del )?estatuto de los diputados",
+        r"tribunal de cuentas",
+        r"creaci[oó]n de\s+(una\s+)?(sub)?comisi[oó]n",
+        r"solicitudes? de avocaci[oó]n",
+        r"pr[oó]rroga del plazo",
+    )
+)
+
+
+def is_procedural(*texts: str | None) -> bool:
+    """Whether any of ``texts`` reads as a procedural vote."""
+    for text in texts:
+        if not text:
+            continue
+        stripped = text.strip()
+        if any(p.search(stripped) for p in _PROCEDURAL_PATTERNS):
+            return True
+    return False
+
 
 # Themes a reader meets in daily life. Left out: institutions, foreign
 # affairs, historical memory, culture and language (fine subjects, but the

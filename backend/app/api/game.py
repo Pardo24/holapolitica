@@ -42,13 +42,21 @@ from app.services.game_pool import (
     EVERYDAY_TOPICS,
     MIN_EVERYDAY_POOL,
     TOPIC_MIN_CONFIDENCE,
+    best_tiers,
     initiatives_about,
+    is_procedural,
+    law_tier,
     not_backwards,
     reads_like_original,
     summary_lead,
 )
 from app.services.law_profiles import effects_in
 from app.services.plain_summary import looks_insufficient
+from app.services.proposing_group import proposing_groups_in
+
+# Enough laws for a round and a duel (14 a category) without repeats; below
+# it the pool widens to laws that do not say whom they affect, then to all.
+MIN_GAME_POOL = 30
 
 router = APIRouter(prefix="/game", tags=["game"])
 
@@ -73,6 +81,7 @@ class _GameStrings(TypedDict):
     party_tf_prompt: str
     party_tf_reveal: str
     proposer_prompt: str
+    government: str
     topic_prompt: str
     opt_yes: str
     opt_no: str
@@ -91,7 +100,8 @@ _GAME_TEXT: dict[str, _GameStrings] = {
         "outcome_reveal": "{ayes} vots a favor i {noes} en contra.",
         "party_tf_prompt": "{g} hi va votar a favor?",
         "party_tf_reveal": "{g} {stance}.",
-        "proposer_prompt": "Quin grup la va proposar?",
+        "proposer_prompt": "Qui la va proposar?",
+        "government": "El Govern",
         "topic_prompt": "A quin tema pertany aquesta llei?",
         "opt_yes": "Sí",
         "opt_no": "No",
@@ -104,7 +114,8 @@ _GAME_TEXT: dict[str, _GameStrings] = {
         "outcome_reveal": "{ayes} votos a favor y {noes} en contra.",
         "party_tf_prompt": "¿{g} votó a favor?",
         "party_tf_reveal": "{g} {stance}.",
-        "proposer_prompt": "¿Qué grupo la propuso?",
+        "proposer_prompt": "¿Quién la propuso?",
+        "government": "El Gobierno",
         "topic_prompt": "¿A qué tema pertenece esta ley?",
         "opt_yes": "Sí",
         "opt_no": "No",
@@ -152,6 +163,8 @@ class GameQuestion(BaseModel):
     law_effects: list[list[str]] = []
     # Short theme tag (e.g. "Habitatge") for a touch of colour. Optional.
     topic: str | None = None
+    # What the text changes ("lowers taxes", "expands rights"), as tags.
+    change_tags: list[str] = []
     prompt: str
     options: list[GameOption]
     # The party the question is ABOUT (party_tf), so the UI can show its badge
@@ -184,6 +197,10 @@ class _RichVote(NamedTuple):
     topic_es: str | None
     topic_slug: str | None = None
     effects: list[list[str]] | None = None
+    # game_pool.law_tier: laws that say whom they affect come first.
+    tier: int = 2
+    change_tags: tuple[str, ...] = ()
+    by_government: bool = False
 
 
 def _display_group(name_short: str) -> str:
@@ -289,6 +306,12 @@ async def game_questions(
                     topic_sq.c.tname,
                     topic_sq.c.tname_es,
                     topic_sq.c.tslug,
+                    Initiative.id,
+                    Initiative.type,
+                    Initiative.change_tags,
+                    Initiative.submitted_by,
+                    Vote.title,
+                    Vote.description,
                 )
                 .join(SessionRow, SessionRow.id == Vote.session_id)
                 .join(Initiative, Initiative.id == Vote.initiative_id)
@@ -323,7 +346,18 @@ async def game_questions(
         if not topic_slug and len({r[0] for r in pool_rows}) < MIN_EVERYDAY_POOL:
             pool_rows = (await session.execute(pool_query(everyday_only=False))).all()
 
+        # Who tabled a law, when the vote does not say: its initiative does.
+        leg_groups = list(
+            (
+                await session.execute(
+                    select(ParliamentaryGroup).where(ParliamentaryGroup.legislature_id == leg_id)
+                )
+            )
+            .scalars()
+            .all()
+        )
         by_vote: dict[int, _RichVote] = {}
+        seen_initiatives: dict[int, int] = {}
         for (
             vid,
             tca,
@@ -340,7 +374,17 @@ async def game_questions(
             tname,
             tname_es,
             tslug,
+            init_id,
+            itype,
+            tags,
+            submitted_by,
+            vtitle,
+            vdesc,
         ) in pool_rows:
+            # One card per law: a bill voted twice (taken into consideration,
+            # then passed) is still one law. Rows come newest first.
+            if seen_initiatives.setdefault(init_id, vid) != vid:
+                continue
             if vid in by_vote:
                 # One row per topic: the card's tag is an everyday one when the
                 # law has one ("housing" before "institutions").
@@ -354,6 +398,22 @@ async def game_questions(
             summary = (((ses or sca) if lang_key == "es" else (sca or ses)) or "").strip()
             if len(summary) < 30 or looks_insufficient(summary) or reads_like_original(summary):
                 continue
+            if is_procedural(vtitle, vdesc):
+                continue
+            by_government = False
+            if gshort is None:
+                if itype in ("proyecto_ley", "real_decreto_ley") or (submitted_by or "").startswith(
+                    "Gobierno"
+                ):
+                    by_government = True
+                elif submitted_by:
+                    named = proposing_groups_in(" ".join(submitted_by.split()), leg_groups)
+                    if len(named) == 1:
+                        gshort, gslug, gcolor = (
+                            named[0].name_short,
+                            named[0].slug,
+                            named[0].color_hex,
+                        )
             title = (((tes or tca) if lang_key == "es" else (tca or tes)) or "").strip() or None
             by_vote[vid] = _RichVote(
                 vote_id=vid,
@@ -369,7 +429,14 @@ async def game_questions(
                 topic_es=tname_es,
                 topic_slug=tslug,
                 effects=effects_in(effects, lang_key),
+                tier=law_tier(itype, effects),
+                change_tags=tuple(tags or []),
+                by_government=by_government,
             )
+        by_vote = {
+            v.vote_id: v
+            for v in best_tiers(list(by_vote.values()), lambda v: v.tier, MIN_GAME_POOL)
+        }
         if not by_vote:
             return {"pool": [], "meta": {}, "topics": [], "majorities": {}}
 
@@ -421,7 +488,7 @@ async def game_questions(
         }
 
     topic_key = topic_slug if isinstance(topic_slug, str) and topic_slug else "-"
-    payload = await cached(f"game:pool:v3:{leg_id}:{lang_key}:{topic_key}", 1800, build_pool)
+    payload = await cached(f"game:pool:v4:{leg_id}:{lang_key}:{topic_key}", 1800, build_pool)
     pool = [_RichVote(**row) for row in payload["pool"]]
     if not pool:
         return []
@@ -458,7 +525,9 @@ async def game_questions(
         if cat_filter == "lleis":
             eligible = ["outcome"]
         elif cat_filter == "partits":
-            eligible = (["party_tf"] if votable else []) + (["proposer"] if v.group_short else [])
+            eligible = (["party_tf"] if votable else []) + (
+                ["proposer"] if v.group_short or v.by_government else []
+            )
         elif cat_filter == "temes":
             eligible = ["temes"] if can_topic else []
         else:
@@ -467,7 +536,7 @@ async def game_questions(
                 eligible.append("temes")
             if votable:
                 eligible += ["party_tf", "party_tf"]  # double-weight: the fun one
-            if v.group_short:
+            if v.group_short or v.by_government:
                 eligible.append("proposer")
         if not eligible:
             continue
@@ -499,6 +568,17 @@ async def game_questions(
                 GameOption(text=txt["opt_no"], correct=not voted_aye),
             ]
             reveal = txt["party_tf_reveal"].format(g=gd, stance=stance_label[stance])
+            category = "partits"
+        elif kind == "proposer" and v.by_government:
+            others = list(distractor_metas)
+            rng.shuffle(others)
+            opts = [GameOption(text=txt["government"], correct=True)] + [
+                GameOption(text=m.display, correct=False, party_slug=m.slug, party_color=m.color)
+                for m in others[:3]
+            ]
+            rng.shuffle(opts)
+            prompt = txt["proposer_prompt"]
+            reveal = None
             category = "partits"
         elif kind == "proposer" and v.group_short:
             correct_meta = meta_by_short.get(v.group_short)
@@ -544,7 +624,8 @@ async def game_questions(
                 kind=kind,
                 law_summary=v.summary,
                 law_title=v.title,
-                law_effects=(v.effects or [])[:2],
+                law_effects=(v.effects or [])[:3],
+                change_tags=list(v.change_tags),
                 # Don't surface the topic tag on a "which theme?" card — it
                 # would give the answer away. Shown for the other kinds.
                 topic=(

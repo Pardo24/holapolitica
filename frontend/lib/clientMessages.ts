@@ -19,6 +19,7 @@ import type { AbstractIntlMessages } from 'next-intl';
 export const CLIENT_NAMESPACES = [
   'api_key_form',
   'app_bar',
+  'change_tags', // GameLawTags
   'coincidence_progressive',
   'common.how_we_use_ai', // LawOriginalToggle, LawSummaryPanel
   'common.plain_summary_caveat',

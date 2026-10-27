@@ -778,6 +778,8 @@ export interface GameQuestion {
   law_effects?: string[][];
   /** Short theme tag, e.g. "Habitatge". */
   topic: string | null;
+  /** What the text changes (lib/changeTags.ts). */
+  change_tags?: string[];
   prompt: string;
   options: GameOption[];
   /** The party the question is about (party_tf), for a badge in the prompt. */
@@ -799,6 +801,11 @@ export interface DailyQuestion {
   /** The law's short plain title, above the context (vote questions). */
   context_title?: string | null;
   source_id: number | null;
+  /** The law's main theme and what the text changes, as tags. */
+  topic?: { name: string; color_hex: string | null } | null;
+  change_tags?: string[];
+  /** "Com t'afecta": [[profile_key, sentence]], in the reader's language. */
+  effects?: string[][];
 }
 
 /** The result after answering the daily question, with the community tally. */
@@ -836,6 +843,8 @@ export interface AlignQuestion {
   plain_summary_es: string | null;
   topics: AlignTopic[];
   group_positions: AlignGroupPosition[];
+  /** What the text changes (lib/changeTags.ts). */
+  change_tags?: string[];
   /** "Com t'afecta": {profile_key: {ca, es}}. */
   profile_effects?: Record<string, { ca?: string; es?: string }> | null;
 }

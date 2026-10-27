@@ -22,9 +22,25 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
-from app.models import DailyAnswerCount, Initiative, ParliamentaryGroup, Vote, VoteRecord
+from app.models import (
+    DailyAnswerCount,
+    Initiative,
+    InitiativeTopic,
+    ParliamentaryGroup,
+    Topic,
+    Vote,
+    VoteRecord,
+)
 from app.models import Session as SessionRow
-from app.services.game_pool import not_backwards
+from app.services.game_pool import (
+    TOPIC_MIN_CONFIDENCE,
+    best_tiers,
+    is_procedural,
+    law_tier,
+    not_backwards,
+    summary_lead,
+)
+from app.services.law_profiles import effects_in
 from app.services.proposing_group import resolve_proposing_group
 
 router = APIRouter(prefix="/daily-question", tags=["daily-question"])
@@ -557,6 +573,11 @@ class DailyOption(BaseModel):
     text: str
 
 
+class DailyTopic(BaseModel):
+    name: str
+    color_hex: str | None = None
+
+
 class DailyQuestionOut(BaseModel):
     key: str
     kind: str  # "vote" | "civic"
@@ -566,6 +587,11 @@ class DailyQuestionOut(BaseModel):
     # The law's short plain title, above the context.
     context_title: str | None = None
     source_id: int | None = None
+    # The law's tags: its main theme and what the text changes.
+    topic: DailyTopic | None = None
+    change_tags: list[str] = []
+    # "Com t'afecta": [[profile_key, sentence], ...].
+    effects: list[list[str]] = []
 
 
 class DailyAnswerIn(BaseModel):
@@ -590,12 +616,22 @@ class _Resolved(BaseModel):
     context: str | None = None
     context_title: str | None = None
     source_id: int | None = None
+    topic: DailyTopic | None = None
+    change_tags: list[str] = []
+    effects: list[list[str]] = []
 
 
 async def _vote_pool_ids(session: AsyncSession) -> list[int]:
     rows = (
         await session.execute(
-            select(Vote.id)
+            select(
+                Vote.id,
+                Vote.initiative_id,
+                Vote.title,
+                Vote.description,
+                Initiative.type,
+                Initiative.profile_effects,
+            )
             .join(SessionRow, SessionRow.id == Vote.session_id)
             .join(Initiative, Initiative.id == Vote.initiative_id)
             .where(Vote.approved_by_assent.is_(False))
@@ -611,10 +647,20 @@ async def _vote_pool_ids(session: AsyncSession) -> list[int]:
                 (Initiative.plain_title_ca.is_not(None)) | (Initiative.plain_title_es.is_not(None))
             )
             .order_by(Vote.voted_at.desc())
-            .limit(_VOTE_POOL)
+            .limit(_VOTE_POOL * 4)
         )
     ).all()
-    return [r[0] for r in rows]
+    # A law, and one that says whom it affects when there are enough (see
+    # game_pool); a bill voted twice is one law; procedure is no question.
+    seen: set[int] = set()
+    picked = []
+    for vid, init_id, title, desc, itype, effects in rows:
+        if init_id in seen or is_procedural(title, desc):
+            continue
+        seen.add(init_id)
+        picked.append((vid, law_tier(itype, effects)))
+    best = best_tiers(picked, lambda p: p[1], _VOTE_POOL // 2)
+    return [vid for vid, _tier in best[:_VOTE_POOL]]
 
 
 # A vote day asks one of three things about the same real vote, so the
@@ -656,6 +702,9 @@ async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | No
                     Vote.proposed_by_government,
                     SessionRow.legislature_id,
                     Initiative.submitted_by,
+                    Initiative.id,
+                    Initiative.change_tags,
+                    Initiative.profile_effects,
                 )
                 .join(Initiative, Initiative.id == Vote.initiative_id)
                 .join(SessionRow, SessionRow.id == Vote.session_id)
@@ -664,7 +713,34 @@ async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | No
         ).first()
         if row is None:
             return None
-        sca, ses, tca, tes, result, ayes, noes, gid, by_gov, leg_id, submitted_by = row
+        (
+            sca,
+            ses,
+            tca,
+            tes,
+            result,
+            ayes,
+            noes,
+            gid,
+            by_gov,
+            leg_id,
+            submitted_by,
+            init_id,
+            change_tags,
+            profile_effects,
+        ) = row
+        # The law's main theme, as the card's tag.
+        topic_row = (
+            await session.execute(
+                select(Topic.name_ca, Topic.name_es, Topic.color_hex)
+                .join(InitiativeTopic, InitiativeTopic.topic_id == Topic.id)
+                .where(InitiativeTopic.initiative_id == init_id)
+                .where(Topic.kind == "theme")
+                .where(InitiativeTopic.confidence >= TOPIC_MIN_CONFIDENCE)
+                .order_by(InitiativeTopic.confidence.desc())
+                .limit(1)
+            )
+        ).first()
         summary = ((ses or sca) if lang == "es" else (sca or ses)) or ""
         title = ((tes or tca) if lang == "es" else (tca or tes)) or None
         ayes, noes = ayes or 0, noes or 0
@@ -676,9 +752,21 @@ async def _resolve(key: str, lang: str, session: AsyncSession) -> _Resolved | No
         )
         base = {
             "kind": "vote",
-            "context": summary or None,
+            # The lead, not the whole summary: a motion's list of asks ran
+            # to a screen of text above the question.
+            "context": summary_lead(summary) if summary else None,
             "context_title": title,
             "source_id": vid,
+            "topic": (
+                DailyTopic(
+                    name=(topic_row[1] or topic_row[0]) if lang == "es" else topic_row[0],
+                    color_hex=topic_row[2],
+                )
+                if topic_row is not None
+                else None
+            ),
+            "change_tags": list(change_tags or []),
+            "effects": effects_in(profile_effects, lang)[:3],
         }
 
         if variant == "proposer":
@@ -868,6 +956,9 @@ async def get_daily_question(
         context=resolved.context,
         context_title=resolved.context_title,
         source_id=resolved.source_id,
+        topic=resolved.topic,
+        change_tags=resolved.change_tags,
+        effects=resolved.effects,
     )
 
 

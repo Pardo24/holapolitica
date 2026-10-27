@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { GameLawTags } from '@/components/GameLawTags';
 import { ProfileEffectsClient } from '@/components/ProfileEffectsClient';
 import { groupAbbreviation } from '@/lib/groups';
 import type { Cat, DuelQuestion } from '@/lib/triviaBank';
@@ -660,12 +661,12 @@ function QuestionCard({
           <div className="tg-law">
             {q.topic && <span className="tg-law__topic">{q.topic}</span>}
             {q.lawTitle && <p className="tg-law__title">{q.lawTitle}</p>}
-            {/* "Com t'afecta" explains the law best; the summary stands in
-                when the law has none. */}
-            {q.lawEffects && q.lawEffects.length > 0 ? (
-              <ProfileEffectsClient items={q.lawEffects} />
-            ) : (
-              <p className="tg-law__summary">{q.lawSummary}</p>
+            {/* What the law does, then its tags, then whom it touches,
+                folded so the question stays on screen. */}
+            <p className="tg-law__summary">{q.lawSummary}</p>
+            <GameLawTags tags={q.changeTags} />
+            {q.lawEffects && q.lawEffects.length > 0 && (
+              <ProfileEffectsClient items={q.lawEffects} max={3} folded />
             )}
           </div>
         )}

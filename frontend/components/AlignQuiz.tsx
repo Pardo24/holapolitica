@@ -9,6 +9,7 @@ import { ballotName2026, displayGroupShort } from '@/lib/groups';
 import { quizResultParam } from '@/lib/quizResult';
 import { SummaryBody } from '@/components/SummaryBody';
 import { summaryHeadline } from '@/lib/plainSummary';
+import { GameLawTags } from '@/components/GameLawTags';
 import { ProfileEffectsClient, effectsItems } from '@/components/ProfileEffectsClient';
 import { pickTopicName } from '@/lib/topics';
 import { openShareSheet } from '@/lib/native';
@@ -564,7 +565,8 @@ export function AlignQuiz({
   const plainTitle =
     (locale.startsWith('es') ? q.plain_title_es : q.plain_title_ca) || q.plain_title_ca || q.plain_title_es;
   const pct = Math.round(((idx) / total) * 100);
-  // "Com t'afecta" explains the law best; the summary stands in without it.
+  // "Com t'afecta", folded under the summary: what the law does first, then
+  // whom it touches.
   const effects = plainTitle ? effectsItems(q.profile_effects, locale) : [];
 
   return (
@@ -580,24 +582,16 @@ export function AlignQuiz({
       </div>
 
       <div className="align-card">
-        {q.topics.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-            {q.topics.slice(0, 3).map((tp) => (
-              <span
-                key={tp.slug}
-                style={{
-                  fontSize: 11,
-                  padding: '2px 8px',
-                  borderRadius: 999,
-                  border: `1px solid ${tp.color_hex ?? 'var(--rule-strong)'}`,
-                  color: 'var(--ink-2)',
-                }}
-              >
-                {pickTopicName(tp, locale)}
-              </span>
-            ))}
-          </div>
-        )}
+        {/* Its tags: the themes and what the text changes. */}
+        <GameLawTags
+          style={{ margin: '0 0 10px' }}
+          topics={q.topics.slice(0, 2).map((tp) => ({
+            key: tp.slug,
+            name: pickTopicName(tp, locale),
+            color: tp.color_hex,
+          }))}
+          tags={q.change_tags}
+        />
         {/* The plain summary IS the question. The official title ("Proyecto
             de Ley por la que se modifican el Texto Refundido…", 70 words of
             legalese) used to lead the card and buried it; it now folds away
@@ -606,11 +600,6 @@ export function AlignQuiz({
           <>
             <p style={{ ...EYEBROW, marginBottom: 8 }}>{labels.question_label}</p>
             {plainTitle && <h2 className="serif align-card__title">{plainTitle}</h2>}
-            {effects.length > 0 ? (
-              <div style={{ margin: '0 0 12px' }}>
-                <ProfileEffectsClient items={effects} max={3} />
-              </div>
-            ) : (
             <div
               ref={summaryRef}
               className={plainTitle ? 'align-card__summary' : 'serif'}
@@ -642,8 +631,7 @@ export function AlignQuiz({
                   wraps both so the answer buttons stay on screen. */}
               <SummaryBody text={summary} listStyle={{ fontWeight: 500, gap: 4 }} />
             </div>
-            )}
-            {effects.length === 0 && clipped && (
+            {clipped && (
               <button
                 type="button"
                 onClick={() => setExpanded((v) => !v)}
@@ -663,6 +651,11 @@ export function AlignQuiz({
               >
                 {expanded ? labels.read_less : labels.read_more}
               </button>
+            )}
+            {effects.length > 0 && (
+              <div style={{ margin: '-4px 0 12px' }}>
+                <ProfileEffectsClient items={effects} max={3} folded />
+              </div>
             )}
             <details style={{ marginTop: 2 }}>
               <summary

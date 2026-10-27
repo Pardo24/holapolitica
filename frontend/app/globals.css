@@ -2574,10 +2574,10 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .vcard__exp { font-size: 10px; word-break: break-all; }
 .vcard__foot > details { order: 90; margin: 0; }
 .vcard__foot > details[open] { flex-basis: 100%; order: 99; }
-.vcard .effects--fold { padding: 0; border: 0; background: none; }
+:is(.vcard .effects--fold, .effects--pill) { padding: 0; border: 0; background: none; }
 /* Folded under the summary (list cards): a pill, opening into a panel. */
 .vcard__head > .effects--fold { margin-top: 12px; }
-.vcard .effects--fold > summary {
+:is(.vcard .effects--fold, .effects--pill) > summary {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -2588,16 +2588,16 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   background: var(--hue-lleis-soft);
   font-size: 11px;
 }
-.vcard .effects--fold > summary .effects__chev { margin-left: 2px; }
-.vcard .effects--fold[open] > summary { padding-bottom: 0; }
-.vcard .effects--fold > .effects__list {
+:is(.vcard .effects--fold, .effects--pill) > summary .effects__chev { margin-left: 2px; }
+:is(.vcard .effects--fold, .effects--pill)[open] > summary { padding-bottom: 0; }
+:is(.vcard .effects--fold, .effects--pill) > .effects__list {
   margin: 8px 0 0;
   padding: 12px 14px;
   border-radius: 12px;
   background: var(--hue-lleis-soft);
 }
-.vcard .effects--fold > .effects__more { display: inline-block; margin: 6px 0 0; }
-.vcard .effects--fold > :last-child { margin-bottom: 0; }
+:is(.vcard .effects--fold, .effects--pill) > .effects__more { display: inline-block; margin: 6px 0 0; }
+:is(.vcard .effects--fold, .effects--pill) > :last-child { margin-bottom: 0; }
 .vcard__foot > .law-card-votes > summary {
   min-height: 30px;
   padding: 0 11px;
@@ -2771,6 +2771,22 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .effects__count { font-weight: 700; letter-spacing: 0; }
 .effects__chev { margin-left: auto; transition: transform .15s ease; }
 .effects--fold[open] .effects__chev { transform: rotate(180deg); }
+
+/* A game card's tags (components/GameLawTags.tsx): theme pills, then the
+   "what it changes" chips. */
+.game-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.game-tags__topic {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--topic);
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+.effects--pill { margin: 10px 0 0; }
 
 /* The Cortes are dissolved (components/DissolvedNote.tsx). */
 .dissolved {

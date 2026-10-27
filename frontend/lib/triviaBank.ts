@@ -33,6 +33,8 @@ export interface DuelQuestion {
   /** "Com t'afecta": [[profile_key, sentence]]. */
   lawEffects?: string[][];
   topic?: string | null;
+  /** What the text changes (lib/changeTags.ts). */
+  changeTags?: string[];
   options: DuelOption[];
   partySlug?: string | null;
   partyColor?: string | null;
@@ -60,6 +62,7 @@ export function fromGameQuestion(q: GameQuestion): DuelQuestion {
     lawTitle: q.law_title ?? null,
     lawEffects: q.law_effects ?? [],
     topic: q.topic,
+    changeTags: q.change_tags ?? [],
     options: q.options.map((o) => ({
       text: o.text,
       correct: o.correct,
