@@ -107,6 +107,17 @@ class AlignQuestion(BaseModel):
     profile_effects: dict[str, dict[str, str]] | None = None
 
 
+def splits_tie(choices: dict[str, str], slugs: list[str]) -> bool:
+    """Whether a vote can break a tie between ``slugs``.
+
+    Every tied group took a side on it, and not all the same side: whatever
+    the reader answers, it agrees with some of them and not the others.
+    """
+    if any(slug not in choices for slug in slugs):
+        return False
+    return len({choices[slug] for slug in slugs}) >= 2
+
+
 @router.get("/questions", response_model=list[AlignQuestion])
 async def align_questions(
     n: int = Query(8, ge=3, le=20, description="How many votes to return."),
@@ -131,6 +142,19 @@ async def align_questions(
             "questions and a reader can ask for 'other questions'."
         ),
     ),
+    split: str | None = Query(
+        None,
+        max_length=200,
+        description=(
+            "Comma-separated group slugs tied at the top of a reader's result: "
+            "only votes where they did not all vote the same, to break the tie."
+        ),
+    ),
+    exclude: str | None = Query(
+        None,
+        max_length=2000,
+        description="Comma-separated vote ids already answered, left out.",
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> list[AlignQuestion]:
     """Return ``n`` recent, contextful votes with each group's majority stance.
@@ -139,6 +163,9 @@ async def align_questions(
     plain-language summary — on the vote itself or its linked initiative — so
     the citizen has something to react to. Deduplicated by initiative so a bill
     voted in parts doesn't dominate."""
+
+    split_slugs = sorted({x.strip() for x in (split or "").split(",") if x.strip()})
+    excluded = sorted({int(x) for x in (exclude or "").split(",") if x.strip().isdigit()})
 
     async def factory() -> list[AlignQuestion]:
         leg_id = legislature_id
@@ -218,12 +245,25 @@ async def align_questions(
                 .limit(500)
             )
 
-        pool_rows = (await session.execute(pool_query(everyday_only=True))).all()
+        # A tie-break needs the rare votes that split the tied groups: the
+        # whole pool, not only the everyday themes.
+        pool_rows = (await session.execute(pool_query(everyday_only=not split_slugs))).all()
         if not topic_slug and len(pool_rows) < MIN_EVERYDAY_POOL:
             pool_rows = (await session.execute(pool_query(everyday_only=False))).all()
 
         chosen: list[_Chosen] = []
         seen_initiatives: set[int] = set()
+        # An answered vote's initiative is spent too: the same bill again
+        # would be the same question.
+        excluded_set = set(excluded)
+        if excluded:
+            seen_initiatives.update(
+                iid
+                for iid in (
+                    await session.execute(select(Vote.initiative_id).where(Vote.id.in_(excluded)))
+                ).scalars()
+                if iid is not None
+            )
         for (
             vid,
             init_id,
@@ -239,6 +279,8 @@ async def align_questions(
             effects,
             tags,
         ) in pool_rows:
+            if vid in excluded_set:
+                continue
             if init_id is not None:
                 if init_id in seen_initiatives:
                     continue
@@ -382,6 +424,10 @@ async def align_questions(
             # useless question. Skip both cases.
             if len(positions) < 2 or len({p.choice for p in positions}) < 2:
                 continue
+            if len(split_slugs) >= 2 and not splits_tie(
+                {p.slug: p.choice for p in positions}, split_slugs
+            ):
+                continue
             out.append(
                 AlignQuestion(
                     vote_id=c.vote_id,
@@ -407,5 +453,8 @@ async def align_questions(
         return out
 
     return await cached(
-        f"align:questions:v6:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
+        f"align:questions:v6:{legislature_id}:{n}:{seed}:{topic_slug}"
+        f":{','.join(split_slugs)}:{','.join(map(str, excluded))}",
+        _CACHE_TTL,
+        factory,
     )

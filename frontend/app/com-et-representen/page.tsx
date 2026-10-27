@@ -163,6 +163,14 @@ export default async function ComEtRepresentenPage({
               results_next_group: t('results_next_group'),
               results_next_compare: t('results_next_compare'),
               results_next_vote: t('results_next_vote'),
+              tie_title: t('tie_title'),
+              tie_caption: t.raw('tie_caption'),
+              tie_cta: t.raw('tie_cta'),
+              tie_loading: t('tie_loading'),
+              tie_none: t.raw('tie_none'),
+              tie_error: t('tie_error'),
+              tie_progress: t.raw('tie_progress'),
+              results_votes_tie: t.raw('results_votes_tie'),
             }}
           />
         )}

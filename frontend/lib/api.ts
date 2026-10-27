@@ -1344,6 +1344,13 @@ export const api = {
         revalidate: AGG_REVALIDATE,
       });
     },
+    /** A tie-break round: votes where the groups tied at the top of a
+     *  reader's result did not all vote the same, minus the ones answered. */
+    tiebreak: (slugs: string[], exclude: number[], n = 3) => {
+      const qs = new URLSearchParams({ n: String(n), split: slugs.join(',') });
+      if (exclude.length > 0) qs.set('exclude', exclude.join(','));
+      return request<AlignQuestion[]>(`/align/questions?${qs.toString()}`, { revalidate: 0 });
+    },
   },
   legislatures: {
     list: (chamberId?: number) =>

@@ -1157,6 +1157,14 @@
     "results_next_group": "What {name} has done",
     "results_next_compare": "Compare the parties, topic by topic",
     "results_next_vote": "Decide your vote on 29 November: who stands where you vote and how it counts",
+    "tie_title": "Tied for first place",
+    "tie_caption": "You matched {names} by the same percentage. None of them ranks ahead of the others.",
+    "tie_cta": "Break the tie with votes where {names} did not vote the same",
+    "tie_loading": "Finding votes…",
+    "tie_none": "No votes left where {names} voted differently: the tie stands.",
+    "tie_error": "Couldn't load the tie-break votes. Try again.",
+    "tie_progress": "Tie-break · question {n} of {total}",
+    "results_votes_tie": "Vote by vote, with {names}",
     "meta_description": "Vote on real Congress votes and find out which parties you agree with most. Three minutes, no sign-up, on your phone."
   },
   "hub": {

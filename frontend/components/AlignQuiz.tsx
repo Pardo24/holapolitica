@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 
-import type { AlignQuestion } from '@/lib/api';
+import { api, type AlignQuestion } from '@/lib/api';
 import { ballotName2026, displayGroupShort } from '@/lib/groups';
 import { quizResultParam } from '@/lib/quizResult';
 import { SummaryBody } from '@/components/SummaryBody';
@@ -67,6 +67,14 @@ export interface AlignQuizLabels {
   results_next_group: string; // uses {name}
   results_next_compare: string;
   results_next_vote: string;
+  tie_title: string;
+  tie_caption: string; // uses {names}
+  tie_cta: string; // uses {names}
+  tie_loading: string;
+  tie_none: string; // uses {names}
+  tie_error: string;
+  tie_progress: string; // uses {n}, {total}
+  results_votes_tie: string; // uses {names}
 }
 
 interface GroupResult {
@@ -78,8 +86,18 @@ interface GroupResult {
   pct: number;
 }
 
+/** Same share of agreement, compared without floats (3/4 equals 6/8). */
+function samePct(a: GroupResult, b: GroupResult): boolean {
+  return a.agree * b.compared === b.agree * a.compared;
+}
+
+/** Shared ranks: two groups level on top are both 1st, the next is 3rd. */
+function ranksOf(results: GroupResult[]): number[] {
+  return results.map((r) => 1 + results.filter((o) => o.agree * r.compared > r.agree * o.compared).length);
+}
+
 export function AlignQuiz({
-  questions,
+  questions: baseQuestions,
   labels,
   locale,
 }: {
@@ -91,6 +109,12 @@ export function AlignQuiz({
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
   const [done, setDone] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Tie-break rounds: votes fetched when groups end level at the top,
+  // appended after the set the reader started with.
+  const [extra, setExtra] = useState<AlignQuestion[]>([]);
+  const [tieState, setTieState] = useState<'idle' | 'loading' | 'none' | 'error'>('idle');
+  const questions = useMemo(() => [...baseQuestions, ...extra], [baseQuestions, extra]);
+  const baseTotal = baseQuestions.length;
 
   // The summary on the question card is clamped, because the long ones put
   // the answer buttons below the fold on a phone (measured at 375x812: six
@@ -120,27 +144,37 @@ export function AlignQuiz({
   // different set of questions never inherits answers from another one.
   // Storage can be unavailable (private windows, blocked cookies): every
   // access is guarded and the quiz works the same without it.
-  const storageKey = `align:answers:${questions[0]?.vote_id ?? 'none'}`;
+  const storageKey = `align:answers:${baseQuestions[0]?.vote_id ?? 'none'}`;
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(storageKey);
       if (!raw) return;
-      const saved = JSON.parse(raw) as { answers?: Record<number, Answer>; idx?: number };
+      const saved = JSON.parse(raw) as {
+        answers?: Record<number, Answer>;
+        idx?: number;
+        extra?: AlignQuestion[];
+      };
+      const savedExtra = Array.isArray(saved.extra) ? saved.extra : [];
       if (saved.answers && typeof saved.answers === 'object') setAnswers(saved.answers);
-      if (typeof saved.idx === 'number') setIdx(Math.min(Math.max(0, saved.idx), total - 1));
+      setExtra(savedExtra);
+      const count = baseTotal + savedExtra.length;
+      if (typeof saved.idx === 'number') setIdx(Math.min(Math.max(0, saved.idx), count - 1));
     } catch {
       /* no storage, or corrupt value: start clean */
     }
-  }, [storageKey, total]);
+    // Restores once per set: re-running when a tie-break adds questions
+    // would put the reader back where the stored copy last was.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]);
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify({ answers, idx }));
+      window.localStorage.setItem(storageKey, JSON.stringify({ answers, idx, extra }));
     } catch {
       /* storage full or blocked */
     }
-  }, [answers, idx, storageKey]);
+  }, [answers, idx, extra, storageKey]);
 
   const results = useMemo<GroupResult[]>(() => {
     const agg = new Map<string, GroupResult>();
@@ -216,9 +250,55 @@ export function AlignQuiz({
   }, [answers, questions, locale]);
 
   const answeredCount = useMemo(
-    () => Object.values(answers).filter((a) => a !== 'skip').length,
-    [answers],
+    () =>
+      questions.filter((q) => {
+        const a = answers[q.vote_id];
+        return a != null && a !== 'skip';
+      }).length,
+    [answers, questions],
   );
+
+  // Level at the top: the result must not crown one of them because of the
+  // order they happened to sort in. Offer votes that split them instead.
+  const tied = useMemo(() => {
+    const top = results[0];
+    return top ? results.filter((r) => samePct(r, top)) : [];
+  }, [results]);
+  const isTie = tied.length >= 2;
+  const ranks = useMemo(() => ranksOf(results), [results]);
+  const tiedNames = useMemo(() => {
+    const names = tied.map((r) => r.name);
+    try {
+      return new Intl.ListFormat(locale, { type: 'conjunction' }).format(names);
+    } catch {
+      return names.join(', ');
+    }
+  }, [tied, locale]);
+  const tieKey = tied.map((r) => r.slug).join(',');
+  useEffect(() => {
+    setTieState('idle');
+  }, [tieKey]);
+
+  async function breakTie() {
+    setTieState('loading');
+    try {
+      const more = await api.align.tiebreak(
+        tied.map((r) => r.slug),
+        questions.map((q) => q.vote_id),
+      );
+      const fresh = more.filter((m) => !questions.some((q) => q.vote_id === m.vote_id));
+      if (fresh.length === 0) {
+        setTieState('none');
+        return;
+      }
+      setExtra((prev) => [...prev, ...fresh]);
+      setIdx(questions.length);
+      setDone(false);
+      setTieState('idle');
+    } catch {
+      setTieState('error');
+    }
+  }
 
   function choose(a: Answer) {
     const q = questions[idx];
@@ -230,6 +310,7 @@ export function AlignQuiz({
 
   function restart() {
     setAnswers({});
+    setExtra([]);
     setIdx(0);
     setDone(false);
     setCopied(false);
@@ -275,6 +356,8 @@ export function AlignQuiz({
   if (total === 0) return null;
 
   // ─── Results ──────────────────────────────────────────────────────────────
+  const topCount = isTie ? tied.length : 1;
+  const restFrom = Math.max(3, topCount);
   if (done) {
     return (
       <div>
@@ -292,23 +375,68 @@ export function AlignQuiz({
             {/* Podium first — the three groups you voted like most often.
                 Every remaining group still follows below, ranked: the
                 mirror shows the whole chamber, not a partisan subset. */}
-            <p style={EYEBROW}>{labels.results_podium}</p>
-            <PodiumTop r={results[0]!} labels={labels} />
-            {results.length > 1 && (
+            <p style={EYEBROW}>{isTie ? labels.tie_title : labels.results_podium}</p>
+            {/* A tie shows every group level at the top, each 1st: none of
+                them is the reader's match more than the others. */}
+            {tied.length > 2 ? (
+              // Three or more level (common after a few answers): the small
+              // cards, two a row, or six big ones fill two screens.
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+                {tied.map((r) => (
+                  <PodiumSecond key={r.slug} r={r} rank={1} labels={labels} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {(isTie ? tied : results.slice(0, 1)).map((r) => (
+                  <PodiumTop key={r.slug} r={r} labels={labels} caption={!isTie} />
+                ))}
+              </div>
+            )}
+            {isTie && (
+              <div className="quiz-tie">
+                <p className="quiz-tie__text">{labels.tie_caption.replace('{names}', tiedNames)}</p>
+                {tieState === 'none' ? (
+                  <p className="quiz-tie__text quiz-tie__text--muted">
+                    {labels.tie_none.replace('{names}', tiedNames)}
+                  </p>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-ink btn-sm"
+                      onClick={breakTie}
+                      disabled={tieState === 'loading'}
+                    >
+                      {tieState === 'loading'
+                        ? labels.tie_loading
+                        : labels.tie_cta.replace('{names}', tiedNames)}
+                    </button>
+                    {tieState === 'error' && (
+                      <p className="quiz-tie__text quiz-tie__text--muted" role="alert">
+                        {labels.tie_error}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+            {results.length > topCount && topCount < 3 && (
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: results.length > 2 ? 'repeat(2, minmax(0, 1fr))' : '1fr',
+                  gridTemplateColumns:
+                    results.slice(topCount, 3).length > 1 ? 'repeat(2, minmax(0, 1fr))' : '1fr',
                   gap: 10,
                   marginTop: 10,
                 }}
               >
-                {results.slice(1, 3).map((r, i) => (
-                  <PodiumSecond key={r.slug} r={r} rank={i + 2} labels={labels} />
+                {results.slice(topCount, 3).map((r, i) => (
+                  <PodiumSecond key={r.slug} r={r} rank={ranks[topCount + i]!} labels={labels} />
                 ))}
               </div>
             )}
-            {results.length > 3 && (
+            {results.length > restFrom && (
               <>
                 <p style={{ ...EYEBROW, marginTop: 22 }}>{labels.results_rest}</p>
                 <ul
@@ -321,8 +449,8 @@ export function AlignQuiz({
                     gap: 10,
                   }}
                 >
-                  {results.slice(3).map((r, i) => (
-                    <GroupRow key={r.slug} r={r} rank={i + 4} labels={labels} />
+                  {results.slice(restFrom).map((r, i) => (
+                    <GroupRow key={r.slug} r={r} rank={ranks[restFrom + i]!} labels={labels} />
                   ))}
                 </ul>
               </>
@@ -338,9 +466,11 @@ export function AlignQuiz({
                 starts, not where it ends. */}
             <nav className="quiz-next" aria-label={labels.results_next_title}>
               <p className="quiz-next__title">{labels.results_next_title}</p>
-              <a href={`/groups/${results[0]!.slug}`} className="quiz-next__link">
-                {labels.results_next_group.replace('{name}', results[0]!.name)} →
-              </a>
+              {(isTie ? tied : results.slice(0, 1)).map((r) => (
+                <a key={r.slug} href={`/groups/${r.slug}`} className="quiz-next__link">
+                  {labels.results_next_group.replace('{name}', r.name)} →
+                </a>
+              ))}
               <a href="/comparar" className="quiz-next__link">
                 {labels.results_next_compare} →
               </a>
@@ -357,7 +487,9 @@ export function AlignQuiz({
         {answeredCount > 0 && results[0] && (
           <>
             <p style={{ ...EYEBROW, marginTop: 22 }}>
-              {labels.results_votes.replace('{name}', results[0].name)}
+              {isTie
+                ? labels.results_votes_tie.replace('{names}', tiedNames)
+                : labels.results_votes.replace('{name}', results[0].name)}
             </p>
             <ul
               style={{
@@ -376,10 +508,11 @@ export function AlignQuiz({
                 })
                 .map((q) => {
                   const mine = answers[q.vote_id];
-                  const theirs = q.group_positions.find(
-                    (p) => p.slug === results[0]!.slug,
-                  )?.choice;
-                  const same = theirs != null && theirs === mine;
+                  const sameAs = (slug: string) => {
+                    const theirs = q.group_positions.find((p) => p.slug === slug)?.choice;
+                    return theirs != null && theirs === mine;
+                  };
+                  const same = sameAs(results[0]!.slug);
                   // Two clamped lines per row: the lead reads as a title,
                   // where "… que: 1. Obligui… 2. Simplifiqui…" did not.
                   const text = summaryHeadline(
@@ -413,7 +546,7 @@ export function AlignQuiz({
                             width: 9,
                             height: 9,
                             borderRadius: 999,
-                            background: same ? 'var(--aye)' : 'var(--no)',
+                            background: isTie ? 'var(--rule-strong)' : same ? 'var(--aye)' : 'var(--no)',
                           }}
                         />
                         <span style={{ minWidth: 0, display: 'block' }}>
@@ -421,19 +554,34 @@ export function AlignQuiz({
                               swallowed by summaries that are a paragraph
                               long, which is exactly what the reader is
                               scanning for. */}
-                          <span
-                            style={{
-                              display: 'block',
-                              fontSize: 10.5,
-                              fontWeight: 700,
-                              letterSpacing: '0.07em',
-                              textTransform: 'uppercase',
-                              color: same ? 'var(--aye)' : 'var(--no)',
-                              marginBottom: 3,
-                            }}
-                          >
-                            {same ? labels.results_same : labels.results_diff}
-                          </span>
+                          {isTie ? (
+                            // One verdict per tied group: the row says which
+                            // of them this vote agreed with.
+                            <span className="quiz-verdicts">
+                              {tied.map((r) => {
+                                const ok = sameAs(r.slug);
+                                return (
+                                  <span key={r.slug} style={{ color: ok ? 'var(--aye)' : 'var(--no)' }}>
+                                    {r.name}: {ok ? labels.results_same : labels.results_diff}
+                                  </span>
+                                );
+                              })}
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                display: 'block',
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                textTransform: 'uppercase',
+                                color: same ? 'var(--aye)' : 'var(--no)',
+                                marginBottom: 3,
+                              }}
+                            >
+                              {same ? labels.results_same : labels.results_diff}
+                            </span>
+                          )}
                           {/* Two lines each: ten full summaries turned the
                               results into a wall of text on a phone. The row
                               links to the vote, where the whole thing is. */}
@@ -536,7 +684,8 @@ export function AlignQuiz({
           >
             {labels.more_questions}
           </button>
-          {results.length > 0 && (
+          {/* A shared result names one group: not while several are level. */}
+          {results.length > 0 && !isTie && (
             <button
               type="button"
               onClick={share}
@@ -564,7 +713,12 @@ export function AlignQuiz({
   // The law's short plain title leads; the summary explains it underneath.
   const plainTitle =
     (locale.startsWith('es') ? q.plain_title_es : q.plain_title_ca) || q.plain_title_ca || q.plain_title_es;
-  const pct = Math.round(((idx) / total) * 100);
+  // A tie-break round counts on its own: "question 11 of 13" would read as
+  // if the test had grown.
+  const inTieBreak = idx >= baseTotal;
+  const roundIdx = inTieBreak ? idx - baseTotal : idx;
+  const roundTotal = inTieBreak ? total - baseTotal : baseTotal;
+  const pct = Math.round((roundIdx / roundTotal) * 100);
   // "Com t'afecta", folded under the summary: what the law does first, then
   // whom it touches.
   const effects = plainTitle ? effectsItems(q.profile_effects, locale) : [];
@@ -574,7 +728,11 @@ export function AlignQuiz({
       {/* Progress */}
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--ink-3)', marginBottom: 6 }}>
-          <span>{labels.progress.replace('{n}', String(idx + 1)).replace('{total}', String(total))}</span>
+          <span>
+            {(inTieBreak ? labels.tie_progress : labels.progress)
+              .replace('{n}', String(roundIdx + 1))
+              .replace('{total}', String(roundTotal))}
+          </span>
         </div>
         <div style={{ height: 4, borderRadius: 999, background: 'var(--paper-3)', overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', background: 'var(--accent)', transition: 'width .2s ease' }} />
@@ -819,7 +977,15 @@ function Rank({ n, color, big = false }: { n: number; color: string; big?: boole
   );
 }
 
-function PodiumTop({ r, labels }: { r: GroupResult; labels: AlignQuizLabels }) {
+function PodiumTop({
+  r,
+  labels,
+  caption = true,
+}: {
+  r: GroupResult;
+  labels: AlignQuizLabels;
+  caption?: boolean;
+}) {
   const pct = Math.round(r.pct * 100);
   const color = r.color ?? 'var(--ink-2)';
   return (
@@ -874,12 +1040,14 @@ function PodiumTop({ r, labels }: { r: GroupResult; labels: AlignQuizLabels }) {
         </div>
         <Bar pct={pct} color={color} height={10} />
       </div>
-      <p style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, margin: '10px 2px 0' }}>
-        {labels.results_top_caption
-          .replace('{name}', r.name)
-          .replace('{agree}', String(r.agree))
-          .replace('{compared}', String(r.compared))}
-      </p>
+      {caption && (
+        <p style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, margin: '10px 2px 0' }}>
+          {labels.results_top_caption
+            .replace('{name}', r.name)
+            .replace('{agree}', String(r.agree))
+            .replace('{compared}', String(r.compared))}
+        </p>
+      )}
     </div>
   );
 }

@@ -1157,6 +1157,14 @@
     "results_next_group": "Què ha fet {name}",
     "results_next_compare": "Compara els partits, tema a tema",
     "results_next_vote": "Decideix el teu vot el 29-N: qui es presenta on votes i com compta",
+    "tie_title": "Empat al primer lloc",
+    "tie_caption": "Has coincidit en el mateix percentatge amb {names}. Cap d'aquests partits passa per davant dels altres.",
+    "tie_cta": "Desempata amb votacions on {names} no van votar igual",
+    "tie_loading": "Buscant votacions…",
+    "tie_none": "No queden votacions on {names} votessin diferent: l'empat es manté.",
+    "tie_error": "No s'han pogut carregar les votacions de desempat. Torna-ho a provar.",
+    "tie_progress": "Desempat · pregunta {n} de {total}",
+    "results_votes_tie": "Vota a vota, amb {names}",
     "meta_description": "Vota tu les votacions reals del Congrés i descobreix amb quins partits coincideixes més. En 3 minuts, sense registre i des del teu mòbil."
   },
   "hub": {

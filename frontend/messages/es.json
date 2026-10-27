@@ -1157,6 +1157,14 @@
     "results_next_group": "Qué ha hecho {name}",
     "results_next_compare": "Compara los partidos, tema a tema",
     "results_next_vote": "Decide tu voto el 29-N: quién se presenta donde votas y cómo cuenta",
+    "tie_title": "Empate en el primer puesto",
+    "tie_caption": "Has coincidido en el mismo porcentaje con {names}. Ninguno de estos partidos pasa por delante de los demás.",
+    "tie_cta": "Desempata con votaciones en las que {names} no votaron igual",
+    "tie_loading": "Buscando votaciones…",
+    "tie_none": "No quedan votaciones en las que {names} votaran distinto: el empate se mantiene.",
+    "tie_error": "No se han podido cargar las votaciones de desempate. Vuelve a intentarlo.",
+    "tie_progress": "Desempate · pregunta {n} de {total}",
+    "results_votes_tie": "Voto a voto, con {names}",
     "meta_description": "Vota tú las votaciones reales del Congreso y descubre con qué partidos coincides más. En 3 minutos, sin registro y desde tu móvil."
   },
   "hub": {

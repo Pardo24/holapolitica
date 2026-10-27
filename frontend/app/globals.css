@@ -2836,3 +2836,29 @@ html.dissolved-closed .dissolved--dismissible { display: none !important; }
 .quiz-next__title { margin: 0 0 4px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
 .quiz-next__link { display: flex; align-items: center; min-height: 36px; font-size: 14.5px; font-weight: 700; color: var(--ink); text-decoration: none; }
 .quiz-next__link:hover { text-decoration: underline; }
+
+/* A tie at the top of the test's results: no winner, and a way to break it. */
+.quiz-tie {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px dashed var(--rule-strong);
+  background: var(--paper-2);
+}
+.quiz-tie__text { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.quiz-tie__text--muted { font-size: 12.5px; color: var(--ink-3); }
+.quiz-tie .btn-ink { white-space: normal; text-align: left; }
+.quiz-verdicts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin-bottom: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
