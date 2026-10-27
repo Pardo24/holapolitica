@@ -743,6 +743,11 @@ def _serialize_vote(
     # 2. Fall back to the linked Initiative's per-language column when the
     #    vote-side value is NULL and ``initiative_id`` is set.
     # When BOTH carry a value, vote wins — it's the more specific record.
+    # Except for a vote on the law itself once the law's text has been read:
+    # the vote's summary was written from its description, which for a bill
+    # is just its title, and the model filled the gaps (vote 16665 had the
+    # drink-driving limit at 0.3 g/l; the bill says 0.2). The law's summary
+    # comes from its articles.
     summary_ca: str | None = vote.plain_summary_ca
     summary_es: str | None = vote.plain_summary_es
     summary_provider: str | None = vote.plain_summary_provider
@@ -751,6 +756,13 @@ def _serialize_vote(
     # initiative's summary does.
     title_ca: str | None = vote.plain_title_ca
     title_es: str | None = vote.plain_title_es
+    if (
+        vote.initiative is not None
+        and (vote.initiative.text_points or {}).get("es")
+        and (vote.initiative.plain_summary_ca or vote.initiative.plain_summary_es)
+        and base.stage not in ("amendment", "totality", "senate_amendment")
+    ):
+        summary_ca = summary_es = summary_provider = None
     if vote.initiative_id is not None and vote.initiative is not None:
         if summary_ca is None:
             summary_ca = vote.initiative.plain_summary_ca

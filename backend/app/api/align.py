@@ -251,7 +251,13 @@ async def align_questions(
             # "[INSUFICIENTE]". The generator no longer writes it and the
             # stored rows are cleaned, but a question is the worst possible
             # place to meet one, so the endpoint checks too.
-            summary_ca, summary_es = vca or ica, ves or ies
+            # A law's own summary first: a vote's was written from its
+            # description, which for a bill is only its title (see votes.py).
+            tier = law_tier(itype, effects)
+            if tier < 2:
+                summary_ca, summary_es = ica or vca, ies or ves
+            else:
+                summary_ca, summary_es = vca or ica, ves or ies
             if summary_ca and looks_insufficient(summary_ca):
                 summary_ca = None
             if summary_es and looks_insufficient(summary_es):
@@ -267,7 +273,7 @@ async def align_questions(
                     plain_title_es=ptes,
                     plain_summary_ca=summary_ca,
                     plain_summary_es=summary_es,
-                    tier=law_tier(itype, effects),
+                    tier=tier,
                     change_tags=list(tags or []),
                 )
             )
@@ -401,5 +407,5 @@ async def align_questions(
         return out
 
     return await cached(
-        f"align:questions:v5:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
+        f"align:questions:v6:{legislature_id}:{n}:{seed}:{topic_slug}", _CACHE_TTL, factory
     )
