@@ -30,6 +30,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFreq: Freq }[] = [
   { path: '/eleccions', priority: 0.95, changeFreq: 'daily' },
   { path: '/eleccions/resultats', priority: 0.95, changeFreq: 'hourly' },
   { path: '/eleccions/el-teu-vot', priority: 0.95, changeFreq: 'weekly' },
+  { path: '/eleccions/calendari', priority: 0.9, changeFreq: 'daily' },
   { path: '/comparar', priority: 0.9, changeFreq: 'weekly' },
   { path: '/pactes', priority: 0.8, changeFreq: 'hourly' },
   { path: '/lleis', priority: 0.9, changeFreq: 'daily' },
