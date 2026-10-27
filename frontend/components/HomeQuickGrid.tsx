@@ -23,6 +23,7 @@ export async function HomeQuickGrid({
   nextSession,
   locale,
   afectaId,
+  phone = false,
 }: {
   /** The reader's remembered province (cookie), if any. */
   province: string | null;
@@ -33,8 +34,14 @@ export async function HomeQuickGrid({
    *  it twice (phone and wide), and a shared id sent the wide tile to the
    *  hidden phone copy, so the click went nowhere. */
   afectaId: string;
+  /** The phone layout. Until polling day it drops the elections and
+   *  plenary tiles: the guide's banner above already leads into the
+   *  election, the Corts are dissolved, and the space lets the banner and
+   *  the tiles share the first screen. */
+  phone?: boolean;
 }) {
   const t = await getTranslations('home_grid');
+  const slim = phone && daysToElection() > 0;
 
   const tiles: { href: string; Icon: LucideIcon; hue: string; title: string; sub: string }[] = [
     {
@@ -93,7 +100,7 @@ export async function HomeQuickGrid({
           })
         : t('plens_sub'),
     },
-  ];
+  ].filter((tile) => !slim || (tile.href !== '/eleccions' && tile.href !== '/avui'));
 
   return (
     <nav className="home-grid" aria-label={t('aria')}>

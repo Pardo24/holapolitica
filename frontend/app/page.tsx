@@ -193,12 +193,13 @@ export default async function HomePage() {
     </div>
   );
 
-  const quickGrid = (afectaId: string) => (
+  const quickGrid = (afectaId: string, phone = false) => (
     <HomeQuickGrid
       province={province}
       nextSession={upcomingSessions[0]?.date?.slice(0, 10) ?? null}
       locale={locale}
       afectaId={afectaId}
+      phone={phone}
     />
   );
 
@@ -257,7 +258,7 @@ export default async function HomePage() {
         noPlenaryTitle={tUpcoming('none_convened_title')}
         noPlenaryBody={tUpcoming('none_convened_body', { n: withdrawnSessions })}
         plannedLabel={tUpcoming('planned_label')}
-        quickGrid={quickGrid('et-afecta-m')}
+        quickGrid={quickGrid('et-afecta-m', true)}
         profilePicker={profilePicker('et-afecta-m')}
         lawsThatMatter={lawsThatMatter}
         electionNews={electionNews}
