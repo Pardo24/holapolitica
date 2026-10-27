@@ -343,6 +343,14 @@ class InitiativeDetail(InitiativeRead):
 # ---------------------------------------------------------------------------
 
 
+class VoteProposerGroup(BaseModel):
+    """One of the groups that tabled a text together."""
+
+    slug: str
+    name_short: str
+    color_hex: str | None = None
+
+
 class VoteRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -383,6 +391,9 @@ class VoteRead(BaseModel):
     # group nor the Government: the Senate, a regional parliament, several
     # groups, a list of deputies.
     proposer_text: str | None = None
+    # Several groups that tabled it together, in the order the Congress
+    # lists them; then ``proposer_text`` is empty.
+    proposer_groups: list[VoteProposerGroup] = []
     # True when approved by assent (acclamation): no roll-call, no tally.
     # The frontend renders a dedicated label instead of a 0-0-0 count.
     approved_by_assent: bool = False

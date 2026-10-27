@@ -5,6 +5,7 @@ allow journalists and citizens to query "all housing-related votes in the curren
 legislature where Pedro Sánchez voted Aye" in a single request.
 """
 
+import re
 from collections import Counter
 from datetime import date
 
@@ -38,12 +39,14 @@ from app.models import (
 from app.models import (
     Session as SessionModel,
 )
-from app.schemas import InitiativeTopicSlug, VoteRead
+from app.schemas import InitiativeTopicSlug, VoteProposerGroup, VoteRead
 from app.services.cache import cached
 from app.services.proposing_group import proposing_groups_in, resolve_proposing_group
 from app.services.vote_stage import stage_groups_for
 
 router = APIRouter(prefix="/votes", tags=["votes"])
+
+_TAG = re.compile(r"<[^>]+>")
 
 
 def _split_csv(value: str | None) -> list[str]:
@@ -707,8 +710,9 @@ def _serialize_vote(
     # bill's vote reads "Enmiendas del Senado" or the title. The initiative
     # behind it knows who tabled it.
     initiative = vote.initiative if vote.initiative_id is not None else None
+    # The Congress separates co-signers with "<br />".
     submitted_by = (
-        " ".join(initiative.submitted_by.split())
+        " ".join(_TAG.sub(" ", initiative.submitted_by).split()) or None
         if initiative is not None and initiative.submitted_by
         else None
     )
@@ -722,6 +726,11 @@ def _serialize_vote(
             named = proposing_groups_in(submitted_by, groups)
             if len(named) == 1:
                 proposer = named[0]
+            elif named:
+                update["proposer_groups"] = [
+                    VoteProposerGroup(slug=g.slug, name_short=g.name_short, color_hex=g.color_hex)
+                    for g in named
+                ]
             else:
                 update["proposer_text"] = submitted_by
     if proposer is not None:

@@ -252,7 +252,7 @@ export async function ProposerChip({
  *  the Congress writes it. Long ones wrap. */
 export async function ProposerText({ text }: { text: string }) {
   const t = await getTranslations('lleis');
-  const clean = text.replace(/\s+/g, ' ').trim();
+  const clean = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   return (
     <span className="vcard__by">
       <span className="vcard__by-label">{t('card_proposed_label')}</span>
@@ -260,6 +260,26 @@ export async function ProposerText({ text }: { text: string }) {
         {clean === 'Senado' ? t('card_proposer_senate') : clean}
       </span>
     </span>
+  );
+}
+
+/** Co-signing groups as the API sends them, as chips: the first three, then
+ *  how many more. */
+export async function ProposerGroups({
+  groups,
+}: {
+  groups: { slug: string; name_short: string; color_hex: string | null }[];
+}) {
+  const t = await getTranslations('topic');
+  return (
+    <ProposerChips
+      proposers={groups.slice(0, 3).map((g) => ({
+        slug: g.slug,
+        short: displayGroupShort(g.name_short),
+        color: g.color_hex,
+      }))}
+      more={groups.length > 3 ? t('proposer_more_groups', { count: groups.length - 3 }) : null}
+    />
   );
 }
 

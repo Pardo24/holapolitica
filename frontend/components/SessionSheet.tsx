@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from '@/components/icons';
 import { LAW_CARD_LIST_STYLE, AiMark } from '@/components/LawCardParts';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects, effectsFor } from '@/components/ProfileEffects';
-import { GroupRows, ProposerChip, ProposerText, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChip, ProposerGroups, ProposerText, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import {
   PartyStanceMini,
   buildStanceByVote,
@@ -794,6 +794,7 @@ type Proposer =
   | { kind: 'group'; short: string; slug: string | null; color: string; logoUrl: string | null }
   | { kind: 'government'; short: string; color: string }
   | { kind: 'text'; short: string }
+  | { kind: 'groups'; groups: NonNullable<Vote['proposer_groups']> }
   | null;
 
 function proposerOf(vote: Vote, logoUrl: string | null, governmentLabel: string): Proposer {
@@ -807,6 +808,7 @@ function proposerOf(vote: Vote, logoUrl: string | null, governmentLabel: string)
     };
   }
   if (vote.proposed_by_government) return { kind: 'government', short: governmentLabel, color: 'var(--ink)' };
+  if (vote.proposer_groups?.length) return { kind: 'groups', groups: vote.proposer_groups };
   return vote.proposer_text ? { kind: 'text', short: vote.proposer_text } : null;
 }
 
@@ -823,6 +825,7 @@ interface CardLabels {
 function CardProposer({ proposer }: { proposer: Proposer }) {
   if (!proposer) return null;
   if (proposer.kind === 'text') return <ProposerText text={proposer.short} />;
+  if (proposer.kind === 'groups') return <ProposerGroups groups={proposer.groups} />;
   if (proposer.kind === 'group') {
     if (!proposer.slug) return null;
     return <ProposerChip slug={proposer.slug} short={displayGroupShort(proposer.short)} color={proposer.color} />;
@@ -1234,9 +1237,11 @@ function VoteRow({
           color: 'var(--ink)',
           logoUrl: null,
         }
-      : vote.proposer_text
-        ? { kind: 'text' as const, short: vote.proposer_text }
-        : null;
+      : vote.proposer_groups?.length
+        ? { kind: 'groups' as const, groups: vote.proposer_groups }
+        : vote.proposer_text
+          ? { kind: 'text' as const, short: vote.proposer_text }
+          : null;
   const voteHref = `/votes/${vote.id}` as Route;
 
   return (

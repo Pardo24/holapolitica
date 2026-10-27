@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { LawOriginalToggle } from '@/components/LawOriginalToggle';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { ProfileEffects } from '@/components/ProfileEffects';
-import { GroupRows, ProposerChip, ProposerText, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
+import { GroupRows, ProposerChip, ProposerGroups, ProposerText, ScoreCard, ScorePanel, scoreTone } from '@/components/ScoreCard';
 import { SummaryProvenance } from '@/components/SummaryProvenance';
 import { TopicChip } from '@/components/TopicChip';
 import type { Vote } from '@/lib/api';
@@ -108,6 +108,8 @@ export async function VoteCard({ vote, locale }: { vote: Vote; locale: string })
               short={proposer}
               color={vote.proposing_group_color}
             />
+          ) : vote.proposer_groups?.length ? (
+            <ProposerGroups groups={vote.proposer_groups} />
           ) : (
             vote.proposer_text && <ProposerText text={vote.proposer_text} />
           )}

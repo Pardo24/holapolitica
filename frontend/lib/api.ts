@@ -383,6 +383,8 @@ export interface Vote {
   /** Who tabled it, as written, when neither one group nor the Government
    *  (the Senate, a regional parliament, several groups, deputies). */
   proposer_text?: string | null;
+  /** Several groups that tabled it together, in the Congress's order. */
+  proposer_groups?: { slug: string; name_short: string; color_hex: string | null }[];
   /** Approved by assent (acclamation): no roll-call, no tally. Counts are
    *  all 0 — render a dedicated label instead of a 0-0-0 breakdown. */
   approved_by_assent?: boolean;
