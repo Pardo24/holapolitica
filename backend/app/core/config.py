@@ -96,6 +96,11 @@ class Settings(BaseSettings):
     # "What changes for you" sentences per everyday situation: written in
     # Spanish and Catalan at once, so the large model (as for translations).
     law_profiles_model: str = "mistral-large-latest"
+    # Deputies' asset declarations are scanned PDFs: Mistral's OCR model
+    # reads them, then the large model fills the form's fields from that
+    # text (app/ingest/congreso/assets.py).
+    asset_ocr_model: str = "mistral-ocr-latest"
+    asset_structure_model: str = "mistral-large-latest"
     # Minimum seconds between two LLM requests from one process (see
     # app/services/llm_http.py). The limit is PER MODEL, and the API states
     # it in its own headers (x-ratelimit-limit-req-minute):

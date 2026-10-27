@@ -1,0 +1,32 @@
+/* ---- deputy page: declared assets ("Béns" tab) ---------------------- */
+.assets__notes { display: grid; gap: 4px; max-width: 70ch; margin: 0 0 18px; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink-3); }
+
+.assets__decl { margin: 0 0 14px; padding: 16px 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
+details.assets__decl > summary { cursor: pointer; list-style: none; }
+details.assets__decl > summary::-webkit-details-marker { display: none; }
+details.assets__decl[open] > summary { margin-bottom: 12px; }
+.assets__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 12px; font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--ink); }
+details.assets__decl > .assets__head { margin: 0; }
+.assets__kind { padding: 1px 8px; border-radius: 999px; background: var(--paper-2); font-family: inherit; font-size: 11.5px; font-weight: 700; color: var(--ink-2); }
+
+.assets__blocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.assets__block { padding: 12px 14px; border-radius: 12px; background: var(--paper-2); }
+.assets__block-title { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--ink); }
+
+.assets__rows { display: grid; gap: 4px; margin: 0; }
+.assets__rows > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; line-height: 1.45; }
+.assets__rows dt { color: var(--ink-2); }
+.assets__rows dd { margin: 0; flex: none; font-weight: 600; color: var(--ink); }
+
+.assets__list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
+.assets__tag { margin-right: 6px; padding: 0 6px; border-radius: 6px; background: var(--paper); font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+.assets__text { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
+.assets__quote { margin: 0; padding-left: 10px; border-left: 2px solid var(--rule-strong); font-size: 13.5px; line-height: 1.5; color: var(--ink-2); white-space: pre-line; }
+
+.assets__unread { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.assets__pdf { display: inline-flex; align-items: center; gap: 3px; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: underline; }
+
+@media (max-width: 560px) {
+  /* Five tabs on two columns: the last one takes the whole row. */
+  .dep-tabs.dep-tabs--four > a:nth-child(5) { grid-column: 1 / -1; }
+}

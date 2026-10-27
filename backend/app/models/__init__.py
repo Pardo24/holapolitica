@@ -1024,3 +1024,38 @@ class ElectionResultSnapshot(Base, TimestampMixin):
     counted_pct: Mapped[float] = mapped_column(nullable=False)
     taken_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     payload: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+
+
+class AssetDeclaration(Base, TimestampMixin):
+    """One "Declaración de Bienes y Rentas" a deputy filed with the Congreso
+    (app/ingest/congreso/assets.py).
+
+    The Congreso publishes each one only as a scanned PDF on the deputy's
+    ficha: ``sequence`` 0 is the one filed on taking the seat, later ones
+    record changes or the end of the mandate, and a later one only lists
+    what changed. ``data`` is what we read from the scan (OCR + an LLM, see
+    the ingest module), kept only as a reading aid: the PDF is the source.
+    ``parse_status``: "pending" (not read yet), "ok", "needs_review" (read,
+    but a check failed; ``problems`` says which) or "failed".
+    """
+
+    __tablename__ = "asset_declarations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    person_id: Mapped[int] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    legislature: Mapped[int] = mapped_column(Integer, nullable=False)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    declared_on: Mapped[date] = mapped_column(Date, nullable=False)
+    pdf_url: Mapped[str] = mapped_column(String(300), nullable=False, unique=True)
+    parse_status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="pending", index=True
+    )
+    data: Mapped[dict[str, object] | None] = mapped_column(
+        JSON().with_variant(JSONB(), "postgresql")
+    )
+    problems: Mapped[list[str] | None] = mapped_column(JSON)
+    ocr_text: Mapped[str | None] = mapped_column(Text)
+    model: Mapped[str | None] = mapped_column(String(64))
+    parsed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

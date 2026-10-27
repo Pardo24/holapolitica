@@ -1,5 +1,6 @@
 """API endpoints for persons and their mandates."""
 
+from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -18,6 +19,7 @@ from app.metrics import (
     compute_topic_stats_for_person,
 )
 from app.models import (
+    AssetDeclaration,
     GroupMembership,
     Legislature,
     LegislatureStatus,
@@ -336,6 +338,51 @@ async def get_person_mandates(
     )
     result = await session.execute(stmt)
     return list(result.scalars().all())
+
+
+class AssetDeclarationRow(BaseModel):
+    """One asset declaration: the official PDF, and what we read from it
+    when the checks passed (``status == "ok"``)."""
+
+    declared_on: date
+    #: 0 is the declaration filed on taking the seat.
+    sequence: int
+    pdf_url: str
+    status: str
+    data: dict[str, Any] | None = None
+
+
+@router.get("/{person_id}/assets", response_model=list[AssetDeclarationRow])
+async def get_person_assets(
+    person_id: int, session: AsyncSession = Depends(get_session)
+) -> list[AssetDeclarationRow]:
+    """The deputy's "Declaraciones de Bienes y Rentas", newest first.
+
+    ``data`` is only sent for the ones read without a failed check: for the
+    rest the page shows just the link to the PDF (see
+    app/ingest/congreso/assets.py).
+    """
+    rows = (
+        (
+            await session.execute(
+                select(AssetDeclaration)
+                .where(AssetDeclaration.person_id == person_id)
+                .order_by(AssetDeclaration.declared_on.desc(), AssetDeclaration.sequence.desc())
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        AssetDeclarationRow(
+            declared_on=d.declared_on,
+            sequence=d.sequence,
+            pdf_url=d.pdf_url,
+            status=d.parse_status,
+            data=d.data if d.parse_status == "ok" else None,
+        )
+        for d in rows
+    ]
 
 
 @router.get("/{person_id}/topic-stats", response_model=list[TopicVoteStatRow])

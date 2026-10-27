@@ -1432,7 +1432,8 @@
     "role_note_govern": "{gender, select, F {Aquesta diputada és} other {Aquest diputat és}} {role}. Per convenció parlamentària, el president del Govern i els ministres no participen en la majoria de votacions ordinàries del Ple. Comparar els seus vots emesos amb els d'un diputat sense càrrec executiu és enganyós.",
     "role_note_mesa": "{gender, select, F {Aquesta diputada és} other {Aquest diputat és}} {role}. La Mesa té funcions de presidència i moderació que modifiquen el patró habitual de vot.",
     "role_short_govern": "{role}: vots emesos no comparables amb els d'un diputat sense càrrec.",
-    "role_short_mesa": "{role}: patró de vot diferent al d'un diputat sense càrrec."
+    "role_short_mesa": "{role}: patró de vot diferent al d'un diputat sense càrrec.",
+    "tab_assets": "Béns"
   },
   "topic": {
     "recent_votes_title": "Votacions recents en aquesta àrea",
@@ -2796,5 +2797,43 @@
     "accept": "Accepto la llicència CC BY 4.0: citaré «Dades: Hola Política (holapolitica.org)» amb un enllaç allà on les publiqui.",
     "creating": "Creant…",
     "submit": "Demana la clau"
+  },
+  "assets": {
+    "title": "Béns i rendes declarats",
+    "intro": "Cada diputat declara els seus béns i rendes en començar el mandat i cada vegada que hi ha canvis. Aquí ho tens tal com ho va escriure, declaració per declaració.",
+    "note_source": "El Congrés només les publica com a PDF escanejat: les llegim automàticament i només mostrem les que passen totes les comprovacions. En cas de dubte, val el PDF oficial. Les descripcions surten tal com estan escrites, en castellà.",
+    "note_no_total": "No en calculem cap total: el formulari no demana el valor dels habitatges ni dels terrenys, i les declaracions posteriors només recullen el que ha canviat.",
+    "note_income": "Els ingressos són els de l'any anterior a cada declaració i no inclouen el sou del Congrés, que ja és públic.",
+    "declared_on": "Declaració del {date}",
+    "kind_initial": "En començar el mandat",
+    "kind_later": "Declaració posterior",
+    "pdf": "Veure el PDF oficial",
+    "pending": "Encara no hem llegit aquesta declaració.",
+    "unread": "No hem pogut llegir aquesta declaració automàticament amb prou seguretat. Consulta-la al PDF oficial.",
+    "empty_form": "El formulari no té cap casella omplerta.",
+    "income_title": "Ingressos de l'any anterior",
+    "income_salary": "Sou o honoraris",
+    "income_dividends": "Dividends",
+    "income_interest": "Interessos",
+    "income_other": "Altres",
+    "income_tax": "IRPF pagat",
+    "properties_title": "{n, plural, one {Un immoble} other {# immobles}}",
+    "property_urban": "Urbà",
+    "property_rustic": "Rústic",
+    "property_company": "D'una societat",
+    "acquired": "adquirit el {date}",
+    "deposits_title": "Diners en comptes",
+    "deposits_total": "Saldo de tots els comptes",
+    "securities_title": "Accions, bons i participacions",
+    "security_debt": "Deute públic o bons",
+    "security_shares": "Accions",
+    "security_stake": "Societat participada",
+    "vehicles_title": "Vehicles",
+    "other_title": "Altres béns",
+    "debts_title": "Deutes",
+    "granted_on": "concedit el {date}",
+    "loan_amount": "{amount} concedits",
+    "loan_outstanding": "{amount} pendents",
+    "observations_title": "Observacions"
   }
 }
