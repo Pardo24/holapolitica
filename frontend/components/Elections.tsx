@@ -16,7 +16,7 @@ export async function ElectionsHeader({
   title,
   intro,
 }: {
-  active: 'candidacies' | 'vote' | 'results' | 'pacts';
+  active: 'candidacies' | 'vote' | 'calendar' | 'results' | 'pacts';
   title: string;
   intro: string;
 }) {
@@ -24,6 +24,7 @@ export async function ElectionsHeader({
   const tabs = [
     { key: 'candidacies', href: '/eleccions', label: t('tab_candidacies') },
     { key: 'vote', href: '/eleccions/el-teu-vot', label: t('tab_vote') },
+    { key: 'calendar', href: '/eleccions/calendari', label: t('tab_calendar') },
     { key: 'results', href: '/eleccions/resultats', label: t('tab_results') },
     { key: 'pacts', href: '/pactes', label: t('tab_pacts') },
   ] as const;
