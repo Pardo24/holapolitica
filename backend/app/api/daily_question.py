@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -33,6 +33,7 @@ from app.models import (
 )
 from app.models import Session as SessionRow
 from app.services.game_pool import (
+    LAW_TYPES,
     TOPIC_MIN_CONFIDENCE,
     best_tiers,
     is_procedural,
@@ -646,7 +647,9 @@ async def _vote_pool_ids(session: AsyncSession) -> list[int]:
             .where(
                 (Initiative.plain_title_ca.is_not(None)) | (Initiative.plain_title_es.is_not(None))
             )
-            .order_by(Vote.voted_at.desc())
+            # Laws first: their final votes are rare among the latest roll
+            # calls (mostly motions), so a plain "latest N" held too few.
+            .order_by(case((Initiative.type.in_(LAW_TYPES), 0), else_=1), Vote.voted_at.desc())
             .limit(_VOTE_POOL * 4)
         )
     ).all()
