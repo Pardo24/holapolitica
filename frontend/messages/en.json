@@ -2693,7 +2693,8 @@
   },
   "dissolved": {
     "title": "Parliament is dissolved.",
-    "body": "Since 6 October, for the 29 November election, there are no plenary sessions. The new Congress meets on 23 December."
+    "body": "Since 6 October, for the 29 November election, there are no plenary sessions. The new Congress meets on 23 December.",
+    "close": "Close this notice"
   },
   "compare": {
     "meta_title": "Compare the parties, topic by topic",

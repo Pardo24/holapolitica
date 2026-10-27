@@ -11,6 +11,7 @@ import { MobileAppBar } from '@/components/MobileAppBar';
 import { NativePushBridge } from '@/components/NativePushBridge';
 import { PushBootstrap } from '@/components/PushBootstrap';
 import { TopNav } from '@/components/TopNav';
+import { DISSOLVED_CLOSED_SCRIPT } from '@/components/DissolvedClose';
 import { INTRO_SEEN_SCRIPT } from '@/components/IntroNote';
 import { CLIENT_NAMESPACES, pickMessages } from '@/lib/clientMessages';
 
@@ -98,6 +99,8 @@ export default async function RootLayout({
         {/* Before the first paint: hides the first-visit note for readers
             who dismissed it, so it never shifts the page (IntroNote). */}
         <script dangerouslySetInnerHTML={{ __html: INTRO_SEEN_SCRIPT }} />
+        {/* The same for the home's "Cortes dissolved" note (DissolvedClose). */}
+        <script dangerouslySetInnerHTML={{ __html: DISSOLVED_CLOSED_SCRIPT }} />
       </head>
       <body suppressHydrationWarning>
         {/* Who publishes the site, and its search, for search engines. */}

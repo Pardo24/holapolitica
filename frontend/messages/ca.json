@@ -2692,7 +2692,8 @@
   },
   "dissolved": {
     "title": "Les Corts estan dissoltes.",
-    "body": "Des del 6 d'octubre, per les eleccions del 29 de novembre, no hi ha plens. El nou Congrés es constitueix el 23 de desembre."
+    "body": "Des del 6 d'octubre, per les eleccions del 29 de novembre, no hi ha plens. El nou Congrés es constitueix el 23 de desembre.",
+    "close": "Tancar l'avís"
   },
   "compare": {
     "meta_title": "Compara els partits, tema a tema",

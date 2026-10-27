@@ -2693,7 +2693,8 @@
   },
   "dissolved": {
     "title": "Las Cortes están disueltas.",
-    "body": "Desde el 6 de octubre, por las elecciones del 29 de noviembre, no hay plenos. El nuevo Congreso se constituye el 23 de diciembre."
+    "body": "Desde el 6 de octubre, por las elecciones del 29 de noviembre, no hay plenos. El nuevo Congreso se constituye el 23 de diciembre.",
+    "close": "Cerrar el aviso"
   },
   "compare": {
     "meta_title": "Compara los partidos, tema a tema",

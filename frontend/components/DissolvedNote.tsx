@@ -1,5 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
+import { DissolvedClose } from '@/components/DissolvedClose';
+
 /**
  * The Cortes are dissolved for the 29 November 2026 election: no plenaries
  * between the dissolution and the new chambers' constitutive sessions.
@@ -22,16 +24,23 @@ export function congressDissolved(now: Date = new Date()): boolean {
 export async function DissolvedNote({
   compact = false,
   top = false,
+  dismissible = false,
 }: {
   compact?: boolean;
   /** First thing on a page: clear of the navigation bar above it. */
   top?: boolean;
+  /** With a close button that is remembered (DissolvedClose): the home. */
+  dismissible?: boolean;
 }) {
   if (!congressDissolved()) return null;
   const t = await getTranslations('dissolved');
   return (
-    <p className={`dissolved${compact ? ' dissolved--compact' : ''}${top ? ' dissolved--top' : ''}`} role="note">
+    <p
+      className={`dissolved${compact ? ' dissolved--compact' : ''}${top ? ' dissolved--top' : ''}${dismissible ? ' dissolved--dismissible' : ''}`}
+      role="note"
+    >
       <strong>{t('title')}</strong> {t('body')}
+      {dismissible && <DissolvedClose label={t('close')} />}
     </p>
   );
 }
