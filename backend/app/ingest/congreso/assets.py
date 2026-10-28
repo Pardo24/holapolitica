@@ -162,11 +162,38 @@ def _text(value: Any) -> str | None:
     return text or None
 
 
+_CURRENCY_WORDS: Final = re.compile(r"€|\beuros?\b|\beur\b", re.IGNORECASE)
+
+
+def _as_written(value: Any) -> str | None:
+    """The amount's text when it says more than a number ("1.100 MENSUAL",
+    "719,07 al mes"), so the page can show it as written instead of
+    passing a monthly figure off as the year's."""
+    text = _text(value) if isinstance(value, str) else None
+    if text and re.search(r"[^\W\d_]", _CURRENCY_WORDS.sub("", text)):
+        return text
+    return None
+
+
+# The form asks not to give number plates; some deputies do anyway. Only
+# a plate after "matrícula" is cut: a bare "2019 BMW" looks like one.
+_PLATE: Final = re.compile(
+    r",?\s*(?:con\s+)?(?:la\s+)?matr[ií]cula\s*:?\s*"
+    r"(?:\d{4}[\s-]?[A-Z]{3}|[A-Z]{1,2}[\s-]?\d{4}(?:[\s-]?[A-Z]{1,2})?)\b",
+    re.IGNORECASE,
+)
+
+
+def _without_plate(text: str | None) -> str | None:
+    return _text(_PLATE.sub("", text)) if text else None
+
+
 def normalise_declaration(raw: dict[str, Any], full_name: str) -> tuple[dict[str, Any], list[str]]:
     """Clean what the model returned and list what fails a check.
 
     Rows with no description and no amount are dropped. Amounts are parsed
-    here, not by the model; the text as written is kept next to each one.
+    here, not by the model; when the text says more than a number (a period,
+    a date) it is kept next to the amount as ``as_written``.
     """
     problems: list[str] = []
 
@@ -194,7 +221,14 @@ def normalise_declaration(raw: dict[str, Any], full_name: str) -> tuple[dict[str
         concept = _text(r.get("concept"))
         value = amount(r.get("amount"), f"income {concept!r}")
         if concept or value is not None:
-            income.append({"kind": kind, "concept": concept, "amount": value})
+            income.append(
+                {
+                    "kind": kind,
+                    "concept": concept,
+                    "amount": value,
+                    "as_written": _as_written(r.get("amount")),
+                }
+            )
 
     properties = []
     for r in rows("properties"):
@@ -215,11 +249,18 @@ def normalise_declaration(raw: dict[str, Any], full_name: str) -> tuple[dict[str
         description = _text(r.get("description"))
         value = amount(r.get("value"), f"securities {description!r}")
         if description or value is not None:
-            securities.append({"kind": kind, "description": description, "value": value})
+            securities.append(
+                {
+                    "kind": kind,
+                    "description": description,
+                    "value": value,
+                    "as_written": _as_written(r.get("value")),
+                }
+            )
 
     vehicles = []
     for r in rows("vehicles"):
-        description = _text(r.get("description"))
+        description = _without_plate(_text(r.get("description")))
         if description:
             vehicles.append({"acquired": _text(r.get("acquired")), "description": description})
 
@@ -228,7 +269,13 @@ def normalise_declaration(raw: dict[str, Any], full_name: str) -> tuple[dict[str
         description = _text(r.get("description"))
         value = amount(r.get("value"), f"other assets {description!r}")
         if description or value is not None:
-            other_assets.append({"description": description, "value": value})
+            other_assets.append(
+                {
+                    "description": description,
+                    "value": value,
+                    "as_written": _as_written(r.get("value")),
+                }
+            )
 
     loans = []
     for r in rows("loans"):
@@ -293,6 +340,7 @@ Reglas:
   las notas al pie y los sellos ("C.DIP ...", "REGISTRO DE INTERESES").
 - Casilla vacía: no pongas la fila. Lista sin filas: []. Valor sin dato: null.
 - Importes y fechas exactamente como están escritos (por ejemplo "10.803,87 €"); no los calcules.
+  Copia también lo que acompañe al importe en su casilla (por ejemplo "1.100 MENSUAL").
 - income.kind: "salary" para percepciones de tipo salarial, sueldos, honorarios; "dividends" para
   dividendos y participación en beneficios; "interest" para intereses o rendimientos de cuentas;
   "other" para otras rentas.
@@ -428,14 +476,19 @@ async def parse_pending(
     limit: int = 40,
     person_id: int | None = None,
     retry: bool = False,
+    redo: bool = False,
     settings: Settings | None = None,
 ) -> dict[str, int]:
     """Read up to ``limit`` declarations not read yet (with ``retry``, also
-    the ones that failed or need review). Commits after each one."""
+    the ones that failed or need review; with ``redo``, every one, e.g.
+    after a fix here). The OCR text already stored is reused. Commits after
+    each one."""
     from app.services.llm_http import LLMUnavailableError
 
     s = settings or get_settings()
     statuses = ["pending", "failed", "needs_review"] if retry else ["pending"]
+    if redo:
+        statuses.append("ok")
     q = (
         select(AssetDeclaration, Person.full_name)
         .join(Person, Person.id == AssetDeclaration.person_id)
@@ -452,8 +505,9 @@ async def parse_pending(
     ) as client:
         for decl, full_name in rows:
             try:
-                pdf = await fetch_pdf(client, decl.pdf_url)
-                text = await ocr_pdf(s, client, pdf)
+                text = decl.ocr_text or await ocr_pdf(
+                    s, client, await fetch_pdf(client, decl.pdf_url)
+                )
                 raw = await structure(s, client, text)
                 data, problems = normalise_declaration(raw, full_name)
             except LLMUnavailableError:
@@ -511,6 +565,7 @@ def main() -> None:
     p.add_argument("--limit", type=int, default=40)
     p.add_argument("--person", type=int, default=None)
     p.add_argument("--retry", action="store_true")
+    p.add_argument("--redo", action="store_true")
     show = sub.add_parser("show")
     show.add_argument("person_id", type=int)
     args = parser.parse_args()
@@ -523,7 +578,11 @@ def main() -> None:
             if args.cmd == "discover":
                 return await discover(session)
             return await parse_pending(
-                session, limit=args.limit, person_id=args.person, retry=args.retry
+                session,
+                limit=args.limit,
+                person_id=args.person,
+                retry=args.retry,
+                redo=args.redo,
             )
 
     result = asyncio.run(run())

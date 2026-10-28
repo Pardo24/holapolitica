@@ -163,6 +163,36 @@ def test_normalise_flags_what_fails_a_check() -> None:
     assert any("implausible amount" in p for p in problems)
 
 
+def test_normalise_keeps_an_amount_that_says_more_than_a_number() -> None:
+    # As in María Elena Bondía's declaration of 05/10/2026: monthly pay
+    # must not read as the year's income. The vehicle row also had a plate.
+    raw = {
+        **RAW,
+        "income": [
+            {"kind": "salary", "concept": "Salario alcaldesa", "amount": "1.100 MENSUAL"},
+            {"kind": "salary", "concept": "Nómina", "amount": "19.526,68 €"},
+        ],
+        "securities": [{"kind": "shares", "description": "Acciones", "value": "1.062,72 EUROS"}],
+        "vehicles": [
+            {"acquired": "AGOSTO 2022", "description": "VOLVO XC60 con matrícula 8793LTC"},
+            {"acquired": "2011", "description": "PEUGEOT 308, matrícula 1234 BCD. Diésel"},
+            {"acquired": "2019", "description": "2019 BMW X3"},
+        ],
+    }
+    data, problems = normalise_declaration(raw, "Gala Pin Ferrando")
+    assert problems == []
+    assert [(r["amount"], r["as_written"]) for r in data["income"]] == [
+        (1100.0, "1.100 MENSUAL"),
+        (19526.68, None),
+    ]
+    assert data["securities"][0]["as_written"] is None
+    assert [v["description"] for v in data["vehicles"]] == [
+        "VOLVO XC60",
+        "PEUGEOT 308. Diésel",
+        "2019 BMW X3",
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Reading pending rows, and the API
 # ---------------------------------------------------------------------------
@@ -241,3 +271,31 @@ async def test_parse_pending_sets_status_from_the_checks(
     # Only what passed the checks reaches the page.
     assert api_rows[0].data is not None
     assert api_rows[1].data is None and api_rows[2].data is None
+
+
+async def test_redo_reads_again_from_the_stored_ocr(
+    db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await _seed(db_session)
+    for d in (await db_session.execute(select(AssetDeclaration))).scalars().all():
+        d.parse_status = "ok"
+        d.ocr_text = f"texto {d.declared_on:%Y%m%d}"
+    await db_session.commit()
+
+    async def no_fetch(*_a: Any) -> bytes:
+        raise AssertionError("the stored OCR text should be reused")
+
+    async def fake_structure(_s: Any, _client: Any, text: str) -> dict[str, Any]:
+        return RAW
+
+    monkeypatch.setattr(assets, "fetch_pdf", no_fetch)
+    monkeypatch.setattr(assets, "structure", fake_structure)
+    settings = Settings(mistral_api_key="x")
+
+    assert await assets.parse_pending(db_session, settings=settings) == {
+        "ok": 0,
+        "needs_review": 0,
+        "failed": 0,
+    }
+    counts = await assets.parse_pending(db_session, redo=True, settings=settings)
+    assert counts == {"ok": 3, "needs_review": 0, "failed": 0}

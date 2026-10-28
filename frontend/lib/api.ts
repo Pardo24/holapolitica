@@ -628,7 +628,15 @@ export interface DissidenceRow {
  *  Texts are as the deputy wrote them, in Spanish; amounts in euros. */
 export interface AssetDeclarationData {
   name: string | null;
-  income: { kind: 'salary' | 'dividends' | 'interest' | 'other'; concept: string | null; amount: number | null }[];
+  /** ``as_written`` (here and below): the amount's own text when it says
+   *  more than a number ("1.100 MENSUAL"); shown instead of the figure.
+   *  Missing on rows read before it existed. */
+  income: {
+    kind: 'salary' | 'dividends' | 'interest' | 'other';
+    concept: string | null;
+    amount: number | null;
+    as_written?: string | null;
+  }[];
   income_tax_paid: number | null;
   properties: {
     kind: 'urban' | 'rustic' | 'company';
@@ -639,9 +647,14 @@ export interface AssetDeclarationData {
   }[];
   deposits_total: number | null;
   deposits_note: string | null;
-  securities: { kind: 'debt' | 'shares' | 'stake'; description: string | null; value: number | null }[];
+  securities: {
+    kind: 'debt' | 'shares' | 'stake';
+    description: string | null;
+    value: number | null;
+    as_written?: string | null;
+  }[];
   vehicles: { acquired: string | null; description: string }[];
-  other_assets: { description: string | null; value: number | null }[];
+  other_assets: { description: string | null; value: number | null; as_written?: string | null }[];
   loans: { description: string | null; granted_on: string | null; amount: number | null; outstanding: number | null }[];
   other_debts: string | null;
   observations: string | null;
