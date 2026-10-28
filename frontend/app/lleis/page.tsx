@@ -55,6 +55,8 @@ interface SearchParams {
   sort?: string;
   /** "What the text changes" tags, comma-separated. */
   change?: string;
+  /** agree | disagree: how PSOE and PP voted on the latest vote. */
+  big_two?: string;
   page?: string;
 }
 
@@ -65,6 +67,8 @@ const RESULT_FILTERS = ['approved', 'rejected', 'pending'] as const;
 type ResultFilter = (typeof RESULT_FILTERS)[number];
 const SORTS = ['recent', 'voted', 'close'] as const;
 type Sort = (typeof SORTS)[number];
+const BIG_TWO = ['agree', 'disagree'] as const;
+type BigTwo = (typeof BIG_TWO)[number];
 
 function splitCsv(value: string | undefined): string[] {
   if (!value) return [];
@@ -97,6 +101,7 @@ export default async function LleisPage({
   const query = (sp.q ?? '').trim();
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
   const sort: Sort = SORTS.includes(sp.sort as Sort) ? (sp.sort as Sort) : 'recent';
+  const bigTwo: BigTwo | null = BIG_TWO.includes(sp.big_two as BigTwo) ? (sp.big_two as BigTwo) : null;
 
   const [data, groups, topics, audiences] = await Promise.all([
     api.initiatives.list({
@@ -109,6 +114,7 @@ export default async function LleisPage({
       q: query || undefined,
       sort: sort === 'recent' ? undefined : sort,
       change: changeTags.length ? changeTags.join(',') : undefined,
+      big_two: bigTwo ?? undefined,
       page,
       page_size: PAGE_SIZE,
     }),
@@ -135,6 +141,7 @@ export default async function LleisPage({
     if (groupSlugs.length) qs.set('proposing_group_slug', groupSlugs.join(','));
     if (audienceTags.length) qs.set('audience', audienceTags.join(','));
     if (changeTags.length) qs.set('change', changeTags.join(','));
+    if (bigTwo) qs.set('big_two', bigTwo);
     if (query) qs.set('q', query);
     if (sortTo !== 'recent') qs.set('sort', sortTo);
     if (p !== 1) qs.set('page', String(p));
@@ -143,7 +150,12 @@ export default async function LleisPage({
   };
   const buildPageHref = (p: number) => buildHref({ p });
   const activeFilters =
-    resultFilters.length + topicSlugs.length + groupSlugs.length + audienceTags.length + changeTags.length;
+    resultFilters.length +
+    topicSlugs.length +
+    groupSlugs.length +
+    audienceTags.length +
+    changeTags.length +
+    (bigTwo ? 1 : 0);
   const sortLabel: Record<Sort, string> = {
     recent: t('sort_recent'),
     voted: t('sort_voted'),
@@ -175,6 +187,7 @@ export default async function LleisPage({
           groupSlugs,
           audiences: audienceTags,
           changes: changeTags,
+          bigTwo,
           q: query,
         }}
         topics={topics}
@@ -197,6 +210,11 @@ export default async function LleisPage({
           change_sub: t('lens_change_sub'),
           audience_title: t('lens_audience_title'),
           audience_sub: t('lens_audience_sub'),
+          big_two_title: t('lens_big_two_title'),
+          big_two_sub: t('lens_big_two_sub'),
+          big_two_intro: t('lens_big_two_intro'),
+          big_two_agree: t('lens_big_two_agree'),
+          big_two_disagree: t('lens_big_two_disagree'),
           government: t('group_government'),
           clear: t('clear_all'),
           close: t('lens_close'),

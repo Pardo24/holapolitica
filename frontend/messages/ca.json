@@ -399,7 +399,12 @@
     "card_amend_hint": "Un canvi a la llei, no la llei",
     "card_ai_title_from_title": "Titular fet amb IA a partir del títol oficial",
     "meta_description": "Totes les lleis del Congrés explicades en llenguatge planer: què canvien, a qui afecten i com ha votat cada partit. Projectes, proposicions i decrets llei.",
-    "card_proposer_senate": "Senat"
+    "card_proposer_senate": "Senat",
+    "lens_big_two_title": "PSOE i PP",
+    "lens_big_two_sub": "Han votat igual o diferent?",
+    "lens_big_two_intro": "Segons el que va votar la majoria de cada grup a l'última votació de cada llei (sense comptar les esmenes). Les aprovades per assentiment, sense recompte, no hi surten.",
+    "lens_big_two_agree": "PSOE i PP, igual",
+    "lens_big_two_disagree": "PSOE i PP, diferent"
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -1887,7 +1892,10 @@
     "journalists_link": "Per a periodistes",
     "avui_link": "Crònica del ple",
     "pacts_link": "Pactes 29-N",
-    "elections_link": "Eleccions"
+    "elections_link": "Eleccions",
+    "report_error": "Has vist un error?",
+    "report_error_subject": "Error a Hola Política",
+    "report_error_body": "Pàgina: {url}\n\nQuè hi has vist malament?\n\n"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacats per grup",

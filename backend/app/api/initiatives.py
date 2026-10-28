@@ -188,6 +188,16 @@ async def list_initiatives(
             "laws whose text has a measure for that situation."
         ),
     ),
+    big_two: str | None = Query(
+        None,
+        description=(
+            "How the two largest groups, PSOE (gp-socialista) and PP "
+            "(gp-popular), voted on the initiative's latest vote, each by the "
+            "majority of its deputies: 'agree' (same choice) or 'disagree' "
+            "(different choices). Votes where either group has no majority "
+            "(a tie, or carried by assent with no records) match neither."
+        ),
+    ),
     ids: str | None = Query(
         None,
         description=(
@@ -394,6 +404,9 @@ async def list_initiatives(
                 and_(Vote.initiative_id.is_not(None), vote_clause)
             )
             conditions.append(Initiative.id.in_(vote_subq))
+
+    if big_two in ("agree", "disagree"):
+        conditions.append(_big_two_clause(agree=big_two == "agree"))
 
     # Orderings by the latest vote. Joined against a one-row-per-initiative
     # subquery (rn == 1), so the join can't duplicate rows, and it doubles
@@ -671,6 +684,70 @@ async def _load_topics_by_initiative(
     for initiative_id, topic in rows:
         by_id.setdefault(initiative_id, []).append(topic)
     return by_id
+
+
+# The two groups the "do the big two agree?" filter compares. Groups are
+# stored once per legislature; the slug is the same in every term.
+_BIG_TWO: tuple[str, str] = ("gp-socialista", "gp-popular")
+
+
+def _group_majority_sq(slug: str, vote_ids: Any) -> Any:
+    """``(vote_id, choice)`` for every vote in ``vote_ids`` (a subquery) on
+    which the group ``slug`` had one majority stance (aye, no or abstention).
+    A tie at the top is no majority, as in app/services/group_majority.py."""
+    tally = (
+        select(
+            VoteRecord.vote_id.label("vote_id"),
+            func.cast(VoteRecord.choice, String).label("choice"),
+            func.count().label("n"),
+        )
+        .join(ParliamentaryGroup, ParliamentaryGroup.id == VoteRecord.group_id_at_time)
+        .where(ParliamentaryGroup.slug == slug)
+        .where(VoteRecord.vote_id.in_(vote_ids))
+        .where(VoteRecord.choice.in_(_STANCES))
+        .group_by(VoteRecord.vote_id, VoteRecord.choice)
+        .subquery()
+    )
+    ranked = select(
+        tally.c.vote_id,
+        tally.c.choice,
+        func.rank().over(partition_by=tally.c.vote_id, order_by=tally.c.n.desc()).label("rk"),
+    ).subquery()
+    return (
+        select(ranked.c.vote_id.label("vote_id"), func.min(ranked.c.choice).label("choice"))
+        .where(ranked.c.rk == 1)
+        .group_by(ranked.c.vote_id)
+        .having(func.count() == 1)
+        .subquery()
+    )
+
+
+def _big_two_clause(*, agree: bool) -> ColumnElement[bool]:
+    """Initiatives whose latest vote (amendments aside, as the outcome
+    filter) had PSOE and PP on the same side, or on different sides."""
+    last = (
+        select(
+            Vote.initiative_id.label("iid"),
+            Vote.id.label("vote_id"),
+            func.row_number()
+            .over(partition_by=Vote.initiative_id, order_by=latest_first())
+            .label("rn"),
+        )
+        .where(Vote.initiative_id.is_not(None))
+        .where(~is_amendment_sql())
+        .subquery()
+    )
+    # Only the laws' latest votes are tallied, not every vote on record.
+    latest_ids = select(last.c.vote_id).where(last.c.rn == 1)
+    a = _group_majority_sq(_BIG_TWO[0], latest_ids)
+    b = _group_majority_sq(_BIG_TWO[1], latest_ids)
+    same = a.c.choice == b.c.choice
+    return Initiative.id.in_(
+        select(last.c.iid)
+        .join(a, a.c.vote_id == last.c.vote_id)
+        .join(b, b.c.vote_id == last.c.vote_id)
+        .where(last.c.rn == 1, same if agree else ~same)
+    )
 
 
 # The three stances that are a POSITION. Absent / no-record are not, so a
