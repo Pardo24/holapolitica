@@ -399,7 +399,12 @@
     "card_amend_hint": "A change to the law, not the law",
     "card_ai_title_from_title": "Headline written by AI from the official title",
     "meta_description": "Every law in the Spanish Congress in plain language: what it changes, whom it affects and how each party voted. Bills and decree-laws.",
-    "card_proposer_senate": "Senate"
+    "card_proposer_senate": "Senate",
+    "lens_big_two_title": "PSOE and PP",
+    "lens_big_two_sub": "Did they vote the same way?",
+    "lens_big_two_intro": "By what most of each group voted in each law's latest vote (amendments aside). Laws passed by assent, with no tally, are left out.",
+    "lens_big_two_agree": "PSOE and PP: same vote",
+    "lens_big_two_disagree": "PSOE and PP: different votes"
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -1888,7 +1893,10 @@
     "journalists_link": "For journalists",
     "avui_link": "Plenary chronicle",
     "pacts_link": "Pacts 29 Nov",
-    "elections_link": "Elections"
+    "elections_link": "Elections",
+    "report_error": "Spotted a mistake?",
+    "report_error_subject": "Mistake on Hola Política",
+    "report_error_body": "Page: {url}\n\nWhat looks wrong?\n\n"
   },
   "dashboard": {
     "highlights_eyebrow": "Group highlights",

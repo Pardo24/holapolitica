@@ -399,7 +399,12 @@
     "card_amend_hint": "Un cambio en la ley, no la ley",
     "card_ai_title_from_title": "Titular hecho con IA a partir del título oficial",
     "meta_description": "Todas las leyes del Congreso explicadas en lenguaje claro: qué cambian, a quién afectan y cómo ha votado cada partido. Proyectos, proposiciones y decretos ley.",
-    "card_proposer_senate": "Senado"
+    "card_proposer_senate": "Senado",
+    "lens_big_two_title": "PSOE y PP",
+    "lens_big_two_sub": "¿Han votado igual o distinto?",
+    "lens_big_two_intro": "Según lo que votó la mayoría de cada grupo en la última votación de cada ley (sin contar las enmiendas). Las aprobadas por asentimiento, sin recuento, no salen.",
+    "lens_big_two_agree": "PSOE y PP, igual",
+    "lens_big_two_disagree": "PSOE y PP, distinto"
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -1888,7 +1893,10 @@
     "journalists_link": "Para periodistas",
     "avui_link": "Crónica del pleno",
     "pacts_link": "Pactos 29-N",
-    "elections_link": "Elecciones"
+    "elections_link": "Elecciones",
+    "report_error": "¿Has visto un error?",
+    "report_error_subject": "Error en Hola Política",
+    "report_error_body": "Página: {url}\n\n¿Qué has visto mal?\n\n"
   },
   "dashboard": {
     "highlights_eyebrow": "Destacados por grupo",

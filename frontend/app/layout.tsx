@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 
 import { BottomTabBar } from '@/components/BottomTabBar';
+import { ReportErrorLink } from '@/components/ReportErrorLink';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { MobileAppBar } from '@/components/MobileAppBar';
 import { NativePushBridge } from '@/components/NativePushBridge';
@@ -164,6 +165,11 @@ export default async function RootLayout({
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <Link href={'/about#principi' as Route} style={{ color: 'inherit' }}>{tFooter('principle')}</Link>
                   <span>
+                    <ReportErrorLink
+                      label={tFooter('report_error')}
+                      subject={tFooter('report_error_subject')}
+                      body={tFooter.raw('report_error_body') as string}
+                    />
                     <Link href={'/avui' as Route} style={{ color: 'var(--ink-2)', marginRight: 12 }}>
                       {tFooter('avui_link')}
                     </Link>

@@ -1484,6 +1484,9 @@ export const api = {
         /** An everyday situation ("jove", "llogater"...): only laws with a
          *  concrete measure for it. */
         profile?: string;
+        /** How PSOE and PP voted on the latest vote: 'agree' (same choice)
+         *  or 'disagree' (different choices). */
+        big_two?: 'agree' | 'disagree';
         page?: number;
         page_size?: number;
       } = {},

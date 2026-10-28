@@ -37,6 +37,9 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
+/* Seven questions: the last one takes the whole row (two columns on a
+   phone, three on a desktop), so none is left alone in a corner. */
+.lens-grid > :nth-child(7):last-child { grid-column: 1 / -1; }
 @media (min-width: 641px) {
   .laws-lens { margin-top: 18px; }
   .laws-lens .lens-search { display: none; }

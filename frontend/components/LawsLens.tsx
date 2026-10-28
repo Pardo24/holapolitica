@@ -9,6 +9,7 @@ import {
   Gauge,
   Landmark,
   Search,
+  Split,
   Tags,
   UsersRound,
   X,
@@ -36,8 +37,9 @@ import { pickTopicName } from '@/lib/topics';
  *   what a party has tabled           -> proposer sheet
  *   what the law changes              -> change sheet (symmetric pairs)
  *   what affects people like me       -> audience sheet
+ *   did PSOE and PP vote alike        -> big-two sheet (same / different)
  *
- * With nothing chosen, the six questions are a grid of tiles: the
+ * With nothing chosen, the questions are a grid of tiles: the
  * dashboard. Once one is chosen the grid shrinks to a row of chips, so the
  * results move up to where the thumb is and the other questions stay one
  * tap away.
@@ -59,6 +61,8 @@ export interface LawsLensState {
   audiences: string[];
   /** "What the text changes" tags. */
   changes: string[];
+  /** How PSOE and PP voted on the latest vote, or null for any. */
+  bigTwo: 'agree' | 'disagree' | null;
   q: string;
 }
 
@@ -78,13 +82,21 @@ export interface LawsLensLabels {
   change_sub: string;
   audience_title: string;
   audience_sub: string;
+  big_two_title: string;
+  big_two_sub: string;
+  big_two_intro: string;
+  big_two_agree: string;
+  big_two_disagree: string;
   government: string;
   clear: string;
   close: string;
 }
 
 type Patch = Partial<
-  Record<'sort' | 'result' | 'topic_slug' | 'proposing_group_slug' | 'audience' | 'change', string | null>
+  Record<
+    'sort' | 'result' | 'topic_slug' | 'proposing_group_slug' | 'audience' | 'change' | 'big_two',
+    string | null
+  >
 >;
 
 export async function LawsLens({
@@ -109,6 +121,7 @@ export async function LawsLens({
   if (state.groupSlugs.length) current.proposing_group_slug = state.groupSlugs.join(',');
   if (state.audiences.length) current.audience = state.audiences.join(',');
   if (state.changes.length) current.change = state.changes.join(',');
+  if (state.bigTwo) current.big_two = state.bigTwo;
   if (state.q) current.q = state.q;
 
   /** The current URL with some parameters replaced; page always resets. */
@@ -244,6 +257,26 @@ export async function LawsLens({
     </div>
   );
 
+  // Two answers drawn alike: agreeing is not presented as better than not.
+  const bigTwoSheet = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--ink-3)' }}>{labels.big_two_intro}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {(['agree', 'disagree'] as const).map((v) => (
+          <Link
+            key={v}
+            href={href({ big_two: state.bigTwo === v ? null : v })}
+            aria-current={state.bigTwo === v ? 'page' : undefined}
+            className="lens-tag"
+            style={{ justifyContent: 'center' }}
+          >
+            {v === 'agree' ? labels.big_two_agree : labels.big_two_disagree}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+
   const audienceSheet = (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {audiences.map((a) => {
@@ -265,7 +298,7 @@ export async function LawsLens({
     </div>
   );
 
-  // ── The six lenses ───────────────────────────────────────────────────
+  // ── The lenses ───────────────────────────────────────────────────
   type Lens =
     | { key: string; Icon: LucideIcon; title: string; sub: string; on: boolean; to: Route }
     | { key: string; Icon: LucideIcon; title: string; sub: string; on: boolean; sheet: React.ReactNode; sheetTitle: string };
@@ -315,6 +348,20 @@ export async function LawsLens({
       on: state.changes.length > 0,
       sheet: changeSheet,
       sheetTitle: labels.change_title,
+    },
+    {
+      key: 'big-two',
+      Icon: Split,
+      title:
+        state.bigTwo === 'agree'
+          ? labels.big_two_agree
+          : state.bigTwo === 'disagree'
+            ? labels.big_two_disagree
+            : labels.big_two_title,
+      sub: labels.big_two_sub,
+      on: state.bigTwo !== null,
+      sheet: bigTwoSheet,
+      sheetTitle: labels.big_two_title,
     },
     ...(audiences.length
       ? [
