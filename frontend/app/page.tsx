@@ -894,9 +894,10 @@ function MobileDashboard({
       {/* The latest plenary, compact: it shares the first screen with the
           tiles, so it is one dark strip (when, how it went, how fresh)
           that opens the day's votes. */}
-      <DissolvedNote compact dismissible />
-      {/* Not until polling day: with the Corts dissolved the latest plenary
-          is weeks old, and the guide's banner needs the room. */}
+      {/* Neither the dissolution note nor the latest plenary until polling
+          day: the plenary is weeks old, and the guide's banner and "what
+          affects you" need the room. */}
+      {daysToElection() <= 0 && <DissolvedNote compact dismissible />}
       {daysToElection() <= 0 && latestVotes[0]?.voted_at && (
         <Link href={`/avui/${latestVotes[0].voted_at.slice(0, 10)}` as Route} className="home-ple">
           <span className="home-ple__top">
