@@ -1432,7 +1432,8 @@
     "role_note_govern": "{gender, select, F {Esta diputada es} other {Este diputado es}} {role}. Por convención parlamentaria, el presidente del Gobierno y los ministros no participan en la mayoría de votaciones ordinarias del Pleno. Comparar sus votos emitidos con los de un diputado sin cargo ejecutivo es engañoso.",
     "role_note_mesa": "{gender, select, F {Esta diputada es} other {Este diputado es}} {role}. La Mesa tiene funciones de presidencia y moderación que modifican el patrón habitual de voto.",
     "role_short_govern": "{role}: votos emitidos no comparables con los de un diputado sin cargo.",
-    "role_short_mesa": "{role}: patrón de voto distinto al de un diputado sin cargo."
+    "role_short_mesa": "{role}: patrón de voto distinto al de un diputado sin cargo.",
+    "tab_assets": "Bienes"
   },
   "topic": {
     "recent_votes_title": "Votaciones recientes en este área",
@@ -2838,5 +2839,43 @@
     "accept": "Acepto la licencia CC BY 4.0: citaré «Datos: Hola Política (holapolitica.org)» con un enlace allí donde los publique.",
     "creating": "Creando…",
     "submit": "Pide la clave"
+  },
+  "assets": {
+    "title": "Bienes y rentas declarados",
+    "intro": "Cada diputado declara sus bienes y rentas al empezar el mandato y cada vez que hay cambios. Aquí lo tienes tal como lo escribió, declaración por declaración.",
+    "note_source": "El Congreso solo las publica como PDF escaneado: las leemos automáticamente y solo mostramos las que pasan todas las comprobaciones. En caso de duda, vale el PDF oficial. Las descripciones salen tal como están escritas.",
+    "note_no_total": "No calculamos ningún total: el formulario no pide el valor de las viviendas ni de los terrenos, y las declaraciones posteriores solo recogen lo que ha cambiado.",
+    "note_income": "Los ingresos son los del año anterior a cada declaración y no incluyen el sueldo del Congreso, que ya es público.",
+    "declared_on": "Declaración del {date}",
+    "kind_initial": "Al empezar el mandato",
+    "kind_later": "Declaración posterior",
+    "pdf": "Ver el PDF oficial",
+    "pending": "Aún no hemos leído esta declaración.",
+    "unread": "No hemos podido leer esta declaración automáticamente con suficiente seguridad. Consúltala en el PDF oficial.",
+    "empty_form": "El formulario no tiene ninguna casilla rellenada.",
+    "income_title": "Ingresos del año anterior",
+    "income_salary": "Sueldo u honorarios",
+    "income_dividends": "Dividendos",
+    "income_interest": "Intereses",
+    "income_other": "Otros",
+    "income_tax": "IRPF pagado",
+    "properties_title": "{n, plural, one {Un inmueble} other {# inmuebles}}",
+    "property_urban": "Urbano",
+    "property_rustic": "Rústico",
+    "property_company": "De una sociedad",
+    "acquired": "adquirido en {date}",
+    "deposits_title": "Dinero en cuentas",
+    "deposits_total": "Saldo de todas las cuentas",
+    "securities_title": "Acciones, bonos y participaciones",
+    "security_debt": "Deuda pública o bonos",
+    "security_shares": "Acciones",
+    "security_stake": "Sociedad participada",
+    "vehicles_title": "Vehículos",
+    "other_title": "Otros bienes",
+    "debts_title": "Deudas",
+    "granted_on": "concedido en {date}",
+    "loan_amount": "{amount} concedidos",
+    "loan_outstanding": "{amount} pendientes",
+    "observations_title": "Observaciones"
   }
 }

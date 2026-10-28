@@ -180,6 +180,10 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
     # hours; outside the window the job returns at once. See
     # ``app/ingest/candidacies.py``.
     ("monitor-candidacies", "ingest", "5 */3 * * *", jobs.refresh_candidacies),
+    # Deputies' asset declarations: new PDFs on the Congreso fichas, read
+    # by OCR + LLM, 40 per run. Mondays 04:30, after the night's enrichment.
+    # See ``app/ingest/congreso/assets.py``.
+    ("monitor-asset-declarations", "ingest", "30 4 * * 1", jobs.refresh_asset_declarations),
 ]
 
 

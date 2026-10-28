@@ -1212,6 +1212,23 @@ def enrich_persons_wikidata() -> dict[str, int]:
     return asyncio.run(_run())
 
 
+def refresh_asset_declarations(batch_size: int = 40) -> dict[str, dict[str, int]]:
+    """Deputies' asset declarations: find new PDFs on the fichas, then read
+    up to ``batch_size`` of the ones not read yet (OCR + LLM, see
+    ``app/ingest/congreso/assets.py``). A new declaration is rare (a few a
+    month), so the first run's backlog is cleared over several weeks unless
+    run by hand with a bigger limit."""
+    from app.ingest.congreso.assets import discover, parse_pending
+
+    async def _run() -> dict[str, dict[str, int]]:
+        async with AsyncSessionLocal() as session:
+            found = await discover(session)
+            parsed = await parse_pending(session, limit=batch_size)
+        return {"discover": found, "parse": parsed}
+
+    return asyncio.run(_run())
+
+
 def enrich_initiatives_boe() -> dict[str, int]:
     """Match every approved publishable initiative to its BOE entry."""
     from app.ingest.boe import enrich_initiatives_with_boe

@@ -624,6 +624,40 @@ export interface DissidenceRow {
   dissidence: number | null;
 }
 
+/** What we read from one asset declaration (backend app/ingest/congreso/assets.py).
+ *  Texts are as the deputy wrote them, in Spanish; amounts in euros. */
+export interface AssetDeclarationData {
+  name: string | null;
+  income: { kind: 'salary' | 'dividends' | 'interest' | 'other'; concept: string | null; amount: number | null }[];
+  income_tax_paid: number | null;
+  properties: {
+    kind: 'urban' | 'rustic' | 'company';
+    description: string | null;
+    location: string | null;
+    acquired: string | null;
+    right: string | null;
+  }[];
+  deposits_total: number | null;
+  deposits_note: string | null;
+  securities: { kind: 'debt' | 'shares' | 'stake'; description: string | null; value: number | null }[];
+  vehicles: { acquired: string | null; description: string }[];
+  other_assets: { description: string | null; value: number | null }[];
+  loans: { description: string | null; granted_on: string | null; amount: number | null; outstanding: number | null }[];
+  other_debts: string | null;
+  observations: string | null;
+}
+
+/** One "Declaración de Bienes y Rentas": the official PDF, and what we read
+ *  from it only when every check passed (status "ok"). */
+export interface AssetDeclaration {
+  declared_on: string;
+  /** 0 is the one filed on taking the seat. */
+  sequence: number;
+  pdf_url: string;
+  status: 'ok' | 'needs_review' | 'pending' | 'failed';
+  data: AssetDeclarationData | null;
+}
+
 export interface PersonKPIs {
   person_id: number;
   votes_total: number;
@@ -1387,6 +1421,8 @@ export const api = {
       request<Mandate[]>(`/persons/${id}/mandates`, { revalidate: AGG_REVALIDATE }),
     topicStats: (id: number) =>
       request<TopicVoteStat[]>(`/persons/${id}/topic-stats`, { revalidate: AGG_REVALIDATE }),
+    assets: (id: number) =>
+      request<AssetDeclaration[]>(`/persons/${id}/assets`, { revalidate: AGG_REVALIDATE }),
     kpis: (id: number) =>
       request<PersonKPIs>(`/persons/${id}/kpis`, { revalidate: AGG_REVALIDATE }),
     /** The deputy's votes, newest first, with their group's stance. */

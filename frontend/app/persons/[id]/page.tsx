@@ -1,5 +1,6 @@
 import '@/app/styles/persons-id-910fb0.css';
 import '@/app/styles/home-and-9-0ab327.css';
+import '@/app/styles/assets.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -9,6 +10,7 @@ import { JsonLd, SITE_URL, breadcrumbs } from '@/components/JsonLd';
 import { ArrowRight, ArrowUpRight, MapPin, Vote } from '@/components/icons';
 
 
+import { AssetDeclarations } from '@/components/AssetDeclarations';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupChip } from '@/components/GroupChip';
 import { PersonVotes } from '@/components/PersonVotes';
@@ -107,6 +109,8 @@ export default async function PersonDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+  // Declared assets: the tab only shows once some have been found.
+  const assets = await api.persons.assets(personId).catch(() => []);
   // On a 29-N list? Nothing shows until the BOE publishes them (~28 Oct).
   const standing = await api.elections.person(personId).catch(() => null);
   // The votes list behind the two vote tabs; its totals also label the tabs.
@@ -164,6 +168,7 @@ export default async function PersonDetailPage({
     { key: 'trenca', label: t('tab_dissent'), count: votesPage?.dissent_total },
     { key: 'temes', label: t('tab_topics') },
     { key: 'trajectoria', label: t('tab_career') },
+    ...(assets.length ? [{ key: 'bens' as const, label: t('tab_assets') }] : []),
   ];
 
   const tSite = await getTranslations('site');
@@ -389,6 +394,8 @@ export default async function PersonDetailPage({
         </section>
       )}
 
+      {tab === 'bens' && assets.length > 0 && <AssetDeclarations declarations={assets} locale={locale} />}
+
       {tab === 'trajectoria' && (
         <section className="dep-panel dep-career">
           {(person.profession || person.education) && (
@@ -484,7 +491,7 @@ export default async function PersonDetailPage({
   );
 }
 
-const TABS = ['votacions', 'trenca', 'temes', 'trajectoria'] as const;
+const TABS = ['votacions', 'trenca', 'temes', 'trajectoria', 'bens'] as const;
 type Tab = (typeof TABS)[number];
 
 /** Single mandate row — extracted so both the visible-first-3 list

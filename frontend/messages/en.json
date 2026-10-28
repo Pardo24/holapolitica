@@ -1432,7 +1432,8 @@
     "role_note_govern": "This deputy is {role}. By parliamentary convention, the Prime Minister and ministers do not take part in most ordinary plenary votes. Comparing their votes cast with those of a deputy without an executive post is misleading.",
     "role_note_mesa": "This deputy is {role}. The Bureau presides over and moderates the chamber, which changes the usual voting pattern.",
     "role_short_govern": "{role}: votes cast not comparable with a deputy without a post.",
-    "role_short_mesa": "{role}: voting pattern differs from a deputy without a post."
+    "role_short_mesa": "{role}: voting pattern differs from a deputy without a post.",
+    "tab_assets": "Assets"
   },
   "topic": {
     "recent_votes_title": "Recent votes in this area",
@@ -2838,5 +2839,43 @@
     "accept": "I accept the CC BY 4.0 licence: I will credit “Data: Hola Política (holapolitica.org)” with a link wherever I publish it.",
     "creating": "Creating…",
     "submit": "Request a key"
+  },
+  "assets": {
+    "title": "Declared assets and income",
+    "intro": "Every deputy declares their assets and income on taking their seat and whenever something changes. Here it is as they wrote it, one declaration at a time.",
+    "note_source": "The Congress only publishes them as scanned PDFs: we read them automatically and only show the ones that pass every check. If in doubt, the official PDF prevails. Descriptions are shown as written, in Spanish.",
+    "note_no_total": "We add nothing up: the form asks no value for homes or land, and later declarations only list what changed.",
+    "note_income": "Income is for the year before each declaration and leaves out the Congress salary, which is already public.",
+    "declared_on": "Declaration of {date}",
+    "kind_initial": "On taking the seat",
+    "kind_later": "Later declaration",
+    "pdf": "See the official PDF",
+    "pending": "We have not read this declaration yet.",
+    "unread": "We could not read this declaration automatically with enough confidence. See the official PDF.",
+    "empty_form": "No box on the form is filled in.",
+    "income_title": "Income in the previous year",
+    "income_salary": "Salary or fees",
+    "income_dividends": "Dividends",
+    "income_interest": "Interest",
+    "income_other": "Other",
+    "income_tax": "Income tax paid",
+    "properties_title": "{n, plural, one {One property} other {# properties}}",
+    "property_urban": "Urban",
+    "property_rustic": "Rural",
+    "property_company": "Through a company",
+    "acquired": "acquired {date}",
+    "deposits_title": "Money in accounts",
+    "deposits_total": "Balance of all accounts",
+    "securities_title": "Shares, bonds and holdings",
+    "security_debt": "Public debt or bonds",
+    "security_shares": "Shares",
+    "security_stake": "Company holding",
+    "vehicles_title": "Vehicles",
+    "other_title": "Other assets",
+    "debts_title": "Debts",
+    "granted_on": "granted {date}",
+    "loan_amount": "{amount} lent",
+    "loan_outstanding": "{amount} outstanding",
+    "observations_title": "Remarks"
   }
 }
