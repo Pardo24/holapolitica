@@ -94,7 +94,7 @@ function DeclarationBody({ data, locale, t }: { data: AssetDeclarationData; loca
           {data.income.map((r, i) => (
             <div key={i}>
               <dt>{join(t(`income_${r.kind}`), r.concept)}</dt>
-              <dd className="tabular">{eur(r.amount)}</dd>
+              <dd className="tabular">{r.as_written ?? eur(r.amount)}</dd>
             </div>
           ))}
           {data.income_tax_paid != null && (
@@ -146,7 +146,7 @@ function DeclarationBody({ data, locale, t }: { data: AssetDeclarationData; loca
           {data.securities.map((r, i) => (
             <div key={i}>
               <dt>{join(t(`security_${r.kind}`), r.description)}</dt>
-              <dd className="tabular">{eur(r.value)}</dd>
+              <dd className="tabular">{r.as_written ?? eur(r.value)}</dd>
             </div>
           ))}
         </dl>
@@ -175,7 +175,7 @@ function DeclarationBody({ data, locale, t }: { data: AssetDeclarationData; loca
           {data.other_assets.map((r, i) => (
             <div key={i}>
               <dt>{r.description}</dt>
-              <dd className="tabular">{eur(r.value)}</dd>
+              <dd className="tabular">{r.as_written ?? eur(r.value)}</dd>
             </div>
           ))}
         </dl>
