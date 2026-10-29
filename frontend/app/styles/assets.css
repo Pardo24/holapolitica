@@ -1,32 +1,87 @@
-/* ---- deputy page: declared assets ("Béns" tab) ---------------------- */
-.assets__notes { display: grid; gap: 4px; max-width: 70ch; margin: 0 0 18px; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink-3); }
+/* ---- declared assets: the deputy's "Béns" tab ------------------------- */
+.assets__how { max-width: 72ch; margin: 0 0 20px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper-2); }
+.assets__how > summary { display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: pointer; list-style: none; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+.assets__how > summary::-webkit-details-marker { display: none; }
+.assets__how > ul { display: grid; gap: 6px; margin: 0; padding: 0 16px 14px 36px; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+.assets__chev { margin-left: auto; flex: none; color: var(--ink-3); transition: transform .15s; }
+details[open] > summary .assets__chev { transform: rotate(180deg); }
 
-.assets__decl { margin: 0 0 14px; padding: 16px 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
+/* One declaration: a card with its date, what it holds, and the PDF. */
+.assets__decl { margin: 0 0 14px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); overflow: hidden; }
+.assets__head { display: flex; align-items: center; gap: 12px; margin: 0; padding: 16px 18px; }
 details.assets__decl > summary { cursor: pointer; list-style: none; }
 details.assets__decl > summary::-webkit-details-marker { display: none; }
-details.assets__decl[open] > summary { margin-bottom: 12px; }
-.assets__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 12px; font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--ink); }
-details.assets__decl > .assets__head { margin: 0; }
-.assets__kind { padding: 1px 8px; border-radius: 999px; background: var(--paper-2); font-family: inherit; font-size: 11.5px; font-weight: 700; color: var(--ink-2); }
+details.assets__decl[open] > summary { border-bottom: 1px solid var(--rule); }
+article.assets__decl > .assets__head { border-bottom: 1px solid var(--rule); }
+.assets__head-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.assets__kind { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.assets__date { font-family: var(--font-serif); font-size: 19px; font-weight: 600; line-height: 1.25; color: var(--ink); }
+details.assets__decl .assets__date { font-size: 16.5px; }
 
-.assets__blocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; }
-.assets__block { padding: 12px 14px; border-radius: 12px; background: var(--paper-2); }
-.assets__block-title { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.assets__older-title { margin: 26px 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
 
-.assets__rows { display: grid; gap: 4px; margin: 0; }
-.assets__rows > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; line-height: 1.45; }
-.assets__rows dt { color: var(--ink-2); }
-.assets__rows dd { margin: 0; flex: none; font-weight: 600; color: var(--ink); }
+/* What this declaration holds, at a glance: one chip per section. */
+.assets__glance { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 18px 0; }
+.assets__glance > a { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 999px; background: var(--paper-2); font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.assets__glance > a:hover, .assets__glance > a:focus-visible { border-color: var(--ink); }
+.assets__glance > a > svg { color: var(--ink-2); }
+.assets__glance .tabular { min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--paper); font-size: 12px; text-align: center; color: var(--ink-2); }
 
-.assets__list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
-.assets__tag { margin-right: 6px; padding: 0 6px; border-radius: 6px; background: var(--paper); font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
-.assets__text { margin: 6px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
-.assets__quote { margin: 0; padding-left: 10px; border-left: 2px solid var(--rule-strong); font-size: 13.5px; line-height: 1.5; color: var(--ink-2); white-space: pre-line; }
+.assets__sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); align-items: start; gap: 12px; padding: 14px 18px 4px; }
+.assets__sec { padding: 14px 16px; border: 1px solid var(--rule); border-radius: 12px; scroll-margin-top: 90px; }
+.assets__sec-title { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 14.5px; font-weight: 700; color: var(--ink); }
+.assets__sec-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--paper-2); color: var(--ink-2); }
+.assets__sec-note { margin: -4px 0 10px; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
 
-.assets__unread { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
-.assets__pdf { display: inline-flex; align-items: center; gap: 3px; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: underline; }
+/* A row: what it is, the details under it, the amount on the right. */
+.assets__items { margin: 0; padding: 0; list-style: none; }
+.assets__item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 14px; row-gap: 2px; padding: 9px 0; border-top: 1px solid var(--rule); }
+.assets__item:first-child { padding-top: 0; border-top: 0; }
+.assets__item:last-child { padding-bottom: 0; }
+.assets__item-main { grid-column: 1; font-size: 14px; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; }
+.assets__item-meta { grid-column: 1; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); overflow-wrap: anywhere; }
+.assets__item-amount { grid-column: 2; grid-row: 1 / span 2; align-self: start; max-width: 20ch; font-size: 14px; font-weight: 700; line-height: 1.4; text-align: right; color: var(--ink); overflow-wrap: anywhere; }
+.assets__item-amount small { display: block; font-size: 11.5px; font-weight: 500; color: var(--ink-3); }
+.assets__tag { display: inline-block; margin-right: 7px; padding: 0 7px; border-radius: 6px; background: var(--paper-2); font-size: 11px; font-weight: 700; line-height: 1.7; vertical-align: 1px; color: var(--ink-2); }
+.assets__quote { margin: 0; padding-left: 12px; border-left: 3px solid var(--rule-strong); font-size: 13.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-line; }
+
+.assets__unread { margin: 0; padding: 16px 18px 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.assets__pdf { display: inline-flex; align-items: center; gap: 6px; margin: 14px 18px 18px; padding: 8px 14px; border: 1px solid var(--rule-strong); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.assets__pdf:hover, .assets__pdf:focus-visible { border-color: var(--ink); }
+
+/* The link to the tab in the deputy's card. */
+.dep-hero__assets { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border: 1px solid var(--rule-strong); border-radius: 999px; background: var(--paper); font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.dep-hero__assets:hover, .dep-hero__assets:focus-visible { border-color: var(--ink); }
 
 @media (max-width: 560px) {
   /* Five tabs on two columns: the last one takes the whole row. */
   .dep-tabs.dep-tabs--four > a:nth-child(5) { grid-column: 1 / -1; }
+  .assets__head, .assets__glance, .assets__sections { padding-left: 14px; padding-right: 14px; }
+  /* The section chips in one row that scrolls, not four rows of them. */
+  .assets__glance { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .assets__glance::-webkit-scrollbar { display: none; }
+  .assets__glance > a { flex: none; }
+  .assets__sec { padding: 12px 13px; }
+  .assets__pdf { margin-left: 14px; margin-right: 14px; }
 }
+
+/* ---- the index: everyone with a declaration (Diputats hub, "Béns") ---- */
+.assets-index { padding: 18px 0 40px; }
+.assets-index__title { margin: 0 0 4px; font-family: var(--font-serif); font-size: 22px; font-weight: 600; color: var(--ink); }
+.assets-index__dek { max-width: 70ch; margin: 0 0 16px; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.assets-index__search { display: flex; align-items: center; gap: 8px; max-width: 520px; margin: 0 0 12px; padding: 0 12px; border: 1.5px solid var(--rule-strong); border-radius: 12px; background: var(--paper); color: var(--ink-3); }
+.assets-index__search:focus-within { border-color: var(--ink); }
+.assets-index__search input { flex: 1; min-width: 0; height: 44px; border: 0; outline: none; background: transparent; font: inherit; font-size: 15px; color: var(--ink); }
+.assets-index__search input::-webkit-search-cancel-button { display: none; }
+.assets-index__search button { display: inline-flex; padding: 4px; border: 0; background: none; cursor: pointer; color: var(--ink-3); }
+.assets-index__count { margin: 0 0 10px; font-size: 12.5px; color: var(--ink-3); }
+.assets-index__empty { font-size: 14px; color: var(--ink-3); }
+.assets-index__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.assets-index__card { display: flex; align-items: center; gap: 12px; height: 100%; padding: 11px 12px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper-2); color: inherit; text-decoration: none; }
+.assets-index__card:hover, .assets-index__card:focus-visible { border-color: var(--ink); outline: none; }
+.assets-index__photo { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: none; overflow: hidden; border-radius: 999px; background: var(--paper-3); color: var(--ink-3); box-shadow: 0 0 0 2px var(--party); }
+.assets-index__photo img { width: 100%; height: 100%; object-fit: cover; }
+.assets-index__body { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.assets-index__name { overflow: hidden; font-size: 14.5px; font-weight: 600; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.assets-index__meta { font-size: 12px; line-height: 1.4; color: var(--ink-3); }
+.assets-index__chev { flex: none; color: var(--ink-3); }

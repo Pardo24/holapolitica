@@ -14,7 +14,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.api.persons import get_person_assets
+from app.api.persons import get_person_assets, list_asset_declarants
 from app.core.config import Settings
 from app.db.base import Base
 from app.ingest.congreso import assets
@@ -371,3 +371,15 @@ async def test_redo_reads_again_from_the_stored_ocr(
     }
     counts = await assets.parse_pending(db_session, redo=True, settings=settings)
     assert counts == {"ok": 3, "needs_review": 0, "failed": 0}
+
+
+async def test_declarants_index_lists_each_person_once(db_session: AsyncSession) -> None:
+    person = await _seed(db_session)
+    db_session.add(Person(full_name="Sin Declaración"))
+    await db_session.commit()
+
+    rows = await list_asset_declarants(db_session)
+    assert [(r.person_id, r.declarations, r.latest_declared_on) for r in rows] == [
+        (person.id, 3, date(2025, 2, 13))
+    ]
+    assert rows[0].group_slug is None

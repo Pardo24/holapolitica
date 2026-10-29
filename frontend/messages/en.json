@@ -969,7 +969,9 @@
     "geolocate_denied": "We don't have permission to see your location. Pick your province instead.",
     "geolocate_outside": "You don't seem to be in Spain. Pick your province instead.",
     "party_filter_aria": "Filter by party",
-    "party_filter_all": "All"
+    "party_filter_all": "All",
+    "tab_assets": "Declared assets",
+    "tab_assets_short": "Assets"
   },
   "game": {
     "meta_title": "Trivia",
@@ -1438,7 +1440,8 @@
     "role_note_mesa": "This deputy is {role}. The Bureau presides over and moderates the chamber, which changes the usual voting pattern.",
     "role_short_govern": "{role}: votes cast not comparable with a deputy without a post.",
     "role_short_mesa": "{role}: voting pattern differs from a deputy without a post.",
-    "tab_assets": "Assets"
+    "tab_assets": "Assets",
+    "assets_link": "Declared assets and income"
   },
   "topic": {
     "recent_votes_title": "Recent votes in this area",
@@ -2884,6 +2887,30 @@
     "granted_on": "granted {date}",
     "loan_amount": "{amount} lent",
     "loan_outstanding": "{amount} outstanding",
-    "observations_title": "Remarks"
+    "observations_title": "Remarks",
+    "how_title": "How we read this data",
+    "older_title": "{n, plural, one {Earlier declaration} other {# earlier declarations}}",
+    "glance_aria": "What this declaration holds",
+    "income_note": "Leaves out the Congress salary, which is already public.",
+    "properties_heading": "Property",
+    "properties_note": "The form asks no value for it.",
+    "short_income": "Income",
+    "short_properties": "Property",
+    "short_deposits": "Accounts",
+    "short_securities": "Shares and bonds",
+    "short_vehicles": "Vehicles",
+    "short_other": "Other assets",
+    "short_debts": "Debts",
+    "short_observations": "Remarks",
+    "loan_pending_caption": "outstanding",
+    "index_title": "Declared assets and income",
+    "index_intro": "Every deputy declares what they own and earn on taking their seat and whenever something changes. Look one up to see their declarations as they wrote them. We make no rankings or totals.",
+    "index_search": "Search a deputy by name",
+    "index_clear": "Clear search",
+    "index_groups": "Filter by group",
+    "index_all": "All",
+    "index_count": "{n, plural, one {# deputy} other {# deputies}}",
+    "index_empty": "No deputy matches the search.",
+    "index_latest": "Latest: {date} · {n, plural, one {# declaration} other {# declarations}}"
   }
 }

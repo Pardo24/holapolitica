@@ -254,6 +254,61 @@ async def deputies_by_constituency(
     )
 
 
+class AssetDeclarant(BaseModel):
+    """A deputy with at least one asset declaration, for the index of them."""
+
+    person_id: int
+    full_name: str
+    photo_url: str | None = None
+    group_slug: str | None = None
+    group_short: str | None = None
+    group_color: str | None = None
+    constituency: str | None = None
+    declarations: int
+    latest_declared_on: date
+
+
+@router.get("/asset-declarants", response_model=list[AssetDeclarant])
+async def list_asset_declarants(
+    session: AsyncSession = Depends(get_session),
+) -> list[AssetDeclarant]:
+    """Everyone with an asset declaration, by name: a way into each one's
+    declarations. Nothing in it can be ranked (no amounts, no counts of
+    what they own)."""
+    rows = (
+        await session.execute(
+            select(
+                Person.id,
+                Person.full_name,
+                Person.photo_url,
+                func.count(AssetDeclaration.id),
+                func.max(AssetDeclaration.declared_on),
+            )
+            .join(AssetDeclaration, AssetDeclaration.person_id == Person.id)
+            .group_by(Person.id, Person.full_name, Person.photo_url)
+            .order_by(Person.full_name)
+        )
+    ).all()
+    groups = await _current_group_by_person(session, [r[0] for r in rows])
+    out: list[AssetDeclarant] = []
+    for pid, full_name, photo, n, latest in rows:
+        slug, short, color, constituency = groups.get(pid, (None, None, None, None))
+        out.append(
+            AssetDeclarant(
+                person_id=pid,
+                full_name=full_name,
+                photo_url=photo,
+                group_slug=slug,
+                group_short=short,
+                group_color=color,
+                constituency=constituency,
+                declarations=n,
+                latest_declared_on=latest,
+            )
+        )
+    return out
+
+
 @router.get("/{person_id}", response_model=PersonRead)
 async def get_person(person_id: int, session: AsyncSession = Depends(get_session)) -> PersonRead:
     """Get a single person by ID, enriched with current group membership."""

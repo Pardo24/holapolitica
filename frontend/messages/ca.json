@@ -969,7 +969,9 @@
     "geolocate_denied": "No tenim permís per saber on ets. Tria la província a mà.",
     "geolocate_outside": "Sembla que no ets a Espanya. Tria la província a mà.",
     "party_filter_aria": "Filtra per partit",
-    "party_filter_all": "Tots"
+    "party_filter_all": "Tots",
+    "tab_assets": "Béns declarats",
+    "tab_assets_short": "Béns"
   },
   "game": {
     "meta_title": "Trivia",
@@ -1438,7 +1440,8 @@
     "role_note_mesa": "{gender, select, F {Aquesta diputada és} other {Aquest diputat és}} {role}. La Mesa té funcions de presidència i moderació que modifiquen el patró habitual de vot.",
     "role_short_govern": "{role}: vots emesos no comparables amb els d'un diputat sense càrrec.",
     "role_short_mesa": "{role}: patró de vot diferent al d'un diputat sense càrrec.",
-    "tab_assets": "Béns"
+    "tab_assets": "Béns",
+    "assets_link": "Béns i rendes declarats"
   },
   "topic": {
     "recent_votes_title": "Votacions recents en aquesta àrea",
@@ -2883,6 +2886,30 @@
     "granted_on": "concedit el {date}",
     "loan_amount": "{amount} concedits",
     "loan_outstanding": "{amount} pendents",
-    "observations_title": "Observacions"
+    "observations_title": "Observacions",
+    "how_title": "Com llegim aquestes dades",
+    "older_title": "{n, plural, one {Declaració anterior} other {# declaracions anteriors}}",
+    "glance_aria": "Què hi ha en aquesta declaració",
+    "income_note": "Sense el sou del Congrés, que ja és públic.",
+    "properties_heading": "Immobles",
+    "properties_note": "El formulari no en demana el valor.",
+    "short_income": "Ingressos",
+    "short_properties": "Immobles",
+    "short_deposits": "Comptes",
+    "short_securities": "Accions i bons",
+    "short_vehicles": "Vehicles",
+    "short_other": "Altres béns",
+    "short_debts": "Deutes",
+    "short_observations": "Observacions",
+    "loan_pending_caption": "pendent",
+    "index_title": "Béns i rendes declarats",
+    "index_intro": "Cada diputat declara el que té i el que guanya en començar el mandat i cada cop que hi ha canvis. Busca'n un per veure les seves declaracions, tal com les va escriure. No en fem rànquings ni totals.",
+    "index_search": "Busca un diputat pel nom",
+    "index_clear": "Esborra la cerca",
+    "index_groups": "Filtra per grup",
+    "index_all": "Tots",
+    "index_count": "{n, plural, one {# diputat} other {# diputats}}",
+    "index_empty": "Cap diputat no coincideix amb la cerca.",
+    "index_latest": "Última: {date} · {n, plural, one {# declaració} other {# declaracions}}"
   }
 }

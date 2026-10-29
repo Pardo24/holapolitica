@@ -969,7 +969,9 @@
     "geolocate_denied": "No tenemos permiso para saber dónde estás. Elige la provincia a mano.",
     "geolocate_outside": "Parece que no estás en España. Elige la provincia a mano.",
     "party_filter_aria": "Filtrar por partido",
-    "party_filter_all": "Todos"
+    "party_filter_all": "Todos",
+    "tab_assets": "Bienes declarados",
+    "tab_assets_short": "Bienes"
   },
   "game": {
     "meta_title": "Trivia",
@@ -1438,7 +1440,8 @@
     "role_note_mesa": "{gender, select, F {Esta diputada es} other {Este diputado es}} {role}. La Mesa tiene funciones de presidencia y moderación que modifican el patrón habitual de voto.",
     "role_short_govern": "{role}: votos emitidos no comparables con los de un diputado sin cargo.",
     "role_short_mesa": "{role}: patrón de voto distinto al de un diputado sin cargo.",
-    "tab_assets": "Bienes"
+    "tab_assets": "Bienes",
+    "assets_link": "Bienes y rentas declarados"
   },
   "topic": {
     "recent_votes_title": "Votaciones recientes en este área",
@@ -2884,6 +2887,30 @@
     "granted_on": "concedido en {date}",
     "loan_amount": "{amount} concedidos",
     "loan_outstanding": "{amount} pendientes",
-    "observations_title": "Observaciones"
+    "observations_title": "Observaciones",
+    "how_title": "Cómo leemos estos datos",
+    "older_title": "{n, plural, one {Declaración anterior} other {# declaraciones anteriores}}",
+    "glance_aria": "Qué hay en esta declaración",
+    "income_note": "Sin el sueldo del Congreso, que ya es público.",
+    "properties_heading": "Inmuebles",
+    "properties_note": "El formulario no pide su valor.",
+    "short_income": "Ingresos",
+    "short_properties": "Inmuebles",
+    "short_deposits": "Cuentas",
+    "short_securities": "Acciones y bonos",
+    "short_vehicles": "Vehículos",
+    "short_other": "Otros bienes",
+    "short_debts": "Deudas",
+    "short_observations": "Observaciones",
+    "loan_pending_caption": "pendiente",
+    "index_title": "Bienes y rentas declarados",
+    "index_intro": "Cada diputado declara lo que tiene y lo que gana al empezar el mandato y cada vez que hay cambios. Busca uno para ver sus declaraciones, tal como las escribió. No hacemos rankings ni totales.",
+    "index_search": "Busca un diputado por su nombre",
+    "index_clear": "Borrar la búsqueda",
+    "index_groups": "Filtrar por grupo",
+    "index_all": "Todos",
+    "index_count": "{n, plural, one {# diputado} other {# diputados}}",
+    "index_empty": "Ningún diputado coincide con la búsqueda.",
+    "index_latest": "Última: {date} · {n, plural, one {# declaración} other {# declaraciones}}"
   }
 }
