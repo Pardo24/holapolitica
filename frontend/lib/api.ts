@@ -638,6 +638,7 @@ export interface AssetDeclarationData {
     as_written?: string | null;
   }[];
   income_tax_paid: number | null;
+  income_tax_as_written?: string | null;
   properties: {
     kind: 'urban' | 'rustic' | 'company';
     description: string | null;
@@ -645,8 +646,11 @@ export interface AssetDeclarationData {
     acquired: string | null;
     right: string | null;
   }[];
-  deposits_total: number | null;
-  deposits_note: string | null;
+  /** One row per line filled in. Rows read before it have the single
+   *  ``deposits_total`` and ``deposits_note`` instead. */
+  deposits?: { description: string | null; amount: number | null; as_written: string | null }[];
+  deposits_total?: number | null;
+  deposits_note?: string | null;
   securities: {
     kind: 'debt' | 'shares' | 'stake';
     description: string | null;
@@ -655,7 +659,14 @@ export interface AssetDeclarationData {
   }[];
   vehicles: { acquired: string | null; description: string }[];
   other_assets: { description: string | null; value: number | null; as_written?: string | null }[];
-  loans: { description: string | null; granted_on: string | null; amount: number | null; outstanding: number | null }[];
+  loans: {
+    description: string | null;
+    granted_on: string | null;
+    amount: number | null;
+    amount_as_written?: string | null;
+    outstanding: number | null;
+    outstanding_as_written?: string | null;
+  }[];
   other_debts: string | null;
   observations: string | null;
 }
