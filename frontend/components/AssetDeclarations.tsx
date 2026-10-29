@@ -100,7 +100,7 @@ function DeclarationBody({ data, locale, t }: { data: AssetDeclarationData; loca
           {data.income_tax_paid != null && (
             <div>
               <dt>{t('income_tax')}</dt>
-              <dd className="tabular">{eur(data.income_tax_paid)}</dd>
+              <dd className="tabular">{data.income_tax_as_written ?? eur(data.income_tax_paid)}</dd>
             </div>
           )}
         </dl>
@@ -123,16 +123,25 @@ function DeclarationBody({ data, locale, t }: { data: AssetDeclarationData; loca
       ),
     });
   }
-  if (data.deposits_total != null || data.deposits_note) {
+  // One row per line the deputy filled; rows read before that carry a
+  // single total and note instead.
+  const deposits =
+    data.deposits ??
+    (data.deposits_total != null || data.deposits_note
+      ? [{ description: data.deposits_note ?? null, amount: data.deposits_total ?? null, as_written: null }]
+      : []);
+  if (deposits.length) {
     blocks.push({
       key: 'deposits',
       title: t('deposits_title'),
       body: (
         <dl className="assets__rows">
-          <div>
-            <dt>{data.deposits_note ?? t('deposits_total')}</dt>
-            <dd className="tabular">{eur(data.deposits_total)}</dd>
-          </div>
+          {deposits.map((r, i) => (
+            <div key={i}>
+              <dt>{r.description ?? t('deposits_total')}</dt>
+              <dd className="tabular">{r.as_written ?? eur(r.amount)}</dd>
+            </div>
+          ))}
         </dl>
       ),
     });
@@ -195,8 +204,12 @@ function DeclarationBody({ data, locale, t }: { data: AssetDeclarationData; loca
                   {join(
                     r.description,
                     r.granted_on && t('granted_on', { date: r.granted_on }),
-                    r.amount != null ? t('loan_amount', { amount: eur(r.amount) }) : null,
-                    r.outstanding != null ? t('loan_outstanding', { amount: eur(r.outstanding) }) : null,
+                    r.amount_as_written || r.amount != null
+                      ? t('loan_amount', { amount: r.amount_as_written ?? eur(r.amount) })
+                      : null,
+                    r.outstanding_as_written || r.outstanding != null
+                      ? t('loan_outstanding', { amount: r.outstanding_as_written ?? eur(r.outstanding) })
+                      : null,
                   )}
                 </li>
               ))}

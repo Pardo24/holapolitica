@@ -26,6 +26,7 @@ Usage (inside the backend container)::
     python -m app.ingest.congreso.assets discover          # find new PDFs
     python -m app.ingest.congreso.assets parse --limit 20  # read pending ones
     python -m app.ingest.congreso.assets parse --person 123 --retry
+    python -m app.ingest.congreso.assets parse --redo --retry --limit 500  # all, after a fix here
     python -m app.ingest.congreso.assets show 123          # print what we read
 """
 
@@ -39,6 +40,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
+from difflib import SequenceMatcher
 from typing import Any, Final
 
 import httpx
@@ -93,11 +95,53 @@ def extract_declaration_links(html: str) -> list[DeclarationLink]:
 # ---------------------------------------------------------------------------
 
 
-def parse_amount(value: Any) -> float | None:
-    """A euro amount as the form shows it ("10.803,87 €", "36.000", "11 .037 ,82 EUROS").
+class SeveralAmountsError(ValueError):
+    """The box holds more than one figure ("15.000 € 1.500 €", "62.613 + 87.142",
+    "50.000 a fecha 15/12/2023"): readable, but not as one amount, so the
+    page shows it as written."""
 
-    Returns None when there is no number. Raises ValueError when there is
-    something that is not a readable amount.
+
+_CURRENCY_WORDS: Final = re.compile(r"€|\beuros?\b|\beur\b", re.IGNORECASE)
+_FIGURE: Final = re.compile(r"-?\d(?:[\d.,']*\d)?")
+
+
+def _figure(piece: str) -> float:
+    """One figure, with Spanish or English separators."""
+    negative = piece.startswith("-")
+    digits = piece.lstrip("-").replace("'", ",")  # "6.297'68"
+    if "." in digits and "," in digits:
+        decimal = "," if digits.rfind(",") > digits.rfind(".") else "."
+        thousands = "." if decimal == "," else ","
+        digits = digits.replace(thousands, "").replace(decimal, ".")
+    elif "," in digits or "." in digits:
+        sep = "," if "," in digits else "."
+        head, *groups = digits.split(sep)
+        *middle, last = groups
+        if not middle:
+            # "36.000" and "1,500" are thousands; "12,30" and "1591.68" decimals.
+            thousands_sep = len(head) <= 3 and len(last) == 3
+            digits = head + last if thousands_sep else f"{head}.{last}"
+        elif len(head) <= 3 and all(len(g) == 3 for g in middle) and 1 <= len(last) <= 3:
+            # "1.234.567"; the last group short means a decimal typed with the
+            # same sign ("62.857.92", "33,170,34").
+            whole = "".join([head, *middle])
+            digits = whole + last if len(last) == 3 else f"{whole}.{last}"
+        else:
+            raise ValueError(piece)
+    if digits.count(".") > 1 or not digits.replace(".", "").isdigit():
+        raise ValueError(piece)
+    amount = float(digits)
+    return -amount if negative else amount
+
+
+def parse_amount(value: Any) -> float | None:
+    """A euro amount as the form shows it ("10.803,87 €", "36.000", "11 .037 ,82 EUROS",
+    "28.300.-", "107.849,07 € (31-7-2023)").
+
+    Returns None when there is no number. Raises :class:`SeveralAmountsError`
+    when the box holds more than one figure, and ValueError when there is
+    something that is not a readable amount (two figures run together by
+    the OCR, say).
     """
     if value is None or isinstance(value, bool):
         return None
@@ -106,30 +150,22 @@ def parse_amount(value: Any) -> float | None:
     text = str(value).strip()
     if not text or text in {"-", "--"}:
         return None
-    digits = re.sub(r"[^\d.,-]", "", text.replace(" ", ""))
-    if not re.search(r"\d", digits):
+    core = re.sub(r"\([^)]*\)", " ", text)  # "(31-7-2023)", "(valor a ...)"
+    core = _CURRENCY_WORDS.sub(" ", core)
+    core = re.sub(r"(?<=\d)\s?[.,]?\s?-(?!\d)", " ", core)  # "28.300.-", "29.218,-"
+    core = re.sub(r"(?<=\d)\s+([.,'])(?=\d)", r"\1", core)  # OCR spacing: "11 .037 ,82"
+    pieces = _FIGURE.findall(core)
+    if not pieces:
         if re.search(r"\d", text):
             raise ValueError(text)
         return None
-    negative = digits.startswith("-")
-    digits = digits.lstrip("-")
-    if "." in digits and "," in digits:
-        decimal = "," if digits.rfind(",") > digits.rfind(".") else "."
-        thousands = "." if decimal == "," else ","
-        digits = digits.replace(thousands, "").replace(decimal, ".")
-    elif "," in digits:
-        # Spanish decimal comma ("5.201,89" handled above); "1,5" or "12,30".
-        if re.fullmatch(r"\d{1,3}(,\d{3})+", digits):
-            digits = digits.replace(",", "")
-        else:
-            digits = digits.replace(",", ".")
-    elif "." in digits and re.fullmatch(r"\d{1,3}(\.\d{3})+", digits):
-        # "36.000": a thousands point, the usual Spanish way.
-        digits = digits.replace(".", "")
-    if digits.count(".") > 1:
-        raise ValueError(text)
-    amount = float(digits)
-    return -amount if negative else amount
+    try:
+        figures = [_figure(p) for p in pieces]
+    except ValueError:
+        raise ValueError(text) from None
+    if len(figures) > 1:
+        raise SeveralAmountsError(text)
+    return figures[0]
 
 
 def _fold(text: str) -> str:
@@ -139,14 +175,20 @@ def _fold(text: str) -> str:
 
 def name_matches(declared: str | None, full_name: str) -> bool:
     """Whether the name on the form is the deputy's: every surname-length
-    word of ``full_name`` (3+ letters) but at most one must appear in it."""
+    word of ``full_name`` (3+ letters) but at most one must appear in it,
+    spelling variants allowed ("Idoya" for "Idoia", "Uncetabarrenechea"
+    for "Unzetabarrenetxea")."""
     if not declared:
         return False
     have = set(re.findall(r"[a-z]+", _fold(declared)))
     want = [w for w in re.findall(r"[a-z]+", _fold(full_name)) if len(w) >= 3]
     if not want:
         return False
-    missing = sum(1 for w in want if w not in have)
+
+    def found(word: str) -> bool:
+        return word in have or any(SequenceMatcher(None, word, h).ratio() >= 0.8 for h in have)
+
+    missing = sum(1 for w in want if not found(w))
     return missing <= (1 if len(want) >= 3 else 0)
 
 
@@ -162,16 +204,21 @@ def _text(value: Any) -> str | None:
     return text or None
 
 
-_CURRENCY_WORDS: Final = re.compile(r"€|\beuros?\b|\beur\b", re.IGNORECASE)
-
-
 def _as_written(value: Any) -> str | None:
-    """The amount's text when it says more than a number ("1.100 MENSUAL",
-    "719,07 al mes"), so the page can show it as written instead of
-    passing a monthly figure off as the year's."""
+    """The amount's text when it says more than one number ("1.100 MENSUAL",
+    "719,07 al mes", "62.613 + 87.142"), so the page can show it as written
+    instead of passing a monthly figure off as the year's."""
     text = _text(value) if isinstance(value, str) else None
-    if text and re.search(r"[^\W\d_]", _CURRENCY_WORDS.sub("", text)):
+    if not text:
+        return None
+    if re.search(r"[^\W\d_]", _CURRENCY_WORDS.sub("", text)):
         return text
+    try:
+        parse_amount(text)
+    except SeveralAmountsError:
+        return text
+    except ValueError:
+        pass
     return None
 
 
@@ -197,13 +244,15 @@ def normalise_declaration(raw: dict[str, Any], full_name: str) -> tuple[dict[str
     """
     problems: list[str] = []
 
-    def amount(value: Any, where: str) -> float | None:
+    def amount(value: Any, where: str, *, signed: bool = False) -> float | None:
         try:
             parsed = parse_amount(value)
+        except SeveralAmountsError:
+            return None  # shown as written
         except ValueError:
             problems.append(f"unreadable amount in {where}: {value!r}")
             return None
-        if parsed is not None and not (0 <= parsed <= _MAX_AMOUNT):
+        if parsed is not None and not (-_MAX_AMOUNT if signed else 0) <= parsed <= _MAX_AMOUNT:
             problems.append(f"implausible amount in {where}: {value!r}")
         return parsed
 
@@ -288,17 +337,35 @@ def normalise_declaration(raw: dict[str, Any], full_name: str) -> tuple[dict[str
                     "description": description,
                     "granted_on": _text(r.get("granted_on")),
                     "amount": granted,
+                    "amount_as_written": _as_written(r.get("amount")),
                     "outstanding": outstanding,
+                    "outstanding_as_written": _as_written(r.get("outstanding")),
+                }
+            )
+
+    # One row per line the deputy filled; the form wants a single total but
+    # many list each account. Never summed here.
+    deposits = []
+    for r in rows("deposits"):
+        description = _text(r.get("description"))
+        value = amount(r.get("amount"), f"deposits {description!r}")
+        if description or value is not None:
+            deposits.append(
+                {
+                    "description": description,
+                    "amount": value,
+                    "as_written": _as_written(r.get("amount")),
                 }
             )
 
     data = {
         "name": name,
         "income": income,
-        "income_tax_paid": amount(raw.get("income_tax_paid"), "income tax"),
+        # Signed: some write the refund ("-91,32 €").
+        "income_tax_paid": amount(raw.get("income_tax_paid"), "income tax", signed=True),
+        "income_tax_as_written": _as_written(raw.get("income_tax_paid")),
         "properties": properties,
-        "deposits_total": amount(raw.get("deposits_total"), "deposits"),
-        "deposits_note": _text(raw.get("deposits_note")),
+        "deposits": deposits,
         "securities": securities,
         "vehicles": vehicles,
         "other_assets": other_assets,
@@ -324,8 +391,7 @@ con EXACTAMENTE estas claves, sin inventar nada:
   "properties": [{"kind": "urban|rustic|company", "description": "clase y características",
                   "location": "situación (provincia o país)", "acquired": "fecha de adquisición",
                   "right": "derecho sobre el bien y título de adquisición"}],
-  "deposits_total": "saldo de todos los depósitos, tal cual, o null",
-  "deposits_note": "descripción de los depósitos, o null",
+  "deposits": [{"description": "clase de depósito", "amount": "saldo tal cual"}],
   "securities": [{"kind": "debt|shares|stake", "description": "texto", "value": "valor tal cual"}],
   "vehicles": [{"acquired": "fecha", "description": "texto"}],
   "other_assets": [{"description": "texto", "value": "valor tal cual"}],
@@ -341,6 +407,7 @@ Reglas:
 - Casilla vacía: no pongas la fila. Lista sin filas: []. Valor sin dato: null.
 - Importes y fechas exactamente como están escritos (por ejemplo "10.803,87 €"); no los calcules.
   Copia también lo que acompañe al importe en su casilla (por ejemplo "1.100 MENSUAL").
+  Cada fila del formulario es un elemento de su lista: no juntes dos filas en una.
 - income.kind: "salary" para percepciones de tipo salarial, sueldos, honorarios; "dividends" para
   dividendos y participación en beneficios; "interest" para intereses o rendimientos de cuentas;
   "other" para otras rentas.

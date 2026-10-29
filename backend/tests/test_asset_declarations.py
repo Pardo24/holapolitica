@@ -19,6 +19,7 @@ from app.core.config import Settings
 from app.db.base import Base
 from app.ingest.congreso import assets
 from app.ingest.congreso.assets import (
+    SeveralAmountsError,
     extract_declaration_links,
     name_matches,
     normalise_declaration,
@@ -69,15 +70,63 @@ def test_links_are_the_asset_pdfs_only_oldest_first() -> None:
         ("", None),
         ("-", None),
         ("sin datos", None),
+        # From the first production run (2026-10-29).
+        ("28.300.-", 28300.0),
+        ("29.218,-", 29218.0),
+        ("15.200 .-", 15200.0),
+        ("€3.122.070,00.-", 3122070.0),
+        ("35.659,03.- €", 35659.03),
+        ("62.857.92", 62857.92),
+        ("105.272.10€", 105272.1),
+        ("33,170,34€ €", 33170.34),
+        ("4,035,00", 4035.0),
+        ("107.849,07 € (31-7-2023)", 107849.07),
+        ("3.876,50 € (valor a 15-10-2023)", 3876.5),
+        ("20.000 E.", 20000.0),
+        ("1591.68 anuales", 1591.68),
+        ("-91,32 €", -91.32),
     ],
 )
 def test_amounts_read_as_written_on_the_form(raw: Any, expected: float | None) -> None:
     assert parse_amount(raw) == expected
 
 
-def test_an_amount_that_is_not_one_raises() -> None:
-    with pytest.raises(ValueError):
-        parse_amount("1.2.3,4.5")
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "1.2.3,4.5",
+        # Two figures run together by the OCR or the model.
+        "46.256,5910.647,34",
+        "1.086,8628.330,35",
+        "9.0004.000",
+        "14.30015.700",
+        "10391.5872409.66",
+        "5.692,34422,2411.939,95",
+    ],
+)
+def test_an_amount_that_is_not_one_raises(raw: str) -> None:
+    with pytest.raises(ValueError) as err:
+        parse_amount(raw)
+    assert not isinstance(err.value, SeveralAmountsError)
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "15.000€ 1.500€",
+        "62.613 + 87.142",
+        "22.776 1.221.158",
+        "50% 14.095,76  50% 11.024,92",
+        "553,16 €\n1612,21 €\n1292,27 €",
+        "2.524 NETOS 43.624,78 NETOS",
+        "76.052,42, a 31 Diciembre",
+        "50.000 a fecha 15/12/2023",
+        "6.297'68 111.630'12",
+    ],
+)
+def test_several_figures_in_one_box(raw: str) -> None:
+    with pytest.raises(SeveralAmountsError):
+        parse_amount(raw)
 
 
 def test_name_check() -> None:
@@ -85,7 +134,12 @@ def test_name_check() -> None:
     assert name_matches("JOSÉ LOSADA FERNÁNDEZ", "José Losada Fernández")
     # The OCR may lose one word of three.
     assert name_matches("JOS LOSADA FERNANDEZ", "José Losada Fernández")
+    # Spelling variants of the same name.
+    assert name_matches(
+        "Idoya Sagastizabal Uncetabarrenechea", "Idoia Sagastizabal Unzetabarrenetxea"
+    )
     assert not name_matches("ANA LÓPEZ GARCÍA", "José Losada Fernández")
+    assert not name_matches("PEDRO PIN FERRANDO", "Gala Pan Ferreira")
     assert not name_matches(None, "José Losada Fernández")
 
 
@@ -104,8 +158,7 @@ RAW: dict[str, Any] = {
         },
         {"kind": "palace", "description": "", "location": None},
     ],
-    "deposits_total": "36.000 €",
-    "deposits_note": None,
+    "deposits": [{"description": "Cuentas corrientes", "amount": "36.000 €"}],
     "securities": [],
     "vehicles": [{"acquired": "", "description": ""}],
     "other_assets": [],
@@ -126,7 +179,9 @@ def test_normalise_keeps_what_is_written_and_parses_amounts() -> None:
     data, problems = normalise_declaration(RAW, "Gala Pin Ferrando")
     assert problems == []
     assert data["income_tax_paid"] == 5201.89
-    assert data["deposits_total"] == 36000.0
+    assert data["deposits"] == [
+        {"description": "Cuentas corrientes", "amount": 36000.0, "as_written": None}
+    ]
     # The empty rows are dropped.
     assert data["properties"] == [
         {
@@ -143,7 +198,9 @@ def test_normalise_keeps_what_is_written_and_parses_amounts() -> None:
             "description": "Hipoteca Banco X",
             "granted_on": "2019",
             "amount": 150000.0,
+            "amount_as_written": None,
             "outstanding": 98512.1,
+            "outstanding_as_written": None,
         }
     ]
     assert data["observations"].startswith("Sin cambios")
@@ -153,7 +210,7 @@ def test_normalise_flags_what_fails_a_check() -> None:
     raw = {
         **RAW,
         "name": "OTRA PERSONA DISTINTA",
-        "deposits_total": "1.2.3,4.5",
+        "deposits": [{"description": "Cuenta", "amount": "1.2.3,4.5"}],
         "income": [{"kind": "salary", "concept": "Nómina", "amount": "900.000.000"}],
     }
     _, problems = normalise_declaration(raw, "Gala Pin Ferrando")
@@ -191,6 +248,21 @@ def test_normalise_keeps_an_amount_that_says_more_than_a_number() -> None:
         "PEUGEOT 308. Diésel",
         "2019 BMW X3",
     ]
+
+
+def test_normalise_shows_several_figures_as_written() -> None:
+    raw = {
+        **RAW,
+        "deposits": [{"description": "Cuentas", "amount": "62.613 + 87.142"}],
+        # A refund, written as such.
+        "income_tax_paid": "-91,32 €",
+    }
+    data, problems = normalise_declaration(raw, "Gala Pin Ferrando")
+    assert problems == []
+    assert data["deposits"] == [
+        {"description": "Cuentas", "amount": None, "as_written": "62.613 + 87.142"}
+    ]
+    assert data["income_tax_paid"] == -91.32 and data["income_tax_as_written"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -258,7 +330,7 @@ async def test_parse_pending_sets_status_from_the_checks(
     rows = {
         d.sequence: d for d in (await db_session.execute(select(AssetDeclaration))).scalars().all()
     }
-    assert rows[2].parse_status == "ok" and rows[2].data["deposits_total"] == 36000.0
+    assert rows[2].parse_status == "ok" and rows[2].data["deposits"][0]["amount"] == 36000.0
     assert rows[1].parse_status == "needs_review" and rows[1].problems
     assert rows[0].parse_status == "failed"
 
