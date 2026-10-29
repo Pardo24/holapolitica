@@ -7,7 +7,10 @@ import { cookies } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronRight, MapPin, User } from '@/components/icons';
 
+import '@/app/styles/assets.css';
+import { AssetsIndex } from '@/components/AssetsIndex';
 import { PageHeader } from '@/components/PageHeader';
+import { RouteMessages } from '@/components/RouteMessages';
 import { GroupBadge } from '@/components/GroupBadge';
 import { DeputiesList } from '@/components/DeputiesList';
 import { GroupListPanel } from '@/components/GroupListPanel';
@@ -17,6 +20,7 @@ import { PartyBand } from '@/components/PartyBand';
 import { ProvincePicker, type ProvincePickerLabels } from '@/components/ProvincePicker';
 import {
   api,
+  type AssetDeclarant,
   type ConstituencyRow,
   type DeputyCard,
   type HemicycleLayout,
@@ -29,7 +33,7 @@ export const revalidate = 300;
 
 interface SearchParams {
   prov?: string;
-  /** meus (default) | tots | grups */
+  /** meus (default) | tots | grups | bens */
   tab?: string;
   partit?: string;
 }
@@ -61,7 +65,8 @@ export default async function ElTeuDiputatPage({
   const tHome = await getTranslations('home');
   const locale = await getLocale();
   const { prov, tab, partit } = await searchParams;
-  const activeTab = tab === 'grups' ? 'grups' : tab === 'tots' ? 'tots' : 'meus';
+  const activeTab =
+    tab === 'grups' ? 'grups' : tab === 'tots' ? 'tots' : tab === 'bens' ? 'bens' : 'meus';
 
   const [constituencies, hemicycle, allGroups]: [
     ConstituencyRow[],
@@ -127,9 +132,34 @@ export default async function ElTeuDiputatPage({
           shortLabel: t('tab_groups_short'),
           active: activeTab === 'grups',
         },
+        {
+          href: '/el-teu-diputat?tab=bens' as Route,
+          label: t('tab_assets'),
+          shortLabel: t('tab_assets_short'),
+          active: activeTab === 'bens',
+        },
       ]}
     />
   );
+
+  if (activeTab === 'bens') {
+    const declarants = await api.persons.assetDeclarants().catch(() => [] as AssetDeclarant[]);
+    return (
+      <div>
+        <PageHeader
+          hue="var(--hue-partits)"
+          title={t('title')}
+          subtitle={t('subtitle')}
+          icon={<MapPin size={20} strokeWidth={1.8} aria-hidden="true" />}
+          bordered
+        />
+        {tabs}
+        <RouteMessages route="assetsIndex">
+          <AssetsIndex declarants={declarants} locale={locale} />
+        </RouteMessages>
+      </div>
+    );
+  }
 
   if (activeTab !== 'meus') {
     return (

@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { Route } from 'next';
 import { JsonLd, SITE_URL, breadcrumbs } from '@/components/JsonLd';
-import { ArrowRight, ArrowUpRight, MapPin, Vote } from '@/components/icons';
+import { ArrowRight, ArrowUpRight, MapPin, Vote, Wallet } from '@/components/icons';
 
 
 import { AssetDeclarations } from '@/components/AssetDeclarations';
@@ -243,6 +243,14 @@ export default async function PersonDetailPage({
               hemicycle used to hand us the group's code ("GP") as one. */}
           {person.role_kind && person.role_title && <div className="dep-hero__role">{person.role_title}</div>}
           <div className="dep-hero__links">
+            {/* The declared assets live in the last tab; said up here too,
+                where a reader looking for them first lands. */}
+            {assets.length > 0 && tab !== 'bens' && (
+              <Link href={tabHref('bens')} scroll={false} className="dep-hero__assets">
+                <Wallet size={14} aria-hidden="true" />
+                {t('assets_link')}
+              </Link>
+            )}
             {person.biography_url && (
               <a
                 href={person.biography_url}

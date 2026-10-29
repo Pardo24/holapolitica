@@ -802,6 +802,19 @@ export interface ConstituencyRow {
 }
 
 /** One representative of a constituency, with attendance + independence. */
+/** A deputy with at least one asset declaration, for the index of them. */
+export interface AssetDeclarant {
+  person_id: number;
+  full_name: string;
+  photo_url: string | null;
+  group_slug: string | null;
+  group_short: string | null;
+  group_color: string | null;
+  constituency: string | null;
+  declarations: number;
+  latest_declared_on: string;
+}
+
 export interface DeputyCard {
   person_id: number;
   full_name: string;
@@ -1447,6 +1460,8 @@ export const api = {
       request<TopicVoteStat[]>(`/persons/${id}/topic-stats`, { revalidate: AGG_REVALIDATE }),
     assets: (id: number) =>
       request<AssetDeclaration[]>(`/persons/${id}/assets`, { revalidate: AGG_REVALIDATE }),
+    assetDeclarants: () =>
+      request<AssetDeclarant[]>('/persons/asset-declarants', { revalidate: AGG_REVALIDATE }),
     kpis: (id: number) =>
       request<PersonKPIs>(`/persons/${id}/kpis`, { revalidate: AGG_REVALIDATE }),
     /** The deputy's votes, newest first, with their group's stance. */

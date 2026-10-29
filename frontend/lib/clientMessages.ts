@@ -70,6 +70,18 @@ export const ROUTE_NAMESPACES = {
   notifications: ['notifications'], // NotificationsManager, NewsletterPreferencesManager
   stats: ['stats', 'dashboard'], // PairCoincidenceClient
   group: ['group'], // GroupCompositionFilter
+  // AssetsIndex (Diputats hub, "Béns" tab)
+  assetsIndex: [
+    'assets.index_title',
+    'assets.index_intro',
+    'assets.index_search',
+    'assets.index_clear',
+    'assets.index_groups',
+    'assets.index_all',
+    'assets.index_count',
+    'assets.index_empty',
+    'assets.index_latest',
+  ],
 } as const;
 
 export function pickMessages(
