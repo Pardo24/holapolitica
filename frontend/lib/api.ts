@@ -818,6 +818,45 @@ export interface ConstituencyRow {
 
 /** One representative of a constituency, with attendance + independence. */
 /** A deputy with at least one asset declaration, for the index of them. */
+export interface PartyCount {
+  key: string;
+  people: number;
+}
+
+export interface GroupAssets {
+  slug: string;
+  name_short: string;
+  color_hex: string | null;
+  members: number;
+  read: number;
+  income_comparable: number;
+  income_median: number | null;
+  income_bands: PartyCount[];
+  income_sources: PartyCount[];
+  with_property: number;
+  with_two_or_more_homes: number;
+  homes_median: number | null;
+  with_shares: number;
+  with_loans: number;
+}
+
+export interface MemberAssets {
+  person_id: number;
+  full_name: string;
+  photo_url: string | null;
+  constituency: string | null;
+  declared_on: string | null;
+  income: { concept: string | null; source: string; amount: number | null; as_written: string | null }[];
+  properties: { homes: number; storage: number; land: number; commercial: number; company: number; other: number };
+  shares: string[];
+  loans: number;
+  other_debts: boolean;
+}
+
+export interface GroupAssetsDetail extends GroupAssets {
+  people: MemberAssets[];
+}
+
 export interface AssetDeclarant {
   person_id: number;
   full_name: string;
@@ -1617,6 +1656,10 @@ export const api = {
       request<ParliamentaryGroupSummary>(`/groups/${slug}`, { revalidate: AGG_REVALIDATE }),
     members: (slug: string) =>
       request<GroupMemberRow[]>(`/groups/${slug}/members`, { revalidate: AGG_REVALIDATE }),
+    assets: (slug: string) =>
+      request<GroupAssetsDetail>(`/groups/${slug}/assets`, { revalidate: AGG_REVALIDATE }),
+    assetsSummary: () =>
+      request<GroupAssets[]>('/groups/assets-summary', { revalidate: AGG_REVALIDATE }),
     topicStats: (slug: string) =>
       request<TopicVoteStat[]>(`/groups/${slug}/topic-stats`, { revalidate: AGG_REVALIDATE }),
     // Three at-a-glance facts (proposes / votes Sí / votes No most), aggregated

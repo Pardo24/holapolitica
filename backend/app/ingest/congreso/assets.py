@@ -492,8 +492,8 @@ async def structure(settings: Settings, client: httpx.AsyncClient, ocr_text: str
 
 
 _SOURCES_SYSTEM: Final = """Clasificas conceptos de ingresos de la declaración de bienes de un diputado:
-quién paga cada uno, según lo que dicen sus palabras. Recibes una lista JSON de textos y devuelves
-{"sources": [...]} con una etiqueta por texto, en el mismo orden:
+quién paga cada uno, según lo que dicen sus palabras. Recibes un objeto JSON {número: texto} y devuelves
+{"sources": {número: etiqueta}} con todos los números:
 
 - "public": administración o entidad pública (Congreso, Senado, parlamentos, ayuntamientos,
   diputaciones, gobiernos, universidades y hospitales públicos, funcionarios, trienios).
@@ -510,15 +510,19 @@ No adivines: si las palabras no lo dicen, "unspecified". Devuelve solo el objeto
 
 async def classify_batch(
     settings: Settings, client: httpx.AsyncClient, concepts: list[str]
-) -> list[str]:
-    """One label per concept, in order. A reply of another length raises."""
+) -> dict[str, str]:
+    """``concept -> label``. Numbered, because the model miscounts a plain
+    list of this length; a concept it skips is simply not in the result."""
     from app.services.llm_http import post_llm
 
     body = {
         "model": settings.asset_structure_model,
         "messages": [
             {"role": "system", "content": _SOURCES_SYSTEM},
-            {"role": "user", "content": json.dumps(concepts, ensure_ascii=False)},
+            {
+                "role": "user",
+                "content": json.dumps(dict(enumerate(concepts)), ensure_ascii=False),
+            },
         ],
         "temperature": 0,
         "max_tokens": 2000,
@@ -533,9 +537,14 @@ async def classify_batch(
     )
     content = str(r.json()["choices"][0]["message"]["content"])
     sources = json.loads(content[content.find("{") : content.rfind("}") + 1]).get("sources")
-    if not isinstance(sources, list) or len(sources) != len(concepts):
-        raise ValueError("model did not return one label per concept")
-    return [s if s in _SOURCES else "unspecified" for s in sources]
+    if not isinstance(sources, dict):
+        raise ValueError("model did not return labels by number")
+    labels = {i: sources.get(str(i)) for i in range(len(concepts))}
+    return {
+        concepts[i]: label if label in _SOURCES else "unspecified"
+        for i, label in labels.items()
+        if label is not None
+    }
 
 
 def _headers(settings: Settings) -> dict[str, str]:
@@ -690,7 +699,7 @@ async def classify_income_sources(
         for start in range(0, len(concepts), batch_size):
             batch = concepts[start : start + batch_size]
             try:
-                sources = await classify_batch(s, client, batch)
+                labels = await classify_batch(s, client, batch)
             except LLMUnavailableError:
                 log.error("assets.llm_unavailable")
                 break
@@ -702,10 +711,11 @@ async def classify_income_sources(
                 AssetIncomeSource(
                     concept=concept, source=source, classified_by=s.asset_structure_model
                 )
-                for concept, source in zip(batch, sources, strict=True)
+                for concept, source in labels.items()
             )
             await session.commit()
-            counts["labelled"] += len(batch)
+            counts["labelled"] += len(labels)
+            counts["failed"] += len(batch) - len(labels)
     log.info("assets.classified", **counts)
     return counts
 

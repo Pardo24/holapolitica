@@ -4,6 +4,7 @@ import '@/app/styles/groups-slug-5f25ce.css';
 import '@/app/styles/home-and-11-6a6aa9.css';
 import '@/app/styles/home-and-9-0ab327.css';
 import '@/app/styles/embed-llei-id-and-5-a88482.css';
+import '@/app/styles/assets.css';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -14,6 +15,7 @@ import { LawCard } from '@/components/LawCard';
 import { VoteCard } from '@/components/VoteCard';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCompositionFilter } from '@/components/GroupCompositionFilter';
+import { GroupAssetsPanel } from '@/components/GroupAssetsPanel';
 import { RouteMessages } from '@/components/RouteMessages';
 import { TopicBars } from '@/components/TopicBars';
 import {
@@ -244,12 +246,15 @@ export default async function GroupDetailPage({
     });
   }
 
+  const groupAssets = tab === 'bens' ? await api.groups.assets(group.slug).catch(() => null) : null;
+
   const base = `/groups/${group.slug}`;
   const tabHref = (k: GroupTab) => (k === 'resum' ? base : `${base}?tab=${k}`) as Route;
   const tabs: { key: GroupTab; label: string; count?: number }[] = [
     { key: 'resum', label: t('tab_summary') },
     { key: 'lleis', label: t('tab_laws'), count: balance?.total },
     { key: 'diputats', label: t('tab_members'), count: group.members_active },
+    { key: 'bens', label: t('tab_assets') },
   ];
 
   return (
@@ -422,7 +427,7 @@ export default async function GroupDetailPage({
 
 
       {/* Tabs: links, so each one has its own URL and works without JS. */}
-      <nav className="dep-tabs" aria-label={t('tabs_aria')}>
+      <nav className="dep-tabs dep-tabs--four" aria-label={t('tabs_aria')}>
         {tabs.map((tb) => (
           <Link
             key={tb.key}
@@ -610,6 +615,8 @@ export default async function GroupDetailPage({
         </>
       )}
 
+      {tab === 'bens' && groupAssets && <GroupAssetsPanel data={groupAssets} locale={locale} />}
+
       {tab === 'diputats' && (
         <>
       {members.length === 0 ? (
@@ -662,7 +669,7 @@ export default async function GroupDetailPage({
   );
 }
 
-const GROUP_TABS = ['resum', 'lleis', 'diputats'] as const;
+const GROUP_TABS = ['resum', 'lleis', 'diputats', 'bens'] as const;
 type GroupTab = (typeof GROUP_TABS)[number];
 
 

@@ -17,6 +17,14 @@ import type { AssetDeclaration, Mandate, Person } from '@/lib/api';
 // Our mandates start with the 2011 legislature: anyone there may go further back.
 const FIRST_LEGISLATURE_WE_HOLD = 2011;
 // Lines of the official biography that say nothing about a career.
+const SHOWN = 3;
+
+interface Line {
+  text: string;
+  amount: string | null;
+  note?: string;
+}
+
 const NOT_CAREER = /^(casad|solter|divorciad|separad|viud|nacid|naci[oó]\b|padre|madre|pareja|diputad|\d+ hij|un hij|dos hij)/i;
 
 /**
@@ -25,7 +33,8 @@ const NOT_CAREER = /^(casad|solter|divorciad|separad|viud|nacid|naci[oó]\b|padr
  *
  * Only the declaration made on taking the seat is summarised. A later one
  * lists just what changed, so "none declared" would be false coming from it.
- * Nothing is added up, for the reasons in AssetDeclarations.
+ * Amounts are the deputy's, row by row: nothing is added up, for the reasons
+ * in AssetDeclarations.
  */
 export async function DeputyWhoIs({
   person,
@@ -42,7 +51,15 @@ export async function DeputyWhoIs({
 }) {
   const t = await getTranslations('person');
   const none = t('who_none');
-  const rows: { key: string; icon: LucideIcon; label: string; value: string; to: Route }[] = [];
+  const rows: {
+    key: string;
+    icon: LucideIcon;
+    label: string;
+    value?: string;
+    lines?: Line[];
+    more?: number;
+    to: Route;
+  }[] = [];
 
   const career = person.profession ?? careerFromBio(person.bio_text) ?? person.education;
   if (career) rows.push({ key: 'career', icon: Briefcase, label: t('who_career'), value: career, to: href.career });
@@ -63,18 +80,22 @@ export async function DeputyWhoIs({
 
   const initial = declarations.find((d) => d.sequence === 0 && d.status === 'ok' && d.data);
   const data = initial?.data;
-  const firstTwo = (texts: (string | null | undefined)[]) => {
-    const named = texts.filter((s): s is string => Boolean(s));
-    if (named.length === 0) return null;
-    const shown = named.slice(0, 2).join(' · ');
-    return named.length > 2 ? `${shown} ${t('who_more', { n: named.length - 2 })}` : shown;
-  };
+  const eur = (n: number | null | undefined) =>
+    n == null ? null : n.toLocaleString(locale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+  // Each row with what the deputy wrote beside it, never added up.
+  const listed = (all: Line[]) =>
+    all.length ? { lines: all.slice(0, SHOWN), more: Math.max(all.length - SHOWN, 0) } : { value: none };
   if (data) {
     rows.push({
       key: 'income',
       icon: Banknote,
       label: t('who_income'),
-      value: firstTwo(data.income.map((r) => r.concept)) ?? none,
+      ...listed(
+        data.income.map((r) => ({
+          text: r.concept ?? t(`who_income_${r.kind}`),
+          amount: r.as_written ?? eur(r.amount),
+        })),
+      ),
       to: href.assets,
     });
     rows.push({
@@ -89,18 +110,21 @@ export async function DeputyWhoIs({
       key: 'shares',
       icon: TrendingUp,
       label: t('who_shares'),
-      value: firstTwo(shares.map((r) => r.description)) ?? (shares.length ? String(shares.length) : none),
+      ...listed(shares.map((r) => ({ text: r.description ?? t('who_shares'), amount: r.as_written ?? eur(r.value) }))),
       to: href.assets,
     });
     rows.push({
       key: 'debts',
       icon: HandCoins,
       label: t('who_debts'),
-      value: data.loans.length
-        ? t('who_debts_value', { n: data.loans.length })
-        : data.other_debts
-          ? data.other_debts
-          : none,
+      ...listed([
+        ...data.loans.map((r) => ({
+          text: r.description ?? t('who_debts'),
+          amount: r.outstanding_as_written ?? eur(r.outstanding),
+          note: t('who_pending'),
+        })),
+        ...(data.other_debts ? [{ text: data.other_debts, amount: null }] : []),
+      ]),
       to: href.assets,
     });
   } else if (declarations.length > 0) {
@@ -138,7 +162,23 @@ export async function DeputyWhoIs({
               </span>
               <span className="dep-who__text">
                 <span className="dep-who__label">{r.label}</span>
-                <span className="dep-who__value">{r.value}</span>
+                {r.value && <span className="dep-who__value">{r.value}</span>}
+                {r.lines && (
+                  <span className="dep-who__lines">
+                    {r.lines.map((line, i) => (
+                      <span key={i} className="dep-who__line">
+                        <span className="dep-who__line-text">{line.text}</span>
+                        {line.amount && (
+                          <span className="dep-who__line-amount tabular">
+                            {line.amount}
+                            {line.note && <small>{line.note}</small>}
+                          </span>
+                        )}
+                      </span>
+                    ))}
+                    {r.more ? <span className="dep-who__more">{t('who_more', { n: r.more })}</span> : null}
+                  </span>
+                )}
               </span>
             </Link>
           </li>
