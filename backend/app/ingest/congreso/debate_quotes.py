@@ -289,12 +289,13 @@ def _is_chair(who_key: str) -> bool:
     return who_key.startswith(("PRESIDENT", "VICEPRESIDENT"))
 
 
-def speech_of(pages: Sequence[str], page: int, family: str) -> str | None:
-    """The speech by ``family`` starting on 1-based ``page``.
+def speech_parts(pages: Sequence[str], page: int, family: str) -> list[str]:
+    """The speech by ``family`` starting on 1-based ``page``, cut at the chair.
 
     Runs to the next speaker. The chair cutting in ("Señoría, tiene que
-    terminar") does not end it: the speaker's own words around the
-    interruption are kept, the chair's are not.
+    terminar") does not end it, but the speaker's words either side of the
+    interruption stay apart: they are not one continuous text in the Diario,
+    so no quote may run across them. Empty when the speech is not found.
     """
     text = "\n".join(pages[max(0, page - 1) : page - 1 + _PAGES_TO_READ])
     target = _key(family)
@@ -307,7 +308,7 @@ def speech_of(pages: Sequence[str], page: int, family: str) -> str | None:
             parts.append(text[header.end() : end])
         elif parts and not _is_chair(who):
             break
-    return "\n".join(parts) if parts else None
+    return parts
 
 
 def _collapse(text: str) -> str:
@@ -406,11 +407,13 @@ async def pick_quote(
             quote=quote,
         )
 
-    speech = speech_of(pages, turn.page, turn.family)
-    if speech is None or len(_collapse(speech)) < _MIN_SPEECH_CHARS:
+    parts = speech_parts(pages, turn.page, turn.family)
+    if sum(len(_collapse(part)) for part in parts) < _MIN_SPEECH_CHARS:
         return result(STATUS_NO_SPEECH)
-    sentences = split_sentences(speech)
-    numbered = "\n".join(f"[{i}] {text}" for i, text in enumerate(sentences, start=1))
+    # Numbered straight through, as the model reads one speech; each sentence
+    # remembers its part so that a passage stops at the interruption.
+    sentences = [(i, text) for i, part in enumerate(parts) for text in split_sentences(part)]
+    numbered = "\n".join(f"[{i}] {text}" for i, (_, text) in enumerate(sentences, start=1))
     user = (
         f"ASUNTO: {debate.title}\nTRÁMITE: {turn.phase or '-'}\n\nINTERVENCIÓN:\n"
         f"{numbered[:_MAX_SPEECH_CHARS]}"
@@ -419,8 +422,11 @@ async def pick_quote(
     chosen = parse_choice(raw, len(sentences))
     if not chosen:
         return result(STATUS_NO_PASSAGE)
-    passage = fit_passage([sentences[number - 1] for number in chosen])
-    if not is_literal(passage, speech) or not is_presentable(passage):
+    part = sentences[chosen[0] - 1][0]
+    passage = fit_passage(
+        [sentences[number - 1][1] for number in chosen if sentences[number - 1][0] == part]
+    )
+    if not is_literal(passage, parts[part]) or not is_presentable(passage):
         log.info(
             "debate_quotes.dropped",
             expediente=debate.expediente,
