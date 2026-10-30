@@ -20,6 +20,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -1024,6 +1025,38 @@ class ElectionResultSnapshot(Base, TimestampMixin):
     counted_pct: Mapped[float] = mapped_column(nullable=False)
     taken_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     payload: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+
+
+class DebateQuote(Base, TimestampMixin):
+    """A verbatim passage from a group's speech in the plenary debate on a
+    voted item (app/ingest/congreso/debate_quotes.py).
+
+    One row per speech read. ``quote`` is a literal slice of the Diario de
+    Sesiones, or NULL when nothing usable came out (``status`` says why), so
+    the speech is not read twice. Keyed by expediente and date rather than by
+    vote: one debate precedes all the votes on that item, often days later.
+    """
+
+    __tablename__ = "debate_quotes"
+    __table_args__ = (
+        UniqueConstraint(
+            "expediente", "debate_date", "group_id", "speaker_name", name="uq_debate_quote_speech"
+        ),
+        Index("ix_debate_quotes_expediente_date", "expediente", "debate_date"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    expediente: Mapped[str] = mapped_column(String(20), nullable=False)
+    debate_date: Mapped[date] = mapped_column(Date, nullable=False)
+    group_id: Mapped[int] = mapped_column(ForeignKey("parliamentary_groups.id"), nullable=False)
+    speaker_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    dscd_ref: Mapped[str] = mapped_column(String(32), nullable=False)  # "DSCD-15-PL-181"
+    page: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_url: Mapped[str] = mapped_column(String(300), nullable=False)
+    phase: Mapped[str | None] = mapped_column(String(120))
+    quote: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    model: Mapped[str | None] = mapped_column(String(64))
 
 
 class AssetDeclaration(Base, TimestampMixin):

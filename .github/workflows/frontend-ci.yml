@@ -124,7 +124,7 @@ jobs:
           gzip -c /tmp/image.tar | ssh -i ~/.ssh/deploy -o BatchMode=yes root@178.105.128.194
       - name: Check the live site
         run: |
-          for i in $(seq 1 10); do
+          for _ in $(seq 1 10); do
             code=$(curl -s -o /dev/null -w '%{http_code}' https://www.holapolitica.org/)
             [ "$code" = 200 ] && echo "www.holapolitica.org answers 200" && exit 0
             sleep 3

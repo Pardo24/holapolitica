@@ -2931,5 +2931,12 @@
     "index_count": "{n, plural, one {# deputy} other {# deputies}}",
     "index_empty": "No deputy matches the search.",
     "index_latest": "Latest: {date} · {n, plural, one {# declaration} other {# declarations}}"
+  },
+  "debate_quotes": {
+    "title": "What the groups said in the debate",
+    "dek": "One verbatim quote from each group, from the Diario de Sesiones of the plenary of {date}. It is a quote from the source, not any deputy's personal reason for their vote.",
+    "speaker": "{speaker}, on behalf of the {group} Group",
+    "source": "{ref}, p. {page}",
+    "method": "An automated tool picks the passage, and the system checks that it is literal in the official text. Quotes appear in the language they were spoken in. A group with no quote shows only its vote."
   }
 }

@@ -37,6 +37,7 @@ import { AiBadge } from '@/components/AiBadge';
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupChip } from '@/components/GroupChip';
 import { Hemicycle } from '@/components/Hemicycle';
+import { DebateQuotes } from '@/components/DebateQuotes';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import {
@@ -806,6 +807,13 @@ export default async function VoteDetailPage({
           votes={initiative.votes ?? []}
         />
       )}
+
+      <DebateQuotes
+        quotes={vote.debate_quotes}
+        parties={voteStance}
+        labels={stanceLabels}
+        locale={locale}
+      />
 
       {/* Body: recount (left) // dissidents (right). The second column is
           only declared when there is something to put in it — the grid
