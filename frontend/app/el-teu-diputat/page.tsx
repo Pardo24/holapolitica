@@ -8,6 +8,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronRight, MapPin, User } from '@/components/icons';
 
 import '@/app/styles/assets.css';
+import { AssetsByParty } from '@/components/AssetsByParty';
 import { AssetsIndex } from '@/components/AssetsIndex';
 import { PageHeader } from '@/components/PageHeader';
 import { RouteMessages } from '@/components/RouteMessages';
@@ -143,7 +144,10 @@ export default async function ElTeuDiputatPage({
   );
 
   if (activeTab === 'bens') {
-    const declarants = await api.persons.assetDeclarants().catch(() => [] as AssetDeclarant[]);
+    const [declarants, byParty] = await Promise.all([
+      api.persons.assetDeclarants().catch(() => [] as AssetDeclarant[]),
+      api.groups.assetsSummary().catch(() => []),
+    ]);
     return (
       <div>
         <PageHeader
@@ -154,6 +158,7 @@ export default async function ElTeuDiputatPage({
           bordered
         />
         {tabs}
+        <AssetsByParty groups={byParty} locale={locale} />
         <RouteMessages route="assetsIndex">
           <AssetsIndex declarants={declarants} locale={locale} />
         </RouteMessages>

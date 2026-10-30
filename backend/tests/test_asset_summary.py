@@ -260,9 +260,9 @@ async def test_classify_labels_only_what_is_new(
     await db_session.commit()
     asked: list[list[str]] = []
 
-    async def fake_batch(settings: Settings, client: object, concepts: list[str]) -> list[str]:
+    async def fake_batch(settings: Settings, client: object, concepts: list[str]) -> dict[str, str]:
         asked.append(concepts)
-        return ["private"] * len(concepts)
+        return dict.fromkeys(concepts, "private")
 
     monkeypatch.setattr(assets, "classify_batch", fake_batch)
     counts = await assets.classify_income_sources(db_session, settings=Settings())
