@@ -37,6 +37,7 @@ from app.models import (
     Person,
 )
 from app.schemas import ParliamentaryGroupRead
+from app.services.asset_summary import GroupAssets, GroupAssetsDetail, group_assets
 from app.services.cache import cached
 from app.services.groups import resolve_latest_group
 
@@ -235,6 +236,35 @@ async def list_groups(
     ]
 
 
+@router.get("/assets-summary", response_model=list[GroupAssets])
+async def list_groups_assets(session: AsyncSession = Depends(get_session)) -> list[GroupAssets]:
+    """What each current group's deputies declared, by group size: where it
+    compares, it compares groups, never people (app/services/asset_summary.py)."""
+
+    async def _compute() -> list[GroupAssets]:
+        latest = (
+            await session.execute(
+                select(Legislature.id).order_by(Legislature.start_date.desc()).limit(1)
+            )
+        ).scalar_one_or_none()
+        groups = (
+            (
+                await session.execute(
+                    select(ParliamentaryGroup).where(ParliamentaryGroup.legislature_id == latest)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        details = await group_assets(session, list(groups))
+        return sorted(
+            (GroupAssets(**d.model_dump(exclude={"people"})) for d in details if d.members),
+            key=lambda g: (-g.members, g.name_short),
+        )
+
+    return await cached("stats:groups:assets-summary", 3600, _compute)
+
+
 @router.get("/{slug}", response_model=ParliamentaryGroupSummary)
 async def get_group(
     slug: str,
@@ -329,6 +359,23 @@ async def get_group_members(
         )
         for person_id, full_name, photo_url, constituency, role, start_date in rows
     ]
+
+
+@router.get("/{slug}/assets", response_model=GroupAssetsDetail)
+async def get_group_assets(
+    slug: str,
+    session: AsyncSession = Depends(get_session),
+) -> GroupAssetsDetail:
+    """A group's declared assets: its figures and each deputy by name, never
+    ordered by money (app/services/asset_summary.py)."""
+    group = await resolve_latest_group(session, slug)
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    async def _compute() -> GroupAssetsDetail:
+        return (await group_assets(session, [group]))[0]
+
+    return await cached(f"stats:group:{slug}:assets", 3600, _compute)
 
 
 @router.get("/{slug}/topic-stats", response_model=list[TopicVoteStatRow])
