@@ -14,6 +14,7 @@ import { FileText, Route as RouteIcon } from '@/components/icons';
 
 import { AnnotatedText } from '@/components/AnnotatedText';
 import { GroupBadge } from '@/components/GroupBadge';
+import { DebateQuotes } from '@/components/DebateQuotes';
 import { LawJourney } from '@/components/LawJourney';
 import { LawTextPanel } from '@/components/LawTextPanel';
 import { VoteChain } from '@/components/VoteChain';
@@ -490,6 +491,18 @@ export default async function InitiativeDetailPage({
           </div>
         )}
       </section>
+
+      <DebateQuotes
+        quotes={initiative.debate_quotes}
+        parties={finalVote ? (stanceByVote.get(finalVote.id) ?? []) : []}
+        labels={{
+          aye: tLleis('card_in_favour'),
+          no: tLleis('card_against'),
+          abstention: tLleis('card_abstention'),
+          absent: tVotes('absent'),
+        }}
+        locale={locale}
+      />
 
       {/* 4. What the bill's own text says, article by article, and the PDF. */}
       <LawTextPanel initiative={initiative} locale={locale} />

@@ -20,7 +20,7 @@ type ChoiceKey = 'aye' | 'no' | 'abstention' | 'absent';
 
 const COLUMN_ORDER: ChoiceKey[] = ['aye', 'no', 'abstention', 'absent'];
 
-const CHOICE_COLOR: Record<ChoiceKey, string> = {
+export const CHOICE_COLOR: Record<ChoiceKey, string> = {
   aye: 'var(--aye, #16A34A)',
   no: 'var(--no, #DC2626)',
   abstention: 'var(--abst, #CA8A04)',

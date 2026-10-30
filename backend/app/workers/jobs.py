@@ -12,7 +12,7 @@ top-level functions. Each function:
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC
+from datetime import UTC, date, timedelta
 from typing import Any
 
 from app.classify.providers import build_classifier
@@ -1225,6 +1225,21 @@ def refresh_asset_declarations(batch_size: int = 40) -> dict[str, dict[str, int]
             found = await discover(session)
             parsed = await parse_pending(session, limit=batch_size)
         return {"discover": found, "parse": parsed}
+
+    return asyncio.run(_run())
+
+
+def refresh_debate_quotes(days: int = 30, batch_size: int = 40) -> dict[str, int]:
+    """Quotes from the plenary debates of the last ``days`` (the Diario de
+    Sesiones comes out days after each session). The legislature's backlog
+    is a manual run: see ``app/ingest/congreso/debate_quotes.py``."""
+    from app.ingest.congreso.debate_quotes import ingest
+
+    async def _run() -> dict[str, int]:
+        async with AsyncSessionLocal() as session:
+            return await ingest(
+                session, since=date.today() - timedelta(days=days), limit=batch_size
+            )
 
     return asyncio.run(_run())
 

@@ -2930,5 +2930,12 @@
     "index_count": "{n, plural, one {# diputat} other {# diputats}}",
     "index_empty": "Cap diputat no coincideix amb la cerca.",
     "index_latest": "Última: {date} · {n, plural, one {# declaració} other {# declaracions}}"
+  },
+  "debate_quotes": {
+    "title": "Què van dir els grups al debat",
+    "dek": "Una cita literal de cada grup, del Diari de Sessions del Ple del {date}. És una cita de la font, no el motiu personal del vot de cada diputat.",
+    "speaker": "{speaker}, en nom del Grup {group}",
+    "source": "{ref}, pàg. {page}",
+    "method": "Una eina automàtica tria el passatge, i el sistema comprova que sigui literal al text oficial. Les cites es mostren en l'idioma en què es van dir. Si un grup no té cita, només se'n mostra el vot."
   }
 }
