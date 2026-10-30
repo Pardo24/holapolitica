@@ -1092,3 +1092,18 @@ class AssetDeclaration(Base, TimestampMixin):
     ocr_text: Mapped[str | None] = mapped_column(Text)
     model: Mapped[str | None] = mapped_column(String(64))
     parsed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AssetIncomeSource(Base, TimestampMixin):
+    """Who pays an income concept on a declaration, one row per concept as
+    deputies wrote it (``normalise_concept``). ``source``: "public", "party",
+    "private", "self_employed", "rental", "capital", "pension" or
+    "unspecified" when the words do not say. ``classified_by``: the model, or
+    "human" for a row corrected by hand. A new run leaves every row alone.
+    """
+
+    __tablename__ = "asset_income_sources"
+
+    concept: Mapped[str] = mapped_column(String(500), primary_key=True)
+    source: Mapped[str] = mapped_column(String(20), nullable=False)
+    classified_by: Mapped[str] = mapped_column(String(64), nullable=False)

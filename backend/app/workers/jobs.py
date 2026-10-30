@@ -1218,13 +1218,14 @@ def refresh_asset_declarations(batch_size: int = 40) -> dict[str, dict[str, int]
     ``app/ingest/congreso/assets.py``). A new declaration is rare (a few a
     month), so the first run's backlog is cleared over several weeks unless
     run by hand with a bigger limit."""
-    from app.ingest.congreso.assets import discover, parse_pending
+    from app.ingest.congreso.assets import classify_income_sources, discover, parse_pending
 
     async def _run() -> dict[str, dict[str, int]]:
         async with AsyncSessionLocal() as session:
             found = await discover(session)
             parsed = await parse_pending(session, limit=batch_size)
-        return {"discover": found, "parse": parsed}
+            sources = await classify_income_sources(session)
+        return {"discover": found, "parse": parsed, "sources": sources}
 
     return asyncio.run(_run())
 

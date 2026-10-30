@@ -27,6 +27,7 @@ Usage (inside the backend container)::
     python -m app.ingest.congreso.assets parse --limit 20  # read pending ones
     python -m app.ingest.congreso.assets parse --person 123 --retry
     python -m app.ingest.congreso.assets parse --redo --retry --limit 500  # all, after a fix here
+    python -m app.ingest.congreso.assets classify          # label who pays each income concept
     python -m app.ingest.congreso.assets show 123          # print what we read
 """
 
@@ -51,7 +52,7 @@ from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging, get_logger
 from app.ingest.congreso.client import CongresoClient
 from app.ingest.congreso.photos import _FICHA_PATH, legislature_number_to_roman
-from app.models import AssetDeclaration, Person
+from app.models import AssetDeclaration, AssetIncomeSource, Person
 
 log = get_logger(__name__)
 
@@ -198,6 +199,16 @@ def name_matches(declared: str | None, full_name: str) -> bool:
 _INCOME_KINDS: Final = ("salary", "dividends", "interest", "other")
 _PROPERTY_KINDS: Final = ("urban", "rustic", "company")
 _SECURITY_KINDS: Final = ("debt", "shares", "stake")
+_SOURCES: Final = (
+    "public",
+    "party",
+    "private",
+    "self_employed",
+    "rental",
+    "capital",
+    "pension",
+    "unspecified",
+)
 
 
 def _text(value: Any) -> str | None:
@@ -480,6 +491,53 @@ async def structure(settings: Settings, client: httpx.AsyncClient, ocr_text: str
     return parsed
 
 
+_SOURCES_SYSTEM: Final = """Clasificas conceptos de ingresos de la declaración de bienes de un diputado:
+quién paga cada uno, según lo que dicen sus palabras. Recibes una lista JSON de textos y devuelves
+{"sources": [...]} con una etiqueta por texto, en el mismo orden:
+
+- "public": administración o entidad pública (Congreso, Senado, parlamentos, ayuntamientos,
+  diputaciones, gobiernos, universidades y hospitales públicos, funcionarios, trienios).
+- "party": un partido político o un grupo parlamentario.
+- "private": una empresa o entidad privada que se nombra (S.L., S.A., bufetes, editoriales...).
+- "self_employed": actividad económica o profesional por cuenta propia, sin nombrar quién paga.
+- "rental": alquileres y rendimientos de inmuebles.
+- "capital": dividendos, intereses, fondos, otros rendimientos del capital.
+- "pension": pensiones, jubilación, prestación por desempleo u otras prestaciones.
+- "unspecified": no dice quién paga ("SALARIO", "RENDIMIENTOS DEL TRABAJO", "SUELDO NETO").
+
+No adivines: si las palabras no lo dicen, "unspecified". Devuelve solo el objeto JSON."""
+
+
+async def classify_batch(
+    settings: Settings, client: httpx.AsyncClient, concepts: list[str]
+) -> list[str]:
+    """One label per concept, in order. A reply of another length raises."""
+    from app.services.llm_http import post_llm
+
+    body = {
+        "model": settings.asset_structure_model,
+        "messages": [
+            {"role": "system", "content": _SOURCES_SYSTEM},
+            {"role": "user", "content": json.dumps(concepts, ensure_ascii=False)},
+        ],
+        "temperature": 0,
+        "max_tokens": 2000,
+        "response_format": {"type": "json_object"},
+    }
+    r = await post_llm(
+        client,
+        "https://api.mistral.ai/v1/chat/completions",
+        json_body=body,
+        headers=_headers(settings),
+        min_interval_s=settings.llm_min_interval_s,
+    )
+    content = str(r.json()["choices"][0]["message"]["content"])
+    sources = json.loads(content[content.find("{") : content.rfind("}") + 1]).get("sources")
+    if not isinstance(sources, list) or len(sources) != len(concepts):
+        raise ValueError("model did not return one label per concept")
+    return [s if s in _SOURCES else "unspecified" for s in sources]
+
+
 def _headers(settings: Settings) -> dict[str, str]:
     if not settings.mistral_api_key:
         raise RuntimeError("MISTRAL_API_KEY is not configured")
@@ -602,6 +660,56 @@ async def parse_pending(
     return counts
 
 
+async def classify_income_sources(
+    session: AsyncSession, *, batch_size: int = 40, settings: Settings | None = None
+) -> dict[str, int]:
+    """Label who pays each income concept not labelled yet, from the words
+    the deputy wrote. Dividends and interest need no label (the form's own
+    section says), and a row already there, by hand or not, is left alone.
+    Commits after each batch."""
+    from app.services.asset_summary import normalise_concept
+    from app.services.llm_http import LLMUnavailableError
+
+    s = settings or get_settings()
+    known = set((await session.execute(select(AssetIncomeSource.concept))).scalars().all())
+    data_rows = await session.execute(
+        select(AssetDeclaration.data).where(AssetDeclaration.parse_status == "ok")
+    )
+    declared: list[dict[str, Any]] = [dict(d) for d in data_rows.scalars().all() if d]
+    concepts = sorted(
+        {
+            normalise_concept(str(row["concept"]))
+            for data in declared
+            for row in data.get("income", [])
+            if row.get("concept") and row.get("kind") not in ("dividends", "interest")
+        }
+        - known
+    )
+    counts = {"labelled": 0, "failed": 0}
+    async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, read=120.0)) as client:
+        for start in range(0, len(concepts), batch_size):
+            batch = concepts[start : start + batch_size]
+            try:
+                sources = await classify_batch(s, client, batch)
+            except LLMUnavailableError:
+                log.error("assets.llm_unavailable")
+                break
+            except (httpx.HTTPError, ValueError, KeyError) as e:
+                log.warning("assets.classify_failed", error=str(e))
+                counts["failed"] += len(batch)
+                continue
+            session.add_all(
+                AssetIncomeSource(
+                    concept=concept, source=source, classified_by=s.asset_structure_model
+                )
+                for concept, source in zip(batch, sources, strict=True)
+            )
+            await session.commit()
+            counts["labelled"] += len(batch)
+    log.info("assets.classified", **counts)
+    return counts
+
+
 async def _show(person_id: int) -> None:
     from app.db.session import AsyncSessionLocal
 
@@ -636,6 +744,7 @@ def main() -> None:
     p.add_argument("--person", type=int, default=None)
     p.add_argument("--retry", action="store_true")
     p.add_argument("--redo", action="store_true")
+    sub.add_parser("classify")
     show = sub.add_parser("show")
     show.add_argument("person_id", type=int)
     args = parser.parse_args()
@@ -647,6 +756,8 @@ def main() -> None:
         async with AsyncSessionLocal() as session:
             if args.cmd == "discover":
                 return await discover(session)
+            if args.cmd == "classify":
+                return await classify_income_sources(session)
             return await parse_pending(
                 session,
                 limit=args.limit,
