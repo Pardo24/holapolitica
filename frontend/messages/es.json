@@ -2912,5 +2912,12 @@
     "index_count": "{n, plural, one {# diputado} other {# diputados}}",
     "index_empty": "Ningún diputado coincide con la búsqueda.",
     "index_latest": "Última: {date} · {n, plural, one {# declaración} other {# declaraciones}}"
+  },
+  "debate_quotes": {
+    "title": "Qué dijeron los grupos en el debate",
+    "dek": "Una cita literal de cada grupo, del Diario de Sesiones del Pleno del {date}. Es una cita de la fuente, no el motivo personal del voto de cada diputado.",
+    "speaker": "{speaker}, en nombre del Grupo {group}",
+    "source": "{ref}, pág. {page}",
+    "method": "Una herramienta automática elige el pasaje, y el sistema comprueba que sea literal en el texto oficial. Las citas se muestran en el idioma en que se dijeron. Si un grupo no tiene cita, solo se muestra su voto."
   }
 }

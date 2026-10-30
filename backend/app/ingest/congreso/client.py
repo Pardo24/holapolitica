@@ -439,6 +439,21 @@ class CongresoClient:
         return buf.getvalue()
 
     # ------------------------------------------------------------------
+    # Datasets — speeches
+    # ------------------------------------------------------------------
+
+    async def fetch_interventions(self, fmt: FileFormat = "json") -> bytes:
+        """Every speech of the current legislature, by initiative (~55 MB).
+
+        One row per speech with expediente, session date, phase, speaker and
+        group, and the Diario de Sesiones PDF with the page it starts on.
+        """
+        url = await self.discover_dataset_url(
+            LISTING_PATH_INTERVENTIONS, "IntervencionesIniciativa", fmt
+        )
+        return await self.fetch_bytes(url)
+
+    # ------------------------------------------------------------------
     # Datasets — upcoming agenda (orden del día)
     # ------------------------------------------------------------------
 

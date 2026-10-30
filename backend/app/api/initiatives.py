@@ -41,6 +41,7 @@ from app.schemas import (
 )
 from app.services.affected import normalise_audience_tag
 from app.services.cache import cached
+from app.services.debate_quotes import load_debate_quotes
 from app.services.law_profiles import PROFILES
 from app.services.law_text import CHANGE_TAGS
 from app.services.vote_stage import (
@@ -1071,6 +1072,13 @@ async def get_initiative(
             for s in (await _load_same_title(session, [row])).get(row.id, [])
             if s["id"] != (decree_link or {}).get("id")
         ],
+        debate_quotes=(
+            await load_debate_quotes(
+                session, votes[0].id, votes[0].expediente_raw or row.official_id
+            )
+            if votes
+            else []
+        ),
     )
 
 

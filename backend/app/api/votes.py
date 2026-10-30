@@ -41,6 +41,7 @@ from app.models import (
 )
 from app.schemas import InitiativeTopicSlug, VoteProposerGroup, VoteRead
 from app.services.cache import cached
+from app.services.debate_quotes import load_debate_quotes
 from app.services.proposing_group import proposing_groups_in, resolve_proposing_group
 from app.services.vote_stage import stage_groups_for
 
@@ -684,7 +685,10 @@ async def get_vote(vote_id: int, db: AsyncSession = Depends(get_session)) -> Vot
         if vote.initiative_id is not None and vote.initiative is not None
         else {}
     )
-    return _serialize_vote(vote, groups, topics_by_initiative, types_by_initiative)
+    expediente = vote.expediente_raw or (vote.initiative.official_id if vote.initiative else None)
+    return _serialize_vote(vote, groups, topics_by_initiative, types_by_initiative).model_copy(
+        update={"debate_quotes": await load_debate_quotes(db, vote.id, expediente)}
+    )
 
 
 def _serialize_vote(

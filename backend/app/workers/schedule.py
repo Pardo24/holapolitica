@@ -184,7 +184,16 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
     # by OCR + LLM, 40 per run. Mondays 04:30, after the night's enrichment.
     # See ``app/ingest/congreso/assets.py``.
     ("monitor-asset-declarations", "ingest", "30 4 * * 1", jobs.refresh_asset_declarations),
+    # One verbatim quote per group from each recent plenary debate, 40 debates
+    # per run. Recent debates only: the legislature's backlog is a manual run.
+    # See ``app/ingest/congreso/debate_quotes.py``.
+    ("monitor-debate-quotes", "ingest", "50 4 * * *", jobs.refresh_debate_quotes),
 ]
+
+
+# RQ kills a job after 180 s unless told otherwise. One speech is one LLM call
+# at the provider's pace, so a plenary week's speeches take far longer.
+JOB_TIMEOUTS_S: dict[str, int] = {"monitor-debate-quotes": 3600}
 
 
 def install() -> None:
@@ -203,6 +212,7 @@ def install() -> None:
             queue_name=queue_name,
             use_local_timezone=False,
             repeat=None,
+            timeout=JOB_TIMEOUTS_S.get(job_id),
         )
         log.info("schedule.installed", job_id=job_id, cron=cron_string, queue=queue_name)
 

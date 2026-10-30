@@ -320,6 +320,20 @@ class InitiativeTopicSlug(BaseModel):
     kind: str = "theme"
 
 
+class DebateQuoteRead(BaseModel):
+    """A group's verbatim passage from the plenary debate on a voted item."""
+
+    group_slug: str
+    group_short: str
+    group_color: str | None = None
+    speaker_name: str
+    quote: str
+    debate_date: date
+    dscd_ref: str
+    page: int
+    source_url: str
+
+
 class InitiativeDetail(InitiativeRead):
     """Extended initiative payload for the detail page.
 
@@ -336,6 +350,9 @@ class InitiativeDetail(InitiativeRead):
     # The same proposal tabled again (same plain title): id, type, status,
     # verdict, official_id, submitted_at. See api/initiatives.py.
     same_title: list[dict[str, object]] = []
+    # From the debate behind the latest vote. One passage per group, each
+    # speaker's in the Mixed Group. See app/ingest/congreso/debate_quotes.py.
+    debate_quotes: list[DebateQuoteRead] = []
 
 
 # ---------------------------------------------------------------------------
@@ -414,6 +431,8 @@ class VoteRead(BaseModel):
     # "Com t'afecta", from the linked initiative: what its text establishes
     # for each everyday situation. Shown on every vote card of a law.
     profile_effects: dict[str, dict[str, str]] | None = None
+    # From the debate behind this vote; only the detail endpoint fills it.
+    debate_quotes: list[DebateQuoteRead] = []
 
     @computed_field  # type: ignore[prop-decorator]
     @property

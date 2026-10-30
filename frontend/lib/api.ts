@@ -350,6 +350,19 @@ export type InitiativeStatus =
   | 'withdrawn'
   | 'expired';
 
+/** A group's verbatim passage from the plenary debate on a voted item. */
+export interface DebateQuote {
+  group_slug: string;
+  group_short: string;
+  group_color: string | null;
+  speaker_name: string;
+  quote: string;
+  debate_date: string;
+  dscd_ref: string;
+  page: number;
+  source_url: string;
+}
+
 export interface Vote {
   id: number;
   session_id: number;
@@ -400,6 +413,8 @@ export interface Vote {
   /** Each group's majority stance on this vote, so a list row can show who
    *  backed it without opening the vote. Same shape as the laws list. */
   groups?: LawVoteGroupStance[];
+  /** From the debate behind this vote; only the detail endpoint fills it. */
+  debate_quotes?: DebateQuote[];
 }
 
 /**
@@ -1154,6 +1169,8 @@ export interface Initiative {
   decree_link?: DecreeLink | null;
   /** The same proposal tabled again (same plain title), oldest first. */
   same_title?: SameProposal[];
+  /** From the debate behind the latest vote. */
+  debate_quotes?: DebateQuote[];
   // BOE link — populated by the nightly enrichment worker for
   // approved laws that have been formally published. NULL when the
   // initiative hasn't reached publication or the matcher couldn't
