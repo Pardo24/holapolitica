@@ -151,6 +151,9 @@ def parse_amount(value: Any) -> float | None:
     if not text or text in {"-", "--"}:
         return None
     core = re.sub(r"\([^)]*\)", " ", text)  # "(31-7-2023)", "(valor a ...)"
+    # A date next to the amount ("A fecha 2.09.26 la cantidad de 7.172,07"):
+    # a middle group of one or two digits is never a thousands group.
+    core = re.sub(r"\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b", " ", core)
     core = _CURRENCY_WORDS.sub(" ", core)
     core = re.sub(r"(?<=\d)\s?[.,]?\s?-(?!\d)", " ", core)  # "28.300.-", "29.218,-"
     core = re.sub(r"(?<=\d)\s+([.,'])(?=\d)", r"\1", core)  # OCR spacing: "11 .037 ,82"

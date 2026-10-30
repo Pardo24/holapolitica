@@ -85,6 +85,10 @@ def test_links_are_the_asset_pdfs_only_oldest_first() -> None:
         ("20.000 E.", 20000.0),
         ("1591.68 anuales", 1591.68),
         ("-91,32 €", -91.32),
+        # A date beside the amount is not a second figure (2026-10-29 re-read).
+        ("A fecha 2.09.26 la cantidad de 7.172,07 euros.", 7172.07),
+        ("50.000 a fecha 15/12/2023", 50000.0),
+        ("26.773,75 (saldo cuentas a 08/12/2023)", 26773.75),
     ],
 )
 def test_amounts_read_as_written_on_the_form(raw: Any, expected: float | None) -> None:
@@ -120,7 +124,6 @@ def test_an_amount_that_is_not_one_raises(raw: str) -> None:
         "553,16 €\n1612,21 €\n1292,27 €",
         "2.524 NETOS 43.624,78 NETOS",
         "76.052,42, a 31 Diciembre",
-        "50.000 a fecha 15/12/2023",
         "6.297'68 111.630'12",
     ],
 )
