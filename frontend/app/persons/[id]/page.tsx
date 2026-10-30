@@ -3,14 +3,15 @@ import '@/app/styles/home-and-9-0ab327.css';
 import '@/app/styles/assets.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { Route } from 'next';
 import { JsonLd, SITE_URL, breadcrumbs } from '@/components/JsonLd';
-import { ArrowRight, ArrowUpRight, MapPin, Vote, Wallet } from '@/components/icons';
+import { ArrowRight, ArrowUpRight, MapPin, Vote } from '@/components/icons';
 
 
 import { AssetDeclarations } from '@/components/AssetDeclarations';
+import { DeputyWhoIs } from '@/components/DeputyWhoIs';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupChip } from '@/components/GroupChip';
 import { PersonVotes } from '@/components/PersonVotes';
@@ -84,6 +85,9 @@ export default async function PersonDetailPage({
   const personId = Number(id);
   if (!Number.isFinite(personId)) notFound();
   const sp = await searchParams;
+  // These two were tabs of their own: old links land on the same content.
+  if (sp.tab === 'bens') redirect(`/persons/${personId}?tab=qui-es#bens`);
+  if (sp.tab === 'trajectoria') redirect(`/persons/${personId}?tab=qui-es`);
   const tab: Tab = (TABS as readonly string[]).includes(sp.tab ?? '') ? (sp.tab as Tab) : 'votacions';
   const topicSlug = sp.tema && /^[a-z0-9-]+$/.test(sp.tema) ? sp.tema : null;
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1);
@@ -109,7 +113,7 @@ export default async function PersonDetailPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
-  // Declared assets: the tab only shows once some have been found.
+  // Declared assets: their part of the page only shows once some have been found.
   const assets = await api.persons.assets(personId).catch(() => []);
   // On a 29-N list? Nothing shows until the BOE publishes them (~28 Oct).
   const standing = await api.elections.person(personId).catch(() => null);
@@ -167,9 +171,9 @@ export default async function PersonDetailPage({
     { key: 'votacions', label: t('tab_votes'), count: votesPage?.all_total },
     { key: 'trenca', label: t('tab_dissent'), count: votesPage?.dissent_total },
     { key: 'temes', label: t('tab_topics') },
-    { key: 'trajectoria', label: t('tab_career') },
-    ...(assets.length ? [{ key: 'bens' as const, label: t('tab_assets') }] : []),
+    { key: 'qui-es', label: t('tab_who') },
   ];
+  const whoHref = tabHref('qui-es');
 
   const tSite = await getTranslations('site');
   const tDeputy = await getTranslations('deputy');
@@ -243,14 +247,6 @@ export default async function PersonDetailPage({
               hemicycle used to hand us the group's code ("GP") as one. */}
           {person.role_kind && person.role_title && <div className="dep-hero__role">{person.role_title}</div>}
           <div className="dep-hero__links">
-            {/* The declared assets live in the last tab; said up here too,
-                where a reader looking for them first lands. */}
-            {assets.length > 0 && tab !== 'bens' && (
-              <Link href={tabHref('bens')} scroll={false} className="dep-hero__assets">
-                <Wallet size={14} aria-hidden="true" />
-                {t('assets_link')}
-              </Link>
-            )}
             {person.biography_url && (
               <a
                 href={person.biography_url}
@@ -306,6 +302,20 @@ export default async function PersonDetailPage({
 
       {standing && standing.candidacies.length > 0 && (
         <StandingNote data={standing} locale={locale} t={t} />
+      )}
+
+      {tab !== 'qui-es' && (
+        <DeputyWhoIs
+          person={person}
+          mandates={mandates}
+          declarations={assets}
+          href={{
+            career: `${whoHref}#trajectoria` as Route,
+            assets: `${whoHref}#bens` as Route,
+            all: whoHref,
+          }}
+          locale={locale}
+        />
       )}
 
       <KpiStrip kpis={kpis} t={t} />
@@ -402,10 +412,16 @@ export default async function PersonDetailPage({
         </section>
       )}
 
-      {tab === 'bens' && assets.length > 0 && <AssetDeclarations declarations={assets} locale={locale} />}
+      {tab === 'qui-es' && assets.length > 0 && (
+        <nav className="dep-who__jump" aria-label={t('who_jump_aria')}>
+          <a href="#trajectoria">{t('tab_career')}</a>
+          <a href="#bens">{t('tab_assets')}</a>
+        </nav>
+      )}
 
-      {tab === 'trajectoria' && (
-        <section className="dep-panel dep-career">
+      {tab === 'qui-es' && (
+        <section id="trajectoria" className="dep-panel dep-career dep-who__part">
+          <h2 className="h-title">{t('tab_career')}</h2>
           {(person.profession || person.education) && (
             <dl className="law-facts">
               {person.profession && (
@@ -477,6 +493,8 @@ export default async function PersonDetailPage({
         </section>
       )}
 
+      {tab === 'qui-es' && assets.length > 0 && <AssetDeclarations declarations={assets} locale={locale} />}
+
       <style>{`
         @media (max-width: 720px) {
           .person-header { grid-template-columns: 1fr !important; gap: 16px !important; }
@@ -499,7 +517,7 @@ export default async function PersonDetailPage({
   );
 }
 
-const TABS = ['votacions', 'trenca', 'temes', 'trajectoria', 'bens'] as const;
+const TABS = ['votacions', 'trenca', 'temes', 'qui-es'] as const;
 type Tab = (typeof TABS)[number];
 
 /** Single mandate row — extracted so both the visible-first-3 list

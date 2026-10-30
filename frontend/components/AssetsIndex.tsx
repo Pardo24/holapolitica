@@ -111,7 +111,7 @@ export function AssetsIndex({ declarants, locale }: { declarants: AssetDeclarant
           {shown.map((d) => (
             <li key={d.person_id}>
               <Link
-                href={`/persons/${d.person_id}?tab=bens` as Route}
+                href={`/persons/${d.person_id}?tab=qui-es#bens` as Route}
                 className="assets-index__card"
                 style={{ ['--party' as string]: d.group_color ?? 'var(--rule-strong)' }}
               >

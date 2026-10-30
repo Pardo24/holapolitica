@@ -40,7 +40,7 @@ export async function AssetDeclarations({
   const [latest, ...older] = declarations;
 
   return (
-    <section className="dep-panel assets" aria-labelledby="assets-title">
+    <section id="bens" className="dep-panel assets dep-who__part" aria-labelledby="assets-title">
       <h2 id="assets-title" className="h-title">
         {t('title')}
       </h2>
