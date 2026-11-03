@@ -21,6 +21,7 @@ from app.metrics import (
 from app.models import (
     AssetDeclaration,
     GroupMembership,
+    InterestDeclaration,
     Legislature,
     LegislatureStatus,
     Mandate,
@@ -430,6 +431,55 @@ async def get_person_assets(
     )
     return [
         AssetDeclarationRow(
+            declared_on=d.declared_on,
+            sequence=d.sequence,
+            pdf_url=d.pdf_url,
+            status=d.parse_status,
+            data=d.data if d.parse_status == "ok" else None,
+        )
+        for d in rows
+    ]
+
+
+class InterestDeclarationRow(BaseModel):
+    """One economic-interests declaration or the activities register: the
+    official PDF, and what we read from it when the checks passed."""
+
+    #: "interests" or "activities".
+    kind: str
+    #: Only for "interests"; the register is one page rewritten in place.
+    declared_on: date | None = None
+    sequence: int | None = None
+    pdf_url: str
+    status: str
+    data: dict[str, Any] | None = None
+
+
+@router.get("/{person_id}/interests", response_model=list[InterestDeclarationRow])
+async def get_person_interests(
+    person_id: int, session: AsyncSession = Depends(get_session)
+) -> list[InterestDeclarationRow]:
+    """The deputy's activities register, then their economic-interests
+    declarations newest first (app/ingest/congreso/interests.py). ``data``
+    only for the ones read without a failed check."""
+    rows = (
+        (
+            await session.execute(
+                select(InterestDeclaration)
+                .where(InterestDeclaration.person_id == person_id)
+                .order_by(
+                    InterestDeclaration.kind,
+                    InterestDeclaration.declared_on.desc().nulls_last(),
+                    InterestDeclaration.sequence.desc().nulls_last(),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        InterestDeclarationRow(
+            kind=d.kind,
             declared_on=d.declared_on,
             sequence=d.sequence,
             pdf_url=d.pdf_url,

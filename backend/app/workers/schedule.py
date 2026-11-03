@@ -184,6 +184,10 @@ SCHEDULE_DEFINITIONS: list[tuple[str, str, str, object]] = [
     # by OCR + LLM, 40 per run. Mondays 04:30, after the night's enrichment.
     # See ``app/ingest/congreso/assets.py``.
     ("monitor-asset-declarations", "ingest", "30 4 * * 1", jobs.refresh_asset_declarations),
+    # Their economic interests and activities register, the same way, an
+    # hour later; registers rewritten since last week are read again. See
+    # ``app/ingest/congreso/interests.py``.
+    ("monitor-interest-declarations", "ingest", "30 5 * * 1", jobs.refresh_interest_declarations),
     # One verbatim quote per group from each recent plenary debate, 40 debates
     # per run. Recent debates only: the legislature's backlog is a manual run.
     # See ``app/ingest/congreso/debate_quotes.py``.

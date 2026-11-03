@@ -1230,6 +1230,21 @@ def refresh_asset_declarations(batch_size: int = 40) -> dict[str, dict[str, int]
     return asyncio.run(_run())
 
 
+def refresh_interest_declarations(batch_size: int = 40) -> dict[str, dict[str, int]]:
+    """Deputies' economic interests and activities register: find new
+    documents (and registers rewritten since the last run), then read up to
+    ``batch_size`` (OCR + LLM, see ``app/ingest/congreso/interests.py``)."""
+    from app.ingest.congreso.interests import discover, parse_pending
+
+    async def _run() -> dict[str, dict[str, int]]:
+        async with AsyncSessionLocal() as session:
+            found = await discover(session)
+            parsed = await parse_pending(session, limit=batch_size)
+        return {"discover": found, "parse": parsed}
+
+    return asyncio.run(_run())
+
+
 def refresh_debate_quotes(days: int = 30, batch_size: int = 40) -> dict[str, int]:
     """Quotes from the plenary debates of the last ``days`` (the Diario de
     Sesiones comes out days after each session). The legislature's backlog

@@ -12,6 +12,7 @@ import { ArrowRight, ArrowUpRight, MapPin, Vote } from '@/components/icons';
 
 import { AssetDeclarations } from '@/components/AssetDeclarations';
 import { DeputyWhoIs } from '@/components/DeputyWhoIs';
+import { InterestDeclarations } from '@/components/InterestDeclarations';
 import { GlossaryTerm } from '@/components/GlossaryTerm';
 import { GroupChip } from '@/components/GroupChip';
 import { PersonVotes } from '@/components/PersonVotes';
@@ -114,7 +115,10 @@ export default async function PersonDetailPage({
     throw e;
   }
   // Declared assets: their part of the page only shows once some have been found.
-  const assets = await api.persons.assets(personId).catch(() => []);
+  const [assets, interests] = await Promise.all([
+    api.persons.assets(personId).catch(() => []),
+    api.persons.interests(personId).catch(() => []),
+  ]);
   // On a 29-N list? Nothing shows until the BOE publishes them (~28 Oct).
   const standing = await api.elections.person(personId).catch(() => null);
   // The votes list behind the two vote tabs; its totals also label the tabs.
@@ -309,9 +313,11 @@ export default async function PersonDetailPage({
           person={person}
           mandates={mandates}
           declarations={assets}
+          interests={interests}
           href={{
             career: `${whoHref}#trajectoria` as Route,
             assets: `${whoHref}#bens` as Route,
+            interests: `${whoHref}#interessos` as Route,
             all: whoHref,
           }}
           locale={locale}
@@ -412,10 +418,11 @@ export default async function PersonDetailPage({
         </section>
       )}
 
-      {tab === 'qui-es' && assets.length > 0 && (
+      {tab === 'qui-es' && (assets.length > 0 || interests.length > 0) && (
         <nav className="dep-who__jump" aria-label={t('who_jump_aria')}>
           <a href="#trajectoria">{t('tab_career')}</a>
-          <a href="#bens">{t('tab_assets')}</a>
+          {assets.length > 0 && <a href="#bens">{t('tab_assets')}</a>}
+          {interests.length > 0 && <a href="#interessos">{t('tab_interests')}</a>}
         </nav>
       )}
 
@@ -494,6 +501,8 @@ export default async function PersonDetailPage({
       )}
 
       {tab === 'qui-es' && assets.length > 0 && <AssetDeclarations declarations={assets} locale={locale} />}
+
+      {tab === 'qui-es' && <InterestDeclarations declarations={interests} locale={locale} />}
 
       <style>{`
         @media (max-width: 720px) {

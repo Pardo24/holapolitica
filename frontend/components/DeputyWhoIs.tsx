@@ -5,19 +5,30 @@ import {
   ArrowRight,
   Banknote,
   Briefcase,
+  Clock,
   HandCoins,
   House,
   Landmark,
+  ShieldCheck,
   TrendingUp,
   type LucideIcon,
 } from '@/components/icons';
 
-import type { AssetDeclaration, Mandate, Person } from '@/lib/api';
+import type {
+  ActivitiesData,
+  AssetDeclaration,
+  InterestDeclaration,
+  InterestsData,
+  Mandate,
+  Person,
+} from '@/lib/api';
 
 // Our mandates start with the 2011 legislature: anyone there may go further back.
 const FIRST_LEGISLATURE_WE_HOLD = 2011;
 // Lines of the official biography that say nothing about a career.
 const SHOWN = 3;
+// Register sections that are work beside the seat, not posts or pensions.
+const AUTHORISED = ['private_authorised', 'creative', 'teaching', 'other'] as const;
 
 interface Line {
   text: string;
@@ -29,7 +40,8 @@ const NOT_CAREER = /^(casad|solter|divorciad|separad|viud|nacid|naci[oó]\b|padr
 
 /**
  * Who a deputy is, seen before any tab: what they did before, how long they
- * have sat, and the first lines of their declaration of assets.
+ * have sat, the jobs and authorised activities they declared, and the first
+ * lines of their declaration of assets.
  *
  * Only the declaration made on taking the seat is summarised. A later one
  * lists just what changed, so "none declared" would be false coming from it.
@@ -40,13 +52,15 @@ export async function DeputyWhoIs({
   person,
   mandates,
   declarations,
+  interests = [],
   href,
   locale,
 }: {
   person: Person;
   mandates: Mandate[];
   declarations: AssetDeclaration[];
-  href: { career: Route; assets: Route; all: Route };
+  interests?: InterestDeclaration[];
+  href: { career: Route; assets: Route; interests: Route; all: Route };
   locale: string;
 }) {
   const t = await getTranslations('person');
@@ -78,13 +92,48 @@ export async function DeputyWhoIs({
     });
   }
 
+  // Jobs in the five years before the seat, from the first economic-interests
+  // form; and what the Congreso lets them do beside it, from its register.
+  const firstForm = interests
+    .filter((d) => d.kind === 'interests' && d.status === 'ok' && d.data)
+    .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0))[0];
+  const before = (firstForm?.data as InterestsData | undefined)?.activities ?? [];
+  if (firstForm) {
+    rows.push({
+      key: 'before',
+      icon: Clock,
+      label: t('who_before'),
+      ...listedLines(
+        before.map((r) => ({ text: r.employer ?? r.description ?? '', amount: r.period })),
+        none,
+      ),
+      to: href.interests,
+    });
+  }
+  const register = interests.find((d) => d.kind === 'activities' && d.status === 'ok' && d.data);
+  const registerData = register?.data as ActivitiesData | undefined;
+  if (registerData) {
+    const authorised = AUTHORISED.flatMap((key) => registerData.sections?.[key] ?? []).filter((r) => r.text);
+    rows.push({
+      key: 'authorised',
+      icon: ShieldCheck,
+      label: t('who_authorised'),
+      ...(registerData.awaiting_plenary
+        ? { value: t('who_awaiting') }
+        : listedLines(
+            authorised.map((r) => ({ text: r.text ?? '', amount: null })),
+            t('who_authorised_none'),
+          )),
+      to: href.interests,
+    });
+  }
+
   const initial = declarations.find((d) => d.sequence === 0 && d.status === 'ok' && d.data);
   const data = initial?.data;
   const eur = (n: number | null | undefined) =>
     n == null ? null : n.toLocaleString(locale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
   // Each row with what the deputy wrote beside it, never added up.
-  const listed = (all: Line[]) =>
-    all.length ? { lines: all.slice(0, SHOWN), more: Math.max(all.length - SHOWN, 0) } : { value: none };
+  const listed = (all: Line[]) => listedLines(all, none);
   if (data) {
     rows.push({
       key: 'income',
@@ -192,6 +241,11 @@ export async function DeputyWhoIs({
       )}
     </section>
   );
+}
+
+/** Up to SHOWN lines and how many more, or ``empty`` when there are none. */
+function listedLines(all: Line[], empty: string): { lines?: Line[]; more?: number; value?: string } {
+  return all.length ? { lines: all.slice(0, SHOWN), more: Math.max(all.length - SHOWN, 0) } : { value: empty };
 }
 
 /** The first paragraph of the official biography about a career, not a family. */

@@ -1094,6 +1094,43 @@ class AssetDeclaration(Base, TimestampMixin):
     parsed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class InterestDeclaration(Base, TimestampMixin):
+    """A deputy's economic interests or activities, from the Congreso
+    (app/ingest/congreso/interests.py).
+
+    ``kind`` "interests": a "Declaración de Intereses Económicos", a scanned
+    form (jobs in the five years before the seat, gifts, contributions);
+    ``sequence`` 1 is the first, ``declared_on`` from its file name.
+    ``kind`` "activities": the "Registro de Intereses - Actividades" page,
+    which the Congreso rewrites in place, so no sequence or date; when the
+    file's ``pdf_sha256`` changes it is read again. ``data`` and
+    ``parse_status`` as on AssetDeclaration.
+    """
+
+    __tablename__ = "interest_declarations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    person_id: Mapped[int] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    legislature: Mapped[int] = mapped_column(Integer, nullable=False)
+    sequence: Mapped[int | None] = mapped_column(Integer)
+    declared_on: Mapped[date | None] = mapped_column(Date)
+    pdf_url: Mapped[str] = mapped_column(String(300), nullable=False, unique=True)
+    pdf_sha256: Mapped[str | None] = mapped_column(String(64))
+    parse_status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="pending", index=True
+    )
+    data: Mapped[dict[str, object] | None] = mapped_column(
+        JSON().with_variant(JSONB(), "postgresql")
+    )
+    problems: Mapped[list[str] | None] = mapped_column(JSON)
+    ocr_text: Mapped[str | None] = mapped_column(Text)
+    model: Mapped[str | None] = mapped_column(String(64))
+    parsed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class AssetIncomeSource(Base, TimestampMixin):
     """Who pays an income concept on a declaration, one row per concept as
     deputies wrote it (``normalise_concept``). ``source``: "public", "party",
