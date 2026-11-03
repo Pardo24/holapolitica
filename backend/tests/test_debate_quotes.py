@@ -254,6 +254,10 @@ def test_literal_tolerates_whitespace_only() -> None:
         # Ordinary text in brackets is not a stage direction.
         ("Lo dice la ley (una ley que ustedes aprobaron) y lo dice la Constitución.", True),
         ("Votaremos a favor. " * 40, False),
+        # One long sentence can't be shortened, so it gets more room than several.
+        ("Votaremos a favor" + ", y lo haremos convencidos" * 20 + ".", True),
+        ("Votaremos a favor. Lo haremos" + ", y convencidos" * 30 + ".", False),
+        ("Votaremos a favor" + ", y lo haremos convencidos" * 25 + ".", False),
     ],
 )
 def test_is_presentable(passage: str, ok: bool) -> None:
