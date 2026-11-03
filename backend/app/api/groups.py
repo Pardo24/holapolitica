@@ -262,7 +262,7 @@ async def list_groups_assets(session: AsyncSession = Depends(get_session)) -> li
             key=lambda g: (-g.members, g.name_short),
         )
 
-    return await cached("stats:groups:assets-summary", 3600, _compute)
+    return await cached("stats:groups:assets-summary:v2", 3600, _compute)
 
 
 @router.get("/{slug}", response_model=ParliamentaryGroupSummary)
@@ -375,7 +375,7 @@ async def get_group_assets(
     async def _compute() -> GroupAssetsDetail:
         return (await group_assets(session, [group]))[0]
 
-    return await cached(f"stats:group:{slug}:assets", 3600, _compute)
+    return await cached(f"stats:group:{slug}:assets:v2", 3600, _compute)
 
 
 @router.get("/{slug}/topic-stats", response_model=list[TopicVoteStatRow])

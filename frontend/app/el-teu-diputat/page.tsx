@@ -158,7 +158,7 @@ export default async function ElTeuDiputatPage({
           bordered
         />
         {tabs}
-        <AssetsByParty groups={byParty} locale={locale} />
+        <AssetsByParty groups={byParty} />
         <RouteMessages route="assetsIndex">
           <AssetsIndex declarants={declarants} locale={locale} />
         </RouteMessages>

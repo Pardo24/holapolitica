@@ -859,6 +859,12 @@ export interface GroupAssets {
   homes_median: number | null;
   with_shares: number;
   with_loans: number;
+  /** People with at least one of each kind; absent from an older backend. */
+  property_kinds?: PartyCount[];
+  /** People paid by a private employer or self-employed. */
+  with_outside_work?: number;
+  /** People with rental, dividend or interest income. */
+  with_rents?: number;
 }
 
 export interface MemberAssets {
