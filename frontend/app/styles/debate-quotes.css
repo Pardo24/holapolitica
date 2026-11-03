@@ -1,0 +1,29 @@
+/* "What the groups said in the debate" (components/DebateQuotes.tsx), on the
+   vote and law pages. One card per quote, two columns where there is room;
+   the first few show and the rest fold away so the page below stays close. */
+.dq { margin: 32px 0; }
+.dq__title { margin: 0; font-family: var(--font-serif); font-size: 20px; color: var(--ink); }
+.dq__dek { margin: 6px 0 18px; max-width: 680px; font-size: 13.5px; line-height: 1.55; color: var(--ink-3); }
+
+.dq__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.dq__grid > li { display: flex; min-width: 0; }
+.dq__card { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; margin: 0; padding: 16px 18px 14px; border: 1px solid var(--rule); border-top: 3px solid var(--dq-color, var(--rule-strong)); border-radius: 14px; background: var(--paper); }
+.dq__head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dq__group { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.dq__stance { margin-left: auto; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--dq-stance); background: color-mix(in oklch, var(--dq-stance) 12%, transparent); }
+.dq__quote { flex: 1; margin: 0; font-family: var(--font-serif); font-size: 15.5px; line-height: 1.65; color: var(--ink); overflow-wrap: anywhere; }
+.dq__cite { padding-top: 10px; border-top: 1px solid var(--rule); font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
+.dq__cite a { color: var(--ink-2); white-space: nowrap; }
+.dq__cite svg { display: inline; vertical-align: -1px; }
+
+.dq__more { margin-top: 14px; }
+.dq__more > summary { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--rule-strong); border-radius: 999px; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--ink-2); background: var(--paper); }
+.dq__more > summary::-webkit-details-marker { display: none; }
+.dq__more > summary svg { transition: transform .15s; }
+.dq__more[open] > summary { margin-bottom: 14px; }
+.dq__more[open] > summary svg { transform: rotate(180deg); }
+.dq__more:not([open]) .dq__less, .dq__more[open] .dq__show { display: none; }
+
+.dq__silent { margin: 16px 0 0; font-size: 13px; line-height: 1.55; color: var(--ink-3); }
+.dq__silent strong { font-weight: 600; color: var(--ink-2); }
+.dq__method { margin: 10px 0 0; max-width: 680px; font-size: 12px; line-height: 1.5; color: var(--ink-3); }
