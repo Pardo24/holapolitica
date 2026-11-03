@@ -382,29 +382,56 @@ async def list_initiatives(
         ).join(Topic, Topic.id == InitiativeTopic.topic_id)
         conditions.append(Topic.slug.in_(topic_slugs))
 
-    # Proposing-group filter. Initiatives carry no resolved proposer FK
-    # (only free-text submitted_by), so we resolve it through their linked
-    # votes' proposing_group_id — matching how /votes attributes a proposer.
-    # Expressed as an IN-subquery (not a JOIN) so it can't duplicate rows
-    # and break pagination.
+    # Proposing-group filter: who SUBMITTED the initiative, read from its
+    # submitted_by text (the group's long name in it, co-signers included,
+    # the same match as /stats and the games; "Gobierno" for the
+    # Government). It used to go through the linked votes' proposer, but a
+    # group's amendment to the whole text of a Government bill is a vote
+    # that group "proposed", so filtering by VOX listed Government bills.
+    # Votes stay the fallback for an initiative with no submitted_by.
+    # IN-subqueries and ORs, never a JOIN, so rows can't duplicate and
+    # break pagination.
     group_slugs = _split_csv(proposing_group_slug)
     if group_slugs:
         wants_government = "govern" in group_slugs
         real_group_slugs = [s for s in group_slugs if s != "govern"]
-        clauses = []
+        by_text: list[Any] = []
+        by_vote: list[Any] = []
         if wants_government:
-            clauses.append(Vote.proposed_by_government.is_(True))
+            by_text.append(Initiative.submitted_by.ilike("Gobierno%"))
+            by_vote.append(Vote.proposed_by_government.is_(True))
         if real_group_slugs:
+            names = (
+                (
+                    await session.execute(
+                        select(ParliamentaryGroup.name_long)
+                        .where(ParliamentaryGroup.slug.in_(real_group_slugs))
+                        .distinct()
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            by_text.extend(Initiative.submitted_by.ilike(f"%{n}%") for n in names if n)
             gid_subq = select(ParliamentaryGroup.id).where(
                 ParliamentaryGroup.slug.in_(real_group_slugs)
             )
-            clauses.append(Vote.proposing_group_id.in_(gid_subq))
-        if clauses:
-            vote_clause = clauses[0] if len(clauses) == 1 else or_(*clauses)
+            by_vote.append(Vote.proposing_group_id.in_(gid_subq))
+        proposer: list[Any] = []
+        if by_text:
+            proposer.append(or_(*by_text))
+        if by_vote:
             vote_subq = select(Vote.initiative_id).where(
-                and_(Vote.initiative_id.is_not(None), vote_clause)
+                and_(Vote.initiative_id.is_not(None), or_(*by_vote))
             )
-            conditions.append(Initiative.id.in_(vote_subq))
+            proposer.append(
+                and_(
+                    or_(Initiative.submitted_by.is_(None), Initiative.submitted_by == ""),
+                    Initiative.id.in_(vote_subq),
+                )
+            )
+        if proposer:
+            conditions.append(or_(*proposer))
 
     if big_two in ("agree", "disagree"):
         conditions.append(_big_two_clause(agree=big_two == "agree"))
