@@ -1,5 +1,7 @@
 """API endpoints for topics."""
 
+from datetime import UTC, date, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -7,8 +9,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.initiatives import _load_latest_vote, _load_topics_by_initiative
 from app.db import get_session
+from app.ingest.congreso.motion_texts import expediente_of
 from app.metrics import GroupVoteStatRow, compute_group_stats_for_topic
-from app.models import Initiative, InitiativeTopic, Legislature, ManifestoPoint, Topic
+from app.models import (
+    DebateQuote,
+    Initiative,
+    InitiativeTopic,
+    Legislature,
+    ManifestoPoint,
+    ParliamentaryGroup,
+    Topic,
+    Vote,
+)
 from app.schemas import InitiativeRead, InitiativeTopicSlug, TopicNewsRead, TopicRead
 from app.services.cache import cached
 from app.services.game_pool import LAW_TYPES
@@ -247,6 +259,106 @@ async def get_topic_manifesto(
 
     data = await cached(f"topics:{slug}:manifesto:{election}:v1", 3600, _compute)
     return TopicManifesto.model_validate(data)
+
+
+class TopicDebateQuote(BaseModel):
+    group_slug: str
+    initiative_id: int
+    title_ca: str | None
+    title_es: str | None
+    speaker_name: str
+    quote: str
+    debate_date: date
+    page: int
+    source_url: str
+
+
+@router.get("/{slug}/debate-quotes", response_model=list[TopicDebateQuote])
+async def get_topic_debate_quotes(
+    slug: str,
+    per_group: int = Query(2, ge=1, le=6),
+    session: AsyncSession = Depends(get_session),
+) -> list[TopicDebateQuote]:
+    """What each group said in the plenary about this topic, in its own words.
+
+    The vote guide's "what each party says": verbatim passages from the
+    Diario de Sesiones (``app/ingest/congreso/debate_quotes.py``) on items
+    classified under the topic. Neutral selection: each group's
+    ``per_group`` most recent, nothing picked by hand.
+
+    Expediente numbers restart every legislature, so only items voted in
+    the current one count, and only debates since it started.
+    """
+    topic_id = (
+        await session.execute(select(Topic.id).where(Topic.slug == slug))
+    ).scalar_one_or_none()
+    if topic_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
+    started = (
+        await session.execute(
+            select(Legislature.start_date).order_by(Legislature.start_date.desc()).limit(1)
+        )
+    ).scalar_one_or_none()
+
+    async def _compute() -> list[dict[str, object]]:
+        floor = started or date.min
+        voted_since = (
+            select(Vote.initiative_id)
+            .where(Vote.initiative_id.is_not(None))
+            .where(Vote.voted_at >= datetime.combine(floor, datetime.min.time(), tzinfo=UTC))
+        )
+        items = (
+            await session.execute(
+                select(
+                    Initiative.id,
+                    Initiative.official_id,
+                    Initiative.plain_title_ca,
+                    Initiative.title_ca,
+                    Initiative.plain_title_es,
+                    Initiative.title_es,
+                )
+                .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
+                .where(InitiativeTopic.topic_id == topic_id)
+                .where(Initiative.id.in_(voted_since))
+            )
+        ).all()
+        by_expediente = {expediente_of(i.official_id): i for i in items if i.official_id}
+        if not by_expediente:
+            return []
+        rows = (
+            await session.execute(
+                select(DebateQuote, ParliamentaryGroup.slug)
+                .join(ParliamentaryGroup, ParliamentaryGroup.id == DebateQuote.group_id)
+                .where(DebateQuote.expediente.in_(by_expediente))
+                .where(DebateQuote.debate_date >= floor)
+                .where(DebateQuote.quote.is_not(None))
+                .order_by(DebateQuote.debate_date.desc(), DebateQuote.id)
+            )
+        ).all()
+        taken: dict[str, int] = {}
+        out: list[TopicDebateQuote] = []
+        for row, group_slug in rows:
+            if taken.get(group_slug, 0) >= per_group:
+                continue
+            taken[group_slug] = taken.get(group_slug, 0) + 1
+            item = by_expediente[row.expediente]
+            out.append(
+                TopicDebateQuote(
+                    group_slug=group_slug,
+                    initiative_id=item.id,
+                    title_ca=item.plain_title_ca or item.title_ca,
+                    title_es=item.plain_title_es or item.title_es,
+                    speaker_name=row.speaker_name,
+                    quote=str(row.quote),
+                    debate_date=row.debate_date,
+                    page=row.page,
+                    source_url=row.source_url,
+                )
+            )
+        return [q.model_dump(mode="json") for q in out]
+
+    data = await cached(f"topics:{slug}:debate-quotes:{started}:{per_group}:v1", 3600, _compute)
+    return [TopicDebateQuote.model_validate(r) for r in data]
 
 
 @router.get("/{slug}/initiatives", response_model=list[dict[str, object]])
