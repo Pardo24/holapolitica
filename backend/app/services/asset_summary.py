@@ -48,6 +48,11 @@ INCOME_BANDS: Final[tuple[tuple[str, float | None], ...]] = (
     ("100k_200k", 200_000),
     ("over_200k", None),
 )
+# Two figures across sources, each a count of people with either kind: work
+# outside politics, and income from what they own. Kept apart because
+# interest on a savings account is not a second job.
+OUTSIDE_WORK: Final = ("private", "self_employed")
+RENTS: Final = ("rental", CAPITAL)
 
 _PERIOD = re.compile(r"\bmes\b|/\s*mes|mensual|\bpagas?\b|trimestr|semestr|semana", re.I)
 _NUMBER = r"(?P<n>\d{1,2}|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)"
@@ -128,10 +133,14 @@ class GroupAssets(BaseModel):
     income_bands: list[Count]
     income_sources: list[Count]
     with_property: int
+    # People with at least one of each kind of property, in PropertyCounts order.
+    property_kinds: list[Count] = []
     with_two_or_more_homes: int
     homes_median: float | None = None
     with_shares: int
     with_loans: int
+    with_outside_work: int = 0
+    with_rents: int = 0
 
 
 class GroupAssetsDetail(GroupAssets):
@@ -246,6 +255,11 @@ def summarise(
     for p in read:
         sources.update({row.source for row in p.income})
     homes = [p.properties.homes for p in read]
+    kinds = list(PropertyCounts.model_fields)
+
+    def with_source(keys: tuple[str, ...]) -> int:
+        return sum(1 for p in read if any(row.source in keys for row in p.income))
+
     return GroupAssets(
         slug=group.slug,
         name_short=group.name_short,
@@ -261,10 +275,15 @@ def summarise(
         income_bands=[Count(key=k, people=bands[k]) for k, _ in INCOME_BANDS],
         income_sources=[Count(key=k, people=n) for k, n in sorted(sources.items())],
         with_property=sum(1 for p in read if p.properties != PropertyCounts()),
+        property_kinds=[
+            Count(key=k, people=sum(1 for p in read if getattr(p.properties, k))) for k in kinds
+        ],
         with_two_or_more_homes=sum(1 for h in homes if h >= 2),
         homes_median=statistics.median(homes) if len(homes) >= MIN_FOR_MEDIAN else None,
         with_shares=sum(1 for p in read if p.shares),
         with_loans=sum(1 for p in read if p.loans or p.other_debts),
+        with_outside_work=with_source(OUTSIDE_WORK),
+        with_rents=with_source(RENTS),
     )
 
 

@@ -330,3 +330,49 @@
   color: var(--ink-2);
   text-decoration: none;
 }
+
+/* Dades: declared assets by party (StatsAssets). --shade is a share, 0-100%. */
+.sa { margin-top: 28px; scroll-margin-top: 90px; }
+.sa__head { margin: 0 0 14px; }
+.sa__title { margin: 0; font-family: var(--font-serif); font-size: 26px; line-height: 1.15; letter-spacing: -0.015em; color: var(--ink); }
+.sa__dek { max-width: 72ch; margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+/* li > a is inline-block on touch screens (global tap-target rule): outrank it. */
+.sa-party, .sa-bands > li > a.sa-party { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.sa-party > span:last-child { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.2; }
+.sa-party:hover > span:last-child, .sa-party:focus-visible > span:last-child { text-decoration: underline; }
+.sa-matrix { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+.sa-matrix table { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: separate; border-spacing: 3px; font-size: 13px; }
+.sa-matrix thead th { padding: 0 4px 6px; font-size: 11.5px; font-weight: 600; line-height: 1.3; text-align: center; vertical-align: bottom; color: var(--ink-2); }
+.sa-matrix th:first-child { position: sticky; left: 0; z-index: 1; width: 150px; text-align: left; background: var(--paper); }
+.sa-matrix tbody th { padding: 0 6px 0 0; font-weight: 600; }
+.sa-matrix td { padding: 6px 4px; border-radius: 8px; text-align: center; color: var(--ink); background: color-mix(in oklab, var(--hue-dades) calc(var(--shade, 0%) * 0.55), var(--paper-2)); }
+.sa-cell { display: block; font-weight: 700; }
+.sa-matrix td small { display: block; font-size: 10.5px; color: var(--ink-2); }
+.sa-swipe { display: none; margin: -6px 0 8px; font-size: 11.5px; color: var(--ink-3); }
+.sa-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 10px; padding: 0; list-style: none; font-size: 12px; color: var(--ink-2); }
+.sa-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.sa-swatch { width: 11px; height: 11px; border-radius: 3px; background: color-mix(in oklab, var(--hue-dades) var(--shade), var(--paper-2)); }
+.sa-bands { margin: 0; padding: 0; list-style: none; }
+.sa-bands > li { display: grid; grid-template-columns: 150px minmax(0, 1fr) 84px; align-items: center; gap: 10px; min-height: 44px; }
+.sa-bands > li + li { border-top: 1px solid color-mix(in oklch, var(--rule) 70%, transparent); }
+.sa-stack { display: flex; height: 14px; gap: 2px; border-radius: 999px; overflow: hidden; }
+.sa-stack > span { display: block; min-width: 3px; background: color-mix(in oklab, var(--hue-dades) var(--shade), var(--paper-2)); }
+.sa-few { font-size: 12px; color: var(--ink-3); }
+.sa-median { font-size: 13px; font-weight: 700; text-align: right; color: var(--ink); }
+.sa-median small { display: block; font-size: 10.5px; font-weight: 500; color: var(--ink-3); }
+.sa-cant { margin-top: 14px; padding: 14px 18px; border: 1px dashed color-mix(in oklch, var(--ink) 22%, var(--rule)); border-radius: 18px; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.sa-cant h3 { margin: 0 0 6px; font-size: 14.5px; font-weight: 700; color: var(--ink); }
+.sa-cant ul { margin: 0; padding-left: 18px; }
+.sa-cant li + li { margin-top: 4px; }
+.sa-cant p { margin: 8px 0 0; color: var(--ink-3); }
+@media (max-width: 560px) {
+  .sa-swipe { display: block; }
+  .sa-matrix table { min-width: 520px; }
+  .sa-matrix th:first-child { width: 114px; }
+  .sa-party { gap: 6px; font-size: 12.5px; }
+  .sa-bands > li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "party median" "bar bar"; gap: 2px 8px; padding: 6px 0 10px; }
+  .sa-bands .sa-party { grid-area: party; }
+  .sa-bands .sa-median { grid-area: median; }
+  .sa-bands .sa-stack, .sa-bands .sa-few { grid-area: bar; }
+  .sa-cant { padding: 12px 14px; }
+}

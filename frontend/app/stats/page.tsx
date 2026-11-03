@@ -14,6 +14,7 @@ import { HighlightsCarousel } from '@/components/HighlightsCarousel';
 import { LawSummaryPanel } from '@/components/LawSummaryPanel';
 import { LawTypeChip } from '@/components/LawTypeChip';
 import { MobileStatsDashboard } from '@/components/MobileStatsDashboard';
+import { StatsAssets } from '@/components/StatsAssets';
 import { StatsQuestions } from '@/components/StatsQuestions';
 import { RouteMessages } from '@/components/RouteMessages';
 import { StatsGroupFilter, StatsTopicFilter } from '@/components/StatsFilterClient';
@@ -24,6 +25,7 @@ import {
   type CoincidenceCell,
   type CrossTopicGroup,
   type GroupActivity,
+  type GroupAssets,
   type GroupProposalCount,
   type GroupSummaryRow,
   type InitiativeMini,
@@ -150,6 +152,7 @@ export default async function StatsPage({
     topicProposers,
     cross,
     topicStatsPerGroup,
+    assetsByParty,
   ] = await Promise.all([
     api.stats.summary(),
     api.stats.initiativesByStatus(),
@@ -173,6 +176,9 @@ export default async function StatsPage({
       ? api.stats.crossTopicGroup(selectedTopic, selectedGroup, 1).catch(() => null)
       : Promise.resolve<CrossTopicGroup | null>(null),
     topicStatsPerGroupPromise,
+    anyFilter
+      ? Promise.resolve([] as GroupAssets[])
+      : api.groups.assetsSummary().catch(() => [] as GroupAssets[]),
   ]);
 
   // The four-questions page (nothing filtered): what each group tables per
@@ -296,7 +302,9 @@ export default async function StatsPage({
             pairA={pairA}
             pairB={pairB}
             locale={locale}
-          />
+          >
+            <StatsAssets groups={assetsByParty} allGroups={allGroups} locale={locale} />
+          </StatsQuestions>
         </RouteMessages>
       )}
 

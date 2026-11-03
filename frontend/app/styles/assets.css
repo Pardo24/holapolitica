@@ -151,14 +151,10 @@ details.assets__decl .assets__date { font-size: 16.5px; }
 
 /* ---- the parties side by side (Diputats hub, "Béns") ------------------ */
 .assets-compare { padding-top: 18px; }
-.assets-compare__scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 12px; }
-.assets-compare table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 13px; }
-.assets-compare th, .assets-compare td { padding: 9px 10px; border-top: 1px solid var(--rule); text-align: right; vertical-align: top; color: var(--ink); }
-.assets-compare thead th { border-top: 0; font-size: 12px; font-weight: 600; line-height: 1.3; color: var(--ink-2); background: var(--paper-2); }
-.assets-compare th:first-child { position: sticky; left: 0; z-index: 1; min-width: 120px; text-align: left; background: var(--paper); }
-.assets-compare thead th:first-child { background: var(--paper-2); }
-.assets-compare td small { display: block; font-size: 11px; color: var(--ink-3); }
-.assets-compare__party { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: var(--ink); text-decoration: none; }
-.assets-compare__party:hover, .assets-compare__party:focus-visible { text-decoration: underline; }
+.assets-compare .assets-index__dek { margin-bottom: 10px; }
+.assets-compare__cta { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--hue-dades-ink, var(--ink)); text-decoration: none; }
+.assets-compare__cta:hover, .assets-compare__cta:focus-visible { text-decoration: underline; }
+.assets-compare__parties { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.assets-compare__party, .assets-compare__parties > li > a.assets-compare__party { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; background: var(--paper); }
+.assets-compare__party:hover, .assets-compare__party:focus-visible { border-color: var(--party, var(--ink-3)); }
 .assets-compare__dot { width: 9px; height: 9px; flex: none; border-radius: 3px; background: var(--party, var(--ink-3)); }
-.assets-compare__foot { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }

@@ -26,12 +26,15 @@ from app.models import (
     Person,
 )
 from app.services.asset_summary import (
+    MemberAssets,
+    MemberIncome,
     PropertyCounts,
     comparable_income,
     group_assets,
     income_source,
     normalise_concept,
     property_counts,
+    summarise,
 )
 
 
@@ -216,6 +219,38 @@ async def test_group_figures_never_order_people_by_money(db_session: AsyncSessio
     assert detail.with_loans == 1
     held = next(p for p in detail.people if p.full_name == "Held")
     assert held.declared_on is None and held.income == []
+
+
+def test_outside_work_and_rents_count_people_once() -> None:
+    def person(pid: int, *sources: str, **props: int) -> MemberAssets:
+        return MemberAssets(
+            person_id=pid,
+            full_name=str(pid),
+            declared_on=date(2023, 8, 8),
+            income=[MemberIncome(source=s) for s in sources],
+            properties=PropertyCounts(**props),
+        )
+
+    people = [
+        person(1, "public", "private", "self_employed", homes=2, land=1),
+        person(2, "public", "rental", "capital", homes=1),
+        person(3, "capital", company=1),
+        person(4, "party"),
+        MemberAssets(person_id=5, full_name="Unread"),
+    ]
+    group = ParliamentaryGroup(slug="gp-test", name_short="Test", name_long="Grupo Test")
+    figures = summarise(group, people, {})
+
+    assert (figures.with_outside_work, figures.with_rents) == (1, 2)
+    assert {k.key: k.people for k in figures.property_kinds} == {
+        "homes": 2,
+        "storage": 0,
+        "land": 1,
+        "commercial": 0,
+        "company": 1,
+        "other": 0,
+    }
+    assert figures.with_property == 3
 
 
 async def test_the_api_shows_groups_without_their_people(db_session: AsyncSession) -> None:

@@ -44,6 +44,7 @@ export async function StatsQuestions({
   pairA,
   pairB,
   locale,
+  children,
 }: {
   byStatus: InitiativeStatusCount[];
   groupSummary: GroupSummaryRow[];
@@ -55,6 +56,8 @@ export async function StatsQuestions({
   pairA: string;
   pairB: string;
   locale: string;
+  /** What deputies declared (StatsAssets), between the questions and the detail. */
+  children?: React.ReactNode;
 }) {
   const t = await getTranslations('stats_q');
   const tDash = await getTranslations('dashboard');
@@ -260,6 +263,8 @@ export async function StatsQuestions({
           </ul>
         </section>
       </div>
+
+      {children}
 
       {/* The detail: a topic or a group, in the filtered views. */}
       <section className="sq-explore" aria-labelledby="sq-explore">
