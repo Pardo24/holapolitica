@@ -6,7 +6,10 @@
  * None was published when this was written (2026-10-26; the PP's
  * "Contrato con España" is a manifesto of commitments, which the party
  * itself says is not its programme). Add each URL the day it is out; the
- * "your vote" page lists them and each group's page links its own.
+ * programmes step of the vote guide (app/eleccions/programes) lists them
+ * and each group's page links its own. Its quotes come from the backend
+ * extraction, run with the party slug and ``--election 2026-11``
+ * (backend app/ingest/manifestos.py), reviewed, then imported.
  */
 export const PROGRAMS_2026: Record<string, { url: string; published: string } | undefined> = {
   // pp: { url: 'https://...', published: '2026-11-..' },

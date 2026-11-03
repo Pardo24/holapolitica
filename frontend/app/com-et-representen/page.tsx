@@ -8,9 +8,11 @@ import { Scale } from '@/components/icons';
 import { AlignQuiz } from '@/components/AlignQuiz';
 import { PageHeader } from '@/components/PageHeader';
 import { GameTopicStart } from '@/components/GameTopicStart';
+import { VoteGuideBar, guideNextProps } from '@/components/VoteGuide';
 import { displayGroupShort } from '@/lib/groups';
 import { parseQuizResult, quizResultParam } from '@/lib/quizResult';
 import { pickTopicName } from '@/lib/topics';
+import { inGuide } from '@/lib/voteGuide';
 import { api, type AlignQuestion, type Topic } from '@/lib/api';
 
 // Questions rotate with the data; a short ISR window keeps them fresh without
@@ -49,14 +51,18 @@ export async function generateMetadata({
 export default async function ComEtRepresentenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ seed?: string; tema?: string; go?: string }>;
+  searchParams: Promise<{ seed?: string; tema?: string; go?: string; guia?: string }>;
 }) {
   const t = await getTranslations('align');
   const locale = await getLocale();
   // "Other questions" reshuffles the same eligible pool behind a seed, so a
   // reader who has answered these ten can keep going, and a shared link
   // always shows the same set. ``tema`` narrows the pool to one subject.
-  const { seed, tema, go } = await searchParams;
+  const { seed, tema, go, guia } = await searchParams;
+  // Opened from the vote guide: it is step 1, and the results lead on to
+  // step 2 (lib/voteGuide.ts).
+  const guide = inGuide(guia);
+  const keep = guide ? '&guia=1' : '';
   const seedNumber = seed && /^\d+$/.test(seed) ? Number(seed) : undefined;
   const topicSlug = tema && /^[a-z0-9-]+$/.test(tema) ? tema : undefined;
 
@@ -66,6 +72,12 @@ export default async function ComEtRepresentenPage({
   if (atStart) {
     const allTopics = await api.topics.list().catch(() => [] as Topic[]);
     return (
+      <>
+      {guide && (
+        <div style={{ maxWidth: 680, marginInline: 'auto' }}>
+          <VoteGuideBar step={1} />
+        </div>
+      )}
       <GameTopicStart
         hue="var(--hue-alinea)"
         icon={<Scale size={26} strokeWidth={2} />}
@@ -77,8 +89,9 @@ export default async function ComEtRepresentenPage({
         anySub={t('start_any_sub')}
         topics={allTopics}
         locale={locale}
-        hrefFor={(slug) => (slug ? `/com-et-representen?tema=${slug}` : '/com-et-representen?go=1')}
+        hrefFor={(slug) => (slug ? `/com-et-representen?tema=${slug}${keep}` : `/com-et-representen?go=1${keep}`)}
       />
+      </>
     );
   }
 
@@ -90,6 +103,7 @@ export default async function ComEtRepresentenPage({
 
   return (
     <div style={{ maxWidth: 680, marginInline: 'auto' }}>
+      {guide && <VoteGuideBar step={1} />}
       <PageHeader
         hue="var(--hue-alinea)"
         title={t('title')}
@@ -110,7 +124,7 @@ export default async function ComEtRepresentenPage({
         <span>
           {t('topic_label')}: <strong>{chosen ? pickTopicName(chosen, locale) : t('start_any_title')}</strong>
         </span>
-        <Link href={'/com-et-representen' as Route}>{t('change_topic')}</Link>
+        <Link href={(guide ? '/com-et-representen?guia=1' : '/com-et-representen') as Route}>{t('change_topic')}</Link>
       </div>
 
       <div style={{ paddingTop: 22 }}>
@@ -120,6 +134,7 @@ export default async function ComEtRepresentenPage({
           <AlignQuiz
             questions={questions}
             locale={locale}
+            guideNext={guide ? await guideNextProps(2) : undefined}
             labels={{
               // Templated strings go through t.raw: the component fills the
               // placeholders itself, and t() would parse them as ICU

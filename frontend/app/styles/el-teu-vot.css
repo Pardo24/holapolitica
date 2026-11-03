@@ -83,3 +83,104 @@
 .vprog__name { font-size: 14px; font-weight: 700; color: var(--ink); }
 .vprog__pending { font-size: 12px; color: var(--ink-3); }
 .vprog__link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--ink); }
+
+/* The guide across its four pages (components/VoteGuide.tsx): a bar on
+   top that says which step this is, and a card at the end that leads to
+   the next one, so nobody goes back to the list to carry on. */
+.vguide {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 10px 12px 12px;
+  border: 1px solid color-mix(in oklch, var(--accent) 30%, var(--rule));
+  border-radius: 14px;
+  background: color-mix(in oklch, var(--accent) 6%, var(--paper));
+}
+.vguide__home {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  align-self: flex-start;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+.vguide__row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.vguide__steps { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; flex: none; }
+.vguide__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1.5px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.vguide__dot--done { border-color: var(--accent); color: var(--accent); }
+.vguide__dot--on { border-color: var(--accent); background: var(--accent); color: #fff; }
+.vguide__now { display: flex; flex-direction: column; min-width: 0; margin: 0; line-height: 1.25; }
+.vguide__count { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.vguide__title { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+
+.vnext {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 28px 0 8px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 6px 18px color-mix(in oklch, var(--accent) 28%, transparent);
+}
+.vnext:hover { background: color-mix(in oklch, var(--accent) 88%, black); }
+.vnext__eyebrow { font-size: 11.5px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; opacity: 0.85; }
+.vnext__title { font-family: var(--font-serif); font-size: 21px; font-weight: 700; line-height: 1.2; }
+.vnext__body { font-size: 13.5px; line-height: 1.45; opacity: 0.92; }
+.vnext__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.vdone { margin: 28px 0 8px; padding: 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper-2); }
+.vdone__title { margin: 0 0 6px; font-family: var(--font-serif); font-size: 21px; color: var(--ink); }
+.vdone__body { margin: 0 0 14px; max-width: 60ch; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.vdone__links { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.vdone__back { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+
+/* The guide's front page: one button into step 1. */
+.vstart { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 16px; }
+.vstart .btn-ink { display: inline-flex; align-items: center; gap: 6px; }
+.vstart__note { font-size: 13px; color: var(--ink-3); }
+
+/* Step 3, the manifestos side by side (app/eleccions/programes): one card
+   per party, its own sentences on the chosen topic, each with its page. */
+.vprog__none { margin: 0 0 18px; padding: 14px 16px; max-width: 64ch; border-radius: 14px; background: var(--paper-2); font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.vparty { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 12px; padding: 0; list-style: none; }
+.vparty__card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 14px; border: 1px solid var(--rule); border-top: 3px solid var(--party); border-radius: 12px; background: var(--paper); }
+.vparty__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.vparty__name { font-size: 15px; font-weight: 800; color: var(--ink); }
+.vparty__state { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-3); }
+.vparty__quotes { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.vparty__quote { margin: 0; padding-left: 10px; border-left: 2px solid color-mix(in oklch, var(--party) 55%, var(--rule)); font-size: 14px; line-height: 1.5; color: var(--ink); }
+.vparty__page { display: inline-block; margin: 3px 0 0 12px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.vparty__more summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.vparty__more[open] summary { margin-bottom: 10px; }
+@media (max-width: 640px) { .vparty { grid-template-columns: minmax(0, 1fr); } }

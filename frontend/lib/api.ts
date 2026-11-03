@@ -732,6 +732,27 @@ export interface GroupVoteChoiceRow {
 
 /** One group's Sí/No/Abst breakdown on a single topic (inverse of
  *  TopicVoteStat — keyed by group, scoped to one topic). */
+/** A law on a topic and how each group voted it (backend /topics/{slug}/key-laws). */
+export interface KeyLaw {
+  initiative_id: number;
+  type: string;
+  title_ca: string | null;
+  title_es: string | null;
+  /** What was voted: taking (whether to start it), totality, convalidation, other (the text). */
+  stage: string;
+  verdict: string | null;
+  vote_id: number;
+  voted_at: string | null;
+  groups: { slug: string; name_short: string | null; color_hex: string | null; logo_url: string | null; choice: string }[];
+}
+
+/** Every party's literal manifesto quotes on one topic (backend /topics/{slug}/manifesto). */
+export interface TopicManifesto {
+  /** Quotes per party in the whole manifesto: missing = not read yet. */
+  counts: Record<string, number>;
+  points: { party: string; quote: string; page: number | null; source_url: string | null }[];
+}
+
 export interface GroupVoteStat {
   group_slug: string;
   group_name_short: string;
@@ -1643,6 +1664,15 @@ export const api = {
     // against on this topic" widget. Inverse of groups.topicStats.
     groupStats: (slug: string) =>
       request<GroupVoteStat[]>(`/topics/${slug}/group-stats`, {
+        revalidate: AGG_REVALIDATE,
+      }),
+    // The latest laws on the topic and how each group voted them: the vote
+    // guide's "compare the parties" step.
+    keyLaws: (slug: string, n = 8) =>
+      request<KeyLaw[]>(`/topics/${slug}/key-laws?n=${n}`, { revalidate: AGG_REVALIDATE }),
+    // Every party's literal manifesto quotes on the topic, for one election.
+    manifesto: (slug: string, election = '2026-11') =>
+      request<TopicManifesto>(`/topics/${slug}/manifesto?election=${election}`, {
         revalidate: AGG_REVALIDATE,
       }),
   },

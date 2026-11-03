@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 
@@ -13,6 +13,7 @@ import { GameLawTags } from '@/components/GameLawTags';
 import { ProfileEffectsClient, effectsItems } from '@/components/ProfileEffectsClient';
 import { pickTopicName } from '@/lib/topics';
 import { openShareSheet } from '@/lib/native';
+import { VoteGuideNext } from '@/components/VoteGuideNext';
 
 /**
  * "Com et representen?" — the citizen answers real past votes (Sí / No /
@@ -100,10 +101,13 @@ export function AlignQuiz({
   questions: baseQuestions,
   labels,
   locale,
+  guideNext,
 }: {
   questions: AlignQuestion[];
   labels: AlignQuizLabels;
   locale: string;
+  /** Opened from the vote guide: the results lead straight on to step 2. */
+  guideNext?: ComponentProps<typeof VoteGuideNext>;
 }) {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
@@ -329,7 +333,7 @@ export function AlignQuiz({
     } catch {
       /* nothing to clear */
     }
-    window.location.search = `?seed=${seed}`;
+    window.location.search = guideNext ? `?seed=${seed}&guia=1` : `?seed=${seed}`;
   }
 
   async function share() {
@@ -436,6 +440,9 @@ export function AlignQuiz({
                 ))}
               </div>
             )}
+            {/* In the guide, the next step right under the podium: the test
+                is done, and the rest of the ranking is there to scroll to. */}
+            {guideNext && <VoteGuideNext {...guideNext} />}
             {results.length > restFrom && (
               <>
                 <p style={{ ...EYEBROW, marginTop: 22 }}>{labels.results_rest}</p>
@@ -471,12 +478,16 @@ export function AlignQuiz({
                   {labels.results_next_group.replace('{name}', r.name)} →
                 </a>
               ))}
-              <a href="/comparar" className="quiz-next__link">
-                {labels.results_next_compare} →
-              </a>
-              <a href="/eleccions/el-teu-vot" className="quiz-next__link">
-                {labels.results_next_vote} →
-              </a>
+              {!guideNext && (
+                <>
+                  <a href="/comparar" className="quiz-next__link">
+                    {labels.results_next_compare} →
+                  </a>
+                  <a href="/eleccions/el-teu-vot" className="quiz-next__link">
+                    {labels.results_next_vote} →
+                  </a>
+                </>
+              )}
             </nav>
           </>
         )}

@@ -15,10 +15,14 @@ export async function ElectionsHeader({
   active,
   title,
   intro,
+  bare = false,
 }: {
   active: 'candidacies' | 'vote' | 'calendar' | 'results' | 'pacts';
   title: string;
   intro: string;
+  /** Title and intro only: a vote-guide step, where the guide's bar is the
+   *  way around and the countdown and tabs only push the step down. */
+  bare?: boolean;
 }) {
   const t = await getTranslations('elections');
   const tabs = [
@@ -36,20 +40,22 @@ export async function ElectionsHeader({
           <h1>{title}</h1>
           <p className="pacts-hero__intro">{intro}</p>
         </div>
-        <Countdown />
+        {!bare && <Countdown />}
       </header>
-      <nav className="etabs" aria-label={t('tabs_aria')}>
-        {tabs.map((tab) => (
-          <Link
-            key={tab.key}
-            href={tab.href as Route}
-            className={tab.key === active ? 'etab etab--on' : 'etab'}
-            aria-current={tab.key === active ? 'page' : undefined}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </nav>
+      {!bare && (
+        <nav className="etabs" aria-label={t('tabs_aria')}>
+          {tabs.map((tab) => (
+            <Link
+              key={tab.key}
+              href={tab.href as Route}
+              className={tab.key === active ? 'etab etab--on' : 'etab'}
+              aria-current={tab.key === active ? 'page' : undefined}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </>
   );
 }

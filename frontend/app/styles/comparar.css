@@ -56,3 +56,30 @@
   .cmp__panel { padding: 14px; }
   .cmp__row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
 }
+
+/* Law by law (2026-11-03): who voted for, against or abstained on each of
+   the topic's latest laws, the groups as chips on three lines. */
+.cmp__lede { margin: 0 0 14px; max-width: 64ch; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.claw { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.claw__card { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper); box-shadow: var(--shadow-1); }
+.claw__title { font-size: 15.5px; font-weight: 700; line-height: 1.35; color: var(--ink); text-decoration: none; }
+.claw__title:hover { text-decoration: underline; }
+.claw__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; font-size: 12.5px; color: var(--ink-3); }
+.claw__outcome { padding: 2px 8px; border-radius: 999px; background: var(--paper-3); font-weight: 700; color: var(--ink-2); }
+.claw__outcome--approved { background: color-mix(in oklch, var(--aye) 16%, var(--paper)); color: color-mix(in oklch, var(--aye) 70%, var(--ink)); }
+.claw__outcome--rejected { background: color-mix(in oklch, var(--no) 14%, var(--paper)); color: color-mix(in oklch, var(--no) 70%, var(--ink)); }
+.claw__sides { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.claw__side { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: start; gap: 8px; }
+.claw__side dt { display: flex; align-items: center; gap: 6px; padding-top: 3px; white-space: nowrap; font-size: 11.5px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); }
+.claw__side dt::before { content: ''; flex: none; width: 9px; height: 9px; border-radius: 3px; }
+.claw__side--aye dt::before { background: var(--aye); }
+.claw__side--no dt::before { background: var(--no); }
+.claw__side--abstention dt::before { background: var(--abst); }
+.claw__side dd { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; }
+.claw__group { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px 2px 3px; border: 1px solid var(--rule); border-radius: 999px; background: var(--paper); font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.claw__group img { width: 18px; height: 18px; border-radius: 999px; object-fit: contain; background: #fff; }
+.claw__disc { width: 16px; height: 16px; border-radius: 999px; }
+@media (max-width: 640px) {
+  .claw__card { padding: 12px 13px; }
+  .claw__side { grid-template-columns: 100px minmax(0, 1fr); gap: 6px; }
+}

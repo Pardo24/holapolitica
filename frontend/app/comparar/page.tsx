@@ -1,4 +1,5 @@
 import '@/app/styles/comparar.css';
+import '@/app/styles/el-teu-vot.css';
 import type { Metadata } from 'next';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -7,43 +8,52 @@ import { ArrowRight, Scale } from '@/components/icons';
 
 import { PageHeader } from '@/components/PageHeader';
 import { stanceLabel } from '@/components/PartyStanceRow';
-import { api, type GroupVoteStat, type Topic } from '@/lib/api';
+import { VoteGuideBar, VoteGuideFooter } from '@/components/VoteGuide';
+import { api, type KeyLaw, type Topic } from '@/lib/api';
 import { groupLogoUrl } from '@/lib/groupLogos';
-import { ballotName2026 } from '@/lib/groups';
 import { pickTopicName } from '@/lib/topics';
+import { inGuide } from '@/lib/voteGuide';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('compare');
   return { title: t('meta_title'), description: t('meta_description') };
 }
 
+const CHOICES = ['aye', 'no', 'abstention'] as const;
+
 /**
- * Compare the parties, topic by topic: pick a subject and see, for every
- * group, the share of its deputies' votes that were yes, no or abstention
- * on the votes classified under it this legislature (backend
- * /topics/{slug}/group-stats, the "who's for, who's against" widget).
+ * Compare the parties, topic by topic (step 2 of the vote guide): pick a
+ * subject and see, law by law, which groups voted for, against or
+ * abstained (backend /topics/{slug}/key-laws).
  *
- * Groups in the order of their size, never ranked by how they voted, and
- * every one links to its page. Facts of record, not a party's stated
- * position: the method line under the chart says so.
+ * It used to be one bar per group with its share of yeses over every vote
+ * of the subject, amendments included. Every group came out near half and
+ * half, so the bars said nothing. A law and who backed it says something.
+ *
+ * Neutral selection: the latest laws the plenary voted, none picked by
+ * hand; groups in each row in the order the record gives them, never
+ * ranked. Each law links to its page.
  */
-export default async function ComparePage({ searchParams }: { searchParams: Promise<{ tema?: string }> }) {
+export default async function ComparePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tema?: string; guia?: string }>;
+}) {
   const t = await getTranslations('compare');
-  const tLleis = await getTranslations('lleis');
   const locale = await getLocale();
+  const { tema: asked, guia } = await searchParams;
+  const guide = inGuide(guia);
   const topics: Topic[] = (await api.topics.list({ kind: 'theme' }).catch(() => [] as Topic[])).sort((a, b) =>
     pickTopicName(a, locale).localeCompare(pickTopicName(b, locale), locale),
   );
-  const asked = (await searchParams).tema;
   const topic = topics.find((tp) => tp.slug === asked) ?? topics.find((tp) => tp.slug === 'habitatge') ?? topics[0];
-  const stats: GroupVoteStat[] = topic
-    ? (await api.topics.groupStats(topic.slug).catch(() => [] as GroupVoteStat[])).filter((g) => g.cast > 0)
-    : [];
-  stats.sort((a, b) => b.cast - a.cast);
-  const pct = (n: number, of: number) => (of ? Math.round((100 * n) / of) : 0);
+  // null = the API failed: not the same as a topic with no laws voted.
+  const laws: KeyLaw[] | null = topic ? await api.topics.keyLaws(topic.slug).catch(() => null) : [];
+  const topicName = topic ? pickTopicName(topic, locale) : '';
 
   return (
     <div className="cmp">
+      {guide && <VoteGuideBar step={2} />}
       <PageHeader
         hue="var(--hue-partits)"
         title={t('title')}
@@ -55,7 +65,7 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
         {topics.map((tp) => (
           <Link
             key={tp.slug}
-            href={`/comparar?tema=${tp.slug}` as Route}
+            href={`/comparar?tema=${tp.slug}${guide ? '&guia=1' : ''}` as Route}
             className={tp.slug === topic?.slug ? 'cmp__topic cmp__topic--on' : 'cmp__topic'}
             aria-current={tp.slug === topic?.slug ? 'page' : undefined}
             style={{ ['--topic' as string]: tp.color_hex ?? 'var(--ink-3)' }}
@@ -67,67 +77,95 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
       </nav>
 
       {topic && (
-        <section className="cmp__panel" aria-labelledby="cmp-title">
+        <section aria-labelledby="cmp-title">
           <h2 id="cmp-title" className="cmp__title">
-            {t('topic_title', { topic: pickTopicName(topic, locale) })}
+            {t('laws_title', { topic: topicName })}
           </h2>
-          <p className="cmp__legend">
-            <span className="cmp__key cmp__key--aye" /> {tLleis('card_in_favour')}
-            <span className="cmp__key cmp__key--abst" /> {tLleis('card_abstention')}
-            <span className="cmp__key cmp__key--no" /> {tLleis('card_against')}
-          </p>
-          {stats.length === 0 ? (
-            <p className="cmp__empty">{t('empty')}</p>
+          <p className="cmp__lede">{t('laws_lede')}</p>
+          {laws === null ? (
+            <p className="cmp__empty">{t('laws_error')}</p>
+          ) : laws.length === 0 ? (
+            <p className="cmp__empty">{t('laws_empty')}</p>
           ) : (
-            <ul className="cmp__rows">
-              {stats.map((g) => {
-                const logo = groupLogoUrl(g.group_slug);
-                const ballot = ballotName2026(g.group_slug);
-                const aye = pct(g.ayes, g.cast);
-                const no = pct(g.noes, g.cast);
-                const abst = Math.max(0, 100 - aye - no);
-                return (
-                  <li key={g.group_slug}>
-                    <Link href={`/groups/${g.group_slug}` as Route} className="cmp__row">
-                      <span className="cmp__party">
-                        {logo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={logo} alt="" width={24} height={24} loading="lazy" decoding="async" />
-                        ) : (
-                          <span
-                            className="cmp__disc"
-                            style={{ background: g.group_color_hex ?? 'var(--ink-3)' }}
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="cmp__name">
-                          {stanceLabel({ slug: g.group_slug, name_short: g.group_name_short })}
-                          {ballot && <span className="cmp__ballot">{t('ballot', { name: ballot })}</span>}
-                        </span>
-                      </span>
-                      <span className="cmp__bar" role="img" aria-label={t('bar_aria', { aye, abst, no })}>
-                        <span className="cmp__seg cmp__seg--aye" style={{ width: `${aye}%` }}>
-                          {aye >= 12 && `${aye}%`}
-                        </span>
-                        <span className="cmp__seg cmp__seg--abst" style={{ width: `${abst}%` }}>
-                          {abst >= 12 && `${abst}%`}
-                        </span>
-                        <span className="cmp__seg cmp__seg--no" style={{ width: `${no}%` }}>
-                          {no >= 12 && `${no}%`}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <ol className="claw">
+              {laws.map((law) => (
+                <LawCard key={law.initiative_id} law={law} locale={locale} t={t} />
+              ))}
+            </ol>
           )}
-          <p className="cmp__method">{t('method')}</p>
+          <p className="cmp__method">{t('laws_method')}</p>
           <Link href={`/topics/${topic.slug}` as Route} className="cmp__more">
-            {t('see_topic', { topic: pickTopicName(topic, locale) })} <ArrowRight size={14} aria-hidden="true" />
+            {t('see_topic', { topic: topicName })} <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </section>
       )}
+
+      {guide && <VoteGuideFooter step={2} />}
     </div>
+  );
+}
+
+/** What was voted, and how it went, in words a reader knows. */
+function outcomeKey(law: KeyLaw): string {
+  const stage = ['taking', 'totality', 'convalidation'].includes(law.stage) ? law.stage : 'other';
+  const verdict = law.verdict === 'approved' || law.verdict === 'rejected' ? law.verdict : 'open';
+  return `outcome_${stage}_${verdict}`;
+}
+
+function LawCard({
+  law,
+  locale,
+  t,
+}: {
+  law: KeyLaw;
+  locale: string;
+  t: (key: string) => string;
+}) {
+  const title = (locale === 'ca' ? law.title_ca : law.title_es) ?? law.title_es ?? law.title_ca ?? '';
+  const date = law.voted_at
+    ? new Date(law.voted_at).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
+  const by = (choice: string) => law.groups.filter((g) => g.choice === choice);
+  return (
+    <li className="claw__card">
+      <Link href={`/initiatives/${law.initiative_id}` as Route} className="claw__title">
+        {title}
+      </Link>
+      <p className="claw__meta">
+        {date && <span>{date}</span>}
+        <span className={`claw__outcome claw__outcome--${law.verdict ?? 'open'}`}>{t(outcomeKey(law))}</span>
+      </p>
+      <dl className="claw__sides">
+        {CHOICES.map((choice) => {
+          const groups = by(choice);
+          if (groups.length === 0) return null;
+          return (
+            <div key={choice} className={`claw__side claw__side--${choice}`}>
+              <dt>{t(`side_${choice}`)}</dt>
+              <dd>
+                {groups.map((g) => {
+                  const logo = groupLogoUrl(g.slug);
+                  return (
+                    <span key={g.slug} className="claw__group">
+                      {logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={logo} alt="" width={18} height={18} loading="lazy" decoding="async" />
+                      ) : (
+                        <span
+                          className="claw__disc"
+                          style={{ background: g.color_hex ?? 'var(--ink-3)' }}
+                          aria-hidden="true"
+                        />
+                      )}
+                      {stanceLabel({ slug: g.slug, name_short: g.name_short ?? g.slug })}
+                    </span>
+                  );
+                })}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </li>
   );
 }
