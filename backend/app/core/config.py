@@ -34,6 +34,10 @@ class Settings(BaseSettings):
         default="postgresql+asyncpg://monitor:monitor@postgres:5432/monitor_parlamentari",
         description="Async SQLAlchemy DSN.",
     )
+    # Connections per process (see app/db/session.py). DB_POOL_SIZE /
+    # DB_MAX_OVERFLOW in .env tune them without a release.
+    db_pool_size: int = 5
+    db_max_overflow: int = 3
 
     # Redis (used by RQ workers)
     redis_url: str = "redis://redis:6379/0"
