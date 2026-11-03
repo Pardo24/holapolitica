@@ -111,6 +111,9 @@ _MIN_SPEECH_CHARS = 200
 _MAX_SPEECH_CHARS = 20000
 _MIN_QUOTE_CHARS = 40
 _MAX_QUOTE_CHARS = 450
+# A single sentence can't be shortened without cutting it, and some speakers
+# (the PNV's above all) argue in long ones, so one sentence gets more room.
+_MAX_SENTENCE_CHARS = 600
 _MAX_QUOTE_SENTENCES = 3
 
 STATUS_OK = "ok"
@@ -361,7 +364,8 @@ def is_literal(passage: str, speech: str) -> bool:
 def is_presentable(passage: str) -> bool:
     """Whole sentences of a readable length, with no stage directions: a quote
     cut mid-sentence can change what was said."""
-    if not _MIN_QUOTE_CHARS <= len(passage) <= _MAX_QUOTE_CHARS:
+    longest = _MAX_SENTENCE_CHARS if len(split_sentences(passage)) == 1 else _MAX_QUOTE_CHARS
+    if not _MIN_QUOTE_CHARS <= len(passage) <= longest:
         return False
     if _STAGE_DIRECTION.search(passage):
         return False
