@@ -75,6 +75,7 @@ export interface AlignQuizLabels {
   tie_none: string; // uses {names}
   tie_error: string;
   tie_progress: string; // uses {n}, {total}
+  resumed: string;
   results_votes_tie: string; // uses {names}
 }
 
@@ -96,6 +97,9 @@ function samePct(a: GroupResult, b: GroupResult): boolean {
 function ranksOf(results: GroupResult[]): number[] {
   return results.map((r) => 1 + results.filter((o) => o.agree * r.compared > r.agree * o.compared).length);
 }
+
+/** How long an unfinished quiz is picked up again. */
+const RESUME_FOR_MS = 24 * 60 * 60 * 1000;
 
 export function AlignQuiz({
   questions: baseQuestions,
@@ -149,6 +153,8 @@ export function AlignQuiz({
   // Storage can be unavailable (private windows, blocked cookies): every
   // access is guarded and the quiz works the same without it.
   const storageKey = `align:answers:${baseQuestions[0]?.vote_id ?? 'none'}`;
+  // Set when the quiz picked up where the reader left it, so it says so.
+  const [resumed, setResumed] = useState(false);
 
   useEffect(() => {
     try {
@@ -158,12 +164,22 @@ export function AlignQuiz({
         answers?: Record<number, Answer>;
         idx?: number;
         extra?: AlignQuestion[];
+        done?: boolean;
+        at?: number;
       };
+      // Only an unfinished quiz from the last day is picked up. A finished
+      // one, or an old one, put a reader coming back to the same set at
+      // question 9 or 10 of 10, and one answer later at the results.
+      if (saved.done || !saved.at || Date.now() - saved.at > RESUME_FOR_MS) {
+        window.localStorage.removeItem(storageKey);
+        return;
+      }
       const savedExtra = Array.isArray(saved.extra) ? saved.extra : [];
       if (saved.answers && typeof saved.answers === 'object') setAnswers(saved.answers);
       setExtra(savedExtra);
       const count = baseTotal + savedExtra.length;
       if (typeof saved.idx === 'number') setIdx(Math.min(Math.max(0, saved.idx), count - 1));
+      if ((saved.idx ?? 0) > 0) setResumed(true);
     } catch {
       /* no storage, or corrupt value: start clean */
     }
@@ -174,11 +190,11 @@ export function AlignQuiz({
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify({ answers, idx, extra }));
+      window.localStorage.setItem(storageKey, JSON.stringify({ answers, idx, extra, done, at: Date.now() }));
     } catch {
       /* storage full or blocked */
     }
-  }, [answers, idx, extra, storageKey]);
+  }, [answers, idx, extra, done, storageKey]);
 
   const results = useMemo<GroupResult[]>(() => {
     const agg = new Map<string, GroupResult>();
@@ -313,6 +329,7 @@ export function AlignQuiz({
   }
 
   function restart() {
+    setResumed(false);
     setAnswers({});
     setExtra([]);
     setIdx(0);
@@ -744,6 +761,18 @@ export function AlignQuiz({
               .replace('{n}', String(roundIdx + 1))
               .replace('{total}', String(roundTotal))}
           </span>
+          {resumed && (
+            <span>
+              {labels.resumed}{' '}
+              <button
+                type="button"
+                onClick={restart}
+                style={{ padding: 0, border: 0, background: 'none', font: 'inherit', fontWeight: 700, color: 'var(--ink)', textDecoration: 'underline', cursor: 'pointer' }}
+              >
+                {labels.restart}
+              </button>
+            </span>
+          )}
         </div>
         <div style={{ height: 4, borderRadius: 999, background: 'var(--paper-3)', overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', background: 'var(--accent)', transition: 'width .2s ease' }} />

@@ -186,6 +186,7 @@ export default async function ComEtRepresentenPage({
               tie_error: t('tie_error'),
               tie_progress: t.raw('tie_progress'),
               results_votes_tie: t.raw('results_votes_tie'),
+              resumed: t('resumed'),
             }}
           />
         )}

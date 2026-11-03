@@ -1173,7 +1173,8 @@
     "tie_error": "Couldn't load the tie-break votes. Try again.",
     "tie_progress": "Tie-break · question {n} of {total}",
     "results_votes_tie": "Vote by vote, with {names}",
-    "meta_description": "Vote on real Congress votes and find out which parties you agree with most. Three minutes, no sign-up, on your phone."
+    "meta_description": "Vote on real Congress votes and find out which parties you agree with most. Three minutes, no sign-up, on your phone.",
+    "resumed": "Picking up where you left off."
   },
   "hub": {
     "joc_title": "Trivia",

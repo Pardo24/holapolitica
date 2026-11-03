@@ -1173,7 +1173,8 @@
     "tie_error": "No s'han pogut carregar les votacions de desempat. Torna-ho a provar.",
     "tie_progress": "Desempat · pregunta {n} de {total}",
     "results_votes_tie": "Vota a vota, amb {names}",
-    "meta_description": "Vota tu les votacions reals del Congrés i descobreix amb quins partits coincideixes més. En 3 minuts, sense registre i des del teu mòbil."
+    "meta_description": "Vota tu les votacions reals del Congrés i descobreix amb quins partits coincideixes més. En 3 minuts, sense registre i des del teu mòbil.",
+    "resumed": "Continues on ho havies deixat."
   },
   "hub": {
     "joc_title": "Trivia",

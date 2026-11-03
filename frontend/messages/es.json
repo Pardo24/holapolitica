@@ -1173,7 +1173,8 @@
     "tie_error": "No se han podido cargar las votaciones de desempate. Vuelve a intentarlo.",
     "tie_progress": "Desempate · pregunta {n} de {total}",
     "results_votes_tie": "Voto a voto, con {names}",
-    "meta_description": "Vota tú las votaciones reales del Congreso y descubre con qué partidos coincides más. En 3 minutos, sin registro y desde tu móvil."
+    "meta_description": "Vota tú las votaciones reales del Congreso y descubre con qué partidos coincides más. En 3 minutos, sin registro y desde tu móvil.",
+    "resumed": "Sigues donde lo habías dejado."
   },
   "hub": {
     "joc_title": "Trivia",
