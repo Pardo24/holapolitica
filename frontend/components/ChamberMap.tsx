@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ChamberSeats } from '@/components/ChamberSeats';
+import { ChamberSeats, type ChamberGroup } from '@/components/ChamberSeats';
 import { ArrowRight } from '@/components/icons';
 
 import type { HemicycleLayout } from '@/lib/api';
@@ -18,16 +18,15 @@ import { ALL_SEAT_POSITIONS } from '@/lib/hemicycleAllSeats';
  * official image map (see ``app/ingest/congreso/hemicycle.py``); the empty
  * chairs are drawn too, so the architecture reads even where nobody sits.
  *
- * Static on purpose: {@link Hemicycle} is the interactive version (hover
+ * Light on purpose: {@link Hemicycle} is the full interactive version (hover
  * cards, per-seat links) and it belongs on the pages about deputies. Here
- * a plain SVG with no interaction carries the whole point, and the card
- * links to that interactive one. (The seats are drawn by a client component,
- * {@link ChamberSeats}, only so the page payload carries coordinates rather
- * than ~400 circle elements.)
+ * pointing at a group only lights it up and names it ({@link ChamberSeats}),
+ * and the card links to that full one.
  *
  * Neutrality: every group is painted with its own colour and every group
- * appears in the legend, ordered by seats. No group is highlighted, and
- * nothing is inferred from where a seat sits in the room.
+ * appears in the legend, ordered by seats. No group is highlighted at rest
+ * (only the one the reader points at), and nothing is inferred from where a
+ * seat sits in the room.
  */
 
 /** Seat radius in the 536x393 viewBox of the official image map. */
@@ -42,6 +41,7 @@ export function ChamberMap({
   cta,
   href = '/el-teu-diputat' as Route,
   ariaLabel,
+  seatsLabel,
 }: {
   layout: HemicycleLayout;
   eyebrow: string;
@@ -50,44 +50,42 @@ export function ChamberMap({
   href?: Route;
   /** Spoken description; the legend below carries the same numbers as text. */
   ariaLabel: string;
+  /** "121 escons", shown with the name of the group pointed at. */
+  seatsLabel: (n: number) => string;
 }) {
   const seats = layout.seats ?? [];
 
-  // Group tallies drive the legend. Ordered by size so the legend reads
-  // like the chamber's arithmetic, never editorially.
-  const byGroup = new Map<string, { short: string; color: string; count: number }>();
-  for (const s of seats) {
-    if (!s.group_slug) continue;
-    const entry = byGroup.get(s.group_slug) ?? {
-      short: displayGroupShort(s.group_short ?? s.group_slug),
-      color: s.group_color ?? 'var(--ink-3)',
-      count: 0,
-    };
-    entry.count += 1;
-    byGroup.set(s.group_slug, entry);
-  }
-  const groups = [...byGroup.values()].sort((a, b) => b.count - a.count);
-
-  // Occupied chairs, keyed by position, so a chair with a deputy is painted
-  // and one without stays an empty ring.
+  // Occupied chairs, so a chair with a deputy is painted and one without
+  // stays an empty ring.
   const occupied = seats.filter((s) => s.seat_x != null && s.seat_y != null);
 
   // Only the chairs nobody sits in get a ring. Drawing all 369 and painting
   // over 350 of them doubled the SVG in the document for 19 visible rings
-  // (the Banco Azul benches), and this page ships the map twice — once per
-  // breakpoint tree.
+  // (the Banco Azul benches).
   const taken = new Set(occupied.map((s) => `${s.seat_x},${s.seat_y}`));
   const emptyChairs = ALL_SEAT_POSITIONS.filter(([x, y]) => !taken.has(`${x},${y}`));
 
-  // One <g> per colour, so a seat is just its coordinates: the fill was the
-  // longest part of each circle and it repeats 350 times.
-  const seatsByColor = new Map<string, { x: number; y: number }[]>();
+  // One entry per group, its seats as a flat coordinate list. Ordered by
+  // size so the legend reads like the chamber's arithmetic, never
+  // editorially.
+  const byGroup = new Map<string, ChamberGroup>();
   for (const s of occupied) {
-    const color = s.group_color ?? '#9ca3af';
-    const list = seatsByColor.get(color) ?? [];
-    list.push({ x: s.seat_x as number, y: s.seat_y as number });
-    seatsByColor.set(color, list);
+    const slug = s.group_slug ?? 'none';
+    const entry = byGroup.get(slug) ?? {
+      slug,
+      short: displayGroupShort(s.group_short ?? slug),
+      color: s.group_color ?? '#9ca3af',
+      count: 0,
+      seats: '',
+      xy: [],
+    };
+    entry.count += 1;
+    entry.xy.push(s.seat_x as number, s.seat_y as number);
+    byGroup.set(slug, entry);
   }
+  const groups = [...byGroup.values()]
+    .sort((a, b) => b.count - a.count)
+    .map((g) => ({ ...g, seats: seatsLabel(g.count) }));
 
   return (
     <Link
@@ -109,61 +107,14 @@ export function ChamberMap({
         {eyebrow}
       </div>
 
-      <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        role="img"
-        aria-label={ariaLabel}
-        style={{ display: 'block', width: '100%', height: 'auto' }}
-      >
-        <ChamberSeats
-          r={SEAT_R}
-          chairs={emptyChairs.flat()}
-          groups={[...seatsByColor.entries()].map(([color, list]) => ({
-            color,
-            xy: list.flatMap(({ x, y }) => [x, y]),
-          }))}
-        />
-      </svg>
-
-      {/* The legend is the same information in words: every group, its
-          colour and how many seats it holds. */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '6px 14px',
-          marginTop: 12,
-        }}
-      >
-        {groups.map((g) => (
-          <span
-            key={g.short}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 5,
-              fontSize: 11.5,
-              color: 'var(--ink-2)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 999,
-                background: g.color,
-                flex: 'none',
-              }}
-            />
-            {g.short}
-            <span className="tabular" style={{ color: 'var(--ink-3)' }}>
-              {g.count}
-            </span>
-          </span>
-        ))}
-      </div>
+      <ChamberSeats
+        r={SEAT_R}
+        width={VIEW_W}
+        height={VIEW_H}
+        ariaLabel={ariaLabel}
+        chairs={emptyChairs.flat()}
+        groups={groups}
+      />
 
       <div
         style={{

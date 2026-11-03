@@ -442,72 +442,48 @@ export default async function HomePage() {
         >
           <DissolvedNote dismissible />
           {latestVotes[0]?.voted_at && (
+            // Compact: with the Corts dissolved the latest plenary is weeks
+            // old, so it is a line to follow, not the headline of the column.
             <Link href={'/avui' as Route} className="hero-pleno-card">
-              <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 8 }}>
-                {t('latest_session_eyebrow')}
-              </div>
-              <div
-                className="serif"
-                style={{
-                  fontSize: 'clamp(22px, 2.4vw, 30px)',
-                  fontWeight: 600,
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.02em',
-                  color: 'var(--ink)',
-                }}
-              >
-                {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })}
+              <div className="hero-pleno-top">
+                <span className="eyebrow" style={{ color: 'var(--accent)' }}>
+                  {t('latest_session_eyebrow')}
+                </span>
+                <span className="serif hero-pleno-date">
+                  {new Date(latestVotes[0].voted_at).toLocaleDateString(locale, {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                  })}
+                </span>
               </div>
               {sessTotal > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <div
-                    role="img"
-                    aria-label={`${t('session_approved', { n: sessApproved })}, ${t('session_rejected', { n: sessRejected })}`}
-                    style={{
-                      display: 'flex',
-                      height: 7,
-                      borderRadius: 999,
-                      overflow: 'hidden',
-                      background: 'var(--paper-3)',
-                    }}
-                  >
-                    {sessApproved > 0 && (
-                      <span style={{ width: `${(sessApproved / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--aye)' }} />
-                    )}
-                    {sessRejected > 0 && (
-                      <span style={{ width: `${(sessRejected / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--no)' }} />
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 12,
-                      marginTop: 8,
-                      fontSize: 12.5,
-                      flexWrap: 'wrap',
-                      alignItems: 'baseline',
-                    }}
-                  >
-                    <span className="tabular" style={{ color: 'var(--aye)', fontWeight: 600 }}>
-                      {t('session_approved', { n: sessApproved })}
-                    </span>
-                    <span className="tabular" style={{ color: 'var(--no)', fontWeight: 600 }}>
-                      {t('session_rejected', { n: sessRejected })}
-                    </span>
-                    <span className="tabular" style={{ color: 'var(--ink-3)' }}>
-                      · {sessTotal} {t('week_subtitle')}
-                    </span>
-                  </div>
+                <div
+                  role="img"
+                  aria-label={`${t('session_approved', { n: sessApproved })}, ${t('session_rejected', { n: sessRejected })}`}
+                  className="hero-pleno-bar"
+                >
+                  {sessApproved > 0 && (
+                    <span style={{ width: `${(sessApproved / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--aye)' }} />
+                  )}
+                  {sessRejected > 0 && (
+                    <span style={{ width: `${(sessRejected / (sessApproved + sessRejected || 1)) * 100}%`, background: 'var(--no)' }} />
+                  )}
                 </div>
               )}
-              <span className="hero-pleno-cta">
-                {t('latest_session_explore')}
-                <ArrowRight size={16} aria-hidden="true" />
-              </span>
+              <div className="hero-pleno-foot">
+                {sessTotal > 0 && (
+                  <span className="tabular">
+                    <span style={{ color: 'var(--aye)', fontWeight: 600 }}>{t('session_approved', { n: sessApproved })}</span>
+                    {' · '}
+                    <span style={{ color: 'var(--no)', fontWeight: 600 }}>{t('session_rejected', { n: sessRejected })}</span>
+                  </span>
+                )}
+                <span className="hero-pleno-cta">
+                  {t('latest_session_explore')}
+                  <ArrowRight size={14} aria-hidden="true" />
+                </span>
+              </div>
             </Link>
           )}
 
@@ -522,6 +498,7 @@ export default async function HomePage() {
               caption={t('chamber_caption')}
               cta={t('chamber_cta')}
               ariaLabel={t('chamber_aria')}
+              seatsLabel={(n) => `${n} ${t('parties_seats', { n })}`}
             />
           )}
         </div>
@@ -529,30 +506,29 @@ export default async function HomePage() {
           .hero-pleno-card {
             display: flex;
             flex-direction: column;
-            padding: 22px 24px;
-            border: 1px solid var(--rule-strong);
-            border-top: 3px solid var(--accent);
-            border-radius: 16px;
+            gap: 8px;
+            padding: 12px 16px 13px;
+            border: 1px solid var(--rule);
+            border-radius: 14px;
             background: var(--paper-2);
             color: inherit;
             text-decoration: none;
-            box-shadow: 0 1px 0 rgba(15,23,42,.03), 0 8px 24px -16px rgba(15,23,42,.12);
             transition: border-color 0.12s ease;
           }
           .hero-pleno-card:hover, .hero-pleno-card:focus-visible { border-color: var(--ink); outline: none; }
+          .hero-pleno-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+          .hero-pleno-date { font-size: 17px; font-weight: 600; color: var(--ink); }
+          .hero-pleno-bar { display: flex; height: 5px; border-radius: 999px; overflow: hidden; background: var(--paper-3); }
+          .hero-pleno-foot { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; font-size: 12.5px; }
           .hero-pleno-cta {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            margin-top: 16px;
-            padding: 9px 16px;
-            border-radius: 999px;
-            background: var(--ink);
-            color: var(--paper);
-            font-size: 14px;
-            font-weight: 600;
-            align-self: flex-start;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
           }
+          .hero-pleno-card:hover .hero-pleno-cta { text-decoration: underline; }
         `}</style>
       </section>
 
