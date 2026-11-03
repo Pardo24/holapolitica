@@ -1,15 +1,17 @@
 """API endpoints for topics."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.initiatives import _load_latest_vote, _load_topics_by_initiative
 from app.db import get_session
 from app.metrics import GroupVoteStatRow, compute_group_stats_for_topic
-from app.models import Initiative, InitiativeTopic, Legislature, Topic
+from app.models import Initiative, InitiativeTopic, Legislature, ManifestoPoint, Topic
 from app.schemas import InitiativeRead, InitiativeTopicSlug, TopicNewsRead, TopicRead
 from app.services.cache import cached
+from app.services.game_pool import LAW_TYPES
 from app.services.topic_news import fetch_topic_news
 
 router = APIRouter(prefix="/topics", tags=["topics"])
@@ -91,6 +93,160 @@ async def get_topic_group_stats(
             session, topic_id=topic_id, legislature_id=legislature_id
         ),
     )
+
+
+class KeyLawGroup(BaseModel):
+    slug: str
+    name_short: str | None
+    color_hex: str | None
+    logo_url: str | None
+    choice: str
+
+
+class KeyLawRow(BaseModel):
+    initiative_id: int
+    type: str
+    title_ca: str | None
+    title_es: str | None
+    stage: str
+    verdict: str | None
+    vote_id: int
+    voted_at: str | None
+    groups: list[KeyLawGroup]
+
+
+@router.get("/{slug}/key-laws", response_model=list[KeyLawRow])
+async def get_topic_key_laws(
+    slug: str,
+    n: int = Query(8, ge=1, le=20),
+    session: AsyncSession = Depends(get_session),
+) -> list[KeyLawRow]:
+    """The latest laws on this topic the plenary voted, and how each group voted.
+
+    "Compare the parties" in the vote guide: one law at a time says more
+    than a share of yeses averaged over every vote of a subject, amendments
+    included, where every group comes out near half and half.
+
+    Neutral selection: the ``n`` most recent, nothing picked by hand. Bills,
+    group bills and decree-laws only, scoped to the current legislature so
+    every row lists the groups that sit today. ``stage`` says what was voted
+    (whether to start a bill, a decree's validation, the final text).
+    """
+    topic_id = (
+        await session.execute(select(Topic.id).where(Topic.slug == slug))
+    ).scalar_one_or_none()
+    if topic_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
+    started = (
+        await session.execute(
+            select(Legislature.start_date).order_by(Legislature.start_date.desc()).limit(1)
+        )
+    ).scalar_one_or_none()
+
+    async def _compute() -> list[dict[str, object]]:
+        items = list(
+            (
+                await session.execute(
+                    select(Initiative)
+                    .join(InitiativeTopic, InitiativeTopic.initiative_id == Initiative.id)
+                    .where(InitiativeTopic.topic_id == topic_id)
+                    .where(Initiative.type.in_(LAW_TYPES))
+                )
+            )
+            .scalars()
+            .all()
+        )
+        latest = await _load_latest_vote(session, [i.id for i in items])
+        floor = started.isoformat() if started else ""
+        rows: list[KeyLawRow] = []
+        for i in items:
+            vote = latest.get(i.id)
+            if not vote or not vote["groups"] or (vote["voted_at"] or "") < floor:
+                continue
+            rows.append(
+                KeyLawRow(
+                    initiative_id=i.id,
+                    type=str(i.type),
+                    title_ca=i.plain_title_ca or i.title_ca,
+                    title_es=i.plain_title_es or i.title_es,
+                    stage=str(vote["stage"]),
+                    verdict=vote["verdict"],
+                    vote_id=int(vote["vote_id"]),
+                    voted_at=vote["voted_at"],
+                    groups=[KeyLawGroup.model_validate(g) for g in vote["groups"]],
+                )
+            )
+        rows.sort(key=lambda r: (r.voted_at or "", r.vote_id), reverse=True)
+        return [r.model_dump(mode="json") for r in rows[:n]]
+
+    data = await cached(f"topics:{slug}:key-laws:{started}:{n}:v1", 3600, _compute)
+    return [KeyLawRow.model_validate(r) for r in data]
+
+
+class TopicManifestoPoint(BaseModel):
+    party: str
+    quote: str
+    page: int | None
+    source_url: str | None
+
+
+class TopicManifesto(BaseModel):
+    # How many quotes each party's manifesto has in all, so a page can tell
+    # "says nothing on this subject" from "not read yet".
+    counts: dict[str, int]
+    points: list[TopicManifestoPoint]
+
+
+@router.get("/{slug}/manifesto", response_model=TopicManifesto)
+async def get_topic_manifesto(
+    slug: str,
+    election: str = Query("2026-11", pattern=r"^\d{4}-\d{2}$"),
+    session: AsyncSession = Depends(get_session),
+) -> TopicManifesto:
+    """Every party's manifesto commitments on one topic, side by side.
+
+    Literal, page-referenced quotes (``app/ingest/manifestos.py``, the same
+    extraction for every party). For the 2026 election ``party`` is the
+    election party slug (frontend/lib/electionParties.ts), not a group's:
+    parties stand that hold no group, and groups split into lists.
+    """
+
+    async def _compute() -> dict[str, object]:
+        counts = dict(
+            (
+                await session.execute(
+                    select(ManifestoPoint.group_slug, func.count())
+                    .where(ManifestoPoint.election == election)
+                    .group_by(ManifestoPoint.group_slug)
+                )
+            )
+            .tuples()
+            .all()
+        )
+        points = (
+            (
+                await session.execute(
+                    select(ManifestoPoint)
+                    .where(ManifestoPoint.election == election)
+                    .where(ManifestoPoint.topic_slug == slug)
+                    .order_by(ManifestoPoint.group_slug, ManifestoPoint.page, ManifestoPoint.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return TopicManifesto(
+            counts=counts,
+            points=[
+                TopicManifestoPoint(
+                    party=p.group_slug, quote=p.quote, page=p.page, source_url=p.source_url
+                )
+                for p in points
+            ],
+        ).model_dump(mode="json")
+
+    data = await cached(f"topics:{slug}:manifesto:{election}:v1", 3600, _compute)
+    return TopicManifesto.model_validate(data)
 
 
 @router.get("/{slug}/initiatives", response_model=list[dict[str, object]])
