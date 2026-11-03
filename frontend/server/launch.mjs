@@ -307,8 +307,12 @@ async function passThrough(req, res) {
 // but only CRAWLER_SLOTS of their misses render at a time; the rest queue,
 // and past the queue they get a 503 with Retry-After, which crawlers read
 // as "come back later". People never wait behind them.
+//
+// Not every scraper says "bot": Lightpanda is a headless browser that made
+// four requests in five on 2026-11-03, each a cache-missing law list whose
+// filters cost the database a full scan (load 60 on two cores).
 
-const CRAWLER = /[a-z]bot\/|\bbot\b|spider|crawl|slurp|Bytespider|PerplexityBot|OAI-SearchBot|GPTBot|ClaudeBot|Amazonbot|SemrushBot|AhrefsBot|PetalBot|DataForSeo|HeadlessChrome|python-requests|Go-http-client|curl\//i;
+const CRAWLER = /[a-z]bot\/|\bbot\b|spider|crawl|slurp|Bytespider|PerplexityBot|OAI-SearchBot|GPTBot|ClaudeBot|Amazonbot|SemrushBot|AhrefsBot|PetalBot|DataForSeo|HeadlessChrome|Lightpanda|python-requests|Go-http-client|curl\//i;
 // Link previews: few, and someone is waiting for the card to appear.
 const PREVIEW = /facebookexternalhit|Twitterbot|WhatsApp|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Pinterest|redditbot|vkShare/i;
 // Turned away outright: they send no visitors (no referral from either in
