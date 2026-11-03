@@ -24,6 +24,9 @@ Usage (inside the backend container)::
     python -m app.ingest.congreso.debate_quotes --since 2026-01-01 --limit 5 \
         --dry-run --out quotes.jsonl
     python -m app.ingest.congreso.debate_quotes --since 2023-08-17
+    # after changing the prompt or the checks: take off what no longer passes,
+    # then read again what has no quote
+    python -m app.ingest.congreso.debate_quotes --recheck --redo no_passage,rejected
 
 Neutrality contract (CLAUDE.md "mirall, no megàfon"): quotes only, verbatim,
 sourced. Every group goes through the same prompt, and the site labels the
@@ -89,8 +92,12 @@ _PAGE_CHROME = re.compile(
     r"|cve: DSCD-\S+)\s*$",
     re.MULTILINE,
 )
+# The Diario writes them capitalised on their own line, "(Aplausos).", and in
+# lower case inside a sentence, "...el Gobierno socialista (aplausos), un...":
+# 34 quotes carried the second form before it was matched (2026-11-03). Only
+# the reaction words ignore case; "(una ley...)" is ordinary text.
 _STAGE_DIRECTION = re.compile(
-    r"\(\s*(?:Aplaus|Rumor|Risa|Protest|Pausa|Varios|Una?\s|El señor|La señora|Muestra|Golpe)"
+    r"\(\s*(?:(?i:aplaus|rumor|risa|protest|pausa|varios)|Una?\s|El señor|La señora|Muestra|Golpe)"
 )
 # Where a sentence ends: ".", "?", "!" or "…" before something that opens one.
 _SENTENCE_END = re.compile(r"(?<=[.?!…])\s+(?=[\"'«“¿¡(\[A-ZÁÉÍÓÚÜÑÀÈÒÏÇ])")
@@ -111,22 +118,29 @@ STATUS_NO_SPEECH = "no_speech"
 STATUS_NO_PASSAGE = "no_passage"
 STATUS_REJECTED = "rejected"
 
+# A speech that argues for or against the text without announcing the vote
+# states a position too. Asked for "the group's position", the model took
+# only announced votes, and groups that argue more than they announce went
+# without a quote far more often (VOX 17% of speeches, others 3-13%;
+# 2026-11-03). Same rules for every group.
 _PROMPT = """\
 Eres un documentalista parlamentario neutral. Recibirás el asunto debatido en
 el Pleno del Congreso y la intervención COMPLETA de un portavoz, con cada frase
-numerada. Elige el pasaje que mejor recoja la posición de su grupo sobre ESE
+numerada. Elige el pasaje que mejor recoja lo que su grupo sostiene sobre ESE
 asunto.
 
 REGLAS ESTRICTAS:
 - Responde solo con números de frase: de una a tres frases CONSECUTIVAS, que
   sumen como mucho unos 350 caracteres.
-- El pasaje debe entenderse por sí solo y tratar del asunto. Prefiere donde el
-  portavoz dice qué votará su grupo o por qué apoya o rechaza el texto.
-- Elige el más representativo, no el más llamativo ni el más polémico. Evita
-  saludos, agradecimientos, insultos, ataques personales y frases sobre otros
-  grupos que no digan nada de la posición propia.
+- El pasaje debe tratar del asunto y entenderse por sí solo.
+- Si el portavoz dice qué votará su grupo, o si apoya o rechaza el texto, elige
+  ese pasaje. Si no lo dice, elige el que mejor resuma su argumento sobre el
+  asunto: qué defiende o critica del texto y por qué.
+- Elige el más representativo, no el más llamativo ni el más polémico. No
+  elijas saludos, agradecimientos, insultos, ataques personales, preguntas
+  retóricas ni reproches a otros grupos que no expliquen nada del asunto.
 - No elijas frases con acotaciones como (Aplausos).
-- Si la intervención no fija posición sobre el asunto, devuelve null.
+- Devuelve null solo si la intervención no habla del asunto.
 
 Devuelve SOLO este JSON: {"frases": [12, 13]} o {"frases": null}
 """
@@ -471,12 +485,15 @@ async def ingest(
     expediente: str | None = None,
     dry_run: bool = False,
     out_path: Path | None = None,
+    redo: frozenset[str] = frozenset(),
 ) -> dict[str, int]:
     """Read the speeches not read yet, for up to ``limit`` debates.
 
     Every speech read leaves a row, with ``quote`` NULL when nothing usable
-    came out, so a later run does not pay for it again. ``dry_run`` writes
-    nothing to the database; ``out_path`` gets each result as a JSON line.
+    came out, so a later run does not pay for it again. ``redo`` names the
+    statuses to read again (after a change to the prompt or the checks); their
+    rows are updated in place. ``dry_run`` writes nothing to the database;
+    ``out_path`` gets each result as a JSON line.
     """
     settings = get_settings()
     stats: dict[str, int] = defaultdict(int)
@@ -494,17 +511,23 @@ async def ingest(
             )
         ).all()
     }
-    existing = {
-        (row[0], row[1], row[2], row[3])
-        for row in await session.execute(
-            select(
-                DebateQuote.expediente,
-                DebateQuote.debate_date,
-                DebateQuote.group_id,
-                DebateQuote.speaker_name,
-            ).where(DebateQuote.debate_date >= since)
-        )
-    }
+    existing: set[tuple[str, date, int, str]] = set()
+    to_redo: dict[tuple[str, date, int, str], int] = {}
+    for row in await session.execute(
+        select(
+            DebateQuote.expediente,
+            DebateQuote.debate_date,
+            DebateQuote.group_id,
+            DebateQuote.speaker_name,
+            DebateQuote.status,
+            DebateQuote.id,
+        ).where(DebateQuote.debate_date >= since)
+    ):
+        key = (row[0], row[1], row[2], row[3])
+        if row[4] in redo:
+            to_redo[key] = row[5]
+        else:
+            existing.add(key)
 
     async with CongresoClient(timeout=180.0) as client:
         debates = plan_debates(
@@ -557,29 +580,59 @@ async def ingest(
                         out.flush()
                     if dry_run:
                         continue
-                    session.add(
-                        DebateQuote(
-                            expediente=debate.expediente,
-                            debate_date=debate.debate_date,
-                            group_id=group_id,
-                            speaker_name=turn.speaker,
-                            dscd_ref=turn.dscd_ref,
-                            page=picked.page,
-                            source_url=(
-                                f"{client.base_url}{_pdf_path(turn.dscd_ref)}#page={picked.page}"
-                            ),
-                            phase=(turn.phase or "")[:120] or None,
-                            quote=picked.quote,
-                            status=picked.status,
-                            model=settings.mistral_model,
+                    fields: dict[str, Any] = {
+                        "dscd_ref": turn.dscd_ref,
+                        "page": picked.page,
+                        "source_url": (
+                            f"{client.base_url}{_pdf_path(turn.dscd_ref)}#page={picked.page}"
+                        ),
+                        "phase": (turn.phase or "")[:120] or None,
+                        "quote": picked.quote,
+                        "status": picked.status,
+                        "model": settings.mistral_model,
+                    }
+                    key = (debate.expediente, debate.debate_date, group_id, turn.speaker)
+                    row_id = to_redo.get(key)
+                    stored = await session.get(DebateQuote, row_id) if row_id else None
+                    if stored is not None:
+                        for name, value in fields.items():
+                            setattr(stored, name, value)
+                    else:
+                        session.add(
+                            DebateQuote(
+                                expediente=debate.expediente,
+                                debate_date=debate.debate_date,
+                                group_id=group_id,
+                                speaker_name=turn.speaker,
+                                **fields,
+                            )
                         )
-                    )
                     await session.commit()
         finally:
             if out is not None:
                 out.close()
     log.info("debate_quotes.done", **stats)
     return dict(stats)
+
+
+async def recheck_stored(session: AsyncSession, *, dry_run: bool = False) -> int:
+    """Apply today's :func:`is_presentable` to the quotes already stored.
+
+    A quote that no longer passes is taken off the site (``quote`` NULL,
+    status rejected), so ``redo`` can pick it again. Returns how many."""
+    stored = (
+        (await session.execute(select(DebateQuote).where(DebateQuote.quote.is_not(None))))
+        .scalars()
+        .all()
+    )
+    failing = [row for row in stored if not is_presentable(str(row.quote))]
+    if not dry_run:
+        for row in failing:
+            row.quote = None
+            row.status = STATUS_REJECTED
+        await session.commit()
+    log.info("debate_quotes.recheck", failing=len(failing), dry_run=dry_run)
+    return len(failing)
 
 
 def main() -> None:
@@ -594,11 +647,22 @@ def main() -> None:
     parser.add_argument("--expediente", default=None, help='only this one, e.g. "130/000056"')
     parser.add_argument("--dry-run", action="store_true", help="write nothing to the database")
     parser.add_argument("--out", type=Path, default=None, help="JSONL of what was picked")
+    parser.add_argument(
+        "--recheck",
+        action="store_true",
+        help="first take off stored quotes that today's checks reject",
+    )
+    parser.add_argument(
+        "--redo",
+        default="",
+        help='statuses to read again, e.g. "no_passage,rejected"',
+    )
     args = parser.parse_args()
 
     async def _run() -> dict[str, int]:
         async with AsyncSessionLocal() as session:
-            return await ingest(
+            rechecked = await recheck_stored(session, dry_run=args.dry_run) if args.recheck else 0
+            stats = await ingest(
                 session,
                 since=args.since,
                 until=args.until,
@@ -606,7 +670,9 @@ def main() -> None:
                 expediente=args.expediente,
                 dry_run=args.dry_run,
                 out_path=args.out,
+                redo=frozenset(s.strip() for s in args.redo.split(",") if s.strip()),
             )
+            return {"rechecked": rechecked, **stats}
 
     print(asyncio.run(_run()))
 

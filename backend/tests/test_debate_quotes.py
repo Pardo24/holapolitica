@@ -11,6 +11,7 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import Settings
@@ -245,6 +246,13 @@ def test_literal_tolerates_whitespace_only() -> None:
         ("porque la norma introduce las medidas necesarias para el transporte.", False),
         ("Votaremos a favor porque la norma introduce las medidas necesarias y", False),
         ("Votaremos a favor de la norma, señorías. (Aplausos). Y lo haremos convencidos.", False),
+        # Inside a sentence the Diario writes them in lower case.
+        (
+            "No podemos hablar del censo sin denunciar al Gobierno (aplausos), un Gobierno que no.",
+            False,
+        ),
+        # Ordinary text in brackets is not a stage direction.
+        ("Lo dice la ley (una ley que ustedes aprobaron) y lo dice la Constitución.", True),
         ("Votaremos a favor. " * 40, False),
     ],
 )
@@ -446,3 +454,24 @@ async def test_load_quotes_without_an_expediente(db_session: AsyncSession) -> No
     vote_id, _ = await _seed(db_session, date(2026, 4, 30))
     assert await load_debate_quotes(db_session, vote_id, None) == []
     assert await load_debate_quotes(db_session, vote_id, "122/000999") == []
+
+
+async def test_recheck_takes_off_quotes_that_no_longer_pass(db_session: AsyncSession) -> None:
+    _, group_id = await _seed(db_session, date(2026, 4, 30))
+    good = "Votaremos a favor porque la norma introduce las medidas necesarias."
+    bad = "Denunciamos al Gobierno socialista (aplausos), un Gobierno que no escucha."
+    db_session.add_all(
+        [
+            _quote(group_id, date(2026, 4, 28), "Una Persona", good),
+            _quote(group_id, date(2026, 4, 28), "Otra Persona", bad),
+        ]
+    )
+    await db_session.commit()
+
+    assert await dq.recheck_stored(db_session, dry_run=True) == 1
+    rows = (await db_session.execute(select(DebateQuote).order_by(DebateQuote.id))).scalars().all()
+    assert [r.quote for r in rows] == [good, bad]
+
+    assert await dq.recheck_stored(db_session) == 1
+    rows = (await db_session.execute(select(DebateQuote).order_by(DebateQuote.id))).scalars().all()
+    assert [(r.quote, r.status) for r in rows] == [(good, "ok"), (None, "rejected")]
