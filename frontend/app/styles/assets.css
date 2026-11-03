@@ -158,3 +158,12 @@ details.assets__decl .assets__date { font-size: 16.5px; }
 .assets-compare__party, .assets-compare__parties > li > a.assets-compare__party { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; background: var(--paper); }
 .assets-compare__party:hover, .assets-compare__party:focus-visible { border-color: var(--party, var(--ink-3)); }
 .assets-compare__dot { width: 9px; height: 9px; flex: none; border-radius: 3px; background: var(--party, var(--ink-3)); }
+
+/* Party page: the declared assets, first thing under the card. */
+.grp-assets { margin-top: 18px; max-width: 820px; padding: 16px 18px; border: 1px solid var(--rule); border-top: 3px solid var(--party); border-radius: 14px; background: var(--paper); display: grid; gap: 12px; }
+.grp-assets__title { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.25; color: var(--ink); text-wrap: balance; }
+.grp-assets__dek { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.grp-assets__tiles { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.grp-assets__median { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+.grp-assets__median span { color: var(--ink-3); font-size: 12.5px; }
+.grp-assets__link { justify-self: start; display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: 14px; font-weight: 700; color: var(--ink); }

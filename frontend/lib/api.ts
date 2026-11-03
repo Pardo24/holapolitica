@@ -806,6 +806,19 @@ export interface TopicManifesto {
   points: { party: string; quote: string; page: number | null; source_url: string | null }[];
 }
 
+/** A group's verbatim passage from a plenary debate on the topic (backend /topics/{slug}/debate-quotes). */
+export interface TopicDebateQuote {
+  group_slug: string;
+  initiative_id: number;
+  title_ca: string | null;
+  title_es: string | null;
+  speaker_name: string;
+  quote: string;
+  debate_date: string;
+  page: number;
+  source_url: string;
+}
+
 export interface GroupVoteStat {
   group_slug: string;
   group_name_short: string;
@@ -1734,6 +1747,11 @@ export const api = {
     // Every party's literal manifesto quotes on the topic, for one election.
     manifesto: (slug: string, election = '2026-11') =>
       request<TopicManifesto>(`/topics/${slug}/manifesto?election=${election}`, {
+        revalidate: AGG_REVALIDATE,
+      }),
+    // Each group's latest verbatim passages from plenary debates on the topic.
+    debateQuotes: (slug: string, perGroup = 2) =>
+      request<TopicDebateQuote[]>(`/topics/${slug}/debate-quotes?per_group=${perGroup}`, {
         revalidate: AGG_REVALIDATE,
       }),
   },

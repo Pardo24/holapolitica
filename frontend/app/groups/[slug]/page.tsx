@@ -15,6 +15,7 @@ import { LawCard } from '@/components/LawCard';
 import { VoteCard } from '@/components/VoteCard';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCompositionFilter } from '@/components/GroupCompositionFilter';
+import { GroupAssetsGlance } from '@/components/GroupAssetsGlance';
 import { GroupAssetsPanel } from '@/components/GroupAssetsPanel';
 import { RouteMessages } from '@/components/RouteMessages';
 import { TopicBars } from '@/components/TopicBars';
@@ -247,14 +248,20 @@ export default async function GroupDetailPage({
   }
 
   const groupAssets = tab === 'bens' ? await api.groups.assets(group.slug).catch(() => null) : null;
+  // What its deputies declared, near the top of every other tab: one row
+  // of the cached all-parties summary rather than the per-deputy detail.
+  const assetsGlance =
+    tab === 'bens'
+      ? null
+      : ((await api.groups.assetsSummary().catch(() => [])).find((g) => g.slug === group.slug) ?? null);
 
   const base = `/groups/${group.slug}`;
   const tabHref = (k: GroupTab) => (k === 'resum' ? base : `${base}?tab=${k}`) as Route;
   const tabs: { key: GroupTab; label: string; count?: number }[] = [
     { key: 'resum', label: t('tab_summary') },
+    { key: 'bens', label: t('tab_assets') },
     { key: 'lleis', label: t('tab_laws'), count: balance?.total },
     { key: 'diputats', label: t('tab_members'), count: group.members_active },
-    { key: 'bens', label: t('tab_assets') },
   ];
 
   return (
@@ -306,6 +313,10 @@ export default async function GroupDetailPage({
           )}
         </div>
       </header>
+
+      {assetsGlance && assetsGlance.read > 0 && (
+        <GroupAssetsGlance data={assetsGlance} href={tabHref('bens')} locale={locale} />
+      )}
 
       {/* The 29 November 2026 election: the parties of this group run under
           another name. The page keeps the group's name, which is what its

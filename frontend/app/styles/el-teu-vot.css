@@ -184,3 +184,24 @@
 .vparty__more summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .vparty__more[open] summary { margin-bottom: 10px; }
 @media (max-width: 640px) { .vparty { grid-template-columns: minmax(0, 1fr); } }
+
+/* Step 3: what each party says and does. */
+.vpos__parties { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
+.vpos__party { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--rule-strong); border-radius: 999px; background: var(--paper); font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.vpos__party:hover { border-color: var(--ink-3); color: var(--ink); }
+.vpos__party--on { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.vpos__dot { width: 9px; height: 9px; border-radius: 999px; background: var(--party); flex: none; }
+.vparty--one { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
+.vpos__sec { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.vpos__h { margin: 0; font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.vpos__cite { margin: 4px 0 0 12px; font-size: 12px; line-height: 1.45; color: var(--ink-3); }
+.vpos__cite a { color: var(--ink-2); font-weight: 600; }
+.vpos__votes { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.vpos__votes li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 13px; line-height: 1.4; }
+.vpos__choice { justify-self: start; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--paper-2); color: var(--ink-2); }
+.vpos__choice--aye { background: color-mix(in oklch, var(--aye) 16%, var(--paper)); color: var(--aye); }
+.vpos__choice--no { background: color-mix(in oklch, var(--no) 14%, var(--paper)); color: var(--no); }
+.vpos__choice--abstention { background: color-mix(in oklch, var(--ink-3) 14%, var(--paper)); color: var(--ink-2); }
+.vpos__law { color: var(--ink); text-decoration: none; }
+.vpos__law:hover { text-decoration: underline; }
+.vpos__more { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 13px; font-weight: 700; color: var(--ink); }

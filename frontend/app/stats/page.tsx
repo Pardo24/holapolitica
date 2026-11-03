@@ -286,7 +286,7 @@ export default async function StatsPage({
         )}
       </header>
 
-      {/* Nothing filtered: four questions, one card each (StatsQuestions).
+      {/* Nothing filtered: three questions, one card each (StatsQuestions).
           A topic or a group picked: the detailed views below. The three
           headline figures that used to open the page are gone: numbers
           without a question are what made this page heavy. */}
@@ -294,7 +294,6 @@ export default async function StatsPage({
         <RouteMessages route="stats">
           <StatsQuestions
             byStatus={byStatus}
-            groupSummary={groupSummary}
             allGroups={allGroups}
             allTopics={allTopics}
             coincidence={coincidence}

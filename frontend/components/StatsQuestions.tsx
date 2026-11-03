@@ -8,7 +8,6 @@ import { GroupBadge } from '@/components/GroupBadge';
 import { PairCoincidenceClient } from '@/components/PairCoincidenceClient';
 import type {
   CoincidenceCell,
-  GroupSummaryRow,
   InitiativeStatusCount,
   ParliamentaryGroupSummary,
   ProposesByTopicStat,
@@ -20,9 +19,9 @@ import { topicIcon } from '@/lib/topic_icons';
 import { pickTopicName } from '@/lib/topics';
 
 /**
- * Dades, as four questions. Each card answers one thing with one picture
- * and one sentence: who votes with whom, what gets approved, how united
- * each group votes, what each group talks about. The detail (a topic, a
+ * Dades, as three questions. Each card answers one thing with one picture
+ * and one sentence: who votes with whom, what gets approved, what each
+ * group talks about. The detail (a topic, a
  * group) is one tap away, in the views the filters open.
  *
  * Symmetric by construction: every group appears in every card, ordered by
@@ -36,7 +35,6 @@ const STATUS_ORDER = ['approved', 'rejected', 'in_debate', 'submitted', 'withdra
 
 export async function StatsQuestions({
   byStatus,
-  groupSummary,
   allGroups,
   allTopics,
   coincidence,
@@ -47,7 +45,6 @@ export async function StatsQuestions({
   children,
 }: {
   byStatus: InitiativeStatusCount[];
-  groupSummary: GroupSummaryRow[];
   allGroups: ParliamentaryGroupSummary[];
   allTopics: Topic[];
   coincidence: CoincidenceCell[];
@@ -72,13 +69,6 @@ export async function StatsQuestions({
   })).filter((r) => r.count > 0);
   const total = statusRows.reduce((n, r) => n + r.count, 0);
   const approved = statusRows.find((r) => r.status === 'approved')?.count ?? 0;
-
-  // Q3: cohesion per group. Most groups sit above 99%, so the figure has
-  // one decimal (100% for everyone said nothing) and the lede says what
-  // the column shows: how many vote as a bloc.
-  const cohesion = new Map(groupSummary.map((r) => [r.group_slug, r.avg_cohesion] as const));
-  const withCohesion = bySeats.filter((g) => cohesion.get(g.slug) != null);
-  const blocs = withCohesion.filter((g) => (cohesion.get(g.slug) ?? 0) >= 0.99).length;
 
   const topicsSheet = (
     <ul className="sheet-list">
@@ -123,7 +113,7 @@ export async function StatsQuestions({
     </ul>
   );
 
-  // Q4: the subject each group tables more of than the chamber does, in
+  // Q3: the subject each group tables more of than the chamber does, in
   // proportion: its share of a topic over the topic's share of everything
   // the current groups tabled. "Most proposed" alone said "economy" for
   // nearly everyone. A topic needs MIN_DISTINCTIVE initiatives to count, so
@@ -201,39 +191,10 @@ export async function StatsQuestions({
           </section>
         )}
 
-        {/* 3. How united each group votes. */}
+        {/* 3. What each group talks about. */}
         <section className="sq-card" aria-labelledby="sq-3">
           <h2 id="sq-3" className="sq-card__title">{t('q3_title')}</h2>
-          <p className="sq-card__lede">
-            {t('q3_lede_bloc', { n: blocs, total: withCohesion.length })} {t('q3_lede')}
-          </p>
-          <ul className="sq-rows">
-            {bySeats.map((g) => {
-              const c = cohesion.get(g.slug);
-              const pct = c == null ? null : Math.round(c * 1000) / 10;
-              return (
-                <li key={g.slug}>
-                  <Link href={`/stats?group=${g.slug}` as Route} className="sq-row">
-                    <GroupBadge slug={g.slug} color={g.color_hex} logoUrl={g.logo_url} size="sm" link={false} />
-                    <span className="sq-row__name">{displayGroupShort(g.name_short)}</span>
-                    <span className="sq-meter" aria-hidden="true">
-                      <span style={{ width: `${pct ?? 0}%`, background: g.color_hex ?? 'var(--ink-3)' }} />
-                    </span>
-                    <span className="sq-row__value tabular">
-                      {pct == null ? '-' : `${pct.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="sq-note">{t('q3_order_note')}</p>
-        </section>
-
-        {/* 4. What each group talks about. */}
-        <section className="sq-card" aria-labelledby="sq-4">
-          <h2 id="sq-4" className="sq-card__title">{t('q4_title')}</h2>
-          <p className="sq-card__lede">{t('q4_lede')}</p>
+          <p className="sq-card__lede">{t('q3_lede')}</p>
           <ul className="sq-rows">
             {bySeats.map((g) => {
               const fact = distinctive.get(g.slug) ?? null;
@@ -253,7 +214,7 @@ export async function StatsQuestions({
                       </span>
                     ) : (
                       <span className="sq-note" style={{ margin: 0, gridColumn: '3 / -1' }}>
-                        {t('q4_too_few')}
+                        {t('q3_too_few')}
                       </span>
                     )}
                   </Link>
