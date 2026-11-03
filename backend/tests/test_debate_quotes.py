@@ -28,7 +28,7 @@ from app.ingest.congreso.debate_quotes import (
     parse_choice,
     parse_speaker,
     plan_debates,
-    speech_of,
+    speech_parts,
     split_sentences,
 )
 from app.models import Chamber, DebateQuote, Legislature, ParliamentaryGroup, Vote
@@ -172,9 +172,9 @@ def test_a_tie_keeps_the_earlier_speech() -> None:
 
 
 def test_speech_runs_past_the_page_and_the_chair_but_not_the_next_speaker() -> None:
-    speech = speech_of(PAGES, 13, "Velarde Gómez")
-    assert speech is not None
-    text = " ".join(speech.split())
+    parts = speech_parts(PAGES, 13, "Velarde Gómez")
+    assert len(parts) == 2
+    text = " ".join(" ".join(parts).split())
     assert "vamos a apoyar esta iniciativa porque va en buena dirección" in text
     # The running header between the two pages is gone.
     assert "DIARIO DE SESIONES" not in text and "cve:" not in text
@@ -187,11 +187,11 @@ def test_speech_runs_past_the_page_and_the_chair_but_not_the_next_speaker() -> N
 
 
 def test_speech_matches_names_across_accents_and_hyphens() -> None:
-    assert speech_of(PAGES, 14, "Cruz-Guzman Garcia") is not None
+    assert speech_parts(PAGES, 14, "Cruz-Guzman Garcia")
 
 
 def test_speech_not_found() -> None:
-    assert speech_of(PAGES, 13, "Nadie Nadie") is None
+    assert speech_parts(PAGES, 13, "Nadie Nadie") == []
 
 
 def test_split_sentences_keeps_abbreviations_and_collapses_lines() -> None:
@@ -282,6 +282,29 @@ async def test_pick_quote_cuts_the_passage_from_the_source(
     assert picked.quote == "Termino con esto, que es lo importante del debate de hoy."
     assert picked.page == 14
     assert "ASUNTO: Consorcio" in seen["user"]
+
+
+async def test_a_passage_stops_at_the_chair_interrupting(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # After a real pick: "...sufre una agresión… … y tampoco le interesa".
+    pages = clean_pages(
+        [
+            "La señora ROMERO VILCHES: La verdadera justicia no mira quién sufre una agresión…\n"
+            "La señora PRESIDENTA: Silencio, por favor.\n"
+            "La señora ROMERO VILCHES: … y tampoco le interesa saber quién es el agresor.\n"
+        ]
+    )
+
+    async def fake_llm(settings: Settings, *, system: str, user: str) -> str:
+        return '{"frases": [1, 2]}'
+
+    monkeypatch.setattr(dq, "_call_llm_for_text", fake_llm)
+    monkeypatch.setattr(dq, "_MIN_SPEECH_CHARS", 10)
+    picked = await dq.pick_quote(
+        Settings(), _debate(), _turn("María Romero Vilches", "gp-vox", 5, page=1), pages
+    )
+    assert picked.quote == "La verdadera justicia no mira quién sufre una agresión…"
 
 
 async def test_pick_quote_when_the_model_declines(monkeypatch: pytest.MonkeyPatch) -> None:
