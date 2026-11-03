@@ -16,12 +16,14 @@ engine = create_async_engine(
     _settings.database_url,
     echo=_settings.is_development,
     pool_pre_ping=True,
-    # Per process. Production runs 3 API workers plus the job worker and
-    # the scheduler against Postgres's 100 connections: 3 x 30 could take
-    # them all. 20 is plenty since the deputy profiles stopped holding
-    # connections for seconds (2026-10-26).
-    pool_size=10,
-    max_overflow=10,
+    # Per process. Production runs 3 API workers plus the job worker on a
+    # box with 2 cores, where Postgres gets nothing more done with more than
+    # a handful of queries at once. At 20 per worker, a scraper going through
+    # the law lists (2026-11-03) had 61 queries sharing those 2 cores: each
+    # took a minute instead of 50 ms and the box went into swap. At 8 a peak
+    # queues in the pool instead, and queries still answer at their own speed.
+    pool_size=_settings.db_pool_size,
+    max_overflow=_settings.db_max_overflow,
     # Postgres compiles "expensive" queries to machine code first, ~0.4 s
     # each on the profile's tallies (2026-10-26) for queries that then run
     # in a fraction of that. A web API's queries are never long enough to
