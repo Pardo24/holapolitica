@@ -639,7 +639,7 @@ export default async function VoteDetailPage({
             />
             {!vote.approved_by_assent && (
               <span className="tabular" style={{ color: 'var(--ink-3)', fontSize: 12 }}>
-                {margin >= 0 ? `+${margin}` : margin}
+                {t('margin_label', { n: Math.abs(margin) })}
               </span>
             )}
           </div>
@@ -939,6 +939,9 @@ export default async function VoteDetailPage({
               }}
             >
               <div style={{ minWidth: 0, maxWidth: 380, marginInline: 'auto', width: '100%' }}>
+                {/* On a phone the hemicycle says the same with seats: the
+                    donut goes and its four counts stay, as the legend. */}
+                <div className={voteHemicycleLayout ? 'vote-donut-chart vote-donut-chart--optional' : 'vote-donut-chart'}>
                 <VoteDonut
                   totals={{
                     aye: vote.ayes,
@@ -966,6 +969,7 @@ export default async function VoteDetailPage({
                 >
                   {t('donut_caption')}
                 </p>
+                </div>
                 <div
                   style={{
                     display: 'grid',
@@ -1039,6 +1043,7 @@ export default async function VoteDetailPage({
                       first-time reader can decode the dots without
                       hovering. */}
                   <div
+                    className="vote-hemi-legend"
                     style={{
                       marginTop: 8,
                       display: 'flex',
@@ -1115,6 +1120,7 @@ export default async function VoteDetailPage({
         }
         @media (max-width: 700px) {
           .vote-recount-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .vote-donut-chart--optional, .vote-hemi-legend { display: none !important; }
         }
       `}</style>
     </article>

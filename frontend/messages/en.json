@@ -404,7 +404,9 @@
     "lens_big_two_sub": "Did they vote the same way?",
     "lens_big_two_intro": "By what most of each group voted in each law's latest vote (amendments aside). Laws passed by assent, with no tally, are left out.",
     "lens_big_two_agree": "PSOE and PP: same vote",
-    "lens_big_two_disagree": "PSOE and PP: different votes"
+    "lens_big_two_disagree": "PSOE and PP: different votes",
+    "card_expired_unvoted": "It lapsed when the term ended without a vote: it will not be voted.",
+    "card_withdrawn_unvoted": "It was withdrawn before the plenary voted it."
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -445,7 +447,7 @@
     "view_vote_detail": "See full vote breakdown",
     "no_vote_yet": "Not yet voted. The result will appear here once the chamber has decided.",
     "no_summary_yet": "No plain-language summary yet. One will be generated soon.",
-    "related_title": "Other similar laws",
+    "related_title": "Other initiatives on the same topic",
     "final_vote_label": "Final (decisive) vote",
     "other_votes_toggle": "See the other {n} votes (amendments, articles...)",
     "chain_you_are_here": "You are here",
@@ -1331,7 +1333,8 @@
     "lens_close": "Close",
     "lens_filters": "Filters",
     "lens_done": "Done",
-    "meta_description": "Every plenary vote in the Spanish Congress: the result, the count and how each parliamentary group voted, in plain language."
+    "meta_description": "Every plenary vote in the Spanish Congress: the result, the count and how each parliamentary group voted, in plain language.",
+    "margin_label": "{n, plural, =0 {a tie} one {# vote apart} other {# votes apart}}"
   },
   "persons_autocomplete": {
     "placeholder": "Search a deputy or a constituency…",
@@ -1471,7 +1474,8 @@
     "who_before": "Before the seat",
     "who_authorised": "Activities authorised now",
     "who_authorised_none": "None outside the seat",
-    "who_awaiting": "Awaiting the plenary's decision"
+    "who_awaiting": "Awaiting the plenary's decision",
+    "kpi_scope": "Since {year}, across all their terms."
   },
   "topic": {
     "recent_votes_title": "Recent votes in this area",
@@ -1866,8 +1870,8 @@
     "Convalidación": "Approval by Congress of a government Real Decreto-ley, giving it the force of standing law.",
     "Derogació": "Repeal by Congress of a government Real Decreto-ley within the 30 days following its entry into force.",
     "Derogación": "Repeal by Congress of a government Real Decreto-ley within the 30 days following its entry into force.",
-    "Vots emesos": "Share of votes in which the MP cast a ballot (Yes, No or Abstain) out of the total votes during their term. Excludes justified absences (medical leave, parental leave). Votes cast as a minister or government member are counted according to parliamentary convention. See /about/data for the full methodology.",
-    "Votes cast": "Share of votes in which the MP cast a ballot (Yes, No or Abstain) out of the total votes during their term. Excludes justified absences (medical leave, parental leave). Votes cast as a minister or government member are counted according to parliamentary convention. See /about/data for the full methodology.",
+    "Vots emesos": "Share of votes in which the MP cast a ballot (Yes, No or Abstain) out of the total votes during their term. Excludes justified absences (medical leave, parental leave). Votes cast as a minister or government member are counted according to parliamentary convention. The full methodology is on the “Data & GDPR” page.",
+    "Votes cast": "Share of votes in which the MP cast a ballot (Yes, No or Abstain) out of the total votes during their term. Excludes justified absences (medical leave, parental leave). Votes cast as a minister or government member are counted according to parliamentary convention. The full methodology is on the “Data & GDPR” page.",
     "approval_rate": "Share of initiatives approved out of those that reached a final vote (approved + rejected). Those still in the pipeline don't count.",
     "data_source": "Data from the Congress Open Data portal (congreso.es). Refreshed every 4 hours. Topic classification is automatic, via an LLM.",
     "cohesion": "Share of group members voting the same way. 100% cohesion = full discipline; lower numbers = more split votes."
@@ -2477,7 +2481,7 @@
     "q1_lede": "Pick two groups: how often they voted the same way.",
     "q2_title": "What gets approved?",
     "q2_of": "of {total}",
-    "q2_lede": "initiatives approved, out of all that reached the floor.",
+    "q2_lede": "initiatives passed, out of all those filed this term.",
     "q2_link": "See the approved ones",
     "q3_title": "What does each group talk about?",
     "explore_title": "Want to dig deeper?",
@@ -3117,7 +3121,7 @@
     "title": "What the groups said in the debate",
     "dek": "One verbatim quote from each group, from the Diario de Sesiones of the plenary of {date}. It is a quote from the source, not any deputy's personal reason for their vote.",
     "speaker": "{speaker}, on behalf of the {group} Group",
-    "source": "{ref}, p. {page}",
+    "source": "Diario de Sesiones, p. {page}",
     "method": "An automated tool picks the passage, and the system checks that it is literal in the official text. Quotes appear in the language they were spoken in. A group with no quote shows only its vote.",
     "more": "Show {count, plural, =1 {# more quote} other {# more quotes}}",
     "less": "Hide them",

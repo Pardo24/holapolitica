@@ -18,7 +18,7 @@
 
 import type { Route } from 'next';
 import { useMemo, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import { GlossaryTerm } from '@/components/GlossaryTerm';
@@ -189,6 +189,7 @@ function PairResult({
   votesCompared: number;
 }) {
   const t = useTranslations('dashboard');
+  const locale = useLocale();
   return (
     <div>
       {/* The pair is already lit up in the two rows of marks above; the
@@ -208,7 +209,7 @@ function PairResult({
         <span style={{ fontSize: 22, marginLeft: 2 }}>%</span>
       </div>
       <p style={{ fontSize: 12, color: 'var(--ink-2)', margin: '8px 0 12px' }}>
-        {t('pair_caption', { count: votesCompared })}
+        {t('pair_caption', { count: votesCompared.toLocaleString(locale) })}
       </p>
       <div
         style={{

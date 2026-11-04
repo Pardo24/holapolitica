@@ -16,5 +16,5 @@ import { permanentRedirect } from 'next/navigation';
  * which are the actual destination — is untouched.
  */
 export default function GroupsIndexRedirect(): never {
-  permanentRedirect('/el-teu-diputat' as Route);
+  permanentRedirect('/el-teu-diputat?tab=grups' as Route);
 }

@@ -28,7 +28,6 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search, X, User } from 'lucide-react';
 
-import { DeputiesAutocomplete } from '@/components/DeputiesAutocomplete';
 import { GroupBadge } from '@/components/GroupBadge';
 import { GroupCombobox } from '@/components/GroupCombobox';
 import { Hemicycle } from '@/components/Hemicycle';
@@ -133,17 +132,126 @@ export function DeputiesList({
 
   return (
     <div>
-      {/* Prominent search-as-you-type, ABOVE the hemicycle. A citizen
-          arriving to look up "el meu diputat" finds the affordance
-          before the chart — most users don't read parliament charts
-          left-to-right, they search by name. Navigates to the
-          person's detail page on click/Enter, separate from the
-          directory filter below. */}
-      {totalSeats > 0 && (
-        <section style={{ paddingTop: 18 }}>
-          <DeputiesAutocomplete seats={seats} />
-        </section>
-      )}
+      {/* One search, first: it filters the directory below as you type.
+          There used to be a second, jump-to-deputy search above the
+          chart, two boxes asking the same thing. */}
+      <section
+        style={{
+          paddingTop: 20,
+          paddingBottom: 14,
+          display: 'flex',
+          gap: 10,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div
+          className="search-chip"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 14px',
+            border: '1px solid var(--rule-strong)',
+            borderRadius: 10,
+            background: 'var(--paper)',
+            flex: '1 1 240px',
+            minWidth: 0,
+            maxWidth: 360,
+            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+          }}
+        >
+          <Search
+            size={14}
+            aria-hidden="true"
+            style={{ color: 'var(--ink-3)', flex: 'none' }}
+          />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('search_placeholder')}
+            aria-label={t('search_input_aria')}
+            style={{
+              padding: '4px 0',
+              border: 'none',
+              background: 'transparent',
+              fontSize: 14,
+              minWidth: 0,
+              flex: '1 1 auto',
+              fontFamily: 'inherit',
+              color: 'var(--ink)',
+              outline: 'none',
+            }}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label={t('clear_filters')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--ink-3)',
+                padding: 4,
+                cursor: 'pointer',
+                display: 'inline-flex',
+              }}
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
+        <div
+          style={{
+            flex: '1 1 220px',
+            minWidth: 0,
+            maxWidth: 320,
+          }}
+        >
+          <GroupCombobox
+            name="group"
+            value={groupFilter}
+            onChange={setGroupFilter}
+            groups={sortedGroups}
+            placeholder={t('filter_group_placeholder')}
+            ariaLabel={t('filter_group_label')}
+          />
+        </div>
+
+        {hasActiveFilter && (
+          <button
+            type="button"
+            onClick={() => {
+              setQuery('');
+              setGroupFilter('');
+            }}
+            className="btn-modern"
+            style={{ fontSize: 13, padding: '8px 12px' }}
+          >
+            <X size={12} aria-hidden="true" />
+            {t('clear_filters')}
+          </button>
+        )}
+
+        <div
+          className="tabular"
+          aria-live="polite"
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-3)',
+            marginLeft: 'auto',
+          }}
+        >
+          {hasActiveFilter
+            ? t('filter_active_total', {
+                filtered: sortedFiltered.length,
+                total: totalSeats,
+              })
+            : t('subtitle_composition', { total: totalSeats })}
+        </div>
+      </section>
 
       {/* Top row: hemicycle (focal, ~70%) + groups sidebar (~30%).
           Collapses to a single column on narrow viewports. */}
@@ -264,125 +372,6 @@ export function DeputiesList({
         </div>
       </section>
 
-      {/* Filter row — moved BELOW the hemicycle per the redesign. */}
-      <section
-        style={{
-          paddingTop: 20,
-          paddingBottom: 14,
-          display: 'flex',
-          gap: 10,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          className="search-chip"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 14px',
-            border: '1px solid var(--rule-strong)',
-            borderRadius: 10,
-            background: 'var(--paper)',
-            flex: '1 1 240px',
-            minWidth: 0,
-            maxWidth: 360,
-            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-          }}
-        >
-          <Search
-            size={14}
-            aria-hidden="true"
-            style={{ color: 'var(--ink-3)', flex: 'none' }}
-          />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('search_placeholder')}
-            aria-label={t('search_input_aria')}
-            style={{
-              padding: '4px 0',
-              border: 'none',
-              background: 'transparent',
-              fontSize: 14,
-              minWidth: 0,
-              flex: '1 1 auto',
-              fontFamily: 'inherit',
-              color: 'var(--ink)',
-              outline: 'none',
-            }}
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              aria-label={t('clear_filters')}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--ink-3)',
-                padding: 4,
-                cursor: 'pointer',
-                display: 'inline-flex',
-              }}
-            >
-              <X size={14} aria-hidden="true" />
-            </button>
-          )}
-        </div>
-
-        <div
-          style={{
-            flex: '1 1 220px',
-            minWidth: 0,
-            maxWidth: 320,
-          }}
-        >
-          <GroupCombobox
-            name="group"
-            value={groupFilter}
-            onChange={setGroupFilter}
-            groups={sortedGroups}
-            placeholder={t('filter_group_placeholder')}
-            ariaLabel={t('filter_group_label')}
-          />
-        </div>
-
-        {hasActiveFilter && (
-          <button
-            type="button"
-            onClick={() => {
-              setQuery('');
-              setGroupFilter('');
-            }}
-            className="btn-modern"
-            style={{ fontSize: 13, padding: '8px 12px' }}
-          >
-            <X size={12} aria-hidden="true" />
-            {t('clear_filters')}
-          </button>
-        )}
-
-        <div
-          className="tabular"
-          aria-live="polite"
-          style={{
-            fontSize: 12,
-            color: 'var(--ink-3)',
-            marginLeft: 'auto',
-          }}
-        >
-          {hasActiveFilter
-            ? t('filter_active_total', {
-                filtered: sortedFiltered.length,
-                total: totalSeats,
-              })
-            : t('subtitle_composition', { total: totalSeats })}
-        </div>
-      </section>
-
       {/* Filtered directory */}
       <section>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
@@ -461,6 +450,13 @@ export function DeputiesList({
           }
           .persons-hub-hemicycle {
             max-width: none;
+          }
+        }
+        /* On a phone the group list is the "Grups" tab's: here it only
+           pushed the directory a screen further down. */
+        @media (max-width: 640px) {
+          .persons-hub-groups {
+            display: none;
           }
         }
       `}</style>

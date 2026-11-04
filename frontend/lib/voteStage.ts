@@ -50,6 +50,26 @@ export function localizeSubgroupText(text: string | null | undefined, locale: st
     return ca ? 'Totes les esmenes, en bloc' : 'All the amendments, together';
   }
   if ((m = raw.match(/^Punto (\S+)$/i))) return ca ? `Punt ${m[1]}` : `Point ${m[1]}`;
+  // Motions voted in blocks: "Segundo bloque", "Punto 3 del primer bloque",
+  // "Puntos 1, 2 y 4 del primer bloque".
+  const BLOCK: Record<string, [string, string]> = {
+    primer: ['Primer bloc', 'First block'],
+    segundo: ['Segon bloc', 'Second block'],
+    tercer: ['Tercer bloc', 'Third block'],
+    cuarto: ['Quart bloc', 'Fourth block'],
+  };
+  if ((m = raw.match(/^(primer|segundo|tercer|cuarto) bloque$/i))) {
+    const b = BLOCK[m[1]!.toLowerCase()]!;
+    return ca ? b[0] : b[1];
+  }
+  if ((m = raw.match(/^Puntos? ([\d ,y]+?) del (primer|segundo|tercer|cuarto) bloque$/i))) {
+    const nums = m[1]!.trim().replace(/\s+y\s+/g, ca ? ' i ' : ' and ');
+    const plural = /[ ,]/.test(nums);
+    const b = BLOCK[m[2]!.toLowerCase()]!;
+    return ca
+      ? `${plural ? 'Punts' : 'Punt'} ${nums} del ${b[0].toLowerCase()}`
+      : `${plural ? 'Points' : 'Point'} ${nums} of the ${b[1].toLowerCase()}`;
+  }
   if (/^Voto particular/i.test(raw)) return ca ? 'Vot particular' : 'Dissenting proposal';
   return raw;
 }

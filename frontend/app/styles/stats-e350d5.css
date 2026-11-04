@@ -266,7 +266,7 @@
 .sq-rows > li + li { border-top: 1px solid color-mix(in oklch, var(--rule) 70%, transparent); }
 .sq-rows.sq-rows > li > a.sq-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 7.5em) minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 9.5em) minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   min-height: 44px;
@@ -274,7 +274,7 @@
   color: var(--ink);
   text-decoration: none;
 }
-.sq-row__name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sq-row__name { font-size: 13.5px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
 .sq-row__value { font-size: 13px; font-weight: 700; color: var(--ink-2); text-align: right; min-width: 3ch; }
 .sq-meter { height: 8px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
 .sq-meter > span { display: block; height: 100%; border-radius: 999px; }
@@ -375,4 +375,12 @@
   .sa-bands .sa-median { grid-area: median; }
   .sa-bands .sa-stack, .sa-bands .sa-few { grid-area: bar; }
   .sa-cant { padding: 12px 14px; }
+}
+
+/* Cards in a row keep their own height: a short one is not stretched to
+   its neighbour's and left half empty. */
+.sq-grid > .sq-card { align-self: start; }
+@media (min-width: 640px) {
+  /* Room for every group: the chips wrap instead of scrolling one off. */
+  .pair-chips { flex-wrap: wrap; overflow-x: visible; }
 }

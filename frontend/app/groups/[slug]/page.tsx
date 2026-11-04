@@ -268,7 +268,7 @@ export default async function GroupDetailPage({
     <article className="grp">
       {/* Breadcrumb */}
       <div className="crumbs" style={{ fontSize: 12, color: 'var(--ink-3)', paddingTop: 18 }}>
-        <Link href="/groups" style={{ color: 'var(--ink-2)' }}>
+        <Link href={'/el-teu-diputat?tab=grups' as Route} style={{ color: 'var(--ink-2)' }}>
           {t('breadcrumb_groups')}
         </Link>
         {' / '}

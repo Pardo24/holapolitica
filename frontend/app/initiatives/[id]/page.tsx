@@ -493,18 +493,6 @@ export default async function InitiativeDetailPage({
         )}
       </section>
 
-      <DebateQuotes
-        quotes={initiative.debate_quotes}
-        parties={finalVote ? (stanceByVote.get(finalVote.id) ?? []) : []}
-        labels={{
-          aye: tLleis('card_in_favour'),
-          no: tLleis('card_against'),
-          abstention: tLleis('card_abstention'),
-          absent: tVotes('absent'),
-        }}
-        locale={locale}
-      />
-
       {/* 4. What the bill's own text says, article by article, and the PDF. */}
       <LawTextPanel initiative={initiative} locale={locale} />
 
@@ -515,6 +503,21 @@ export default async function InitiativeDetailPage({
         hasBoe={!!initiative.boe_url}
         voteResult={finalVote?.result ?? null}
         votes={votes}
+      />
+
+      {/* What each group said in the debate: after what the law is, how it
+          was voted and where it stands, so the content comes before the
+          rhetoric. */}
+      <DebateQuotes
+        quotes={initiative.debate_quotes}
+        parties={finalVote ? (stanceByVote.get(finalVote.id) ?? []) : []}
+        labels={{
+          aye: tLleis('card_in_favour'),
+          no: tLleis('card_against'),
+          abstention: tLleis('card_abstention'),
+          absent: tVotes('absent'),
+        }}
+        locale={locale}
       />
 
       {/* 6. The rest, as labelled facts. The audiences only when there is no
@@ -622,7 +625,7 @@ export default async function InitiativeDetailPage({
             }}
           >
             {related.map((r) => {
-              const rTitle = pickTitle(r, locale);
+              const rTitle = pickPlainTitle(r, locale) ?? pickTitle(r, locale);
               const rStatus = resolveStatusLabel(r.status);
               const rStatusColor = STATUS_COLOR[r.status] ?? 'var(--ink-3)';
               return (
@@ -642,9 +645,9 @@ export default async function InitiativeDetailPage({
                       height: '100%',
                     }}
                   >
-                    <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>
-                      {r.official_id}
-                    </span>
+                    {/* What kind of item it is, in words: a decree, a bill, a
+                        motion. The expedient number said nothing to a reader. */}
+                    <LawTypeChip type={r.type} size="sm" />
                     <span
                       style={{
                         fontSize: 14,

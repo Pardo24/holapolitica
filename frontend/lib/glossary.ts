@@ -50,9 +50,9 @@ const TERM_DEFINITIONS_CA: Record<string, string> = {
   'Cohesió de grup':
     'Percentatge de membres del grup que voten igual en una votació.',
   'Vots emesos':
-    'Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. Veure /about/data per a la metodologia completa.',
+    'Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. La metodologia completa és a la pàgina «Dades i RGPD».',
   'vots emesos':
-    'Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. Veure /about/data per a la metodologia completa.',
+    'Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. La metodologia completa és a la pàgina «Dades i RGPD».',
   'Dissidència':
     'Vot d\'un diputat que difereix de la línia majoritària del seu grup.',
   'Coincidència':

@@ -132,3 +132,22 @@
 @media (min-width: 641px) {
   .laws-results-row > .sheet--inline-desktop { order: -1; width: 100%; }
 }
+
+/* On a phone the seven lenses are chips that wrap, titles only: as
+   tiles with a line of explanation each they took most of a screen
+   before the first law. */
+@media (max-width: 640px) {
+  .lens-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lens-grid > .lens-tile,
+  .lens-grid > :nth-child(7):last-child {
+    flex: none;
+    min-height: 40px;
+    padding: 4px 12px 4px 5px;
+    border-radius: 999px;
+    gap: 7px;
+    grid-column: auto;
+  }
+  .lens-grid .lens-tile__icon { width: 30px; height: 30px; border-radius: 999px; }
+  .lens-grid .lens-tile__sub { display: none; }
+  .lens-grid .lens-tile__title { font-size: 13px; font-weight: 600; white-space: nowrap; }
+}

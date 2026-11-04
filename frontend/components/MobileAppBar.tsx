@@ -31,7 +31,7 @@ import {
   Gamepad2,
   Globe2,
   Bell,
-  Handshake,
+  Landmark,
   Map as MapIcon,
   Menu,
   Newspaper,
@@ -50,6 +50,7 @@ import { stripLocale } from '@/lib/localePath';
 import { useCallback, useEffect, useState } from 'react';
 
 import { BottomSheet } from '@/components/BottomSheet';
+import { ReportErrorLink } from '@/components/ReportErrorLink';
 
 /** The bottom bar's own destinations: a "back" on these would step to the
  *  previous tab, which reads as broken. */
@@ -104,8 +105,9 @@ export function MobileAppBar() {
   ];
 
   const links = [
-    // The 29 November 2026 election: press on pacts and candidacies.
-    { href: '/eleccions', label: tFooter('elections_link'), Icon: Handshake },
+    // Sections the bottom bar only reaches through a tab of another one.
+    { href: '/el-teu-diputat?tab=grups', label: tNav('partits'), Icon: Landmark },
+    { href: '/votes', label: tNav('votes'), Icon: CalendarDays },
     { href: '/et-afecta', label: t('profiles'), Icon: UserRound },
     { href: '/about', label: t('about'), Icon: BookOpen },
     { href: '/recorregut', label: tFooter('lifecycle_link'), Icon: RouteIcon },
@@ -208,7 +210,14 @@ export function MobileAppBar() {
             ))}
           </ul>
 
-          <p style={{ margin: '16px 0 0', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-3)' }}>
+          <p style={{ margin: '16px 0 0', fontSize: 13 }}>
+            <ReportErrorLink
+              label={tFooter('report_error')}
+              subject={tFooter('report_error_subject')}
+              body={tFooter.raw('report_error_body') as string}
+            />
+          </p>
+          <p style={{ margin: '12px 0 0', fontSize: 12, lineHeight: 1.55, color: 'var(--ink-3)' }}>
             {tFooter('principle')} {tFooter('license_code')} · {tFooter('license_data')} ·{' '}
             {tFooter('complementary')}
           </p>

@@ -48,6 +48,8 @@ export function GlossaryTerm({
   const definition = messages.glossary?.[term] ?? termDefinitionCa(term);
   const anchorRef = useRef<HTMLSpanElement>(null);
   const [flipBelow, setFlipBelow] = useState(false);
+  // How far the bubble slides sideways to stay on screen (px).
+  const [shift, setShift] = useState(0);
   const [open, setOpen] = useState(false);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,6 +64,12 @@ export function GlossaryTerm({
     // Bubble height (~80px max for our short definitions) + 8px gap.
     const need = 96;
     setFlipBelow(rect.top < need);
+    // Centred on the term, the bubble can run off a phone's edge: slide it
+    // back inside with an 8px margin (width as in the CSS).
+    const vw = window.innerWidth;
+    const width = Math.min(0.9 * vw, 260);
+    const left = rect.left + rect.width / 2 - width / 2;
+    setShift(left < 8 ? 8 - left : left + width > vw - 8 ? vw - 8 - (left + width) : 0);
   };
 
   const handleShow = (): void => {
@@ -112,6 +120,7 @@ export function GlossaryTerm({
         id={id}
         className="glossary-term__bubble"
         role="tooltip"
+        style={shift ? ({ '--shift': `${shift}px` } as React.CSSProperties) : undefined}
       >
         {definition}
       </span>

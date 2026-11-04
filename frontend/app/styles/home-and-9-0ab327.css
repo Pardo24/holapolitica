@@ -19,7 +19,7 @@
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% + var(--shift, 0px)));
   background: var(--ink);
   color: var(--paper);
   padding: 10px 12px;
@@ -44,7 +44,7 @@
   content: "";
   position: absolute;
   top: 100%;
-  left: 50%;
+  left: calc(50% - var(--shift, 0px));
   transform: translateX(-50%);
   border: 5px solid transparent;
   border-top-color: var(--ink);

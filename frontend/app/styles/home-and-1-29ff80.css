@@ -126,8 +126,28 @@
 }
 .party-band__seats b { color: var(--ink-2); font-size: 13px; }
 @media (max-width: 640px) {
-  .party-band { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .party-band__card { padding: 15px 10px 12px; border-radius: 12px; }
+  /* A phone gets a list, one row per group: logo, name (and its 29-N
+     ballot name), seats. Nine 160px cards in two columns took a whole
+     screen and a half, mostly air. The !important beats the inline
+     layout PartyBand puts on each card for desktop resilience. */
+  .party-band { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .party-band__card {
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-areas: "logo name seats" "logo ballot seats";
+    align-items: center !important;
+    column-gap: 12px;
+    row-gap: 1px;
+    min-height: 56px !important;
+    padding: 9px 14px 9px 12px;
+    border-radius: 12px;
+  }
+  .party-band__rail { inset: 0 auto 0 0; width: 3px; height: auto; }
+  .party-band__logo { grid-area: logo; width: 32px !important; height: 32px !important; font-size: 12px !important; }
+  .party-band__name { grid-area: name; text-align: left !important; margin-top: 0 !important; font-size: 14px; align-self: end; }
+  .party-band__ballot { grid-area: ballot; text-align: left; margin-top: 0; font-weight: 600; color: var(--ink-3); align-self: start; }
+  .party-band__card:not(:has(.party-band__ballot)) .party-band__name { grid-row: 1 / span 2; align-self: center; }
+  .party-band__seats { grid-area: seats; width: auto !important; text-align: right !important; margin-top: 0 !important; padding-top: 0 !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .party-band__card { transition: none; }

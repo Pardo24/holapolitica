@@ -324,7 +324,12 @@ export default async function PersonDetailPage({
         />
       )}
 
-      <KpiStrip kpis={kpis} t={t} />
+      <KpiStrip
+        kpis={kpis}
+        t={t}
+        locale={locale}
+        since={mandates.length ? mandates.map((m) => m.start_date).sort()[0]!.slice(0, 4) : null}
+      />
 
       {person.role_kind && (() => {
         const gender = person.gender === 'F' ? 'F' : 'M';
@@ -745,10 +750,19 @@ function StanceArc({
 function KpiStrip({
   kpis,
   t,
+  locale,
+  since,
 }: {
   kpis: PersonKPIs;
   t: Awaited<ReturnType<typeof getTranslations<'person'>>>;
+  locale: string;
+  /** Year of the first mandate: the figures add up every term, not just this one. */
+  since: string | null;
 }) {
+  const n = (x: number) => x.toLocaleString(locale);
+  // Under 1% a whole number reads as "never": one decimal there.
+  const pct = (x: number) =>
+    `${(x * 100).toLocaleString(locale, { maximumFractionDigits: x > 0 && x < 0.01 ? 1 : 0 })}%`;
   const empty = kpis.votes_total === 0;
   if (empty) {
     return (
@@ -758,21 +772,23 @@ function KpiStrip({
     );
   }
   return (
+    <>
+    {since && <p className="dep-kpis__scope">{t('kpi_scope', { year: since })}</p>}
     <section className="dep-kpis">
       <div className="kpi">
         <span className="label">{t('kpi_votes_cast_label')}</span>
-        <span className="value tabular">{kpis.votes_cast}</span>
-        <span className="sub">{t('kpi_of_possible', { total: kpis.votes_total })}</span>
+        <span className="value tabular">{n(kpis.votes_cast)}</span>
+        <span className="sub">{t('kpi_of_possible', { total: n(kpis.votes_total) })}</span>
       </div>
       <div className="kpi">
         <span className="label">
           <GlossaryTerm term="Vots emesos">{t('kpi_attendance_label')}</GlossaryTerm>
         </span>
         <span className="value tabular">
-          {kpis.attendance_pct === null ? '—' : `${(kpis.attendance_pct * 100).toFixed(0)}%`}
+          {kpis.attendance_pct === null ? '-' : pct(kpis.attendance_pct)}
         </span>
         <span className="sub">
-          {t('kpi_attendance_sub', { cast: kpis.votes_cast, total: kpis.votes_total })}
+          {t('kpi_attendance_sub', { cast: n(kpis.votes_cast), total: n(kpis.votes_total) })}
         </span>
       </div>
       <div className="kpi">
@@ -780,7 +796,7 @@ function KpiStrip({
           <GlossaryTerm term="Dissidència">{t('kpi_dissidence_label')}</GlossaryTerm>
         </span>
         <span className="value tabular">
-          {kpis.dissidence_pct === null ? '—' : `${(kpis.dissidence_pct * 100).toFixed(0)}%`}
+          {kpis.dissidence_pct === null ? '-' : pct(kpis.dissidence_pct)}
         </span>
         <span className="sub">
           {kpis.dissidence_pct === null
@@ -789,6 +805,7 @@ function KpiStrip({
         </span>
       </div>
     </section>
+    </>
   );
 }
 

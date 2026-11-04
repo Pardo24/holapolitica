@@ -198,7 +198,7 @@
   "about_data": {
     "eyebrow": "Transparencia",
     "title": "Sobre los datos",
-    "lede": "Toda la información que publicamos proviene de portales de open data oficiales, transformada con una metodología documentada y sin capa editorial.",
+    "lede": "Toda la información que publicamos proviene de portales de datos abiertos oficiales, transformada con una metodología documentada y sin capa editorial.",
     "sources_title": "Fuentes",
     "sources_intro": "Estas son las fuentes oficiales que alimentan la plataforma:",
     "methodology_title": "Metodología",
@@ -404,7 +404,9 @@
     "lens_big_two_sub": "¿Han votado igual o distinto?",
     "lens_big_two_intro": "Según lo que votó la mayoría de cada grupo en la última votación de cada ley (sin contar las enmiendas). Las aprobadas por asentimiento, sin recuento, no salen.",
     "lens_big_two_agree": "PSOE y PP, igual",
-    "lens_big_two_disagree": "PSOE y PP, distinto"
+    "lens_big_two_disagree": "PSOE y PP, distinto",
+    "card_expired_unvoted": "Decayó al terminar la legislatura sin votarse: ya no se votará.",
+    "card_withdrawn_unvoted": "La retiraron antes de votarla en el pleno."
   },
   "agenda_2030": {
     "eyebrow": "Qué es, qué no es y qué ha votado el Congreso.",
@@ -445,7 +447,7 @@
     "view_vote_detail": "Ver detalle de la votación",
     "no_vote_yet": "Aún no se ha votado. Cuando se vote, aparecerá aquí.",
     "no_summary_yet": "Aún no hay un resumen en lenguaje claro. Se generará próximamente.",
-    "related_title": "Otras leyes similares",
+    "related_title": "Otras iniciativas del mismo tema",
     "final_vote_label": "Votación final (decisiva)",
     "other_votes_toggle": "Ver las otras {n} votaciones (enmiendas, artículos...)",
     "chain_you_are_here": "Estás aquí",
@@ -841,7 +843,7 @@
     "tab_assets": "Bienes"
   },
   "home": {
-    "eyebrow": "Open data del Congreso de los Diputados",
+    "eyebrow": "Datos abiertos del Congreso de los Diputados",
     "hero_title": "El Congreso,\nexplicado.",
     "hero_subtitle": "Una herramienta para entender cómo se hacen las leyes y quién las vota: qué se propone, cómo vota cada diputado y grupo, clasificado por tema. En abierto, neutral y descargable.",
     "lifecycle_link": "Cómo se hace una ley →",
@@ -1331,7 +1333,8 @@
     "lens_close": "Cerrar",
     "lens_filters": "Filtros",
     "lens_done": "Hecho",
-    "meta_description": "Cada votación del pleno del Congreso de los Diputados: el resultado, el recuento y cómo ha votado cada grupo parlamentario, explicado en lenguaje claro."
+    "meta_description": "Cada votación del pleno del Congreso de los Diputados: el resultado, el recuento y cómo ha votado cada grupo parlamentario, explicado en lenguaje claro.",
+    "margin_label": "{n, plural, =0 {empate} one {# voto de diferencia} other {# votos de diferencia}}"
   },
   "persons_autocomplete": {
     "placeholder": "Busca un diputado o una circunscripción…",
@@ -1471,7 +1474,8 @@
     "who_before": "Antes de entrar",
     "who_authorised": "Actividades autorizadas ahora",
     "who_authorised_none": "Ninguna fuera del cargo",
-    "who_awaiting": "Pendientes del acuerdo del Pleno"
+    "who_awaiting": "Pendientes del acuerdo del Pleno",
+    "kpi_scope": "Desde {year}, sumando todos sus mandatos."
   },
   "topic": {
     "recent_votes_title": "Votaciones recientes en este área",
@@ -1866,8 +1870,8 @@
     "Convalidación": "Aprobación por el Congreso de un Real Decreto-ley del Gobierno, dándole valor de ley vigente.",
     "Derogació": "Anulación por el Congreso de un Real Decreto-ley del Gobierno dentro de los 30 días posteriores a su entrada en vigor.",
     "Derogación": "Anulación por el Congreso de un Real Decreto-ley del Gobierno dentro de los 30 días posteriores a su entrada en vigor.",
-    "Vots emesos": "Porcentaje de votaciones en que el diputado emitió un voto (Sí, No o Abstención) sobre el total de votaciones de su mandato. No incluye ausencias justificadas (baja médica, permiso parental). Las votaciones realizadas como ministro o miembro del Gobierno se cuentan según la convención parlamentaria. Véase /about/data para la metodología completa.",
-    "Votos emitidos": "Porcentaje de votaciones en que el diputado emitió un voto (Sí, No o Abstención) sobre el total de votaciones de su mandato. No incluye ausencias justificadas (baja médica, permiso parental). Las votaciones realizadas como ministro o miembro del Gobierno se cuentan según la convención parlamentaria. Véase /about/data para la metodología completa.",
+    "Vots emesos": "Porcentaje de votaciones en que el diputado emitió un voto (Sí, No o Abstención) sobre el total de votaciones de su mandato. No incluye ausencias justificadas (baja médica, permiso parental). Las votaciones realizadas como ministro o miembro del Gobierno se cuentan según la convención parlamentaria. La metodología completa está en la página «Datos y RGPD».",
+    "Votos emitidos": "Porcentaje de votaciones en que el diputado emitió un voto (Sí, No o Abstención) sobre el total de votaciones de su mandato. No incluye ausencias justificadas (baja médica, permiso parental). Las votaciones realizadas como ministro o miembro del Gobierno se cuentan según la convención parlamentaria. La metodología completa está en la página «Datos y RGPD».",
     "approval_rate": "% de iniciativas aprobadas sobre las que han llegado a votación final (aprobadas + rechazadas). Las que están en tramitación no cuentan.",
     "data_source": "Datos del portal de Open Data del Congreso (congreso.es). Actualizamos cada 4 horas. La clasificación temática es automática mediante LLM.",
     "cohesion": "% de miembros del grupo que votan igual. Cohesión 100% = disciplina total; números más bajos = más votaciones cruzadas."
@@ -2319,7 +2323,7 @@
     "alt_vote": "Resultado de la votación en el Congreso",
     "alt_person": "Actividad parlamentaria · Hola Política",
     "motto": "Espejo, no megáfono.",
-    "home_eyebrow": "Open data del Congreso de los Diputados",
+    "home_eyebrow": "Datos abiertos del Congreso de los Diputados",
     "home_title_line_1": "Qué vota el Congreso.",
     "home_title_line_2": "Clasificado por tema.",
     "home_footer": "Por cada votación: quién la propone, cómo vota cada grupo.",
@@ -2327,7 +2331,7 @@
     "topic_footer": "Iniciativas del Congreso clasificadas por tema, en abierto.",
     "stats_eyebrow": "Estadísticas · XV legislatura",
     "stats_headline": "Qué vota el Congreso, clasificado por tema.",
-    "stats_subhead": "Open data del Congreso de los Diputados: cada voto del pleno, quién lo propone, cómo vota cada grupo. Todo en abierto.",
+    "stats_subhead": "Datos abiertos del Congreso de los Diputados: cada voto del pleno, quién lo propone, cómo vota cada grupo. Todo en abierto.",
     "stats_kpi_initiatives": "Iniciativas",
     "stats_kpi_votes": "Votaciones",
     "stats_kpi_classified": "Clasificadas",
@@ -2477,7 +2481,7 @@
     "q1_lede": "Elige dos grupos: cuántas veces han votado lo mismo.",
     "q2_title": "¿Qué se aprueba?",
     "q2_of": "de {total}",
-    "q2_lede": "iniciativas aprobadas, de todas las que han llegado al pleno.",
+    "q2_lede": "iniciativas aprobadas, de todas las registradas en esta legislatura.",
     "q2_link": "Ver las aprobadas",
     "q3_title": "¿De qué habla cada grupo?",
     "explore_title": "¿Quieres profundizar?",
@@ -3117,7 +3121,7 @@
     "title": "Qué dijeron los grupos en el debate",
     "dek": "Una cita literal de cada grupo, del Diario de Sesiones del Pleno del {date}. Es una cita de la fuente, no el motivo personal del voto de cada diputado.",
     "speaker": "{speaker}, en nombre del Grupo {group}",
-    "source": "{ref}, pág. {page}",
+    "source": "Diario de Sesiones, pág. {page}",
     "method": "Una herramienta automática elige el pasaje, y el sistema comprueba que sea literal en el texto oficial. Las citas se muestran en el idioma en que se dijeron. Si un grupo no tiene cita, solo se muestra su voto.",
     "more": "Mostrar {count, plural, =1 {# cita más} other {# citas más}}",
     "less": "Ocultarlas",

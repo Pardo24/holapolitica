@@ -198,7 +198,7 @@
   "about_data": {
     "eyebrow": "Transparència",
     "title": "Sobre les dades",
-    "lede": "Tota la informació que publiquem prové de portals d'open data oficials, transformada amb una metodologia documentada i sense capa editorial.",
+    "lede": "Tota la informació que publiquem prové de portals de dades obertes oficials, transformada amb una metodologia documentada i sense capa editorial.",
     "sources_title": "Fonts",
     "sources_intro": "Aquestes són les fonts oficials que alimenten la plataforma:",
     "methodology_title": "Metodologia",
@@ -217,8 +217,8 @@
     "cta_eyebrow": "Vols ajudar",
     "cta_body": "El projecte és open source. Si vols col·laborar, reportar errors o suggerir millores, comença per la pàgina del projecte.",
     "cta_button": "Llegeix més sobre el projecte",
-    "meta_description": "Fonts, metodologia, llicències i procediment de correcció de Hola Política. Tota la informació prové de portals d'open data oficials sota CC-BY 4.0.",
-    "src_opendata": "<b>Open data del Congrés dels Diputats</b> - <link>congreso.es/es/opendata</link>. Diputats, iniciatives i votacions del ple. Llicència CC-BY 4.0.",
+    "meta_description": "Fonts, metodologia, llicències i procediment de correcció de Hola Política. Tota la informació prové de portals de dades obertes oficials sota CC-BY 4.0.",
+    "src_opendata": "<b>Dades obertes del Congrés dels Diputats</b> - <link>congreso.es/es/opendata</link>. Diputats, iniciatives i votacions del ple. Llicència CC-BY 4.0.",
     "src_search": "<b>Cercador d'iniciatives del Congrés</b> - <link>busqueda-de-iniciativas</link>. Sèries 162 (proposicions no de llei) i 173 (mocions). Mateixa llicència.",
     "src_texts": "<b>Textos oficials</b> - el Butlletí Oficial de les Corts Generals (BOCG), d'on llegim el text de cada llei i proposició, i el <link>BOE</link>, per saber quan entra en vigor una llei aprovada.",
     "src_hemi": "<b>Hemicicle</b> - mapa de seients oficial publicat a <link>congreso.es/es/hemiciclo</link>. La imatge i les coordenades són del Congrés; només mostrem on seu cada diputat.",
@@ -404,7 +404,9 @@
     "lens_big_two_sub": "Han votat igual o diferent?",
     "lens_big_two_intro": "Segons el que va votar la majoria de cada grup a l'última votació de cada llei (sense comptar les esmenes). Les aprovades per assentiment, sense recompte, no hi surten.",
     "lens_big_two_agree": "PSOE i PP, igual",
-    "lens_big_two_disagree": "PSOE i PP, diferent"
+    "lens_big_two_disagree": "PSOE i PP, diferent",
+    "card_expired_unvoted": "Va decaure en acabar la legislatura sense votar-se: ja no es votarà.",
+    "card_withdrawn_unvoted": "La van retirar abans de votar-la al ple."
   },
   "agenda_2030": {
     "eyebrow": "Què és, què no és i què n'ha votat el Congrés.",
@@ -445,7 +447,7 @@
     "view_vote_detail": "Veure detall de la votació",
     "no_vote_yet": "Encara no s'ha votat. Quan es voti, apareixerà aquí.",
     "no_summary_yet": "Encara no hi ha un resum en llenguatge planer. Es generarà properament.",
-    "related_title": "Altres lleis similars",
+    "related_title": "Altres iniciatives del mateix tema",
     "final_vote_label": "Votació final (decisiva)",
     "other_votes_toggle": "Veure les altres {n} votacions (esmenes, articles...)",
     "chain_you_are_here": "Ets aquí",
@@ -841,7 +843,7 @@
     "tab_assets": "Béns"
   },
   "home": {
-    "eyebrow": "Open data del Congrés dels Diputats",
+    "eyebrow": "Dades obertes del Congrés dels Diputats",
     "hero_title": "El Congrés,\nexplicat.",
     "hero_subtitle": "Una eina per entendre com es fan les lleis i qui les vota: què es proposa, com vota cada diputat i grup, classificat per tema. En obert, neutral i descarregable.",
     "lifecycle_link": "Com es fa una llei →",
@@ -1331,7 +1333,8 @@
     "lens_close": "Tanca",
     "lens_filters": "Filtres",
     "lens_done": "Fet",
-    "meta_description": "Cada votació del ple del Congrés dels Diputats: el resultat, el recompte i com ha votat cada grup parlamentari, explicat en llenguatge planer."
+    "meta_description": "Cada votació del ple del Congrés dels Diputats: el resultat, el recompte i com ha votat cada grup parlamentari, explicat en llenguatge planer.",
+    "margin_label": "{n, plural, =0 {empat} one {# vot de diferència} other {# vots de diferència}}"
   },
   "persons_autocomplete": {
     "placeholder": "Cerca un diputat o una circumscripció…",
@@ -1471,7 +1474,8 @@
     "who_before": "Abans d'entrar",
     "who_authorised": "Activitats autoritzades ara",
     "who_authorised_none": "Cap fora del càrrec",
-    "who_awaiting": "Pendents de l'acord del Ple"
+    "who_awaiting": "Pendents de l'acord del Ple",
+    "kpi_scope": "Des del {year}, sumant tots els seus mandats."
   },
   "topic": {
     "recent_votes_title": "Votacions recents en aquesta àrea",
@@ -1866,7 +1870,7 @@
     "Convalidación": "Aprovació pel Congrés d'un Reial Decret-llei del Govern, donant-li valor de llei vigent.",
     "Derogació": "Anul·lació pel Congrés d'un Reial Decret-llei del Govern dins dels 30 dies posteriors a la seva entrada en vigor.",
     "Derogación": "Anul·lació pel Congrés d'un Reial Decret-llei del Govern dins dels 30 dies posteriors a la seva entrada en vigor.",
-    "Vots emesos": "Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. Veure /about/data per a la metodologia completa.",
+    "Vots emesos": "Percentatge de votacions en què el diputat va emetre un vot (Sí, No o Abstenció) sobre el total de votacions del seu mandat. No inclou absències justificades (baixa mèdica, permís parental). Les votacions que el diputat va realitzar com a ministre o membre del Govern compten segons la convenció parlamentària. La metodologia completa és a la pàgina «Dades i RGPD».",
     "approval_rate": "% d'iniciatives aprovades sobre les que han arribat a votació final (aprovades + rebutjades). Les que estan en tràmit no compten.",
     "data_source": "Dades del portal d'Open Data del Congrés (congreso.es). Actualitzem cada 4 hores. La classificació temàtica és automàtica via LLM.",
     "cohesion": "% de membres del grup que voten igual. Cohesió 100% = disciplina total; números més baixos = més votacions creuades."
@@ -2318,7 +2322,7 @@
     "alt_vote": "Resultat de la votació al Congrés",
     "alt_person": "Activitat parlamentària · Hola Política",
     "motto": "Mirall, no megàfon.",
-    "home_eyebrow": "Open data del Congrés dels Diputats",
+    "home_eyebrow": "Dades obertes del Congrés dels Diputats",
     "home_title_line_1": "Què vota el Congrés.",
     "home_title_line_2": "Classificat per tema.",
     "home_footer": "Per cada votació: qui la proposa, com vota cada grup.",
@@ -2326,7 +2330,7 @@
     "topic_footer": "Iniciatives del Congrés classificades per tema, en obert.",
     "stats_eyebrow": "Estadístiques · XV legislatura",
     "stats_headline": "Què vota el Congrés, classificat per tema.",
-    "stats_subhead": "Open data del Congrés dels Diputats: cada vot del ple, qui ho proposa, com vota cada grup. Tot en obert.",
+    "stats_subhead": "Dades obertes del Congrés dels Diputats: cada vot del ple, qui ho proposa, com vota cada grup. Tot en obert.",
     "stats_kpi_initiatives": "Iniciatives",
     "stats_kpi_votes": "Votacions",
     "stats_kpi_classified": "Classificades",
@@ -2476,7 +2480,7 @@
     "q1_lede": "Tria dos grups: quantes vegades han votat el mateix.",
     "q2_title": "Què s'aprova?",
     "q2_of": "de {total}",
-    "q2_lede": "iniciatives aprovades, de totes les que han arribat al ple.",
+    "q2_lede": "iniciatives aprovades, de totes les registrades aquesta legislatura.",
     "q2_link": "Veure les aprovades",
     "q3_title": "De què parla cada grup?",
     "explore_title": "Vols anar més a fons?",
@@ -3116,7 +3120,7 @@
     "title": "Què van dir els grups al debat",
     "dek": "Una cita literal de cada grup, del Diari de Sessions del Ple del {date}. És una cita de la font, no el motiu personal del vot de cada diputat.",
     "speaker": "{speaker}, en nom del Grup {group}",
-    "source": "{ref}, pàg. {page}",
+    "source": "Diari de Sessions, pàg. {page}",
     "method": "Una eina automàtica tria el passatge, i el sistema comprova que sigui literal al text oficial. Les cites es mostren en l'idioma en què es van dir. Si un grup no té cita, només se'n mostra el vot.",
     "more": "Mostra {count, plural, =1 {# cita més} other {# cites més}}",
     "less": "Amaga-les",

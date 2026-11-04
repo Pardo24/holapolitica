@@ -87,7 +87,7 @@ export function PartyBand({
         </h2>
         {seeAllLabel && (
           <Link
-            href={'/el-teu-diputat' as Route}
+            href={'/el-teu-diputat?tab=grups' as Route}
             style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600 }}
           >
             {seeAllLabel} →

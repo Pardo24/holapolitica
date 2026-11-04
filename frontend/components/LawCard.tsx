@@ -224,7 +224,17 @@ export async function LawCard({
           // text rejected = the law goes on).
           eyebrow={stageEyebrow}
           tally={vote && !vote.approved_by_assent ? vote : null}
-          note={vote === null ? t('card_not_voted_yet') : vote.approved_by_assent ? t('card_by_assent') : null}
+          note={
+            vote === null
+              ? initiative.status === 'expired'
+                ? t('card_expired_unvoted')
+                : initiative.status === 'withdrawn'
+                  ? t('card_withdrawn_unvoted')
+                  : t('card_not_voted_yet')
+              : vote.approved_by_assent
+                ? t('card_by_assent')
+                : null
+          }
           date={dateLabel}
           href={href}
           openLabel={t('card_open')}
