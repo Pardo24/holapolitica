@@ -1,6 +1,6 @@
 import { GroupBadge } from '@/components/GroupBadge';
 import type { PartyStance, StanceLabels } from '@/components/PartyStanceRow';
-import { displayGroupShort } from '@/lib/groups';
+import { displayGroupShort, groupAbbreviation } from '@/lib/groups';
 
 /**
  * "How each group voted" — the clear, grouped-by-stance view.
@@ -136,9 +136,12 @@ export function GroupStanceBand({
                       fontWeight: 700,
                       color: 'var(--ink-2)',
                       lineHeight: 1,
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {p.count ?? ''}
+                    {/* The name as well as the count: some marks (ERC's
+                        seal, the Mixed group's disc) say nothing alone. */}
+                    {groupAbbreviation(p.slug)} {p.count ?? ''}
                   </span>
                 </span>
               ))}
