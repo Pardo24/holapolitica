@@ -91,11 +91,32 @@ def _normalise(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+# A word split at the end of a line: "pro -" then "ceso", "re-" then
+# "cursos". Only when a lowercase letter follows, so "Norte-" + "Sur"
+# stays as written.
+_LINE_HYPHEN = re.compile(r"([^\W\d_]) ?-[ \t]*\n[ \t]*(?=[^\W\d_])")
+
+
+def _join_line_hyphens(text: str) -> str:
+    """Rejoin words the PDF's typesetting split across lines.
+
+    The model reads "proceso" and quotes it whole; left split, the literal
+    check then failed on every such sentence (325 of VOX's 2023 programme).
+    Applied to the page text itself, so the check stays exact.
+    """
+
+    def _join(m: re.Match[str]) -> str:
+        nxt = text[m.end() : m.end() + 1]
+        return m.group(1) if nxt.islower() else m.group(0)
+
+    return _LINE_HYPHEN.sub(_join, text)
+
+
 def _pdf_pages(path: Path) -> list[str]:
     from pypdf import PdfReader
 
     reader = PdfReader(str(path))
-    return [(page.extract_text() or "") for page in reader.pages]
+    return [_join_line_hyphens(page.extract_text() or "") for page in reader.pages]
 
 
 async def _theme_slugs() -> list[str]:
