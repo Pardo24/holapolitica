@@ -2752,6 +2752,20 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   .vcard__foot { padding: 10px 16px 14px; }
   .vcard--nogroups .vcard__head { padding-bottom: 0; }
   .vcard--nogroups .vcard__score { margin-bottom: 16px; }
+  /* Not voted yet: no figures to show, so status, note and date share
+     two lines with the link beside them, not five stacked rows. */
+  .vcard__score:not(:has(.vcard__count)) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 2px;
+    padding: 10px 14px;
+  }
+  .vcard__score:not(:has(.vcard__count)) > :not(.vcard__open) { grid-column: 1; }
+  .vcard__score:not(:has(.vcard__count)) .vcard__open {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: center;
+    margin-top: 0;
+  }
 }
 
 /* "What it means for you", folded in the list cards (ProfileEffects folded). */

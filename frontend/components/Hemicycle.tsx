@@ -320,6 +320,29 @@ export function Hemicycle({
     [isTouch],
   );
 
+  // A seat is 10 units across, about 7px on a phone: too small for a
+  // finger. On touch, a tap anywhere on the chart picks the nearest seat
+  // within reach, so the tap only has to land near it.
+  const handleSvgTap = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      if (!isTouch || e.defaultPrevented) return;
+      const ctm = e.currentTarget.getScreenCTM();
+      if (!ctm) return;
+      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+      let best: PlacedSeat | null = null;
+      let bestD = (SEAT_R * 3) ** 2;
+      for (const seat of placed) {
+        const d = (seat.cx - pt.x) ** 2 + (seat.cy - pt.y) ** 2;
+        if (d < bestD) {
+          best = seat;
+          bestD = d;
+        }
+      }
+      if (best) setSelected({ seat: best, origin: 'tap' });
+    },
+    [isTouch, placed],
+  );
+
   const totalSeats = layout.seats.length;
   const ariaSummary = useMemo(() => {
     const byGroup = new Map<string, number>();
@@ -351,6 +374,7 @@ export function Hemicycle({
           preserveAspectRatio="xMidYMid meet"
           style={{ width: '100%', height: 'auto', display: 'block' }}
           onMouseLeave={handleSeatLeave}
+          onClick={handleSvgTap}
         >
           {/* No image backdrop. The official PNG has every seat pre-
               painted (grey dots + the dark-blue government bench), so

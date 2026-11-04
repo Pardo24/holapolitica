@@ -36,7 +36,9 @@ function pickHighlightsForGroup(
   group: ParliamentaryGroupSummary,
   rows: TopicVoteStat[],
 ): Highlight[] {
-  const eligible = rows.filter((r) => r.cast >= MIN_N);
+  // The site's own subjects (Habitatge, Sanitat...), not the UN goals:
+  // "Vida submarina" opened the carousel and meant little to anyone.
+  const eligible = rows.filter((r) => r.cast >= MIN_N && !r.topic_slug.startsWith('sdg-'));
   if (eligible.length === 0) return [];
 
   type Scored = { row: TopicVoteStat; pct: number };
