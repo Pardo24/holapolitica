@@ -301,7 +301,13 @@ export default async function LleisPage({
       </div>
 
       {data.items.length === 0 ? (
-        <p style={{ fontSize: 13, color: 'var(--ink-3)', paddingTop: 12 }}>{t('empty')}</p>
+        <div style={{ paddingTop: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+          <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>{t('empty')}</p>
+          {/* A dead end otherwise: the way back to every law. */}
+          <Link href={'/lleis' as Route} className="btn-ink btn-sm">
+            {t('clear_all')}
+          </Link>
+        </div>
       ) : (
         <ul
           style={{

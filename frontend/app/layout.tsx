@@ -148,12 +148,16 @@ export default async function RootLayout({
                   outside their platform: PushBootstrap self-skips when
                   there's no serviceWorker, NativePushBridge self-skips
                   when not running in the app. */}
+              {/* Keyboard users skip the navigation in one key press. */}
+              <a href="#main" className="skip-link">
+                {tFooter('skip_to_content')}
+              </a>
               <PushBootstrap />
               <NativePushBridge />
               <InstallPrompt />
               <TopNav />
               <MobileAppBar />
-              <main>{children}</main>
+              <main id="main" tabIndex={-1}>{children}</main>
               {/* Persistent mobile navigation. Fixed to the bottom on
                   ≤640px; renders nothing on desktop. Placed after <main>
                   so it sits last in the source order for assistive tech,

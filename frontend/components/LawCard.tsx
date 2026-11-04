@@ -96,9 +96,16 @@ export async function LawCard({
   const toneKey =
     outcomeKey ??
     (initiative.status === 'approved' || initiative.status === 'rejected' ? initiative.status : null);
+  // A decree-law is law from the day it is published; the Congress only
+  // validates it afterwards. "Presentada · not voted yet" read as if it
+  // were not in force.
+  const decreeInForce =
+    initiative.type === 'real_decreto_ley' && vote === null && !['expired', 'withdrawn', 'rejected'].includes(initiative.status);
   const outcomeLabel = outcomeKey
     ? tVotes(`result.${outcomeKey}` as 'result.approved')
-    : statusLabel;
+    : decreeInForce
+      ? t('card_decree_in_force')
+      : statusLabel;
   const dateIso = vote?.voted_at ?? initiative.submitted_at;
   const dateLabel = dateIso
     ? new Date(dateIso).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
@@ -230,7 +237,9 @@ export async function LawCard({
                 ? t('card_expired_unvoted')
                 : initiative.status === 'withdrawn'
                   ? t('card_withdrawn_unvoted')
-                  : t('card_not_voted_yet')
+                  : decreeInForce
+                    ? t('card_decree_pending')
+                    : t('card_not_voted_yet')
               : vote.approved_by_assent
                 ? t('card_by_assent')
                 : null

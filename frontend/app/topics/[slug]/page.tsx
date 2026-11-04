@@ -966,7 +966,8 @@ function TopicLastVoteCard({
       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
         <ResultPill result={vote.result} label={resultLabel} />
         <span className="tabular" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-          {vote.ayes} · {vote.noes} · {vote.abstentions}
+          {/* Labelled: three bare numbers said nothing about which was which. */}
+          {vote.ayes} {locale === 'en' ? 'yes' : 'sí'} · {vote.noes} no · {vote.abstentions} abst.
         </span>
       </div>
     </Link>

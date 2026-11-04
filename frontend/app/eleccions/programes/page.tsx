@@ -94,7 +94,9 @@ export default async function ProgramsPage({
       <ElectionsHeader active="vote" title={t('programs_page_title')} intro={t('programs_page_intro')} bare={guide} />
 
       <nav className="cmp__topics" aria-label={t('programs_topics_aria')}>
-        {topics.map((tp) => (
+        {/* The chosen topic leads: on a phone the row scrolls, and a chosen
+            chip past the edge read as nothing chosen. */}
+        {[...topics].sort((a, b) => Number(b.slug === topic?.slug) - Number(a.slug === topic?.slug)).map((tp) => (
           <Link
             key={tp.slug}
             href={hrefFor(tp.slug, one?.slug ?? null)}

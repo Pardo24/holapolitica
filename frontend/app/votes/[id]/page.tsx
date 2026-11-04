@@ -1112,7 +1112,7 @@ export default async function VoteDetailPage({
       </section>
 
       {/* Footer: initiative / BOE / documents */}
-      <FooterLinks vote={vote} initiative={initiative} tInitiative={tInitiative} />
+      <FooterLinks vote={vote} initiative={initiative} tInitiative={tInitiative} locale={locale} />
 
       <style>{`
         @media (max-width: 860px) {
@@ -1121,6 +1121,7 @@ export default async function VoteDetailPage({
         @media (max-width: 700px) {
           .vote-recount-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .vote-donut-chart--optional, .vote-hemi-legend { display: none !important; }
+          .vote-footer-links { grid-template-columns: minmax(0, 1fr) !important; gap: 16px !important; }
         }
       `}</style>
     </article>
@@ -1296,10 +1297,12 @@ function FooterLinks({
   vote,
   initiative,
   tInitiative,
+  locale,
 }: {
   vote: Vote;
   initiative: Initiative | null;
   tInitiative: Awaited<ReturnType<typeof getTranslations<'initiative_detail'>>>;
+  locale: string;
 }) {
   // Only render the footer if at least one link surface has content,
   // otherwise we'd show three empty columns.
@@ -1331,7 +1334,7 @@ function FooterLinks({
               margin: '0 0 6px',
             }}
           >
-            Iniciativa
+            {tInitiative('footer_initiative')}
           </h3>
           <Link
             href={`/initiatives/${initiative.id}`}
@@ -1343,7 +1346,7 @@ function FooterLinks({
               fontSize: 13,
             }}
           >
-            {initiative.title_ca ?? initiative.title_original}
+            {pickPlainTitle(initiative, locale) ?? (locale === 'es' ? initiative.title_es : initiative.title_ca) ?? initiative.title_original}
           </Link>
           <div className="mono" style={{ marginTop: 4, fontSize: 11, color: 'var(--ink-3)' }}>
             EXP {initiative.official_id}

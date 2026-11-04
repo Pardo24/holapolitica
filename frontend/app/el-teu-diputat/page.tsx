@@ -17,7 +17,6 @@ import { DeputiesList } from '@/components/DeputiesList';
 import { GroupListPanel } from '@/components/GroupListPanel';
 import { Hemicycle } from '@/components/Hemicycle';
 import { HubTabs } from '@/components/HubTabs';
-import { PartyBand } from '@/components/PartyBand';
 import { ProvincePicker, type ProvincePickerLabels } from '@/components/ProvincePicker';
 import {
   api,
@@ -63,7 +62,6 @@ export default async function ElTeuDiputatPage({
   searchParams: Promise<SearchParams>;
 }) {
   const t = await getTranslations('deputy');
-  const tHome = await getTranslations('home');
   const locale = await getLocale();
   const { prov, tab, partit } = await searchParams;
   const activeTab =
@@ -308,17 +306,6 @@ export default async function ElTeuDiputatPage({
           </div>
         </section>
       )}
-
-      {/* The parties themselves: one card per group, each a large tap
-          target straight into that party's profile. */}
-      <PartyBand
-        groups={allGroups}
-        variant="plain"
-        title={tHome('parties_title')}
-        caption={tHome('parties_caption')}
-        seatsLabel={(n) => tHome('parties_seats', { n })}
-        ballotLabel={(name) => tHome('parties_ballot', { name })}
-      />
 
       <Link
         href={'/mapa' as Route}

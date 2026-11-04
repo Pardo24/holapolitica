@@ -321,7 +321,7 @@
     "pagination_label": "Page {page} of {last}",
     "prev": "Previous",
     "next": "Next",
-    "search_placeholder": "Search the law's text (title, summary, content)",
+    "search_placeholder": "Search a law",
     "topic_label": "Topic",
     "topic_placeholder": "All topics",
     "clear_all": "Clear",
@@ -394,8 +394,6 @@
     "card_proposed_by": "Proposed by {who}",
     "card_proposed_label": "Proposed by",
     "card_absents": "{n, plural, one {# absent} other {# absent}}",
-    "card_majority": "absolute majority: {n}",
-    "card_majority_title": "The line marks the absolute majority of the Congress: {n} votes.",
     "card_amend_hint": "A change to the law, not the law",
     "card_ai_title_from_title": "Headline written by AI from the official title",
     "meta_description": "Every law in the Spanish Congress in plain language: what it changes, whom it affects and how each party voted. Bills and decree-laws.",
@@ -406,7 +404,9 @@
     "lens_big_two_agree": "PSOE and PP: same vote",
     "lens_big_two_disagree": "PSOE and PP: different votes",
     "card_expired_unvoted": "It lapsed when the term ended without a vote: it will not be voted.",
-    "card_withdrawn_unvoted": "It was withdrawn before the plenary voted it."
+    "card_withdrawn_unvoted": "It was withdrawn before the plenary voted it.",
+    "card_decree_in_force": "In force",
+    "card_decree_pending": "Awaiting validation by Congress (the plenary or, with the Cortes dissolved, the Standing Committee)."
   },
   "agenda_2030": {
     "eyebrow": "What it is, what it isn't, and what Congress has voted.",
@@ -466,7 +466,8 @@
     "sec_votes_points_dek": "This proposal was voted point by point: each point is a separate question and can end differently.",
     "sec_chain_title": "Every vote on this law ({n})",
     "sec_chain_help": "A law is voted several times: first whether to take it up, then the changes the groups propose (amendments), and finally the whole text. Tap one to see it in full.",
-    "sec_more_title": "More information"
+    "sec_more_title": "More information",
+    "footer_initiative": "Initiative"
   },
   "law_journey": {
     "eyebrow": "Trajectory",
@@ -873,10 +874,10 @@
     "coverage_phase": "Coverage",
     "coverage_phase_value": "Phase 1",
     "coverage_phase_sub": "Congress · Cat. soon · BCN soon",
-    "latest_title": "Latest plenary laws",
+    "latest_title": "Latest plenary votes",
     "latest_subtitle": "Reverse chronological · no editorial selection",
     "latest_see_all": "see all →",
-    "upcoming_title": "Upcoming votes",
+    "upcoming_title": "Upcoming sessions",
     "upcoming_subtitle": "Next plenary agenda",
     "upcoming_empty": "We don't have the agenda published yet. The next plenary session will appear here when available.",
     "upcoming_caveat": "Scheduled votes may be cancelled or postponed. Check the Congress website for confirmation.",
@@ -1348,7 +1349,7 @@
     "groups_tab_label": "Political groups",
     "subtitle": "{total} people in the database.",
     "subtitle_composition": "Current composition · {total} representatives",
-    "search_placeholder": "Search by name, surname or constituency",
+    "search_placeholder": "Search by name or province",
     "search_button": "Search",
     "no_results": "No representative matches the search.",
     "hemicycle_title": "Hemicycle · seats per group",
@@ -1828,7 +1829,7 @@
     "page": "Page",
     "totals": "Totals",
     "plain_summary_title": "In plain language",
-    "plain_summary_caveat": "Automatic summary by {provider}. May contain inaccuracies; the official text is the authoritative source.",
+    "plain_summary_caveat": "Summary written with AI. May contain inaccuracies; the official text is the authoritative source.",
     "procedural_single_reading": "Direct single-reading procedure: the plenary agrees to pass the text in one vote, skipping the committee stage.",
     "procedural_totality_amendment": "Wholesale amendment: proposes returning the text to its author or replacing it entirely with another.",
     "procedural_rules_reform": "Reform of the Congress rules of procedure: changes the internal rules governing how the chamber works.",
@@ -1933,7 +1934,8 @@
     "elections_link": "Elections",
     "report_error": "Spotted a mistake?",
     "report_error_subject": "Mistake on Hola Política",
-    "report_error_body": "Page: {url}\n\nWhat looks wrong?\n\n"
+    "report_error_body": "Page: {url}\n\nWhat looks wrong?\n\n",
+    "skip_to_content": "Skip to content"
   },
   "dashboard": {
     "highlights_eyebrow": "Group highlights",
@@ -1959,8 +1961,8 @@
     "state_filter_by_topic": "Filter by topic",
     "state_topic_value": "Topic",
     "state_clear_topic": "× Clear topic",
-    "state_top_proposers_plenary": "Who proposes the most in plenary",
-    "state_top_proposers_topic": "Who proposes the most on {topic}",
+    "state_top_proposers_plenary": "Who has proposed initiatives in the plenary",
+    "state_top_proposers_topic": "Who has proposed initiatives on {topic}",
     "list_eyebrow": "Initiative list",
     "list_info": "Most recent initiatives matching the active filter. Tap a title to see the plain-language summary.",
     "list_see_topic": "See initiatives on {topic}",
@@ -2065,7 +2067,7 @@
   "summary_hover": {
     "eyebrow_llm": "In plain language",
     "eyebrow_raw": "File text",
-    "provider_caption": "Automatic summary by {provider}",
+    "provider_caption": "Summary written with AI",
     "tap_aria": "See plain-language summary"
   },
   "proposer_ellipsis": {

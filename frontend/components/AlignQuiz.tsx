@@ -15,6 +15,8 @@ import { pickTopicName } from '@/lib/topics';
 import { openShareSheet } from '@/lib/native';
 import { VoteGuideNext } from '@/components/VoteGuideNext';
 
+const MIXED_GROUP = 'gp-mixto';
+
 /**
  * "Com et representen?" — the citizen answers real past votes (Sí / No /
  * Abstenció), and we mirror back which groups voted the same way. All
@@ -202,6 +204,10 @@ export function AlignQuiz({
       const ua = answers[q.vote_id];
       if (!ua || ua === 'skip') continue;
       for (const p of q.group_positions) {
+        // The Mixed group's "position" is the majority of several unrelated
+        // parties (BNG, CC, UPN, Podemos...): no one can agree with it, and
+        // no one can vote for it. It topped people's results.
+        if (p.slug === MIXED_GROUP) continue;
         const e =
           agg.get(p.slug) ??
           { slug: p.slug, name: displayGroupShort(p.name_short), color: p.color_hex, compared: 0, agree: 0, pct: 0 };
@@ -233,6 +239,7 @@ export function AlignQuiz({
       for (const tp of q.topics) {
         const bucket = agg.get(tp.slug) ?? { topic: pickTopicName(tp, locale), groups: new Map() };
         for (const p of q.group_positions) {
+          if (p.slug === MIXED_GROUP) continue;
           const g = bucket.groups.get(p.slug) ?? {
             name: displayGroupShort(p.name_short),
             agree: 0,

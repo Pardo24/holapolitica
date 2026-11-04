@@ -125,6 +125,12 @@
   padding-top: 8px;
 }
 .party-band__seats b { color: var(--ink-2); font-size: 13px; }
+/* A wide screen holds all nine groups in one row: with the short names
+   (Sumar, EH Bildu, PNV) no card needs 140px, and the ninth no longer
+   sits alone on a second row. */
+@media (min-width: 1100px) {
+  .party-band { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+}
 @media (max-width: 640px) {
   /* A phone gets a list, one row per group: logo, name (and its 29-N
      ballot name), seats. Nine 160px cards in two columns took a whole

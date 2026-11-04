@@ -248,10 +248,10 @@ export default async function GroupDetailPage({
   }
 
   const groupAssets = tab === 'bens' ? await api.groups.assets(group.slug).catch(() => null) : null;
-  // What its deputies declared, near the top of every other tab: one row
+  // What its deputies declared, at the top of the summary: one row
   // of the cached all-parties summary rather than the per-deputy detail.
   const assetsGlance =
-    tab === 'bens'
+    tab !== 'resum'
       ? null
       : ((await api.groups.assetsSummary().catch(() => [])).find((g) => g.slug === group.slug) ?? null);
 
@@ -346,7 +346,7 @@ export default async function GroupDetailPage({
         ) : null;
       })()}
 
-      {balance && (
+      {balance && tab === 'resum' && (
         <section style={{ paddingTop: 28 }}>
           <h2 className="h-title">{t('balance_title')}</h2>
           <p style={{ fontSize: 12, color: 'var(--ink-3)', maxWidth: 760, marginTop: 0 }}>

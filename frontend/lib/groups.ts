@@ -7,8 +7,27 @@
  */
 export function displayGroupShort(nameShort: string): string {
   if (nameShort === 'GP Mixto') return nameShort;
+  const known = COMMON_SHORT[nameShort];
+  if (known) return known;
   return nameShort.startsWith('GP ') ? nameShort.slice(3) : nameShort;
 }
+
+/**
+ * The name people know each current group by. The procedural short names
+ * ("Republicano", "Vasco (EAJ-PNV)", "Plurinacional SUMAR") are Spanish
+ * and not how anyone refers to these parties, and the site used both
+ * kinds side by side.
+ */
+const COMMON_SHORT: Record<string, string> = {
+  'GP Popular': 'PP',
+  'GP Socialista': 'PSOE',
+  'GP VOX': 'Vox',
+  'GP Plurinacional SUMAR': 'Sumar',
+  'GP Republicano': 'ERC',
+  'GP Junts per Catalunya': 'Junts',
+  'GP Euskal Herria Bildu': 'EH Bildu',
+  'GP Vasco (EAJ-PNV)': 'PNV',
+};
 
 /**
  * User-facing full name for a parliamentary group. The Congreso publishes
@@ -26,12 +45,12 @@ export function displayGroupShort(nameShort: string): string {
 const GROUP_FULL_NAME: Record<string, string> = {
   'gp-popular': 'Partido Popular (PP)',
   'gp-socialista': 'Partido Socialista Obrero Español (PSOE)',
-  'gp-vox': 'Vox (VOX)',
+  'gp-vox': 'Vox',
   'gp-plurinacional-sumar': 'Sumar',
   'gp-junts-per-catalunya': 'Junts per Catalunya (Junts)',
   'gp-euskal-herria-bildu': 'Euskal Herria Bildu (EH Bildu)',
   'gp-republicano': 'Esquerra Republicana de Catalunya (ERC)',
-  'gp-vasco-eaj-pnv': 'Eusko Alderdi Jeltzalea — Partido Nacionalista Vasco (EAJ-PNV)',
+  'gp-vasco-eaj-pnv': 'Eusko Alderdi Jeltzalea-Partido Nacionalista Vasco (EAJ-PNV)',
   'gp-mixto': 'Grupo Mixto',
   // Historical groups (legislatures X-XIV), surfaced by the 2011-2026 backfill.
   'gp-ciudadanos': 'Ciudadanos (Cs)',
@@ -87,7 +106,7 @@ const GROUP_INFO: Record<string, GroupInfo> = {
   },
   'gp-plurinacional-sumar': {
     founded_year: 2022,
-    scope: 'Estatal — coalició plurinacional',
+    scope: 'Estatal, coalició plurinacional',
     website: 'https://www.movimientosumar.es',
     wikipedia_url: 'https://es.wikipedia.org/wiki/Sumar_(coalición_electoral)',
   },

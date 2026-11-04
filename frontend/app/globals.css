@@ -2877,3 +2877,12 @@ html.dissolved-closed .dissolved--dismissible { display: none !important; }
   text-transform: uppercase;
 }
 
+
+/* "Skip to content": off-screen until it gets keyboard focus. */
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--paper); font-weight: 700; text-decoration: none; }
+.skip-link:focus { top: 12px; }
+main:focus { outline: none; }
+/* Cards that are links show where keyboard focus is. */
+.topic-card-link:focus-visible,
+.deputy-card:focus-visible,
+.hero-pleno-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }

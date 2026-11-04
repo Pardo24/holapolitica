@@ -384,3 +384,7 @@
   /* Room for every group: the chips wrap instead of scrolling one off. */
   .pair-chips { flex-wrap: wrap; overflow-x: visible; }
 }
+
+/* The filtered view (MobileStatsDashboard) at every width: a reading column
+   on a desktop rather than a phone layout stretched to 1200px. */
+.stats-dash { max-width: 860px; }

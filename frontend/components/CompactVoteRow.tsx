@@ -16,7 +16,7 @@ import { pickTopicName } from '@/lib/topics';
  * surface listing votes.
  *
  * Thin adapter over {@link LawRow}: it formats the dates, assembles the
- * meta line (type chip → proposer → topics → expediente → summary) and
+ * meta line (type chip → proposer → topics → summary; no expedient number, which says nothing to a reader) and
  * supplies the result pill as the outcome indicator. The shared shell
  * owns the grid + responsive layout so this row stays in lockstep with
  * the topic hub's initiative rows.
@@ -96,17 +96,6 @@ export function CompactVoteRow({
           {topics.slice(0, 2).map((topic) => (
             <TopicChip key={topic.slug} name={pickTopicName(topic, locale)} color={topic.color_hex} />
           ))}
-        </>
-      )}
-      {v.expediente_raw && (
-        <>
-          <span aria-hidden="true">·</span>
-          <span
-            className="mono"
-            style={{ fontSize: 10, color: 'var(--ink-3)', wordBreak: 'break-all' }}
-          >
-            {v.expediente_raw}
-          </span>
         </>
       )}
       {/* When the AI summary is the headline, the official legal text is

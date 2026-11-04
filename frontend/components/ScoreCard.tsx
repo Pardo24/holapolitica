@@ -116,7 +116,6 @@ export async function ScorePanel({
     const chamber = tally.ayes + tally.noes + tally.abstentions + tally.absent || 350;
     const pct = (n: number) => `${(100 * n) / chamber}%`;
     const margin = Math.abs(tally.ayes - tally.noes);
-    const majority = Math.floor(chamber / 2) + 1;
     figures = (
       <>
         <span className="vcard__count serif tabular">
@@ -133,14 +132,14 @@ export async function ScorePanel({
           {/* Absences decide close votes as much as abstentions do. */}
           {tally.absent > 0 && ` · ${t('card_absents', { n: tally.absent })}`}
         </span>
-        <span className="vcard__bar" title={t('card_majority_title', { n: majority })}>
+        {/* No absolute-majority line: only an organic law's final vote needs
+            176, and drawn on every card it made simple-majority wins
+            ("aprovada 171-170") read as failures. */}
+        <span className="vcard__bar">
           <span style={{ width: pct(tally.ayes), background: 'var(--aye)' }} />
           <span style={{ width: pct(tally.abstentions), background: 'var(--abst)' }} />
           <span style={{ width: pct(tally.noes), background: 'var(--no)' }} />
-          <i style={{ left: pct(majority) }} />
         </span>
-        {/* What the line in the bar is: it was never said. */}
-        <span className="vcard__majority">{t('card_majority', { n: majority })}</span>
       </>
     );
   }

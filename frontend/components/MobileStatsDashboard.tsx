@@ -34,9 +34,9 @@ import { topicIcon } from '@/lib/topic_icons';
 import { pickTopicName } from '@/lib/topics';
 
 /**
- * Mobile-only dashboard for /stats. Shown via ``sm:hidden`` on ≤640px while
- * the desktop tabbed layout is hidden via ``hidden sm:block``. Built as a
- * **dashboard on open**: every key signal visible without scrolling through
+ * The filtered /stats view (a topic and/or a group picked), at every width
+ * since 2026-11-04: the desktop's older layout of its own was removed.
+ * Built mobile-first as a **dashboard on open**: every key signal visible without scrolling through
  * paragraphs of explanation.
  *
  * The highlights carousel that used to anchor this dashboard now lives on
@@ -131,7 +131,7 @@ export async function MobileStatsDashboard({
   const governmentShort = t('government_short');
 
   return (
-    <div className="sm:hidden" style={{ paddingTop: 18 }}>
+    <div className="stats-dash" style={{ paddingTop: 18 }}>
       {/* Widget order — the filter leads, because picking a topic is what
           this page is for, and then the between-group comparison:
           1. Topic-scope card: initiatives state + topic filter +
@@ -491,8 +491,13 @@ function InitiativesStateBody({
   // scoped and meaningful; otherwise the list is empty.
   const proposers: { slug: string; name_short: string; color_hex: string | null; count: number }[] =
     (() => {
-      if (cross) return cross.initiatives_on_topic_by_group.slice(0, 4);
-      if (hasTopic) return (topicProposers?.top_proposers ?? []).slice(0, 4);
+      // Every group that proposed something, in seat order (the Government
+      // first): sorted by count and cut at four, it read as a ranking.
+      const seats = new Map(allGroups.map((g) => [g.slug, g.members_active] as const));
+      const bySeats = (rows: { slug: string; name_short: string; color_hex: string | null; count: number }[]) =>
+        [...rows].sort((a, b) => (seats.get(b.slug) ?? Infinity) - (seats.get(a.slug) ?? Infinity));
+      if (cross) return bySeats(cross.initiatives_on_topic_by_group);
+      if (hasTopic) return bySeats(topicProposers?.top_proposers ?? []);
       return [];
     })();
 
@@ -1248,7 +1253,13 @@ function InitiativeRow({ ini, locale }: { ini: InitiativeMini; locale: string })
           fontVariantNumeric: 'tabular-nums',
         }}
       >
-        {ini.submitted_at ?? '—'}
+        {ini.submitted_at
+          ? new Date(`${ini.submitted_at.slice(0, 10)}T12:00:00`).toLocaleDateString(locale, {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
+          : '-'}
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>
         <Link

@@ -62,7 +62,9 @@ export default async function ComparePage({
       />
 
       <nav className="cmp__topics" aria-label={t('topics_aria')}>
-        {topics.map((tp) => (
+        {/* The chosen topic leads: on a phone the row scrolls, and a chosen
+            chip past the edge read as nothing chosen. */}
+        {[...topics].sort((a, b) => Number(b.slug === topic?.slug) - Number(a.slug === topic?.slug)).map((tp) => (
           <Link
             key={tp.slug}
             href={`/comparar?tema=${tp.slug}${guide ? '&guia=1' : ''}` as Route}

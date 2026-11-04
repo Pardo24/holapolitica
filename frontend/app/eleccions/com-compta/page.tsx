@@ -162,7 +162,9 @@ export default async function HowYourVoteCountsPage({
         extra={guide ? { guia: '1' } : undefined}
       />
       {facts}
-      {guide && <VoteGuideFooter step={4} circ={circ} />}
+      {/* "You've finished" only once there is something finished: with no
+          constituency picked the page is still empty. */}
+      {guide && circ && <VoteGuideFooter step={4} circ={circ} />}
     </div>
   );
 }

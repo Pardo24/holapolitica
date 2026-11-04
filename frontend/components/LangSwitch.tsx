@@ -2,6 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 
+const LANGUAGE_NAME: Record<string, string> = { ca: 'Català', es: 'Castellano', en: 'English' };
+
 /**
  * The desktop language switcher: one tiny form per language, POSTed to
  * /api/locale, which sets the cookie and redirects back.
@@ -41,7 +43,9 @@ export function LangSwitch({ locales, current }: { locales: readonly string[]; c
                 type="submit"
                 className={isActive ? 'lang-btn active' : 'lang-btn'}
                 aria-current={isActive ? 'true' : undefined}
-                aria-label={`Switch language to ${l.toUpperCase()}`}
+                // Each language named in itself, as a reader of it looks for it.
+                aria-label={LANGUAGE_NAME[l] ?? l.toUpperCase()}
+                lang={l}
                 style={{
                   background: 'transparent',
                   border: 0,

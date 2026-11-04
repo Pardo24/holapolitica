@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
@@ -64,7 +66,7 @@ const TABS: Tab[] = [
  * here" a tab bar is supposed to give — matching only the exact href
  * would leave every drill-down page showing no active tab.
  */
-function activeTab(pathname: string): TabKey | null {
+function activeTab(pathname: string, inGuide = false): TabKey | null {
   const p = pathname;
   const inSection = (base: string) => p === base || p.startsWith(`${base}/`);
 
@@ -86,8 +88,11 @@ function activeTab(pathname: string): TabKey | null {
   )
     return 'partits';
 
-  // 29-N — the election section: candidacies and the press on pacts.
-  if (inSection('/eleccions') || inSection('/pactes')) return 'eleccions';
+  // 29-N — the election section: candidacies, the press on pacts and the
+  // vote guide, whose steps 1 and 2 live outside /eleccions (the quiz,
+  // also a game when opened from /jocs, and the party comparison).
+  if (inSection('/eleccions') || inSection('/pactes') || inSection('/comparar')) return 'eleccions';
+  if (inGuide && inSection('/com-et-representen')) return 'eleccions';
 
   // Dades — aggregate analysis and cross-legislature comparison.
   if (inSection('/stats') || inSection('/legislatures')) return 'dades';
@@ -101,7 +106,13 @@ function activeTab(pathname: string): TabKey | null {
 export function BottomTabBar() {
   const pathname = stripLocale(usePathname() ?? '/');
   const t = useTranslations('nav');
-  const active = activeTab(pathname);
+  // ?guia=1 is only known in the browser; reading it here rather than
+  // through useSearchParams keeps the layout statically renderable.
+  const [inGuide, setInGuide] = useState(false);
+  useEffect(() => {
+    setInGuide(new URLSearchParams(window.location.search).get('guia') === '1');
+  }, [pathname]);
+  const active = activeTab(pathname, inGuide);
 
   return (
     <nav className="bottom-tabs" aria-label={t('primary_aria')}>

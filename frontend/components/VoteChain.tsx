@@ -234,6 +234,10 @@ export async function VoteChain({
               ? pointLabel(step.index + 1)
               : null;
         const label = point ?? stageLabel(v);
+        // A motion voted point by point: every point carries the motion's
+        // own title, already shown above the chain. The point label says
+        // which one this is; the title three times over said nothing.
+        const shownHeadline = point ? null : headline;
         const body = (
           <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
@@ -247,7 +251,7 @@ export async function VoteChain({
             {amendment ? (
               amendmentLine(v)
             ) : (
-              headline && (
+              shownHeadline && (
                 <div
                   style={{
                     fontSize: 14,
@@ -260,7 +264,7 @@ export async function VoteChain({
                     overflow: 'hidden',
                   }}
                 >
-                  {headline}
+                  {shownHeadline}
                 </div>
               )
             )}

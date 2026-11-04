@@ -127,7 +127,7 @@ export async function ConstituencyPicker({
         {t('pick_label')}
       </label>
       <div className="cpick__row">
-        <select id="cpick-select" name="circ" defaultValue={current ?? ''} className="cpick__select">
+        <select id="cpick-select" name="circ" defaultValue={current ?? ''} className="cpick__select" required>
           {!current && (
             <option value="" disabled>
               {t('pick_placeholder')}
