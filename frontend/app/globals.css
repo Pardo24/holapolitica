@@ -2863,5 +2863,3 @@ html.dissolved-closed .dissolved--dismissible { display: none !important; }
   text-transform: uppercase;
 }
 
-/* "Show the other groups" under a debate's first quotes. */
-.dq-more > summary { display: inline-flex; align-items: center; min-height: 40px; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--ink); }
