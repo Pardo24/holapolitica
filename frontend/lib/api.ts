@@ -697,6 +697,59 @@ export interface AssetDeclaration {
   data: AssetDeclarationData | null;
 }
 
+export interface InterestActivity {
+  period: string | null;
+  employer: string | null;
+  /** "public" | "private" from the sector box, "other" for anything else. */
+  sector: 'public' | 'private' | 'other' | null;
+  sector_as_written: string | null;
+  description: string | null;
+}
+
+/** A "Declaración de Intereses Económicos", as the deputy wrote it. */
+export interface InterestsData {
+  name: string | null;
+  initial: boolean | null;
+  activities: InterestActivity[];
+  gifts: { benefactor: string | null; description: string | null }[];
+  contributions: { recipient: string | null; description: string | null }[];
+  other: string | null;
+}
+
+export type ActivitySection =
+  | 'public_posts'
+  | 'public_renounced'
+  | 'pensions_renounced'
+  | 'pensions_compatible'
+  | 'teaching'
+  | 'party_posts'
+  | 'creative'
+  | 'private_authorised'
+  | 'other';
+
+/** The "Registro de Intereses - Actividades" page. Until the plenary agrees
+ *  on the activities it only says so: ``awaiting_plenary``. */
+export interface ActivitiesData {
+  awaiting_plenary?: boolean;
+  name?: string | null;
+  group?: string | null;
+  registered_on?: string | null;
+  sections?: Record<ActivitySection, { text: string | null; approved_on: string | null }[]>;
+  declarations?: string[];
+}
+
+/** The activities register ("activities") or an economic-interests
+ *  declaration ("interests"): the PDF, and what we read when checks passed. */
+export type InterestDeclaration = {
+  declared_on: string | null;
+  sequence: number | null;
+  pdf_url: string;
+  status: 'ok' | 'needs_review' | 'pending' | 'failed';
+} & (
+  | { kind: 'activities'; data: ActivitiesData | null }
+  | { kind: 'interests'; data: InterestsData | null }
+);
+
 export interface PersonKPIs {
   person_id: number;
   votes_total: number;
@@ -1543,6 +1596,8 @@ export const api = {
       request<TopicVoteStat[]>(`/persons/${id}/topic-stats`, { revalidate: AGG_REVALIDATE }),
     assets: (id: number) =>
       request<AssetDeclaration[]>(`/persons/${id}/assets`, { revalidate: AGG_REVALIDATE }),
+    interests: (id: number) =>
+      request<InterestDeclaration[]>(`/persons/${id}/interests`, { revalidate: AGG_REVALIDATE }),
     assetDeclarants: () =>
       request<AssetDeclarant[]>('/persons/asset-declarants', { revalidate: AGG_REVALIDATE }),
     kpis: (id: number) =>

@@ -158,7 +158,7 @@ function Declaration({
   );
 }
 
-interface Item {
+export interface Item {
   main: string | null;
   tag?: string | null;
   meta?: (string | null | false | undefined)[];
@@ -176,7 +176,7 @@ interface Section {
   body: React.ReactNode;
 }
 
-function Items({ items }: { items: Item[] }) {
+export function Items({ items }: { items: Item[] }) {
   return (
     <ul className="assets__items">
       {items.map((it, i) => {
