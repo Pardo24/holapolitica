@@ -1,3 +1,4 @@
+import '@/app/styles/debate-quotes.css';
 import '@/app/styles/avui-and-2-9fe19e.css';
 import '@/app/styles/home-and-10-543c29.css';
 import '@/app/styles/home-and-11-6a6aa9.css';

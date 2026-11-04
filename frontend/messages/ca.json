@@ -3100,6 +3100,9 @@
     "dek": "Una cita literal de cada grup, del Diari de Sessions del Ple del {date}. És una cita de la font, no el motiu personal del vot de cada diputat.",
     "speaker": "{speaker}, en nom del Grup {group}",
     "source": "{ref}, pàg. {page}",
-    "method": "Una eina automàtica tria el passatge, i el sistema comprova que sigui literal al text oficial. Les cites es mostren en l'idioma en què es van dir. Si un grup no té cita, només se'n mostra el vot."
+    "method": "Una eina automàtica tria el passatge, i el sistema comprova que sigui literal al text oficial. Les cites es mostren en l'idioma en què es van dir. Si un grup no té cita, només se'n mostra el vot.",
+    "more": "Mostra {count, plural, =1 {# cita més} other {# cites més}}",
+    "less": "Amaga-les",
+    "silent": "Sense cita:"
   }
 }
