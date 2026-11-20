@@ -64,12 +64,12 @@ export default async function AvuiOg() {
         style={{
           width: '100%',
           height: '100%',
-          background: '#fbf9f4',
+          background: '#ecebe6',
           display: 'flex',
           flexDirection: 'column',
           padding: '52px 64px',
           fontFamily: 'sans-serif',
-          color: '#1a2138',
+          color: '#1c1c1a',
         }}
       >
         {/* Masthead */}
@@ -79,7 +79,7 @@ export default async function AvuiOg() {
             alignItems: 'baseline',
             justifyContent: 'space-between',
             paddingBottom: 14,
-            borderBottom: '3px solid #1a2138',
+            borderBottom: '3px solid #1c1c1a',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
@@ -89,7 +89,7 @@ export default async function AvuiOg() {
                 letterSpacing: '0.16em',
                 textTransform: 'uppercase',
                 fontWeight: 700,
-                color: '#5b6275',
+                color: '#5c5c57',
               }}
             >
               {t('brand')}
@@ -104,7 +104,7 @@ export default async function AvuiOg() {
               {t('eyebrow')}
             </span>
           </div>
-          <span style={{ fontSize: 18, color: '#5b6275', fontStyle: 'italic' }}>
+          <span style={{ fontSize: 18, color: '#5c5c57', fontStyle: 'italic' }}>
             {dateLong}
           </span>
         </div>
@@ -124,7 +124,7 @@ export default async function AvuiOg() {
               fontSize: 22,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              color: '#5b6275',
+              color: '#5c5c57',
               fontWeight: 700,
             }}
           >
@@ -171,7 +171,7 @@ export default async function AvuiOg() {
               <div
                 style={{
                   fontSize: 22,
-                  color: '#1a2138',
+                  color: '#1c1c1a',
                   display: 'flex',
                   gap: 14,
                 }}
@@ -245,7 +245,7 @@ export default async function AvuiOg() {
               style={{
                 marginLeft: 'auto',
                 fontSize: 16,
-                color: '#5b6275',
+                color: '#5c5c57',
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 fontWeight: 700,
@@ -280,7 +280,7 @@ function Counter({ label, value }: { label: string; value: string }) {
       <div
         style={{
           fontSize: 14,
-          color: '#5b6275',
+          color: '#5c5c57',
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
           fontWeight: 600,

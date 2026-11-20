@@ -50,7 +50,7 @@ export async function GET(request: Request): Promise<Response> {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          background: 'white',
+          background: '#ecebe6',
           padding: '60px',
           fontFamily: 'sans-serif',
         }}
@@ -63,14 +63,14 @@ export async function GET(request: Request): Promise<Response> {
             marginBottom: '20px',
           }}
         >
-          <div style={{ fontSize: 24, color: '#64748B', display: 'flex' }}>
+          <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#ecebe6', background: '#1c1c1a', padding: '4px 10px 3px', display: 'flex' }}>
             Hola Política
           </div>
           <div
             style={{
               fontSize: 22,
               padding: '8px 16px',
-              borderRadius: 8,
+              borderRadius: 2,
               background: colors.bg,
               color: colors.fg,
               fontWeight: 700,

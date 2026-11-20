@@ -6,12 +6,11 @@
   padding: 22px 20px 20px;
   border-radius: 2px;
   color: #fff;
-  background:
-    radial-gradient(120% 90% at 100% 0%, color-mix(in oklch, #F59E0B 70%, transparent) 0%, transparent 55%),
-    linear-gradient(135deg, var(--hue-jocs) 0%, color-mix(in oklch, var(--hue-jocs) 70%, #F97316) 100%);
-  box-shadow: 0 10px 24px -14px color-mix(in oklch, var(--hue-jocs) 80%, transparent);
+  background: var(--ink);
+  box-shadow: none;
 }
 .games-hero::after {
+  display: none;
   content: "";
   position: absolute;
   right: -30px;
@@ -45,7 +44,7 @@
   padding: 18px 18px 18px;
   border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--g) 28%, var(--paper));
-  background: linear-gradient(180deg, color-mix(in oklch, var(--g) 9%, var(--paper)) 0%, var(--paper) 70%);
+  background: var(--paper);
   box-shadow: var(--shadow-2);
 }
 .games-card--daily { --g: var(--hue-plens); }
@@ -61,7 +60,7 @@
   border-radius: 2px;
   background: var(--g);
   color: #fff;
-  box-shadow: 0 6px 14px -8px var(--g);
+  box-shadow: none;
 }
 .games-card__badge {
   padding: 4px 10px;

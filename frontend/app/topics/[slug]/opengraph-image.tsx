@@ -32,11 +32,11 @@ export default async function TopicOg({
           style={{
             width: '100%',
             height: '100%',
-            background: '#fbf9f4',
+            background: '#ecebe6',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#1a2138',
+            color: '#1c1c1a',
             fontSize: 48,
             fontWeight: 600,
           }}
@@ -48,7 +48,7 @@ export default async function TopicOg({
     );
   }
 
-  const accent = topic.color_hex ?? '#1a2138';
+  const accent = topic.color_hex ?? '#1c1c1a';
   const isSdg = topic.kind === 'sdg';
   const sdgNumber = isSdg ? topic.slug.match(/^sdg-(\d{2})/)?.[1] ?? '' : '';
 
@@ -58,7 +58,7 @@ export default async function TopicOg({
         style={{
           width: '100%',
           height: '100%',
-          background: '#fbf9f4',
+          background: '#ecebe6',
           display: 'flex',
           flexDirection: 'column',
           padding: '60px 70px',
@@ -71,29 +71,13 @@ export default async function TopicOg({
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingBottom: 18,
-            borderBottom: '2px solid #1a2138',
+            borderBottom: '2px solid #1c1c1a',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                border: '2.5px solid #1a2138',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                padding: '8px 0 0',
-              }}
-            >
-              <div style={{ height: 2.5, background: '#1a2138', marginBottom: 5 }} />
-              <div style={{ height: 2.5, background: '#1a2138' }} />
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#1a2138' }}>
-                Hola Política
-              </span>
-              <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
+              <span style={{ display: 'flex', alignSelf: 'flex-start', fontSize: 22, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#ecebe6', background: '#1c1c1a', padding: '4px 10px 3px', marginBottom: 4 }}>Hola Política</span>
+              <span style={{ fontSize: 14, color: '#4a4a46', fontStyle: 'italic' }}>
                 {t('motto')}
               </span>
             </div>
@@ -101,7 +85,7 @@ export default async function TopicOg({
           <div
             style={{
               fontSize: 13,
-              color: '#3f4c66',
+              color: '#4a4a46',
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}
@@ -170,7 +154,7 @@ export default async function TopicOg({
               style={{
                 fontSize: 60,
                 fontWeight: 600,
-                color: '#1a2138',
+                color: '#1c1c1a',
                 letterSpacing: '-0.015em',
                 fontFamily: 'serif',
                 lineHeight: 1.05,
@@ -181,7 +165,7 @@ export default async function TopicOg({
             <span
               style={{
                 fontSize: 22,
-                color: '#3f4c66',
+                color: '#4a4a46',
                 lineHeight: 1.35,
               }}
             >
@@ -197,9 +181,9 @@ export default async function TopicOg({
             justifyContent: 'space-between',
             gap: 30,
             paddingTop: 18,
-            borderTop: '1px solid #d2cdbc',
+            borderTop: '1px solid #bdbcb6',
             fontSize: 16,
-            color: '#3f4c66',
+            color: '#4a4a46',
           }}
         >
           <span>{t('topic_footer')}</span>

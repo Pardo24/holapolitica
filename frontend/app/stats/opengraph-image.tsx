@@ -27,7 +27,7 @@ export default async function StatsOg() {
         style={{
           width: '100%',
           height: '100%',
-          background: '#fbf9f4',
+          background: '#ecebe6',
           display: 'flex',
           flexDirection: 'column',
           padding: '60px 70px',
@@ -41,28 +41,13 @@ export default async function StatsOg() {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingBottom: 18,
-            borderBottom: '2px solid #1a2138',
+            borderBottom: '2px solid #1c1c1a',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                border: '2.5px solid #1a2138',
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '8px 0 0',
-              }}
-            >
-              <div style={{ height: 2.5, background: '#1a2138', marginBottom: 5 }} />
-              <div style={{ height: 2.5, background: '#1a2138' }} />
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#1a2138' }}>
-                Hola Política
-              </span>
-              <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
+              <span style={{ display: 'flex', alignSelf: 'flex-start', fontSize: 22, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#ecebe6', background: '#1c1c1a', padding: '4px 10px 3px', marginBottom: 4 }}>Hola Política</span>
+              <span style={{ fontSize: 14, color: '#4a4a46', fontStyle: 'italic' }}>
                 {t('motto')}
               </span>
             </div>
@@ -70,7 +55,7 @@ export default async function StatsOg() {
           <div
             style={{
               fontSize: 13,
-              color: '#3f4c66',
+              color: '#4a4a46',
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}
@@ -94,7 +79,7 @@ export default async function StatsOg() {
             style={{
               fontSize: 56,
               fontWeight: 700,
-              color: '#1a2138',
+              color: '#1c1c1a',
               letterSpacing: '-0.02em',
               fontFamily: 'serif',
               lineHeight: 1.05,
@@ -106,7 +91,7 @@ export default async function StatsOg() {
           <div
             style={{
               fontSize: 22,
-              color: '#3f4c66',
+              color: '#4a4a46',
               marginTop: 22,
               maxWidth: 880,
               lineHeight: 1.4,
@@ -122,7 +107,7 @@ export default async function StatsOg() {
             display: 'flex',
             justifyContent: 'space-between',
             paddingTop: 18,
-            borderTop: '1px solid #d2cdbc',
+            borderTop: '1px solid #bdbcb6',
             gap: 30,
           }}
         >
@@ -151,7 +136,7 @@ function Kpi({ label, value }: { label: string; value: string }) {
       <span
         style={{
           fontSize: 12,
-          color: '#3f4c66',
+          color: '#4a4a46',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
         }}
@@ -162,7 +147,7 @@ function Kpi({ label, value }: { label: string; value: string }) {
         style={{
           fontSize: 44,
           fontWeight: 700,
-          color: '#1a2138',
+          color: '#1c1c1a',
           letterSpacing: '-0.02em',
           fontFamily: 'monospace',
         }}

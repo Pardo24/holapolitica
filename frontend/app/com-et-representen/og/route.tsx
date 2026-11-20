@@ -38,7 +38,7 @@ export async function GET(request: Request): Promise<Response> {
         <div style={{ display: 'flex', marginTop: 12, fontSize: 24, color: INK_2 }}>
           {t('quiz_sub', { n: result.compared })}
         </div>
-        <div style={{ display: 'flex', marginTop: 28, height: 14, width: 1060, borderRadius: 999, background: '#e8e4d8' }}>
+        <div style={{ display: 'flex', marginTop: 28, height: 14, width: 1060, borderRadius: 999, background: '#dddcd6' }}>
           <div style={{ display: 'flex', width: `${result.pct}%`, height: 14, borderRadius: 999, background: color }} />
         </div>
       </OgFrame>

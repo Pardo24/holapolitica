@@ -7,10 +7,10 @@
   padding: 22px 20px 20px;
   border-radius: 2px;
   color: #fff;
-  background: linear-gradient(135deg, var(--g) 0%, color-mix(in oklch, var(--g) 65%, #0F172A) 100%);
-  box-shadow: 0 12px 26px -16px var(--g);
+  background: var(--ink);
+  border-top: 6px solid var(--g);
 }
-.gstart-hero::after { content: ""; position: absolute; right: -36px; top: -36px; width: 140px; height: 140px; border-radius: 999px; border: 22px solid rgba(255, 255, 255, 0.12); }
+.gstart-hero::after { display: none; content: ""; position: absolute; right: -36px; top: -36px; width: 140px; height: 140px; border-radius: 999px; border: 22px solid rgba(255, 255, 255, 0.12); }
 .gstart-hero__icon { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 2px; background: rgba(255, 255, 255, 0.18); }
 .gstart-hero__title { margin: 12px 0 6px; font-family: var(--font-serif); font-size: clamp(26px, 7vw, 34px); line-height: 1.1; letter-spacing: -0.02em; color: #fff; }
 .gstart-hero__hook { position: relative; z-index: 1; margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.5; color: rgba(255, 255, 255, 0.92); }

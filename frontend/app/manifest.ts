@@ -18,8 +18,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: '/',
     display: 'standalone',
     orientation: 'portrait-primary',
-    background_color: '#fbf9f4',
-    theme_color: '#fbf9f4',
+    background_color: '#ecebe6',
+    theme_color: '#ecebe6',
     lang: 'ca',
     categories: ['news', 'government', 'politics'],
     // App-shortcut menu — long-press on iOS / Android lets users jump

@@ -47,11 +47,11 @@ export default async function InitiativeOg({
           style={{
             width: '100%',
             height: '100%',
-            background: '#fbf9f4',
+            background: '#ecebe6',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#1a2138',
+            color: '#1c1c1a',
             fontSize: 48,
             fontWeight: 600,
           }}
@@ -78,7 +78,7 @@ export default async function InitiativeOg({
       })
     : '';
   const statusLabel = STATUS_LABEL[initiative.status] ?? initiative.status;
-  const statusColor = STATUS_COLOR[initiative.status] ?? '#1a2138';
+  const statusColor = STATUS_COLOR[initiative.status] ?? '#1c1c1a';
 
   return new ImageResponse(
     (
@@ -86,7 +86,7 @@ export default async function InitiativeOg({
         style={{
           width: '100%',
           height: '100%',
-          background: '#fbf9f4',
+          background: '#ecebe6',
           display: 'flex',
           flexDirection: 'column',
           padding: '60px 70px',
@@ -100,29 +100,13 @@ export default async function InitiativeOg({
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingBottom: 18,
-            borderBottom: '2px solid #1a2138',
+            borderBottom: '2px solid #1c1c1a',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                border: '2.5px solid #1a2138',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                padding: '8px 0 0',
-              }}
-            >
-              <div style={{ height: 2.5, background: '#1a2138', marginBottom: 5 }} />
-              <div style={{ height: 2.5, background: '#1a2138' }} />
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#1a2138' }}>
-                Hola Política
-              </span>
-              <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
+              <span style={{ display: 'flex', alignSelf: 'flex-start', fontSize: 22, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#ecebe6', background: '#1c1c1a', padding: '4px 10px 3px', marginBottom: 4 }}>Hola Política</span>
+              <span style={{ fontSize: 14, color: '#4a4a46', fontStyle: 'italic' }}>
                 {t('motto')}
               </span>
             </div>
@@ -130,7 +114,7 @@ export default async function InitiativeOg({
           <div
             style={{
               fontSize: 13,
-              color: '#3f4c66',
+              color: '#4a4a46',
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}
@@ -156,7 +140,7 @@ export default async function InitiativeOg({
             <div
               style={{
                 fontSize: 14,
-                color: '#3f4c66',
+                color: '#4a4a46',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 marginBottom: 18,
@@ -169,7 +153,7 @@ export default async function InitiativeOg({
             style={{
               fontSize: titleShort.length > 140 ? 34 : 42,
               lineHeight: 1.2,
-              color: '#1a2138',
+              color: '#1c1c1a',
               fontWeight: 600,
               letterSpacing: '-0.015em',
               fontFamily: 'serif',
@@ -182,7 +166,7 @@ export default async function InitiativeOg({
               style={{
                 marginTop: 16,
                 fontSize: 16,
-                color: '#3f4c66',
+                color: '#4a4a46',
                 fontStyle: 'italic',
               }}
             >
@@ -199,14 +183,14 @@ export default async function InitiativeOg({
             justifyContent: 'space-between',
             gap: 30,
             paddingTop: 18,
-            borderTop: '1px solid #d2cdbc',
+            borderTop: '1px solid #bdbcb6',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span
               style={{
                 fontSize: 12,
-                color: '#3f4c66',
+                color: '#4a4a46',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
               }}
@@ -227,7 +211,7 @@ export default async function InitiativeOg({
           <div
             style={{
               fontSize: 12,
-              color: '#3f4c66',
+              color: '#4a4a46',
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}

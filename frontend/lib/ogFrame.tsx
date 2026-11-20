@@ -10,10 +10,10 @@ import type { ReactNode } from 'react';
  */
 
 export const OG_SIZE = { width: 1200, height: 630 };
-export const INK = '#1a2138';
-export const INK_2 = '#3f4c66';
-export const PAPER = '#fbf9f4';
-export const RULE = '#d2cdbc';
+export const INK = '#1c1c1a';
+export const INK_2 = '#4a4a46';
+export const PAPER = '#ecebe6';
+export const RULE = '#bdbcb6';
 
 export function OgFrame({
   motto,
@@ -48,7 +48,23 @@ export function OgFrame({
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: 22, fontWeight: 700, color: INK }}>Hola Política</span>
+          {/* The wordmark as on the site: the name printed in reverse. */}
+          <span
+            style={{
+              display: 'flex',
+              alignSelf: 'flex-start',
+              fontSize: 22,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              color: PAPER,
+              background: INK,
+              padding: '4px 10px 3px',
+              marginBottom: 4,
+            }}
+          >
+            Hola Política
+          </span>
           <span style={{ fontSize: 14, color: INK_2, fontStyle: 'italic' }}>{motto}</span>
         </div>
         <div style={{ display: 'flex', fontSize: 13, color: INK_2, letterSpacing: '0.14em', textTransform: 'uppercase' }}>

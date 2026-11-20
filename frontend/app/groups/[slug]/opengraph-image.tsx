@@ -29,11 +29,11 @@ export default async function GroupOg({
           style={{
             width: '100%',
             height: '100%',
-            background: '#fbf9f4',
+            background: '#ecebe6',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#1a2138',
+            color: '#1c1c1a',
             fontSize: 48,
             fontWeight: 600,
           }}
@@ -47,7 +47,7 @@ export default async function GroupOg({
 
   const fullName = displayGroupFullName(group.slug, group.name_long);
   const fullNameShort = fullName.length > 60 ? fullName.slice(0, 57) + '…' : fullName;
-  const accent = group.color_hex ?? '#1a2138';
+  const accent = group.color_hex ?? '#1c1c1a';
   // Use the first two letters of the short name as the badge text.
   const initials = group.name_short.replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 4).toUpperCase();
 
@@ -57,7 +57,7 @@ export default async function GroupOg({
         style={{
           width: '100%',
           height: '100%',
-          background: '#fbf9f4',
+          background: '#ecebe6',
           display: 'flex',
           flexDirection: 'column',
           padding: '60px 70px',
@@ -70,29 +70,13 @@ export default async function GroupOg({
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingBottom: 18,
-            borderBottom: '2px solid #1a2138',
+            borderBottom: '2px solid #1c1c1a',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                border: '2.5px solid #1a2138',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                padding: '8px 0 0',
-              }}
-            >
-              <div style={{ height: 2.5, background: '#1a2138', marginBottom: 5 }} />
-              <div style={{ height: 2.5, background: '#1a2138' }} />
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#1a2138' }}>
-                Hola Política
-              </span>
-              <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
+              <span style={{ display: 'flex', alignSelf: 'flex-start', fontSize: 22, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#ecebe6', background: '#1c1c1a', padding: '4px 10px 3px', marginBottom: 4 }}>Hola Política</span>
+              <span style={{ fontSize: 14, color: '#4a4a46', fontStyle: 'italic' }}>
                 {t('motto')}
               </span>
             </div>
@@ -100,7 +84,7 @@ export default async function GroupOg({
           <div
             style={{
               fontSize: 13,
-              color: '#3f4c66',
+              color: '#4a4a46',
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}
@@ -143,7 +127,7 @@ export default async function GroupOg({
               style={{
                 fontSize: 48,
                 fontWeight: 700,
-                color: '#1a2138',
+                color: '#1c1c1a',
                 letterSpacing: '-0.015em',
                 fontFamily: 'serif',
                 lineHeight: 1.1,
@@ -154,7 +138,7 @@ export default async function GroupOg({
             <span
               style={{
                 fontSize: 20,
-                color: '#3f4c66',
+                color: '#4a4a46',
                 lineHeight: 1.3,
               }}
             >
@@ -170,14 +154,14 @@ export default async function GroupOg({
             justifyContent: 'space-between',
             gap: 30,
             paddingTop: 18,
-            borderTop: '1px solid #d2cdbc',
+            borderTop: '1px solid #bdbcb6',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span
               style={{
                 fontSize: 12,
-                color: '#3f4c66',
+                color: '#4a4a46',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
               }}
@@ -188,7 +172,7 @@ export default async function GroupOg({
               style={{
                 fontSize: 60,
                 fontWeight: 700,
-                color: '#1a2138',
+                color: '#1c1c1a',
                 letterSpacing: '-0.02em',
                 fontFamily: 'monospace',
               }}
@@ -199,7 +183,7 @@ export default async function GroupOg({
           <div
             style={{
               fontSize: 12,
-              color: '#3f4c66',
+              color: '#4a4a46',
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}

@@ -72,11 +72,11 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
           style={{
             width: '100%',
             height: '100%',
-            background: '#fbf9f4',
+            background: '#ecebe6',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#1a2138',
+            color: '#1c1c1a',
             fontSize: 48,
             fontWeight: 600,
           }}
@@ -115,7 +115,7 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
         style={{
           width: '100%',
           height: '100%',
-          background: '#fbf9f4',
+          background: '#ecebe6',
           display: 'flex',
           flexDirection: 'column',
           padding: '48px 64px 40px',
@@ -129,29 +129,13 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingBottom: 16,
-            borderBottom: '2px solid #1a2138',
+            borderBottom: '2px solid #1c1c1a',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                border: '2.5px solid #1a2138',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                padding: '8px 0 0',
-              }}
-            >
-              <div style={{ height: 2.5, background: '#1a2138', marginBottom: 5 }} />
-              <div style={{ height: 2.5, background: '#1a2138' }} />
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: '#1a2138' }}>
-                Hola Política
-              </span>
-              <span style={{ fontSize: 14, color: '#3f4c66', fontStyle: 'italic' }}>
+              <span style={{ display: 'flex', alignSelf: 'flex-start', fontSize: 22, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#ecebe6', background: '#1c1c1a', padding: '4px 10px 3px', marginBottom: 4 }}>Hola Política</span>
+              <span style={{ fontSize: 14, color: '#4a4a46', fontStyle: 'italic' }}>
                 {t('motto')}
               </span>
             </div>
@@ -159,7 +143,7 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
           <div
             style={{
               fontSize: 13,
-              color: '#3f4c66',
+              color: '#4a4a46',
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
             }}
@@ -184,9 +168,9 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
           >
             {resultLabel}
           </span>
-          <span style={{ fontSize: 20, color: '#3f4c66' }}>{date}</span>
+          <span style={{ fontSize: 20, color: '#4a4a46' }}>{date}</span>
           {vote.expediente_raw && (
-            <span style={{ fontSize: 16, color: '#6b7690', fontFamily: 'monospace' }}>
+            <span style={{ fontSize: 16, color: '#66665f', fontFamily: 'monospace' }}>
               {vote.expediente_raw}
             </span>
           )}
@@ -206,7 +190,7 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
             style={{
               fontSize: subjectShort.length > 130 ? 32 : 40,
               lineHeight: 1.22,
-              color: '#1a2138',
+              color: '#1c1c1a',
               fontWeight: 600,
               letterSpacing: '-0.01em',
               fontFamily: 'serif',
@@ -266,7 +250,7 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
             justifyContent: 'space-between',
             gap: 30,
             paddingTop: 16,
-            borderTop: '1px solid #d2cdbc',
+            borderTop: '1px solid #bdbcb6',
           }}
         >
           <div style={{ display: 'flex', gap: 28, alignItems: 'flex-end' }}>
@@ -275,10 +259,10 @@ export default async function VoteOg({ params }: { params: Promise<{ id: string 
             <Block label={t('vote_abst')} n={vote.abstentions} color="#ca8a04" />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: 19, fontWeight: 700, color: '#1a2138' }}>
+            <span style={{ fontSize: 19, fontWeight: 700, color: '#1c1c1a' }}>
               holapolitica.org
             </span>
-            <span style={{ fontSize: 14, color: '#6b7690' }}>
+            <span style={{ fontSize: 14, color: '#66665f' }}>
               Open Data · Congreso de los Diputados
             </span>
           </div>
@@ -295,7 +279,7 @@ function Block({ label, n, color }: { label: string; n: number; color: string })
       <span
         style={{
           fontSize: 11,
-          color: '#3f4c66',
+          color: '#4a4a46',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
         }}

@@ -95,7 +95,7 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
           borderRadius: 2,
           border: '1px solid var(--rule-strong)',
           background:
-            'linear-gradient(135deg, color-mix(in oklch, var(--accent) 6%, var(--paper)) 0%, var(--paper-2) 100%)',
+            'var(--paper-2)',
           overflow: 'hidden',
         }}
       >

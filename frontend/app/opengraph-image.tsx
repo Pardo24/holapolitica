@@ -1,30 +1,33 @@
 import { ImageResponse } from 'next/og';
 import { getTranslations } from 'next-intl/server';
 
+import { MARK_DOT, MARK_RULE, markSeats } from '@/lib/brandMark';
+
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const alt = 'Hola Política · què vota el Congrés';
 
 /**
  * The link preview of the site: what a shared holapolitica.org looks like
- * in a chat or a feed. Brand and promise on the left, the sections in their
- * colours, and on the right a law card drawn as an illustration (shapes,
- * not figures: a preview must never show a vote that didn't happen).
+ * in a chat or a feed. Same register as the site: newsprint paper, black
+ * ink, a poster headline with its second line in reverse, and on the right
+ * a page of the record with the clerk's stamp (shapes, not figures: a
+ * preview must never show a vote that didn't happen).
  */
-const SECTIONS: { key: string; color: string }[] = [
-  { key: 'og_sec_lleis', color: '#3D4FD1' },
-  { key: 'og_sec_plens', color: '#D9692A' },
-  { key: 'og_sec_diputats', color: '#13998A' },
-  { key: 'og_sec_dades', color: '#C4920E' },
-  { key: 'og_sec_jocs', color: '#D6457F' },
-];
-const PARTY_DOTS = ['#1E88E5', '#E53935', '#43A047', '#8E24AA', '#00ACC1', '#FB8C00', '#7CB342', '#00897B'];
+const INK = '#1c1c1a';
+const INK_2 = '#4a4a46';
+const PAPER = '#ecebe6';
+const SHEET = '#f6f5f1';
+const RULE = '#bdbcb6';
+const AYE = '#2f7a4b';
 
-/** Inter from Google Fonts as TTF (what the image renderer reads), or
- *  nothing: the preview still renders, in the default face. */
-async function inter(weight: number): Promise<ArrayBuffer | null> {
+/** A Google font as TTF (what the image renderer reads), or nothing: the
+ *  preview still renders, in the default face. */
+async function font(family: string, weight: number): Promise<ArrayBuffer | null> {
   try {
-    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=Inter:wght@${weight}`)).text();
+    const css = await (
+      await fetch(`https://fonts.googleapis.com/css2?family=${family}:wght@${weight}`)
+    ).text();
     const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
     return url ? await (await fetch(url)).arrayBuffer() : null;
   } catch {
@@ -34,11 +37,25 @@ async function inter(weight: number): Promise<ArrayBuffer | null> {
 
 export default async function HomeOg() {
   const t = await getTranslations('og');
-  const [bold, regular] = await Promise.all([inter(800), inter(500)]);
+  const [poster, sans, mono] = await Promise.all([
+    font('Anton', 400),
+    font('Archivo', 500),
+    font('IBM+Plex+Mono', 500),
+  ]);
   const fonts = [
-    ...(bold ? [{ name: 'Inter', data: bold, weight: 800 as const, style: 'normal' as const }] : []),
-    ...(regular ? [{ name: 'Inter', data: regular, weight: 500 as const, style: 'normal' as const }] : []),
+    ...(poster ? [{ name: 'Anton', data: poster, weight: 400 as const, style: 'normal' as const }] : []),
+    ...(sans ? [{ name: 'Archivo', data: sans, weight: 500 as const, style: 'normal' as const }] : []),
+    ...(mono ? [{ name: 'Plex', data: mono, weight: 500 as const, style: 'normal' as const }] : []),
   ];
+  const posterFace = poster ? 'Anton' : 'sans-serif';
+  const monoFace = mono ? 'Plex' : 'monospace';
+  const lineStyle = {
+    fontFamily: posterFace,
+    fontSize: 96,
+    lineHeight: 1,
+    textTransform: 'uppercase' as const,
+  };
+
   return new ImageResponse(
     (
       <div
@@ -46,179 +63,108 @@ export default async function HomeOg() {
           width: '100%',
           height: '100%',
           display: 'flex',
-          padding: '56px 64px',
-          fontFamily: fonts.length ? 'Inter' : 'sans-serif',
-          color: '#fff',
-          background: 'linear-gradient(135deg, #141A2B 0%, #1F2A5E 55%, #3D4FD1 100%)',
+          padding: '52px 64px 44px',
+          fontFamily: sans ? 'Archivo' : 'sans-serif',
+          color: INK,
+          background: PAPER,
           position: 'relative',
         }}
       >
-        {/* Soft rings, for depth. */}
-        <div
-          style={{
-            position: 'absolute',
-            right: -120,
-            top: -140,
-            width: 520,
-            height: 520,
-            borderRadius: 999,
-            border: '70px solid rgba(255,255,255,0.05)',
-            display: 'flex',
-          }}
-        />
-
-        {/* Left: brand, promise, sections. */}
-        <div style={{ display: 'flex', flexDirection: 'column', width: 620, justifyContent: 'space-between' }}>
+        {/* Left: wordmark, poster headline, promise. */}
+        <div style={{ display: 'flex', flexDirection: 'column', width: 660, justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 14,
-                background: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  border: '3.5px solid #141A2B',
-                  borderRadius: 4,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '6px 4px 0',
-                }}
-              >
-                <div style={{ height: 3.5, background: '#141A2B', marginBottom: 5, display: 'flex' }} />
-                <div style={{ height: 3.5, background: '#141A2B', display: 'flex' }} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.01em' }}>Hola Política</span>
-              <span style={{ fontSize: 18, fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>{t('motto')}</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 70, fontWeight: 800, lineHeight: 1.02, letterSpacing: '-0.03em' }}>
-              {t('og_home_line_1')}
-            </span>
             <span
               style={{
-                fontSize: 70,
-                fontWeight: 800,
-                lineHeight: 1.02,
-                letterSpacing: '-0.03em',
-                color: '#FDBA74',
-                marginTop: 4,
+                display: 'flex',
+                fontFamily: posterFace,
+                fontSize: 34,
+                textTransform: 'uppercase',
+                letterSpacing: '0.02em',
+                background: INK,
+                color: PAPER,
+                padding: '6px 14px 4px',
               }}
             >
+              Hola Política
+            </span>
+            <span style={{ fontSize: 20, color: INK_2 }}>{t('motto')}</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <span style={lineStyle}>{t('og_home_line_1')}</span>
+            <span style={{ ...lineStyle, display: 'flex', background: INK, color: PAPER, padding: '6px 16px 0', marginTop: 10 }}>
               {t('og_home_line_2')}
             </span>
-            <span style={{ fontSize: 25, lineHeight: 1.35, color: 'rgba(255,255,255,0.82)', marginTop: 22, maxWidth: 560 }}>
+            <span style={{ fontSize: 25, lineHeight: 1.4, color: INK_2, marginTop: 28, maxWidth: 600 }}>
               {t('og_home_sub')}
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            {SECTIONS.map((s) => (
-              <span
-                key={s.key}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '7px 13px',
-                  borderRadius: 999,
-                  background: 'rgba(255,255,255,0.1)',
-                  fontSize: 16.5,
-                  fontWeight: 700,
-                }}
-              >
-                <span style={{ width: 12, height: 12, borderRadius: 999, background: s.color, display: 'flex' }} />
-                {t(s.key as 'og_sec_lleis')}
-              </span>
-            ))}
-          </div>
+          <span style={{ fontFamily: monoFace, fontSize: 19, letterSpacing: '0.08em', color: INK_2 }}>
+            HOLAPOLITICA.ORG
+          </span>
         </div>
 
-        {/* Right: a law card, as an illustration. */}
+        {/* Right: a page of the record, stamped. */}
         <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
           <div
             style={{
-              width: 390,
+              width: 380,
               display: 'flex',
               flexDirection: 'column',
-              borderRadius: 28,
-              background: '#fff',
-              overflow: 'hidden',
-              boxShadow: '0 30px 60px rgba(0,0,0,0.35)',
-              transform: 'rotate(-3deg)',
+              background: SHEET,
+              border: `2px solid ${INK}`,
+              padding: '22px 24px 26px',
+              position: 'relative',
             }}
           >
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '16px 22px',
-                background: '#DDF1E4',
+                fontFamily: monoFace,
+                fontSize: 15,
+                color: INK_2,
+                paddingBottom: 10,
+                borderBottom: `2px solid ${INK}`,
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 14, height: 14, borderRadius: 999, background: '#3D4FD1', display: 'flex' }} />
-                <span style={{ width: 110, height: 12, borderRadius: 6, background: '#9AA6B8', display: 'flex' }} />
-              </span>
-              <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '0.08em', color: '#1B6B3A' }}>
-                {t('og_card_approved')}
-              </span>
+              <span>EXPT. 121/000000</span>
+              <span>PLE</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', padding: '20px 22px 24px', gap: 12 }}>
-              <span style={{ height: 20, width: '92%', borderRadius: 8, background: '#141A2B', display: 'flex' }} />
-              <span style={{ height: 20, width: '64%', borderRadius: 8, background: '#141A2B', display: 'flex' }} />
-              <span style={{ height: 11, width: '96%', borderRadius: 6, background: '#C9D0DC', display: 'flex', marginTop: 6 }} />
-              <span style={{ height: 11, width: '80%', borderRadius: 6, background: '#C9D0DC', display: 'flex' }} />
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                  marginTop: 8,
-                  padding: '16px 16px',
-                  borderRadius: 16,
-                  background: '#F3F4F7',
-                }}
-              >
-                <div style={{ display: 'flex', height: 12, borderRadius: 999, overflow: 'hidden' }}>
-                  <span style={{ width: '64%', background: '#2E9E5B', display: 'flex' }} />
-                  <span style={{ width: '6%', background: '#D7A93B', display: 'flex' }} />
-                  <span style={{ width: '30%', background: '#D2453B', display: 'flex' }} />
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {PARTY_DOTS.map((c) => (
-                    <span key={c} style={{ width: 30, height: 30, borderRadius: 9, background: c, display: 'flex' }} />
-                  ))}
-                </div>
-              </div>
+            <span style={{ height: 22, width: '94%', background: INK, display: 'flex', marginTop: 20 }} />
+            <span style={{ height: 22, width: '66%', background: INK, display: 'flex', marginTop: 10 }} />
+            <span style={{ height: 11, width: '96%', background: RULE, display: 'flex', marginTop: 20 }} />
+            <span style={{ height: 11, width: '88%', background: RULE, display: 'flex', marginTop: 9 }} />
+            <span style={{ height: 11, width: '72%', background: RULE, display: 'flex', marginTop: 9 }} />
+            {/* The chamber, as on the site's mark. */}
+            <div style={{ display: 'flex', marginTop: 18 }}>
+              <svg width="120" height="80" viewBox="40 120 432 270">
+                {markSeats().map((s, i) => (
+                  <circle key={i} cx={s.x} cy={s.y} r={MARK_DOT} fill={INK} />
+                ))}
+                <rect {...MARK_RULE} fill={INK} />
+              </svg>
             </div>
+            <span
+              style={{
+                position: 'absolute',
+                right: 22,
+                bottom: 30,
+                display: 'flex',
+                transform: 'rotate(-8deg)',
+                border: `4px solid ${AYE}`,
+                color: AYE,
+                fontFamily: monoFace,
+                fontSize: 30,
+                letterSpacing: '0.14em',
+                padding: '6px 14px 4px',
+              }}
+            >
+              {t('og_card_approved')}
+            </span>
           </div>
         </div>
-
-        <span
-          style={{
-            position: 'absolute',
-            right: 64,
-            bottom: 34,
-            fontSize: 20,
-            fontWeight: 700,
-            color: 'rgba(255,255,255,0.75)',
-          }}
-        >
-          holapolitica.org
-        </span>
       </div>
     ),
     { ...size, fonts },

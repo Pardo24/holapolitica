@@ -119,7 +119,7 @@
   padding: 12px 16px;
   border: 1px solid color-mix(in oklch, var(--accent) 30%, var(--rule));
   border-radius: 2px;
-  background: linear-gradient(90deg, color-mix(in oklch, var(--accent) 10%, var(--paper)), var(--paper-2));
+  background: var(--paper-2);
   color: inherit;
   text-decoration: none;
   transition: border-color 0.12s ease;
@@ -151,7 +151,7 @@
   gap: 18px;
   border-width: 1.5px;
   border-color: color-mix(in oklch, var(--accent) 45%, var(--rule));
-  background: linear-gradient(100deg, color-mix(in oklch, var(--accent) 16%, var(--paper)), color-mix(in oklch, var(--accent) 4%, var(--paper-2)));
+  background: var(--paper-2);
 }
 .ebanner--guide .ebanner__mark { width: 54px; height: 54px; font-size: 16px; border-radius: 2px; }
 .ebanner--guide .ebanner__text { gap: 4px; }

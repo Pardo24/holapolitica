@@ -20,7 +20,7 @@
   padding: 22px 18px 18px;
   border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--party) 30%, var(--rule));
-  background: linear-gradient(180deg, color-mix(in oklch, var(--party) 12%, var(--paper)) 0, var(--paper) 70%);
+  background: var(--paper);
   overflow: hidden;
 }
 .dep-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--party); }

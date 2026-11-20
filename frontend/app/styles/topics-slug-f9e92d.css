@@ -5,7 +5,7 @@
   padding: 22px 18px 18px;
   border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--topic) 30%, var(--rule));
-  background: linear-gradient(180deg, color-mix(in oklch, var(--topic) 13%, var(--paper)) 0, var(--paper) 80%);
+  background: var(--paper);
   overflow: hidden;
 }
 .tpc-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--topic); }

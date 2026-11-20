@@ -9,7 +9,7 @@
   padding: 24px 18px 18px;
   border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--party) 30%, var(--rule));
-  background: linear-gradient(180deg, color-mix(in oklch, var(--party) 14%, var(--paper)) 0, var(--paper) 75%);
+  background: var(--paper);
   overflow: hidden;
 }
 .grp-hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--party); }
