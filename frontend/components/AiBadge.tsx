@@ -17,7 +17,7 @@ export function AiBadge({ label, href }: { label: string; /** Where the AI is ex
         alignItems: 'center',
         gap: 4,
         padding: '2px 8px',
-        borderRadius: 999,
+        borderRadius: 2,
         fontSize: 10,
         fontWeight: 600,
         letterSpacing: '0.04em',

@@ -107,7 +107,7 @@ export async function VoteChain({
         color: 'var(--ink-2)',
         background: 'var(--paper-3)',
         border: '1px solid var(--rule-strong)',
-        borderRadius: 999,
+        borderRadius: 2,
         padding: '1px 7px',
       }}
     >

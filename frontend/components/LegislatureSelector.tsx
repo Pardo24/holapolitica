@@ -76,7 +76,7 @@ export function LegislatureSelector({
         style={{
           appearance: 'auto',
           padding: '6px 10px',
-          borderRadius: 8,
+          borderRadius: 2,
           border: '1px solid var(--rule-strong)',
           background: 'var(--paper-2)',
           color: 'var(--ink)',

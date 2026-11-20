@@ -341,7 +341,7 @@ function TopicChipInner({ topic }: { topic: Topic }) {
           width: 12,
           height: 12,
           borderRadius: 2,
-          background: topic.color_hex ?? 'var(--ink-3)',
+          background: 'var(--ink)',
           flex: 'none',
         }}
       />
@@ -376,7 +376,7 @@ const chipButtonStyle: CSSProperties = {
   gap: 8,
   padding: '10px 14px',
   border: '1px solid var(--rule-strong)',
-  borderRadius: 10,
+  borderRadius: 2,
   background: 'var(--paper)',
   fontSize: 14,
   fontFamily: 'inherit',
@@ -392,7 +392,7 @@ const chipButtonStyle: CSSProperties = {
 const searchInputStyle: CSSProperties = {
   padding: '10px 14px',
   border: '1px solid var(--rule-strong)',
-  borderRadius: 10,
+  borderRadius: 2,
   background: 'var(--paper)',
   fontSize: 14,
   fontFamily: 'inherit',
@@ -412,7 +412,7 @@ const listboxStyle: CSSProperties = {
   overflowY: 'auto',
   background: 'var(--paper)',
   border: '1px solid var(--rule-strong)',
-  borderRadius: 10,
+  borderRadius: 2,
   margin: 0,
   padding: 4,
   listStyle: 'none',

@@ -42,7 +42,7 @@ export function DailyTeaser({ labels }: { labels: DailyTeaserLabels }) {
         alignItems: 'center',
         gap: 9,
         padding: '7px 14px',
-        borderRadius: 999,
+        borderRadius: 2,
         border: '1px solid var(--rule-strong)',
         background: 'var(--paper-2)',
         color: 'var(--ink)',

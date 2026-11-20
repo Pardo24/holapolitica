@@ -79,7 +79,7 @@ export async function PersonVotes({
               key={tp.slug}
               href={href({ tema: tp.slug })}
               className={topicSlug === tp.slug ? 'is-active' : undefined}
-              style={{ ['--topic' as string]: tp.color ?? 'var(--ink-3)' }}
+              style={{ ['--topic' as string]: 'var(--ink)' }}
             >
               {tp.name}
             </Link>
@@ -169,7 +169,7 @@ function VoteRow({
       <div className="dep-vote__meta">
         <span className="tabular">{date}</span>
         {v.topic && (
-          <span className="dep-vote__topic" style={{ ['--topic' as string]: v.topic.color_hex ?? 'var(--ink-3)' }}>
+          <span className="dep-vote__topic" style={{ ['--topic' as string]: 'var(--ink)' }}>
             {Icon && <Icon size={12} strokeWidth={2.2} aria-hidden="true" />}
             {pickTopicName(v.topic, locale)}
           </span>

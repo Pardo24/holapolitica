@@ -85,7 +85,7 @@ export function NewsletterSignup({
           marginTop: 28,
           padding: '16px 18px',
           border: '1px solid var(--rule-strong)',
-          borderRadius: 12,
+          borderRadius: 2,
           background: 'var(--paper-2)',
         }
       : {

@@ -199,7 +199,7 @@ export function TopicGroupFilter({
               width: '100%',
               padding: '6px 28px 6px 10px',
               border: '1px solid var(--rule-strong)',
-              borderRadius: 8,
+              borderRadius: 2,
               background: 'var(--paper)',
               color: 'var(--ink)',
               fontSize: 13,

@@ -418,7 +418,7 @@ export default async function InitiativeDetailPage({
               gap: 6,
               padding: '6px 12px',
               border: '1px solid var(--rule-strong)',
-              borderRadius: 999,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               color: 'var(--ink)',
               fontSize: 12,
@@ -553,7 +553,7 @@ export default async function InitiativeDetailPage({
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {topics.map((tp) => {
             const Icon = topicIcon(tp.icon);
-            const c = tp.color_hex ?? 'var(--ink-3)';
+            const c = 'var(--ink)';
             return (
               <Link
                 key={tp.slug}
@@ -563,7 +563,7 @@ export default async function InitiativeDetailPage({
                   alignItems: 'center',
                   gap: 6,
                   padding: '4px 10px 4px 6px',
-                  borderRadius: 999,
+                  borderRadius: 2,
                   border: `1px solid color-mix(in oklch, ${c} 40%, var(--rule))`,
                   background: `color-mix(in oklch, ${c} 10%, var(--paper))`,
                   color: 'var(--ink)',
@@ -637,7 +637,7 @@ export default async function InitiativeDetailPage({
                       flexDirection: 'column',
                       gap: 8,
                       padding: '14px 16px',
-                      borderRadius: 12,
+                      borderRadius: 2,
                       background: 'var(--paper-2)',
                       border: '1px solid var(--rule)',
                       color: 'inherit',

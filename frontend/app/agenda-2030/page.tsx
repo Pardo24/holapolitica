@@ -116,7 +116,7 @@ export default async function Agenda2030Page() {
               key={title}
               style={{
                 border: '1px solid var(--rule)',
-                borderRadius: 14,
+                borderRadius: 2,
                 background: 'var(--paper)',
                 padding: '14px 16px 15px',
                 display: 'flex',
@@ -169,7 +169,7 @@ export default async function Agenda2030Page() {
           style={{
             border: '1px solid var(--rule)',
             borderLeft: '3px solid var(--accent)',
-            borderRadius: 10,
+            borderRadius: 2,
             background: 'var(--paper-2)',
             padding: '13px 16px',
             maxWidth: 860,
@@ -308,7 +308,7 @@ function SDGCard({
           flexDirection: 'column',
           gap: 8,
           padding: '14px 16px 16px',
-          borderRadius: 14,
+          borderRadius: 2,
           background: color,
           color: '#fff',
           textDecoration: 'none',

@@ -108,7 +108,7 @@ export function GameTopicStart({
               <Link
                 href={hrefFor(tp.slug) as Route}
                 className="gstart-topic"
-                style={{ ['--t' as string]: tp.color_hex ?? 'var(--ink-3)' }}
+                style={{ ['--t' as string]: 'var(--ink)' }}
               >
                 <span className="gstart-topic__icon" aria-hidden="true">
                   <Icon size={18} strokeWidth={2} />

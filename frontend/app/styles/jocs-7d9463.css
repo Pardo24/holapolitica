@@ -4,7 +4,7 @@
   overflow: hidden;
   margin-top: 6px;
   padding: 22px 20px 20px;
-  border-radius: 22px;
+  border-radius: 2px;
   color: #fff;
   background:
     radial-gradient(120% 90% at 100% 0%, color-mix(in oklch, #F59E0B 70%, transparent) 0%, transparent 55%),
@@ -31,7 +31,7 @@
   gap: 6px;
   min-height: 34px;
   padding: 0 12px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: rgba(255, 255, 255, 0.2);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
@@ -43,7 +43,7 @@
   position: relative;
   overflow: hidden;
   padding: 18px 18px 18px;
-  border-radius: 20px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--g) 28%, var(--paper));
   background: linear-gradient(180deg, color-mix(in oklch, var(--g) 9%, var(--paper)) 0%, var(--paper) 70%);
   box-shadow: var(--shadow-2);
@@ -58,14 +58,14 @@
   justify-content: center;
   width: 46px;
   height: 46px;
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--g);
   color: #fff;
   box-shadow: 0 6px 14px -8px var(--g);
 }
 .games-card__badge {
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: color-mix(in oklch, var(--g) 16%, var(--paper));
   color: color-mix(in oklch, var(--g) 75%, var(--ink));
   font-size: 11.5px;
@@ -78,7 +78,7 @@
 .games-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
 .games-meta li {
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--g) 30%, var(--paper));
   background: var(--paper);
   font-size: 12px;
@@ -93,7 +93,7 @@
   gap: 8px;
   min-height: 48px;
   padding: 0 22px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--g);
   color: #fff;
   font-size: 16px;
@@ -112,7 +112,7 @@
   gap: 6px 10px;
   margin-top: 14px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 2px;
   background: color-mix(in oklch, var(--aye) 12%, var(--paper));
   font-size: 14px;
   font-weight: 600;
@@ -134,7 +134,7 @@
   display: block;
   justify-self: end;
   height: 9px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: color-mix(in oklch, var(--g) 70%, var(--paper));
   transform-origin: right;
   animation: games-grow .6s ease-out both;

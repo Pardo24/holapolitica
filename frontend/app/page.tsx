@@ -306,9 +306,8 @@ export default async function HomePage() {
           // A very soft accent wash, fading back to paper at the fold —
           // the vertical breathing room reads as a designed cover, not
           // leftover white.
-          background:
-            'linear-gradient(180deg, var(--paper) 0%, color-mix(in oklch, var(--accent) 6%, var(--paper)) 45%, color-mix(in oklch, var(--accent) 4%, var(--paper)) 72%, var(--paper) 100%)',
-          borderBottom: '1px solid var(--rule)',
+          background: 'var(--paper)',
+          borderBottom: '2px solid var(--ink)',
           alignItems: 'center',
           // The cover owns the first viewport: hero + meta strip fill
           // the screen on open, and "Últimas leyes" only appears when
@@ -323,12 +322,12 @@ export default async function HomePage() {
           <div className="eyebrow" style={{ marginBottom: 18, color: 'var(--accent)' }}>
             {t('eyebrow')}
           </div>
-          <h1 className="h-display" style={{ margin: '0 0 20px' }}>
+          <h1 className="h-poster" style={{ margin: '0 0 22px' }}>
             {heroTitleLines[0]}
             {heroTitleLines.length > 1 && (
               <>
                 <br />
-                <span style={{ color: 'var(--accent)' }}>{heroTitleLines.slice(1).join(' ')}</span>
+                <span className="h-poster__rev">{heroTitleLines.slice(1).join(' ')}</span>
               </>
             )}
           </h1>
@@ -509,7 +508,7 @@ export default async function HomePage() {
             gap: 8px;
             padding: 12px 16px 13px;
             border: 1px solid var(--rule);
-            border-radius: 14px;
+            border-radius: 2px;
             background: var(--paper-2);
             color: inherit;
             text-decoration: none;
@@ -947,7 +946,7 @@ function MobileDashboard({
               margin: 0,
               padding: 0,
               border: '1px solid var(--rule)',
-              borderRadius: 12,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               overflow: 'hidden',
               minWidth: 0,

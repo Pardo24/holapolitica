@@ -58,7 +58,7 @@
   gap: 6px;
   min-height: 40px;
   padding: 0 12px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--ink);
   background: var(--ink);
   color: var(--paper);
@@ -73,7 +73,7 @@
 .law-card-for-you {
   margin: 10px 0 0;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--hue-lleis-soft);
   font-size: 14.5px;
   line-height: 1.5;
@@ -94,7 +94,7 @@
   gap: 7px;
   min-height: 40px;
   padding: 0 14px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
   color: var(--ink);

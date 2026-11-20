@@ -65,7 +65,7 @@ export default async function LegislaturesPage() {
                 border: '1px solid var(--rule)',
                 borderLeft: `3px solid ${r.status === 'active' ? 'var(--accent)' : 'var(--rule-strong)'}`,
                 background: 'var(--paper-2)',
-                borderRadius: 10,
+                borderRadius: 2,
                 textDecoration: 'none',
                 color: 'inherit',
               }}
@@ -91,7 +91,7 @@ export default async function LegislaturesPage() {
                     style={{
                       fontSize: 10,
                       padding: '2px 8px',
-                      borderRadius: 999,
+                      borderRadius: 2,
                       border: '1px solid var(--rule-strong)',
                       color: r.status === 'active' ? 'var(--accent)' : 'var(--ink-3)',
                     }}
@@ -107,7 +107,7 @@ export default async function LegislaturesPage() {
                 <div
                   style={{
                     height: 8,
-                    borderRadius: 999,
+                    borderRadius: 2,
                     background: 'var(--paper-3)',
                     overflow: 'hidden',
                   }}

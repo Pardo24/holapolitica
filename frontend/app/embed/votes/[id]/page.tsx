@@ -509,7 +509,7 @@ function StanceClusters({
                         padding: 2,
                         boxSizing: 'border-box',
                         background: '#fff',
-                        borderRadius: 6,
+                        borderRadius: 2,
                         border: '1px solid rgba(0,0,0,.08)',
                       }}
                     />
@@ -518,7 +518,7 @@ function StanceClusters({
                       style={{
                         width: 26,
                         height: 26,
-                        borderRadius: 6,
+                        borderRadius: 2,
                         background: g.group_color_hex ?? '#9ca3af',
                         color: readableTextOn(g.group_color_hex),
                         display: 'inline-flex',

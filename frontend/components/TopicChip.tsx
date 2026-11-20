@@ -1,33 +1,30 @@
 /**
- * The canonical topic chip — a small pill with the topic's colour dot and
- * name. One component everywhere (vote rows, law rows, the session sheet)
- * so the same semantic object always looks the same. Sized a touch larger
- * than the old inline chips for legibility.
+ * The canonical topic chip: the topic's name as a square, outlined tag.
+ * One component everywhere (vote rows, law rows, the session sheet) so the
+ * same semantic object always looks the same.
+ *
+ * Monochrome since the "diari de sessions" restyle: the topic colours were
+ * decoration (pink for gender, green for environment) and competed with
+ * the colours that mean something, the groups' and the vote's. ``color``
+ * is still accepted so callers need not change.
  */
-export function TopicChip({ name, color }: { name: string; color: string | null }) {
-  const c = color ?? 'var(--ink-3)';
+export function TopicChip({ name }: { name: string; color?: string | null }) {
   return (
     <span
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
-        padding: '2px 10px 3px',
-        borderRadius: 999,
+        padding: '1px 7px 2px',
+        borderRadius: 2,
         fontSize: 11.5,
-        fontWeight: 600,
+        fontWeight: 500,
         color: 'var(--ink-2)',
-        background: `color-mix(in oklch, ${c} 14%, var(--paper))`,
-        border: `1px solid color-mix(in oklch, ${c} 32%, var(--paper))`,
+        background: 'transparent',
+        border: '1px solid var(--rule-strong)',
         whiteSpace: 'nowrap',
         lineHeight: 1.3,
-        letterSpacing: '0.01em',
       }}
     >
-      <span
-        aria-hidden="true"
-        style={{ width: 7, height: 7, borderRadius: 999, background: c, flex: 'none' }}
-      />
       {name}
     </span>
   );

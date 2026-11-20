@@ -58,7 +58,7 @@ export default async function EmbedTopicPartiesPage({
   const name =
     (locale === 'es' ? topic.name_es : locale === 'en' ? topic.name_en : topic.name_ca) ||
     topic.name_ca;
-  const color = topic.color_hex ?? 'var(--ink)';
+  const color = 'var(--ink)';
 
   // Only groups that actually voted Sí or No carry a for/against signal.
   // Rank by share in favour: most-favourable first, most-opposed last.
@@ -196,7 +196,7 @@ export default async function EmbedTopicPartiesPage({
                     display: 'flex',
                     flex: 1,
                     height: 9,
-                    borderRadius: 999,
+                    borderRadius: 2,
                     overflow: 'hidden',
                     background: 'var(--rule)',
                   }}

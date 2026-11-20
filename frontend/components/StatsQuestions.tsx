@@ -83,8 +83,8 @@ export async function StatsQuestions({
                   className="sheet-row__icon"
                   aria-hidden="true"
                   style={{
-                    background: `color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 16%, var(--paper))`,
-                    color: tp.color_hex ?? 'var(--ink-2)',
+                    background: `color-mix(in oklch, var(--ink) 16%, var(--paper))`,
+                    color: 'var(--ink)',
                   }}
                 >
                   <Icon size={17} strokeWidth={1.9} />
@@ -209,7 +209,7 @@ export async function StatsQuestions({
                     <GroupBadge slug={g.slug} color={g.color_hex} logoUrl={g.logo_url} size="sm" link={false} />
                     <span className="sq-row__name">{displayGroupShort(g.name_short)}</span>
                     {fact && name ? (
-                      <span className="sq-topic" style={{ ['--topic' as string]: fact.topic_color_hex ?? 'var(--ink-3)' }}>
+                      <span className="sq-topic" style={{ ['--topic' as string]: 'var(--ink)' }}>
                         {name}
                       </span>
                     ) : (

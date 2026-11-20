@@ -44,7 +44,7 @@ export function NoBreakdownNotice({
         padding: '14px 16px',
         border: '1px solid var(--rule)',
         borderLeft: '3px solid var(--rule-strong)',
-        borderRadius: 10,
+        borderRadius: 2,
         background: 'var(--paper)',
       }}
     >

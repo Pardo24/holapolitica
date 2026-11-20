@@ -102,7 +102,7 @@ function TopicCard({
   countLabel: string;
   eyebrow: string;
 }) {
-  const color = topic.color_hex ?? '#1a2138';
+  const color = 'var(--ink)';
   const Icon = topicIcon(topic.icon);
   return (
     <li>
@@ -114,7 +114,7 @@ function TopicCard({
           flexDirection: 'column',
           gap: 12,
           padding: '20px 18px',
-          borderRadius: 14,
+          borderRadius: 2,
           background: `color-mix(in oklch, ${color} 10%, var(--paper-2))`,
           border: '1px solid var(--rule)',
           textDecoration: 'none',
@@ -142,7 +142,7 @@ function TopicCard({
             style={{
               width: 36,
               height: 36,
-              borderRadius: 10,
+              borderRadius: 2,
               background: `color-mix(in oklch, ${color} 22%, var(--paper))`,
               color,
               display: 'inline-flex',

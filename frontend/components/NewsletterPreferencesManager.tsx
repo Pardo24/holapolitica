@@ -92,7 +92,7 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
         className="newsletter-pref-signup"
         style={{
           marginTop: 24,
-          borderRadius: 16,
+          borderRadius: 2,
           border: '1px solid var(--rule-strong)',
           background:
             'linear-gradient(135deg, color-mix(in oklch, var(--accent) 6%, var(--paper)) 0%, var(--paper-2) 100%)',
@@ -115,7 +115,7 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
             style={{
               width: 64,
               height: 64,
-              borderRadius: 16,
+              borderRadius: 2,
               background: 'var(--paper)',
               color: 'var(--accent)',
               display: 'inline-flex',
@@ -195,7 +195,7 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
           @media (max-width: 640px) {
             .newsletter-pref-signup {
               margin-top: 16px !important;
-              border-radius: 14px !important;
+              border-radius: 2px !important;
             }
             .newsletter-pref-signup__inner {
               padding: 16px 16px 6px !important;
@@ -204,7 +204,7 @@ export function NewsletterPreferencesManager({ topics }: Props): React.ReactElem
             .newsletter-pref-signup__icon {
               width: 48px !important;
               height: 48px !important;
-              border-radius: 12px !important;
+              border-radius: 2px !important;
             }
             .newsletter-pref-signup__icon svg {
               width: 24px !important;
@@ -459,7 +459,7 @@ function PreferencesPicker({
             color: 'var(--ink-2)',
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
-            borderRadius: 10,
+            borderRadius: 2,
           }}
         >
           {message}
@@ -543,7 +543,7 @@ function CategoryAccordion({
       // checkboxes across umbrellas in a single pass.
       open
       style={{
-        borderRadius: 12,
+        borderRadius: 2,
         border: '1px solid var(--rule)',
         background: 'var(--paper)',
         padding: '0 4px',
@@ -640,7 +640,7 @@ function CategoryAccordion({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      background: tp.color_hex ?? 'var(--ink-3)',
+                      background: 'var(--ink)',
                       flex: 'none',
                     }}
                   />
@@ -678,7 +678,7 @@ function AdvancedSection({
   return (
     <details
       style={{
-        borderRadius: 12,
+        borderRadius: 2,
         border: '1px dashed var(--rule)',
         background: 'var(--paper-2)',
         padding: '0 4px',
@@ -723,7 +723,7 @@ function AdvancedSection({
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    background: tp.color_hex ?? 'var(--ink-3)',
+                    background: 'var(--ink)',
                     flex: 'none',
                   }}
                 />
@@ -744,7 +744,7 @@ function AdvancedSection({
 const cardStyle: CSSProperties = {
   background: 'var(--paper)',
   border: '1px solid var(--rule)',
-  borderRadius: 14,
+  borderRadius: 2,
   padding: '14px 16px',
   boxShadow: '0 1px 0 rgba(15,23,42,.03)',
 };
@@ -786,7 +786,7 @@ function chipStyle(checked: boolean, color: string | null): CSSProperties {
 const smallButtonStyle: CSSProperties = {
   background: 'var(--paper)',
   border: '1px solid var(--rule-strong)',
-  borderRadius: 999,
+  borderRadius: 2,
   padding: '6px 12px',
   fontSize: 12,
   fontWeight: 500,
@@ -824,7 +824,7 @@ const primaryButtonStyle: CSSProperties = {
   background: 'var(--ink)',
   color: 'var(--paper)',
   border: '1px solid var(--ink)',
-  borderRadius: 10,
+  borderRadius: 2,
   padding: '10px 18px',
   fontSize: 14,
   fontWeight: 600,

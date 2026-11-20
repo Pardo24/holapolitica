@@ -268,7 +268,7 @@ export async function SessionSheet({
             padding: '8px 12px',
             background: 'var(--paper-3)',
             border: '1px solid var(--rule-strong)',
-            borderRadius: 8,
+            borderRadius: 2,
             fontSize: 12,
             color: 'var(--ink-2)',
             display: 'inline-flex',
@@ -394,7 +394,7 @@ export async function SessionSheet({
             style={{
               display: 'flex',
               height: 10,
-              borderRadius: 999,
+              borderRadius: 2,
               overflow: 'hidden',
               background: 'var(--rule)',
               marginBottom: 14,
@@ -445,7 +445,7 @@ export async function SessionSheet({
                   <a
                     key={g.key}
                     href={`#tema-${g.topic!.slug}`}
-                    style={{ ['--topic' as string]: g.topic!.color_hex ?? 'var(--accent)' }}
+                    style={{ ['--topic' as string]: 'var(--ink)' }}
                   >
                     {pickTopicName(g.topic!, locale)}
                     <span className="tabular">{summariseLaws(g.votes).laws}</span>
@@ -562,7 +562,7 @@ export async function SessionSheet({
           padding: '14px 16px',
           background: 'var(--paper-2)',
           border: '1px solid var(--rule)',
-          borderRadius: 12,
+          borderRadius: 2,
           fontSize: 13,
           color: 'var(--ink-2)',
           lineHeight: 1.5,
@@ -578,7 +578,7 @@ export async function SessionSheet({
             padding: 8,
             background: 'var(--paper)',
             border: '1px solid var(--rule)',
-            borderRadius: 6,
+            borderRadius: 2,
             fontSize: 12,
             wordBreak: 'break-all',
           }}
@@ -1130,7 +1130,7 @@ function SubVote({
               color: 'var(--ink-2)',
               background: 'var(--paper-3)',
               border: '1px solid var(--rule-strong)',
-              borderRadius: 999,
+              borderRadius: 2,
               padding: '1px 7px',
               whiteSpace: 'nowrap',
             }}

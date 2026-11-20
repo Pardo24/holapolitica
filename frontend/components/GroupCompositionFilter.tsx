@@ -186,7 +186,7 @@ export function GroupCompositionFilter({
                       width: 32,
                       height: 40,
                       objectFit: 'cover',
-                      borderRadius: 6,
+                      borderRadius: 2,
                       border: '1px solid var(--rule)',
                       background: 'var(--paper-3)',
                       flex: 'none',
@@ -198,7 +198,7 @@ export function GroupCompositionFilter({
                     style={{
                       width: 32,
                       height: 40,
-                      borderRadius: 6,
+                      borderRadius: 2,
                       background: 'var(--paper-3)',
                       border: '1px solid var(--rule)',
                       color: 'var(--ink-2)',

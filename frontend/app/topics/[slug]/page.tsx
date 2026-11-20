@@ -331,7 +331,7 @@ export default async function TopicDetailPage({
           three ways its initiatives stand. Each figure is a way into the
           list below, filtered (they used to be a table of four numbers
           with no way in). */}
-      <header className="tpc-hero" style={{ ['--topic' as string]: topic.color_hex ?? 'var(--accent)' }}>
+      <header className="tpc-hero" style={{ ['--topic' as string]: 'var(--ink)' }}>
         <div className="tpc-hero__top">
           <span className="tpc-hero__icon" aria-hidden="true">
             <TopicIconGlyph size={26} strokeWidth={2} />
@@ -429,7 +429,7 @@ export default async function TopicDetailPage({
             gap: 18,
             padding: 20,
             border: '1px solid var(--rule-strong)',
-            borderRadius: 14,
+            borderRadius: 2,
             background: 'var(--paper-2)',
           }}
           className="topic-stats-widget"
@@ -635,7 +635,7 @@ export default async function TopicDetailPage({
               padding: '10px 14px',
               background: 'var(--accent-soft)',
               border: '1px solid var(--accent)',
-              borderRadius: 10,
+              borderRadius: 2,
               marginBottom: 14,
               fontSize: 13,
               color: 'var(--ink)',
@@ -740,7 +740,7 @@ export default async function TopicDetailPage({
               margin: 0,
               padding: 0,
               border: '1px solid var(--rule)',
-              borderRadius: 12,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               overflow: 'hidden',
             }}
@@ -770,9 +770,9 @@ export default async function TopicDetailPage({
             gap: 18,
             alignItems: 'center',
             padding: '20px 22px',
-            borderRadius: 16,
-            background: `color-mix(in oklch, ${topic.color_hex ?? 'var(--accent)'} 10%, var(--paper-2))`,
-            border: `1px solid color-mix(in oklch, ${topic.color_hex ?? 'var(--accent)'} 30%, var(--rule-strong))`,
+            borderRadius: 2,
+            background: `color-mix(in oklch, var(--ink) 10%, var(--paper-2))`,
+            border: `1px solid color-mix(in oklch, var(--ink) 30%, var(--rule-strong))`,
           }}
         >
           <span
@@ -783,9 +783,9 @@ export default async function TopicDetailPage({
               justifyContent: 'center',
               width: 48,
               height: 48,
-              borderRadius: 14,
-              background: `color-mix(in oklch, ${topic.color_hex ?? 'var(--accent)'} 22%, var(--paper))`,
-              color: topic.color_hex ?? 'var(--accent)',
+              borderRadius: 2,
+              background: `color-mix(in oklch, var(--ink) 22%, var(--paper))`,
+              color: 'var(--ink)',
               flex: 'none',
             }}
           >
@@ -873,7 +873,7 @@ function TopicLastVoteCard({
       <div
         style={{
           padding: '16px 18px',
-          borderRadius: 12,
+          borderRadius: 2,
           border: '1px solid var(--rule)',
           background: 'var(--paper-2)',
           fontSize: 13,
@@ -922,7 +922,7 @@ function TopicLastVoteCard({
       href={`/votes/${vote.id}`}
       style={{
         padding: '16px 18px',
-        borderRadius: 12,
+        borderRadius: 2,
         border: '1px solid var(--rule-strong)',
         background: 'var(--paper)',
         minHeight: 130,
@@ -988,7 +988,7 @@ function TopicNextAgendaCard({
       <div
         style={{
           padding: '16px 18px',
-          borderRadius: 12,
+          borderRadius: 2,
           border: '1px solid var(--rule)',
           background: 'var(--paper-2)',
           fontSize: 13,
@@ -1008,7 +1008,7 @@ function TopicNextAgendaCard({
     <div
       style={{
         padding: '16px 18px',
-        borderRadius: 12,
+        borderRadius: 2,
         border: '1px solid var(--rule-strong)',
         background: 'var(--paper)',
         minHeight: 130,
@@ -1103,7 +1103,7 @@ function NewsRow({
             justifyContent: 'center',
             width: 28,
             height: 28,
-            borderRadius: 8,
+            borderRadius: 2,
             background: 'var(--paper)',
             border: '1px solid var(--rule)',
             color: 'var(--ink-3)',

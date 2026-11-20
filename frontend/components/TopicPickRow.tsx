@@ -87,7 +87,7 @@ function TopicPick({
         flex: 'none',
         whiteSpace: 'nowrap',
         padding: '5px 11px',
-        borderRadius: 999,
+        borderRadius: 2,
         border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
         background: active ? 'var(--ink)' : 'var(--paper)',
         color: active ? 'var(--paper)' : 'var(--ink-2)',

@@ -348,7 +348,7 @@ export default async function PersonDetailPage({
               padding: '12px 14px',
               background: 'var(--paper-2)',
               border: '1px solid var(--rule-strong)',
-              borderRadius: 10,
+              borderRadius: 2,
               fontSize: 13,
               lineHeight: 1.5,
               color: 'var(--ink-2)',
@@ -949,7 +949,7 @@ function PersonBio({
                       padding: '6px 10px',
                       background: 'var(--paper-2)',
                       border: '1px solid var(--rule)',
-                      borderRadius: 6,
+                      borderRadius: 2,
                       lineHeight: 1.4,
                     }}
                   >

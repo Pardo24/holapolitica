@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Anton, Archivo, IBM_Plex_Mono, Source_Serif_4 } from 'next/font/google';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
@@ -19,6 +20,15 @@ import { CLIENT_NAMESPACES, pickMessages } from '@/lib/clientMessages';
 import { JsonLd, SITE_URL } from '@/components/JsonLd';
 
 import './globals.css';
+
+// The "diari de sessions" type: self-hosted by next/font at build time, so
+// no request leaves for Google when a page loads. Each sets a CSS variable
+// that the --font-* tokens in globals.css read.
+const serif = Source_Serif_4({ subsets: ['latin'], variable: '--nf-serif', display: 'swap', weight: ['400', '600', '700'], style: ['normal', 'italic'] });
+const sans = Archivo({ subsets: ['latin'], variable: '--nf-sans', display: 'swap' });
+const mono = IBM_Plex_Mono({ subsets: ['latin'], variable: '--nf-mono', display: 'swap', weight: ['400', '500'] });
+const poster = Anton({ subsets: ['latin'], variable: '--nf-poster', display: 'swap', weight: '400' });
+const FONT_VARS = [serif.variable, sans.variable, mono.variable, poster.variable].join(' ');
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('site');
@@ -67,7 +77,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#fbf9f4',
+  themeColor: '#ecebe6',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -95,7 +105,7 @@ export default async function RootLayout({
     // suppressHydrationWarning silences benign attribute injection by
     // browser extensions (Scribe, Grammarly, Dark Reader). Shallow — only
     // the html/body nodes; everything inside hydrates normally.
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} className={FONT_VARS} suppressHydrationWarning>
       <head>
         {/* Before the first paint: hides the first-visit note for readers
             who dismissed it, so it never shifts the page (IntroNote). */}

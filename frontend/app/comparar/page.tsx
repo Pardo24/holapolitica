@@ -70,7 +70,7 @@ export default async function ComparePage({
             href={`/comparar?tema=${tp.slug}${guide ? '&guia=1' : ''}` as Route}
             className={tp.slug === topic?.slug ? 'cmp__topic cmp__topic--on' : 'cmp__topic'}
             aria-current={tp.slug === topic?.slug ? 'page' : undefined}
-            style={{ ['--topic' as string]: tp.color_hex ?? 'var(--ink-3)' }}
+            style={{ ['--topic' as string]: 'var(--ink)' }}
             scroll={false}
           >
             {pickTopicName(tp, locale)}

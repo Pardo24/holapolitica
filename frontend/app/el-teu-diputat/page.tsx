@@ -265,7 +265,7 @@ export default async function ElTeuDiputatPage({
                         fontWeight: 600,
                         color: 'var(--ink-3)',
                         background: 'var(--paper-3)',
-                        borderRadius: 999,
+                        borderRadius: 2,
                         padding: '2px 9px',
                       }}
                     >
@@ -320,7 +320,7 @@ export default async function ElTeuDiputatPage({
           maxWidth: 760,
           background: 'var(--paper-2)',
           border: '1px solid var(--rule)',
-          borderRadius: 12,
+          borderRadius: 2,
           textDecoration: 'none',
           color: 'inherit',
         }}
@@ -368,7 +368,7 @@ function DeputyCardView({
         padding: '11px 12px',
         background: 'var(--paper-2)',
         border: '1px solid var(--rule)',
-        borderRadius: 12,
+        borderRadius: 2,
         textDecoration: 'none',
         color: 'inherit',
       }}

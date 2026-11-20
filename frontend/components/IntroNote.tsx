@@ -72,7 +72,7 @@ export function IntroNote() {
         gap: 6,
         padding: '14px 44px 14px 16px',
         marginBottom: 18,
-        borderRadius: 12,
+        borderRadius: 2,
         border: '1px solid var(--rule)',
         background: 'var(--paper-2)',
       }}

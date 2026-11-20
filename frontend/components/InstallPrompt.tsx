@@ -220,7 +220,7 @@ export function InstallPrompt() {
           justifyContent: 'center',
           width: 36,
           height: 36,
-          borderRadius: 8,
+          borderRadius: 2,
           background: 'var(--paper)',
           color: 'var(--ink)',
           flex: 'none',

@@ -10,27 +10,26 @@
 
 /* Hola Política — civic atlas tokens (Mirall design system) */
 :root {
-  /* paper / ink — warm cream, deep cool ink. Saturation kept very low. */
-  /* Near-white paper (#FAFAF7) with cool, faintly blue greys: the colour
-     comes from the sections, so the ground stays quiet and clean. */
-  /* Hue "none": the paper has no hue of its own, so every tint mixed into
-     it (color-mix in oklch) keeps the other colour's hue. With a hue here
-     an indigo tint drifted through green on its way to the paper. */
-  --paper: oklch(0.985 0.002 none);
-  --paper-2: oklch(0.966 0.004 260);
-  --paper-3: oklch(0.94 0.006 260);
-  --ink: oklch(0.21 0.03 268);
-  --ink-2: oklch(0.37 0.022 265);
-  --ink-3: oklch(0.54 0.018 262);
-  --rule: oklch(0.885 0.007 262);
-  --rule-strong: oklch(0.75 0.01 262);
+  /* "Diari de sessions" (2026-11): newsprint paper and black ink, the
+     register of the Congress's own record. The site's brand has no colour
+     of its own: in Spanish politics every colour belongs to a party, so
+     colour is kept for the data (groups, aye / no / abstain) and stands
+     out because nothing else uses it. */
+  --paper: oklch(0.948 0.004 95);
+  --paper-2: oklch(0.925 0.005 95);
+  --paper-3: oklch(0.895 0.006 95);
+  --ink: oklch(0.18 0.004 95);
+  --ink-2: oklch(0.33 0.004 95);
+  --ink-3: oklch(0.47 0.005 95);
+  --rule: oklch(0.80 0.005 95);
+  --rule-strong: oklch(0.55 0.005 95);
 
-  /* Single civic accent — deep indigo, used sparingly */
-  --accent: #3D4FD1;
-  --accent-2: #2C3AA6;
-  --accent-soft: color-mix(in oklch, #3D4FD1 12%, var(--paper));
-  --accent-warm: oklch(0.66 0.16 38);   /* Warm copper for highlights */
-  --accent-warm-soft: oklch(0.94 0.04 38);
+  /* The "accent" is the ink itself. */
+  --accent: oklch(0.18 0.004 95);
+  --accent-2: oklch(0.08 0 0);
+  --accent-soft: color-mix(in oklch, var(--ink) 7%, var(--paper));
+  --accent-warm: oklch(0.33 0.004 95);
+  --accent-warm-soft: var(--paper-2);
 
   /* Vote choice palette — muted, AA-safe on paper */
   --aye: oklch(0.55 0.12 152);
@@ -68,40 +67,45 @@
      paper at ~12%, safe behind --ink text; `-ink` is the hue darkened
      for text and thin strokes, where the fill colour would be too light.
      --------------------------------------------------------------- */
-  --hue-lleis: #3D4FD1;
-  --hue-lleis-soft: color-mix(in oklch, #3D4FD1 11%, var(--paper));
-  --hue-lleis-ink: #3241B5;
-  --hue-plens: #D9692A;
-  --hue-plens-soft: color-mix(in oklch, #D9692A 12%, var(--paper));
-  --hue-plens-ink: #A84B14;
-  --hue-partits: #13998A;
-  --hue-partits-soft: color-mix(in oklch, #13998A 12%, var(--paper));
-  --hue-partits-ink: #0B7267;
-  --hue-dades: #C4920E;
-  --hue-dades-soft: color-mix(in oklch, #C4920E 13%, var(--paper));
-  --hue-dades-ink: #8A6407;
-  --hue-jocs: #D6457F;
-  --hue-jocs-soft: color-mix(in oklch, #D6457F 11%, var(--paper));
-  --hue-jocs-ink: #A82A5D;
-  --hue-alinea: #1689C2;
-  --hue-alinea-soft: color-mix(in oklch, #1689C2 11%, var(--paper));
-  --hue-alinea-ink: #0D6592;
+  /* Since the "diari de sessions" restyle the sections no longer have
+     colours: they read as sections of one document. The tokens stay so
+     the components that use them keep working. */
+  --hue-lleis: var(--ink);
+  --hue-lleis-soft: var(--paper-2);
+  --hue-lleis-ink: var(--ink);
+  --hue-plens: var(--ink);
+  --hue-plens-soft: var(--paper-2);
+  --hue-plens-ink: var(--ink);
+  --hue-partits: var(--ink);
+  --hue-partits-soft: var(--paper-2);
+  --hue-partits-ink: var(--ink);
+  --hue-dades: var(--ink);
+  --hue-dades-soft: var(--paper-2);
+  --hue-dades-ink: var(--ink);
+  --hue-jocs: var(--ink);
+  --hue-jocs-soft: var(--paper-2);
+  --hue-jocs-ink: var(--ink);
+  --hue-alinea: var(--ink);
+  --hue-alinea-soft: var(--paper-2);
+  --hue-alinea-ink: var(--ink);
 
-  /* Type — system stack only. Hierarchy via size/weight/tracking. */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --font-serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  /* Type: a serif for what is said (titles, summaries), a sober grotesk
+     for the interface, a typewriter mono for the record's own numbers
+     (expedients, articles, counts), and a condensed poster face for the
+     few headlines that should shout. Loaded with next/font in layout.tsx. */
+  --font-sans: var(--nf-sans, ui-sans-serif), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-mono: var(--nf-mono, ui-monospace), "SF Mono", Menlo, Consolas, monospace;
+  --font-serif: var(--nf-serif, ui-serif), Georgia, "Times New Roman", serif;
+  --font-poster: var(--nf-poster, Impact), "Arial Narrow", Impact, sans-serif;
 
-  --radius-1: 4px;
-  --radius-2: 6px;
-  --radius-3: 10px;
+  /* Square corners and no shadows: rules on paper, not cards in the air. */
+  --radius-1: 2px;
+  --radius-2: 2px;
+  --radius-3: 2px;
 
-  --shadow-1: 0 1px 0 rgba(15,23,42,.04), 0 1px 2px rgba(15,23,42,.04);
-  /* Layered, wide-and-soft — a card should look lifted off the paper,
-     not outlined on it. The hairline border stays for structure; these
-     add the depth that a page built only from 1px rules lacks. */
-  --shadow-2: 0 1px 0 rgba(15,23,42,.03), 0 8px 24px -16px rgba(15,23,42,.18);
-  --shadow-3: 0 1px 0 rgba(15,23,42,.03), 0 2px 6px -3px rgba(15,23,42,.10), 0 18px 40px -26px rgba(15,23,42,.28);
+  --shadow-1: none;
+  --shadow-2: none;
+  --shadow-3: none;
 
   /* Theme color for PWA / mobile address bar */
   color-scheme: light;
@@ -256,9 +260,12 @@ a { color: inherit; }
    different family — the visual differentiation is intentional and
    comes from size/case/tracking, not family. */
 .eyebrow {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  /* The record's own register: typewriter caps, like the header of a
+     page of the Diario de Sesiones. */
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent);
   display: inline-flex;
@@ -269,7 +276,7 @@ a { color: inherit; }
 /* Slightly larger on mid+ viewports so the editorial mark holds its own
    beside the serif headlines. */
 @media (min-width: 720px) {
-  .eyebrow { font-size: 15px; }
+  .eyebrow { font-size: 13px; }
 }
 .eyebrow::before {
   content: "";
@@ -374,11 +381,10 @@ html { scrollbar-gutter: stable; }
 .embed-card {
   border: 1px solid var(--rule);
   background: var(--paper-2);
-  border-radius: 18px;
+  border-radius: 2px;
   padding: 18px 20px;
   display: block;
-  box-shadow: 0 1px 2px rgba(20, 28, 60, 0.04),
-              0 8px 24px -18px rgba(20, 28, 60, 0.15);
+  box-shadow: none;
 }
 
 /* Per-topic variant — the topic widget is small and informational
@@ -422,7 +428,7 @@ html { scrollbar-gutter: stable; }
   align-items: center;
   justify-content: space-between;
   padding-bottom: 14px;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
   gap: 16px;
   flex-wrap: wrap;
   /* Paint the nav — and crucially its bottom rule — above the page
@@ -450,8 +456,16 @@ html { scrollbar-gutter: stable; }
 }
 .topnav .brand-mark::before { top: 6px; }
 .topnav .brand-mark::after { top: 12px; }
+/* The wordmark as a poster strip: the name printed in reverse. The old
+   mark (a box with two lines) read as a menu button. */
+.topnav .brand-mark { display: none !important; }
 .topnav .brand-name {
-  font-weight: 700; letter-spacing: -0.01em; font-size: 16px;
+  display: inline-block;
+  font-family: var(--font-poster);
+  font-weight: 400; text-transform: uppercase;
+  letter-spacing: 0.02em; font-size: 19px; line-height: 1;
+  padding: 4px 8px 3px;
+  background: var(--ink); color: var(--paper);
 }
 .topnav .brand-sub {
   color: var(--ink-3); font-size: 12px;
@@ -464,22 +478,24 @@ html { scrollbar-gutter: stable; }
 }
 .topnav .nav-links a {
   color: var(--ink-2); text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 999px;
+  padding: 6px 2px;
+  border-radius: 0;
   background: transparent;
   position: relative;
-  transition: color .12s ease, background-color .12s ease;
+  border-bottom: 2px solid transparent;
+  transition: color .12s ease, border-color .12s ease;
 }
 .topnav .nav-links a:hover {
   color: var(--ink);
-  background: color-mix(in oklch, var(--accent) 8%, transparent);
+  border-bottom-color: var(--rule-strong);
 }
 .topnav .nav-links a.active {
   /* Subtle, calm active state: ink-coloured text + faint paper tint +
      semibold weight. No coloured pill, no inset bar — just a quiet
      "you are here" affordance that matches the editorial register. */
   color: var(--ink);
-  background: var(--paper-3);
+  background: transparent;
+  border-bottom-color: var(--ink);
   font-weight: 600;
 }
 /* Editorial spacer between lookup spines and exploration surfaces */
@@ -528,16 +544,63 @@ html { scrollbar-gutter: stable; }
 .kpi .value { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .kpi .sub { font-size: 11px; color: var(--ink-3); }
 
-/* Soft badge */
+/* Badge. The vote outcomes read as the clerk's rubber stamp: outlined
+   typewriter caps in the stamp's ink, no fill. */
 .badge {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; padding: 2px 8px; border-radius: 999px;
-  border: 1px solid var(--rule); background: var(--paper-2);
+  font-size: 11px; padding: 2px 8px; border-radius: 2px;
+  border: 1px solid var(--rule-strong); background: transparent;
   color: var(--ink-2);
 }
-.badge-aye { background: var(--aye-soft); color: oklch(0.32 0.10 152); border-color: transparent; }
-.badge-no  { background: var(--no-soft);  color: oklch(0.32 0.13 26);  border-color: transparent; }
-.badge-tie { background: var(--abst-soft);color: oklch(0.32 0.11 82); border-color: transparent; }
+.badge-aye, .badge-no, .badge-tie {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-width: 1.5px;
+  background: transparent;
+}
+.badge-aye { color: oklch(0.40 0.11 152); border-color: currentColor; }
+.badge-no  { color: oklch(0.45 0.16 26);  border-color: currentColor; }
+.badge-tie { color: oklch(0.45 0.11 82);  border-color: currentColor; }
+/* The big stamp on a vote's own page. */
+.stamp {
+  display: inline-block;
+  transform: rotate(-4deg);
+  padding: 4px 12px 3px;
+  border: 2.5px solid currentColor;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.stamp--approved { color: oklch(0.40 0.11 152); }
+.stamp--rejected { color: oklch(0.45 0.16 26); }
+.stamp--tie { color: oklch(0.45 0.11 82); }
+
+/* Poster headline: the few places that should shout (the cover, the
+   election). Condensed caps; the second line printed in reverse. */
+.h-poster {
+  font-family: var(--font-poster);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  line-height: 0.95;
+  font-size: clamp(44px, 6.4vw, 84px);
+  text-wrap: balance;
+}
+.h-poster__rev {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 12px 0;
+  background: var(--ink);
+  color: var(--paper);
+}
+@media (max-width: 640px) {
+  .h-poster { font-size: clamp(38px, 11vw, 56px); }
+}
 
 /* Group dot */
 
@@ -588,7 +651,7 @@ textarea:not(.input-bare) {
   width: 100%;
   padding: 10px 14px;
   border: 1px solid var(--rule-strong);
-  border-radius: 10px;
+  border-radius: 2px;
   background: var(--paper);
   color: var(--ink);
   font-family: inherit;
@@ -682,7 +745,7 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
    untouched so the visual identity of the group stays stable. */
 .group-chip-link {
   display: inline-flex;
-  border-radius: 999px;
+  border-radius: 2px;
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 .group-chip-link:hover {
@@ -991,7 +1054,7 @@ select:not(.input-bare):not([class*="filter-advanced-select"]) {
    knows which record it's on. */
 .law-row {
   transition: background-color 120ms ease;
-  border-radius: 8px;
+  border-radius: 2px;
 }
 @media (hover: hover) {
   .law-row:hover {
@@ -1144,7 +1207,7 @@ button {
   flex-direction: column;
   max-height: 86dvh;
   background: var(--paper);
-  border-radius: 20px 20px 0 0;
+  border-radius: 2px 2px 0 0;
   box-shadow: 0 -12px 40px -16px rgba(15, 23, 42, 0.35);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   transform: translateY(100%);
@@ -1210,7 +1273,7 @@ button {
   width: 100%;
   min-height: 48px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--ink);
   color: var(--paper);
   font: inherit;
@@ -1244,7 +1307,7 @@ button {
     bottom: auto;
     width: min(520px, calc(100vw - 48px));
     max-height: min(680px, calc(100dvh - 80px));
-    border-radius: 20px;
+    border-radius: 2px;
     padding-bottom: 0;
     opacity: 0;
     transform: translate(-50%, -46%);
@@ -1294,7 +1357,7 @@ button {
   width: 34px;
   height: 34px;
   flex: none;
-  border-radius: 10px;
+  border-radius: 2px;
   background: var(--paper-2);
   color: var(--ink-2);
 }
@@ -1337,7 +1400,8 @@ button {
   text-decoration: none;
   min-width: 0;
 }
-.appbar__mark {
+.appbar__mark { display: none !important; }
+.appbar__mark--old {
   width: 22px;
   height: 22px;
   flex: none;
@@ -1357,10 +1421,17 @@ button {
 .appbar__mark::after { top: 12px; }
 .appbar__brandtext { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
 .appbar__name {
-  font-family: var(--font-serif);
+  /* Same reversed poster strip as the desktop wordmark. */
+  align-self: flex-start;
+  font-family: var(--font-poster);
   font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 7px 2px;
+  background: var(--ink);
+  color: var(--paper);
   white-space: nowrap;
 }
 .appbar__motto {
@@ -1377,7 +1448,7 @@ button {
   gap: 2px;
   min-height: 44px;
   padding: 0 10px 0 2px;
-  border-radius: 10px;
+  border-radius: 2px;
   color: var(--ink);
   font-size: 15px;
   font-weight: 600;
@@ -1396,7 +1467,7 @@ button {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 12px;
+  border-radius: 2px;
   border: 0;
   background: transparent;
   color: var(--ink-2);
@@ -1413,14 +1484,14 @@ button {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--paper-2);
 }
 .appbar-lang form { display: contents; }
 .appbar-lang button {
   min-height: 40px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 2px;
   background: transparent;
   color: var(--ink-2);
   font: inherit;
@@ -1431,7 +1502,7 @@ button {
 .appbar-lang button[aria-pressed="true"] {
   background: var(--paper);
   color: var(--ink);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 
 /* ─── Laws lens (components/LawsLens.tsx) ─────────────────────────────── */
@@ -1442,7 +1513,7 @@ button {
   gap: 6px;
   min-height: 38px;
   padding: 6px 13px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
   color: var(--ink);
@@ -1460,7 +1531,7 @@ button {
     gap: 7px;
     min-height: 40px;
     padding: 0 14px;
-    border-radius: 999px;
+    border-radius: 2px;
     border: 1px solid var(--rule-strong);
     background: var(--paper);
     color: var(--ink);
@@ -1513,7 +1584,7 @@ button {
   flex-direction: column;
   gap: 2px;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--paper-2);
   border: 1px solid var(--rule);
   font-size: 12px;
@@ -1538,7 +1609,7 @@ button {
   gap: 6px;
   min-height: 34px;
   padding: 4px 6px 4px 12px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--topic) 35%, var(--paper));
   background: color-mix(in oklch, var(--topic) 9%, var(--paper));
   color: var(--ink);
@@ -1550,7 +1621,7 @@ button {
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 999px;
+  border-radius: 2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1602,7 +1673,7 @@ button {
   justify-content: center;
   gap: 8px;
   min-height: 48px;
-  border-radius: 14px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
   color: var(--ink);
@@ -1632,7 +1703,7 @@ html.intro-seen .intro-note { display: none !important; }
     margin: 0 !important;
     background: var(--paper) !important;
     border-color: var(--rule-strong) !important;
-    border-radius: 18px !important;
+    border-radius: 2px !important;
     box-shadow: 0 18px 44px -14px rgba(15, 23, 42, 0.38);
     animation: intro-note-in .32s cubic-bezier(.2, .8, .2, 1) both;
   }
@@ -1643,7 +1714,7 @@ html.intro-seen .intro-note { display: none !important; }
     min-height: 44px;
     margin-top: 8px;
     border: 0;
-    border-radius: 12px;
+    border-radius: 2px;
     background: var(--ink);
     color: var(--paper);
     font: inherit;
@@ -1666,7 +1737,7 @@ html.intro-seen .intro-note { display: none !important; }
     margin: 0 !important;
     background: var(--paper) !important;
     border-color: var(--rule-strong) !important;
-    border-radius: 16px !important;
+    border-radius: 2px !important;
     box-shadow: 0 18px 44px -14px rgba(15, 23, 42, 0.38);
     animation: intro-note-in .32s cubic-bezier(.2, .8, .2, 1) both;
   }
@@ -1678,7 +1749,7 @@ html.intro-seen .intro-note { display: none !important; }
     margin-top: 8px;
     padding: 0 16px;
     border: 0;
-    border-radius: 10px;
+    border-radius: 2px;
     background: var(--ink);
     color: var(--paper);
     font: inherit;
@@ -1698,7 +1769,7 @@ html.intro-seen .intro-note { display: none !important; }
 .embed-widget { max-width: 720px; margin: 0 auto; }
 .embed-card {
   border: 1px solid var(--rule);
-  border-radius: 16px;
+  border-radius: 2px;
   background: var(--paper);
   box-shadow: var(--shadow-2);
   padding: 16px 16px 14px;
@@ -1737,7 +1808,7 @@ html.intro-seen .intro-note { display: none !important; }
   text-decoration: none;
 }
 .embed-more { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-3); }
-.embed-seatbar { display: flex; gap: 2px; height: 10px; margin-top: 12px; border-radius: 999px; overflow: hidden; }
+.embed-seatbar { display: flex; gap: 2px; height: 10px; margin-top: 12px; border-radius: 2px; overflow: hidden; }
 .embed-party { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .embed-party strong { font-family: var(--font-serif); font-size: 15px; color: var(--ink); }
 .embed-party span {
@@ -1745,10 +1816,10 @@ html.intro-seen .intro-note { display: none !important; }
   font-weight: 600;
   color: var(--ink-3);
   background: var(--paper-3);
-  border-radius: 999px;
+  border-radius: 2px;
   padding: 1px 8px;
 }
-.embed-people { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.embed-people { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
 .embed-people li + li { border-top: 1px solid var(--rule); }
 .embed-people.embed-people > li > a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; color: var(--ink-3); text-decoration: none; }
 .embed-avatar {
@@ -1796,7 +1867,7 @@ html.intro-seen .intro-note { display: none !important; }
   align-items: center;
   gap: 5px;
   padding: 3px 10px 3px 8px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
   color: var(--ink);
@@ -1830,9 +1901,9 @@ summary.change-chip { cursor: pointer; }
 .page-skeleton__bar,
 .page-skeleton__box {
   background: var(--paper-2);
-  border-radius: 6px;
+  border-radius: 2px;
 }
-.page-skeleton__box { border-radius: 12px; }
+.page-skeleton__box { border-radius: 2px; }
 .page-skeleton__row {
   padding: 14px 0;
   border-top: 1px solid var(--rule);
@@ -1888,7 +1959,7 @@ summary.change-chip { cursor: pointer; }
   width: 72px;
   height: 72px;
   margin-bottom: 8px;
-  border-radius: 22px;
+  border-radius: 2px;
   background: color-mix(in oklch, var(--hue) 14%, var(--paper));
   color: var(--hue);
 }
@@ -1922,7 +1993,7 @@ summary.change-chip { cursor: pointer; }
 .welcome__back,
 .welcome__next {
   min-height: 52px;
-  border-radius: 14px;
+  border-radius: 2px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
@@ -2035,7 +2106,7 @@ summary.change-chip { cursor: pointer; }
   max-height: calc(100svh - 32px);
   overflow-y: auto;
   padding: 24px 22px 20px;
-  border-radius: 22px;
+  border-radius: 2px;
   background: var(--paper);
   box-shadow: 0 24px 60px -20px rgba(15, 23, 42, 0.45);
   animation: news-up .22s ease-out;
@@ -2044,7 +2115,7 @@ summary.change-chip { cursor: pointer; }
   .news {
     width: 100%;
     max-height: 88svh;
-    border-radius: 22px 22px 0 0;
+    border-radius: 2px 2px 0 0;
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 }
@@ -2067,7 +2138,7 @@ summary.change-chip { cursor: pointer; }
   gap: 6px 12px;
   margin-top: 14px;
   padding: 10px 14px;
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--hue-alinea-soft);
   font-size: 14px;
   color: var(--ink-2);
@@ -2078,7 +2149,7 @@ summary.change-chip { cursor: pointer; }
 /* "How would you vote?" question card (components/AlignQuiz). */
 .align-card {
   padding: 18px 18px 16px;
-  border-radius: 20px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--hue-alinea) 25%, var(--rule));
   background: var(--paper);
   box-shadow: var(--shadow-2);
@@ -2137,7 +2208,7 @@ summary.change-chip { cursor: pointer; }
   gap: 8px;
   flex-wrap: wrap;
   padding: 7px 9px;
-  border-radius: 10px;
+  border-radius: 2px;
   border: 1px solid var(--rule);
   background: var(--paper);
   color: inherit;
@@ -2150,7 +2221,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
    it changes is a link, and a notice says the result is not the law's. */
 .vote-stage-chip {
   padding: 1px 8px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   font-size: 11.5px;
   font-weight: 700;
@@ -2163,7 +2234,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .vote-amend__law a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .vote-amend__notice {
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 2px;
   background: color-mix(in oklch, var(--hue-plens) 10%, var(--paper));
   border: 1px solid color-mix(in oklch, var(--hue-plens) 30%, var(--paper));
   font-size: 13.5px;
@@ -2192,7 +2263,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   margin-top: 16px;
   padding: 3px;
   border: 1px solid var(--rule-strong);
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--paper-2);
 }
 .seg-tabs > a {
@@ -2201,7 +2272,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 6px;
   min-height: 34px;
   padding: 0 13px;
-  border-radius: 999px;
+  border-radius: 2px;
   font-size: 13px;
   font-weight: 600;
   color: var(--ink-2);
@@ -2217,7 +2288,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .effects {
   margin-top: 12px;
   padding: 12px 14px 12px;
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--hue-lleis-soft);
   border: 1px solid color-mix(in oklch, var(--hue-lleis) 18%, var(--paper));
 }
@@ -2240,7 +2311,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 9px;
+  border-radius: 2px;
   background: var(--paper);
   color: var(--hue-lleis-ink);
   border: 1px solid color-mix(in oklch, var(--hue-lleis) 22%, var(--paper));
@@ -2265,7 +2336,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .expired-note {
   margin: 10px 0 0;
   padding: 9px 12px;
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--paper-2);
   border: 1px solid var(--rule);
   font-size: 13.5px;
@@ -2301,7 +2372,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 4px;
   margin: 20px 0 14px;
   padding: 4px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper-2);
   overflow-x: auto;
@@ -2316,7 +2387,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 6px;
   min-height: 40px;
   padding: 0 14px;
-  border-radius: 999px;
+  border-radius: 2px;
   font-size: 13.5px;
   font-weight: 700;
   color: var(--ink-2);
@@ -2337,7 +2408,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 7px;
   min-height: 38px;
   padding: 0 13px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1.5px solid color-mix(in oklch, var(--party, var(--ink-3)) 45%, var(--rule));
   background: var(--paper);
   color: var(--ink);
@@ -2378,13 +2449,13 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 12px;
   margin: 4px 0 16px;
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--hue-lleis) 25%, var(--rule));
   background: var(--hue-lleis-soft);
   color: var(--ink);
   text-decoration: none;
 }
-.howlaw-link__icon { flex: none; width: 36px; height: 36px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-lleis); color: #fff; }
+.howlaw-link__icon { flex: none; width: 36px; height: 36px; border-radius: 2px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-lleis); color: #fff; }
 .howlaw-link__text { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .howlaw-link__text strong { font-size: 15px; font-weight: 800; }
 .howlaw-link__text span { font-size: 12.5px; color: var(--ink-2); }
@@ -2459,7 +2530,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 5px;
   max-width: 100%;
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule);
   background: var(--paper);
   font-size: 12px;
@@ -2489,7 +2560,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   grid-template-areas: 'head score' 'groups score' 'foot foot';
   grid-template-rows: auto 1fr auto;
   border: 1px solid var(--rule);
-  border-radius: 16px;
+  border-radius: 2px;
   background: var(--paper);
   box-shadow: var(--shadow-2);
   /* No overflow clip: it swallowed the law-type tooltip. */
@@ -2519,7 +2590,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   display: inline-block;
   margin-top: 6px;
   padding: 2px 9px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper-2);
   font-size: 11.5px;
@@ -2547,7 +2618,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 5px;
   min-width: 0;
   padding: 2px 9px 2px 2px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--psm-ring) 55%, var(--paper));
   background: var(--paper);
 }
@@ -2583,7 +2654,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 5px;
   min-height: 30px;
   padding: 0 11px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--hue-lleis) 22%, var(--paper));
   background: var(--hue-lleis-soft);
   font-size: 11px;
@@ -2593,7 +2664,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 :is(.vcard .effects--fold, .effects--pill) > .effects__list {
   margin: 8px 0 0;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--hue-lleis-soft);
 }
 :is(.vcard .effects--fold, .effects--pill) > .effects__more { display: inline-block; margin: 6px 0 0; }
@@ -2601,7 +2672,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .vcard__foot > .law-card-votes > summary {
   min-height: 30px;
   padding: 0 11px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
 }
@@ -2616,7 +2687,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 10px;
   min-height: 34px;
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: 2px;
   color: inherit;
   text-decoration: none;
 }
@@ -2627,7 +2698,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .vcard__point--rejected .vcard__point-result { color: color-mix(in oklch, var(--no) 80%, var(--ink)); }
 .vcard__point--tie .vcard__point-result { color: color-mix(in oklch, var(--abst) 80%, var(--ink)); }
 .vcard__point-count { font-size: 13px; font-weight: 600; color: var(--ink); }
-.vcard__point-bar { display: flex; height: 6px; border-radius: 999px; overflow: hidden; background: var(--paper-3); }
+.vcard__point-bar { display: flex; height: 6px; border-radius: 2px; overflow: hidden; background: var(--paper-3); }
 .vcard__point-bar > span { display: block; height: 100%; }
 .vcard__squares { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 2px; }
 .vcard__square { width: 14px; height: 14px; border-radius: 4px; background: var(--paper-3); }
@@ -2648,7 +2719,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   align-items: center;
   gap: 5px;
   padding: 2px 9px 2px 2px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--rule-strong);
   background: var(--paper);
   font-size: 12px;
@@ -2678,7 +2749,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   gap: 4px;
   padding: 18px;
   border-left: 1px solid var(--rule);
-  border-radius: 0 16px 0 0;
+  border-radius: 0 2px 0 0;
   background: color-mix(in oklch, var(--score) 9%, var(--paper));
 }
 .vcard--approved { --score: var(--aye); }
@@ -2690,7 +2761,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   justify-self: start;
   align-self: flex-start;
   padding: 1px 8px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: color-mix(in oklch, var(--abst) 18%, var(--paper));
   color: color-mix(in oklch, var(--abst) 55%, var(--ink));
   font-weight: 700;
@@ -2707,7 +2778,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   display: flex;
   height: 8px;
   margin: 8px 0 2px;
-  border-radius: 999px;
+  border-radius: 2px;
   overflow: hidden;
   background: color-mix(in oklch, var(--score) 14%, var(--paper-3));
 }
@@ -2741,7 +2812,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
     margin: 12px 16px 0;
     padding: 12px 14px;
     border: 0;
-    border-radius: 12px;
+    border-radius: 2px;
   }
   .vcard__eyebrow, .vcard__amend-hint, .vcard__result, .vcard__bar, .vcard__majority, .vcard__date, .vcard__open { grid-column: 1 / -1; }
   .vcard__count { font-size: 28px; }
@@ -2793,7 +2864,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
   display: inline-flex;
   align-items: center;
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid var(--topic);
   background: var(--paper);
   color: var(--ink-2);
@@ -2806,7 +2877,7 @@ a.vchain-cluster__row:hover { border-color: var(--rule-strong); }
 .dissolved {
   margin: 0 0 14px;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--abst) 35%, var(--paper));
   background: color-mix(in oklch, var(--abst) 10%, var(--paper));
   font-size: 13.5px;
@@ -2843,7 +2914,7 @@ html.dissolved-closed .dissolved--dismissible { display: none !important; }
   gap: 2px;
   margin: 18px 0 4px;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 2px;
   border: 1px solid var(--rule);
   background: var(--paper-2);
 }
@@ -2859,7 +2930,7 @@ html.dissolved-closed .dissolved--dismissible { display: none !important; }
   gap: 10px;
   margin-top: 12px;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 2px;
   border: 1px dashed var(--rule-strong);
   background: var(--paper-2);
 }
@@ -2879,10 +2950,24 @@ html.dissolved-closed .dissolved--dismissible { display: none !important; }
 
 
 /* "Skip to content": off-screen until it gets keyboard focus. */
-.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--paper); font-weight: 700; text-decoration: none; }
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 14px; border-radius: 2px; background: var(--ink); color: var(--paper); font-weight: 700; text-decoration: none; }
 .skip-link:focus { top: 12px; }
 main:focus { outline: none; }
 /* Cards that are links show where keyboard focus is. */
 .topic-card-link:focus-visible,
 .deputy-card:focus-visible,
 .hero-pleno-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Election pages: the poster headline sits a size below the cover's. */
+.pacts-hero h1.pacts-hero__poster {
+  font-family: var(--font-poster);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 0.95;
+  font-size: clamp(36px, 5vw, 60px);
+  margin-block: 6px 10px;
+}
+@media (max-width: 640px) {
+  .pacts-hero h1.pacts-hero__poster { font-size: 38px; }
+}
+.pacts-hero__eyebrow { font-family: var(--font-mono); font-weight: 500 !important; }

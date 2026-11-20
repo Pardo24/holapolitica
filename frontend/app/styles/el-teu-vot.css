@@ -14,7 +14,7 @@
   height: 100%;
   padding: 14px 16px;
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--paper);
   box-shadow: var(--shadow-1);
   color: var(--ink);
@@ -44,11 +44,11 @@
 .vsec { scroll-margin-top: 80px; }
 .vsec__intro { margin: -4px 0 14px; max-width: 64ch; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
 
-.tvot { margin: 4px 0 28px; padding: 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
+.tvot { margin: 4px 0 28px; padding: 18px; border: 1px solid var(--rule); border-radius: 2px; background: var(--paper); }
 .tvot__title { margin: 0; font-family: var(--font-serif); font-size: 22px; line-height: 1.2; color: var(--ink); }
 .tvot__note { margin: 4px 0 0; font-size: 13px; color: var(--ink-3); }
 .tvot__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
-.tvot__facts > div { padding: 10px 12px; border-radius: 12px; background: var(--paper-2); }
+.tvot__facts > div { padding: 10px 12px; border-radius: 2px; background: var(--paper-2); }
 .tvot__facts dt { font-size: 11.5px; color: var(--ink-3); }
 .tvot__facts dd { margin: 2px 0 0; font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: var(--ink); }
 .tvot__edges { margin: 0 0 14px; padding-left: 18px; font-size: 14px; line-height: 1.55; color: var(--ink); }
@@ -56,7 +56,7 @@
 .tvot__lists { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .tvot__lists > li { display: grid; grid-template-columns: 120px minmax(0, 1fr) 54px 72px; align-items: center; gap: 10px; font-size: 13.5px; }
 .tvot__name { font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
-.tvot__bar { height: 8px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
+.tvot__bar { height: 8px; border-radius: 2px; background: var(--paper-3); overflow: hidden; }
 .tvot__bar > span { display: block; height: 100%; background: var(--party); }
 .tvot__pct { text-align: right; color: var(--ink-2); }
 .tvot__seats { text-align: right; font-weight: 700; color: var(--ink); }
@@ -77,7 +77,7 @@
   padding: 8px 12px;
   border: 1px solid var(--rule);
   border-left: 3px solid var(--party);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 2px 2px 0;
   background: var(--paper);
 }
 .vprog__name { font-size: 14px; font-weight: 700; color: var(--ink); }
@@ -94,7 +94,7 @@
   margin: 0 0 18px;
   padding: 10px 12px 12px;
   border: 1px solid color-mix(in oklch, var(--accent) 30%, var(--rule));
-  border-radius: 14px;
+  border-radius: 2px;
   background: color-mix(in oklch, var(--accent) 6%, var(--paper));
 }
 .vguide__home {
@@ -135,7 +135,7 @@
   gap: 4px;
   margin: 28px 0 8px;
   padding: 16px 18px;
-  border-radius: 16px;
+  border-radius: 2px;
   background: var(--accent);
   color: #fff;
   text-decoration: none;
@@ -152,14 +152,14 @@
   align-self: flex-start;
   margin-top: 8px;
   padding: 8px 14px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: #fff;
   color: var(--accent);
   font-size: 14px;
   font-weight: 800;
 }
 
-.vdone { margin: 28px 0 8px; padding: 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper-2); }
+.vdone { margin: 28px 0 8px; padding: 18px; border: 1px solid var(--rule); border-radius: 2px; background: var(--paper-2); }
 .vdone__title { margin: 0 0 6px; font-family: var(--font-serif); font-size: 21px; color: var(--ink); }
 .vdone__body { margin: 0 0 14px; max-width: 60ch; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
 .vdone__links { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
@@ -172,9 +172,9 @@
 
 /* Step 3, the manifestos side by side (app/eleccions/programes): one card
    per party, its own sentences on the chosen topic, each with its page. */
-.vprog__none { margin: 0 0 18px; padding: 14px 16px; max-width: 64ch; border-radius: 14px; background: var(--paper-2); font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.vprog__none { margin: 0 0 18px; padding: 14px 16px; max-width: 64ch; border-radius: 2px; background: var(--paper-2); font-size: 14px; line-height: 1.55; color: var(--ink-2); }
 .vparty { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 12px; padding: 0; list-style: none; }
-.vparty__card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 14px; border: 1px solid var(--rule); border-top: 3px solid var(--party); border-radius: 12px; background: var(--paper); }
+.vparty__card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 14px; border: 1px solid var(--rule); border-top: 3px solid var(--party); border-radius: 2px; background: var(--paper); }
 .vparty__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .vparty__name { font-size: 15px; font-weight: 800; color: var(--ink); }
 .vparty__state { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-3); }
@@ -187,7 +187,7 @@
 
 /* Step 3: what each party says and does. */
 .vpos__parties { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
-.vpos__party { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--rule-strong); border-radius: 999px; background: var(--paper); font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.vpos__party { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--rule-strong); border-radius: 2px; background: var(--paper); font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
 .vpos__party:hover { border-color: var(--ink-3); color: var(--ink); }
 .vpos__party--on { border-color: var(--ink); background: var(--ink); color: var(--paper); }
 .vpos__dot { width: 9px; height: 9px; border-radius: 999px; background: var(--party); flex: none; }
@@ -198,7 +198,7 @@
 .vpos__cite a { color: var(--ink-2); font-weight: 600; }
 .vpos__votes { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .vpos__votes li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 13px; line-height: 1.4; }
-.vpos__choice { justify-self: start; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--paper-2); color: var(--ink-2); }
+.vpos__choice { justify-self: start; padding: 1px 8px; border-radius: 2px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--paper-2); color: var(--ink-2); }
 .vpos__choice--aye { background: color-mix(in oklch, var(--aye) 16%, var(--paper)); color: var(--aye); }
 .vpos__choice--no { background: color-mix(in oklch, var(--no) 14%, var(--paper)); color: var(--no); }
 .vpos__choice--abstention { background: color-mix(in oklch, var(--ink-3) 14%, var(--paper)); color: var(--ink-2); }

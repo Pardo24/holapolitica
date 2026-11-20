@@ -196,7 +196,7 @@ export function LawsFilterBar({
         marginTop: 18,
         padding: 14,
         border: '1px solid var(--rule)',
-        borderRadius: 14,
+        borderRadius: 2,
         background: 'var(--paper)',
       }}
     >
@@ -208,7 +208,7 @@ export function LawsFilterBar({
           gap: 10,
           padding: '11px 14px',
           border: '1px solid var(--rule-strong)',
-          borderRadius: 10,
+          borderRadius: 2,
           background: 'var(--paper)',
           width: '100%',
         }}
@@ -305,7 +305,7 @@ export function LawsFilterBar({
                       alignItems: 'center',
                       gap: 6,
                       padding: '3px 6px 3px 6px',
-                      borderRadius: 999,
+                      borderRadius: 2,
                       border: '1px solid var(--rule-strong)',
                       background: 'var(--paper)',
                       fontSize: 12,
@@ -356,7 +356,7 @@ export function LawsFilterBar({
               alignItems: 'center',
               gap: 7,
               padding: '7px 12px',
-              borderRadius: 999,
+              borderRadius: 2,
               border: '1px solid var(--rule-strong)',
               background: expanded ? 'var(--paper-2)' : 'var(--paper)',
               color: 'var(--ink-2)',
@@ -378,7 +378,7 @@ export function LawsFilterBar({
                   minWidth: 18,
                   height: 18,
                   padding: '0 5px',
-                  borderRadius: 999,
+                  borderRadius: 2,
                   background: 'var(--accent)',
                   color: 'var(--paper)',
                   fontSize: 11,
@@ -471,7 +471,7 @@ export function LawsFilterBar({
                     aria-pressed={active}
                     style={{
                       padding: '5px 11px',
-                      borderRadius: 999,
+                      borderRadius: 2,
                       border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
                       background: active ? 'var(--ink)' : 'var(--paper)',
                       color: active ? 'var(--paper)' : 'var(--ink-2)',
@@ -558,7 +558,7 @@ function StatusChip({
       aria-pressed={active}
       style={{
         padding: '5px 13px',
-        borderRadius: 999,
+        borderRadius: 2,
         border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
         background: active ? 'var(--ink)' : 'transparent',
         color: active ? 'var(--paper)' : 'var(--ink-2)',

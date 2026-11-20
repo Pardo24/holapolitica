@@ -122,7 +122,7 @@ export default async function EmbedPersonPage({
                       alignItems: 'center',
                       gap: 4,
                       padding: '1px 8px',
-                      borderRadius: 999,
+                      borderRadius: 2,
                       background: `${groupColor}1A`,
                       color: 'var(--ink)',
                       fontWeight: 600,

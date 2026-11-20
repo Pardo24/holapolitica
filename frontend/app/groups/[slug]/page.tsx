@@ -355,7 +355,7 @@ export default async function GroupDetailPage({
           <div
             style={{
               border: '1px solid var(--rule-strong)',
-              borderRadius: 14,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               padding: '18px 22px',
               marginTop: 12,
@@ -411,7 +411,7 @@ export default async function GroupDetailPage({
               style={{
                 display: 'flex',
                 height: 8,
-                borderRadius: 999,
+                borderRadius: 2,
                 overflow: 'hidden',
                 background: 'var(--paper-3)',
                 marginTop: 16,

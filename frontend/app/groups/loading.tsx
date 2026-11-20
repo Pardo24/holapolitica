@@ -32,7 +32,7 @@ export default async function GroupsLoading() {
             style={{
               padding: '16px 14px',
               border: '1px solid var(--rule)',
-              borderRadius: 12,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               minHeight: 110,
             }}

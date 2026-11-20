@@ -42,7 +42,7 @@ export default async function EmbedTopicPage({
   const name =
     (locale === 'es' ? topic.name_es : locale === 'en' ? topic.name_en : topic.name_ca) ||
     topic.name_ca;
-  const color = topic.color_hex ?? 'var(--ink)';
+  const color = 'var(--ink)';
   const kindLabel = topic.kind === 'sdg' ? t('kind_sdg') : t('kind_theme');
 
   const total = stat?.initiatives_total ?? 0;
@@ -105,12 +105,12 @@ export default async function EmbedTopicPage({
             </div>
             <span
               style={{
-                background: `${color}1A`,
+                background: 'var(--paper-2)',
                 color: 'var(--ink)',
                 fontWeight: 700,
                 fontSize: 14,
                 padding: '6px 14px',
-                borderRadius: 999,
+                borderRadius: 2,
                 whiteSpace: 'nowrap',
               }}
             >
@@ -208,7 +208,7 @@ function SegBar({
       style={{
         display: 'flex',
         height: 8,
-        borderRadius: 999,
+        borderRadius: 2,
         overflow: 'hidden',
         background: 'var(--rule)',
         margin: '4px 0 10px',

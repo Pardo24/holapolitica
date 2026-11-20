@@ -61,7 +61,7 @@ export function LawOriginalToggle({
           // It sits right next to the row's link: 24px is the minimum
           // target size there (WCAG 2.5.8).
           minHeight: 24,
-          borderRadius: 999,
+          borderRadius: 2,
           border: '1px solid var(--rule-strong)',
           background: open ? 'var(--paper-2)' : 'transparent',
           color: 'var(--ink-2)',
@@ -92,7 +92,7 @@ export function LawOriginalToggle({
             flexBasis: '100%',
             marginTop: 8,
             padding: '12px 14px',
-            borderRadius: 12,
+            borderRadius: 2,
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
             borderLeft: '3px solid var(--rule-strong)',

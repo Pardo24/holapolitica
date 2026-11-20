@@ -483,7 +483,7 @@ async function FilterBar({
         padding: 14,
         border: '1px solid var(--rule)',
         background: 'var(--paper)',
-        borderRadius: 14,
+        borderRadius: 2,
         marginTop: 18,
         marginBottom: 4,
         scrollMarginTop: 80,
@@ -611,7 +611,7 @@ function FilteredTabTopicPicker({
         padding: '18px 22px',
         border: '1px solid var(--rule)',
         background: 'var(--paper-2)',
-        borderRadius: 12,
+        borderRadius: 2,
       }}
     >
       <h2
@@ -653,7 +653,7 @@ function FilteredTabTopicPicker({
                   padding: '12px 14px',
                   background: 'var(--paper)',
                   border: '1px solid var(--rule)',
-                  borderRadius: 10,
+                  borderRadius: 2,
                   textDecoration: 'none',
                   color: 'inherit',
                   minHeight: 56,
@@ -667,7 +667,7 @@ function FilteredTabTopicPicker({
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    background: topic.topic_color_hex ?? 'var(--ink-3)',
+                    background: 'var(--ink)',
                     flex: 'none',
                   }}
                 />
@@ -786,7 +786,7 @@ function Chips({
             fontSize: 11,
             padding: '3px 8px',
             border: '1px solid var(--rule-strong)',
-            borderRadius: 999,
+            borderRadius: 2,
             color: 'var(--ink-2)',
             background: 'var(--paper)',
             textDecoration: 'none',
@@ -1016,7 +1016,7 @@ function ApprovalRateWidget({
     <div
       style={{
         padding: '20px 22px',
-        borderRadius: 14,
+        borderRadius: 2,
         border: '1px solid var(--ink)',
         background: 'var(--paper-2)',
       }}
@@ -1478,7 +1478,7 @@ function MetricCard({
         padding: '14px 16px',
         border: '1px solid var(--rule)',
         background: 'var(--paper-2)',
-        borderRadius: 12,
+        borderRadius: 2,
       }}
     >
       <div style={{ fontSize: 11, color: 'var(--ink-3)', marginBottom: 6 }}>{label}</div>
@@ -1512,7 +1512,7 @@ function CrossCard({
         padding: '18px 18px 20px',
         border: '1px solid var(--rule)',
         background: 'var(--paper-2)',
-        borderRadius: 12,
+        borderRadius: 2,
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
@@ -1942,7 +1942,7 @@ function InitiativeList({
               style={{
                 fontSize: 10,
                 padding: '2px 6px',
-                borderRadius: 999,
+                borderRadius: 2,
                 background: badge.color,
                 color: 'white',
                 flexShrink: 0,
@@ -2047,7 +2047,7 @@ function JointInitiativeList({
                 style={{
                   fontSize: 10,
                   padding: '2px 6px',
-                  borderRadius: 999,
+                  borderRadius: 2,
                   background: badge.color,
                   color: 'white',
                   whiteSpace: 'nowrap',
@@ -2113,7 +2113,7 @@ function HeadlineFigure({
       className="stats-headline-fig"
       style={{
         border: '1px solid var(--rule)',
-        borderRadius: 12,
+        borderRadius: 2,
         background: 'var(--paper-2)',
         padding: '14px 15px',
         display: 'flex',

@@ -174,7 +174,7 @@ export function BottomTabBar() {
             justify-content: center;
             width: 30px;
             height: 30px;
-            border-radius: 9px;
+            border-radius: 2px;
             transition: background-color .14s ease, color .14s ease;
           }
           .bottom-tab__label {

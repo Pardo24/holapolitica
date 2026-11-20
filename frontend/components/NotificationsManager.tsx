@@ -443,7 +443,7 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
             open
             style={{
               border: '1px solid var(--rule)',
-              borderRadius: 8,
+              borderRadius: 2,
               background: 'var(--paper)',
             }}
           >
@@ -493,7 +493,7 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
                         gap: 8,
                         padding: '10px 12px',
                         border: '1px solid var(--ink)',
-                        borderRadius: 6,
+                        borderRadius: 2,
                         cursor: 'pointer',
                         background: checked ? 'var(--ink)' : 'transparent',
                         color: checked ? 'var(--paper)' : 'var(--ink)',
@@ -534,7 +534,7 @@ export function NotificationsManager({ topics, groups = [] }: Props) {
           marginTop: 18,
           padding: 12,
           border: '1px dashed var(--ink-3)',
-          borderRadius: 6,
+          borderRadius: 2,
           fontSize: 13,
         }}
       >
@@ -713,7 +713,7 @@ function SubscribedView({
             style={{
               width: 48,
               height: 48,
-              borderRadius: 14,
+              borderRadius: 2,
               background: 'color-mix(in oklch, var(--accent) 14%, var(--paper))',
               color: 'var(--accent)',
               display: 'inline-flex',
@@ -784,7 +784,7 @@ function SubscribedView({
               fontSize: 13,
               color: 'var(--ink-3)',
               border: '1px dashed var(--rule-strong)',
-              borderRadius: 12,
+              borderRadius: 2,
               textAlign: 'center',
             }}
           >
@@ -961,7 +961,7 @@ function SubscribedView({
             color: 'var(--ink-2)',
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
-            borderRadius: 10,
+            borderRadius: 2,
           }}
         >
           {message}
@@ -1035,7 +1035,7 @@ function TopicChip({
           width: 8,
           height: 8,
           borderRadius: '50%',
-          background: topic.color_hex ?? 'var(--ink-3)',
+          background: 'var(--ink)',
           flex: 'none',
         }}
       />
@@ -1297,7 +1297,7 @@ function TopicTypeahead({
                     width: 10,
                     height: 10,
                     borderRadius: '50%',
-                    background: row.topic.color_hex ?? 'var(--ink-3)',
+                    background: 'var(--ink)',
                     marginRight: 8,
                     flex: 'none',
                   }}
@@ -1356,7 +1356,7 @@ function TopicSectionAccordion({
     <details
       open={defaultOpen}
       style={{
-        borderRadius: 12,
+        borderRadius: 2,
         border: '1px solid var(--rule)',
         background: 'var(--paper-2)',
         padding: '4px 4px',
@@ -1444,7 +1444,7 @@ function TopicSectionAccordion({
                     padding: '10px 12px',
                     minHeight: 44,
                     border: '1px solid var(--rule)',
-                    borderRadius: 10,
+                    borderRadius: 2,
                     background: checked ? 'var(--accent-soft)' : 'var(--paper)',
                     cursor: busy ? 'not-allowed' : 'pointer',
                     fontSize: 13,
@@ -1467,7 +1467,7 @@ function TopicSectionAccordion({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      background: tp.color_hex ?? 'var(--ink-3)',
+                      background: 'var(--ink)',
                       flex: 'none',
                     }}
                   />
@@ -1541,7 +1541,7 @@ function IosSwitch({
         style={{
           position: 'absolute',
           inset: 0,
-          borderRadius: 999,
+          borderRadius: 2,
           background: on ? 'var(--accent)' : 'var(--paper-3)',
           border: '1px solid',
           borderColor: on ? 'var(--accent)' : 'var(--rule-strong)',
@@ -1573,7 +1573,7 @@ function IosSwitch({
 const cardStyle: CSSProperties = {
   background: 'var(--paper)',
   border: '1px solid var(--rule)',
-  borderRadius: 14,
+  borderRadius: 2,
   padding: '14px 16px',
   boxShadow: '0 1px 0 rgba(15,23,42,.03)',
 };
@@ -1591,7 +1591,7 @@ const chipStyle: CSSProperties = {
   alignItems: 'center',
   gap: 8,
   padding: '6px 8px 6px 12px',
-  borderRadius: 999,
+  borderRadius: 2,
   background: 'var(--paper-2)',
   border: '1px solid var(--rule-strong)',
   minHeight: 32,
@@ -1622,7 +1622,7 @@ const typeaheadInputStyle: CSSProperties = {
   width: '100%',
   minHeight: 44,
   padding: '10px 14px',
-  borderRadius: 10,
+  borderRadius: 2,
   border: '1px solid var(--rule-strong)',
   background: 'var(--paper)',
   color: 'var(--ink)',
@@ -1642,7 +1642,7 @@ const listboxStyle: CSSProperties = {
   overflowY: 'auto',
   background: 'var(--paper)',
   border: '1px solid var(--rule-strong)',
-  borderRadius: 12,
+  borderRadius: 2,
   margin: 0,
   padding: 6,
   listStyle: 'none',
@@ -1667,7 +1667,7 @@ function optionStyle(active: boolean): CSSProperties {
     padding: '8px 10px',
     fontSize: 14,
     cursor: 'pointer',
-    borderRadius: 8,
+    borderRadius: 2,
     background: active ? 'var(--paper-2)' : 'transparent',
     color: 'var(--ink)',
     transition: 'background-color 80ms ease',
@@ -1689,7 +1689,7 @@ const linkButtonStyle: CSSProperties = {
 const smallButtonStyle: CSSProperties = {
   background: 'var(--paper)',
   border: '1px solid var(--rule-strong)',
-  borderRadius: 999,
+  borderRadius: 2,
   padding: '6px 12px',
   fontSize: 12,
   fontWeight: 500,
@@ -1716,7 +1716,7 @@ const primaryButtonStyle: CSSProperties = {
   background: 'var(--ink)',
   color: 'var(--paper)',
   border: '1px solid var(--ink)',
-  borderRadius: 10,
+  borderRadius: 2,
   padding: '10px 18px',
   fontSize: 14,
   fontWeight: 600,

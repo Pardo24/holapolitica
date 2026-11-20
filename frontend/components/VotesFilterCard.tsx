@@ -224,7 +224,7 @@ export function VotesFilterCard({
         marginTop: 14,
         padding: 14,
         border: '1px solid var(--rule)',
-        borderRadius: 14,
+        borderRadius: 2,
         background: 'var(--paper)',
       }}
     >
@@ -238,7 +238,7 @@ export function VotesFilterCard({
           gap: 10,
           padding: '11px 14px',
           border: '1px solid var(--rule-strong)',
-          borderRadius: 10,
+          borderRadius: 2,
           background: 'var(--paper)',
           width: '100%',
         }}
@@ -290,7 +290,7 @@ export function VotesFilterCard({
             maxWidth: '100%',
             overflowX: 'auto',
             border: '1px solid var(--rule-strong)',
-            borderRadius: 999,
+            borderRadius: 2,
             background: 'var(--paper-2)',
           }}
         >
@@ -332,7 +332,7 @@ export function VotesFilterCard({
             alignItems: 'center',
             gap: 6,
             padding: '7px 12px',
-            borderRadius: 999,
+            borderRadius: 2,
             border: `1px solid ${lawOnly ? 'var(--ink)' : 'var(--rule-strong)'}`,
             background: lawOnly ? 'var(--ink)' : 'var(--paper)',
             color: lawOnly ? 'var(--paper)' : 'var(--ink-2)',
@@ -367,7 +367,7 @@ export function VotesFilterCard({
               alignItems: 'center',
               gap: 7,
               padding: '7px 12px',
-              borderRadius: 999,
+              borderRadius: 2,
               border: '1px solid var(--rule-strong)',
               background: expanded ? 'var(--paper-2)' : 'var(--paper)',
               color: 'var(--ink-2)',
@@ -389,7 +389,7 @@ export function VotesFilterCard({
                   minWidth: 18,
                   height: 18,
                   padding: '0 5px',
-                  borderRadius: 999,
+                  borderRadius: 2,
                   background: 'var(--accent)',
                   color: 'var(--paper)',
                   fontSize: 11,
@@ -478,7 +478,7 @@ export function VotesFilterCard({
                 {initialTopicSlugs.map((slug) => {
                   const tp = topicBySlug.get(slug);
                   if (!tp) return null;
-                  const color = tp.color_hex ?? 'var(--ink-3)';
+                  const color = 'var(--ink)';
                   return (
                     <SelectedChip
                       key={slug}
@@ -610,7 +610,7 @@ function SelectedChip({
         alignItems: 'center',
         gap: 6,
         padding: '4px 4px 4px 10px',
-        borderRadius: 999,
+        borderRadius: 2,
         background: accentBg ?? 'var(--paper)',
         border: `1px solid ${accentBorder ?? 'var(--rule-strong)'}`,
         fontSize: 12,
@@ -641,7 +641,7 @@ function SelectedChip({
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: 999,
+          borderRadius: 2,
         }}
       >
         <X size={12} aria-hidden="true" />
@@ -674,7 +674,7 @@ function ResultSegment({
         alignItems: 'center',
         gap: 6,
         padding: '5px 12px',
-        borderRadius: 999,
+        borderRadius: 2,
         fontSize: 13,
         fontWeight: 600,
         border: 0,

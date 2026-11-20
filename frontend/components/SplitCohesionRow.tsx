@@ -73,7 +73,7 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
               background: 'var(--paper-3)',
               border: '1px solid var(--rule)',
               padding: '0 6px',
-              borderRadius: 999,
+              borderRadius: 2,
               letterSpacing: '0.04em',
               flex: 'none',
               whiteSpace: 'nowrap',
@@ -88,7 +88,7 @@ export function SplitCohesionRow({ row }: { row: CohesionResult }) {
           position: 'relative',
           height: 14,
           background: 'var(--paper-3)',
-          borderRadius: 7,
+          borderRadius: 2,
           overflow: 'hidden',
         }}
         role="img"

@@ -27,16 +27,16 @@ export default async function VotesLoading() {
       <div
         style={{
           border: '1px solid var(--rule)',
-          borderRadius: 14,
+          borderRadius: 2,
           padding: 14,
           marginBottom: 18,
         }}
       >
-        <div style={{ height: 44, background: 'var(--paper-2)', borderRadius: 10 }} />
+        <div style={{ height: 44, background: 'var(--paper-2)', borderRadius: 2 }} />
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-          <div style={{ flex: '0 0 230px', height: 32, background: 'var(--paper-2)', borderRadius: 999 }} />
-          <div style={{ flex: '0 0 110px', height: 32, background: 'var(--paper-2)', borderRadius: 999 }} />
-          <div style={{ flex: '0 0 120px', height: 32, background: 'var(--paper-2)', borderRadius: 999, marginLeft: 'auto' }} />
+          <div style={{ flex: '0 0 230px', height: 32, background: 'var(--paper-2)', borderRadius: 2 }} />
+          <div style={{ flex: '0 0 110px', height: 32, background: 'var(--paper-2)', borderRadius: 2 }} />
+          <div style={{ flex: '0 0 120px', height: 32, background: 'var(--paper-2)', borderRadius: 2, marginLeft: 'auto' }} />
         </div>
       </div>
 
@@ -48,7 +48,7 @@ export default async function VotesLoading() {
             key={i}
             style={{
               border: '1px solid var(--rule)',
-              borderRadius: 16,
+              borderRadius: 2,
               padding: '18px 18px 16px',
             }}
           >
@@ -64,7 +64,7 @@ export default async function VotesLoading() {
               style={{
                 height: 74,
                 background: 'var(--paper-2)',
-                borderRadius: 12,
+                borderRadius: 2,
                 marginBottom: 12,
               }}
             />

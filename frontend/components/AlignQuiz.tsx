@@ -564,7 +564,7 @@ export function AlignQuiz({
                           alignItems: 'flex-start',
                           gap: 8,
                           padding: '8px 10px',
-                          borderRadius: 10,
+                          borderRadius: 2,
                           border: '1px solid var(--rule)',
                           background: 'var(--paper-2)',
                           textDecoration: 'none',
@@ -661,7 +661,7 @@ export function AlignQuiz({
                     alignItems: 'baseline',
                     gap: 10,
                     padding: '9px 11px',
-                    borderRadius: 10,
+                    borderRadius: 2,
                     border: '1px solid var(--rule)',
                     background: 'var(--paper-2)',
                   }}
@@ -690,7 +690,7 @@ export function AlignQuiz({
           style={{
             marginTop: 18,
             padding: '10px 12px',
-            borderRadius: 8,
+            borderRadius: 2,
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
             fontSize: 12,
@@ -711,7 +711,7 @@ export function AlignQuiz({
             className="btn-sm"
             style={{
               border: '1px solid var(--rule-strong)',
-              borderRadius: 8,
+              borderRadius: 2,
               background: 'var(--paper)',
               color: 'var(--ink)',
               cursor: 'pointer',
@@ -727,7 +727,7 @@ export function AlignQuiz({
               className="btn-sm"
               style={{
                 border: '1px solid var(--rule-strong)',
-                borderRadius: 8,
+                borderRadius: 2,
                 background: 'var(--paper)',
                 color: 'var(--ink)',
                 cursor: 'pointer',
@@ -781,7 +781,7 @@ export function AlignQuiz({
             </span>
           )}
         </div>
-        <div style={{ height: 4, borderRadius: 999, background: 'var(--paper-3)', overflow: 'hidden' }}>
+        <div style={{ height: 4, borderRadius: 2, background: 'var(--paper-3)', overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', background: 'var(--accent)', transition: 'width .2s ease' }} />
         </div>
       </div>
@@ -989,13 +989,13 @@ function Bar({ pct, color, height = 8 }: { pct: number; color: string; height?: 
     <div
       style={{
         height,
-        borderRadius: 999,
+        borderRadius: 2,
         background: 'var(--paper-3)',
         overflow: 'hidden',
         marginTop: 10,
       }}
     >
-      <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 999 }} />
+      <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 2 }} />
     </div>
   );
 }
@@ -1012,7 +1012,7 @@ function Rank({ n, color, big = false }: { n: number; color: string; big?: boole
         width: size,
         height: size,
         flex: 'none',
-        borderRadius: 999,
+        borderRadius: 2,
         background: `color-mix(in oklch, ${color} 18%, var(--paper))`,
         color,
         fontSize: big ? 15 : 12,
@@ -1041,7 +1041,7 @@ function PodiumTop({
         style={{
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: 16,
+          borderRadius: 2,
           border: '1px solid var(--rule)',
           background: `color-mix(in oklch, ${color} 8%, var(--paper))`,
           padding: '18px 18px 16px',
@@ -1114,7 +1114,7 @@ function PodiumSecond({
     <div
       style={{
         minWidth: 0,
-        borderRadius: 14,
+        borderRadius: 2,
         border: '1px solid var(--rule)',
         background: 'var(--paper-2)',
         padding: '14px 14px 12px',
@@ -1219,7 +1219,7 @@ function StanceButton({
       aria-pressed={selected}
       style={{
         padding: '14px 10px',
-        borderRadius: 12,
+        borderRadius: 2,
         border: `1.5px solid ${color}`,
         background: selected ? `color-mix(in oklch, ${color} 16%, var(--paper))` : 'var(--paper)',
         boxShadow: selected ? `inset 0 0 0 2px ${color}` : 'none',

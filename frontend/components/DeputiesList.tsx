@@ -153,7 +153,7 @@ export function DeputiesList({
             gap: 8,
             padding: '8px 14px',
             border: '1px solid var(--rule-strong)',
-            borderRadius: 10,
+            borderRadius: 2,
             background: 'var(--paper)',
             flex: '1 1 240px',
             minWidth: 0,
@@ -415,7 +415,7 @@ export function DeputiesList({
                     border: '1px solid var(--ink)',
                     background: 'var(--paper)',
                     color: 'var(--ink)',
-                    borderRadius: 999,
+                    borderRadius: 2,
                     cursor: 'pointer',
                     minHeight: 44,
                   }}

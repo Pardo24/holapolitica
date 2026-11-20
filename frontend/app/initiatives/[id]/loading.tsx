@@ -36,7 +36,7 @@ export default async function InitiativeLoading() {
             style={{
               padding: 18,
               border: '1px solid var(--rule)',
-              borderRadius: 8,
+              borderRadius: 2,
               background: 'var(--paper-2)',
             }}
           >

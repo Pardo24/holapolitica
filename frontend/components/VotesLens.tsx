@@ -144,8 +144,8 @@ export function VotesLens({
                 className="sheet-row__icon"
                 aria-hidden="true"
                 style={{
-                  background: `color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 16%, var(--paper))`,
-                  color: tp.color_hex ?? 'var(--ink-2)',
+                  background: `color-mix(in oklch, var(--ink) 16%, var(--paper))`,
+                  color: 'var(--ink)',
                 }}
               >
                 <Icon size={17} strokeWidth={1.9} />

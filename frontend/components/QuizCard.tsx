@@ -323,7 +323,7 @@ function OptionButton({
           padding: '13px 16px',
           background: bg,
           border: `1.5px solid ${borderColor}`,
-          borderRadius: 14,
+          borderRadius: 2,
           color: 'var(--ink)',
           fontSize: 15,
           fontWeight: 600,

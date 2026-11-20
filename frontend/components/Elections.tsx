@@ -37,7 +37,9 @@ export async function ElectionsHeader({
       <header className="pacts-hero">
         <div className="pacts-hero__text">
           <p className="pacts-hero__eyebrow">{t('eyebrow')}</p>
-          <h1>{title}</h1>
+          {/* A poster headline on the election's pages, not inside a
+              vote-guide step, where it would shout over the question. */}
+          <h1 className={bare ? undefined : 'h-poster pacts-hero__poster'}>{title}</h1>
           <p className="pacts-hero__intro">{intro}</p>
         </div>
         {!bare && <Countdown />}

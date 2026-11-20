@@ -214,7 +214,7 @@ export default async function ApiDocsPage() {
           padding: 18,
           background: 'var(--paper-2)',
           border: '1px solid var(--rule-strong)',
-          borderRadius: 12,
+          borderRadius: 2,
         }}
       >
         <div className="eyebrow" style={{ marginBottom: 6 }}>
@@ -336,7 +336,7 @@ const inlineCode: React.CSSProperties = {
 const preStyle: React.CSSProperties = {
   background: 'var(--paper-3)',
   border: '1px solid var(--rule-strong)',
-  borderRadius: 6,
+  borderRadius: 2,
   padding: 14,
   fontSize: 12,
   overflowX: 'auto',

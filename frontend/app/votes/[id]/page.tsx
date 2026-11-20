@@ -560,7 +560,7 @@ export default async function VoteDetailPage({
             style={{
               margin: '0 0 18px',
               padding: '10px 12px',
-              borderRadius: 8,
+              borderRadius: 2,
               border: '1px solid var(--rule)',
               background: 'var(--paper-2)',
               fontSize: 13,
@@ -581,7 +581,7 @@ export default async function VoteDetailPage({
             style={{
               margin: '0 0 20px',
               padding: '14px 16px',
-              borderRadius: 12,
+              borderRadius: 2,
               border: '1px solid var(--rule)',
               background: 'var(--paper-2)',
               maxWidth: 860,
@@ -632,11 +632,11 @@ export default async function VoteDetailPage({
           )}
           {/* Result + margin. An assent vote says so explicitly — a plain
               green "Aprobada" would hide that no roll call happened. */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <ResultPill
-              result={vote.result}
-              label={vote.approved_by_assent ? t('assent_title') : t(`result.${vote.result}`)}
-            />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginBlock: 4 }}>
+            {/* The outcome as the clerk's stamp (.stamp in globals.css). */}
+            <span className={`stamp stamp--${vote.result}`}>
+              {vote.approved_by_assent ? t('assent_title') : t(`result.${vote.result}`)}
+            </span>
             {!vote.approved_by_assent && (
               <span className="tabular" style={{ color: 'var(--ink-3)', fontSize: 12 }}>
                 {t('margin_label', { n: Math.abs(margin) })}

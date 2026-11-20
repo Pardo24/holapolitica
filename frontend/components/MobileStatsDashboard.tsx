@@ -334,7 +334,7 @@ function Card({ children }: { children: React.ReactNode }) {
         padding: 20,
         border: '1px solid var(--rule-strong)',
         background: 'var(--paper-2)',
-        borderRadius: 14,
+        borderRadius: 2,
       }}
     >
       {children}
@@ -570,8 +570,8 @@ function InitiativesStateBody({
                           className="sheet-row__icon"
                           aria-hidden="true"
                           style={{
-                            background: `color-mix(in oklch, ${tp.color_hex ?? 'var(--ink-3)'} 16%, var(--paper))`,
-                            color: tp.color_hex ?? 'var(--ink-2)',
+                            background: `color-mix(in oklch, var(--ink) 16%, var(--paper))`,
+                            color: 'var(--ink)',
                           }}
                         >
                           <Icon size={17} strokeWidth={1.9} />
@@ -1185,7 +1185,7 @@ function InitiativeListExpandable({
                       marginTop: 10,
                       padding: '8px 12px',
                       border: '1px solid var(--ink)',
-                      borderRadius: 8,
+                      borderRadius: 2,
                       fontSize: 12,
                       color: 'var(--ink)',
                       textDecoration: 'none',
@@ -1439,7 +1439,7 @@ function BackfillNotice({
         padding: '14px 16px',
         background: 'var(--paper-2)',
         border: '1px dashed var(--rule)',
-        borderRadius: 10,
+        borderRadius: 2,
       }}
     >
       <div
@@ -1586,6 +1586,6 @@ const emptyHint: React.CSSProperties = {
   margin: 0,
   padding: '12px 14px',
   border: '1px dashed var(--rule)',
-  borderRadius: 8,
+  borderRadius: 2,
   background: 'var(--paper)',
 };

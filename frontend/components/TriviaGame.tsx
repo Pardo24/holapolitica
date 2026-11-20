@@ -902,7 +902,7 @@ function PartyBadge({ slug, color }: { slug: string; color: string | null }) {
         minWidth: 26,
         height: 20,
         padding: '0 6px',
-        borderRadius: 6,
+        borderRadius: 2,
         background: color ?? 'var(--ink-3)',
         color: '#fff',
         fontSize: 10.5,

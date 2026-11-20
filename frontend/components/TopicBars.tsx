@@ -84,7 +84,7 @@ export async function TopicBars({
   const cards = ordered.map((r) => {
         const pct = Math.round((r.ayes / r.cast) * 100);
         const Icon = topicIcon(iconBySlug.get(r.topic_slug));
-        const color = r.topic_color_hex ?? 'var(--ink-3)';
+        const color = 'var(--ink)';
         const thin = r.cast < MIN_N_RELIABLE;
         const name = nameOf(r);
 
@@ -99,7 +99,7 @@ export async function TopicBars({
                   justifyContent: 'center',
                   width: 30,
                   height: 30,
-                  borderRadius: 8,
+                  borderRadius: 2,
                   flex: 'none',
                   color,
                   background: `color-mix(in oklch, ${color} 16%, var(--paper))`,
@@ -172,7 +172,7 @@ export async function TopicBars({
           display: 'flex',
           flexDirection: 'column',
           padding: 14,
-          borderRadius: 12,
+          borderRadius: 2,
           border: '1px solid var(--rule)',
           background: 'var(--paper)',
           minWidth: 0,

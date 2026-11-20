@@ -32,7 +32,7 @@ export default async function TopicsLoading() {
             style={{
               padding: '14px 14px 16px',
               border: '1px solid var(--rule)',
-              borderRadius: 12,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               minHeight: 110,
               display: 'flex',
@@ -44,7 +44,7 @@ export default async function TopicsLoading() {
               style={{
                 width: 28,
                 height: 28,
-                borderRadius: 8,
+                borderRadius: 2,
                 background: 'var(--paper-3)',
               }}
             />

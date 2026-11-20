@@ -364,7 +364,7 @@ export default async function LleisPage({
         style={{
           marginTop: 32,
           padding: '20px 22px',
-          borderRadius: 16,
+          borderRadius: 2,
           background: 'var(--paper-2)',
           border: '1px solid var(--rule-strong)',
           display: 'grid',
@@ -382,7 +382,7 @@ export default async function LleisPage({
             justifyContent: 'center',
             width: 46,
             height: 46,
-            borderRadius: 13,
+            borderRadius: 2,
             background: 'var(--paper)',
             border: '1px solid var(--rule)',
             color: 'var(--ink-2)',

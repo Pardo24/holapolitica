@@ -85,7 +85,7 @@ export default async function VotesPage({
               gap: 8,
               padding: '8px 14px',
               border: '1px solid var(--rule-strong)',
-              borderRadius: 999,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               color: 'var(--ink)',
               fontSize: 13,
@@ -296,7 +296,7 @@ async function VotesListTab({ params }: { params: SearchParams }) {
           style={{
             margin: '12px 0 0',
             padding: '8px 12px',
-            borderRadius: 8,
+            borderRadius: 2,
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
             fontSize: 12.5,

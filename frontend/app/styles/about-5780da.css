@@ -47,7 +47,7 @@
 .about-section--lead {
   padding: 24px 26px;
   border: 0;
-  border-radius: 18px;
+  border-radius: 2px;
   background: var(--paper-2);
   border-left: 3px solid var(--accent);
 }
@@ -81,7 +81,7 @@
 .about-points li {
   position: relative;
   padding: 12px 14px 12px 40px;
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--paper-2);
   font-size: 15px;
   line-height: 1.5;
@@ -99,7 +99,7 @@
 }
 .about-callout {
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--aye) 35%, var(--paper));
   background: color-mix(in oklch, var(--aye) 8%, var(--paper));
   color: var(--ink) !important;
@@ -118,7 +118,7 @@
 .about-glossary { margin: 8px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .about-glossary > div {
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 2px;
   border: 1px solid var(--rule);
   background: var(--paper);
 }
@@ -130,7 +130,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 2px;
   border: 1px solid var(--rule);
   font-size: 14.5px;
   color: var(--ink-3);
@@ -144,7 +144,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 11px 14px;
-  border-radius: 12px;
+  border-radius: 2px;
   border: 1px solid var(--rule);
   text-decoration: none;
 }
@@ -155,7 +155,7 @@
 .about-dumps pre {
   margin: 0;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 2px;
   background: var(--paper-2);
   font-size: 12px;
   line-height: 1.45;
@@ -192,7 +192,7 @@
     display: inline-flex;
     align-items: center;
     border: 1px solid var(--rule-strong);
-    border-radius: 999px;
+    border-radius: 2px;
     font-size: 13px;
     white-space: nowrap;
     background: var(--paper);
@@ -208,6 +208,6 @@
 @media (max-width: 640px) {
   .page-toc { top: calc(env(safe-area-inset-top, 0px) + 55px); }
   .about-section { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 120px); }
-  .about-section--lead { padding: 18px 18px; border-radius: 16px; }
+  .about-section--lead { padding: 18px 18px; border-radius: 2px; }
   .about-section p { font-size: 15px; }
 }

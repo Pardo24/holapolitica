@@ -79,7 +79,7 @@ export function HighlightsCarousel({
       <div
         style={{
           border: '1px solid var(--rule-strong)',
-          borderRadius: 14,
+          borderRadius: 2,
           background: 'var(--paper-2)',
           padding: '24px 22px',
           minHeight: 180,
@@ -125,7 +125,7 @@ export function HighlightsCarousel({
       style={{
         position: 'relative',
         border: '1px solid var(--rule-strong)',
-        borderRadius: 14,
+        borderRadius: 2,
         background: 'var(--paper-2)',
         overflow: 'hidden',
       }}

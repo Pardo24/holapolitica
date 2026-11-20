@@ -95,7 +95,7 @@ export function ChamberMap({
       style={{
         display: 'block',
         padding: '18px 20px 16px',
-        borderRadius: 16,
+        borderRadius: 2,
         border: '1px solid var(--rule)',
         background: 'var(--paper)',
         boxShadow: 'var(--shadow-2)',

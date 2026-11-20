@@ -112,7 +112,7 @@ export default async function AboutDataPage() {
           padding: 18,
           background: 'var(--paper-2)',
           border: '1px solid var(--rule-strong)',
-          borderRadius: 12,
+          borderRadius: 2,
         }}
       >
         <div className="eyebrow" style={{ marginBottom: 6 }}>

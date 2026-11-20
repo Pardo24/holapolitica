@@ -90,7 +90,7 @@ export default function GlobalError({
             alignItems: 'center',
             padding: '10px 16px',
             border: '1px solid var(--rule-strong)',
-            borderRadius: 999,
+            borderRadius: 2,
             color: 'var(--ink-2)',
             textDecoration: 'none',
             fontWeight: 600,

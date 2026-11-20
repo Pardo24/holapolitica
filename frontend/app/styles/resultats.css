@@ -6,7 +6,7 @@
   display: inline-block;
   margin: 0 0 8px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--accent-warm-soft);
   color: var(--ink);
   font-size: 11.5px;
@@ -15,8 +15,8 @@
   text-transform: uppercase;
 }
 .rstatus__badge--final { background: var(--aye-soft); }
-.rstatus__bar { height: 8px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
-.rstatus__bar > span { display: block; height: 100%; background: var(--ink); border-radius: 999px; }
+.rstatus__bar { height: 8px; border-radius: 2px; background: var(--paper-3); overflow: hidden; }
+.rstatus__bar > span { display: block; height: 100%; background: var(--ink); border-radius: 2px; }
 .rstatus__facts {
   display: flex;
   flex-wrap: wrap;
@@ -67,7 +67,7 @@
   margin: 0 0 28px;
   padding: 16px 18px;
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--paper-2);
 }
 .rsum .esec-title { margin-top: 0; }
@@ -80,7 +80,7 @@
   min-height: 40px;
   padding: 0 12px;
   border: 1px solid var(--rule-strong);
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--paper);
   font: inherit;
   font-size: 14px;
@@ -100,7 +100,7 @@
   position: relative;
   display: flex;
   height: 14px;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--paper-3);
   overflow: hidden;
 }
@@ -140,7 +140,7 @@
   min-height: 74px;
   padding: 10px 12px;
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: 2px;
   background: var(--paper);
   color: var(--ink);
   text-decoration: none;
@@ -158,7 +158,7 @@
 .rcirc__name { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
 .rcirc__pct { font-size: 13.5px; color: var(--ink-2); }
 .rcirc__seats { min-width: 64px; text-align: right; font-size: 13.5px; font-weight: 700; color: var(--ink); }
-.rcirc__bar { height: 6px; margin-top: 6px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
+.rcirc__bar { height: 6px; margin-top: 6px; border-radius: 2px; background: var(--paper-3); overflow: hidden; }
 .rcirc__bar > span { display: block; height: 100%; background: var(--party); }
 .rcirc__elected { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
 .rcirc__elected a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
@@ -173,7 +173,7 @@
   margin: 0 0 16px;
   padding: 8px 12px;
   border: 1px dashed var(--rule-strong);
-  border-radius: 10px;
+  border-radius: 2px;
   font-size: 13.5px;
   color: var(--ink-2);
 }

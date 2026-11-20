@@ -83,7 +83,7 @@ export async function LawsThatMatter({
               key={tp.slug}
               href={`/lleis?topic_slug=${tp.slug}&result=approved,rejected&sort=voted` as Route}
               className="ltm__topic"
-              style={{ ['--topic' as string]: tp.color_hex ?? 'var(--accent)' }}
+              style={{ ['--topic' as string]: 'var(--ink)' }}
             >
               <span className="ltm__topic-icon" aria-hidden="true">
                 <Icon size={18} strokeWidth={1.9} />

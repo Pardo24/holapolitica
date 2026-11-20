@@ -101,7 +101,7 @@ export default async function EmbedSessionPage({ params }: { params: Promise<{ d
               <a
                 key={topic.slug}
                 href={`/avui/${date}#tema-${topic.slug}`}
-                style={{ ['--topic' as string]: topic.color_hex ?? 'var(--accent)' }}
+                style={{ ['--topic' as string]: 'var(--ink)' }}
               >
                 {pickTopicName(topic, locale)}
                 <span className="tabular">{n}</span>

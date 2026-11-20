@@ -83,7 +83,7 @@ export function EmbedPicker({
           style={{
             fontSize: 13,
             padding: '6px 10px',
-            borderRadius: 8,
+            borderRadius: 2,
             border: '1px solid var(--rule-strong)',
             background: 'var(--paper)',
             color: 'var(--ink)',
@@ -117,7 +117,7 @@ export function EmbedPicker({
           style={{
             background: 'var(--paper-3)',
             border: '1px solid var(--rule-strong)',
-            borderRadius: 6,
+            borderRadius: 2,
             padding: 12,
             fontSize: 12,
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',

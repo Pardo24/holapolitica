@@ -28,7 +28,7 @@ export function GameLawTags({
         <span
           key={tp.key}
           className="game-tags__topic"
-          style={{ ['--topic' as string]: tp.color ?? 'var(--rule-strong)' }}
+          style={{ ['--topic' as string]: 'var(--ink)' }}
         >
           {tp.name}
         </span>

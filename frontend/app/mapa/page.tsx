@@ -177,7 +177,7 @@ export default async function MapaPage({
           <div
             style={{
               border: '1px solid var(--rule)',
-              borderRadius: 12,
+              borderRadius: 2,
               background: 'var(--paper-2)',
               padding: 8,
             }}

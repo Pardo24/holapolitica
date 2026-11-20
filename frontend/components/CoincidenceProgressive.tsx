@@ -258,7 +258,7 @@ export function CoincidenceProgressive({
                     style={{
                       display: 'flex',
                       height: 8,
-                      borderRadius: 999,
+                      borderRadius: 2,
                       overflow: 'hidden',
                       background: 'var(--paper-3)',
                     }}
@@ -375,7 +375,7 @@ export function CoincidenceProgressive({
                           style={{
                             display: 'flex',
                             height: 8,
-                            borderRadius: 999,
+                            borderRadius: 2,
                             overflow: 'hidden',
                             background: 'var(--paper-3)',
                           }}
@@ -432,7 +432,7 @@ export function CoincidenceProgressive({
             border: '1px solid var(--rule-strong)',
             background: 'var(--paper)',
             color: 'var(--ink-2)',
-            borderRadius: 999,
+            borderRadius: 2,
             fontSize: 13,
             fontWeight: 600,
           }}
@@ -453,7 +453,7 @@ function chipStyle(active: boolean, accent: string): React.CSSProperties {
     alignItems: 'center',
     gap: 8,
     padding: '6px 12px',
-    borderRadius: 999,
+    borderRadius: 2,
     border: active ? '1px solid var(--ink)' : '1px solid var(--rule)',
     background: active ? 'var(--ink)' : 'var(--paper)',
     color: active ? 'var(--paper)' : 'var(--ink)',

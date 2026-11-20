@@ -37,7 +37,7 @@ export function LawCardFrame({
       style={{
         listStyle: 'none',
         border: '1px solid var(--rule)',
-        borderRadius: 16,
+        borderRadius: 2,
         background: 'var(--paper)',
         boxShadow: 'var(--shadow-2)',
         padding: '18px 18px 16px',
@@ -108,7 +108,7 @@ export function LawCardVoteBox({ children }: { children: ReactNode }) {
       style={{
         marginTop: 14,
         padding: '12px 13px',
-        borderRadius: 12,
+        borderRadius: 2,
         border: '1px solid var(--rule)',
         background: 'var(--paper-2)',
       }}
@@ -197,7 +197,7 @@ export function LawCardBand({
   return (
     <div className={`law-card-band law-card-band--${tone}`}>
       {topic ? (
-        <span className="law-card-band__topic" style={{ ['--topic' as string]: topic.color_hex ?? 'var(--ink-3)' }}>
+        <span className="law-card-band__topic" style={{ ['--topic' as string]: 'var(--ink)' }}>
           {TopicIcon && <TopicIcon size={14} strokeWidth={2} aria-hidden="true" />}
           {pickTopicName(topic, locale)}
         </span>

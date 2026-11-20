@@ -19,7 +19,7 @@
   min-height: 58px;
   padding: 9px 12px;
   border: 1px solid color-mix(in oklch, var(--hue-lleis) 20%, var(--rule));
-  border-radius: 14px;
+  border-radius: 2px;
   background: var(--paper);
   color: var(--ink);
   text-decoration: none;
@@ -48,7 +48,7 @@
   gap: 6px;
   min-height: 48px;
   margin-top: 10px;
-  border-radius: 14px;
+  border-radius: 2px;
   border: 1.5px dashed color-mix(in oklch, var(--hue-lleis) 40%, var(--rule));
   color: var(--hue-lleis-ink);
   font-size: 14.5px;

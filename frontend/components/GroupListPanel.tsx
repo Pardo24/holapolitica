@@ -142,7 +142,7 @@ function GroupCard({
               display: 'inline-flex',
               alignItems: 'baseline',
               padding: '4px 10px',
-              borderRadius: 999,
+              borderRadius: 2,
               background: 'var(--paper)',
               border: '1px solid var(--rule-strong)',
               fontWeight: 600,

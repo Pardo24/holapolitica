@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { BarChart3, Bell, CalendarDays, Gamepad2, Users, Scale, Vote } from '@/components/icons';
+import { Bell, Gamepad2 } from '@/components/icons';
 
 import { LangSwitch } from '@/components/LangSwitch';
 import { NavLink } from '@/components/NavLink';
@@ -32,10 +32,8 @@ export async function TopNav() {
   // recurring lookups, so the top nav doesn't need to carry them.
   // Topics and Groups remain reachable via tabs inside /votes and
   // /persons.
-  // Every entry carries a small Lucide icon — they're sober, geometric
-  // and scannable, so the strip reads at a glance without losing the
-  // serif/grayscale aesthetic. Stroke 1.8 + size 14 keeps them lighter
-  // than the wordmark so the label still leads.
+  // Words only, like the sections of a newspaper: the icons beside each
+  // entry were decoration that said nothing the label didn't.
   // A deliberately small, visual nav — the four things we want people to do.
   // Everything else (Temes, Legislatures, Premsa, Persones, "Com et
   // representen?") stays reachable from within the pages and the footer, off
@@ -56,32 +54,27 @@ export async function TopNav() {
   // a phone — where most of our traffic is — two adjacent nav items that
   // lead to halves of one answer just cost a tap and some confusion. The
   // party cards now live inside the deputies hub next to the chamber map.
-  const primary: { href: Route; label: string; icon: React.ReactNode }[] = [
+  const primary: { href: Route; label: string }[] = [
     // The 29 November 2026 election: candidacies and pacts, until the vote.
     {
       href: '/eleccions' as Route,
       label: t('eleccions'),
-      icon: <Vote size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/lleis' as Route,
       label: t('lleis'),
-      icon: <Scale size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/avui' as Route,
       label: t('plens'),
-      icon: <CalendarDays size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/el-teu-diputat' as Route,
       label: t('deputy'),
-      icon: <Users size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
     {
       href: '/stats',
       label: t('stats'),
-      icon: <BarChart3 size={17} aria-hidden="true" strokeWidth={1.8} />,
     },
   ];
 
@@ -102,7 +95,7 @@ export async function TopNav() {
       <ul className="nav-links" role="list">
         {primary.map((it) => (
           <li key={it.href}>
-            <NavLink href={it.href} label={it.label} icon={it.icon} />
+            <NavLink href={it.href} label={it.label} />
           </li>
         ))}
       </ul>

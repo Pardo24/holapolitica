@@ -42,7 +42,7 @@ export async function JourneyDetail({ type }: { type: InitiativeType }) {
               aria-current={active ? 'page' : undefined}
               style={{
                 padding: '6px 13px',
-                borderRadius: 999,
+                borderRadius: 2,
                 border: `1px solid ${active ? 'var(--ink)' : 'var(--rule-strong)'}`,
                 background: active ? 'var(--ink)' : 'var(--paper)',
                 color: active ? 'var(--paper)' : 'var(--ink-2)',

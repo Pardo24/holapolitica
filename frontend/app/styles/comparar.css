@@ -6,7 +6,7 @@
   align-items: center;
   min-height: 34px;
   padding: 0 12px;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid color-mix(in oklch, var(--topic) 30%, var(--rule));
   background: var(--paper);
   font-size: 13px;
@@ -17,7 +17,7 @@
 .cmp__topic:hover { background: color-mix(in oklch, var(--topic) 8%, var(--paper)); color: var(--ink); }
 .cmp__topic--on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .cmp__topic--on:hover { background: var(--ink); color: var(--paper); }
-.cmp__panel { padding: 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); box-shadow: var(--shadow-1); }
+.cmp__panel { padding: 18px; border: 1px solid var(--rule); border-radius: 2px; background: var(--paper); box-shadow: var(--shadow-1); }
 .cmp__title { margin: 0 0 6px; font-family: var(--font-serif); font-size: 22px; line-height: 1.25; color: var(--ink); }
 .cmp__legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 14px; font-size: 12.5px; color: var(--ink-2); }
 .cmp__key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
@@ -31,7 +31,7 @@
   align-items: center;
   gap: 14px;
   padding: 8px 6px;
-  border-radius: 10px;
+  border-radius: 2px;
   color: inherit;
   text-decoration: none;
 }
@@ -41,7 +41,7 @@
 .cmp__disc { flex: none; width: 24px; height: 24px; border-radius: 999px; }
 .cmp__name { display: flex; flex-direction: column; min-width: 0; font-size: 14px; font-weight: 700; color: var(--ink); }
 .cmp__ballot { font-size: 11px; font-weight: 600; color: var(--ink-3); }
-.cmp__bar { display: flex; height: 22px; border-radius: 6px; overflow: hidden; background: var(--paper-3); }
+.cmp__bar { display: flex; height: 22px; border-radius: 2px; overflow: hidden; background: var(--paper-3); }
 .cmp__seg { display: flex; align-items: center; justify-content: center; min-width: 0; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
 .cmp__seg--aye { background: var(--aye); }
 .cmp__seg--abst { background: var(--abst); color: var(--ink); } /* white on amber was ~3:1 */
@@ -61,11 +61,11 @@
    the topic's latest laws, the groups as chips on three lines. */
 .cmp__lede { margin: 0 0 14px; max-width: 64ch; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
 .claw { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.claw__card { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper); box-shadow: var(--shadow-1); }
+.claw__card { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 2px; background: var(--paper); box-shadow: var(--shadow-1); }
 .claw__title { font-size: 15.5px; font-weight: 700; line-height: 1.35; color: var(--ink); text-decoration: none; }
 .claw__title:hover { text-decoration: underline; }
 .claw__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; font-size: 12.5px; color: var(--ink-3); }
-.claw__outcome { padding: 2px 8px; border-radius: 999px; background: var(--paper-3); font-weight: 700; color: var(--ink-2); }
+.claw__outcome { padding: 2px 8px; border-radius: 2px; background: var(--paper-3); font-weight: 700; color: var(--ink-2); }
 .claw__outcome--approved { background: color-mix(in oklch, var(--aye) 16%, var(--paper)); color: color-mix(in oklch, var(--aye) 70%, var(--ink)); }
 .claw__outcome--rejected { background: color-mix(in oklch, var(--no) 14%, var(--paper)); color: color-mix(in oklch, var(--no) 70%, var(--ink)); }
 .claw__sides { display: flex; flex-direction: column; gap: 6px; margin: 0; }
@@ -76,7 +76,7 @@
 .claw__side--no dt::before { background: var(--no); }
 .claw__side--abstention dt::before { background: var(--abst); }
 .claw__side dd { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; }
-.claw__group { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px 2px 3px; border: 1px solid var(--rule); border-radius: 999px; background: var(--paper); font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.claw__group { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px 2px 3px; border: 1px solid var(--rule); border-radius: 2px; background: var(--paper); font-size: 12.5px; font-weight: 700; color: var(--ink); }
 .claw__group img { width: 18px; height: 18px; border-radius: 999px; object-fit: contain; background: #fff; }
 .claw__disc { width: 16px; height: 16px; border-radius: 999px; }
 @media (max-width: 640px) {

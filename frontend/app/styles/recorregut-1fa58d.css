@@ -12,7 +12,7 @@
   column-gap: 12px;
   row-gap: 4px;
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 2px;
   border: 1.5px solid var(--rule);
   background: var(--paper);
   color: var(--ink);
@@ -20,27 +20,27 @@
   box-shadow: var(--shadow-2);
 }
 .rec-type:hover { border-color: var(--rule-strong); }
-.rec-type__icon { grid-row: 1 / span 3; width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-lleis-soft); color: var(--hue-lleis-ink); }
+.rec-type__icon { grid-row: 1 / span 3; width: 40px; height: 40px; border-radius: 2px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-lleis-soft); color: var(--hue-lleis-ink); }
 .rec-type__name { font-size: 16px; font-weight: 800; line-height: 1.25; }
 .rec-type__desc { font-size: 13px; line-height: 1.45; color: var(--ink-2); }
-.rec-badge { justify-self: start; padding: 1px 8px; border-radius: 999px; border: 1px dashed var(--rule-strong); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.rec-badge { justify-self: start; padding: 1px 8px; border-radius: 2px; border: 1px dashed var(--rule-strong); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
 .rec-badge--law { border-style: solid; border-color: color-mix(in oklch, var(--aye) 45%, var(--paper)); background: color-mix(in oklch, var(--aye) 12%, var(--paper)); color: color-mix(in oklch, var(--aye) 70%, var(--ink)); }
 .rec-type.is-active { border-color: var(--hue-lleis); background: color-mix(in oklch, var(--hue-lleis) 7%, var(--paper)); box-shadow: 0 0 0 3px color-mix(in oklch, var(--hue-lleis) 18%, transparent); }
 .rec-type.is-active .rec-type__icon { background: var(--hue-lleis); color: #fff; }
 
-.rec-journey { scroll-margin-top: 80px; padding: 20px 18px; border-radius: 20px; background: var(--paper-2); border: 1px solid var(--rule); }
+.rec-journey { scroll-margin-top: 80px; padding: 20px 18px; border-radius: 2px; background: var(--paper-2); border: 1px solid var(--rule); }
 .rec-journey__head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 18px; }
-.rec-journey__icon { flex: none; width: 44px; height: 44px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-lleis); color: #fff; }
+.rec-journey__icon { flex: none; width: 44px; height: 44px; border-radius: 2px; display: inline-flex; align-items: center; justify-content: center; background: var(--hue-lleis); color: #fff; }
 .rec-journey__head h2 { margin: 0; font-family: var(--font-serif); font-size: clamp(22px, 3vw, 28px); line-height: 1.15; color: var(--ink); }
 .rec-journey__head p { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
 .rec-steps__n { position: relative; z-index: 1; width: 36px; height: 36px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: var(--paper); border: 2px solid var(--hue-lleis); color: var(--hue-lleis-ink); font-size: 14px; font-weight: 800; }
-.rec-steps__card { padding: 12px 14px; border-radius: 14px; background: var(--paper); border: 1px solid var(--rule); }
+.rec-steps__card { padding: 12px 14px; border-radius: 2px; background: var(--paper); border: 1px solid var(--rule); }
 .rec-steps__card h3 { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 16px; font-weight: 800; color: var(--ink); }
 .rec-steps__card h3 span { font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
 .rec-steps__card p { margin: 5px 0 0; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
 
 .rec-glossary { margin: 26px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 10px; }
-.rec-glossary > div { padding: 14px; border-radius: 14px; border: 1px solid var(--rule); background: var(--paper); }
+.rec-glossary > div { padding: 14px; border-radius: 2px; border: 1px solid var(--rule); background: var(--paper); }
 .rec-glossary dt { font-size: 15px; font-weight: 800; color: var(--ink); }
 .rec-glossary dd { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
 .rec-cta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; }

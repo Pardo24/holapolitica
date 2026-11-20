@@ -102,7 +102,7 @@ export default async function ProgramsPage({
             href={hrefFor(tp.slug, one?.slug ?? null)}
             className={tp.slug === topic?.slug ? 'cmp__topic cmp__topic--on' : 'cmp__topic'}
             aria-current={tp.slug === topic?.slug ? 'page' : undefined}
-            style={{ ['--topic' as string]: tp.color_hex ?? 'var(--ink-3)' }}
+            style={{ ['--topic' as string]: 'var(--ink)' }}
             scroll={false}
           >
             {pickTopicName(tp, locale)}

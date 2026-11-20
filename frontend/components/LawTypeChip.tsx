@@ -59,7 +59,7 @@ export async function LawTypeChip({
             alignItems: 'center',
             gap: 5,
             padding: size === 'md' ? '3px 10px' : '2px 8px',
-            borderRadius: 999,
+            borderRadius: 2,
             fontSize,
             fontWeight: 600,
             color: 'var(--ink-2)',

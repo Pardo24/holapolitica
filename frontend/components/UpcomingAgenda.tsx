@@ -58,7 +58,7 @@ export async function UpcomingAgenda({ sessions, withdrawn = 0 }: UpcomingAgenda
         <div
           style={{
             padding: '20px 22px',
-            borderRadius: 14,
+            borderRadius: 2,
             border: '1px dashed var(--rule-strong)',
             background: 'var(--paper-2)',
             display: 'flex',
@@ -115,7 +115,7 @@ export async function UpcomingAgenda({ sessions, withdrawn = 0 }: UpcomingAgenda
             listStyle: 'none',
             margin: 0,
             padding: 0,
-            borderRadius: 14,
+            borderRadius: 2,
             border: '1px solid var(--rule)',
             background: 'var(--paper-2)',
             overflow: 'hidden',

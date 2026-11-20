@@ -71,7 +71,7 @@ export default async function StatsLoading() {
                 width: 220,
                 height: 140,
                 background: 'var(--paper-2)',
-                borderRadius: 8,
+                borderRadius: 2,
               }}
             />
           ))}

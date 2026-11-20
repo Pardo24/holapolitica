@@ -248,7 +248,7 @@ export default async function EmbedInitiativePage({
                   width: 6,
                   height: 6,
                   borderRadius: 999,
-                  background: topic.color_hex ?? 'var(--ink-3)',
+                  background: 'var(--ink)',
                   flex: 'none',
                 }}
               />

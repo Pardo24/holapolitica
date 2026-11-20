@@ -69,7 +69,7 @@ export function DailyNotification({ labels }: { labels: DailyNotificationLabels 
         alignItems: 'center',
         gap: 12,
         padding: '12px 12px 12px 14px',
-        borderRadius: 14,
+        borderRadius: 2,
         background: 'var(--ink)',
         color: 'var(--paper)',
         textDecoration: 'none',
@@ -85,7 +85,7 @@ export function DailyNotification({ labels }: { labels: DailyNotificationLabels 
           width: 38,
           height: 38,
           flex: 'none',
-          borderRadius: 10,
+          borderRadius: 2,
           background: 'color-mix(in oklch, var(--paper) 16%, var(--ink))',
           color: 'var(--paper)',
         }}

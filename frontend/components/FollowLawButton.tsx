@@ -129,7 +129,7 @@ export function FollowLawButton({ initiativeId }: { initiativeId: number }) {
         alignItems: 'center',
         gap: 7,
         padding: '8px 14px',
-        borderRadius: 999,
+        borderRadius: 2,
         border: `1px solid ${following ? 'var(--ink)' : 'var(--rule-strong)'}`,
         background: following ? 'var(--ink)' : 'var(--paper)',
         color: following ? 'var(--paper)' : 'var(--ink-2)',
